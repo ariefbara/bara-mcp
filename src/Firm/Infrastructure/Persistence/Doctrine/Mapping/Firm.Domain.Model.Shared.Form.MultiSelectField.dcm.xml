@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Shared\Form\MultiSelectField" 
+            table="MultiSelectField" 
+    >
+        <many-to-one  field="form" 
+                      target-entity="Firm\Domain\Model\Shared\Form"
+                      inversed-by="multiSelectFields"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="selectField" 
+                    target-entity="Firm\Domain\Model\Shared\Form\SelectField"
+        >
+            <join-column name="SelectField_id" referenced-column-name="id" />
+            <cascade>
+                <cascade-persist />
+            </cascade>
+        </one-to-one>
+        <embedded name="minMaxValue" 
+                  class="Resources\Domain\ValueObject\IntegerRange" 
+                  use-column-prefix="false" 
+        />
+        <field name="removed" type="boolean" />
+    </entity>
+</doctrine-mapping>

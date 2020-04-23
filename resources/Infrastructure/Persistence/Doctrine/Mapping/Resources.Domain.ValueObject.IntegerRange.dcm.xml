@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="Resources\Domain\ValueObject\IntegerRange">
+        <field name="minValue" column="minimumValue" type="integer" nullable='true' />
+        <field name="maxValue" column="maximumValue" type="integer" nullable='true' />
+    </embeddable>
+</doctrine-mapping>

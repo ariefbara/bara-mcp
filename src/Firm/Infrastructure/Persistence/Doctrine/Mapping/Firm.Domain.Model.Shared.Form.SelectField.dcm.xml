@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Shared\Form\SelectField" 
+            table="SelectField" 
+    >
+        <id name="id" type="guid" />
+        <embedded name="fieldVO" 
+                  class="Firm\Domain\Model\Shared\Form\FieldVO" 
+                  use-column-prefix="false" 
+        />
+        <one-to-many  field="options" 
+                      target-entity="Firm\Domain\Model\Shared\Form\SelectField\Option"
+                      mapped-by="selectField"
+        >
+            <cascade>
+                <cascade-persist />
+            </cascade>
+        </one-to-many>
+    </entity>
+</doctrine-mapping>

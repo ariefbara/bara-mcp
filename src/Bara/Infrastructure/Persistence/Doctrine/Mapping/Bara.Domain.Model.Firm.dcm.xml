@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Bara\Domain\Model\Firm" 
+            table="Firm" 
+            repository-class="Bara\Infrastructure\Persistence\Doctrine\Repository\DoctrineFirmRepository" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="identifier" type="string" length="256" nullable="false"/>
+        <field name="suspended" type="boolean" />
+        <one-to-many  field="managers" 
+                      target-entity="Bara\Domain\Model\Firm\Manager"
+                      mapped-by="firm"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

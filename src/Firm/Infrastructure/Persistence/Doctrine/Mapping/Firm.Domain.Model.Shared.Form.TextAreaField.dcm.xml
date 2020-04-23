@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Shared\Form\TextAreaField" 
+            table="TextAreaField" 
+    >
+        <many-to-one  field="form" 
+                      target-entity="Firm\Domain\Model\Shared\Form"
+                      inversed-by="textAreaFields"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <embedded name="fieldVO" 
+                  class="Firm\Domain\Model\Shared\Form\FieldVO" 
+                  use-column-prefix="false" />
+        <embedded name="minMaxValue" 
+                  class="Resources\Domain\ValueObject\IntegerRange" 
+                  use-column-prefix="false" />
+        <field name="placeholder" type="string" length="1024" nullable="true"/>
+        <field name="defaultValue" type="text" nullable="true"/>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

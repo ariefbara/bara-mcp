@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Registrant" 
+            table="Registrant" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineRegistrantRepository" 
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Firm\Domain\Model\Firm\Program"
+                      inversed-by="registrants"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="client" 
+                      target-entity="Firm\Domain\Model\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        <field name="appliedTime" type="datetime_immutable" nullable="true"/>
+        <field name="concluded" type="boolean" />
+        <field name="note" type="string" length="256" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

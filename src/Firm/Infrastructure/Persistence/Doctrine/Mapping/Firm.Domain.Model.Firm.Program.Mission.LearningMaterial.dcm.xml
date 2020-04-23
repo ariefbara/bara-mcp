@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Mission\LearningMaterial" 
+            table="LearningMaterial" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineLearningMaterialRepository" 
+    >
+        <many-to-one  field="mission" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Mission"
+        >
+            <join-column name="Mission_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="true"/>
+        <field name="content" type="text" nullable="true"/>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>
