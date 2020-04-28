@@ -10,7 +10,7 @@ use Firm\Domain\Model\{
     Client,
     Firm,
     Firm\Program\Coordinator,
-    Firm\Program\Mentor,
+    Firm\Program\Consultant,
     Firm\Program\Participant,
     Firm\Program\Registrant
 };
@@ -71,7 +71,7 @@ class Program extends ModelContainEvents
      *
      * @var ArrayCollection
      */
-    protected $mentors;
+    protected $consultants;
 
     /**
      *
@@ -155,25 +155,25 @@ class Program extends ModelContainEvents
         $this->removed = true;
     }
 
-    public function assignPersonnelAsMentor(Personnel $personnel): Mentor
+    public function assignPersonnelAsConsultant(Personnel $personnel): Consultant
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('personnel', $personnel));
-        $mentor = $this->mentors->matching($criteria)->first();
+        $consultant = $this->consultants->matching($criteria)->first();
 
-        if (!empty($mentor)) {
-            if (!$mentor->isRemoved()) {
-                $errorDetail = 'forbidden: personnel already assigned as mentor';
+        if (!empty($consultant)) {
+            if (!$consultant->isRemoved()) {
+                $errorDetail = 'forbidden: personnel already assigned as consultant';
                 throw RegularException::forbidden($errorDetail);
             } else {
-                $mentor->reassign();
+                $consultant->reassign();
             }
         } else {
             $id = Uuid::generateUuid4();
-            $mentor = new Mentor($this, $id, $personnel);
-            $this->mentors->add($mentor);
+            $consultant = new Consultant($this, $id, $personnel);
+            $this->consultants->add($consultant);
         }
-        return $mentor;
+        return $consultant;
     }
 
     public function assignPersonnelAsCoordinator(Personnel $personnel): Coordinator

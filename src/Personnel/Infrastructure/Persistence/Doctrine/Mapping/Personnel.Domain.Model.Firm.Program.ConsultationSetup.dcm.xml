@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Program\ConsultationSetup" 
+            table="ConsultationSetup" 
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Personnel\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="sessionDuration" type="smallint" nullable="false"/>
+        <many-to-one  field="participantFeedbackForm" 
+                      target-entity="Personnel\Domain\Model\Firm\ConsultationFeedbackForm"
+        >
+            <join-column name="ConsultationFeedbackForm_idForParticipant" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="consultantFeedbackForm" 
+                      target-entity="Personnel\Domain\Model\Firm\ConsultationFeedbackForm"
+        >
+            <join-column name="ConsultationFeedbackForm_idForConsultant" referenced-column-name="id" />
+        </many-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

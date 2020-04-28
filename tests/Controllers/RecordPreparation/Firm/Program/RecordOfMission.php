@@ -21,7 +21,7 @@ class RecordOfMission implements Record
      *
      * @var RecordOfMission
      */
-    public $previousMission;
+    public $parent;
 
     /**
      *
@@ -31,10 +31,10 @@ class RecordOfMission implements Record
     public $id, $name, $description, $published = false, $position;
 
     function __construct(RecordOfProgram $program, RecordOfWorksheetForm $worksheetForm, $index,
-        ?RecordOfMission $previousMission)
+        ?RecordOfMission $parent)
     {
         $this->program = $program;
-        $this->previousMission = $previousMission;
+        $this->parent = $parent;
         $this->worksheetForm = $worksheetForm;
         $this->id = "mission-$index-id";
         $this->name = "mission $index name";
@@ -46,7 +46,7 @@ class RecordOfMission implements Record
     {
         return [
             "Program_id" => $this->program->id,
-            "previousMission_id" => empty($this->previousMission)? null: $this->previousMission->id,
+            "parent_id" => empty($this->parent)? null: $this->parent->id,
             "WorksheetForm_id" => $this->worksheetForm->id,
             "id" => $this->id,
             "name" => $this->name,

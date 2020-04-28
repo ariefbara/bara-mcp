@@ -21,8 +21,8 @@
         >
             <cascade><cascade-persist /></cascade>
         </one-to-many>
-        <one-to-many  field="mentors" 
-                      target-entity="Firm\Domain\Model\Firm\Program\Mentor"
+        <one-to-many  field="consultants" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Consultant"
                       mapped-by="program" 
         >
             <cascade><cascade-persist /></cascade>

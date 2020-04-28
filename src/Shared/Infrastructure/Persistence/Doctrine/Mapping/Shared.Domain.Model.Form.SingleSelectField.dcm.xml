@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Shared\Domain\Model\Form\SingleSelectField" 
+            table="SingleSelectField" 
+    >
+        <many-to-one  field="form" 
+                      target-entity="Shared\Domain\Model\Form"
+                      inversed-by="singleSelectFields"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="selectField" 
+                    target-entity="Shared\Domain\Model\Form\SelectField"
+        >
+            <join-column name="SelectField_id" referenced-column-name="id" />
+        </one-to-one>
+        <field name="defaultValue" type="string" length="256" nullable="true"/>
+        <field name="removed" type="boolean" />
+    </entity>
+</doctrine-mapping>

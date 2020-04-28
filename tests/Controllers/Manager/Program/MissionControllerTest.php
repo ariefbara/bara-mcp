@@ -58,7 +58,7 @@ class MissionControllerTest extends MissionTestCase
         $this->connection->table('Mission')->truncate();
         
         $response = [
-            "previousMission" => null,
+            "parent" => null,
             "name" => $this->missionInput['name'],
             "description" => $this->missionInput['description'],
             "position" => $this->missionInput['position'],
@@ -75,7 +75,7 @@ class MissionControllerTest extends MissionTestCase
         
         $missionRecord = [
             "Program_id" => $this->program->id,
-            "previousMission_id" => null,
+            "parent_id" => null,
             "WorksheetForm_id" => $this->worksheetFormTwo->id,
             "name" => $this->missionInput['name'],
             "description" => $this->missionInput['description'],
@@ -113,7 +113,7 @@ class MissionControllerTest extends MissionTestCase
     public function test_addBranch()
     {
         $response = [
-            "previousMission" => [
+            "parent" => [
                 "id" => $this->missionOne->id,
                 "name" => $this->missionOne->name,
             ],
@@ -134,7 +134,7 @@ class MissionControllerTest extends MissionTestCase
         
         $missionRecord = [
             "Program_id" => $this->program->id,
-            "previousMission_id" => $this->missionOne->id,
+            "parent_id" => $this->missionOne->id,
             "WorksheetForm_id" => $this->worksheetFormTwo->id,
             "name" => $this->missionInput['name'],
             "description" => $this->missionInput['description'],
@@ -166,7 +166,7 @@ class MissionControllerTest extends MissionTestCase
     public function test_update()
     {
         $response = [
-            "previousMission" => [
+            "parent" => [
                 "id" => $this->mission->id,
                 "name" => $this->mission->name,
             ],
@@ -188,7 +188,7 @@ class MissionControllerTest extends MissionTestCase
         $missionRecord = [
             "Program_id" => $this->program->id,
             "id" => $this->missionOne->id,
-            "previousMission_id" => $this->mission->id,
+            "parent_id" => $this->mission->id,
             "WorksheetForm_id" => $this->missionOne->worksheetForm->id,
             "name" => $this->missionInput['name'],
             "description" => $this->missionInput['description'],
@@ -212,7 +212,7 @@ class MissionControllerTest extends MissionTestCase
     public function test_publish()
     {
         $response = [
-            "previousMission" => [
+            "parent" => [
                 "id" => $this->mission->id,
                 "name" => $this->mission->name,
             ],
@@ -252,7 +252,7 @@ class MissionControllerTest extends MissionTestCase
     public function test_show()
     {
         $response = [
-            "previousMission" => [
+            "parent" => [
                 "id" => $this->mission->id,
                 "name" => $this->mission->name,
             ],
@@ -284,16 +284,16 @@ class MissionControllerTest extends MissionTestCase
             "total" => 3,
             "list" => [
                 [
-                    "previousMission" => null,
+                    "parent" => null,
                     "id" => $this->mission->id,
                     "name" => $this->mission->name,
                     "position" => $this->mission->position,
                     "published" => $this->mission->published,
                 ],
                 [
-                    "previousMission" => [
-                        "id" => $this->missionOne->previousMission->id,
-                        "name" => $this->missionOne->previousMission->name,
+                    "parent" => [
+                        "id" => $this->missionOne->parent->id,
+                        "name" => $this->missionOne->parent->name,
                     ],
                     "id" => $this->missionOne->id,
                     "name" => $this->missionOne->name,
@@ -301,9 +301,9 @@ class MissionControllerTest extends MissionTestCase
                     "published" => $this->missionOne->published,
                 ],
                 [
-                    "previousMission" => [
-                        "id" => $this->publishedMission->previousMission->id,
-                        "name" => $this->publishedMission->previousMission->name,
+                    "parent" => [
+                        "id" => $this->publishedMission->parent->id,
+                        "name" => $this->publishedMission->parent->name,
                     ],
                     "id" => $this->publishedMission->id,
                     "name" => $this->publishedMission->name,

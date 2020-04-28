@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Participant\ConsultationSession" 
+            table="ConsultationSession" 
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="consultationSetup" 
+                      target-entity="Firm\Domain\Model\Firm\Program\ConsultationSetup"
+        >
+            <join-column name="ConsultationSetup_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="consultant" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Consultant"
+                      inversed-by="consultationSessions"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        <embedded name="startEndTime" 
+                  class="Resources\Domain\ValueObject\DateTimeInterval" 
+                  use-column-prefix="false" 
+        />
+        
+    </entity>
+</doctrine-mapping>

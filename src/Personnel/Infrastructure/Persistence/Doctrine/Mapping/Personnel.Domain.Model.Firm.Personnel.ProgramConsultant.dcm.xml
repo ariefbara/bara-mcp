@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant" 
+            table="Consultant" 
+    >
+        <many-to-one  field="personnel" 
+                      target-entity="Personnel\Domain\Model\Firm\Personnel"
+        >
+            <join-column name="Personnel_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <many-to-one  field="program" 
+                      target-entity="Personnel\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

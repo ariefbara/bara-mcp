@@ -26,7 +26,8 @@
             "database/factories"
         ],
         "psr-4": {
-            "Consultant\\": "src/Consultant",
+            "Shared\\": "src/Shared",
+            "Personnel\\": "src/Personnel",
             "Client\\": "src/Client",
             "Firm\\": "src/Firm",
             "Bara\\": "src/Bara",

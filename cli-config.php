@@ -11,10 +11,11 @@ require_once "vendor/autoload.php";
 $isDevMode = true;//generate proxy manually if entity not found
 $paths = array(
     BASE_PATH . "/resources/Infrastructure/Persistence/Doctrine/Mapping",
+    BASE_PATH . "/src/Shared/Infrastructure/Persistence/Doctrine/Mapping",
+//    BASE_PATH . "/src/Personnel/Infrastructure/Persistence/Doctrine/Mapping",
+    BASE_PATH . "/src/Client/Infrastructure/Persistence/Doctrine/Mapping",
+//    BASE_PATH . "/src/Firm/Infrastructure/Persistence/Doctrine/Mapping",
 //    BASE_PATH . "/src/Bara/Infrastructure/Persistence/Doctrine/Mapping",
-    BASE_PATH . "/src/Firm/Infrastructure/Persistence/Doctrine/Mapping",
-//    BASE_PATH . "/src/Client/Infrastructure/Persistence/Doctrine/Mapping",
-//    BASE_PATH . "/src/Consultant/Infrastructure/Persistence/Doctrine/Mapping",
 );
 
 $doctrineConfig = Setup::createXMLMetadataConfiguration($paths, $isDevMode);

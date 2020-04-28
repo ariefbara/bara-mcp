@@ -87,7 +87,7 @@ $app->routeMiddleware([
     'adminJwtAuth' => App\Http\Middleware\AdminJwtMiddleware::class,
     'managerJwtAuth' => App\Http\Middleware\ManagerJwtMIddleware::class,
     'personnelJwtAuth' => App\Http\Middleware\PersonnelJwtMiddleware::class,
-    'clientJwtAuth' => App\Http\Middleware\FounderJwtMiddleware::class,
+    'clientJwtAuth' => App\Http\Middleware\ClientJwtMiddleware::class,
 ]);
 
 /*
@@ -122,6 +122,7 @@ $app->router->group(['namespace' => 'App\Http\Controllers'], function ($router) 
     require __DIR__.'/../routes/public.php';
     require __DIR__.'/../routes/admin.php';
     require __DIR__.'/../routes/manager.php';
+    require __DIR__.'/../routes/client.php';
 });
 
 return $app;

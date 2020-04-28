@@ -90,13 +90,13 @@ class MissionController extends ManagerBaseController
         $result = [];
         $result['total'] = count($missions);
         foreach ($missions as $mission) {
-            $previousMission = empty($mission->getPreviousMission())? null: 
+            $parentData = empty($mission->getParent())? null: 
                 [
-                  "id" => $mission->getPreviousMission()->getId(),  
-                  "name" => $mission->getPreviousMission()->getName(),  
+                  "id" => $mission->getParent()->getId(),  
+                  "name" => $mission->getParent()->getName(),  
                 ];
             $result['list'][] = [
-                "previousMission" => $previousMission,
+                "parent" => $parentData,
                 "id" => $mission->getId(),
                 "name" => $mission->getName(),
                 "position" => $mission->getPosition(),
@@ -108,13 +108,13 @@ class MissionController extends ManagerBaseController
     
     protected function arrayDataOfMission(Mission $mission): array
     {
-        $previousMission = empty($mission->getPreviousMission())? null: 
+        $parentData = empty($mission->getParent())? null: 
             [
-              "id" => $mission->getPreviousMission()->getId(),  
-              "name" => $mission->getPreviousMission()->getName(),  
+              "id" => $mission->getParent()->getId(),  
+              "name" => $mission->getParent()->getName(),  
             ];
         return [
-            "previousMission" => $previousMission,
+            "parent" => $parentData,
             "id" => $mission->getId(),
             "name" => $mission->getName(),
             "description" => $mission->getDescription(),

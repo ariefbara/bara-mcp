@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm" 
+            table="Firm" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="identifier" type="string" length="256" nullable="false"/>
+        <field name="suspended" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

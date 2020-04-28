@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="Shared\Domain\Model\ConsultationRequestStatusVO">
+        <field name="value" column="status" type="string" length="10" nullable="true"/>
+    </embeddable>
+</doctrine-mapping>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment" 
+            table="Comment" 
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineCommentRepository"
+    >
+        
+        <many-to-one  field="worksheet" 
+                      target-entity="Client\Domain\Model\Client\ProgramParticipation\Worksheet"
+        >
+            <join-column name="Worksheet_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one field="parent" 
+                    target-entity="Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment"
+        >
+            <join-column name="parentComment_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="message" type="text" nullable="true"/>
+        <field name="submitTime" type="datetime_immutable" nullable="false"/>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

@@ -8,7 +8,7 @@ use Firm\Domain\ {
     Model\Client,
     Model\Firm,
     Model\Firm\Program\Coordinator,
-    Model\Firm\Program\Mentor,
+    Model\Firm\Program\Consultant,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Registrant
 };
@@ -19,7 +19,7 @@ class ProgramTest extends TestBase
     protected $program;
     protected $firm;
     protected $id = 'program-id', $name = 'new name', $description = 'new description';
-    protected $mentor;
+    protected $consultant;
     protected $coordinator;
     protected $participant;
     protected $registrant, $registrantId = 'registrantId';
@@ -35,13 +35,13 @@ class ProgramTest extends TestBase
         $programData = new ProgramData('name', 'description');
         $this->program = new TestableProgram($this->firm, 'id', $programData);
         
-        $this->program->mentors = new ArrayCollection();
+        $this->program->consultants = new ArrayCollection();
         $this->program->coordinators = new ArrayCollection();
         $this->program->registrants = new ArrayCollection();
         $this->program->participants = new ArrayCollection();
 
-        $this->mentor = $this->buildMockOfClass(Mentor::class);
-        $this->program->mentors->add($this->mentor);
+        $this->consultant = $this->buildMockOfClass(Consultant::class);
+        $this->program->consultants->add($this->consultant);
         
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
         $this->program->coordinators->add($this->coordinator);
@@ -111,45 +111,45 @@ class ProgramTest extends TestBase
         $this->assertTrue($this->program->removed);
     }
 
-    protected function executeAssignPersonnelAsMentor()
+    protected function executeAssignPersonnelAsConsultant()
     {
-        return $this->program->assignPersonnelAsMentor($this->personnel);
+        return $this->program->assignPersonnelAsConsultant($this->personnel);
     }
 
-    public function test_assignPersonnelAsMentor_addMentorToCollection()
+    public function test_assignPersonnelAsConsultant_addConsultantToCollection()
     {
-        $this->executeAssignPersonnelAsMentor();
-        $this->assertEquals(2, $this->program->mentors->count());
+        $this->executeAssignPersonnelAsConsultant();
+        $this->assertEquals(2, $this->program->consultants->count());
     }
 
-    public function test_assignePersonnelAsMentor_returnNewMentorId()
+    public function test_assignePersonnelAsConsultant_returnNewConsultantId()
     {
-        $this->assertNotEmpty($this->executeAssignPersonnelAsMentor());
+        $this->assertNotEmpty($this->executeAssignPersonnelAsConsultant());
     }
 
-    function test_assignPersonnelAsMentor_aMentorReferToSamePersonnelExistInCollection_throwEx()
+    function test_assignPersonnelAsConsultant_aConsultantReferToSamePersonnelExistInCollection_throwEx()
     {
-        $this->mentor->expects($this->once())
+        $this->consultant->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
         $operation = function () {
-            $this->executeAssignPersonnelAsMentor();
+            $this->executeAssignPersonnelAsConsultant();
         };
-        $errorDetails = 'forbidden: personnel already assigned as mentor';
+        $errorDetails = 'forbidden: personnel already assigned as consultant';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetails);
     }
 
-    public function test_assignPersonnelAsMentor_mentorReferedToSamePersonnelAlreadyRemove_reassignMentor()
+    public function test_assignPersonnelAsConsultant_consultantReferedToSamePersonnelAlreadyRemove_reassignConsultant()
     {
-        $this->mentor->expects($this->once())
+        $this->consultant->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
-        $this->mentor->expects($this->once())
+        $this->consultant->expects($this->once())
             ->method('isRemoved')
             ->willReturn(true);
-        $this->mentor->expects($this->once())
+        $this->consultant->expects($this->once())
             ->method('reassign');
-        $this->executeAssignPersonnelAsMentor();
+        $this->executeAssignPersonnelAsConsultant();
     }
 
     protected function executeAssignPersonnelAsCoordinator()
@@ -250,7 +250,7 @@ class TestableProgram extends Program
 {
 
     public $firm, $id, $name, $description, $published, $removed;
-    public $mentors, $coordinators;
+    public $consultants, $coordinators;
     public $participants, $registrants;
 
 }

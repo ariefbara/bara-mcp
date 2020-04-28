@@ -26,7 +26,7 @@ class Mission
      *
      * @var Mission
      */
-    protected $previousMission = null;
+    protected $parent = null;
 
     /**
      *
@@ -68,16 +68,16 @@ class Mission
      *
      * @var ArrayCollection
      */
-    protected $nextMissions = null;
+    protected $branches = null;
 
     function getProgram(): Program
     {
         return $this->program;
     }
 
-    function getPreviousMission(): ?Mission
+    function getParent(): ?Mission
     {
-        return $this->previousMission;
+        return $this->parent;
     }
 
     function getId(): string
@@ -108,15 +108,6 @@ class Mission
     function getWorksheetForm(): WorksheetForm
     {
         return $this->worksheetForm;
-    }
-
-    /**
-     * 
-     * @return Mission[]
-     */
-    function getUnremovedNextMissions()
-    {
-        return $this->nextMissions->getIterator();
     }
 
     protected function setName(string $name): void
@@ -152,7 +143,7 @@ class Mission
             string $id, string $name, ?string $description, WorksheetForm $worksheetForm, ?string $position): self
     {
         $branch = new static($this->program, $id, $name, $description, $worksheetForm, $position);
-        $branch->previousMission = $this;
+        $branch->parent = $this;
         return $branch;
     }
 

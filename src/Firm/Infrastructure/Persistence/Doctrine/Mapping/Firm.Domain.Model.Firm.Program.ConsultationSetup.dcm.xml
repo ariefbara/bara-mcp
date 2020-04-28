@@ -21,7 +21,7 @@
         <many-to-one  field="consultantFeedbackForm" 
                       target-entity="Firm\Domain\Model\Firm\ConsultationFeedbackForm"
         >
-            <join-column name="ConsultationFeedbackForm_idForMentor" referenced-column-name="id" />
+            <join-column name="ConsultationFeedbackForm_idForConsultant" referenced-column-name="id" />
         </many-to-one>
         <field name="removed" type="boolean" />
         

@@ -25,7 +25,7 @@ class MissionTest extends TestBase
 
         $this->mission = TestableMission::createRoot(
                         $this->program, 'id', 'name', 'description', $this->worksheetForm, 'position');
-        $this->mission->nextMissions = new ArrayCollection();
+        $this->mission->branches = new ArrayCollection();
 
         $this->participant = $this->buildMockOfClass(Participant::class);
     }
@@ -40,7 +40,7 @@ class MissionTest extends TestBase
     {
         $mission = $this->executeCreateRoot();
         $this->assertEquals($this->program, $mission->program);
-        $this->assertNull($mission->previousMission);
+        $this->assertNull($mission->parent);
         $this->assertEquals($this->id, $mission->id);
         $this->assertEquals($this->name, $mission->name);
         $this->assertEquals($this->description, $mission->description);
@@ -69,7 +69,7 @@ class MissionTest extends TestBase
     {
         $branchMission = $this->executeCreateBranch();
         $this->assertEquals($this->program, $branchMission->program);
-        $this->assertEquals($this->mission, $branchMission->previousMission);
+        $this->assertEquals($this->mission, $branchMission->parent);
         $this->assertEquals($this->id, $branchMission->id);
         $this->assertEquals($this->name, $branchMission->name);
         $this->assertEquals($this->description, $branchMission->description);
@@ -79,7 +79,7 @@ class MissionTest extends TestBase
     public function test_createBranch_alreadyContainBranch_createNormally()
     {
         $nextMission = $this->buildMockOfClass(Mission::class);
-        $this->mission->nextMissions->add($nextMission);
+        $this->mission->branches->add($nextMission);
 
         $this->executeCreateBranch();
         $this->markAsSuccess();
@@ -141,7 +141,7 @@ class MissionTest extends TestBase
 class TestableMission extends Mission
 {
 
-    public $program, $previousMission, $id, $name, $description, $published, $position;
-    public $worksheetForm, $nextMissions;
+    public $program, $parent, $id, $name, $description, $published, $position;
+    public $worksheetForm, $branches;
 
 }

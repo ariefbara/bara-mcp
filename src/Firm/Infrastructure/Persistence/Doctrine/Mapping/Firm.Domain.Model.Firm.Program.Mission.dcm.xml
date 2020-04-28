@@ -9,11 +9,11 @@
         >
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>
-        <many-to-one field="previousMission" 
+        <many-to-one field="parent" 
                     target-entity="Firm\Domain\Model\Firm\Program\Mission" 
-                    inversed-by="nextMissions"
+                    inversed-by="branches"
         >
-            <join-column name="previousMission_id" referenced-column-name="id" />
+            <join-column name="parent_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
@@ -25,9 +25,9 @@
         >
             <join-column name="WorksheetForm_id" referenced-column-name="id" />
         </many-to-one>
-        <one-to-many field="nextMissions" 
+        <one-to-many field="branches" 
                     target-entity="Firm\Domain\Model\Firm\Program\Mission" 
-                    mapped-by="previousMission"
+                    mapped-by="parent"
         />
         
     </entity>

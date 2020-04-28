@@ -29,7 +29,7 @@ class ConsultationSetupView
      * @param int $pageSize
      * @return ConsultationSetup[]
      */
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize)
+    public function showAll(ProgramCompositionId $programCompositionId, int $page, int $pageSize)
     {
         return $this->consultationSetupRepository->all($programCompositionId, $page, $pageSize);
     }

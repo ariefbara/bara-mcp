@@ -6,6 +6,10 @@ use Bara\ {
     Application\Service\AdminLogin,
     Domain\Model\Admin
 };
+use Client\ {
+    Application\Service\ClientLogin,
+    Domain\Model\Client
+};
 use Firebase\JWT\JWT;
 use Firm\ {
     Application\Service\Firm\ManagerLogin,
@@ -53,6 +57,25 @@ class LoginController extends Controller
         $identifier = [
             "firmId" => $manager->getFirm()->getId(),
             "managerId" => $manager->getId(),
+        ];
+        $token = $this->generateJwtToken($identifier);
+        return $this->buildCredentialsResponse($data, $token);
+    }
+    
+    public function clientLogin()
+    {
+        $clientRepository = $this->em->getRepository(Client::class);
+        $service = new ClientLogin($clientRepository);
+        $email = $this->stripTagsInputRequest('email');
+        $password = $this->stripTagsInputRequest('password');
+        
+        $client = $service->execute($email, $password);
+        $data = [
+            "id" => $client->getId(),
+            "name" => $client->getName(),
+        ];
+        $identifier = [
+            "clientId" => $client->getId(),
         ];
         $token = $this->generateJwtToken($identifier);
         return $this->buildCredentialsResponse($data, $token);

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/apur/workspace/php/bara-mcp/routes/client.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Client/Infrastructure/Persistence/Doctrine/Mapping/Client.Domain.Model.Client.ProgramParticipation.ParticipantComment.dcm.xml</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Client/Infrastructure/Persistence/Doctrine/Repository/DoctrineCommentRepository.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Client/Domain/Model/Client/ProgramParticipation/ParticipantComment.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Client/Infrastructure/Persistence/Doctrine/Mapping/Client.Domain.Model.Client.ProgramParticipation.Worksheet.Comment.dcm.xml</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Client/Domain/Model/Client/ProgramParticipation/Worksheet/Comment.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Client/Infrastructure/Persistence/Doctrine/Repository/DoctrineParticipantCommentRepository.php</file>
+        </group>
+    </open-files>
+</project-private>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession\PersonnelNotificationOnConsultationSession" 
+            table="PersonnelNotificationOnConsultationSession" 
+            repository-class="Personnel\Infrastructure\Persistence\Doctrine\Repository\DoctrinePersonnelNotificationOnConsultationSessionRepository" 
+    >
+        <many-to-one  field="consultationSession" 
+                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession"
+        >
+            <join-column name="ConsultationSession_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="personnelNotification" 
+                    target-entity="Personnel\Domain\Model\Firm\Personnel\PersonnelNotification"
+        >
+            <join-column name="PersonnelNotification_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

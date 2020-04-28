@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Shared\Domain\Model\Notification" 
+            table="Notification" 
+    >
+        <id name="id" type="guid" />
+        <field name="message" type="string" length="256" nullable="true"/>
+        <field name="read" column="isRead" type="boolean" />
+        <field name="notifiedTime" type="datetime_immutable" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

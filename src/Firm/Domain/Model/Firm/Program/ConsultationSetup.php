@@ -93,7 +93,7 @@ class ConsultationSetup
 
     protected function setName(string $name): void
     {
-        $errorDetail = 'bad request: mentoring name is required';
+        $errorDetail = 'bad request: consultation setup name is required';
         ValidationService::build()
                 ->addRule(ValidationRule::notEmpty())
                 ->execute($name, $errorDetail);
@@ -103,7 +103,7 @@ class ConsultationSetup
     protected function setSessionDuration(int $sessionDuration): void
     {
 
-        $errorDetail = 'bad request: mentoring session duration is required';
+        $errorDetail = 'bad request: consultation setup session duration is required';
         ValidationService::build()
                 ->addRule(ValidationRule::integerValue())
                 ->addRule(ValidationRule::notEmpty())
@@ -120,7 +120,7 @@ class ConsultationSetup
         $this->setName($name);
         $this->setSessionDuration($sessionDuration);
         $this->participantFeedbackForm = $participantFeedbackForm;
-        $this->mentorFeedbackForm = $consultantFeedbackForm;
+        $this->consultantFeedbackForm = $consultantFeedbackForm;
         $this->removed = false;
     }
 

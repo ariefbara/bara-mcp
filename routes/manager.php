@@ -51,11 +51,11 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("/{coordinatorId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
-        $router->group(['prefix' => '/mentors'], function () use($router) {
-            $controller = "MentorController";
+        $router->group(['prefix' => '/consultants'], function () use($router) {
+            $controller = "ConsultantController";
             $router->put("", ["uses" => "$controller@assign"]);
-            $router->delete("/{mentorId}", ["uses" => "$controller@remove"]);
-            $router->get("/{mentorId}", ["uses" => "$controller@show"]);
+            $router->delete("/{consultantId}", ["uses" => "$controller@remove"]);
+            $router->get("/{consultantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
         $router->group(['prefix' => '/registration-phases'], function () use($router) {
@@ -64,6 +64,14 @@ $router->group($managerAggregate, function () use ($router) {
             $router->patch("/{registrationPhaseId}", ["uses" => "$controller@update"]);
             $router->delete("/{registrationPhaseId}", ["uses" => "$controller@remove"]);
             $router->get("/{registrationPhaseId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+        $router->group(['prefix' => '/consultation-setups'], function () use($router) {
+            $controller = "ConsultationSetupController";
+            $router->post("", ["uses" => "$controller@add"]);
+            $router->patch("/{consultationSetupId}", ["uses" => "$controller@update"]);
+            $router->delete("/{consultationSetupId}", ["uses" => "$controller@remove"]);
+            $router->get("/{consultationSetupId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
         $router->group(['prefix' => '/missions'], function () use($router) {

@@ -13,8 +13,8 @@ class ConsultationSetupTest extends TestBase
 {
 
     protected $program, $participantFeedbackForm, $consultantFeedbackForm;
-    protected $mentoring;
-    protected $id = 'mentoring-id', $name = 'new mentoring name', $sessionDuration = 60;
+    protected $consultanting;
+    protected $id = 'consultanting-id', $name = 'new consultanting name', $sessionDuration = 60;
 
     protected function setUp(): void
     {
@@ -23,7 +23,7 @@ class ConsultationSetupTest extends TestBase
         $this->participantFeedbackForm = $this->buildMockOfClass(ConsultationFeedbackForm::class);
         $this->consultantFeedbackForm = $this->buildMockOfClass(ConsultationFeedbackForm::class);
 
-        $this->mentoring = new TestableConsultationSetup($this->program, 'id', 'name', 90,
+        $this->consultanting = new TestableConsultationSetup($this->program, 'id', 'name', 90,
             $this->participantFeedbackForm, $this->consultantFeedbackForm);
 
     }
@@ -36,13 +36,13 @@ class ConsultationSetupTest extends TestBase
 
     public function test_construct_setProperties()
     {
-        $mentoring = $this->executeConstruct();
-        $this->assertEquals($this->program, $mentoring->program);
-        $this->assertEquals($this->id, $mentoring->id);
-        $this->assertEquals($this->name, $mentoring->name);
-        $this->assertEquals($this->sessionDuration, $mentoring->sessionDuration);
-        $this->assertEquals($this->participantFeedbackForm, $mentoring->participantFeedbackForm);
-        $this->assertEquals($this->consultantFeedbackForm, $mentoring->mentorFeedbackForm);
+        $consultanting = $this->executeConstruct();
+        $this->assertEquals($this->program, $consultanting->program);
+        $this->assertEquals($this->id, $consultanting->id);
+        $this->assertEquals($this->name, $consultanting->name);
+        $this->assertEquals($this->sessionDuration, $consultanting->sessionDuration);
+        $this->assertEquals($this->participantFeedbackForm, $consultanting->participantFeedbackForm);
+        $this->assertEquals($this->consultantFeedbackForm, $consultanting->consultantFeedbackForm);
     }
 
     public function test_construct_emtpyName_throwEx()
@@ -51,7 +51,7 @@ class ConsultationSetupTest extends TestBase
         $operation = function () {
             $this->executeConstruct();
         };
-        $errorDetail = 'bad request: mentoring name is required';
+        $errorDetail = 'bad request: consultation setup name is required';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
 
@@ -61,7 +61,7 @@ class ConsultationSetupTest extends TestBase
         $operation = function () {
             $this->executeConstruct();
         };
-        $errorDetail = 'bad request: mentoring session duration is required';
+        $errorDetail = 'bad request: consultation setup session duration is required';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
 
@@ -74,8 +74,8 @@ class ConsultationSetupTest extends TestBase
 
     public function test_remove_setRemovedFlagTrue()
     {
-        $this->mentoring->remove();
-        $this->assertTrue($this->mentoring->removed);
+        $this->consultanting->remove();
+        $this->assertTrue($this->consultanting->removed);
     }
 
 }
@@ -83,7 +83,7 @@ class ConsultationSetupTest extends TestBase
 class TestableConsultationSetup extends ConsultationSetup
 {
 
-    public $program, $id, $name, $sessionDuration, $participantFeedbackForm, $mentorFeedbackForm,
+    public $program, $id, $name, $sessionDuration, $participantFeedbackForm, $consultantFeedbackForm,
         $removed;
 
 }
