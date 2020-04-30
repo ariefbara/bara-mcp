@@ -4,6 +4,7 @@ namespace Client\Domain\Model\Client\ProgramParticipation;
 
 use Client\Domain\Model\ {
     Client\ProgramParticipation,
+    Client\ProgramParticipation\ConsultationRequest\ConsultationRequestNotification,
     Firm\Program\Consultant,
     Firm\Program\ConsultationSetup
 };
@@ -181,6 +182,12 @@ class ConsultationRequest
             $errorDetail = "conflict: consultant already has consultation session at this time";
             throw RegularException::conflict($errorDetail);
         }
+    }
+    
+    public function createConsultationRequestNotification(string $id, string $message): ConsultationRequestNotification
+    {
+        $clientNotification = $this->programParticipation->createClientNotification($id, $message);
+        return new ConsultationRequestNotification($this, $id, $clientNotification);
     }
 
 }

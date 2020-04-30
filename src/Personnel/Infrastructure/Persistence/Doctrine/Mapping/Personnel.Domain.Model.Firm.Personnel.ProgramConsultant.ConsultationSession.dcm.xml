@@ -7,12 +7,14 @@
         
         <many-to-one  field="programConsultant" 
                       target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant"
+                      inversed-by="consultationSessions"
         >
             <join-column name="Consultant_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
         <many-to-one  field="participant" 
                       target-entity="Personnel\Domain\Model\Firm\Program\Participant"
+                      inversed-by="consultationSessions"
         >
             <join-column name="Participant_id" referenced-column-name="id" />
         </many-to-one>
@@ -25,6 +27,12 @@
                   class="Resources\Domain\ValueObject\DateTimeInterval" 
                   use-column-prefix="false" 
         />
+        <one-to-one field="consultantFeedback" 
+                    target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback"
+                    mapped-by="consultationSession"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
         
     </entity>
 </doctrine-mapping>

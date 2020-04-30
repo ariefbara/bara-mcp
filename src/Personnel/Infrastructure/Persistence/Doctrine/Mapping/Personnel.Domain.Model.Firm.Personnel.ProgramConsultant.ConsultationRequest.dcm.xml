@@ -7,6 +7,7 @@
         
         <many-to-one  field="programConsultant" 
                       target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant"
+                      inversed-by="consultationRequests"
         >
             <join-column name="Consultant_id" referenced-column-name="id" />
         </many-to-one>

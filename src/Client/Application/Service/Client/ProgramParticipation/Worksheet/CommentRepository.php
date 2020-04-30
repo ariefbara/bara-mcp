@@ -3,6 +3,7 @@
 namespace Client\Application\Service\Client\ProgramParticipation\Worksheet;
 
 use Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId;
 
 interface CommentRepository
 {
@@ -10,4 +11,7 @@ interface CommentRepository
     public function ofId(WorksheetCompositionId $worksheetCompositionId, string $commentId): Comment;
 
     public function all(WorksheetCompositionId $worksheetCompositionId, int $page, int $pageSize);
+
+    public function aCommentFromConsultant(
+            ProgramConsultantCompositionId $programConsultantCompositionid, string $consultantCommentId): Comment;
 }

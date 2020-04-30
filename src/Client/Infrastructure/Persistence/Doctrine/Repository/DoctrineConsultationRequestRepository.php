@@ -85,4 +85,36 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         $this->getEntityManager()->flush();
     }
 
+    public function aConsultationRequestOfConsultant(
+            string $firmId, string $personnelId, string $consultantId, string $consultationRequestId): ConsultationRequest
+    {
+        $parameters = [
+            "consultationRequestId" => $consultationRequestId,
+            "consultantId" => $consultantId,
+            "personnelId" => $personnelId,
+            "firmId" => $firmId,
+        ];
+
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->andWhere($qb->expr()->eq('consultationRequest.id', ':consultationRequestId'))
+                ->leftJoin('consultationRequest.consultant', 'consultant')
+                ->andWhere($qb->expr()->eq('consultant.removed', 'false'))
+                ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
+                ->leftJoin('consultant.personnel', 'personnel')
+                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('personnel.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: consultation request not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

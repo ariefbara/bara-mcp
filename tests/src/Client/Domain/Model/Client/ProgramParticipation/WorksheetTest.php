@@ -3,6 +3,7 @@
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
 use Client\Domain\Model\ {
+    Client\ClientNotification,
     Client\ProgramParticipation,
     Firm\Program\Mission
 };
@@ -131,6 +132,15 @@ class WorksheetTest extends TestBase
     {
         $this->worksheet->remove();
         $this->assertTrue($this->worksheet->removed);
+    }
+    
+    public function test_createClientNotification_returnClientNotificationResultFromParticipantCreateClientNotification()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('createClientNotification')
+                ->with($id = 'id', $message = 'new message')
+                ->willReturn($clientNotification = $this->buildMockOfClass(ClientNotification::class));
+        $this->assertEquals($clientNotification, $this->worksheet->createClientNotification($id, $message));
     }
 }
 

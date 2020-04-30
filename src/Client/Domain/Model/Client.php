@@ -5,6 +5,7 @@ namespace Client\Domain\Model;
 use Client\Domain\ {
     Event\ClientActivationCodeGenerated,
     Event\ClientPasswordResetCodeGenerated,
+    Model\Client\ClientNotification,
     Model\Client\ProgramRegistration,
     Model\Firm\Program
 };
@@ -21,6 +22,7 @@ use Resources\ {
     ValidationRule,
     ValidationService
 };
+use Shared\Domain\Model\Notification;
 
 class Client extends ModelContainEvents
 {
@@ -269,6 +271,12 @@ class Client extends ModelContainEvents
             $errorDetail = "forbidden: you already participate in this program";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+    
+    public function createClientNotification(string $id, string $message): ClientNotification
+    {
+        $notification = new Notification($id, $message);
+        return new ClientNotification($this, $id, $notification);
     }
 
 }

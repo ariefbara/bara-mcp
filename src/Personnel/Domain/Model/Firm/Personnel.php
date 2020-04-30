@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Personnel\Domain\Model\Firm;
 use Resources\ {
     Domain\ValueObject\Password,
+    Exception\RegularException,
     ValidationRule,
     ValidationService
 };
@@ -98,7 +99,7 @@ class Personnel
 
     protected function setName(string $name): void
     {
-        $errorDetail = "bad request: personnel name is required";
+        $errorDetail = 'bad request: personnel name is mandatory';
         ValidationService::build()
                 ->addRule(ValidationRule::notEmpty())
                 ->execute($name, $errorDetail);
@@ -107,12 +108,31 @@ class Personnel
 
     protected function setPhone(?string $phone): void
     {
-        $this->phone = $phone;
+        $errorDetail = "bad request: personnel phone format is invalid";
+        ValidationService::build()
+                ->addRule(ValidationRule::optional(ValidationRule::phone()))
+                ->execute($phone, $errorDetail);
+        $this->phone = $phone;;
     }
 
     protected function __construct()
     {
         
+    }
+    
+    public function updateProfile(string $name, ?string $phone): void
+    {
+        $this->setName($name);
+        $this->setPhone($phone);
+    }
+    
+    public function changePassword(string $previousPassword, string $newPassword): void
+    {
+        if (!$this->password->match($previousPassword)) {
+            $errorDetail = "forbidden: previous password not match";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $this->password = new Password($newPassword);
     }
 
 }

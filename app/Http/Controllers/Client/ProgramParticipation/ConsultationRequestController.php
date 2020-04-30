@@ -24,7 +24,7 @@ use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequest\PersonnelNotificationOnConsultationRequestAdd,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession\PersonnelNotificationOnConsultationSessionAdd,
     Domain\Model\Firm\Personnel,
-    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest as ConsultationRequest2,
+    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest as ConsultationRequestInClient,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest\PersonnelNotificationOnConsultationRequest,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession\PersonnelNotificationOnConsultationSession
@@ -173,7 +173,7 @@ class ConsultationRequestController extends ClientBaseController
     protected function buildPersonnelNotificationOnConsultationRequestAdd()
     {
         $personnelNotificationOnConsultationRequestRepository = $this->em->getRepository(PersonnelNotificationOnConsultationRequest::class);
-        $consultationRequestRepository = $this->em->getRepository(ConsultationRequest2::class);
+        $consultationRequestRepository = $this->em->getRepository(ConsultationRequestInClient::class);
         $personnelRepository = $this->em->getRepository(Personnel::class);
         return new PersonnelNotificationOnConsultationRequestAdd(
                 $personnelNotificationOnConsultationRequestRepository, $consultationRequestRepository,

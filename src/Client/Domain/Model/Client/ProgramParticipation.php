@@ -8,6 +8,7 @@ use Client\Domain\ {
     Model\Client,
     Model\Client\ProgramParticipation\ConsultationRequest,
     Model\Client\ProgramParticipation\ConsultationSession,
+    Model\Client\ProgramParticipation\ParticipantNotification,
     Model\Firm\Program,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\ConsultationSetup
@@ -212,6 +213,17 @@ class ProgramParticipation extends ModelContainEvents
             throw RegularException::notFound($errorDetail);
         }
         return $consultationRequest;
+    }
+    
+    public function createParticipantNotification(string $id, string $message): ParticipantNotification
+    {
+        $clientNotification = $this->client->createClientNotification($id, $message);
+        return new ParticipantNotification($this, $id, $clientNotification);
+    }
+    
+    public function createClientNotification(string $id, string $message): ClientNotification
+    {
+        return $this->client->createClientNotification($id, $message);
     }
 
 }

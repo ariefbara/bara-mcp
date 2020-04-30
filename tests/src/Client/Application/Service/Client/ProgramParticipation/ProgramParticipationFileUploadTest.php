@@ -22,7 +22,7 @@ class ProgramParticipationFileUploadTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->programParticipationFileInfoRepository = $this->buildMockOfInterface(ProgramParticipationFileInfoRepository::class);
+        $this->programParticipationFileInfoRepository = $this->buildMockOfInterface(PersonnelFileInfoRepository::class);
         $this->programParticipationRepository = $this->buildMockOfClass(ProgramParticipationRepository::class);
         $this->uploadFile = $this->buildMockOfClass(UploadFile::class);
         

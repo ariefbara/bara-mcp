@@ -2,13 +2,17 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
-use Client\Domain\Model\{
+use Client\Domain\Model\ {
     Client\ProgramParticipation,
+    Client\ProgramParticipation\ConsultationSession\ConsultationSessionNotification,
     Client\ProgramParticipation\ConsultationSession\ParticipantFeedback,
     Firm\Program\Consultant,
     Firm\Program\ConsultationSetup
 };
-use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\ {
+    Domain\ValueObject\DateTimeInterval,
+    Uuid
+};
 use Shared\Domain\Model\FormRecordData;
 
 class ConsultationSession
@@ -106,10 +110,16 @@ class ConsultationSession
         if (!empty($this->participantFeedback)) {
             $this->participantFeedback->update($formRecordData);
         } else {
-            $id = \Resources\Uuid::generateUuid4();
+            $id = Uuid::generateUuid4();
             $formRecord = $this->consultationSetup->createFormRecordFormParticipantFeedback($id, $formRecordData);
             $this->participantFeedback = new ParticipantFeedback($this, $id, $formRecord);
         }
+    }
+    
+    public function createConsultationSessionNotification(string $id, string $message): ConsultationSessionNotification
+    {
+        $clientNotification = $this->programParticipation->createClientNotification($id, $message);
+        return new ConsultationSessionNotification($this, $id, $clientNotification);
     }
 
 }

@@ -2,16 +2,17 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
-use Client\Domain\Model\{
+use Client\Domain\Model\ {
+    Client\ClientNotification,
     Client\ProgramParticipation,
     Firm\Program\Mission
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     ValidationRule,
     ValidationService
 };
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     FormRecord,
     FormRecordData,
     HasFormRecordInterface
@@ -180,6 +181,11 @@ class Worksheet implements HasFormRecordInterface
     function getUnremovedAttachmentFieldRecords()
     {
         return $this->formRecord->getUnremovedAttachmentFieldRecords();
+    }
+    
+    public function createClientNotification(string $id, string $message): ClientNotification
+    {
+        return $this->programParticipation->createClientNotification($id, $message);
     }
 
 }

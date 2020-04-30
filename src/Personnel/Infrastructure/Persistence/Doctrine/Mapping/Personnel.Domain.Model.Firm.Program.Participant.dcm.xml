@@ -19,5 +19,10 @@
         <field name="active" type="boolean" />
         <field name="note" type="string" length="256" nullable="true"/>
         
+        <one-to-many field="consultationSessions" 
+                     target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession"
+                     mapped-by="participant"
+        />
+        
     </entity>
 </doctrine-mapping>

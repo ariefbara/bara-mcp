@@ -2,8 +2,10 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
-use Client\Domain\Model\ {
+use Client\Domain\Model\{
+    Client\ClientNotification,
     Client\ProgramParticipation,
+    Client\ProgramParticipation\ConsultationSession\ConsultationSessionNotification,
     Client\ProgramParticipation\ConsultationSession\ParticipantFeedback,
     Firm\Program\Consultant,
     Firm\Program\ConsultationSetup
@@ -19,7 +21,6 @@ class ConsultationSessionTest extends TestBase
     protected $id = 'consultationSession-id', $startEndTime;
     protected $consultationSession;
     protected $consultationRequest;
-    
     protected $participantFeedback;
     protected $formRecordData;
 
@@ -32,9 +33,10 @@ class ConsultationSessionTest extends TestBase
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
 
         $this->consultationSession = new TestableConsultationSession(
-            $this->programParticipation, 'consultationSession-id', $this->consultationSetup, $this->consultant, $this->startEndTime);
+                $this->programParticipation, 'consultationSession-id', $this->consultationSetup, $this->consultant,
+                $this->startEndTime);
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
-        
+
         $this->participantFeedback = $this->buildMockOfClass(ParticipantFeedback::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
     }
@@ -42,39 +44,40 @@ class ConsultationSessionTest extends TestBase
     public function test_construct_setProperties()
     {
         $consultationSession = new TestableConsultationSession(
-            $this->programParticipation, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime);
+                $this->programParticipation, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime);
         $this->assertEquals($this->consultationSetup, $consultationSession->consultationSetup);
         $this->assertEquals($this->id, $consultationSession->id);
         $this->assertEquals($this->programParticipation, $consultationSession->programParticipation);
         $this->assertEquals($this->consultant, $consultationSession->consultant);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
     }
-    
+
     public function test_conflictedWithConsultationRequest_returnStartEndTimeComparisonResultWithConsultationRequestStartEndTime()
     {
         $startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->consultationRequest->expects($this->once())
                 ->method('getStartEndTime')
                 ->willReturn($startEndTime);
-        
+
         $this->startEndTime->expects($this->once())
-            ->method('intersectWith')
-            ->with($startEndTime)
-            ->willReturn(true);
-        
+                ->method('intersectWith')
+                ->with($startEndTime)
+                ->willReturn(true);
+
         $this->assertTrue($this->consultationSession->conflictedWithConsultationRequest($this->consultationRequest));
     }
-    
+
     protected function executeSetParticipantFeedback()
     {
         $this->consultationSession->setParticipantFeedback($this->formRecordData);
     }
-    
+
     public function test_setParticipantFeedback_setParticipantFeedback()
     {
         $this->executeSetParticipantFeedback();
         $this->assertInstanceOf(ParticipantFeedback::class, $this->consultationSession->participantFeedback);
     }
+
     public function test_setParticipantFeedback_alreadyHasParticipantFeedback_updateExistingParticipantFeedback()
     {
         $this->consultationSession->participantFeedback = $this->participantFeedback;
@@ -82,6 +85,20 @@ class ConsultationSessionTest extends TestBase
                 ->method('update')
                 ->with($this->formRecordData);
         $this->executeSetParticipantFeedback();
+    }
+
+    public function test_createConsultationSessionNotification_returnConsultationSessionNotification()
+    {
+        $clientNotification = $this->buildMockOfClass(ClientNotification::class);
+        $this->programParticipation->expects($this->once())
+                ->method('createClientNotification')
+                ->with($id = 'id', $message = 'message')
+                ->willReturn($clientNotification);
+        $consultationSessionNotification = new ConsultationSessionNotification(
+                $this->consultationSession, $id, $clientNotification);
+        $this->assertEquals(
+                $consultationSessionNotification,
+                $this->consultationSession->createConsultationSessionNotification($id, $message));
     }
 
 }

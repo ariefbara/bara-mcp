@@ -3,7 +3,15 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\Firm;
+use Doctrine\Common\Collections\{
+    ArrayCollection,
+    Criteria
+};
+use Firm\Domain\Model\{
+    Firm,
+    Firm\Program\Consultant,
+    Firm\Program\Coordinator
+};
 use Resources\{
     Domain\ValueObject\Password,
     ValidationRule,
@@ -61,6 +69,18 @@ class Personnel
      */
     protected $removed;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $programCoordinators;
+
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $programConsultants;
+
     function getFirm(): Firm
     {
         return $this->firm;
@@ -96,6 +116,30 @@ class Personnel
         return $this->removed;
     }
 
+    /**
+     * 
+     * @return Coordinator[]
+     */
+    function getUnremovedProgramCoordinators()
+    {
+        return $this->programCoordinators->matching($this->unremovedCriteria())->getIterator();
+    }
+
+    /**
+     * 
+     * @return Consultant[]
+     */
+    function getUnremovedProgramConsultants()
+    {
+        return $this->programConsultants->matching($this->unremovedCriteria())->getIterator();
+    }
+
+    private function unremovedCriteria()
+    {
+        return Criteria::create()
+                        ->andWhere(Criteria::expr()->eq('removed', false));
+    }
+
     protected function setName(string $name): void
     {
         $errorDetail = "bad request: personnel name is required";
@@ -116,6 +160,10 @@ class Personnel
 
     protected function setPhone(?string $phone): void
     {
+        $errorDetail = "bad request: personnel phone format is invalid";
+        ValidationService::build()
+                ->addRule(ValidationRule::optional(ValidationRule::phone()))
+                ->execute($phone, $errorDetail);
         $this->phone = $phone;
     }
 
@@ -130,6 +178,11 @@ class Personnel
         $this->joinTime = new DateTimeImmutable();
         $this->removed = false;
         $this->assignedAdmin = null;
+    }
+
+    public function passwordMatches(string $password): bool
+    {
+        return $this->password->match($password);
     }
 
 }

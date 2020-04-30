@@ -2,7 +2,11 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation\Worksheet;
 
-use Client\Domain\Model\Client\ProgramParticipation\Worksheet;
+use Client\Domain\Model\Client\ {
+    ClientNotification,
+    ProgramParticipation\Worksheet,
+    ProgramParticipation\Worksheet\Comment\CommentNotification
+};
 use Tests\TestBase;
 
 class CommentTest extends TestBase
@@ -52,6 +56,18 @@ class CommentTest extends TestBase
     {
         $this->comment->remove();
         $this->assertTrue($this->comment->removed);
+    }
+    
+    public function test_createCommentNotification_returnCommentNotification()
+    {
+        $id = 'id';
+        $message = 'message';
+        $this->worksheet->expects($this->once())
+                ->method('createClientNotification')
+                ->with($id, $message)
+                ->willReturn($clientNotification = $this->buildMockOfClass(ClientNotification::class));
+        $commentNotification = new CommentNotification($this->comment, $id, $clientNotification);
+        $this->assertEquals($commentNotification, $this->comment->createCommentNotification($id, $message));
     }
 
 }

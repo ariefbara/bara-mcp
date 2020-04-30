@@ -15,6 +15,9 @@ interface ConsultationRequestRepository
 
     public function ofId(
             ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationRequestId): ConsultationRequest;
-    
+
     public function all(ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize);
+
+    public function aConsultationRequestOfConsultant(
+            string $firmId, string $personnelId, string $consultantId, string $consultationRequestId): ConsultationRequest;
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment\CommentNotification" 
+            table="CommentNotification" 
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineCommentNotificationRepository" 
+    >
+        <many-to-one  field="comment" 
+                      target-entity="Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment"
+        >
+            <join-column name="Comment_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="clientNotification" 
+                    target-entity="Client\Domain\Model\Client\ClientNotification"
+                    inversed-by="commentNotification"
+        >
+            <join-column name="ClientNotification_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

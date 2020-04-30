@@ -7,10 +7,7 @@ use League\Flysystem\ {
     Adapter\Local,
     Filesystem
 };
-use Tests\Controllers\ {
-    Client\ProgramParticipationTestCase,
-    RecordPreparation\Shared\RecordOfFileInfo
-};
+use Tests\Controllers\Client\ProgramParticipationTestCase;
 
 class FileUploadControllerTest extends ProgramParticipationTestCase
 {
@@ -22,6 +19,8 @@ class FileUploadControllerTest extends ProgramParticipationTestCase
         parent::setUp();
         $this->fileUploadUri = $this->programParticipationUri. "/{$this->programParticipation->id}/file-uploads";
         $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('PersonnelFileInfo')->truncate();
+        
         $root = dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
         $adapter = new Local($root);
         $filessystem = new Filesystem($adapter);
@@ -37,6 +36,7 @@ class FileUploadControllerTest extends ProgramParticipationTestCase
     {
         parent::tearDown();
         $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('PersonnelFileInfo')->truncate();
         
         $root = dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
         $adapter = new Local($root);

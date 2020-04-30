@@ -8,6 +8,7 @@ use Client\Domain\ {
     Model\Client,
     Model\Client\ProgramParticipation\ConsultationRequest,
     Model\Client\ProgramParticipation\ConsultationSession,
+    Model\Client\ProgramParticipation\ParticipantNotification,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\ConsultationSetup
 };
@@ -20,6 +21,7 @@ class ProgramParticipationTest extends TestBase
 {
 
     protected $program;
+    protected $client;
     protected $programParticipation;
     protected $consultationRequest, $consultationRequestId = 'negotiate-consultationSession-id';
     protected $otherConsultationRequest;
@@ -33,7 +35,8 @@ class ProgramParticipationTest extends TestBase
 
         $this->programParticipation = new TestableProgramParticipation();
         $this->programParticipation->active = true;
-        $this->programParticipation->client = $this->buildMockOfClass(Client::class);
+        $this->client = $this->buildMockOfClass(Client::class);
+        $this->programParticipation->client = $this->client;
         
         $this->programParticipation->consultationRequests = new ArrayCollection();
         $this->programParticipation->consultationSessions = new ArrayCollection();
@@ -263,6 +266,25 @@ class ProgramParticipationTest extends TestBase
         $this->programParticipation->clearRecordedEvents();
         $this->executeAcceptConsultationRequest();
         $this->assertInstanceOf(ConsultationSessionMutatedByParticipantEvent::class, $this->programParticipation->getRecordedEvents()[0]);
+    }
+    
+    public function test_createParticipationNotification_returnParticipationNotification()
+    {
+        $this->client->expects($this->once())
+                ->method('createClientNotification')
+                ->with($id = 'id', $message = 'message')
+                ->willReturn($clientNotification = $this->buildMockOfClass(ClientNotification::class));
+        $participantNotification = new ParticipantNotification($this->programParticipation, $id, $clientNotification);
+        $this->assertEquals($participantNotification, $this->programParticipation->createParticipantNotification($id, $message));
+    }
+    
+    public function test_createClientNotification_returnResultOfClientsCreateNotification()
+    {
+        $this->client->expects($this->once())
+                ->method('createClientNotification')
+                ->with($id = 'id', $message = 'message')
+                ->willReturn($clientNotification = $this->buildMockOfClass(ClientNotification::class));
+        $this->assertEquals($clientNotification, $this->programParticipation->createClientNotification($id, $message));
     }
     
 }

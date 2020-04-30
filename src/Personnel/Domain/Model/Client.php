@@ -68,6 +68,16 @@ class Client
      */
     protected $activated = false;
 
+    function getId(): string
+    {
+        return $this->id;
+    }
+
+    function getName(): string
+    {
+        return $this->name;
+    }
+
     protected function __construct()
     {
         ;

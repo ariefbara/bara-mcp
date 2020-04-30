@@ -15,7 +15,7 @@ class ProgramParticipationFileInfoFinderTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->programParticipationFileInfoRepository = $this->buildMockOfInterface(ProgramParticipationFileInfoRepository::class);
+        $this->programParticipationFileInfoRepository = $this->buildMockOfInterface(PersonnelFileInfoRepository::class);
         $this->programParticipationCompositionId = $this->buildMockOfClass(ProgramParticipationCompositionId::class);
         
         $this->service = new ProgramParticipationFileInfoFinder($this->programParticipationFileInfoRepository, $this->programParticipationCompositionId);

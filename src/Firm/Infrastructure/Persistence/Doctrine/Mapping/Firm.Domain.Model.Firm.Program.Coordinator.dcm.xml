@@ -13,6 +13,7 @@
         <id name="id" type="guid" />
     	<many-to-one  field="personnel" 
                       target-entity="Firm\Domain\Model\Firm\Personnel"
+                      inversed-by="programCoordinators"
         >
             <join-column name="Personnel_id" referenced-column-name="id" />
         </many-to-one>

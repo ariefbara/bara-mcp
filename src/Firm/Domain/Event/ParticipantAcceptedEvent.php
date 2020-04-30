@@ -2,9 +2,10 @@
 
 namespace Firm\Domain\Event;
 
+use Client\Application\Listener\ParticipantNotificationEventInterface;
 use Resources\Application\Event\Event;
 
-class ParticipantAcceptedEvent implements Event
+class ParticipantAcceptedEvent implements Event, ParticipantNotificationEventInterface
 {
 
     const EVENT_NAME = "ParticipantAcceptedEvent";
@@ -13,7 +14,13 @@ class ParticipantAcceptedEvent implements Event
      *
      * @var string
      */
-    protected $clientId;
+    protected $firmId;
+
+    /**
+     *
+     * @var string
+     */
+    protected $programId;
 
     /**
      *
@@ -25,11 +32,16 @@ class ParticipantAcceptedEvent implements Event
      *
      * @var string
      */
-    protected $message;
+    protected $messageForClient;
 
-    function getClientId(): string
+    function getFirmId(): string
     {
-        return $this->clientId;
+        return $this->firmId;
+    }
+
+    function getProgramId(): string
+    {
+        return $this->programId;
     }
 
     function getParticipantId(): string
@@ -37,16 +49,17 @@ class ParticipantAcceptedEvent implements Event
         return $this->participantId;
     }
 
-    function getMessage(): string
+    function getMessageForClient(): string
     {
-        return $this->message;
+        return $this->messageForClient;
     }
 
-    function __construct(string $clientId, string $participantId, string $message)
+    function __construct(string $firmId, string $programId, string $participantId, string $messageForClient)
     {
-        $this->clientId = $clientId;
+        $this->firmId = $firmId;
+        $this->programId = $programId;
         $this->participantId = $participantId;
-        $this->message = $message;
+        $this->messageForClient = $messageForClient;
     }
 
     public function getName(): string

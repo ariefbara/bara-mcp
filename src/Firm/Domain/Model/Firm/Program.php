@@ -6,13 +6,14 @@ use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Firm\Domain\Model\{
-    Client,
-    Firm,
-    Firm\Program\Coordinator,
-    Firm\Program\Consultant,
-    Firm\Program\Participant,
-    Firm\Program\Registrant
+use Firm\Domain\{
+    Event\ParticipantAcceptedEvent,
+    Model\Client,
+    Model\Firm,
+    Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
+    Model\Firm\Program\Participant,
+    Model\Firm\Program\Registrant
 };
 use Resources\{
     Domain\Model\ModelContainEvents,
@@ -212,11 +213,8 @@ class Program extends ModelContainEvents
             $this->participants->add($participant);
         }
 
-        $clientId = $client->getId();
-        $participantId = $participant->getId();
-        $message = "Your have been accepted as participant of program $this->name";
-
-        $event = new \Firm\Domain\Event\ParticipantAcceptedEvent($clientId, $participantId, $message);
+        $messageForClient = "You have been accepted as participant of program $this->name";
+        $event = new ParticipantAcceptedEvent($this->firm->getId(), $this->id, $participant->getId(), $messageForClient);
         $this->recordEvent($event);
     }
 

@@ -5,6 +5,7 @@ namespace Client\Domain\Model;
 use Client\Domain\ {
     Event\ClientActivationCodeGenerated,
     Event\ClientPasswordResetCodeGenerated,
+    Model\Client\ClientNotification,
     Model\Client\ProgramParticipation,
     Model\Client\ProgramRegistration,
     Model\Firm\Program
@@ -13,6 +14,7 @@ use DateTime;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Resources\Domain\ValueObject\Password;
+use Shared\Domain\Model\Notification;
 use Tests\TestBase;
 
 class ClientTest extends TestBase
@@ -352,6 +354,11 @@ class ClientTest extends TestBase
                 ->willReturn($this->program);
         $this->executeCreateProgramRegistration();
         $this->markAsSuccess();
+    }
+    
+    public function test_createClientNotification()
+    {
+        $this->assertInstanceOf(ClientNotification::class, $this->client->createClientNotification('id', 'message'));
     }
 
 }

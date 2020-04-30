@@ -2,9 +2,16 @@
 
 namespace Personnel\Domain\Model\Firm\Program;
 
+use DateInterval;
+use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\ {
     ConsultationFeedbackForm,
     Program
+};
+use Resources\Domain\ValueObject\DateTimeInterval;
+use Shared\Domain\Model\ {
+    FormRecord,
+    FormRecordData
 };
 
 class ConsultationSetup
@@ -91,4 +98,16 @@ class ConsultationSetup
     {
         ;
     }
+
+    public function getSessionStartEndTimeOf(DateTimeImmutable $startTime): DateTimeInterval
+    {
+        $endTime = $startTime->add(new DateInterval("PT{$this->sessionDuration}M"));
+        return new DateTimeInterval($startTime, $endTime);
+    }
+    
+    public function createFormRecordForConsultantFeedback(string $id, FormRecordData $formRecordData): FormRecord
+    {
+        return $this->consultantFeedbackForm->createFormRecord($id, $formRecordData);
+    }
+
 }

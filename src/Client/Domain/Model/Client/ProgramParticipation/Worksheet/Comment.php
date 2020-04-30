@@ -2,7 +2,10 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation\Worksheet;
 
-use Client\Domain\Model\Client\ProgramParticipation\Worksheet;
+use Client\Domain\Model\Client\ProgramParticipation\ {
+    Worksheet,
+    Worksheet\Comment\CommentNotification
+};
 use DateTimeImmutable;
 
 class Comment
@@ -99,6 +102,12 @@ class Comment
     public function remove(): void
     {
         $this->removed = true;
+    }
+    
+    public function createCommentNotification(string $id, string $message): CommentNotification
+    {
+        $clientNotification = $this->worksheet->createClientNotification($id, $message);
+        return new CommentNotification($this, $id, $clientNotification);
     }
 
 }

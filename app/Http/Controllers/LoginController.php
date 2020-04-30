@@ -13,7 +13,9 @@ use Client\ {
 use Firebase\JWT\JWT;
 use Firm\ {
     Application\Service\Firm\ManagerLogin,
-    Domain\Model\Firm\Manager
+    Application\Service\Firm\PersonnelLogin,
+    Domain\Model\Firm\Manager,
+    Domain\Model\Firm\Personnel
 };
 use function env;
 use function response;
@@ -60,6 +62,23 @@ class LoginController extends Controller
         ];
         $token = $this->generateJwtToken($identifier);
         return $this->buildCredentialsResponse($data, $token);
+    }
+    
+    public function personnelLogin()
+    {
+        $personnelRepository = $this->em->getRepository(Personnel::class);
+        $service = new PersonnelLogin($personnelRepository);
+        $firmIdentifier = $this->stripTagsInputRequest('firmIdentifier');
+        $email = $this->stripTagsInputRequest('email');
+        $password = $this->stripTagsInputRequest('password');
+        $personnel = $service->execute($firmIdentifier, $email, $password);
+        
+        $identifier = [
+            "firmId" => $personnel->getFirm()->getId(),
+            "personnelId" => $personnel->getId(),
+        ];
+        $token = $this->generateJwtToken($identifier);
+        return $this->buildCredentialsResponse($this->arrayDataOfPersonnel($personnel), $token);
     }
     
     public function clientLogin()
@@ -109,6 +128,35 @@ class LoginController extends Controller
             ]
         ];
         return response()->json($content);
+    }
+    
+    private function arrayDataOfPersonnel(Personnel $personnel): array
+    {
+        $data = [
+            "id" => $personnel->getId(),
+            "name" => $personnel->getName(),
+            "programConsultants" => [],
+            "programCoordinators" => [],
+        ];
+        foreach ($personnel->getUnremovedProgramConsultants() as $consultant) {
+            $data['programConsultants'][] = [
+                "id" => $consultant->getId(),
+                "program" => [
+                    "id" => $consultant->getProgram()->getId(),
+                    "name" => $consultant->getProgram()->getName(),
+                ],
+            ];
+        }
+        foreach ($personnel->getUnremovedProgramCoordinators() as $coordinator) {
+            $data['programCoordinators'][] = [
+                "id" => $coordinator->getId(),
+                "program" => [
+                    "id" => $coordinator->getProgram()->getId(),
+                    "name" => $coordinator->getProgram()->getName(),
+                ],
+            ];
+        }
+        return $data;
     }
     
 }

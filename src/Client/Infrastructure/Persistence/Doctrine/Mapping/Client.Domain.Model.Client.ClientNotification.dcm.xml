@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\Model\Client\ClientNotification" 
+            table="ClientNotification"
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientNotificationRepository"  
+    >
+        <many-to-one  field="client" 
+                      target-entity="Client\Domain\Model\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="notification" 
+                    target-entity="Shared\Domain\Model\Notification"
+        >
+            <join-column name="Notification_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+        <one-to-one field="participantNotification" 
+                    target-entity="Client\Domain\Model\Client\ProgramParticipation"
+                    mapped-by="clientNotification"
+        />
+        <one-to-one field="consultationSessionNotification" 
+                    target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationSession\ConsultationSessionNotification"
+                    mapped-by="clientNotification"
+        />
+        <one-to-one field="consultationRequestNotification" 
+                    target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationRequest\ConsultationRequestNotification"
+                    mapped-by="clientNotification"
+        />
+        <one-to-one field="commentNotification" 
+                    target-entity="Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment\CommentNotification"
+                    mapped-by="clientNotification"
+        />
+        
+    </entity>
+</doctrine-mapping>

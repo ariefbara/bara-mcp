@@ -20,5 +20,14 @@
         <field name="joinTime" type="datetime_immutable" nullable="true"/>
         <field name="removed" type="boolean" />
         
+        <one-to-many field="programConsultants"
+                     target-entity="Firm\Domain\Model\Firm\Program\Consultant"
+                     mapped-by="personnel"
+        />
+        <one-to-many field="programCoordinators"
+                     target-entity="Firm\Domain\Model\Firm\Program\Coordinator"
+                     mapped-by="personnel"
+        />
+        
     </entity>
 </doctrine-mapping>

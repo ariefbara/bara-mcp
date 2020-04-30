@@ -2,16 +2,20 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
-use Personnel\Domain\Model\Firm\ {
+use Personnel\Domain\Model\Firm\{
     Personnel\ProgramConsultant,
+    Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback,
     Program\ConsultationSetup,
     Program\Participant
 };
-use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\{
+    Domain\ValueObject\DateTimeInterval,
+    Uuid
+};
+use Shared\Domain\Model\FormRecordData;
 
 class ConsultationSession
 {
-
 
     /**
      *
@@ -24,7 +28,7 @@ class ConsultationSession
      * @var string
      */
     protected $id;
-    
+
     /**
      *
      * @var Participant
@@ -42,6 +46,12 @@ class ConsultationSession
      * @var DateTimeInterval
      */
     protected $startEndTime;
+
+    /**
+     *
+     * @var ConsultantFeedback
+     */
+    protected $consultantFeedback = null;
 
     function getParticipant(): Participant
     {
@@ -73,8 +83,36 @@ class ConsultationSession
         return $this->startEndTime->getEndTime()->format('Y-m-d H:i:s');
     }
 
-    protected function __construct()
+    function getConsultantFeedback(): ?ConsultantFeedback
     {
-        ;
+        return $this->consultantFeedback;
     }
+
+    function __construct(
+            ProgramConsultant $programConsultant, string $id, Participant $participant,
+            ConsultationSetup $consultationSetup, DateTimeInterval $startEndTime)
+    {
+        $this->programConsultant = $programConsultant;
+        $this->id = $id;
+        $this->participant = $participant;
+        $this->consultationSetup = $consultationSetup;
+        $this->startEndTime = $startEndTime;
+    }
+
+    public function intersectWithConsultationRequest(ConsultationRequest $consultationRequest): bool
+    {
+        return $this->startEndTime->intersectWith($consultationRequest->getStartEndTime());
+    }
+
+    public function setConsultantFeedback(FormRecordData $formRecordData): void
+    {
+        if (!empty($this->consultantFeedback)) {
+            $this->consultantFeedback->update($formRecordData);
+        } else {
+            $id = Uuid::generateUuid4();
+            $formRecord = $this->consultationSetup->createFormRecordForConsultantFeedback($id, $formRecordData);
+            $this->consultantFeedback = new ConsultantFeedback($this, $id, $formRecord);
+        }
+    }
+
 }

@@ -23,7 +23,7 @@ class ProgramParticipationFileInfoFinder implements IFileInfoFinder
      */
     protected $programParticipationCompositionId;
 
-    function __construct(ProgramParticipationFileInfoRepository $programParticipationFileInfoRepository,
+    function __construct(PersonnelFileInfoRepository $programParticipationFileInfoRepository,
             ProgramParticipationCompositionId $programParticipationCompositionId)
     {
         $this->programParticipationFileInfoRepository = $programParticipationFileInfoRepository;
