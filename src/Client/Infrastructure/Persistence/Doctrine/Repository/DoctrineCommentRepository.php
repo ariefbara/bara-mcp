@@ -24,7 +24,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
 
         $parameters = [
             "consultantCommentId" => $consultantCommentId,
-            "consultantId" => $consultantCommentId,
+            "consultantId" => $consultantId,
             "personnelId" => $personnelId,
             "firmId" => $firmId,
         ];

@@ -3,10 +3,8 @@
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
 use DateTimeImmutable;
-use Personnel\Application\Service\Firm\Personnel\ {
-    PersonnelCompositionId,
-    ProgramConsultantRepository
-};
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultantRepository;
+use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestOffer

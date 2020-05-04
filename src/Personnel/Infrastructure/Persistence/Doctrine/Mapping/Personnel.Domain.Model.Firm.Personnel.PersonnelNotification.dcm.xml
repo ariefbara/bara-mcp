@@ -12,7 +12,7 @@
         <id name="id" type="guid" />
         <field name="message" type="string" length="256" nullable="false"/>
         <field name="read" column="isRead" type="boolean" />
-        <field name="notifiedTime" type="date_immutable" nullable="false"/>
+        <field name="notifiedTime" type="datetime_immutable" nullable="false"/>
         
         <many-to-one  field="consultationRequest" 
                       target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest"

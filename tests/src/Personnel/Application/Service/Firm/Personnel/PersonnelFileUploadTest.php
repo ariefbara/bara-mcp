@@ -51,4 +51,11 @@ class PersonnelFileUploadTest extends TestBase
             ->method('execute');
         $this->execute();
     }
+    public function test_execute_returnNextId()
+    {
+        $this->personnelFileInfoRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+    }
 }

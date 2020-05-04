@@ -31,41 +31,6 @@ class ConsultantComment extends ModelContainEvents
      */
     protected $comment;
 
-    function getProgramConsultant(): ProgramConsultant
-    {
-        return $this->programConsultant;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getWorksheet(): Worksheet
-    {
-        return $this->comment->getWorksheet();
-    }
-
-    function getParent(): ?Comment
-    {
-        return $this->comment->getParent();
-    }
-
-    function getMessage(): ?string
-    {
-        return $this->comment->getMessage();
-    }
-
-    function getSubmitTimeString(): string
-    {
-        return $this->comment->getSubmitTimeString();
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->comment->isRemoved();
-    }
-
     function __construct(ProgramConsultant $programConsultant, string $id, Comment $comment)
     {
         $this->programConsultant = $programConsultant;

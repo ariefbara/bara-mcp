@@ -26,7 +26,7 @@ class ConsultationSessionTestCase extends ProgramConsultantTestCase
         
         $this->consultationSessionUri = $this->programConsultantUri. "/consultation-sessions";
         $this->connection->table('Form')->truncate();
-        $this->connection->table('ConsultationFeedbackForm')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Client')->truncate();
@@ -35,10 +35,10 @@ class ConsultationSessionTestCase extends ProgramConsultantTestCase
         $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
         
-        $consultationFeedbackForm = new RecordOfFeedbackForm($this->programConsultant->program->firm, $form);
-        $this->connection->table("ConsultationFeedbackForm")->insert($consultationFeedbackForm->toArrayForDbEntry());
+        $feedbackForm = new RecordOfFeedbackForm($this->programConsultant->program->firm, $form);
+        $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
         
-        $consultationSetup = new RecordOfConsultationSetup($this->programConsultant->program, $consultationFeedbackForm, $consultationFeedbackForm, 0);
+        $consultationSetup = new RecordOfConsultationSetup($this->programConsultant->program, $feedbackForm, $feedbackForm, 0);
         $this->connection->table("ConsultationSetup")->insert($consultationSetup->toArrayForDbEntry());
         
         $client = new RecordOfClient(0, 'client@email.org', 'password123');
@@ -55,7 +55,7 @@ class ConsultationSessionTestCase extends ProgramConsultantTestCase
     {
         parent::tearDown();
         $this->connection->table('Form')->truncate();
-        $this->connection->table('ConsultationFeedbackForm')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Client')->truncate();

@@ -5,13 +5,13 @@
     >
         
         <many-to-one  field="program" 
-                      target-entity="Personnel\Domain\Model\Firm\Program"
+                      target-entity="Query\Domain\Model\Firm\Program"
         >
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
         <many-to-one  field="client" 
-                      target-entity="Personnel\Domain\Model\Client"
+                      target-entity="Query\Domain\Model\Client"
         >
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>

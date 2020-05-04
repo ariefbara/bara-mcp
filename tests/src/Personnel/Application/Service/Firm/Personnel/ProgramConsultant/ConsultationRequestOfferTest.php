@@ -4,10 +4,10 @@ namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
 use DateTimeImmutable;
 use Personnel\ {
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\ProgramConsultantRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant
 };
+use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 

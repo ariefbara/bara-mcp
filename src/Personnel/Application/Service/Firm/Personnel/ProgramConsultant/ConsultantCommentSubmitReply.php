@@ -2,12 +2,12 @@
 
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use Personnel\{
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
+use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultantRepository,
     Application\Service\Firm\Program\Participant\Worksheet\CommentRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment
 };
+use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultantCommentSubmitReply
@@ -50,7 +50,7 @@ class ConsultantCommentSubmitReply
 
     public function execute(
             PersonnelCompositionId $personnelCompositionId, string $programConsultantId, string $participantId,
-            string $worksheetId, string $commentId, string $message): ConsultantComment
+            string $worksheetId, string $commentId, string $message): string
     {
         $programConsultant = $this->programConsultantRepository->ofId($personnelCompositionId, $programConsultantId);
         $id = $this->consultantCommentRepository->nextIdentity();
@@ -62,7 +62,7 @@ class ConsultantCommentSubmitReply
         $this->consultantCommentRepository->add($consultantComment);
         
         $this->dispatcher->dispatch($consultantComment);
-        return $consultantComment;
+        return $id;
     }
 
 }

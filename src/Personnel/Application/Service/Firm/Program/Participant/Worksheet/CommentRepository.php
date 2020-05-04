@@ -2,10 +2,8 @@
 
 namespace Personnel\Application\Service\Firm\Program\Participant\Worksheet;
 
-use Personnel\{
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment
-};
+use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 
 interface CommentRepository
 {

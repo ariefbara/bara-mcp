@@ -3,8 +3,8 @@
 namespace Personnel\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Personnel\Domain\Model\Firm;
-use Resources\ {
+use Query\Domain\Model\Firm;
+use Resources\{
     Domain\ValueObject\Password,
     Exception\RegularException,
     ValidationRule,
@@ -77,26 +77,6 @@ class Personnel
         return $this->name;
     }
 
-    function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    function getPhone(): ?string
-    {
-        return $this->phone;
-    }
-
-    function getJoinTimeString(): string
-    {
-        return $this->joinTime->format('Y-m-d H:i:s');
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     protected function setName(string $name): void
     {
         $errorDetail = 'bad request: personnel name is mandatory';
@@ -112,20 +92,21 @@ class Personnel
         ValidationService::build()
                 ->addRule(ValidationRule::optional(ValidationRule::phone()))
                 ->execute($phone, $errorDetail);
-        $this->phone = $phone;;
+        $this->phone = $phone;
+        ;
     }
 
     protected function __construct()
     {
         
     }
-    
+
     public function updateProfile(string $name, ?string $phone): void
     {
         $this->setName($name);
         $this->setPhone($phone);
     }
-    
+
     public function changePassword(string $previousPassword, string $newPassword): void
     {
         if (!$this->password->match($previousPassword)) {

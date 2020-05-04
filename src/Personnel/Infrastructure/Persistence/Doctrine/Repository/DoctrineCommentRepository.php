@@ -7,11 +7,11 @@ use Doctrine\ORM\ {
     NoResultException
 };
 use Personnel\ {
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Program\Participant\Worksheet\CommentRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
 };
+use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Exception\RegularException;
 
 class DoctrineCommentRepository extends EntityRepository implements CommentRepository

@@ -2,8 +2,8 @@
 
 namespace Personnel\Domain\Service;
 
-use Personnel\Application\Service\Firm\Personnel\PersonnelCompositionId;
-use Shared\Domain\Model\{
+use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
+use Shared\Domain\Model\ {
     FileInfo,
     FormRecordData\IFileInfoFinder
 };

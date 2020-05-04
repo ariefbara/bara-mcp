@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
-    <entity name="Personnel\Domain\Model\Firm\ConsultationFeedbackForm" 
-            table="ConsultationFeedbackForm" 
+    <entity name="Personnel\Domain\Model\Firm\FeedbackForm" 
+            table="FeedbackForm" 
     >
         
         <many-to-one  field="firm" 
-                      target-entity="Personnel\Domain\Model\Firm"
+                      target-entity="Query\Domain\Model\Firm"
         >
             <join-column name="Firm_id" referenced-column-name="id" />
         </many-to-one>

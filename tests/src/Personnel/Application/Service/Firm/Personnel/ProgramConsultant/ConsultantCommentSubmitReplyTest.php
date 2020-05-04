@@ -2,14 +2,14 @@
 
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use Personnel\{
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
+use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultantRepository,
     Application\Service\Firm\Program\Participant\Worksheet\CommentRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
 };
+use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
@@ -29,6 +29,9 @@ class ConsultantCommentSubmitReplyTest extends TestBase
     {
         parent::setUp();
         $this->consultantCommentRepository = $this->buildMockOfInterface(ConsultantCommentRepository::class);
+        $this->consultantCommentRepository->expects($this->any())
+                ->method('nextIdentity')
+                ->willReturn($this->nextIdentity);
         $this->programConsultantRepository = $this->buildMockOfInterface(ProgramConsultantRepository::class);
         $this->commentRepository = $this->buildMockOfInterface(CommentRepository::class);
         $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
@@ -45,9 +48,6 @@ class ConsultantCommentSubmitReplyTest extends TestBase
 
     protected function execute()
     {
-        $this->consultantCommentRepository->expects($this->once())
-                ->method('nextIdentity')
-                ->willReturn($this->nextIdentity);
         $this->programConsultantRepository->expects($this->once())
                 ->method('ofId')
                 ->with($this->personnelCompositionId, $this->programConsultantId)
@@ -83,6 +83,10 @@ class ConsultantCommentSubmitReplyTest extends TestBase
                 ->method('dispatch')
                 ->with($consultantComment);
         $this->execute();
+    }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->nextIdentity, $this->execute());
     }
 
 }

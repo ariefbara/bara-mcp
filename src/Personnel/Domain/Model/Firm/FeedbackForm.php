@@ -2,14 +2,14 @@
 
 namespace Personnel\Domain\Model\Firm;
 
-use Personnel\Domain\Model\Firm;
+use Query\Domain\Model\Firm;
 use Shared\Domain\Model\ {
     Form,
     FormRecord,
     FormRecordData
 };
 
-class ConsultationFeedbackForm
+class FeedbackForm
 {
 
     /**
@@ -35,21 +35,6 @@ class ConsultationFeedbackForm
      * @var bool
      */
     protected $removed;
-
-    function getFirm(): Firm
-    {
-        return $this->firm;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function __construct()
     {

@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Query\Domain\Model\Firm\Program\Consultant\ConsultantComment" 
             table="ConsultantComment" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultantCommentRepository"
     >
         
         <many-to-one  field="consultant" 

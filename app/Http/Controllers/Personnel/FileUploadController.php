@@ -8,6 +8,11 @@ use Personnel\ {
     Domain\Model\Firm\Personnel,
     Domain\Model\Firm\Personnel\PersonnelFileInfo
 };
+use Query\ {
+    Application\Service\Firm\Personnel\PersonnelCompositionId,
+    Application\Service\Firm\Personnel\PersonnelFileInfoView,
+    Domain\Model\Firm\Personnel\PersonnelFileInfo as PersonnelFileInfo2
+};
 use Shared\Domain\Model\FileInfoData;
 
 class FileUploadController extends PersonnelBaseController
@@ -24,15 +29,19 @@ class FileUploadController extends PersonnelBaseController
         $fileInfoData->addFolder("personnel_{$this->personnelId()}");
 
         $contents = fopen('php://input', 'r');
-        $personnelFileInfo = $service->execute($this->firmId(), $this->personnelId(), $fileInfoData, $contents);
+        $personnelFileInfoId = $service->execute($this->firmId(), $this->personnelId(), $fileInfoData, $contents);
         if (is_resource($contents)) {
             fclose($contents);
         }
+        
+        $viewService = $this->buildViewService();
+        $personnelCompositionId = new PersonnelCompositionId($this->firmId(), $this->personnelId());
+        $personnelFileInfo = $viewService->showById($personnelCompositionId, $personnelFileInfoId);
 
         return $this->commandCreatedResponse($this->arrayDataOfPersonnelFileInfo($personnelFileInfo));
     }
 
-    protected function arrayDataOfPersonnelFileInfo(PersonnelFileInfo $personnelFileInfo): array
+    protected function arrayDataOfPersonnelFileInfo(PersonnelFileInfo2 $personnelFileInfo): array
     {
         return [
             "id" => $personnelFileInfo->getId(),
@@ -49,6 +58,12 @@ class FileUploadController extends PersonnelBaseController
 
         return new PersonnelFileUpload(
                 $personnelFileInfoRepository, $personnelRepository, $uploadFile);
+    }
+    
+    protected function buildViewService()
+    {
+        $personnelFileInfoRepository = $this->em->getRepository(PersonnelFileInfo2::class);
+        return new PersonnelFileInfoView($personnelFileInfoRepository);
     }
 
 }

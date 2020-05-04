@@ -6,7 +6,7 @@
     >
         
         <many-to-one  field="firm" 
-                      target-entity="Personnel\Domain\Model\Firm"
+                      target-entity="Query\Domain\Model\Firm"
         >
             <join-column name="Firm_id" referenced-column-name="id" />
         </many-to-one>

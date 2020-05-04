@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Personnel\ProgramConsultant;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
-use Client\{
-    Application\Listener\ConsultantCommentNotificationListener,
-    Application\Service\Client\ProgramParticipation\Worksheet\Comment\CommentNotificationFromConsultantAdd,
-    Domain\Model\Client\ProgramParticipation\Worksheet\Comment as CommentForClient,
-    Domain\Model\Client\ProgramParticipation\Worksheet\Comment\CommentNotification
+use Client\ {
+    Application\Listener\ConsultantCommentOnWorksheetListener,
+    Domain\Model\Client\ClientNotification,
+    Domain\Model\Client\ProgramParticipation\Worksheet\Comment as CommentForClient
 };
-use Personnel\{
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
+use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultantCommentRemove,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultantCommentSubmitNew,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultantCommentSubmitReply,
@@ -18,8 +16,13 @@ use Personnel\{
     Domain\Event\ConsultantCommentOnWorksheetEvent,
     Domain\Model\Firm\Personnel\ProgramConsultant,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
-    Domain\Model\Firm\Program\Participant\Worksheet,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
+};
+use Query\ {
+    Application\Service\Firm\Personnel\PersonnelCompositionId,
+    Application\Service\Firm\Personnel\ProgramConsultant\ConsultantCommentView,
+    Domain\Model\Firm\Program\Consultant\ConsultantComment as ConsultantComment2,
+    Domain\Model\Firm\Program\Participant\Worksheet
 };
 use Resources\Application\Event\Dispatcher;
 
@@ -34,8 +37,13 @@ class ConsultantCommentController extends PersonnelBaseController
         $worksheetId = $this->stripTagsInputRequest('worksheetId');
         $message = $this->stripTagsInputRequest('message');
 
-        $consultantComment = $service->execute(
+        $consultantCommentId = $service->execute(
                 $personnelCompositionId, $programConsultantId, $participantId, $worksheetId, $message);
+
+        $viewService = $this->buildViewService();
+        $programConsultantCompositionId = new ProgramConsultantCompositionId(
+                $this->firmId(), $this->personnelId(), $programConsultantId);
+        $consultantComment = $viewService->showById($programConsultantCompositionId, $consultantCommentId);
         return $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
     }
 
@@ -48,8 +56,13 @@ class ConsultantCommentController extends PersonnelBaseController
         $commentId = $this->stripTagsInputRequest('commentId');
         $message = $this->stripTagsInputRequest('message');
 
-        $consultantComment = $service->execute(
+        $consultantCommentId = $service->execute(
                 $personnelCompositionId, $programConsultantId, $participantId, $worksheetId, $commentId, $message);
+        
+        $viewService = $this->buildViewService();
+        $programConsultantCompositionId = new ProgramConsultantCompositionId(
+                $this->firmId(), $this->personnelId(), $programConsultantId);
+        $consultantComment = $viewService->showById($programConsultantCompositionId, $consultantCommentId);
         return $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
     }
 
@@ -80,7 +93,7 @@ class ConsultantCommentController extends PersonnelBaseController
                 $consultantCommentRepository, $programConsultantRepository, $commentRepository, $this->getDispatcher());
     }
 
-    protected function arrayDataOfConsultantComment(ConsultantComment $consultantComment): array
+    protected function arrayDataOfConsultantComment(ConsultantComment2 $consultantComment): array
     {
         $parentData = empty($consultantComment->getParent()) ? null : [
             "id" => $consultantComment->getParent()->getId(),
@@ -101,14 +114,18 @@ class ConsultantCommentController extends PersonnelBaseController
         return new ConsultantCommentRemove($consultantCommentRepository);
     }
 
+    protected function buildViewService()
+    {
+        $consultantCommentRepository = $this->em->getRepository(ConsultantComment2::class);
+        return new ConsultantCommentView($consultantCommentRepository);
+    }
+
     protected function getDispatcher()
     {
         $dispatcher = new Dispatcher();
-        $commentNotificationRepository = $this->em->getRepository(CommentNotification::class);
         $commentRepository = $this->em->getRepository(CommentForClient::class);
-        $commentNotificationFromConsultantAdd = new CommentNotificationFromConsultantAdd($commentNotificationRepository,
-                $commentRepository);
-        $listener = new ConsultantCommentNotificationListener($commentNotificationFromConsultantAdd);
+        $clientNotificationRepository = $this->em->getRepository(ClientNotification::class);
+        $listener = new ConsultantCommentOnWorksheetListener($commentRepository, $clientNotificationRepository);
         $dispatcher->addListener(ConsultantCommentOnWorksheetEvent::EVENT_NAME, $listener);
         return $dispatcher;
     }

@@ -3,7 +3,7 @@
 namespace Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 
 use DateTimeImmutable;
-use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Resources\DateTimeImmutableBuilder;
 
 class Comment
@@ -44,36 +44,6 @@ class Comment
      * @var bool
      */
     protected $removed = false;
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getWorksheet(): Worksheet
-    {
-        return $this->worksheet;
-    }
-
-    function getParent(): ?Comment
-    {
-        return $this->parent;
-    }
-
-    function getMessage(): ?string
-    {
-        return $this->message;
-    }
-
-    function getSubmitTimeString(): string
-    {
-        return $this->submitTime->format("Y-m-d H:i:s");
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function __construct(Worksheet $worksheet, string $id, string $message)
     {

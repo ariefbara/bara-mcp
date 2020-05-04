@@ -2,7 +2,7 @@
 
 namespace Personnel\Application\Service\Firm\Program\Participant;
 
-use Personnel\{
+use Query\ {
     Application\Service\Firm\Personnel\PersonnelCompositionId,
     Domain\Model\Firm\Program\Participant\Worksheet
 };

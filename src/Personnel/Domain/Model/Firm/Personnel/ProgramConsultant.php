@@ -12,9 +12,9 @@ use Personnel\Domain\{
     Event\ConsultantMutateConsultationSessionEvent,
     Model\Firm\Personnel,
     Model\Firm\Personnel\ProgramConsultant\ConsultationRequest,
-    Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
-    Model\Firm\Program
+    Model\Firm\Personnel\ProgramConsultant\ConsultationSession
 };
+use Query\Domain\Model\Firm\Program;
 use Resources\{
     Domain\Model\ModelContainEvents,
     Exception\RegularException,

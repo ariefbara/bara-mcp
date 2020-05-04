@@ -41,7 +41,7 @@ class PersonnelFileUpload
         $this->uploadFile = $uploadFile;
     }
 
-    public function execute(string $firmId, string $personnelId, FileInfoData $fileInfoData, $contents): PersonnelFileInfo
+    public function execute(string $firmId, string $personnelId, FileInfoData $fileInfoData, $contents): string
     {
         $personnel = $this->personnelRepository->ofId($firmId, $personnelId);
         $id = $this->personnelFileInfoRepository->nextIdentity();
@@ -51,7 +51,7 @@ class PersonnelFileUpload
 
         $personnelFileInfo = new PersonnelFileInfo($personnel, $id, $fileInfo);
         $this->personnelFileInfoRepository->add($personnelFileInfo);
-        return $personnelFileInfo;
+        return $id;
     }
 
 }

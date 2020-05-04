@@ -2,19 +2,22 @@
 
 namespace App\Http\Controllers\Personnel\ProgramConsultant;
 
-use App\Http\Controllers\{
+use App\Http\Controllers\ {
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter,
     Personnel\PersonnelBaseController
 };
-use Personnel\{
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
+use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedbackSet,
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView,
     Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId,
     Domain\Model\Firm\Personnel\PersonnelFileInfo,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
     Domain\Service\PersonnelFileInfoFinder
+};
+use Query\ {
+    Application\Service\Firm\Personnel\PersonnelCompositionId,
+    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView,
+    Domain\Model\Firm\Program\Participant\ConsultationSession as ConsultationSession2
 };
 
 class ConsultationSessionController extends PersonnelBaseController
@@ -59,8 +62,8 @@ class ConsultationSessionController extends PersonnelBaseController
         foreach ($consultationSessions as $consultationSession) {
             $result['list'][] = [
                 "id" => $consultationSession->getId(),
-                "startTime" => $consultationSession->getStartTimeString(),
-                "endTime" => $consultationSession->getEndTimeString(),
+                "startTime" => $consultationSession->getStartTime(),
+                "endTime" => $consultationSession->getEndTime(),
                 "participant" => [
                     "id" => $consultationSession->getParticipant()->getId(),
                     "client" => [
@@ -74,14 +77,14 @@ class ConsultationSessionController extends PersonnelBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfConsultationSession(ConsultationSession $consultationSession): array
+    protected function arrayDataOfConsultationSession(ConsultationSession2 $consultationSession): array
     {
         $consultantFeedbackData = empty($consultationSession->getConsultantFeedback()) ? null :
                 (new FormRecordToArrayDataConverter())->convert($consultationSession->getConsultantFeedback());
         return [
             "id" => $consultationSession->getId(),
-            "startTime" => $consultationSession->getStartTimeString(),
-            "endTime" => $consultationSession->getEndTimeString(),
+            "startTime" => $consultationSession->getStartTime(),
+            "endTime" => $consultationSession->getEndTime(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
                 "name" => $consultationSession->getConsultationSetup()->getName()
@@ -105,7 +108,7 @@ class ConsultationSessionController extends PersonnelBaseController
 
     protected function buildViewService()
     {
-        $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
         return new ConsultationSessionView($consultationSessionRepository);
     }
 

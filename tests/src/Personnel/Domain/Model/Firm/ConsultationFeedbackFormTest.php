@@ -31,7 +31,7 @@ class ConsultationFeedbackFormTest extends TestBase
 
 }
 
-class TestableConsultationFeedbackForm extends ConsultationFeedbackForm
+class TestableConsultationFeedbackForm extends FeedbackForm
 {
     public $form;
     

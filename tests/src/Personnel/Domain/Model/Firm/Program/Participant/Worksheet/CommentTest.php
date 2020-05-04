@@ -2,7 +2,7 @@
 
 namespace Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 
-use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Tests\TestBase;
 
 class CommentTest extends TestBase

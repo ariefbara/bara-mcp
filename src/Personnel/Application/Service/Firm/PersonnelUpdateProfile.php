@@ -17,12 +17,11 @@ class PersonnelUpdateProfile
         $this->personnelRepository = $personnelRepository;
     }
     
-    public function execute(string $firmId, string $personnelId, string $name, ?string $phone): Personnel
+    public function execute(string $firmId, string $personnelId, string $name, ?string $phone): void
     {
         $personnel = $this->personnelRepository->ofId($firmId, $personnelId);
         $personnel->updateProfile($name, $phone);
         $this->personnelRepository->update();
-        return $personnel;
     }
 
 }

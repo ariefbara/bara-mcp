@@ -39,10 +39,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->connection->table('Worksheet')->truncate();
         $this->connection->table('Comment')->truncate();
         $this->connection->table('ConsultantComment')->truncate();
-
-        $this->connection->table('Notification')->truncate();
         $this->connection->table('ClientNotification')->truncate();
-        $this->connection->table('CommentNotification')->truncate();
 
         $this->client = new RecordOfClient(0, 'client@email.org', 'password123');
         $this->connection->table('Client')->insert($this->client->toArrayForDbEntry());
@@ -98,10 +95,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->connection->table('Worksheet')->truncate();
         $this->connection->table('Comment')->truncate();
         $this->connection->table('ConsultantComment')->truncate();
-
-        $this->connection->table('Notification')->truncate();
         $this->connection->table('ClientNotification')->truncate();
-        $this->connection->table('CommentNotification')->truncate();
     }
 
     public function test_submitNew()
@@ -124,7 +118,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
             "Worksheet_id" => $this->worksheet->id,
             "message" => $this->submitNewRequest['message'],
             "submitTime" => (new \DateTime())->format("Y-m-d H:i:s"),
-            "parentComment_id" => null,
+            "parent_id" => null,
             "removed" => false,
         ];
         $this->seeInDatabase("Comment", $commentEntry);
@@ -134,22 +128,17 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         ];
         $this->seeInDatabase("ConsultantComment", $consultantCommentEntry);
     }
-
     public function test_submitNew_notifyClient()
     {
         $uri = $this->consultantCommentUri . "/new";
         $this->post($uri, $this->submitNewRequest, $this->programConsultant->personnel->token)
                 ->seeStatusCode(201);
 
-        $notificationEntry = [
+        $clientNotificationEntry = [
+            "Client_id" => $this->client->id,
             "message" => "consultant {$this->programConsultant->personnel->name} has commented on your worksheet",
             "notifiedTime" => (new \DateTime())->format('Y-m-d H:i:s'),
             "isRead" => false,
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-
-        $clientNotificationEntry = [
-            "Client_id" => $this->client->id,
         ];
         $this->seeInDatabase('ClientNotification', $clientNotificationEntry);
     }
@@ -174,7 +163,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
             "Worksheet_id" => $this->worksheet->id,
             "message" => $this->submitReplyRequest['message'],
             "submitTime" => (new \DateTime())->format("Y-m-d H:i:s"),
-            "parentComment_id" => $this->commentOne->id,
+            "parent_id" => $this->commentOne->id,
             "removed" => false,
         ];
         $this->seeInDatabase("Comment", $commentEntry);
@@ -191,15 +180,11 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->post($uri, $this->submitReplyRequest, $this->programConsultant->personnel->token)
                 ->seeStatusCode(201);
         
-        $notificationEntry = [
+        $clientNotificationEntry = [
+            "Client_id" => $this->client->id,
             "message" => "consultant {$this->programConsultant->personnel->name} has commented on your worksheet",
             "notifiedTime" => (new \DateTime())->format('Y-m-d H:i:s'),
             "isRead" => false,
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-
-        $clientNotificationEntry = [
-            "Client_id" => $this->client->id,
         ];
         $this->seeInDatabase('ClientNotification', $clientNotificationEntry);
     }

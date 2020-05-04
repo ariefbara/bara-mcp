@@ -4,10 +4,8 @@ namespace Personnel\Domain\Model\Firm\Program;
 
 use DateInterval;
 use DateTimeImmutable;
-use Personnel\Domain\Model\Firm\ {
-    ConsultationFeedbackForm,
-    Program
-};
+use Personnel\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Program;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Shared\Domain\Model\ {
     FormRecord,
@@ -43,13 +41,7 @@ class ConsultationSetup
 
     /**
      *
-     * @var ConsultationFeedbackForm
-     */
-    protected $participantFeedbackForm;
-
-    /**
-     *
-     * @var ConsultationFeedbackForm
+     * @var FeedbackForm
      */
     protected $consultantFeedbackForm;
 
@@ -58,41 +50,6 @@ class ConsultationSetup
      * @var bool
      */
     protected $removed = false;
-
-    function getProgram(): Program
-    {
-        return $this->program;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getSessionDuration(): int
-    {
-        return $this->sessionDuration;
-    }
-
-    function getParticipantFeedbackForm(): ConsultationFeedbackForm
-    {
-        return $this->participantFeedbackForm;
-    }
-
-    function getConsultantFeedbackForm(): ConsultationFeedbackForm
-    {
-        return $this->consultantFeedbackForm;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function __construct()
     {

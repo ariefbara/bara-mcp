@@ -35,12 +35,12 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
         $form = new RecordOfForm(1);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
 
-        $consultationFeedbackForm = new RecordOfFeedbackForm($this->programConsultant->program->firm,
+        $feedbackForm = new RecordOfFeedbackForm($this->programConsultant->program->firm,
                 $form);
-        $this->connection->table("ConsultationFeedbackForm")->insert($consultationFeedbackForm->toArrayForDbEntry());
+        $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
 
         $consultationSetup = new RecordOfConsultationSetup($this->programConsultant->program,
-                $consultationFeedbackForm, $consultationFeedbackForm, 1);
+                $feedbackForm, $feedbackForm, 1);
         $this->connection->table("ConsultationSetup")->insert($consultationSetup->toArrayForDbEntry());
 
         $clientOne = new RecordOfClient(1, 'clientOne@email.org', 'password123');
@@ -52,7 +52,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
         $this->consultationSessionOne = new RecordOfConsultationSession($consultationSetup, $participant, $this->programConsultant, 1);
         $this->connection->table("ConsultationSession")->insert($this->consultationSessionOne->toArrayForDbEntry());
 
-        $formRecord = new RecordOfFormRecord($consultationFeedbackForm->form, 1);
+        $formRecord = new RecordOfFormRecord($feedbackForm->form, 1);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
 
         $stringField = new RecordOfStringField($form, 1);

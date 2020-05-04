@@ -3,13 +3,13 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use DateTimeImmutable;
-use Personnel\Domain\Model\Firm\ {
+use Personnel\Domain\Model\Firm\{
     Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Program\ConsultationSetup,
     Program\Participant
 };
-use Resources\ {
+use Resources\{
     Domain\ValueObject\DateTimeInterval,
     Exception\RegularException
 };
@@ -60,34 +60,9 @@ class ConsultationRequest
      */
     protected $status;
 
-    function getProgramConsultant(): ProgramConsultant
-    {
-        return $this->programConsultant;
-    }
-
     function getId(): string
     {
         return $this->id;
-    }
-
-    function getParticipant(): Participant
-    {
-        return $this->participant;
-    }
-
-    function getConsultationSetup(): ConsultationSetup
-    {
-        return $this->consultationSetup;
-    }
-
-    function getStartTimeString(): string
-    {
-        return $this->startEndTime->getStartTime()->format('Y-m-d H:i:s');
-    }
-
-    function getEndTimeString(): string
-    {
-        return $this->startEndTime->getEndTime()->format('Y-m-d H:i:s');
     }
 
     function isConcluded(): bool
@@ -95,19 +70,14 @@ class ConsultationRequest
         return $this->concluded;
     }
 
-    function getStatusString(): string
+    function getStartEndTime(): DateTimeInterval
     {
-        return $this->status->getValue();
+        return $this->startEndTime;
     }
 
     protected function __construct()
     {
         ;
-    }
-
-    function getStartEndTime(): DateTimeInterval
-    {
-        return $this->startEndTime;
     }
 
     public function reject(): void
@@ -172,7 +142,7 @@ class ConsultationRequest
             throw RegularException::forbidden($errorDetail);
         }
     }
-    
+
     public function createNotification(string $id, string $message): PersonnelNotification
     {
         return $this->programConsultant->createNotificationForConsultationRequest($id, $message, $this);
