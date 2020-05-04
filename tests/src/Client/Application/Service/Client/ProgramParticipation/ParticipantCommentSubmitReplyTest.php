@@ -40,6 +40,10 @@ class ParticipantCommentSubmitReplyTest extends TestBase
         $this->service = new ParticipantCommentSubmitReply(
                 $this->participantCommentRepository, $this->programParticipationRepository, $this->commentRepository);
     }
+    protected function execute()
+    {
+        return $this->service->execute($this->worksheetCompositionId, $this->commentId, $this->message);
+    }
 
     public function test_execute_addParticipantCommentToRepository()
     {
@@ -48,7 +52,11 @@ class ParticipantCommentSubmitReplyTest extends TestBase
                 ->with($this->nextId, $this->message);
         $this->participantCommentRepository->expects($this->once())
                 ->method('add');
-        $this->service->execute($this->worksheetCompositionId, $this->commentId, $this->message);
+        $this->execute();
+    }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->nextId, $this->execute());
     }
 
 }

@@ -2,7 +2,7 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation\Worksheet;
 
-use Client\Domain\Model\Client\ {
+use Client\Domain\Model\Client\{
     ClientNotification,
     ProgramParticipation\Worksheet
 };
@@ -47,36 +47,6 @@ class Comment
      */
     protected $removed = false;
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getWorksheet(): Worksheet
-    {
-        return $this->worksheet;
-    }
-
-    function getParent(): ?Comment
-    {
-        return $this->parent;
-    }
-
-    function getMessage(): ?string
-    {
-        return $this->message;
-    }
-
-    function getSubmitTimeString(): string
-    {
-        return $this->submitTime->format("Y-m-d H:i:s");
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     protected function __construct(Worksheet $worksheet, string $id, string $message)
     {
         $this->worksheet = $worksheet;
@@ -103,7 +73,7 @@ class Comment
     {
         $this->removed = true;
     }
-    
+
     public function createClientNotification(string $id, string $message): ClientNotification
     {
         return $this->worksheet->createClientNotification($id, $message, $this);

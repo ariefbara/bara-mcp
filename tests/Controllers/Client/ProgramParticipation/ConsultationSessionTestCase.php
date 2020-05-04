@@ -27,7 +27,7 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
         
         $this->consultationSessionUri = $this->programParticipationUri . "/{$this->programParticipation->id}/consultation-sessions";
         $this->connection->table('Form')->truncate();
-        $this->connection->table('ConsultationFeedbackForm')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
@@ -36,10 +36,10 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
         $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
         
-        $consultationFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $form);
-        $this->connection->table("ConsultationFeedbackForm")->insert($consultationFeedbackForm->toArrayForDbEntry());
+        $feedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $form);
+        $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
         
-        $consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program, $consultationFeedbackForm, $consultationFeedbackForm, 0);
+        $consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program, $feedbackForm, $feedbackForm, 0);
         $this->connection->table("ConsultationSetup")->insert($consultationSetup->toArrayForDbEntry());
         
         $personnel = new RecordOfPersonnel($this->programParticipation->program->firm, 0, "personnel@email.org", 'password123');
@@ -57,7 +57,7 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
     {
         parent::tearDown();
         $this->connection->table('Form')->truncate();
-        $this->connection->table('ConsultationFeedbackForm')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();

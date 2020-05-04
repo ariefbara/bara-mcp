@@ -21,12 +21,11 @@ class WorksheetUpdate
 
     public function execute(
             ProgramParticipationCompositionId $programParticipationCompositionId, string $worksheetId,
-            string $name, FormRecordData $formRecordData): Worksheet
+            string $name, FormRecordData $formRecordData): void
     {
         $worksheet = $this->worksheetRepository->ofId($programParticipationCompositionId, $worksheetId);
         $worksheet->update($name, $formRecordData);
         $this->worksheetRepository->update();
-        return $worksheet;
     }
 
 }

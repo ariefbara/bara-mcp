@@ -16,7 +16,8 @@ use Resources\Exception\RegularException;
 class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository
 {
 
-    public function ofId(string $clientId, string $programParticipationId, string $consultantId): Consultant
+    public function aConsultantInProgramWhereClientParticipate(
+            string $clientId, string $programParticipationId, string $consultantId): Consultant
     {
         $parameters = [
             "clientId" => $clientId,

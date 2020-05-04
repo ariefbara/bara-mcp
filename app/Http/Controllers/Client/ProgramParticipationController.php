@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Client;
 
 use Client\ {
     Application\Service\Client\ProgramParticipationQuit,
-    Application\Service\Client\ProgramParticipationView,
     Domain\Model\Client\ProgramParticipation
+};
+use Query\ {
+    Application\Service\Client\ProgramParticipationView,
+    Domain\Model\Firm\Program\Participant
 };
 
 class ProgramParticipationController extends ClientBaseController
@@ -47,22 +50,22 @@ class ProgramParticipationController extends ClientBaseController
         return $this->listQueryResponse($result);
     }
     
-    protected function arrayDataOfParticipant(ProgramParticipation $programParticipation): array
+    protected function arrayDataOfParticipant(Participant $participant): array
     {
         return [
-            "id" => $programParticipation->getId(),
+            "id" => $participant->getId(),
             "program" => [
-                "id" => $programParticipation->getProgram()->getId(),
-                "name" => $programParticipation->getProgram()->getName(),
-                "removed" => $programParticipation->getProgram()->isRemoved(),
+                "id" => $participant->getProgram()->getId(),
+                "name" => $participant->getProgram()->getName(),
+                "removed" => $participant->getProgram()->isRemoved(),
                 "firm" => [
-                    "id" => $programParticipation->getProgram()->getFirm()->getId(),
-                    "name" => $programParticipation->getProgram()->getFirm()->getName(),
+                    "id" => $participant->getProgram()->getFirm()->getId(),
+                    "name" => $participant->getProgram()->getFirm()->getName(),
                 ],
             ],
-            "acceptedTime" => $programParticipation->getAcceptedTimeString(),
-            "active" => $programParticipation->isActive(),
-            "note" => $programParticipation->getNote(),
+            "acceptedTime" => $participant->getAcceptedTimeString(),
+            "active" => $participant->isActive(),
+            "note" => $participant->getNote(),
         ];
     }
     
@@ -73,7 +76,7 @@ class ProgramParticipationController extends ClientBaseController
     }
     protected function buildViewService()
     {
-        $programParticipationRepository = $this->em->getRepository(ProgramParticipation::class);
+        $programParticipationRepository = $this->em->getRepository(Participant::class);
         return new ProgramParticipationView($programParticipationRepository);
     }
 

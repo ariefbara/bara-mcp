@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Client;
 use Client\ {
     Application\Service\Client\ProgramRegistrationCancel,
     Application\Service\Client\ProgramRegistrationSubmit,
-    Application\Service\Client\ProgramRegistrationView,
     Domain\Model\Client,
     Domain\Model\Client\ProgramRegistration,
     Domain\Model\Firm\Program
+};
+use Query\ {
+    Application\Service\Client\ProgramRegistrationView,
+    Domain\Model\Firm\Program\Registrant
 };
 
 class ProgramRegistrationController extends ClientBaseController
@@ -19,9 +22,11 @@ class ProgramRegistrationController extends ClientBaseController
         $service = $this->buildApplyService();
         $firmId = $this->stripTagsInputRequest('firmId');
         $programId = $this->stripTagsInputRequest('programId');
+        $programRegistrationId = $service->execute($this->clientId(), $firmId, $programId);
         
-        $programRegistration = $service->execute($this->clientId(), $firmId, $programId);
-        return $this->commandCreatedResponse($this->arrayDataOfProgramRegistration($programRegistration));
+        $viewService = $this->buildViewService();
+        $registrant = $viewService->showById($this->clientId(), $programRegistrationId);
+        return $this->commandCreatedResponse($this->arrayDataOfRegistrant($registrant));
     }
 
     public function cancel($programRegistrationId)
@@ -35,7 +40,7 @@ class ProgramRegistrationController extends ClientBaseController
     {
         $service = $this->buildViewService();
         $programRegistration = $service->showById($this->clientId(), $programRegistrationId);
-        return $this->singleQueryResponse($this->arrayDataOfProgramRegistration($programRegistration));
+        return $this->singleQueryResponse($this->arrayDataOfRegistrant($programRegistration));
     }
 
     public function showAll()
@@ -61,21 +66,21 @@ class ProgramRegistrationController extends ClientBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfProgramRegistration(ProgramRegistration $programRegistration): array
+    protected function arrayDataOfRegistrant(Registrant $registrant): array
     {
         return [
-            "id" => $programRegistration->getId(),
+            "id" => $registrant->getId(),
             "program" => [
-                "id" => $programRegistration->getProgram()->getId(),
-                "name" => $programRegistration->getProgram()->getName(),
+                "id" => $registrant->getProgram()->getId(),
+                "name" => $registrant->getProgram()->getName(),
                 "firm" => [
-                    "id" => $programRegistration->getProgram()->getFirm()->getId(),
-                    "name" => $programRegistration->getProgram()->getFirm()->getName(),
+                    "id" => $registrant->getProgram()->getFirm()->getId(),
+                    "name" => $registrant->getProgram()->getFirm()->getName(),
                 ],
             ],
-            "appliedTime" => $programRegistration->getAppliedTimeString(),
-            "concluded" => $programRegistration->isConcluded(),
-            "note" => $programRegistration->getNote(),
+            "appliedTime" => $registrant->getAppliedTimeString(),
+            "concluded" => $registrant->isConcluded(),
+            "note" => $registrant->getNote(),
         ];
     }
 
@@ -95,7 +100,7 @@ class ProgramRegistrationController extends ClientBaseController
 
     protected function buildViewService()
     {
-        $programRegistrationRepository = $this->em->getRepository(ProgramRegistration::class);
+        $programRegistrationRepository = $this->em->getRepository(Registrant::class);
         return new ProgramRegistrationView($programRegistrationRepository);
     }
 }

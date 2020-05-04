@@ -27,7 +27,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         parent::setUp();
         $this->consultationRequestUri = $this->programParticipationUri . "/{$this->programParticipation->id}/consultation-requests";
         $this->connection->table('Form')->truncate();
-        $this->connection->table('ConsultationFeedbackForm')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
@@ -35,20 +35,18 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Notification')->truncate();
         $this->connection->table('PersonnelNotification')->truncate();
-        $this->connection->table('PersonnelNotificationOnConsultationRequest')->truncate();
-        $this->connection->table('PersonnelNotificationOnConsultationSession')->truncate();
 
         $formOne = new RecordOfForm(1);
         $formTwo = new RecordOfForm(2);
         $this->connection->table('Form')->insert($formOne->toArrayForDbEntry());
         $this->connection->table('Form')->insert($formTwo->toArrayForDbEntry());
         
-        $participantConsultationFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formOne);
-        $consultantConsultationFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formTwo);
-        $this->connection->table('ConsultationFeedbackForm')->insert($participantConsultationFeedbackForm->toArrayForDbEntry());
-        $this->connection->table('ConsultationFeedbackForm')->insert($consultantConsultationFeedbackForm->toArrayForDbEntry());
+        $participantFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formOne);
+        $consultantFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formTwo);
+        $this->connection->table('FeedbackForm')->insert($participantFeedbackForm->toArrayForDbEntry());
+        $this->connection->table('FeedbackForm')->insert($consultantFeedbackForm->toArrayForDbEntry());
 
-        $this->consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program, $participantConsultationFeedbackForm, $consultantConsultationFeedbackForm, 0);
+        $this->consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program, $participantFeedbackForm, $consultantFeedbackForm, 0);
         $this->connection->table('ConsultationSetup')->insert($this->consultationSetup->toArrayForDbEntry());
         
         
@@ -78,18 +76,16 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
     }
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Form')->truncate();
-//        $this->connection->table('ConsultationFeedbackForm')->truncate();
-//        $this->connection->table('ConsultationSetup')->truncate();
-//        $this->connection->table('Personnel')->truncate();
-//        $this->connection->table('Consultant')->truncate();
-//        $this->connection->table('ConsultationRequest')->truncate();
-//        $this->connection->table('ConsultationSession')->truncate();
-//        $this->connection->table('Notification')->truncate();
-//        $this->connection->table('PersonnelNotification')->truncate();
-//        $this->connection->table('PersonnelNotificationOnConsultationRequest')->truncate();
-//        $this->connection->table('PersonnelNotificationOnConsultationSession')->truncate();
+        parent::tearDown();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
+        $this->connection->table('ConsultationSetup')->truncate();
+        $this->connection->table('Personnel')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('ConsultationRequest')->truncate();
+        $this->connection->table('ConsultationSession')->truncate();
+        $this->connection->table('Notification')->truncate();
+        $this->connection->table('PersonnelNotification')->truncate();
     }
     public function test_propose()
     {
@@ -131,16 +127,12 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->post($this->consultationRequestUri, $this->proposeInput, $this->client->token)
             ->seeStatusCode(201);
         
-        $notificationEntry = [
+        $personnelNotificationEntry = [
+            "Personnel_id" => $this->consultant->personnel->id,
             "message" => "you've received consultation request from {$this->client->name}",
             "isRead" => false,
         ];
-        $this->seeInDatabase('Notification', $notificationEntry);
-        $personnelNotificationEntry = [
-            "Personnel_id" => $this->consultant->personnel->id,
-        ];
         $this->seeInDatabase('PersonnelNotification', $personnelNotificationEntry);
-//see db manually to check PersonnelConsultationRequestNotification entry recorded
     }
     public function test_rePropose_scenario_expectedResult()
     {
@@ -169,16 +161,13 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->patch($uri, $this->reProposeInput, $this->client->token)
             ->seeStatusCode(200);
         
-        $notificationEntry = [
+        $personnelNotificationEntry = [
+            "ConsultationRequest_id" => $this->consultationRequest->id,
+            "Personnel_id" => $this->consultant->personnel->id,
             "message" => "you've received consultation request from {$this->client->name}",
             "isRead" => false,
         ];
-        $this->seeInDatabase('Notification', $notificationEntry);
-        $personnelNotificationEntry = [
-            "Personnel_id" => $this->consultant->personnel->id,
-        ];
         $this->seeInDatabase('PersonnelNotification', $personnelNotificationEntry);
-//see db manually to check PersonnelConsultationRequestNotification entry recorded
     }
     public function test_accept()
     {
@@ -214,16 +203,12 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->patch($uri, $this->reProposeInput, $this->client->token)
             ->seeStatusCode(200);
         
-        $notificationEntry = [
+        $personnelNotificationEntry = [
+            "Personnel_id" => $this->consultant->personnel->id,
             "message" => "consultation session with {$this->client->name} has been arranged",
             "isRead" => false,
         ];
-        $this->seeInDatabase('Notification', $notificationEntry);
-        $personnelNotificationEntry = [
-            "Personnel_id" => $this->consultant->personnel->id,
-        ];
         $this->seeInDatabase('PersonnelNotification', $personnelNotificationEntry);
-//check db manually to see if PersonnelScheduleNotification entry recorded
     }
     
     public function test_cancel()

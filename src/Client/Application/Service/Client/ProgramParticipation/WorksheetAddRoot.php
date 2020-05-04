@@ -40,16 +40,16 @@ class WorksheetAddRoot
 
     public function execute(
             string $clientId, string $programParticipationId, string $missionId, string $name,
-            FormRecordData $formRecordData): Worksheet
+            FormRecordData $formRecordData): string
     {
         $programParticipation = $this->programParticipationRepository->ofId($clientId, $programParticipationId);
         $id = $this->worksheetRepository->nextIdentity();
-        $mission = $this->missionRepository->ofId($clientId, $programParticipationId, $missionId);
+        $mission = $this->missionRepository->aMissionInProgramWhereClientParticipate($clientId, $programParticipationId, $missionId);
         $formRecord = $mission->createWorksheetFormRecord($id, $formRecordData);
 
         $worksheet = Worksheet::createRootWorksheet($programParticipation, $id, $name, $mission, $formRecord);
         $this->worksheetRepository->add($worksheet);
-        return $worksheet;
+        return $id;
     }
 
 }

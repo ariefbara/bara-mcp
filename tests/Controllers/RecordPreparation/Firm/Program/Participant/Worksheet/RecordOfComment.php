@@ -35,7 +35,7 @@ class RecordOfComment implements Record
     {
         return [
             "Worksheet_id" => $this->worksheet->id,
-            "parentComment_id" => empty($this->parent)? null: $this->parent->id,
+            "parent_id" => empty($this->parent)? null: $this->parent->id,
             "id" => $this->id,
             "message" => $this->message,
             "submitTime" => $this->submitTime,

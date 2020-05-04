@@ -19,7 +19,7 @@ class FileUploadControllerTest extends ProgramParticipationTestCase
         parent::setUp();
         $this->fileUploadUri = $this->programParticipationUri. "/{$this->programParticipation->id}/file-uploads";
         $this->connection->table('FileInfo')->truncate();
-        $this->connection->table('PersonnelFileInfo')->truncate();
+        $this->connection->table('ParticipantFileInfo')->truncate();
         
         $root = dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
         $adapter = new Local($root);
@@ -36,7 +36,7 @@ class FileUploadControllerTest extends ProgramParticipationTestCase
     {
         parent::tearDown();
         $this->connection->table('FileInfo')->truncate();
-        $this->connection->table('PersonnelFileInfo')->truncate();
+        $this->connection->table('ParticipantFileInfo')->truncate();
         
         $root = dirname(__DIR__, 4) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
         $adapter = new Local($root);

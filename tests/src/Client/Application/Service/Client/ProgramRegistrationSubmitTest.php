@@ -16,11 +16,16 @@ class ProgramRegistrationSubmitTest extends TestBase
     protected $programRegistrationRepository;
     protected $programRepository, $program, $programmeCompositionId, $firmId = 'firmId', $programId = 'program-id';
     protected $clientRepository, $client, $clientId = 'client-id';
-    
+    protected $nextId = 'id';
+
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->programRegistrationRepository = $this->buildMockOfInterface(ProgramRegistrationRepository::class);
+        $this->programRegistrationRepository->expects($this->any())
+                ->method('nextIdentity')
+                ->willReturn($this->nextId);
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->programRepository = $this->buildMockOfInterface(ProgramRepository::class);
@@ -53,9 +58,13 @@ class ProgramRegistrationSubmitTest extends TestBase
     {
         $this->client->expects($this->once())
             ->method('createProgramRegistration')
-            ->with($this->program);
+            ->with($this->nextId, $this->program);
         
         $this->execute();
+    }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->nextId, $this->execute());
     }
     
 }

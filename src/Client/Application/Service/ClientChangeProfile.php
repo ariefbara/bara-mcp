@@ -17,12 +17,11 @@ class ClientChangeProfile
         $this->clientRepository = $clientRepository;
     }
     
-    public function execute(string $clientId, string $name): Client
+    public function execute(string $clientId, string $name): void
     {
         $client = $this->clientRepository->ofId($clientId);
         $client->changeProfile($name);
         $this->clientRepository->update();
-        return $client;
     }
 
 }

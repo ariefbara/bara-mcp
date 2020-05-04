@@ -47,35 +47,13 @@ class ProgramRegistration
      * @var string
      */
     protected $note = null;
-
-    function getClient(): Client
-    {
-        return $this->client;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
     function getProgram(): Program
     {
         return $this->program;
     }
-
-    function getAppliedTimeString(): string
-    {
-        return $this->appliedTime->format('Y-m-d H:i:s');
-    }
-
     function isConcluded(): bool
     {
         return $this->concluded;
-    }
-
-    function getNote(): ?string
-    {
-        return $this->note;
     }
 
     function __construct(Client $client, $id, Program $program)

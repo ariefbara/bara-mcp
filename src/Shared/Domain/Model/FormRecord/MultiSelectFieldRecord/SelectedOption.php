@@ -2,7 +2,7 @@
 
 namespace Shared\Domain\Model\FormRecord\MultiSelectFieldRecord;
 
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     Form\SelectField\Option,
     FormRecord\MultiSelectFieldRecord
 };
@@ -33,11 +33,6 @@ class SelectedOption
      * @var bool
      */
     protected $removed;
-
-    function getId(): string
-    {
-        return $this->id;
-    }
 
     function getOption(): Option
     {

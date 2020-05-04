@@ -2,7 +2,7 @@
 
 namespace Shared\Domain\Model\FormRecord;
 
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     Form\IntegerField,
     FormRecord
 };
@@ -43,16 +43,6 @@ class IntegerFieldRecord
     function getIntegerField(): IntegerField
     {
         return $this->integerField;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getValue(): ?int
-    {
-        return $this->value;
     }
 
     public function isRemoved(): bool

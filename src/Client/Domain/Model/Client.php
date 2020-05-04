@@ -2,7 +2,7 @@
 
 namespace Client\Domain\Model;
 
-use Client\Domain\ {
+use Client\Domain\{
     Event\ClientActivationCodeGenerated,
     Event\ClientPasswordResetCodeGenerated,
     Model\Client\ClientNotification,
@@ -10,11 +10,11 @@ use Client\Domain\ {
     Model\Firm\Program
 };
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Resources\ {
+use Resources\{
     Domain\Model\ModelContainEvents,
     Domain\ValueObject\Password,
     Exception\RegularException,
@@ -109,21 +109,6 @@ class Client extends ModelContainEvents
         return $this->name;
     }
 
-    function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    function getSignupTimeString(): string
-    {
-        return $this->signupTime->format('Y-m-d H:i:s');
-    }
-
-    function isActivated(): bool
-    {
-        return $this->activated;
-    }
-
     private function setName($name)
     {
         $errorDetail = "bad request: client name is required";
@@ -152,11 +137,6 @@ class Client extends ModelContainEvents
         $this->activated = false;
 
         $this->generateActivationCode();
-    }
-
-    public function passwordMatch(string $password): bool
-    {
-        return $this->password->match($password);
     }
 
     public function generateResetPasswordCode(): void
@@ -243,11 +223,10 @@ class Client extends ModelContainEvents
         return strcasecmp($this->email, $email) == 0;
     }
 
-    public function createProgramRegistration(Program $program): ProgramRegistration
+    public function createProgramRegistration(string $id, Program $program): ProgramRegistration
     {
         $this->assertNoUnconcludedRegistrationInProgram($program);
         $this->assertNoActiveParticipantionInProgram($program);
-        $id = Uuid::generateUuid4();
         return new ProgramRegistration($this, $id, $program);
     }
 
@@ -271,12 +250,6 @@ class Client extends ModelContainEvents
             $errorDetail = "forbidden: you already participate in this program";
             throw RegularException::forbidden($errorDetail);
         }
-    }
-    
-    public function createClientNotification(string $id, string $message): ClientNotification
-    {
-        $notification = new Notification($id, $message);
-        return new ClientNotification($this, $id, $notification);
     }
 
 }

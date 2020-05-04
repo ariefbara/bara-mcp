@@ -2,7 +2,7 @@
 
 namespace Shared\Domain\Model\FormRecord;
 
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     Form\TextAreaField,
     FormRecord
 };
@@ -43,16 +43,6 @@ class TextAreaFieldRecord
     function getTextAreaField(): TextAreaField
     {
         return $this->textAreaField;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getValue(): ?string
-    {
-        return $this->value;
     }
 
     public function isRemoved(): bool

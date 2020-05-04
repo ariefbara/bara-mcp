@@ -38,5 +38,12 @@ class ParticipantCommentSubmitNewTest extends TestBase
                 ->method('add');
         $this->execute();
     }
+    public function test_execute_returnNextId()
+    {
+        $this->participantCommentRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+    }
 
 }

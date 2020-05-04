@@ -2,12 +2,12 @@
 
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\ {
+use Client\{
     Application\Service\Firm\Program\ConsultationSetupRepository,
     Domain\Model\Client\ProgramParticipation,
     Domain\Model\Firm\Program\ConsultationSetup
 };
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
@@ -16,7 +16,8 @@ use Resources\Exception\RegularException;
 class DoctrineConsultationSetupRepository extends EntityRepository implements ConsultationSetupRepository
 {
 
-    public function ofId(string $clientId, string $programParticipationId, string $consultationSetupId): ConsultationSetup
+    public function aConsultationSetupInProgramWhereClientParticipate(
+            string $clientId, string $programParticipationId, string $consultationSetupId): ConsultationSetup
     {
         $params = [
             "clientId" => $clientId,

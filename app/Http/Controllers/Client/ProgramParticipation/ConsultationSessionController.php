@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\{
+use App\Http\Controllers\ {
     Client\ClientBaseController,
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter
 };
-use Client\{
+use Client\ {
     Application\Service\Client\ProgramParticipation\ConsultationSession\ParticipantFeedbackSet,
-    Application\Service\Client\ProgramParticipation\ConsultationSessionView,
     Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
     Domain\Model\Client\ProgramParticipation\ConsultationSession,
-    Domain\Model\Client\ProgramParticipation\ProgramParticipationFileInfo,
-    Domain\Service\ProgramParticipationFileInfoFinder
+    Domain\Model\Client\ProgramParticipation\ParticipantFileInfo,
+    Domain\Service\ParticipantFileInfoFinder
+};
+use Query\ {
+    Application\Service\Client\ProgramParticipation\ConsultationSessionView,
+    Domain\Model\Firm\Program\Participant\ConsultationSession as ConsultationSession2
 };
 use Shared\Domain\Model\FormRecordData;
 
@@ -33,10 +36,10 @@ class ConsultationSessionController extends ClientBaseController
 
     protected function getFormRecordData(ProgramParticipationCompositionId $programParticipationCompositionId): FormRecordData
     {
-        $programParticipationFileInfoRepository = $this->em->getRepository(ProgramParticipationFileInfo::class);
+        $programParticipationFileInfoRepository = $this->em->getRepository(ParticipantFileInfo::class);
         $programParticipationCompositionId;
 
-        $fileInfoFinder = new ProgramParticipationFileInfoFinder(
+        $fileInfoFinder = new ParticipantFileInfoFinder(
                 $programParticipationFileInfoRepository, $programParticipationCompositionId);
         return (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
     }
@@ -63,8 +66,8 @@ class ConsultationSessionController extends ClientBaseController
         foreach ($consultationSessions as $consultationSession) {
             $result['list'][] = [
                 "id" => $consultationSession->getId(),
-                "startTime" => $consultationSession->getStartTimeString(),
-                "endTime" => $consultationSession->getEndTimeString(),
+                "startTime" => $consultationSession->getStartTime(),
+                "endTime" => $consultationSession->getEndTime(),
                 "consultationSetup" => [
                     "id" => $consultationSession->getConsultationSetup()->getId(),
                     "name" => $consultationSession->getConsultationSetup()->getName()
@@ -81,14 +84,14 @@ class ConsultationSessionController extends ClientBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfConsultationSession(ConsultationSession $consultationSession)
+    protected function arrayDataOfConsultationSession(ConsultationSession2 $consultationSession)
     {
         $participantFeedback = empty($consultationSession->getParticipantFeedback()) ? null :
                 (new FormRecordToArrayDataConverter())->convert($consultationSession->getParticipantFeedback());
         return [
             "id" => $consultationSession->getId(),
-            "startTime" => $consultationSession->getStartTimeString(),
-            "endTime" => $consultationSession->getEndTimeString(),
+            "startTime" => $consultationSession->getStartTime(),
+            "endTime" => $consultationSession->getEndTime(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
                 "name" => $consultationSession->getConsultationSetup()->getName()
@@ -106,7 +109,7 @@ class ConsultationSessionController extends ClientBaseController
 
     protected function buildViewService()
     {
-        $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
         return new ConsultationSessionView($consultationSessionRepository);
     }
 

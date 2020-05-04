@@ -48,7 +48,7 @@ class WorksheetAddRootTest extends TestBase
                 ->method('isRootMission')
                 ->willReturn(true);
         $this->missionRepository->expects($this->any())
-                ->method('ofId')
+                ->method('aMissionInProgramWhereClientParticipate')
                 ->with($this->clientId, $this->programParticipationId, $this->missionId)
                 ->willReturn($this->mission);
         
@@ -76,5 +76,9 @@ class WorksheetAddRootTest extends TestBase
                 ->method('add')
                 ->with($worksheet);
         $this->execute();
+    }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->nextId, $this->execute());
     }
 }

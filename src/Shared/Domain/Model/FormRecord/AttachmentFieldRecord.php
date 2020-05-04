@@ -51,22 +51,6 @@ class AttachmentFieldRecord
         return $this->attachmentField;
     }
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * 
-     * @return AttachedFile[]
-     */
-    function getUnremovedAttachedFiles()
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('removed', false));
-        return $this->attachedFiles->matching($criteria)->getIterator();
-    }
-
     public function isRemoved(): bool
     {
         return $this->removed;

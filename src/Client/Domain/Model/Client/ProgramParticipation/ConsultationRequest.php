@@ -2,14 +2,14 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
-use Client\Domain\Model\ {
+use Client\Domain\Model\{
     Client\ClientNotification,
     Client\ProgramParticipation,
     Firm\Program\Consultant,
     Firm\Program\ConsultationSetup
 };
 use DateTimeImmutable;
-use Resources\ {
+use Resources\{
     Domain\ValueObject\DateTimeInterval,
     Exception\RegularException
 };
@@ -60,44 +60,14 @@ class ConsultationRequest
      */
     protected $status;
 
-    function getProgramParticipation(): ProgramParticipation
-    {
-        return $this->programParticipation;
-    }
-
     function getId(): string
     {
         return $this->id;
     }
 
-    function getConsultationSetup(): ConsultationSetup
-    {
-        return $this->consultationSetup;
-    }
-
-    function getConsultant(): Consultant
-    {
-        return $this->consultant;
-    }
-
-    function getStartTimeString(): string
-    {
-        return $this->startEndTime->getStartTime()->format('Y-m-d H:i:s');
-    }
-
-    function getEndTimeString(): string
-    {
-        return $this->startEndTime->getEndTime()->format('Y-m-d H:i:s');
-    }
-
     function isConcluded(): bool
     {
         return $this->concluded;
-    }
-
-    function getStatusString(): string
-    {
-        return $this->status->getValue();
     }
 
     function __construct(
@@ -120,7 +90,7 @@ class ConsultationRequest
         $this->assertNotConcluded();
         $this->startEndTime = $this->consultationSetup->getSessionStartEndTimeOf($startTime);
         $this->status = new ConsultationRequestStatusVO('proposed');
-        
+
         $this->assertNotConflictedWithConsultantExistingConsultationSession();
     }
 
@@ -157,7 +127,7 @@ class ConsultationRequest
 
     public function conflictedWith(ConsultationRequest $other): bool
     {
-        if ($this->id == $other->getId()) {
+        if ($this->id == $other->id) {
             return false;
         }
         return $this->startEndTime->intersectWith($other->getStartEndTime());
@@ -183,7 +153,7 @@ class ConsultationRequest
             throw RegularException::conflict($errorDetail);
         }
     }
-    
+
     public function createClientNotification(string $id, string $message): ClientNotification
     {
         return $this->programParticipation->createNotificationForConsultationRequest($id, $message, $this);

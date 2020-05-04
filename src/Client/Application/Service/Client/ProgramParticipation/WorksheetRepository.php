@@ -14,6 +14,4 @@ interface WorksheetRepository
     public function update(): void;
 
     public function ofId(ProgramParticipationCompositionId $programParticipationCompositionId, string $worksheetId): Worksheet;
-
-    public function all(ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize);
 }

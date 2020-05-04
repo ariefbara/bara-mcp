@@ -52,22 +52,6 @@ class MultiSelectFieldRecord
         return $this->multiSelectField;
     }
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * 
-     * @return SelectedOption[]
-     */
-    function getUnremovedSelectedOptions()
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('removed', false));
-        return $this->selectedOptions->matching($criteria)->getIterator();
-    }
-
     public function isRemoved(): bool
     {
         return $this->removed;

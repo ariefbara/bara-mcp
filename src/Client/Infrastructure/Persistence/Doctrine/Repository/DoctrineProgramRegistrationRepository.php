@@ -12,7 +12,6 @@ use Doctrine\ORM\ {
 };
 use Resources\ {
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -53,17 +52,6 @@ class DoctrineProgramRegistrationRepository extends EntityRepository implements 
     public function update(): void
     {
         $this->getEntityManager()->flush();
-    }
-
-    public function all(string $clientId, int $page, int $pageSize)
-    {
-        $qb = $this->createQueryBuilder('programRegistration');
-        $qb->select('programRegistration')
-            ->leftJoin('programRegistration.client', 'client')
-            ->andWhere($qb->expr()->eq('client.id', ':clientId'))
-            ->setParameter('clientId', $clientId);
-        
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

@@ -19,7 +19,7 @@ class ConsultationRequestProposeTest extends TestBase
 {
 
     protected $service;
-    protected $consultationRequestRepository;
+    protected $consultationRequestRepository, $nextId = 'nextId';
     protected $clientId = 'clientId';
     protected $programParticipationRepository, $programParticipation, $programParticipationId = 'programParticipation-id';
     protected $consultationSetupRepository, $consultationSetup, $consultationSetupId = 'consultationSetup-id';
@@ -32,6 +32,9 @@ class ConsultationRequestProposeTest extends TestBase
     {
         parent::setUp();
         $this->consultationRequestRepository = $this->buildMockOfInterface(ConsultationRequestRepository::class);
+        $this->consultationRequestRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($this->nextId);
 
         $this->programParticipation = $this->buildMockOfClass(ProgramParticipation::class);
         $this->programParticipationRepository = $this->buildMockOfClass(ProgramParticipationRepository::class);
@@ -43,14 +46,14 @@ class ConsultationRequestProposeTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultationSetupRepository = $this->buildMockOfInterface(ConsultationSetupRepository::class);
         $this->consultationSetupRepository->expects($this->any())
-                ->method('ofId')
+                ->method('aConsultationSetupInProgramWhereClientParticipate')
                 ->with($this->clientId, $this->programParticipationId, $this->consultationSetupId)
                 ->willReturn($this->consultationSetup);
 
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->consultantRepository = $this->buildMockOfInterface(ConsultantRepository::class);
         $this->consultantRepository->expects($this->any())
-                ->method('ofId')
+                ->method('aConsultantInProgramWhereClientParticipate')
                 ->with($this->clientId, $this->programParticipationId, $this->consultantId)
                 ->willReturn($this->consultant);
 
@@ -68,7 +71,7 @@ class ConsultationRequestProposeTest extends TestBase
     {
         $this->programParticipation->expects($this->any())
                 ->method('createConsultationRequest')
-                ->with($this->consultationSetup, $this->consultant, $this->startTime)
+                ->with($this->nextId, $this->consultationSetup, $this->consultant, $this->startTime)
                 ->willReturn($this->consultationRequest);
         return $this->service->execute(
                         $this->clientId, $this->programParticipationId, $this->consultationSetupId, $this->consultantId,
@@ -89,6 +92,10 @@ class ConsultationRequestProposeTest extends TestBase
                 ->method('dispatch')
                 ->with($this->programParticipation);
         $this->execute();
+    }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->nextId, $this->execute());
     }
 
 }

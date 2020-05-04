@@ -2,55 +2,21 @@
 
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\ {
+use Client\{
     Application\Listener\CommentRepository as InterfaceForListener,
     Application\Service\Client\ProgramParticipation\Worksheet\CommentRepository,
+    Application\Service\Client\ProgramParticipation\Worksheet\WorksheetCompositionId,
     Domain\Model\Client\ProgramParticipation\Worksheet\Comment
 };
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Query\ {
-    Application\Service\Firm\Program\Participant\Worksheet\WorksheetCompositionId,
-    Domain\Model\Firm\Program\Consultant\ConsultantComment
-};
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantComment;
 use Resources\Exception\RegularException;
 
 class DoctrineCommentRepository extends EntityRepository implements CommentRepository, InterfaceForListener
 {
-
-    public function ofId(WorksheetCompositionId $worksheetCompositionId, string $commentId): Comment
-    {
-        $parameters = [
-            "commentId" => $commentId,
-            "worksheetId" => $worksheetCompositionId->getWorksheetId(),
-            "programParticipationId" => $worksheetCompositionId->getProgramParticipationId(),
-            "clientId" => $worksheetCompositionId->getClientId(),
-        ];
-
-        $qb = $this->createQueryBuilder("comment");
-        $qb->select('comment')
-                ->andWhere($qb->expr()->eq('comment.removed', "false"))
-                ->andWhere($qb->expr()->eq('comment.id', ":commentId"))
-                ->leftJoin("comment.worksheet", "worksheet")
-                ->andWhere($qb->expr()->eq('worksheet.removed', "false"))
-                ->andWhere($qb->expr()->eq('worksheet.id', ":worksheetId"))
-                ->leftJoin("worksheet.programParticipation", "programParticipation")
-                ->andWhere($qb->expr()->eq('programParticipation.active', "true"))
-                ->andWhere($qb->expr()->eq('programParticipation.id', ":programParticipationId"))
-                ->leftJoin("programParticipation.client", "client")
-                ->andWhere($qb->expr()->eq('client.id', ":clientId"))
-                ->setParameters($parameters)
-                ->setMaxResults(1);
-
-        try {
-            return $qb->getQuery()->getSingleResult();
-        } catch (NoResultException $ex) {
-            $errorDetail = "not found: comment not found";
-            throw RegularException::notFound($errorDetail);
-        }
-    }
 
     public function aCommentFromConsultant(
             string $firmId, string $personnelId, string $consultantId, string $consultantCommentId): Comment
@@ -88,6 +54,38 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = "not found: comment not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function ofId(WorksheetCompositionId $worksheetCompositionId, string $commentId): Comment
+    {
+        $params = [
+            'commentId' => $commentId,
+            'worksheetId' => $worksheetCompositionId->getWorksheetId(),
+            'programParticipationId' => $worksheetCompositionId->getProgramParticipationId(),
+            'clientId' => $worksheetCompositionId->getClientId(),
+        ];
+
+        $qb = $this->createQueryBuilder('comment');
+        $qb->select('comment')
+                ->andWhere($qb->expr()->eq('comment.removed', 'false'))
+                ->andWhere($qb->expr()->eq('comment.id', ':commentId'))
+                ->leftJoin('comment.worksheet', 'worksheet')
+                ->andWhere($qb->expr()->eq('worksheet.removed', 'false'))
+                ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
+                ->leftJoin('worksheet.programParticipation', 'programParticipation')
+                ->andWhere($qb->expr()->eq('programParticipation.active', 'true'))
+                ->andWhere($qb->expr()->eq('programParticipation.id', ':programParticipationId'))
+                ->leftJoin('programParticipation.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: comment not found';
             throw RegularException::notFound($errorDetail);
         }
     }

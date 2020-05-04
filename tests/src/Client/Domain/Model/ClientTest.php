@@ -294,18 +294,6 @@ class ClientTest extends TestBase
         $this->assertFalse($this->client->emailEquals('different_address@email.org'));
     }
     
-    public function test_passwordMatch_returnPasswordsMatchMethod()
-    {
-        $password = $this->buildMockOfClass(Password::class);
-        $this->client->password = $password;
-        
-        $password->expects($this->once())
-            ->method('match')
-            ->with($password = 'password123')
-            ->willReturn(true);
-        $this->assertEquals(true, $this->client->passwordMatch($password));
-    }
-    
     protected function executeCreateProgramRegistration()
     {
         return $this->client->createProgramRegistration($this->program);
@@ -354,11 +342,6 @@ class ClientTest extends TestBase
                 ->willReturn($this->program);
         $this->executeCreateProgramRegistration();
         $this->markAsSuccess();
-    }
-    
-    public function test_createClientNotification()
-    {
-        $this->assertInstanceOf(ClientNotification::class, $this->client->createClientNotification('id', 'message'));
     }
 
 }

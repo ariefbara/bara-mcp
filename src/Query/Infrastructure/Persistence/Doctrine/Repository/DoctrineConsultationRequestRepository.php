@@ -2,11 +2,13 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
+use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
 use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
 use Query\ {
+    Application\Service\Client\ProgramParticipation\ConsultationRequestRepository as InterfaceForClient,
     Application\Service\Firm\Program\Participant\ConsultationRequestRepository,
     Application\Service\Firm\Program\Participant\ParticipantCompositionId,
     Domain\Model\Firm\Program\Participant\ConsultationRequest
@@ -16,7 +18,7 @@ use Resources\ {
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository
+class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository, InterfaceForClient
 {
 
     public function all(ParticipantCompositionId $participantCompositionId, int $page, int $pageSize)
@@ -71,6 +73,53 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
             $errorDetail = "not found: consultation request not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function aConsultationRequestOfParticipant(
+            ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationRequestId): ConsultationRequest
+    {
+        $params = [
+            "consultationRequestId" => $consultationRequestId,
+            "participantId" => $programParticipationCompositionId->getProgramParticipationId(),
+            "clientId" => $programParticipationCompositionId->getClientId(),
+        ];
+
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->andWhere($qb->expr()->eq('consultationRequest.id', ':consultationRequestId'))
+                ->leftJoin('consultationRequest.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('participant.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: consultation request not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allConsultationRequestsOfParticipant(
+            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
+    {
+        $params = [
+            "participantId" => $programParticipationCompositionId->getProgramParticipationId(),
+            "clientId" => $programParticipationCompositionId->getClientId(),
+        ];
+
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->leftJoin('consultationRequest.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('participant.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->setParameters($params);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

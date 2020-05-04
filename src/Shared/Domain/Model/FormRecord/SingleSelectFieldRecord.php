@@ -2,7 +2,7 @@
 
 namespace Shared\Domain\Model\FormRecord;
 
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     Form\SelectField\Option,
     Form\SingleSelectField,
     FormRecord
@@ -44,16 +44,6 @@ class SingleSelectFieldRecord
     function getSingleSelectField(): SingleSelectField
     {
         return $this->singleSelectField;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getOption(): ?Option
-    {
-        return $this->option;
     }
 
     public function isRemoved(): bool

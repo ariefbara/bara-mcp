@@ -54,41 +54,6 @@ class ConsultationSession
      */
     protected $participantFeedback = null;
 
-    function getProgramParticipation(): ProgramParticipation
-    {
-        return $this->programParticipation;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getConsultationSetup(): ConsultationSetup
-    {
-        return $this->consultationSetup;
-    }
-
-    function getConsultant(): Consultant
-    {
-        return $this->consultant;
-    }
-
-    function getStartTimeString(): string
-    {
-        return $this->startEndTime->getStartTime()->format('Y-m-d H:i:s');
-    }
-
-    function getEndTimeString(): string
-    {
-        return $this->startEndTime->getEndTime()->format('Y-m-d H:i:s');
-    }
-
-    function getParticipantFeedback(): ?ParticipantFeedback
-    {
-        return $this->participantFeedback;
-    }
-
     function __construct(
             ProgramParticipation $programParticipation, $id, ConsultationSetup $consultationSetup,
             Consultant $consultant, DateTimeInterval $startEndTime)

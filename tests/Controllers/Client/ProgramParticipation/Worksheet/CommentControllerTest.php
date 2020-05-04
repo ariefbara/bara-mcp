@@ -64,7 +64,7 @@ class CommentControllerTest extends WorksheetTestCase
             "message" => $this->commentInput['message'],
             "removed" => false,
             "submitTime" => (new \DateTime())->format('Y-m-d H:i:s'),
-            "parentComment_id" => null,
+            "parent_id" => null,
         ];
         $this->seeInDatabase("Comment", $commentEntry);
         
@@ -73,7 +73,6 @@ class CommentControllerTest extends WorksheetTestCase
         ];
         $this->seeInDatabase("ParticipantComment", $participantCommentEntry);
     }
-    
     public function test_submitReply()
     {
         $response = [
@@ -96,7 +95,7 @@ class CommentControllerTest extends WorksheetTestCase
             "message" => $this->commentInput['message'],
             "removed" => false,
             "submitTime" => (new \DateTime())->format('Y-m-d H:i:s'),
-            "parentComment_id" => $this->comment->id,
+            "parent_id" => $this->comment->id,
         ];
         $this->seeInDatabase("Comment", $commentEntry);
     }
@@ -114,6 +113,14 @@ class CommentControllerTest extends WorksheetTestCase
                 "message" => $this->comment->message,
                 "removed" => $this->comment->removed,
             ],
+            "participant" => [
+                "id" => $this->programParticipation->id,
+                "client" => [
+                    "id" => $this->programParticipation->client->id,
+                    "name" => $this->programParticipation->client->name,
+                ],
+            ],
+            "consultant" => null,
         ];
         
         $uri = $this->commentUri . "/{$this->commentOne->id}";

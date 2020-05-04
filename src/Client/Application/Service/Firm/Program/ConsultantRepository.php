@@ -7,5 +7,6 @@ use Client\Domain\Model\Firm\Program\Consultant;
 interface ConsultantRepository
 {
 
-    public function ofId(string $clientId, string $programParticipationId, string $consultantId): Consultant;
+    public function aConsultantInProgramWhereClientParticipate(
+            string $clientId, string $programParticipationId, string $consultantId): Consultant;
 }

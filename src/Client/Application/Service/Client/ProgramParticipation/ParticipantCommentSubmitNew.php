@@ -38,7 +38,7 @@ class ParticipantCommentSubmitNew
     }
 
     public function execute(
-            ProgramParticipationCompositionId $programParticipationCompositionId, string $worksheetId, string $message): ParticipantComment
+            ProgramParticipationCompositionId $programParticipationCompositionId, string $worksheetId, string $message): string
     {
         $programParticipation = $this->programParticipationRepository->ofId(
                 $programParticipationCompositionId->getClientId(),
@@ -49,7 +49,7 @@ class ParticipantCommentSubmitNew
 
         $participantComment = new ParticipantComment($programParticipation, $id, $comment);
         $this->participantCommentRepository->add($participantComment);
-        return $participantComment;
+        return $id;
     }
 
 }

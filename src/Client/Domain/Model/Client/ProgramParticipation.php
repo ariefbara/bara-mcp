@@ -76,34 +76,14 @@ class ProgramParticipation extends ModelContainEvents
      */
     protected $consultationSessions;
 
-    function getClient(): Client
-    {
-        return $this->client;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
     function getProgram(): Program
     {
         return $this->program;
     }
 
-    function getAcceptedTimeString(): ?string
-    {
-        return $this->acceptedTime->format('Y-m-d H:i:s');
-    }
-
     function isActive(): bool
     {
         return $this->active;
-    }
-
-    function getNote(): ?string
-    {
-        return $this->note;
     }
 
     protected function __construct()
@@ -127,10 +107,9 @@ class ProgramParticipation extends ModelContainEvents
     }
 
     public function createConsultationRequest(
-            ConsultationSetup $consultationSetup, Consultant $consultant, DateTimeImmutable $startTime): ConsultationRequest
+            string $id, ConsultationSetup $consultationSetup, Consultant $consultant, DateTimeImmutable $startTime): ConsultationRequest
     {
-        $consultationRequestId = Uuid::generateUuid4();
-        $consultationRequest = new ConsultationRequest($this, $consultationRequestId, $consultationSetup, $consultant,
+        $consultationRequest = new ConsultationRequest($this, $id, $consultationSetup, $consultant,
                 $startTime);
 
         $this->assertNoConsultationRequestInCollectionConflictedWith($consultationRequest);
@@ -138,7 +117,7 @@ class ProgramParticipation extends ModelContainEvents
 
         $messageForPersonnel = "you've received consultation request from {$this->client->getName()}";
         $event = new ParticipantMutateConsultationRequestEvent(
-                $this->client->getId(), $this->id, $consultationRequestId, $messageForPersonnel);
+                $this->client->getId(), $this->id, $id, $messageForPersonnel);
         $this->recordEvent($event);
 
         return $consultationRequest;
@@ -238,7 +217,7 @@ class ProgramParticipation extends ModelContainEvents
         return ClientNotification::notificationForConsultationSession(
                         $this->client, $id, $message, $consultationSession);
     }
-    
+
     public function createClientNotification(string $id, string $message): ClientNotification
     {
         return ClientNotification::notificationForProgramParticipation($this->client, $id, $message, $this);

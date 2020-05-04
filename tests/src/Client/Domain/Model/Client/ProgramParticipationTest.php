@@ -2,7 +2,7 @@
 
 namespace Client\Domain\Model\Client;
 
-use Client\Domain\ {
+use Client\Domain\{
     Event\ParticipantMutateConsultationRequestEvent,
     Event\ParticipantMutateConsultationSessionEvent,
     Model\Client,
@@ -100,7 +100,7 @@ class ProgramParticipationTest extends TestBase
                 ->method('conflictedWith')
                 ->willReturn(false);
         return $this->programParticipation->createConsultationRequest(
-                        $this->consultationSetup, $this->consultant, $this->startTime);
+                        $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
     }
 
     public function test_createConsultationRequest_containConsultationRequestConflictedWithNewSchedule_throwEx()
@@ -306,9 +306,11 @@ class ProgramParticipationTest extends TestBase
                 $this->programParticipation->createNotificationForConsultationSession('id', 'message',
                         $this->consultationSession));
     }
+
     public function test_createClientNotification_returnClientNotification()
     {
-        $this->assertInstanceOf(ClientNotification::class, $this->programParticipation->createClientNotification('id', 'message'));
+        $this->assertInstanceOf(ClientNotification::class,
+                $this->programParticipation->createClientNotification('id', 'message'));
     }
 
 }

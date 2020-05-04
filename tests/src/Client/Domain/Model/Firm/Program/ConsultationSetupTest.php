@@ -2,7 +2,7 @@
 
 namespace Client\Domain\Model\Firm\Program;
 
-use Client\Domain\Model\Firm\ConsultationFeedbackForm;
+use Client\Domain\Model\Firm\FeedbackForm;
 use DateTimeImmutable;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Shared\Domain\Model\ {
@@ -25,7 +25,7 @@ class ConsultationSetupTest extends TestBase
         $this->consultationSetup->sessionDuration = 45;
         $this->startTime = new DateTimeImmutable();
         
-        $this->participantFeedbackForm = $this->buildMockOfClass(ConsultationFeedbackForm::class);
+        $this->participantFeedbackForm = $this->buildMockOfClass(FeedbackForm::class);
         $this->consultationSetup->participantFeedbackForm = $this->participantFeedbackForm;
     }
     protected function executeGetSessionStartEndTimeOf()

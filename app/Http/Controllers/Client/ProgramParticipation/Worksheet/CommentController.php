@@ -4,16 +4,18 @@ namespace App\Http\Controllers\Client\ProgramParticipation\Worksheet;
 
 use App\Http\Controllers\Client\ClientBaseController;
 use Client\ {
-    Application\Service\Client\ProgramParticipation\ParticipantCommentRemove,
     Application\Service\Client\ProgramParticipation\ParticipantCommentSubmitNew,
     Application\Service\Client\ProgramParticipation\ParticipantCommentSubmitReply,
     Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
-    Application\Service\Client\ProgramParticipation\Worksheet\CommentView,
     Application\Service\Client\ProgramParticipation\Worksheet\WorksheetCompositionId,
     Domain\Model\Client\ProgramParticipation,
     Domain\Model\Client\ProgramParticipation\ParticipantComment,
     Domain\Model\Client\ProgramParticipation\Worksheet,
     Domain\Model\Client\ProgramParticipation\Worksheet\Comment
+};
+use Query\ {
+    Application\Service\Client\ProgramParticipation\Worksheet\CommentView,
+    Domain\Model\Firm\Program\Participant\Worksheet\Comment as Comment2
 };
 
 class CommentController extends ClientBaseController
@@ -25,8 +27,12 @@ class CommentController extends ClientBaseController
         $programParticipationCompositionId = new ProgramParticipationCompositionId(
                 $this->clientId(), $programParticipationId);
         $message = $this->stripTagsInputRequest('message');
-        $participantComment = $service->execute($programParticipationCompositionId, $worksheetId, $message);
-        return $this->commandCreatedResponse($this->arrayDataOfParticipantComment($participantComment));
+        $commentId = $service->execute($programParticipationCompositionId, $worksheetId, $message);
+        
+        $viewService = $this->buildViewService();
+        $worksheetCompositionId = new WorksheetCompositionId($this->clientId(), $programParticipationId, $worksheetId);
+        $comment = $viewService->showById($worksheetCompositionId, $commentId);
+        return $this->commandCreatedResponse($this->arrayDataOfComment($comment));
     }
 
     public function submitReply($programParticipationId, $worksheetId, $commentId)
@@ -34,9 +40,11 @@ class CommentController extends ClientBaseController
         $service = $this->buildSubmitReplyService();
         $worksheetCompositionId = new WorksheetCompositionId($this->clientId(), $programParticipationId, $worksheetId);
         $message = $this->stripTagsInputRequest('message');
-        $participantComment = $service->execute($worksheetCompositionId, $commentId, $message);
+        $commentId = $service->execute($worksheetCompositionId, $commentId, $message);
         
-        return $this->commandCreatedResponse($this->arrayDataOfParticipantComment($participantComment));
+        $viewService = $this->buildViewService();
+        $comment = $viewService->showById($worksheetCompositionId, $commentId);
+        return $this->commandCreatedResponse($this->arrayDataOfComment($comment));
     }
 
     public function show($programParticipationId, $worksheetId, $commentId)
@@ -66,25 +74,7 @@ class CommentController extends ClientBaseController
         return $this->listQueryResponse($result);
     }
     
-    protected function arrayDataOfParticipantComment(ParticipantComment $participantComment): array
-    {
-        $parent = (empty($participantComment->getParent()))? null:
-                [
-                    "id" => $participantComment->getParent()->getId(),
-                    "message" => $participantComment->getParent()->getMessage(),
-                    "submitTime" => $participantComment->getParent()->getSubmitTimeString(),
-                    "removed" => $participantComment->getParent()->isRemoved(),
-                ];
-        
-        return [
-            "id" => $participantComment->getId(),
-            "message" => $participantComment->getMessage(),
-            "submitTime" => $participantComment->getSubmitTimeString(),
-            "parent" => $parent,
-        ];
-    }
-    
-    protected function arrayDataOfComment(Comment $comment): array
+    protected function arrayDataOfComment(Comment2 $comment): array
     {
         $parent = (empty($comment->getParent()))? null:
                 [
@@ -94,12 +84,32 @@ class CommentController extends ClientBaseController
                     "removed" => $comment->getParent()->isRemoved(),
                 ];
         
-        return [
+        $data = [
             "id" => $comment->getId(),
             "message" => $comment->getMessage(),
             "submitTime" => $comment->getSubmitTimeString(),
             "parent" => $parent,
+            "participant" => null,
+            "consultant" => null,
         ];
+        if (!empty($comment->getParticipantComment())) {
+            $data['participant'] = [
+                "id" => $comment->getParticipantComment()->getParticipant()->getId(),
+                "client" => [
+                    "id" => $comment->getParticipantComment()->getParticipant()->getClient()->getId(),
+                    "name" => $comment->getParticipantComment()->getParticipant()->getClient()->getName(),
+                ],
+            ];
+        } elseif (!empty ($comment->getConsultantComment())) {
+            $data['consultant'] = [
+                "id" => $comment->getConsultantComment()->getConsultant()->getId(),
+                "personnel" => [
+                    "id" => $comment->getConsultantComment()->getConsultant()->getPersonnel()->getId(),
+                    "name" => $comment->getConsultantComment()->getConsultant()->getPersonnel()->getName(),
+                ],
+            ];
+        }
+        return $data;
     }
     
     protected function buildSubmitNewService()
@@ -120,7 +130,7 @@ class CommentController extends ClientBaseController
     }
     protected function buildViewService()
     {
-        $commentRepository = $this->em->getRepository(Comment::class);
+        $commentRepository = $this->em->getRepository(Comment2::class);
         return new CommentView($commentRepository);
     }
 

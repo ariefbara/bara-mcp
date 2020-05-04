@@ -69,46 +69,6 @@ class Mission
      */
     protected $branches;
 
-    function getProgram(): Program
-    {
-        return $this->program;
-    }
-
-    function getParent(): Mission
-    {
-        return $this->parent;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    function getPosition(): string
-    {
-        return $this->position;
-    }
-
-    function isPublished(): bool
-    {
-        return $this->published;
-    }
-
-    function getWorksheetForm(): WorksheetForm
-    {
-        return $this->worksheetForm;
-    }
-
     protected function __construct()
     {
         ;

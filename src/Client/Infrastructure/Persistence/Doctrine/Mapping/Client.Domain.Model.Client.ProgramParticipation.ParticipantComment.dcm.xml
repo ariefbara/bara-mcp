@@ -2,7 +2,7 @@
 <doctrine-mapping>
     <entity name="Client\Domain\Model\Client\ProgramParticipation\ParticipantComment" 
             table="ParticipantComment" 
-            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantCommentRepository" 
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantCommentRepository"
     >
         
         <many-to-one  field="programParticipation" 

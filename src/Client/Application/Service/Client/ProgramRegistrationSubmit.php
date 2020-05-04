@@ -37,14 +37,15 @@ class ProgramRegistrationSubmit
         $this->programRepository = $programRepository;
     }
 
-    public function execute(string $clientId, string $firmId, string $programId): ProgramRegistration
+    public function execute(string $clientId, string $firmId, string $programId): string
     {
+        $id = $this->programRegistrationRepository->nextIdentity();
         $program = $this->programRepository->ofId($firmId, $programId);
         $programRegistration = $this->clientRepository->ofId($clientId)
-                ->createProgramRegistration($program);
+                ->createProgramRegistration($id, $program);
 
         $this->programRegistrationRepository->add($programRegistration);
-        return $programRegistration;
+        return $id;
     }
 
 }

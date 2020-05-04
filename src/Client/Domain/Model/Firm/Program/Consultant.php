@@ -2,13 +2,13 @@
 
 namespace Client\Domain\Model\Firm\Program;
 
-use Client\Domain\Model\ {
+use Client\Domain\Model\{
     Client\ProgramParticipation\ConsultationRequest,
     Client\ProgramParticipation\ConsultationSession,
-    Firm\Personnel,
     Firm\Program
 };
 use Doctrine\Common\Collections\ArrayCollection;
+use Query\Domain\Model\Firm\Personnel;
 
 class Consultant
 {
@@ -42,26 +42,6 @@ class Consultant
      * @var ArrayCollection
      */
     protected $consultationSessions;
-
-    function getProgram(): Program
-    {
-        return $this->program;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getPersonnel(): Personnel
-    {
-        return $this->personnel;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function __construct()
     {

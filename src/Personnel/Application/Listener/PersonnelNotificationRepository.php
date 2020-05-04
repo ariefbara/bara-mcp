@@ -9,5 +9,5 @@ interface PersonnelNotificationRepository
 
     public function nextIdentity(): string;
 
-    public function add(PersonnelNotification $personnelNotification): string;
+    public function add(PersonnelNotification $personnelNotification): void;
 }

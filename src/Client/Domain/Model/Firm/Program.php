@@ -2,14 +2,12 @@
 
 namespace Client\Domain\Model\Firm;
 
-use Client\Domain\Model\{
-    Firm,
-    Firm\Program\RegistrationPhase
-};
+use Client\Domain\Model\Firm\Program\RegistrationPhase;
 use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
+use Query\Domain\Model\Firm;
 
 class Program
 {
@@ -55,36 +53,6 @@ class Program
      * @var ArrayCollection
      */
     protected $registrationPhases;
-
-    function getFirm(): Firm
-    {
-        return $this->firm;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    function isPublished(): bool
-    {
-        return $this->published;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function __construct()
     {

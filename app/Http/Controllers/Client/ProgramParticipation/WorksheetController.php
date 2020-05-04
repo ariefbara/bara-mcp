@@ -13,12 +13,15 @@ use Client\ {
     Application\Service\Client\ProgramParticipation\WorksheetAddRoot,
     Application\Service\Client\ProgramParticipation\WorksheetRemove,
     Application\Service\Client\ProgramParticipation\WorksheetUpdate,
-    Application\Service\Client\ProgramParticipation\WorksheetView,
     Domain\Model\Client\ProgramParticipation,
-    Domain\Model\Client\ProgramParticipation\ProgramParticipationFileInfo,
+    Domain\Model\Client\ProgramParticipation\ParticipantFileInfo,
     Domain\Model\Client\ProgramParticipation\Worksheet,
     Domain\Model\Firm\Program\Mission,
-    Domain\Service\ProgramParticipationFileInfoFinder
+    Domain\Service\ParticipantFileInfoFinder
+};
+use Query\ {
+    Application\Service\Client\ProgramParticipation\WorksheetView,
+    Domain\Model\Firm\Program\Participant\Worksheet as Worksheet2
 };
 
 class WorksheetController extends ClientBaseController
@@ -29,10 +32,14 @@ class WorksheetController extends ClientBaseController
         $service = $this->buildAddRootService();
         $missionId = $this->stripTagsInputRequest('missionId');
         $name = $this->stripTagsInputRequest('name');
-        $worksheet = $service->execute(
+        $worksheetId = $service->execute(
                 $this->clientId(), $programParticipationId, $missionId, $name,
                 $this->getFormRecordData($programParticipationId));
-
+        
+        $viewService = $this->buildViewService();
+        $programParticipationCompositionId = new ProgramParticipationCompositionId(
+                $this->clientId(), $programParticipationId);
+        $worksheet = $viewService->showById($programParticipationCompositionId, $worksheetId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
@@ -43,10 +50,12 @@ class WorksheetController extends ClientBaseController
                 $programParticipationId);
         $missionId = $this->stripTagsInputRequest('missionId');
         $name = $this->stripTagsInputRequest('name');
-        $worksheet = $service->execute(
+        $branchId = $service->execute(
                 $programParticipationCompositionId, $worksheetId, $missionId, $name,
                 $this->getFormRecordData($programParticipationId));
 
+        $viewService = $this->buildViewService();
+        $worksheet = $viewService->showById($programParticipationCompositionId, $branchId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
@@ -56,11 +65,11 @@ class WorksheetController extends ClientBaseController
         $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
                 $programParticipationId);
         $name = $this->stripTagsInputRequest('name');
-        $worksheet = $service->execute(
+        $service->execute(
                 $programParticipationCompositionId, $worksheetId, $name,
                 $this->getFormRecordData($programParticipationId));
 
-        return $this->singleQueryResponse($this->arrayDataOfWorksheet($worksheet));
+        return $this->show($programParticipationId, $worksheetId);
     }
 
     public function remove($programParticipationId, $worksheetId)
@@ -91,7 +100,7 @@ class WorksheetController extends ClientBaseController
         return $this->commonIdNameListQueryResponse($worksheets);
     }
 
-    protected function arrayDataOfWorksheet(Worksheet $worksheet): array
+    protected function arrayDataOfWorksheet(Worksheet2 $worksheet): array
     {
         $data = (new FormRecordToArrayDataConverter())->convert($worksheet);
         $parent = empty($worksheet->getParent()) ? null :
@@ -142,17 +151,17 @@ class WorksheetController extends ClientBaseController
 
     protected function buildViewService()
     {
-        $worksheetRepository = $this->em->getRepository(Worksheet::class);
+        $worksheetRepository = $this->em->getRepository(Worksheet2::class);
         return new WorksheetView($worksheetRepository);
     }
 
     protected function getFormRecordData($programParticipationId)
     {
-        $programParticipationFileInfoRepository = $this->em->getRepository(ProgramParticipationFileInfo::class);
+        $participantFileInforRepository = $this->em->getRepository(ParticipantFileInfo::class);
         $programParticipationCompositionId = new ProgramParticipationCompositionId(
                 $this->clientId(), $programParticipationId);
-        $fileInfoFinder = new ProgramParticipationFileInfoFinder(
-                $programParticipationFileInfoRepository, $programParticipationCompositionId);
+        $fileInfoFinder = new ParticipantFileInfoFinder(
+                $participantFileInforRepository, $programParticipationCompositionId);
         return (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
     }
 

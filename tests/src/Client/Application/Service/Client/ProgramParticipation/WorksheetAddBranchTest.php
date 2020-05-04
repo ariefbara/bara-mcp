@@ -44,7 +44,7 @@ class WorksheetAddBranchTest extends TestBase
         $this->missionRepository = $this->buildMockOfInterface(MissionRepository::class);
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->missionRepository->expects($this->any())
-                ->method('ofId')
+                ->method('aMissionInProgramWhereClientParticipate')
                 ->with($this->clientId, $this->programParticipationId, $this->missionId)
                 ->willReturn($this->mission);
 
@@ -76,6 +76,10 @@ class WorksheetAddBranchTest extends TestBase
                 ->method('add')
                 ->with($branchWorksheet);
         $this->execute();
+    }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->nextId, $this->execute());
     }
 
 }

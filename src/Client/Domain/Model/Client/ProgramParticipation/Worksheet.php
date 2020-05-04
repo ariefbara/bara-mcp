@@ -2,21 +2,20 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
-use Client\Domain\Model\{
+use Client\Domain\Model\ {
     Client\ClientNotification,
     Client\ProgramParticipation,
     Client\ProgramParticipation\Worksheet\Comment,
     Firm\Program\Mission
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     ValidationRule,
     ValidationService
 };
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     FormRecord,
-    FormRecordData,
-    HasFormRecordInterface
+    FormRecordData
 };
 
 class Worksheet

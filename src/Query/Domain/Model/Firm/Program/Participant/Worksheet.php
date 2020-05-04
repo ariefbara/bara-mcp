@@ -20,7 +20,7 @@ class Worksheet implements ContainFormRecordInterface
 
     /**
      *
-     * @var Worksheet
+     * @var Worksheet||null
      */
     protected $parent = null;
 
@@ -59,7 +59,7 @@ class Worksheet implements ContainFormRecordInterface
         return $this->participant;
     }
 
-    function getParent(): Worksheet
+    function getParent(): ?Worksheet
     {
         return $this->parent;
     }

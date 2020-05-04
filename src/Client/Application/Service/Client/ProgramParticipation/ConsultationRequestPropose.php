@@ -59,18 +59,19 @@ class ConsultationRequestPropose
 
     public function execute(
             string $clientId, string $programParticipationId, string $consultationSetupId, string $consultantId,
-            DateTimeImmutable $startTime): ConsultationRequest
+            DateTimeImmutable $startTime): string
     {
+        $id = $this->consultationRequestRepository->nextIdentity();
         $consultationSetup = $this->consultationSetupRepository
-                ->ofId($clientId, $programParticipationId, $consultationSetupId);
-        $consultant = $this->consultantRepository->ofId($clientId, $programParticipationId, $consultantId);
+                ->aConsultationSetupInProgramWhereClientParticipate($clientId, $programParticipationId, $consultationSetupId);
+        $consultant = $this->consultantRepository->aConsultantInProgramWhereClientParticipate($clientId, $programParticipationId, $consultantId);
         $programParticipation = $this->programParticipationRepository->ofId($clientId, $programParticipationId);
         $consultationRequest = $programParticipation
-                ->createConsultationRequest($consultationSetup, $consultant, $startTime);
+                ->createConsultationRequest($id, $consultationSetup, $consultant, $startTime);
         $this->consultationRequestRepository->add($consultationRequest);
 
         $this->dispatcher->dispatch($programParticipation);
-        return $consultationRequest;
+        return $id;
     }
 
 }

@@ -2,18 +2,17 @@
 
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\ {
+use Client\{
     Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
     Application\Service\Client\ProgramParticipation\WorksheetRepository,
     Domain\Model\Client\ProgramParticipation\Worksheet
 };
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -25,26 +24,6 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         $em = $this->getEntityManager();
         $em->persist($worksheet);
         $em->flush();
-    }
-
-    public function all(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
-    {
-        $parameters = [
-            "programParticipationId" => $programParticipationCompositionId->getProgramParticipationId(),
-            "clientId" => $programParticipationCompositionId->getClientId(),
-        ];
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select("worksheet")
-                ->andWhere($qb->expr()->eq('worksheet.removed', "false"))
-                ->leftJoin("worksheet.programParticipation", "programParticipation")
-                ->andWhere($qb->expr()->eq('programParticipation.active', "true"))
-                ->andWhere($qb->expr()->eq('programParticipation.id', ":programParticipationId"))
-                ->leftJoin("programParticipation.client", "client")
-                ->andWhere($qb->expr()->eq('client.id', ":clientId"))
-                ->setParameters($parameters);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
     public function nextIdentity(): string

@@ -31,10 +31,10 @@ class WorksheetAddBranch
 
     public function execute(
             ProgramParticipationCompositionId $programParticipationCompositionId, string $parentWorksheetId,
-            string $missionId, string $name, FormRecordData $formRecordData): Worksheet
+            string $missionId, string $name, FormRecordData $formRecordData): string
     {
         $id = $this->worksheetRepository->nextIdentity();
-        $mission = $this->missionRepository->ofId(
+        $mission = $this->missionRepository->aMissionInProgramWhereClientParticipate(
                 $programParticipationCompositionId->getClientId(),
                 $programParticipationCompositionId->getProgramParticipationId(), $missionId);
         $formRecord = $mission->createWorksheetFormRecord($id, $formRecordData);
@@ -42,7 +42,7 @@ class WorksheetAddBranch
         $worksheet = $this->worksheetRepository->ofId($programParticipationCompositionId, $parentWorksheetId)
                 ->createBranchWorksheet($id, $name, $mission, $formRecord);
         $this->worksheetRepository->add($worksheet);
-        return $worksheet;
+        return $id;
     }
 
 }

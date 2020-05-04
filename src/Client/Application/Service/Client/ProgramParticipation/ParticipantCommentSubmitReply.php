@@ -39,7 +39,7 @@ class ParticipantCommentSubmitReply
         $this->commentRepoository = $commentRepoository;
     }
 
-    public function execute(WorksheetCompositionId $worksheetCompositionId, string $commentId, string $message): ParticipantComment
+    public function execute(WorksheetCompositionId $worksheetCompositionId, string $commentId, string $message): string
     {
         $programParticipation = $this->programParticipationRepository->ofId(
                 $worksheetCompositionId->getClientId(), $worksheetCompositionId->getProgramParticipationId());
@@ -47,7 +47,7 @@ class ParticipantCommentSubmitReply
         $comment = $this->commentRepoository->ofId($worksheetCompositionId, $commentId)->createReply($id, $message);
         $participantComment = new ParticipantComment($programParticipation, $id, $comment);
         $this->participantCommentRepository->add($participantComment);
-        return $participantComment;
+        return $id;
     }
 
 }

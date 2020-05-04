@@ -12,7 +12,7 @@ use Resources\Uuid;
 class DoctrinePersonnelNotificationRepository extends EntityRepository implements PersonnelNotificationRepository
 {
 
-    public function add(PersonnelNotification $personnelNotification): string
+    public function add(PersonnelNotification $personnelNotification): void
     {
         $em = $this->getEntityManager();
         $em->persist($personnelNotification);

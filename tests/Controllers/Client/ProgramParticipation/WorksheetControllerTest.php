@@ -72,6 +72,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     
     public function test_addBranch()
     {
+$this->disableExceptionHandling();
         $this->worksheetInput['missionId'] = $this->branchMission->id;
         $this->worksheetResponse['parent'] = [
             "id" => $this->worksheet->id,

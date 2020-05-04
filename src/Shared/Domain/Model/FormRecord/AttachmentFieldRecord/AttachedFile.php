@@ -2,7 +2,7 @@
 
 namespace Shared\Domain\Model\FormRecord\AttachmentFieldRecord;
 
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     FileInfo,
     FormRecord\AttachmentFieldRecord
 };
@@ -33,11 +33,6 @@ class AttachedFile
      * @var bool
      */
     protected $removed = false;
-
-    function getId(): string
-    {
-        return $this->id;
-    }
 
     function getFileInfo(): FileInfo
     {
