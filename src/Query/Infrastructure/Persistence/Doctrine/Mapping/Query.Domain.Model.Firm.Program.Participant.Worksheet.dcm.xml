@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\Worksheet" 
+            table="Worksheet" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineWorksheetRepository"
+    >
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="parent" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\Worksheet"
+        >
+            <join-column name="parent_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <many-to-one  field="mission" 
+                      target-entity="Query\Domain\Model\Firm\Program\Mission"
+        >
+            <join-column name="Mission_id" referenced-column-name="id" />
+        </many-to-one>
+        <one-to-one field="formRecord" 
+                    target-entity="Query\Domain\Model\Shared\FormRecord"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </one-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

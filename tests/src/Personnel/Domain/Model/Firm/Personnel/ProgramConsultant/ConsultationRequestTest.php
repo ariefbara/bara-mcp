@@ -4,6 +4,7 @@ namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\ {
+    Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Program\ConsultationSetup,
     Program\Participant
@@ -194,6 +195,15 @@ class ConsultationRequestTest extends TestBase
                 ->willReturn(true);
         $this->consultationRequest->status = $status;
         $this->assertTrue($this->consultationRequest->statusEquals($other));
+    }
+    
+    public function test_createNotification_returnResultOfCreatingNotificationForConsultationRequestInProgramConsultant()
+    {
+        $this->programConsultant->expects($this->once())
+                ->method('createNotificationForConsultationRequest')
+                ->with($id = 'id', $message = 'message', $this->consultationRequest)
+                ->willReturn($notification = $this->buildMockOfClass(PersonnelNotification::class));
+        $this->assertEquals($notification, $this->consultationRequest->createNotification($id, $message));
     }
 
 }

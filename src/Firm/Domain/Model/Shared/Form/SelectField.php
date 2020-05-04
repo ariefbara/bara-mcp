@@ -30,22 +30,6 @@ class SelectField
      */
     protected $options;
     
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    /**
-     * 
-     * @return Option[]
-     */
-    function getUnremovedOptions()
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('removed', false));
-        return $this->options->matching($criteria)->getIterator();
-    }
-    
     function __construct(string $id, SelectFieldData $selectFieldData)
     {
         $this->id = $id;
@@ -81,24 +65,4 @@ class SelectField
         }
     }
     
-    function getName(): string
-    {
-        return $this->fieldVO->getName();
-    }
-
-    function getDescription(): ?string
-    {
-        return $this->fieldVO->getDescription();
-    }
-
-    function getPosition(): ?string
-    {
-        return $this->fieldVO->getPosition();
-    }
-
-    function isMandatory(): bool
-    {
-        return $this->fieldVO->isMandatory();
-    }
-
 }

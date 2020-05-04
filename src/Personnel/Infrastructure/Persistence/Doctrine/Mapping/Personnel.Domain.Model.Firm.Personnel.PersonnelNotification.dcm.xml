@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
     <entity name="Personnel\Domain\Model\Firm\Personnel\PersonnelNotification" 
-            table="PersonnelNotification" 
+            table="PersonnelNotification"
+            repository-class="Personnel\Infrastructure\Persistence\Doctrine\Repository\DoctrinePersonnelNotificationRepository"  
     >
         <many-to-one  field="personnel" 
                       target-entity="Personnel\Domain\Model\Firm\Personnel"
@@ -9,12 +10,20 @@
             <join-column name="Personnel_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
-        <one-to-one field="notification" 
-                    target-entity="Shared\Domain\Model\Notification"
+        <field name="message" type="string" length="256" nullable="false"/>
+        <field name="read" column="isRead" type="boolean" />
+        <field name="notifiedTime" type="date_immutable" nullable="false"/>
+        
+        <many-to-one  field="consultationRequest" 
+                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest"
         >
-            <join-column name="Notification_id" referenced-column-name="id" />
-            <cascade><cascade-persist /></cascade>
-        </one-to-one>
+            <join-column name="ConsultationRequest_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="consultationSession" 
+                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession"
+        >
+            <join-column name="ConsultationSession_id" referenced-column-name="id" />
+        </many-to-one>
         
     </entity>
 </doctrine-mapping>

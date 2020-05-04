@@ -86,19 +86,13 @@ class ConsultationSessionTest extends TestBase
                 ->with($this->formRecordData);
         $this->executeSetParticipantFeedback();
     }
-
-    public function test_createConsultationSessionNotification_returnConsultationSessionNotification()
+    
+    public function test_createClientNotification_returnResultOfProgramParticipationCreateClientNotificationForConsultationSession()
     {
-        $clientNotification = $this->buildMockOfClass(ClientNotification::class);
         $this->programParticipation->expects($this->once())
-                ->method('createClientNotification')
-                ->with($id = 'id', $message = 'message')
-                ->willReturn($clientNotification);
-        $consultationSessionNotification = new ConsultationSessionNotification(
-                $this->consultationSession, $id, $clientNotification);
-        $this->assertEquals(
-                $consultationSessionNotification,
-                $this->consultationSession->createConsultationSessionNotification($id, $message));
+                ->method('createNotificationForConsultationSession')
+                ->with($id = 'id', $message = 'message', $this->consultationSession);
+        $this->consultationSession->createClientNotification($id, $message);
     }
 
 }

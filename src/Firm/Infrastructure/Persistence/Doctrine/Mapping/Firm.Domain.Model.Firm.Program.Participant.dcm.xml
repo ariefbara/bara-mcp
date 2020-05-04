@@ -13,7 +13,7 @@
         </many-to-one>
         <id name="id" type="guid" />
         <many-to-one  field="client" 
-                      target-entity="Firm\Domain\Model\Client"
+                      target-entity="Query\Domain\Model\Client"
         >
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>

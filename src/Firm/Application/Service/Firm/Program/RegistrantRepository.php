@@ -10,6 +10,4 @@ interface RegistrantRepository
     public function update(): void;
 
     public function ofId(ProgramCompositionId $programCompositionId, string $registrantId): Registrant;
-
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize);
 }

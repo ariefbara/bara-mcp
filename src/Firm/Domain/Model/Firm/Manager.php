@@ -4,7 +4,7 @@ namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
 use Firm\Domain\Model\Firm;
-use Resources\{
+use Resources\ {
     Domain\ValueObject\Password,
     ValidationRule,
     ValidationService
@@ -61,46 +61,6 @@ class Manager
      */
     protected $removed = false;
 
-    function getFirm(): Firm
-    {
-        return $this->firm;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    function getPassword(): Password
-    {
-        return $this->password;
-    }
-
-    function getPhone(): string
-    {
-        return $this->phone;
-    }
-
-    function getJoinTimeString(): string
-    {
-        return $this->joinTime->format('Y-m-d H:i:s');
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     private function setName($name)
     {
         $errorDetail = 'bad request: manager name is required';
@@ -138,11 +98,6 @@ class Manager
         $this->setPhone($managerData->getPhone());
         $this->joinTime = new DateTimeImmutable();
         $this->removed = false;
-    }
-
-    public function passwordMatch(string $password): bool
-    {
-        return $this->password->match($password);
     }
 
 }

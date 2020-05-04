@@ -63,5 +63,9 @@ class MissionAddRootTest extends TestBase
                 ->with($mission);
         $this->execute();
     }
+    public function test_execute_returnId()
+    {
+        $this->assertEquals($this->id, $this->execute());
+    }
 
 }

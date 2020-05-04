@@ -3,6 +3,7 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use Personnel\Domain\Model\Firm\ {
+    Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback,
     Program\ConsultationSetup,
@@ -77,6 +78,15 @@ class ConsultationSessionTest extends TestBase
                 ->method('update')
                 ->with($this->formRecordData);
         $this->executeSetConsultantFeedback();
+    }
+    
+    public function test_createNotification_returnResultOfCreatingNotificationForConsultationSessionInProgramConsultant()
+    {
+        $this->programConsultant->expects($this->once())
+                ->method('createNotificationForConsultationSession')
+                ->with($id = 'id', $message = 'message', $this->consultationSession)
+                ->willReturn($personnelNotification = $this->buildMockOfClass(PersonnelNotification::class));
+        $this->assertEquals($personnelNotification, $this->consultationSession->createNotification($id, $message));
     }
 
 }

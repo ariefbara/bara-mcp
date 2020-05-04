@@ -55,6 +55,7 @@ class MissionControllerTest extends MissionTestCase
     
     public function test_addRoot()
     {
+$this->disableExceptionHandling();
         $this->connection->table('Mission')->truncate();
         
         $response = [

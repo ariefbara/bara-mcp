@@ -8,7 +8,7 @@ use Tests\Controllers\ {
     RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest,
     RecordPreparation\Firm\Program\RecordOfConsultant,
     RecordPreparation\Firm\Program\RecordOfConsultationSetup,
-    RecordPreparation\Firm\RecordOfConsultationFeedbackForm,
+    RecordPreparation\Firm\RecordOfFeedbackForm,
     RecordPreparation\Firm\RecordOfPersonnel,
     RecordPreparation\Shared\RecordOfForm
 };
@@ -43,8 +43,8 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('Form')->insert($formOne->toArrayForDbEntry());
         $this->connection->table('Form')->insert($formTwo->toArrayForDbEntry());
         
-        $participantConsultationFeedbackForm = new RecordOfConsultationFeedbackForm($this->programParticipation->program->firm, $formOne);
-        $consultantConsultationFeedbackForm = new RecordOfConsultationFeedbackForm($this->programParticipation->program->firm, $formTwo);
+        $participantConsultationFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formOne);
+        $consultantConsultationFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formTwo);
         $this->connection->table('ConsultationFeedbackForm')->insert($participantConsultationFeedbackForm->toArrayForDbEntry());
         $this->connection->table('ConsultationFeedbackForm')->insert($consultantConsultationFeedbackForm->toArrayForDbEntry());
 

@@ -3,8 +3,8 @@
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
 use Client\Domain\Model\ {
-    Client\ClientNotification,
     Client\ProgramParticipation,
+    Client\ProgramParticipation\Worksheet\Comment,
     Firm\Program\Mission
 };
 use Shared\Domain\Model\ {
@@ -136,11 +136,11 @@ class WorksheetTest extends TestBase
     
     public function test_createClientNotification_returnClientNotificationResultFromParticipantCreateClientNotification()
     {
+        $comment = $this->buildMockOfClass(Comment::class);
         $this->programParticipation->expects($this->once())
-                ->method('createClientNotification')
-                ->with($id = 'id', $message = 'new message')
-                ->willReturn($clientNotification = $this->buildMockOfClass(ClientNotification::class));
-        $this->assertEquals($clientNotification, $this->worksheet->createClientNotification($id, $message));
+                ->method('createNotificationForComment')
+                ->with($id = 'id', $message = 'new message', $comment);
+        $this->worksheet->createClientNotification($id, $message, $comment);
     }
 }
 

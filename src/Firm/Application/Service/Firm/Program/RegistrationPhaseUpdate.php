@@ -2,10 +2,7 @@
 
 namespace Firm\Application\Service\Firm\Program;
 
-use Firm\Domain\Model\Firm\Program\ {
-    RegistrationPhase,
-    RegistrationPhaseData
-};
+use Firm\Domain\Model\Firm\Program\RegistrationPhaseData;
 
 class RegistrationPhaseUpdate
 {
@@ -23,12 +20,11 @@ class RegistrationPhaseUpdate
 
     public function execute(
             ProgramCompositionId $programCompositionId, string $registrationPhaseId,
-            RegistrationPhaseData $registrationPhaseData): RegistrationPhase
+            RegistrationPhaseData $registrationPhaseData): void
     {
         $registrationPhase = $this->registrationPhaseRepository->ofId($programCompositionId, $registrationPhaseId);
         $registrationPhase->update($registrationPhaseData);
         $this->registrationPhaseRepository->update();
-        return $registrationPhase;
     }
 
 }

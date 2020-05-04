@@ -4,14 +4,14 @@ namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\ {
-    Event\ParticipantAcceptedEvent,
-    Model\Client,
+    Event\ProgramManageParticipantEvent,
     Model\Firm,
-    Model\Firm\Program\Coordinator,
     Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Registrant
 };
+use Query\Domain\Model\Client;
 use Tests\TestBase;
 
 class ProgramTest extends TestBase
@@ -122,11 +122,6 @@ class ProgramTest extends TestBase
         $this->assertEquals(2, $this->program->consultants->count());
     }
 
-    public function test_assignePersonnelAsConsultant_returnNewConsultantId()
-    {
-        $this->assertNotEmpty($this->executeAssignPersonnelAsConsultant());
-    }
-
     function test_assignPersonnelAsConsultant_aConsultantReferToSamePersonnelExistInCollection_throwEx()
     {
         $this->consultant->expects($this->once())
@@ -150,6 +145,21 @@ class ProgramTest extends TestBase
         $this->consultant->expects($this->once())
             ->method('reassign');
         $this->executeAssignPersonnelAsConsultant();
+    }
+    
+    public function test_assignePersonnelAsConsultant_returnConsultantId()
+    {
+        $this->consultant->expects($this->once())
+            ->method('getPersonnel')
+            ->willReturn($this->personnel);
+        $this->consultant->expects($this->once())
+            ->method('isRemoved')
+            ->willReturn(true);
+        $this->consultant->expects($this->once())
+            ->method('getId')
+            ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->executeAssignPersonnelAsConsultant());
+        
     }
 
     protected function executeAssignPersonnelAsCoordinator()
@@ -186,6 +196,21 @@ class ProgramTest extends TestBase
         $this->coordinator->expects($this->once())
             ->method('reassign');
         $this->executeAssignPersonnelAsCoordinator();
+    }
+    
+    public function test_assignPersonnelAsCoordiantor_returnCoordinatorId()
+    {
+        $this->coordinator->expects($this->once())
+            ->method('getPersonnel')
+            ->willReturn($this->personnel);
+        $this->coordinator->expects($this->once())
+            ->method('isRemoved')
+            ->willReturn(true);
+        $this->coordinator->expects($this->once())
+            ->method('getId')
+            ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->executeAssignPersonnelAsCoordinator());
+        
     }
 
     protected function executeAcceptRegistrant()
@@ -241,7 +266,7 @@ class ProgramTest extends TestBase
     public function test_acceptRegistrant_recordRegistrantAcceptedEvent()
     {
         $this->executeAcceptRegistrant();
-        $this->assertInstanceOf(ParticipantAcceptedEvent::class, $this->program->getRecordedEvents()[0]);
+        $this->assertInstanceOf(ProgramManageParticipantEvent::class, $this->program->getRecordedEvents()[0]);
     }
     
 }

@@ -3,7 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\{
-    ConsultationFeedbackForm,
+    FeedbackForm,
     Program
 };
 use Resources\{
@@ -40,13 +40,13 @@ class ConsultationSetup
 
     /**
      *
-     * @var ConsultationFeedbackForm
+     * @var FeedbackForm
      */
     protected $participantFeedbackForm;
 
     /**
      *
-     * @var ConsultationFeedbackForm
+     * @var FeedbackForm
      */
     protected $consultantFeedbackForm;
 
@@ -55,41 +55,6 @@ class ConsultationSetup
      * @var bool
      */
     protected $removed = false;
-
-    function getProgram(): Program
-    {
-        return $this->program;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getSessionDuration(): int
-    {
-        return $this->sessionDuration;
-    }
-
-    function getParticipantFeedbackForm(): ConsultationFeedbackForm
-    {
-        return $this->participantFeedbackForm;
-    }
-
-    function getConsultantFeedbackForm(): ConsultationFeedbackForm
-    {
-        return $this->consultantFeedbackForm;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function setName(string $name): void
     {
@@ -113,7 +78,7 @@ class ConsultationSetup
 
     function __construct(
             Program $program, string $id, string $name, int $sessionDuration,
-            ConsultationFeedbackForm $participantFeedbackForm, ConsultationFeedbackForm $consultantFeedbackForm)
+            FeedbackForm $participantFeedbackForm, FeedbackForm $consultantFeedbackForm)
     {
         $this->program = $program;
         $this->id = $id;

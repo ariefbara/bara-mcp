@@ -40,19 +40,9 @@ class SingleSelectField
      */
     protected $removed = false;
 
-    function getForm(): Form
-    {
-        return $this->form;
-    }
-
     function getId(): string
     {
         return $this->id;
-    }
-
-    function getDefaultValue(): ?string
-    {
-        return $this->defaultValue;
     }
 
     function isRemoved(): bool
@@ -78,35 +68,6 @@ class SingleSelectField
     public function remove(): void
     {
         $this->removed = true;
-    }
-
-    function getName(): string
-    {
-        return $this->selectField->getName();
-    }
-
-    function getDescription(): ?string
-    {
-        return $this->selectField->getDescription();
-    }
-
-    function getPosition(): ?string
-    {
-        return $this->selectField->getPosition();
-    }
-
-    function isMandatory(): bool
-    {
-        return $this->selectField->isMandatory();
-    }
-    
-    /**
-     * 
-     * @return Option[]
-     */
-    function getUnremovedOptions()
-    {
-        return $this->selectField->getUnremovedOptions();
     }
 
 }

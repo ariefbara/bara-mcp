@@ -6,11 +6,14 @@ use App\Http\Controllers\Manager\ManagerBaseController;
 use Firm\ {
     Application\Service\Firm\Program\ConsultantAssign,
     Application\Service\Firm\Program\ConsultantRemove,
-    Application\Service\Firm\Program\ConsultantView,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Personnel,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\Consultant
+};
+use Query\ {
+    Application\Service\Firm\Program\ConsultantView,
+    Domain\Model\Firm\Program\Consultant as Consultant2
 };
 
 class ConsultantController extends ManagerBaseController
@@ -20,8 +23,11 @@ class ConsultantController extends ManagerBaseController
     {
         $service = $this->buildAssignService();
         $personnelId = $this->stripTagsInputRequest('personnelId');
-        $consultant = $service->execute($this->firmId(), $programId, $personnelId);
+        $consultantId = $service->execute($this->firmId(), $programId, $personnelId);
         
+        $viewService = $this->buildViewService();
+        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
+        $consultant = $viewService->showById($programCompositionId, $consultantId);
         return $this->singleQueryResponse($this->arrayDataOfConsultant($consultant));
     }
 
@@ -58,7 +64,7 @@ class ConsultantController extends ManagerBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfConsultant(Consultant $consultant)
+    protected function arrayDataOfConsultant(Consultant2 $consultant)
     {
         return [
             "id" => $consultant->getId(),
@@ -85,7 +91,7 @@ class ConsultantController extends ManagerBaseController
 
     protected function buildViewService()
     {
-        $consultantRepository = $this->em->getRepository(Consultant::class);
+        $consultantRepository = $this->em->getRepository(Consultant2::class);
         return new ConsultantView($consultantRepository);
     }
 

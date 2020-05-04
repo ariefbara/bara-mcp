@@ -18,14 +18,14 @@ class FirmAdd
         $this->firmRepository = $firmRepository;
     }
 
-    public function execute(string $name, string $identifier,  ManagerData $managerData): Firm
+    public function execute(string $name, string $identifier,  ManagerData $managerData): string
     {
         $this->assertIdentifierAvailable($identifier);
         
         $id = $this->firmRepository->nextIdentity();
         $firm = new Firm($id, $name, $identifier, $managerData);
         $this->firmRepository->add($firm);
-        return $firm;
+        return $id;
     }
     
     private function assertIdentifierAvailable($identifier): void

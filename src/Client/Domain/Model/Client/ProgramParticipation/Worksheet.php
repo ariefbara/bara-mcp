@@ -2,23 +2,24 @@
 
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
-use Client\Domain\Model\ {
+use Client\Domain\Model\{
     Client\ClientNotification,
     Client\ProgramParticipation,
+    Client\ProgramParticipation\Worksheet\Comment,
     Firm\Program\Mission
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     ValidationRule,
     ValidationService
 };
-use Shared\Domain\Model\ {
+use Shared\Domain\Model\{
     FormRecord,
     FormRecordData,
     HasFormRecordInterface
 };
 
-class Worksheet implements HasFormRecordInterface
+class Worksheet
 {
 
     /**
@@ -62,36 +63,6 @@ class Worksheet implements HasFormRecordInterface
      * @var bool
      */
     protected $removed = false;
-
-    function getProgramParticipation(): ProgramParticipation
-    {
-        return $this->programParticipation;
-    }
-
-    function getParent(): ?Worksheet
-    {
-        return $this->parent;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getMission(): Mission
-    {
-        return $this->mission;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function setName(string $name): void
     {
@@ -147,45 +118,9 @@ class Worksheet implements HasFormRecordInterface
         $this->removed = true;
     }
 
-    function getSubmitTimeString(): string
+    public function createClientNotification(string $id, string $message, Comment $comment): ClientNotification
     {
-        return $this->formRecord->getSubmitTimeString();
-    }
-
-    function getUnremovedIntegerFieldRecords()
-    {
-        return $this->formRecord->getUnremovedIntegerFieldRecords();
-    }
-
-    function getUnremovedStringFieldRecords()
-    {
-        
-        return $this->formRecord->getUnremovedStringFieldRecords();
-    }
-
-    function getUnremovedTextAreaFieldRecords()
-    {
-        return $this->formRecord->getUnremovedTextAreaFieldRecords();
-    }
-
-    function getUnremovedSingleSelectFieldRecords()
-    {
-        return $this->formRecord->getUnremovedSingleSelectFieldRecords();
-    }
-
-    function getUnremovedMultiSelectFieldRecords()
-    {
-        return $this->formRecord->getUnremovedMultiSelectFieldRecords();
-    }
-
-    function getUnremovedAttachmentFieldRecords()
-    {
-        return $this->formRecord->getUnremovedAttachmentFieldRecords();
-    }
-    
-    public function createClientNotification(string $id, string $message): ClientNotification
-    {
-        return $this->programParticipation->createClientNotification($id, $message);
+        return $this->programParticipation->createNotificationForComment($id, $message, $comment);
     }
 
 }

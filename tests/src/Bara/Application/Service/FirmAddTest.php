@@ -57,5 +57,12 @@ class FirmAddTest extends TestBase
         $errorDetail = 'conflict: firm identifier already used';
         $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
     }
+    public function test_execute_returnNewId()
+    {
+        $this->firmRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+    }
 
 }

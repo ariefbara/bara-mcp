@@ -2,20 +2,20 @@
 
 namespace Firm\Domain\Model\Firm;
 
-use Doctrine\Common\Collections\{
+use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
-use Firm\Domain\{
-    Event\ParticipantAcceptedEvent,
-    Model\Client,
+use Firm\Domain\ {
+    Event\ProgramManageParticipantEvent,
     Model\Firm,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Coordinator,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Registrant
 };
-use Resources\{
+use Query\Domain\Model\Client;
+use Resources\ {
     Domain\Model\ModelContainEvents,
     Exception\RegularException,
     Uuid,
@@ -86,36 +86,6 @@ class Program extends ModelContainEvents
      */
     protected $participants;
 
-    function getFirm(): Firm
-    {
-        return $this->firm;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    function isPublished(): bool
-    {
-        return $this->published;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     protected function setName(string $name)
     {
         $errorDetail = 'bad request: program name is required';
@@ -156,7 +126,7 @@ class Program extends ModelContainEvents
         $this->removed = true;
     }
 
-    public function assignPersonnelAsConsultant(Personnel $personnel): Consultant
+    public function assignPersonnelAsConsultant(Personnel $personnel): string
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('personnel', $personnel));
@@ -174,10 +144,10 @@ class Program extends ModelContainEvents
             $consultant = new Consultant($this, $id, $personnel);
             $this->consultants->add($consultant);
         }
-        return $consultant;
+        return $consultant->getId();
     }
 
-    public function assignPersonnelAsCoordinator(Personnel $personnel): Coordinator
+    public function assignPersonnelAsCoordinator(Personnel $personnel): string
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('personnel', $personnel));
@@ -195,7 +165,7 @@ class Program extends ModelContainEvents
             $coordinator = new Coordinator($this, $id, $personnel);
             $this->coordinators->add($coordinator);
         }
-        return $coordinator;
+        return $coordinator->getId();
     }
 
     public function acceptRegistrant(string $registrantId): void
@@ -214,7 +184,7 @@ class Program extends ModelContainEvents
         }
 
         $messageForClient = "You have been accepted as participant of program $this->name";
-        $event = new ParticipantAcceptedEvent($this->firm->getId(), $this->id, $participant->getId(), $messageForClient);
+        $event = new ProgramManageParticipantEvent($this->firm->getId(), $this->id, $participant->getId(), $messageForClient);
         $this->recordEvent($event);
     }
 

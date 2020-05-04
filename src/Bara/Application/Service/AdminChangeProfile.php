@@ -21,7 +21,7 @@ class AdminChangeProfile
         $this->adminRepository = $adminRepository;
     }
     
-    public function execute(string $adminId, AdminData $adminData): Admin
+    public function execute(string $adminId, AdminData $adminData): void
     {
         $admin = $this->adminRepository->ofId($adminId);
         if (!$admin->emailEquals($adminData->getEmail())) {
@@ -30,7 +30,6 @@ class AdminChangeProfile
         
         $admin->updateProfile($adminData);
         $this->adminRepository->update();
-        return $admin;
     }
     
     protected function assertEmailAvailable(string $email): void

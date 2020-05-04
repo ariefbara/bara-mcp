@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm" 
+            table="Firm" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineFirmRepository" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="identifier" type="string" length="256" nullable="false"/>
+        <field name="suspended" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

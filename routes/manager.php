@@ -6,12 +6,12 @@ $managerAggregate = [
     'middleware' => 'managerJwtAuth',
 ];
 $router->group($managerAggregate, function () use ($router) {
-    $router->group(['prefix' => '/consultation-feedback-forms'], function () use($router) {
-        $controller = "ConsultationFeedbackFormController";
+    $router->group(['prefix' => '/feedback-forms'], function () use($router) {
+        $controller = "FeedbackFormController";
         $router->post("", ["uses" => "$controller@add"]);
-        $router->patch("/{consultationFeedbackFormId}", ["uses" => "$controller@update"]);
-        $router->delete("/{consultationFeedbackFormId}", ["uses" => "$controller@remove"]);
-        $router->get("/{consultationFeedbackFormId}", ["uses" => "$controller@show"]);
+        $router->patch("/{feedbackFormId}", ["uses" => "$controller@update"]);
+        $router->delete("/{feedbackFormId}", ["uses" => "$controller@remove"]);
+        $router->get("/{feedbackFormId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
     $router->group(['prefix' => '/worksheet-forms'], function () use($router) {

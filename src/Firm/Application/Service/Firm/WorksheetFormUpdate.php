@@ -17,12 +17,11 @@ class WorksheetFormUpdate
         $this->worksheetFormRepository = $worksheetFormRepository;
     }
 
-    public function execute(string $firmId, $worksheetFormId, FormData $formData): WorksheetForm
+    public function execute(string $firmId, $worksheetFormId, FormData $formData): void
     {
         $worksheetForm = $this->worksheetFormRepository->ofId($firmId, $worksheetFormId);
         $worksheetForm->update($formData);
         $this->worksheetFormRepository->update();
-        return $worksheetForm;
     }
 
 }

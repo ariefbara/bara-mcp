@@ -2,14 +2,14 @@
 
 namespace Client\Domain\Model\Client;
 
-use Client\Domain\Model\{
+use Client\Domain\Model\ {
     Client,
-    Client\ProgramParticipation\ConsultationRequest\ConsultationRequestNotification,
-    Client\ProgramParticipation\ConsultationSession\ConsultationSessionNotification,
-    Client\ProgramParticipation\ParticipantNotification,
-    Client\ProgramParticipation\Worksheet\Comment\CommentNotification
+    Client\ProgramParticipation\ConsultationRequest,
+    Client\ProgramParticipation\ConsultationSession,
+    Client\ProgramParticipation\Worksheet\Comment
 };
-use Shared\Domain\Model\Notification;
+use DateTimeImmutable;
+use Resources\DateTimeImmutableBuilder;
 
 class ClientNotification
 {
@@ -28,44 +28,90 @@ class ClientNotification
 
     /**
      *
-     * @var Notification
+     * @var string
      */
-    protected $notification;
+    protected $message;
 
     /**
      *
-     * @var ParticipantNotification
+     * @var bool
      */
-    protected $participantNotification = null;
+    protected $read = false;
 
     /**
      *
-     * @var ConsultationSessionNotification
+     * @var DateTimeImmutable
      */
-    protected $consultationSessionNotification = null;
+    protected $notifiedTime;
 
     /**
      *
-     * @var ConsultationRequestNotification
+     * @var ProgramParticipation||null
      */
-    protected $consultationRequestNotification = null;
+    protected $programParticipation = null;
 
     /**
      *
-     * @var CommentNotification
+     * @var ConsultationRequest||null
      */
-    protected $commentNotification = null;
+    protected $consultationRequest = null;
 
-    function __construct(Client $client, string $id, Notification $notification)
+    /**
+     *
+     * @var ConsultationSession||null
+     */
+    protected $consultationSession = null;
+
+    /**
+     *
+     * @var Comment||null
+     */
+    protected $comment = null;
+
+    protected function __construct(Client $client, string $id, string $message)
     {
         $this->client = $client;
         $this->id = $id;
-        $this->notification = $notification;
+        $this->message = $message;
+        $this->read = false;
+        $this->notifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
+    }
+
+    public static function notificationForProgramParticipation(
+            Client $client, string $id, string $message, ProgramParticipation $programParticipation): self
+    {
+        $clientNotification = new Static($client, $id, $message);
+        $clientNotification->programParticipation = $programParticipation;
+        return $clientNotification;
+    }
+    
+    public static function notificationForConsultationRequest(
+            Client $client, string $id, string $message, ConsultationRequest $consultationRequest): self
+    {
+        $clientNotification = new Static($client, $id, $message);
+        $clientNotification->consultationRequest = $consultationRequest;
+        return $clientNotification;
+    }
+
+    public static function notificationForConsultationSession(
+            Client $client, string $id, string $message, ConsultationSession $consultationSession): self
+    {
+        $clientNotification = new Static($client, $id, $message);
+        $clientNotification->consultationSession = $consultationSession;
+        return $clientNotification;
+    }
+
+    public static function notificationForComment(
+            Client $client, string $id, string $message, Comment $comment): self
+    {
+        $clientNotification = new Static($client, $id, $message);
+        $clientNotification->comment = $comment;
+        return $clientNotification;
     }
 
     public function read(): void
     {
-        $this->notification->read();
+        $this->read = true;
     }
 
 }

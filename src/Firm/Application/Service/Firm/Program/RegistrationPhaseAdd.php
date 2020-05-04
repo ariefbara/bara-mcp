@@ -20,14 +20,14 @@ class RegistrationPhaseAdd
         $this->programRepository = $programRepository;
     }
     
-    public function execute(string $firmId, string $programId, RegistrationPhaseData $registrationPhaseData): RegistrationPhase
+    public function execute(string $firmId, string $programId, RegistrationPhaseData $registrationPhaseData): string
     {
         $program = $this->programRepository->ofId($firmId, $programId);
         $id = $this->registrationPhaseRepository->nextIdentity();
         
         $registrationPhase = new RegistrationPhase($program, $id, $registrationPhaseData);
         $this->registrationPhaseRepository->add($registrationPhase);
-        return $registrationPhase;
+        return $id;
     }
 
 }

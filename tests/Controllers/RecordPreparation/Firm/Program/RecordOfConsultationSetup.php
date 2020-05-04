@@ -3,7 +3,7 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
 use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfConsultationFeedbackForm,
+    Firm\RecordOfFeedbackForm,
     Firm\RecordOfProgram,
     Record
 };
@@ -17,22 +17,22 @@ class RecordOfConsultationSetup implements Record
     public $program;
     /**
      *
-     * @var RecordOfConsultationFeedbackForm
+     * @var RecordOfFeedbackForm
      */
-    public $participantConsultationFeedbackForm;
+    public $participantFeedbackForm;
     /**
      *
-     * @var RecordOfConsultationFeedbackForm
+     * @var RecordOfFeedbackForm
      */
-    public $consultantConsultationFeedbackForm;
+    public $consultantFeedbackForm;
     public $id, $name, $sessionDuration = 60, $removed = false;
     
-    function __construct(RecordOfProgram $program, ?RecordOfConsultationFeedbackForm $participantConsultationFeedbackForm,
-        ?RecordOfConsultationFeedbackForm $consultantConsultationFeedbackForm, $index)
+    function __construct(RecordOfProgram $program, ?RecordOfFeedbackForm $participantFeedbackForm,
+        ?RecordOfFeedbackForm $consultantFeedbackForm, $index)
     {
         $this->program = $program;
-        $this->participantConsultationFeedbackForm = $participantConsultationFeedbackForm;
-        $this->consultantConsultationFeedbackForm = $consultantConsultationFeedbackForm;
+        $this->participantFeedbackForm = $participantFeedbackForm;
+        $this->consultantFeedbackForm = $consultantFeedbackForm;
         $this->id = "consultanting-$index-id";
         $this->name = "consultanting $index name";
         $this->sessionDuration = 60;
@@ -44,8 +44,8 @@ class RecordOfConsultationSetup implements Record
     {
         return [
             "Program_id" => $this->program->id,
-            "ConsultationFeedbackForm_idForParticipant" => (empty($this->participantConsultationFeedbackForm))? null: $this->participantConsultationFeedbackForm->id,
-            "ConsultationFeedbackForm_idForConsultant" => (empty($this->consultantConsultationFeedbackForm))? null: $this->consultantConsultationFeedbackForm->id,
+            "FeedbackForm_idForParticipant" => (empty($this->participantFeedbackForm))? null: $this->participantFeedbackForm->id,
+            "FeedbackForm_idForConsultant" => (empty($this->consultantFeedbackForm))? null: $this->consultantFeedbackForm->id,
             "id" => $this->id,
             "name" => $this->name,
             "sessionDuration" => $this->sessionDuration,

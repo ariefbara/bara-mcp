@@ -2,8 +2,6 @@
 
 namespace Firm\Application\Service\Firm\Program;
 
-use Firm\Domain\Model\Firm\Program\Mission;
-
 class MissionUpdate
 {
 
@@ -18,12 +16,11 @@ class MissionUpdate
         $this->missionRepository = $missionRepository;
     }
 
-    public function execute(ProgramCompositionId $programCompositionId, $missionId, $name, $description, $position): Mission
+    public function execute(ProgramCompositionId $programCompositionId, $missionId, $name, $description, $position): void
     {
         $mission = $this->missionRepository->ofId($programCompositionId, $missionId);
         $mission->update($name, $description, $position);
         $this->missionRepository->update();
-        return $mission;
     }
 
 }

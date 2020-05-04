@@ -34,26 +34,6 @@ class FieldVO
      */
     protected $mandatory;
 
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    function getPosition(): string
-    {
-        return $this->position;
-    }
-
-    function isMandatory(): bool
-    {
-        return $this->mandatory;
-    }
-
     protected function setName(string $name): void
     {
         $errorDetail = 'bad request: field name is mandatory';

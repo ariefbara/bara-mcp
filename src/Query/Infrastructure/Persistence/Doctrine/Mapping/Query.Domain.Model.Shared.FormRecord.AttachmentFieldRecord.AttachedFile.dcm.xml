@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord\AttachedFile" 
+            table="AttachedFile" 
+    >
+        
+        <many-to-one  field="attachmentFieldRecord" 
+                      target-entity="Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord"
+                      inversed-by="attachedFiles"
+        >
+            <join-column name="AttachmentFieldRecord_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="fileInfo" 
+                      target-entity="Query\Domain\Model\Shared\FileInfo"
+        >
+            <join-column name="FileInfo_id" referenced-column-name="id" />
+        </many-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

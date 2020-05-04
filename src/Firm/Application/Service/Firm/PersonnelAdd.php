@@ -21,7 +21,7 @@ class PersonnelAdd
         $this->firmRepository = $firmRepository;
     }
     
-    public function execute($firmId, PersonnelData $personnelData): Personnel
+    public function execute($firmId, PersonnelData $personnelData): string
     {
         if (!$this->personnelRepository->isEmailAvailable($firmId, $personnelData->getEmail())) {
             $errorDetail = "conflict: email already registered";
@@ -34,7 +34,7 @@ class PersonnelAdd
         $personnel = new Personnel($firm, $id, $personnelData);
         $this->personnelRepository->add($personnel);
         
-        return $personnel;
+        return $id;
     }
 
 }

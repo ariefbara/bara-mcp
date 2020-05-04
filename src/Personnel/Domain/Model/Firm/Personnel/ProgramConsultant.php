@@ -8,8 +8,8 @@ use Doctrine\Common\Collections\{
     Criteria
 };
 use Personnel\Domain\{
-    Event\ConsultationRequestMutatedByConsultantEvent,
-    Event\ConsultationSessionMutatedByConsultantEvent,
+    Event\ConsultantMutateConsultationRequestEvent,
+    Event\ConsultantMutateConsultationSessionEvent,
     Model\Firm\Personnel,
     Model\Firm\Personnel\ProgramConsultant\ConsultationRequest,
     Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
@@ -90,7 +90,7 @@ class ProgramConsultant extends ModelContainEvents
         $this->consultationSessions->add($consultationSession);
 
         $messageForClient = "consultation with consultant {$this->personnel->getName()} has been scheduled";
-        $event = new ConsultationSessionMutatedByConsultantEvent(
+        $event = new ConsultantMutateConsultationSessionEvent(
                 $this->personnel->getFirm()->getId(), $this->personnel->getId(), $this->id, $ConsultationSessionId,
                 $messageForClient);
         $this->recordEvent($event);
@@ -106,7 +106,7 @@ class ProgramConsultant extends ModelContainEvents
                 $consultationRequest);
 
         $messageForClient = "consultant {$this->personnel->getName()} has offer new consultation time to you";
-        $event = new ConsultationRequestMutatedByConsultantEvent(
+        $event = new ConsultantMutateConsultationRequestEvent(
                 $this->personnel->getFirm()->getId(), $this->personnel->getId(), $this->id,
                 $consultationRequest->getId(), $messageForClient);
         $this->recordEvent($event);
@@ -130,9 +130,8 @@ class ProgramConsultant extends ModelContainEvents
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('concluded', false));
         $p = function (ConsultationRequest $otherConsultationRequest) use ($consultationRequest) {
-            return $otherConsultationRequest
-                            ->intersectWithOtherConsultationRequest($otherConsultationRequest) && $otherConsultationRequest
-                            ->statusEquals(new ConsultationRequestStatusVO("offered"));
+            return $otherConsultationRequest->intersectWithOtherConsultationRequest($consultationRequest) &&
+                    $otherConsultationRequest->statusEquals(new ConsultationRequestStatusVO("offered"));
         };
         if (!empty($this->consultationRequests->matching($criteria)->filter($p)->count())) {
             $errorDetail = 'forbidden: you already offer designated time in other consultation request';
@@ -150,6 +149,20 @@ class ProgramConsultant extends ModelContainEvents
             throw RegularException::notFound($errorDetail);
         }
         return $consultationRequest;
+    }
+
+    public function createNotificationForConsultationSession(
+            string $id, string $message, ConsultationSession $consultationSession): PersonnelNotification
+    {
+        return PersonnelNotification::notificationForConsultationSession(
+                        $this->personnel, $id, $message, $consultationSession);
+    }
+
+    public function createNotificationForConsultationRequest(
+            string $id, string $message, ConsultationRequest $consultationRequest): PersonnelNotification
+    {
+        return PersonnelNotification::notificationForConsultationRequest(
+                        $this->personnel, $id, $message, $consultationRequest);
     }
 
 }

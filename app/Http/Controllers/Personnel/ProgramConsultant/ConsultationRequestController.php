@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Personnel\ProgramConsultant;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
 use Client\{
-    Application\Listener\ConsultationRequestNotificationLIstener,
-    Application\Listener\ConsultationSessionNotificationListener,
+    Application\Listener\ConsultantMutateConsultationRequestListener,
+    Application\Listener\ConsultantMutateConsultationSessionListener,
     Application\Service\Client\ProgramParticipation\ConsultationRequest\ConsultationRequestNotificationAdd,
     Application\Service\Client\ProgramParticipation\ConsultationSession\ConsultationSessionNotificationAdd,
     Domain\Model\Client\ProgramParticipation\ConsultationRequest as ConsultationRequestInClient,
@@ -21,8 +21,8 @@ use Personnel\{
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestReject,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestView,
     Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId,
-    Domain\Event\ConsultationRequestMutatedByConsultantEvent,
-    Domain\Event\ConsultationSessionMutatedByConsultantEvent,
+    Domain\Event\ConsultantMutateConsultationRequestEvent,
+    Domain\Event\ConsultantMutateConsultationSessionEvent,
     Domain\Model\Firm\Personnel\ProgramConsultant,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest
 };
@@ -117,9 +117,9 @@ class ConsultationRequestController extends PersonnelBaseController
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
         $consultationSessionNotificationAdd = new ConsultationSessionNotificationAdd(
                 $consultationSesionNotificationRepository, $consultationSessionRepository);
-        $listener = new ConsultationSessionNotificationListener($consultationSessionNotificationAdd);
+        $listener = new ConsultantMutateConsultationSessionListener($consultationSessionNotificationAdd);
         $dispatcher->addListener(
-                ConsultationSessionMutatedByConsultantEvent::EVENT_NAME, $listener);
+                ConsultantMutateConsultationSessionEvent::EVENT_NAME, $listener);
 
         return new ConsultationRequestAccept($programConsultantRepository, $dispatcher);
     }
@@ -133,9 +133,9 @@ class ConsultationRequestController extends PersonnelBaseController
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequestInClient::class);
         $consultationRequestNotificationAdd = new ConsultationRequestNotificationAdd(
                 $consultationRequestNotificationRepository, $consultationRequestRepository);
-        $listener = new ConsultationRequestNotificationLIstener($consultationRequestNotificationAdd);
+        $listener = new ConsultantMutateConsultationRequestListener($consultationRequestNotificationAdd);
         $dispatcher->addListener(
-                ConsultationRequestMutatedByConsultantEvent::EVENT_NAME, $listener);
+                ConsultantMutateConsultationRequestEvent::EVENT_NAME, $listener);
 
         return new ConsultationRequestOffer($programConsultantRepository, $dispatcher);
     }

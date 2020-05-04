@@ -25,7 +25,7 @@ class MissionAddRoot
 
     public function execute(
             string $firmId, string $programId, string $name, ?string $description, string $worksheetFormId,
-            ?string $position): Mission
+            ?string $position): string
     {
         $program = $this->programRepository->ofId($firmId, $programId);
         $id = $this->missionRepository->nextIdentity();
@@ -33,7 +33,7 @@ class MissionAddRoot
 
         $mission = Mission::createRoot($program, $id, $name, $description, $worksheetForm, $position);
         $this->missionRepository->add($mission);
-        return $mission;
+        return $id;
     }
 
 }

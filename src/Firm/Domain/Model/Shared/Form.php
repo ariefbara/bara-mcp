@@ -77,51 +77,6 @@ class Form
      */
     protected $multiSelectFields;
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    function getUnremovedStringFields()
-    {
-        return $this->stringFields->matching($this->nonRemovedCriteria())->getIterator();
-    }
-
-    function getUnremovedIntegerFields()
-    {
-        return $this->integerFields->matching($this->nonRemovedCriteria())->getIterator();
-    }
-
-    function getUnremovedTextAreaFields()
-    {
-        return $this->textAreaFields->matching($this->nonRemovedCriteria())->getIterator();
-    }
-
-    function getUnremovedAttachmentFields()
-    {
-        return $this->attachmentFields->matching($this->nonRemovedCriteria())->getIterator();
-    }
-
-    function getUnremovedSingleSelectFields()
-    {
-        return $this->singleSelectFields->matching($this->nonRemovedCriteria())->getIterator();
-    }
-
-    function getUnremovedMultiSelectFields()
-    {
-        return $this->multiSelectFields->matching($this->nonRemovedCriteria())->getIterator();
-    }
-    
     protected function setName(string $name): void
     {
         $errorDetail = 'bad request: form name is mandatory';

@@ -3,7 +3,6 @@
 namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\Firm;
-use Resources\Domain\ValueObject\Password;
 use Tests\TestBase;
 
 class PersonnelTest extends TestBase
@@ -75,18 +74,6 @@ class PersonnelTest extends TestBase
         $this->phone = null;
         $this->executeConstruct();
         $this->markAsSuccess();
-    }
-    
-    public function test_passwordMatch_returnResultOfPasswordsMatchOperation()
-    {
-        $password = $this->buildMockOfClass(Password::class);
-        $this->personnel->password = $password;
-        
-        $password->expects($this->once())
-                ->method('match')
-                ->with($password = 'password12312')
-                ->willReturn(true);
-        $this->assertTrue($this->personnel->passwordMatches($password));
     }
 }
 

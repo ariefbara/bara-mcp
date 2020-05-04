@@ -67,5 +67,12 @@ class PersonnelAddTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
         
     }
+    public function test_execute_returnNewId()
+    {
+        $this->personnelRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+    }
 
 }

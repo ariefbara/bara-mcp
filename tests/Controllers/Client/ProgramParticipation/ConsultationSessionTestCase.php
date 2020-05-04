@@ -7,7 +7,7 @@ use Tests\Controllers\ {
     RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession,
     RecordPreparation\Firm\Program\RecordOfConsultant,
     RecordPreparation\Firm\Program\RecordOfConsultationSetup,
-    RecordPreparation\Firm\RecordOfConsultationFeedbackForm,
+    RecordPreparation\Firm\RecordOfFeedbackForm,
     RecordPreparation\Firm\RecordOfPersonnel,
     RecordPreparation\Shared\RecordOfForm
 };
@@ -36,7 +36,7 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
         $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
         
-        $consultationFeedbackForm = new RecordOfConsultationFeedbackForm($this->programParticipation->program->firm, $form);
+        $consultationFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $form);
         $this->connection->table("ConsultationFeedbackForm")->insert($consultationFeedbackForm->toArrayForDbEntry());
         
         $consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program, $consultationFeedbackForm, $consultationFeedbackForm, 0);

@@ -14,6 +14,4 @@ interface WorksheetFormRepository
     public function update(): void;
 
     public function ofId(string $firmId, string $worksheetFormId): WorksheetForm;
-
-    public function all(string $firmId, int $page, int $pageSize);
 }

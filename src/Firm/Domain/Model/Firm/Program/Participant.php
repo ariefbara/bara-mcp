@@ -3,10 +3,8 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\{
-    Client,
-    Firm\Program
-};
+use Firm\Domain\Model\Firm\Program;
+use Query\Domain\Model\Client;
 use Resources\Exception\RegularException;
 
 class Participant
@@ -48,11 +46,6 @@ class Participant
      */
     protected $note;
 
-    function getProgram(): Program
-    {
-        return $this->program;
-    }
-
     function getId(): string
     {
         return $this->id;
@@ -61,21 +54,6 @@ class Participant
     function getClient(): Client
     {
         return $this->client;
-    }
-
-    function getAcceptedTimeString(): string
-    {
-        return $this->acceptedTime->format("Y-m-d H:i:s");
-    }
-
-    function isActive(): bool
-    {
-        return $this->active;
-    }
-
-    function getNote(): ?string
-    {
-        return $this->note;
     }
 
     function __construct(Program $program, $id, Client $client)

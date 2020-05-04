@@ -46,26 +46,6 @@ class Firm
      */
     protected $managers;
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getIdentifier(): string
-    {
-        return $this->identifier;
-    }
-
-    function isSuspended(): bool
-    {
-        return $this->suspended;
-    }
-
     private function setName(string $name): void
     {
         $errorDetail = 'bad request: firm name is required';

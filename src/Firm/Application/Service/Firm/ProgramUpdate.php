@@ -2,10 +2,7 @@
 
 namespace Firm\Application\Service\Firm;
 
-use Firm\Domain\Model\Firm\ {
-    Program,
-    ProgramData
-};
+use Firm\Domain\Model\Firm\ProgramData;
 
 class ProgramUpdate
 {
@@ -20,12 +17,11 @@ class ProgramUpdate
         $this->programRepository = $programRepository;
     }
     
-    public function execute(string $firmId, string $programId, ProgramData $programData): Program
+    public function execute(string $firmId, string $programId, ProgramData $programData): void
     {
         $program = $this->programRepository->ofId($firmId, $programId);
         $program->update($programData);
         $this->programRepository->update();
-        return $program;
     }
 
 }

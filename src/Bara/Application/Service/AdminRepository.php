@@ -15,9 +15,5 @@ interface AdminRepository
 
     public function isEmailAvailable(string $email): bool;
 
-    public function ofEmail(string $email): Admin;
-
     public function ofId(string $adminId): Admin;
-
-    public function all(int $page, int $pageSize);
 }

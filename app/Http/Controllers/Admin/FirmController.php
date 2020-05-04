@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use Bara\ {
     Application\Service\FirmAdd,
     Application\Service\FirmSuspend,
-    Application\Service\FirmView,
     Domain\Model\Firm,
     Domain\Model\Firm\ManagerData
+};
+use Query\ {
+    Application\Service\FirmView,
+    Domain\Model\Firm as QueryFirm
 };
 
 class FirmController extends AdminBaseController
@@ -20,8 +23,10 @@ class FirmController extends AdminBaseController
         $service = $this->buildAddService();
         $name = $this->stripTagsInputRequest('name');
         $identifier = $this->stripTagsInputRequest('identifier');
-        $firm = $service->execute($name, $identifier, $this->getManagerData());
+        $firmId = $service->execute($name, $identifier, $this->getManagerData());
         
+        $viewService = $this->buildViewService();
+        $firm = $viewService->showById($firmId);
         return $this->commandCreatedResponse($this->arrayDataOfFirm($firm));
     }
 
@@ -60,7 +65,7 @@ class FirmController extends AdminBaseController
         $phone = $this->stripTagsVariable($this->request->input("manager")['phone']);
         return new ManagerData($name, $email, $password, $phone);
     }
-    private function arrayDataOfFirm(Firm $firm)
+    private function arrayDataOfFirm(QueryFirm $firm)
     {
         return [
             "id" => $firm->getId(),
@@ -83,7 +88,7 @@ class FirmController extends AdminBaseController
 
     private function buildViewService()
     {
-        $firmRepository = $this->em->getRepository(Firm::class);
+        $firmRepository = $this->em->getRepository(QueryFirm::class);
         return new FirmView($firmRepository);
     }
 

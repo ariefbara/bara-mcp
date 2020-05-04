@@ -34,21 +34,6 @@ class Firm
         return $this->id;
     }
 
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getIdentifier(): string
-    {
-        return $this->identifier;
-    }
-
-    function isSuspended(): bool
-    {
-        return $this->suspended;
-    }
-
     protected function __construct()
     {
         

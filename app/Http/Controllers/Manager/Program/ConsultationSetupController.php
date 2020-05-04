@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Manager\Program;
 
 use App\Http\Controllers\Manager\ManagerBaseController;
-use Firm\{
+use Firm\ {
     Application\Service\Firm\Program\ConsultationSetupAdd,
     Application\Service\Firm\Program\ConsultationSetupRemove,
-    Application\Service\Firm\Program\ConsultationSetupView,
     Application\Service\Firm\Program\ProgramCompositionId,
-    Domain\Model\Firm\ConsultationFeedbackForm,
+    Domain\Model\Firm\FeedbackForm,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\ConsultationSetup
+};
+use Query\ {
+    Application\Service\Firm\Program\ConsultationSetupView,
+    Domain\Model\Firm\Program\ConsultationSetup as ConsultationSetup2
 };
 
 class ConsultationSetupController extends ManagerBaseController
@@ -24,10 +27,13 @@ class ConsultationSetupController extends ManagerBaseController
         $participantFeedbackFormId = $this->stripTagsInputRequest('participantFeedbackFormId');
         $consultantFeedbackFormId = $this->stripTagsInputRequest('consultantFeedbackFormId');
 
-        $consultationSetup = $service->execute(
+        $consultationSetupId = $service->execute(
                 $this->firmId(), $programId, $name, $sessionDuration, $participantFeedbackFormId,
                 $consultantFeedbackFormId);
         
+        $viewService = $this->buildViewService();
+        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
+        $consultationSetup = $viewService->showById($programCompositionId, $consultationSetupId);
         return $this->commandCreatedResponse($this->arrayDataOfConsultationSetup($consultationSetup));
     }
 
@@ -58,7 +64,7 @@ class ConsultationSetupController extends ManagerBaseController
         return $this->commonIdNameListQueryResponse($consultationSetups);
     }
 
-    protected function arrayDataOfConsultationSetup(ConsultationSetup $consultationSetup)
+    protected function arrayDataOfConsultationSetup(ConsultationSetup2 $consultationSetup)
     {
         return [
             "id" => $consultationSetup->getId(),
@@ -79,7 +85,7 @@ class ConsultationSetupController extends ManagerBaseController
     {
         $consultationSetupRepository = $this->em->getRepository(ConsultationSetup::class);
         $programRepository = $this->em->getRepository(Program::class);
-        $consultationFeedbackFormRepository = $this->em->getRepository(ConsultationFeedbackForm::class);
+        $consultationFeedbackFormRepository = $this->em->getRepository(FeedbackForm::class);
 
         return new ConsultationSetupAdd($consultationSetupRepository, $programRepository,
                 $consultationFeedbackFormRepository);
@@ -93,7 +99,7 @@ class ConsultationSetupController extends ManagerBaseController
 
     protected function buildViewService()
     {
-        $consultationSetupRepository = $this->em->getRepository(ConsultationSetup::class);
+        $consultationSetupRepository = $this->em->getRepository(ConsultationSetup2::class);
         return new ConsultationSetupView($consultationSetupRepository);
     }
 

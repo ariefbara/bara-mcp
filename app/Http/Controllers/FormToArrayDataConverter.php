@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Firm\Domain\Model\Shared\ {
-    ComposedOfForm,
+use Query\Domain\Model\Shared\{
+    ContainFormInterface,
     Form\AttachmentField,
     Form\IntegerField,
     Form\MultiSelectField,
@@ -15,16 +15,17 @@ use Firm\Domain\Model\Shared\ {
 
 class FormToArrayDataConverter
 {
+
     public function __construct()
     {
         ;
     }
 
-    public function convert(ComposedOfForm $composedOfForm): array
+    public function convert(ContainFormInterface $form): array
     {
         $data = [
-            "name" => $composedOfForm->getName(),
-            "description" => $composedOfForm->getDescription(),
+            "name" => $form->getName(),
+            "description" => $form->getDescription(),
             "stringFields" => [],
             "integerFields" => [],
             "textAreaFields" => [],
@@ -33,22 +34,22 @@ class FormToArrayDataConverter
             "multiSelectFields" => [],
         ];
 
-        foreach ($composedOfForm->getUnremovedStringFields() as $stringField) {
+        foreach ($form->getUnremovedStringFields() as $stringField) {
             $data["stringFields"][] = $this->arrayDataOfStringField($stringField);
         }
-        foreach ($composedOfForm->getUnremovedIntegerFields() as $integerField) {
+        foreach ($form->getUnremovedIntegerFields() as $integerField) {
             $data['integerFields'][] = $this->arrayDataOfIntegerField($integerField);
         }
-        foreach ($composedOfForm->getUnremovedTextAreaFields() as $textAreaField) {
+        foreach ($form->getUnremovedTextAreaFields() as $textAreaField) {
             $data['textAreaFields'][] = $this->arrayDataOfTextAreaField($textAreaField);
         }
-        foreach ($composedOfForm->getUnremovedSingleSelectFields() as $singleSelectField) {
+        foreach ($form->getUnremovedSingleSelectFields() as $singleSelectField) {
             $data['singleSelectFields'][] = $this->arrayDataOfSingleSelectField($singleSelectField);
         }
-        foreach ($composedOfForm->getUnremovedMultiSelectFields() as $multiSelectField) {
+        foreach ($form->getUnremovedMultiSelectFields() as $multiSelectField) {
             $data['multiSelectFields'][] = $this->arrayDataOfMultiSelectField($multiSelectField);
         }
-        foreach ($composedOfForm->getUnremovedAttachmentFields() as $attachmentField) {
+        foreach ($form->getUnremovedAttachmentFields() as $attachmentField) {
             $data['attachmentFields'][] = $this->arrayDataOfAttachmentField($attachmentField);
         }
 

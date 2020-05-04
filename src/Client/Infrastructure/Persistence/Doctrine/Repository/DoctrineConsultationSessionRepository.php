@@ -3,6 +3,7 @@
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
 use Client\ {
+    Application\Listener\ConsultationSessionRepository as InterfaceForListener,
     Application\Service\Client\ProgramParticipation\ConsultationSessionRepository,
     Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
     Domain\Model\Client\ProgramParticipation\ConsultationSession
@@ -11,33 +12,10 @@ use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Resources\Exception\RegularException;
 
-class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository
+class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository, InterfaceForListener
 {
-
-    public function all(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
-    {
-        $parameters = [
-            "clientId" => $programParticipationCompositionId->getClientId(),
-            "programParticipationId" => $programParticipationCompositionId->getProgramParticipationId(),
-        ];
-
-        $qb = $this->createQueryBuilder('consultationSession');
-        $qb->select('consultationSession')
-                ->leftJoin('consultationSession.programParticipation', 'programParticipation')
-                ->andWhere($qb->expr()->eq('programParticipation.active', 'true'))
-                ->andWhere($qb->expr()->eq('programParticipation.id', ':programParticipationId'))
-                ->leftJoin('programParticipation.client', 'client')
-                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
-                ->setParameters($parameters);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
 
     public function ofId(
             ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationSessionId): ConsultationSession

@@ -13,7 +13,6 @@ use Firm\ {
 };
 use Resources\ {
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -59,22 +58,6 @@ class DoctrineConsultationSetupRepository extends EntityRepository implements Co
     public function update(): void
     {
         $this->getEntityManager()->flush();
-    }
-
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize)
-    {
-        $qb = $this->createQueryBuilder('consultationSetup');
-        $qb->select('consultationSetup')
-                ->andWhere($qb->expr()->eq('consultationSetup.removed', 'false'))
-                ->leftJoin('consultationSetup.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->setParameter('programId', $programCompositionId->getProgramId())
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameter('firmId', $programCompositionId->getFirmId());
-        
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

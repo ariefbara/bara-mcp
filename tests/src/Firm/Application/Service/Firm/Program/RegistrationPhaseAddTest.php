@@ -39,4 +39,12 @@ class RegistrationPhaseAddTest extends TestBase
             ->method('add');
         $this->execute();
     }
+    public function test_execute_returnNextId()
+    {
+        $this->registrationPhaseRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+                
+    }
 }

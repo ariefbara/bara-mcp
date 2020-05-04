@@ -2,17 +2,16 @@
 
 namespace Bara\Infrastructure\Persistence\Doctrine\Repository;
 
-use Bara\{
+use Bara\ {
     Application\Service\FirmRepository,
     Domain\Model\Firm
 };
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -24,13 +23,6 @@ class DoctrineFirmRepository extends EntityRepository implements FirmRepository
         $em = $this->getEntityManager();
         $em->persist($firm);
         $em->flush();
-    }
-
-    public function all(int $page, int $pageSize)
-    {
-        $qb = $this->createQueryBuilder('firm');
-        $qb->select('firm');
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
     public function nextIdentity(): string
@@ -63,9 +55,9 @@ class DoctrineFirmRepository extends EntityRepository implements FirmRepository
     {
         $qb = $this->createQueryBuilder('firm');
         $qb->select('1')
-            ->andWhere($qb->expr()->eq('firm.identifier', ':identifier'))
-            ->setParameter('identifier', $identifier)
-            ->setMaxResults(1);
+                ->andWhere($qb->expr()->eq('firm.identifier', ':identifier'))
+                ->setParameter('identifier', $identifier)
+                ->setMaxResults(1);
         return !empty($qb->getQuery()->getResult());
     }
 

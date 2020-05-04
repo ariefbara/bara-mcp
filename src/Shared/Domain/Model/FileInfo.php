@@ -34,16 +34,6 @@ class FileInfo
      */
     protected $size = null;
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getSize(): ?float
-    {
-        return $this->size;
-    }
-
     protected function setName(string $name): void
     {
         $regex = "/^[\w\s-]+\.[a-zA-Z0-9]{2,4}$/";

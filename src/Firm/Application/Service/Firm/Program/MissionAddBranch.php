@@ -21,7 +21,7 @@ class MissionAddBranch
 
     public function execute(
         ProgramCompositionId $programCompositionId, string $missionId, string $name, ?string $description, 
-        string $worksheetFormId, ?string $position): Mission
+        string $worksheetFormId, ?string $position): string
     {
         $id = $this->missionRepository->nextIdentity();
         $worksheetForm = $this->worksheetFormRepository->ofId($programCompositionId->getFirmId(), $worksheetFormId);
@@ -30,7 +30,7 @@ class MissionAddBranch
             ->createBranch($id, $name, $description, $worksheetForm, $position);
         
         $this->missionRepository->add($mission);
-        return $mission;
+        return $id;
     }
 
 }

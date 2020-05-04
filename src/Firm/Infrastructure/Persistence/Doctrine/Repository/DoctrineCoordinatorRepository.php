@@ -7,17 +7,13 @@ use Doctrine\ORM\{
     NoResultException
 };
 use Firm\{
-    Application\Auth\Program\CoordinatorRepository as InterfaceForAuthorization,
     Application\Service\Firm\Program\CoordinatorRepository,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Program\Coordinator
 };
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Resources\Exception\RegularException;
 
-class DoctrineCoordinatorRepository extends EntityRepository implements CoordinatorRepository, InterfaceForAuthorization
+class DoctrineCoordinatorRepository extends EntityRepository implements CoordinatorRepository
 {
 
     public function ofId(ProgramCompositionId $programCompositionId, string $coordinatorId): Coordinator
@@ -47,48 +43,6 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
     public function update(): void
     {
         $this->getEntityManager()->flush();
-    }
-
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize)
-    {
-        $qb = $this->createQueryBuilder('coordinator');
-        $qb->select('coordinator')
-                ->andWhere($qb->expr()->eq('coordinator.removed', 'false'))
-                ->leftJoin('coordinator.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->setParameter('programId', $programCompositionId->getProgramId())
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameter('firmId', $programCompositionId->getFirmId());
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function containRecordOfUnremovedCoordinatorCorrespondWithPersonnel(
-            string $firmId, string $personnelId, string $programId): bool
-    {
-        $parameters = [
-            "programId" => $programId,
-            "personnelId" => $personnelId,
-            "firmId" => $firmId,
-        ];
-        
-        $qb = $this->createQueryBuilder('coordinator');
-        $qb->select('1')
-                ->andWhere($qb->expr()->eq('coordinator.removed', 'false'))
-                ->leftJoin('coordinator.personnel', 'personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
-                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
-                ->leftJoin('coordinator.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($parameters)
-                ->setMaxResults(1);
-        
-        return !empty($qb->getQuery()->getResult());
     }
 
 }

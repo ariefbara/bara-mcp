@@ -7,10 +7,13 @@ use Firm\ {
     Application\Service\Firm\ProgramPublish,
     Application\Service\Firm\ProgramRemove,
     Application\Service\Firm\ProgramUpdate,
-    Application\Service\Firm\ProgramView,
     Domain\Model\Firm,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\ProgramData
+};
+use Query\ {
+    Application\Service\Firm\ProgramView,
+    Domain\Model\Firm\Program as Program2
 };
 
 class ProgramController extends ManagerBaseController
@@ -21,8 +24,10 @@ class ProgramController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
         
         $service = $this->buildAddService();
-        $program = $service->execute($this->firmId(), $this->getProgramData());
+        $programId = $service->execute($this->firmId(), $this->getProgramData());
         
+        $viewService = $this->buildViewService();
+        $program = $viewService->showById($this->firmId(), $programId);
         return $this->commandCreatedResponse($this->arrayDataOfProgram($program));
     }
 
@@ -31,9 +36,9 @@ class ProgramController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
         
         $service = $this->buildUpdateService();
-        $program = $service->execute($this->firmId(), $programId, $this->getProgramData());
+        $service->execute($this->firmId(), $programId, $this->getProgramData());
         
-        return $this->singleQueryResponse($this->arrayDataOfProgram($program));
+        return $this->show($programId);
     }
 
     public function publish($programId)
@@ -41,9 +46,9 @@ class ProgramController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
         
         $service = $this->buildPublishService();
-        $program = $service->execute($this->firmId(), $programId);
+        $service->execute($this->firmId(), $programId);
         
-        return $this->singleQueryResponse($this->arrayDataOfProgram($program));
+        return $this->show($programId);
     }
 
     public function remove($programId)
@@ -93,7 +98,7 @@ class ProgramController extends ManagerBaseController
         return new ProgramData($name, $description);
     }
 
-    protected function arrayDataOfProgram(Program $program): array
+    protected function arrayDataOfProgram(Program2 $program): array
     {
         return [
             "id" => $program->getId(),
@@ -130,7 +135,7 @@ class ProgramController extends ManagerBaseController
 
     protected function buildViewService()
     {
-        $programRepository = $this->em->getRepository(Program::class);
+        $programRepository = $this->em->getRepository(Program2::class);
         return new ProgramView($programRepository);
     }
 

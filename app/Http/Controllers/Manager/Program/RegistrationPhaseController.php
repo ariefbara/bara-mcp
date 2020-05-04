@@ -9,10 +9,13 @@ use Firm\ {
     Application\Service\Firm\Program\RegistrationPhaseAdd,
     Application\Service\Firm\Program\RegistrationPhaseRemove,
     Application\Service\Firm\Program\RegistrationPhaseUpdate,
-    Application\Service\Firm\Program\RegistrationPhaseView,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\RegistrationPhase,
     Domain\Model\Firm\Program\RegistrationPhaseData
+};
+use Query\ {
+    Application\Service\Firm\Program\RegistrationPhaseView,
+    Domain\Model\Firm\Program\RegistrationPhase as RegistrationPhase2
 };
 
 class RegistrationPhaseController extends ManagerBaseController
@@ -21,7 +24,11 @@ class RegistrationPhaseController extends ManagerBaseController
     public function add($programId)
     {
         $service = $this->buildAddService();
-        $registrationPhase = $service->execute($this->firmId(), $programId, $this->getRegistrationPhaseData());
+        $registrationPhaseId = $service->execute($this->firmId(), $programId, $this->getRegistrationPhaseData());
+        
+        $viewService = $this->buildViewService();
+        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
+        $registrationPhase = $viewService->showById($programCompositionId, $registrationPhaseId);
         return $this->commandCreatedResponse($this->arrayDataOfRegistrationPhase($registrationPhase));
     }
 
@@ -29,9 +36,9 @@ class RegistrationPhaseController extends ManagerBaseController
     {
         $service = $this->buildUpdateService();
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $registrationPhase = $service->execute($programCompositionId, $registrationPhaseId, $this->getRegistrationPhaseData());
+        $service->execute($programCompositionId, $registrationPhaseId, $this->getRegistrationPhaseData());
         
-        return $this->singleQueryResponse($this->arrayDataOfRegistrationPhase($registrationPhase));
+        return $this->show($programId, $registrationPhaseId);
     }
 
     public function remove($programId, $registrationPhaseId)
@@ -70,13 +77,13 @@ class RegistrationPhaseController extends ManagerBaseController
         return new RegistrationPhaseData($name, $startDate, $endDate);
     }
     
-    protected function arrayDataOfRegistrationPhase(RegistrationPhase $registrationPhase): array
+    protected function arrayDataOfRegistrationPhase(RegistrationPhase2 $registrationPhase): array
     {
         return [
             "id" => $registrationPhase->getId(),
             "name" => $registrationPhase->getName(),
-            "startDate" => $registrationPhase->getStartDateString(),
-            "endDate" => $registrationPhase->getEndDateString(),
+            "startDate" => $registrationPhase->getStartDate(),
+            "endDate" => $registrationPhase->getEndDate(),
         ];
     }
     
@@ -98,7 +105,7 @@ class RegistrationPhaseController extends ManagerBaseController
     }
     protected function buildViewService()
     {
-        $registrationPhaseRepository = $this->em->getRepository(RegistrationPhase::class);
+        $registrationPhaseRepository = $this->em->getRepository(RegistrationPhase2::class);
         return new RegistrationPhaseView($registrationPhaseRepository);
     }
 

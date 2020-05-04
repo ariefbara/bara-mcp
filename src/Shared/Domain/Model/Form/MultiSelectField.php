@@ -44,20 +44,10 @@ class MultiSelectField
      * @var bool
      */
     protected $removed;
-    
-    function getId(): string
-    {
-        return $this->id;
-    }
-    
+
     public function getName(): string
     {
         return $this->selectField->getName();
-    }
-
-    public function getPosition(): ?string
-    {
-        return $this->selectField->getPosition();
     }
 
     function isRemoved(): bool

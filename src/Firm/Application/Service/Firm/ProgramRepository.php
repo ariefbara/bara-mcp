@@ -14,6 +14,4 @@ interface ProgramRepository
     public function update(): void;
 
     public function ofId(string $firmId, string $programId): Program;
-
-    public function all(string $firmId, int $page, int $pageSize);
 }

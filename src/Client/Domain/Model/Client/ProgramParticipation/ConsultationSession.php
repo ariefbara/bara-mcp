@@ -3,8 +3,8 @@
 namespace Client\Domain\Model\Client\ProgramParticipation;
 
 use Client\Domain\Model\ {
+    Client\ClientNotification,
     Client\ProgramParticipation,
-    Client\ProgramParticipation\ConsultationSession\ConsultationSessionNotification,
     Client\ProgramParticipation\ConsultationSession\ParticipantFeedback,
     Firm\Program\Consultant,
     Firm\Program\ConsultationSetup
@@ -116,10 +116,8 @@ class ConsultationSession
         }
     }
     
-    public function createConsultationSessionNotification(string $id, string $message): ConsultationSessionNotification
+    public function createClientNotification(string $id, string $message): ClientNotification
     {
-        $clientNotification = $this->programParticipation->createClientNotification($id, $message);
-        return new ConsultationSessionNotification($this, $id, $clientNotification);
+        return $this->programParticipation->createNotificationForConsultationSession($id, $message, $this);
     }
-
 }

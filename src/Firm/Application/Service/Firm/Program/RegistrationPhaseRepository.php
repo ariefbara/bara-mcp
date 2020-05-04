@@ -14,6 +14,4 @@ interface RegistrationPhaseRepository
     public function update(): void;
 
     public function ofId(ProgramCompositionId $programCompositionId, string $registrationPhaseId): RegistrationPhase;
-
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize);
 }

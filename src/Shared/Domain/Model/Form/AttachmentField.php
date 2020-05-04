@@ -2,11 +2,11 @@
 
 namespace Shared\Domain\Model\Form;
 
-use Resources\{
+use Resources\ {
     Domain\ValueObject\IntegerRange,
     Exception\RegularException
 };
-use Shared\Domain\Model\{
+use Shared\Domain\Model\ {
     Form,
     FormRecord,
     FormRecordData
@@ -51,19 +51,9 @@ class AttachmentField
      */
     protected $removed;
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-
     public function getName(): string
     {
         return $this->field->getName();
-    }
-
-    public function getPosition(): ?string
-    {
-        return $this->field->getPosition();
     }
 
     function isRemoved(): bool

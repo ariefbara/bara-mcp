@@ -14,14 +14,14 @@
         <field name="name" type="string" length="256" nullable="false"/>
         <field name="sessionDuration" type="smallint" nullable="false"/>
         <many-to-one  field="participantFeedbackForm" 
-                      target-entity="Firm\Domain\Model\Firm\ConsultationFeedbackForm"
+                      target-entity="Firm\Domain\Model\Firm\FeedbackForm"
         >
-            <join-column name="ConsultationFeedbackForm_idForParticipant" referenced-column-name="id" />
+            <join-column name="FeedbackForm_idForParticipant" referenced-column-name="id" />
         </many-to-one>
         <many-to-one  field="consultantFeedbackForm" 
-                      target-entity="Firm\Domain\Model\Firm\ConsultationFeedbackForm"
+                      target-entity="Firm\Domain\Model\Firm\FeedbackForm"
         >
-            <join-column name="ConsultationFeedbackForm_idForConsultant" referenced-column-name="id" />
+            <join-column name="FeedbackForm_idForConsultant" referenced-column-name="id" />
         </many-to-one>
         <field name="removed" type="boolean" />
         

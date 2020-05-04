@@ -14,6 +14,4 @@ interface LearningMaterialRepository
     public function update(): void;
 
     public function ofId(MissionCompositionId $missionCompositionId, string $learningMaterialId): LearningMaterial;
-
-    public function all(MissionCompositionId $missionCompositionId, int $page, int $pageSize);
 }

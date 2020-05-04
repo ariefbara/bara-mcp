@@ -11,9 +11,4 @@ interface ConsultationSessionRepository
 
     public function ofId(
             ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationSessionId): ConsultationSession;
-
-    public function all(ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize);
-
-    public function aConsultationSessionOfConsultant(
-            string $firmId, string $personnelId, string $consultantId, string $consultationSessionId): ConsultationSession;
 }

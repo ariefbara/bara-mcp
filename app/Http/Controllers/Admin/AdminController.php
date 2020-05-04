@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use Bara\ {
     Application\Service\AdminAdd,
     Application\Service\AdminRemove,
-    Application\Service\AdminView,
     Domain\Model\Admin,
     Domain\Model\AdminData
+};
+use Query\ {
+    Application\Service\AdminView,
+    Domain\Model\Admin as QueryAdmin
 };
 
 class AdminController extends AdminBaseController
@@ -24,7 +27,10 @@ class AdminController extends AdminBaseController
         $password = $this->stripTagsInputRequest('password');
         
         $adminData = new AdminData($name, $email);
-        $admin = $service->execute($adminData, $password);
+        $adminId = $service->execute($adminData, $password);
+        
+        $viewService = $this->buildViewService();
+        $admin = $viewService->showById($adminId);
         return $this->commandCreatedResponse($this->arrayDataOfAdmin($admin));
     }
 
@@ -55,7 +61,7 @@ class AdminController extends AdminBaseController
         return $this->commonIdNameListQueryResponse($admins);
     }
     
-    private function arrayDataOfAdmin(Admin $admin)
+    private function arrayDataOfAdmin(QueryAdmin $admin)
     {
         return [
             "id" => $admin->getId(),
@@ -76,7 +82,7 @@ class AdminController extends AdminBaseController
     }
     private function buildViewService()
     {
-        $adminRepository = $this->em->getRepository(Admin::class);
+        $adminRepository = $this->em->getRepository(QueryAdmin::class);
         return new AdminView($adminRepository);
     }
 

@@ -2,9 +2,9 @@
 
 namespace Personnel\Domain\Event;
 
-use Client\Application\Listener\ConsultantCommentNotificationEventInterface;
+use Client\Application\Listener\ConsultantCommentOnWorsheetEventInterface;
 
-class ConsultantCommentOnWorksheetEvent implements ConsultantCommentNotificationEventInterface
+class ConsultantCommentOnWorksheetEvent implements ConsultantCommentOnWorsheetEventInterface
 {
 
     const EVENT_NAME = "ConsultantCommentOnWorksheetEvent";

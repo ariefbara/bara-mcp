@@ -6,11 +6,14 @@ use App\Http\Controllers\Manager\ManagerBaseController;
 use Firm\ {
     Application\Service\Firm\Program\CoordinatorAssign,
     Application\Service\Firm\Program\CoordinatorRemove,
-    Application\Service\Firm\Program\CoordinatorView,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Personnel,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\Coordinator
+};
+use Query\ {
+    Application\Service\Firm\Program\CoordinatorView,
+    Domain\Model\Firm\Program\Coordinator as Coordinator2
 };
 
 class CoordinatorController extends ManagerBaseController
@@ -20,7 +23,11 @@ class CoordinatorController extends ManagerBaseController
     {
         $service = $this->buildAssignService();
         $personnelId = $this->stripTagsInputRequest('personnelId');
-        $coordinator = $service->execute($this->firmId(), $programId, $personnelId);
+        $coordinatorId = $service->execute($this->firmId(), $programId, $personnelId);
+        
+        $viewService = $this->buildViewService();
+        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
+        $coordinator = $viewService->showById($programCompositionId, $coordinatorId);
         
         return $this->singleQueryResponse($this->arrayDataOfCoordinator($coordinator));
     }
@@ -57,7 +64,7 @@ class CoordinatorController extends ManagerBaseController
         return $this->listQueryResponse($result);
     }
     
-    protected function arrayDataOfCoordinator(Coordinator $coordinator)
+    protected function arrayDataOfCoordinator(Coordinator2 $coordinator)
     {
         return [
             "id" => $coordinator->getId(),
@@ -84,7 +91,7 @@ class CoordinatorController extends ManagerBaseController
 
     protected function buildViewService()
     {
-        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        $coordinatorRepository = $this->em->getRepository(Coordinator2::class);
         return new CoordinatorView($coordinatorRepository);
     }
 

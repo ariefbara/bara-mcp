@@ -2,22 +2,22 @@
 
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\{
+use Client\ {
+    Application\Listener\ConsultationRequestRepository as InterfaceForListener,
     Application\Service\Client\ProgramParticipation\ConsultationRequestRepository,
     Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
     Domain\Model\Client\ProgramParticipation\ConsultationRequest
 };
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
-class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository
+class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository, InterfaceForListener
 {
 
     public function add(ConsultationRequest $consultationRequest): void
@@ -25,26 +25,6 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         $em = $this->getEntityManager();
         $em->persist($consultationRequest);
         $em->flush();
-    }
-
-    public function all(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
-    {
-        $parameters = [
-            "clientId" => $programParticipationCompositionId->getClientId(),
-            "programParticipationId" => $programParticipationCompositionId->getProgramParticipationId(),
-        ];
-
-        $qb = $this->createQueryBuilder('consultationRequest');
-        $qb->select('consultationRequest')
-                ->leftJoin('consultationRequest.programParticipation', 'programParticipation')
-                ->andWhere($qb->expr()->eq('programParticipation.active', 'true'))
-                ->andWhere($qb->expr()->eq('programParticipation.id', ':programParticipationId'))
-                ->leftJoin('programParticipation.client', 'client')
-                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
-                ->setParameters($parameters);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
     public function nextIdentity(): string
@@ -88,6 +68,7 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
     public function aConsultationRequestOfConsultant(
             string $firmId, string $personnelId, string $consultantId, string $consultationRequestId): ConsultationRequest
     {
+        
         $parameters = [
             "consultationRequestId" => $consultationRequestId,
             "consultantId" => $consultantId,
@@ -116,5 +97,4 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
             throw RegularException::notFound($errorDetail);
         }
     }
-
 }

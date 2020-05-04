@@ -6,7 +6,7 @@ use Tests\Controllers\RecordPreparation\ {
     Firm\Program\Participant\RecordOfConsultationSession,
     Firm\Program\RecordOfConsultationSetup,
     Firm\Program\RecordOfParticipant,
-    Firm\RecordOfConsultationFeedbackForm,
+    Firm\RecordOfFeedbackForm,
     RecordOfClient,
     Shared\RecordOfForm
 };
@@ -35,7 +35,7 @@ class ConsultationSessionTestCase extends ProgramConsultantTestCase
         $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
         
-        $consultationFeedbackForm = new RecordOfConsultationFeedbackForm($this->programConsultant->program->firm, $form);
+        $consultationFeedbackForm = new RecordOfFeedbackForm($this->programConsultant->program->firm, $form);
         $this->connection->table("ConsultationFeedbackForm")->insert($consultationFeedbackForm->toArrayForDbEntry());
         
         $consultationSetup = new RecordOfConsultationSetup($this->programConsultant->program, $consultationFeedbackForm, $consultationFeedbackForm, 0);

@@ -12,7 +12,6 @@ use Firm\ {
 };
 use Resources\ {
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -54,18 +53,6 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
     public function update(): void
     {
         $this->getEntityManager()->flush();
-    }
-
-    public function all(string $firmId, int $page, int $pageSize)
-    {
-        $qb = $this->createQueryBuilder('program');
-        $qb->select('program')
-            ->andWhere($qb->expr()->eq('program.removed', 'false'))
-            ->leftJoin('program.firm', 'firm')
-            ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-            ->setParameter('firmId', $firmId);
-        
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

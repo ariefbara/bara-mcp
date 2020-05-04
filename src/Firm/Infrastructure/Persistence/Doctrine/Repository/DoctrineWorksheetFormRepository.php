@@ -12,7 +12,6 @@ use Firm\ {
 };
 use Resources\ {
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -24,21 +23,6 @@ class DoctrineWorksheetFormRepository extends EntityRepository implements Worksh
         $em = $this->getEntityManager();
         $em->persist($worksheetForm);
         $em->flush();
-    }
-
-    public function all(string $firmId, int $page, int $pageSize)
-    {
-        $params = [
-            "firmId" => $firmId,
-        ];
-        $qb = $this->createQueryBuilder('worksheetForm');
-        $qb->select('worksheetForm')
-                ->andWhere($qb->expr()->eq('worksheetForm.removed', "false"))
-                ->leftJoin('worksheetForm.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
-                ->setParameters($params);
-        
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
     public function nextIdentity(): string

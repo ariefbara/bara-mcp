@@ -14,11 +14,10 @@ class MissionPublish
     {
         $this->missionRepository = $missionRepository;
     }
-    public function execute(ProgramCompositionId $programCompositionId, string $missionId): \Firm\Domain\Model\Firm\Program\Mission
+    public function execute(ProgramCompositionId $programCompositionId, string $missionId): void
     {
         $mission = $this->missionRepository->ofId($programCompositionId, $missionId);
         $mission->publish();
         $this->missionRepository->update();
-        return $mission;
     }
 }

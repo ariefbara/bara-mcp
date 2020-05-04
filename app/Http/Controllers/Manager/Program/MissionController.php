@@ -8,11 +8,14 @@ use Firm\ {
     Application\Service\Firm\Program\MissionAddRoot,
     Application\Service\Firm\Program\MissionPublish,
     Application\Service\Firm\Program\MissionUpdate,
-    Application\Service\Firm\Program\MissionView,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\Mission,
     Domain\Model\Firm\WorksheetForm
+};
+use Query\ {
+    Application\Service\Firm\Program\MissionView,
+    Domain\Model\Firm\Program\Mission as Mission2
 };
 
 class MissionController extends ManagerBaseController
@@ -27,9 +30,12 @@ class MissionController extends ManagerBaseController
         $position = $this->stripTagsInputRequest('position');
         $worksheetFormId = $this->stripTagsInputRequest('worksheetFormId');
         
-        $mission = $service->execute(
+        $missionId = $service->execute(
                 $this->firmId(), $programId, $name, $description, $worksheetFormId, $position);
         
+        $viewService = $this->buildViewService();
+        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
+        $mission = $viewService->showById($programCompositionId, $missionId);
         return $this->commandCreatedResponse($this->arrayDataOfMission($mission));
     }
 
@@ -43,9 +49,11 @@ class MissionController extends ManagerBaseController
         $position = $this->stripTagsInputRequest('position');
         $worksheetFormId = $this->stripTagsInputRequest('worksheetFormId');
         
-        $mission = $service->execute(
+        $branchId = $service->execute(
                 $programCompositionId, $missionId, $name, $description, $worksheetFormId, $position);
         
+        $viewService = $this->buildViewService();
+        $mission = $viewService->showById($programCompositionId, $branchId);
         return $this->commandCreatedResponse($this->arrayDataOfMission($mission));
     }
 
@@ -58,8 +66,8 @@ class MissionController extends ManagerBaseController
         $description = $this->stripTagsInputRequest('description');
         $position = $this->stripTagsInputRequest('position');
         
-        $mission = $service->execute($programCompositionId, $missionId, $name, $description, $position);
-        return $this->singleQueryResponse($this->arrayDataOfMission($mission));
+        $service->execute($programCompositionId, $missionId, $name, $description, $position);
+        return $this->show($programId, $missionId);
     }
     
     public function publish($programId, $missionId)
@@ -68,7 +76,7 @@ class MissionController extends ManagerBaseController
         
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
         $mission = $service->execute($programCompositionId, $missionId);
-        return $this->singleQueryResponse($this->arrayDataOfMission($mission));
+        return $this->show($programId, $missionId);
     }
 
     public function show($programId, $missionId)
@@ -106,7 +114,7 @@ class MissionController extends ManagerBaseController
         return $this->listQueryResponse($result);
     }
     
-    protected function arrayDataOfMission(Mission $mission): array
+    protected function arrayDataOfMission(Mission2 $mission): array
     {
         $parentData = empty($mission->getParent())? null: 
             [
@@ -154,7 +162,7 @@ class MissionController extends ManagerBaseController
     }
     protected function buildViewService()
     {
-        $missionRepository = $this->em->getRepository(Mission::class);
+        $missionRepository = $this->em->getRepository(Mission2::class);
         return new MissionView($missionRepository);
     }
 

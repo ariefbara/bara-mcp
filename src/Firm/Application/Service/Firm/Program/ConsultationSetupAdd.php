@@ -3,7 +3,7 @@
 namespace Firm\Application\Service\Firm\Program;
 
 use Firm\{
-    Application\Service\Firm\ConsultationFeedbackFormRepository,
+    Application\Service\Firm\FeedbackFormRepository,
     Application\Service\Firm\ProgramRepository,
     Domain\Model\Firm\Program\ConsultationSetup
 };
@@ -25,34 +25,34 @@ class ConsultationSetupAdd
 
     /**
      *
-     * @var ConsultationFeedbackFormRepository
+     * @var FeedbackFormRepository
      */
-    protected $consultationFeedbackFormRepository;
+    protected $feedbackFormRepository;
 
     function __construct(ConsultationSetupRepository $consultationSetupRepository, ProgramRepository $programRepository,
-            ConsultationFeedbackFormRepository $consultationFeedbackFormRepository)
+            FeedbackFormRepository $feedbackFormRepository)
     {
         $this->consultationSetupRepository = $consultationSetupRepository;
         $this->programRepository = $programRepository;
-        $this->consultationFeedbackFormRepository = $consultationFeedbackFormRepository;
+        $this->feedbackFormRepository = $feedbackFormRepository;
     }
 
     public function execute(
             string $firmId, string $programId, string $name, int $sessionDuration, string $participantFeedbacFormId,
-            string $mentorFeedbackFormId): ConsultationSetup
+            string $mentorFeedbackFormId): string
     {
         $program = $this->programRepository->ofId($firmId, $programId);
         $id = $this->consultationSetupRepository->nextIdentity();
-        $participantFeedbackForm = $this->consultationFeedbackFormRepository
+        $participantFeedbackForm = $this->feedbackFormRepository
                 ->ofId($firmId, $participantFeedbacFormId);
-        $mentorFeedbackForm = $this->consultationFeedbackFormRepository
+        $mentorFeedbackForm = $this->feedbackFormRepository
                 ->ofId($firmId, $mentorFeedbackFormId);
 
         $consultationSetup = new ConsultationSetup($program, $id, $name, $sessionDuration, $participantFeedbackForm,
                 $mentorFeedbackForm);
         $this->consultationSetupRepository->add($consultationSetup);
 
-        return $consultationSetup;
+        return $id;
     }
 
 }

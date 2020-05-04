@@ -2,18 +2,17 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Firm\ {
+use Firm\{
     Application\Service\Firm\Program\MissionRepository,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Program\Mission
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -36,16 +35,16 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
     {
         $qb = $this->createQueryBuilder('mission');
         $qb->select('mission')
-            ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
-            ->setParameter('missionId', $missionId)
-            ->leftJoin('mission.program', 'program')
-            ->andWhere($qb->expr()->eq('program.removed', 'false'))
-            ->andWhere($qb->expr()->eq('program.id', ':programId'))
-            ->setParameter('programId', $programCompositionId->getProgramId())
-            ->leftJoin('program.firm', 'firm')
-            ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-            ->setParameter('firmId', $programCompositionId->getFirmId())
-            ->setMaxResults(1);
+                ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
+                ->setParameter('missionId', $missionId)
+                ->leftJoin('mission.program', 'program')
+                ->andWhere($qb->expr()->eq('program.removed', 'false'))
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameter('programId', $programCompositionId->getProgramId())
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameter('firmId', $programCompositionId->getFirmId())
+                ->setMaxResults(1);
 
         try {
             return $qb->getQuery()->getSingleResult();
@@ -58,21 +57,6 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
     public function update(): void
     {
         $this->getEntityManager()->flush();
-    }
-
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize)
-    {
-        $qb = $this->createQueryBuilder('mission');
-        $qb->select('mission')
-            ->leftJoin('mission.program', 'program')
-            ->andWhere($qb->expr()->eq('program.removed', 'false'))
-            ->andWhere($qb->expr()->eq('program.id', ':programId'))
-            ->setParameter('programId', $programCompositionId->getProgramId())
-            ->leftJoin('program.firm', 'firm')
-            ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-            ->setParameter('firmId', $programCompositionId->getFirmId());
-        
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

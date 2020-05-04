@@ -22,7 +22,7 @@ class WorksheetFormAdd
         $this->firmRepository = $firmRepository;
     }
 
-    public function execute(string $firmId, FormData $formData): WorksheetForm
+    public function execute(string $firmId, FormData $formData): string
     {
         $firm = $this->firmRepository->ofId($firmId);
         $id = $this->worksheetFormRepository->nextIdentity();
@@ -31,7 +31,7 @@ class WorksheetFormAdd
         $worksheetForm = new WorksheetForm($firm, $id, $form);
         $this->worksheetFormRepository->add($worksheetForm);
 
-        return $worksheetForm;
+        return $id;
     }
 
 }

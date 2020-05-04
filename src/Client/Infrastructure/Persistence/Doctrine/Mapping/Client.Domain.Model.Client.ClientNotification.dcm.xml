@@ -10,29 +10,30 @@
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
-        <one-to-one field="notification" 
-                    target-entity="Shared\Domain\Model\Notification"
-        >
-            <join-column name="Notification_id" referenced-column-name="id" />
-            <cascade><cascade-persist /></cascade>
-        </one-to-one>
+        <field name="message" type="string" length="256" nullable="false"/>
+        <field name="read" column="isRead" type="boolean" />
+        <field name="notifiedTime" type="date_immutable" nullable="false"/>
         
-        <one-to-one field="participantNotification" 
-                    target-entity="Client\Domain\Model\Client\ProgramParticipation"
-                    mapped-by="clientNotification"
-        />
-        <one-to-one field="consultationSessionNotification" 
-                    target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationSession\ConsultationSessionNotification"
-                    mapped-by="clientNotification"
-        />
-        <one-to-one field="consultationRequestNotification" 
-                    target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationRequest\ConsultationRequestNotification"
-                    mapped-by="clientNotification"
-        />
-        <one-to-one field="commentNotification" 
-                    target-entity="Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment\CommentNotification"
-                    mapped-by="clientNotification"
-        />
+        <many-to-one  field="consultationRequest" 
+                      target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationRequest"
+        >
+            <join-column name="ConsultationRequest_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="consultationSession" 
+                      target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationSession"
+        >
+            <join-column name="ConsultationSession_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="comment" 
+                      target-entity="Client\Domain\Model\Client\ProgramParticipation\Worksheet\Comment"
+        >
+            <join-column name="Comment_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="programParticipation" 
+                      target-entity="Client\Domain\Model\Client\ProgramParticipation"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
         
     </entity>
 </doctrine-mapping>

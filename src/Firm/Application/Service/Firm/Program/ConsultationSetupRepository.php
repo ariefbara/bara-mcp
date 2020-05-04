@@ -14,6 +14,4 @@ interface ConsultationSetupRepository
     public function update(): void;
 
     public function ofId(ProgramCompositionId $programCompositionId, string $consultationSetupId): ConsultationSetup;
-
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize);
 }

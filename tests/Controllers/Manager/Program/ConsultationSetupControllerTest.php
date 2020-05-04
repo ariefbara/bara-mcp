@@ -5,7 +5,7 @@ namespace Tests\Controllers\Manager\Program;
 use Tests\Controllers\ {
     Manager\ProgramTestCase,
     RecordPreparation\Firm\Program\RecordOfConsultationSetup,
-    RecordPreparation\Firm\RecordOfConsultationFeedbackForm,
+    RecordPreparation\Firm\RecordOfFeedbackForm,
     RecordPreparation\Shared\RecordOfForm
 };
 
@@ -25,20 +25,20 @@ class ConsultationSetupControllerTest extends ProgramTestCase
         parent::setUp();
         $this->consultationSetupUri = $this->programUri . "/{$this->program->id}/consultation-setups";
         $this->connection->table("Form")->truncate();
-        $this->connection->table("ConsultationFeedbackForm")->truncate();
+        $this->connection->table("FeedbackForm")->truncate();
         $this->connection->table("ConsultationSetup")->truncate();
 
-        $participantConsultationFeedbackForm = new RecordOfConsultationFeedbackForm(
+        $participantFeedbackForm = new RecordOfFeedbackForm(
                 $this->firm, $participantForm = new RecordOfForm('participant-form-0'));
-        $participantConsultationFeedbackFormOne = new RecordOfConsultationFeedbackForm(
+        $participantFeedbackFormOne = new RecordOfFeedbackForm(
                 $this->firm, $participantFormOne = new RecordOfForm('participant-form-1'));
-        $this->participantFeedbackFormTwo = new RecordOfConsultationFeedbackForm(
+        $this->participantFeedbackFormTwo = new RecordOfFeedbackForm(
                 $this->firm, $participantFormTwo = new RecordOfForm('participant-form-2'));
-        $consultantConsultationFeedbackForm = new RecordOfConsultationFeedbackForm(
+        $consultantFeedbackForm = new RecordOfFeedbackForm(
                 $this->firm, $consultantForm = new RecordOfForm('consultant-form-0'));
-        $consultantConsultationFeedbackFormOne = new RecordOfConsultationFeedbackForm(
+        $consultantFeedbackFormOne = new RecordOfFeedbackForm(
                 $this->firm, $consultantFormOne = new RecordOfForm('consultant-form-1'));
-        $this->consultantFeedbackFormTwo = new RecordOfConsultationFeedbackForm(
+        $this->consultantFeedbackFormTwo = new RecordOfFeedbackForm(
                 $this->firm, $consultantFormTwo = new RecordOfForm('consultant-form-2'));
         
         $this->connection->table("Form")->insert($participantForm->toArrayForDbEntry());
@@ -48,17 +48,17 @@ class ConsultationSetupControllerTest extends ProgramTestCase
         $this->connection->table("Form")->insert($consultantFormOne->toArrayForDbEntry());
         $this->connection->table("Form")->insert($consultantFormTwo->toArrayForDbEntry());
         
-        $this->connection->table("ConsultationFeedbackForm")->insert($participantConsultationFeedbackForm->toArrayForDbEntry());
-        $this->connection->table("ConsultationFeedbackForm")->insert($participantConsultationFeedbackFormOne->toArrayForDbEntry());
-        $this->connection->table("ConsultationFeedbackForm")->insert($this->participantFeedbackFormTwo->toArrayForDbEntry());
-        $this->connection->table("ConsultationFeedbackForm")->insert($consultantConsultationFeedbackForm->toArrayForDbEntry());
-        $this->connection->table("ConsultationFeedbackForm")->insert($consultantConsultationFeedbackFormOne->toArrayForDbEntry());
-        $this->connection->table("ConsultationFeedbackForm")->insert($this->consultantFeedbackFormTwo->toArrayForDbEntry());
+        $this->connection->table("FeedbackForm")->insert($participantFeedbackForm->toArrayForDbEntry());
+        $this->connection->table("FeedbackForm")->insert($participantFeedbackFormOne->toArrayForDbEntry());
+        $this->connection->table("FeedbackForm")->insert($this->participantFeedbackFormTwo->toArrayForDbEntry());
+        $this->connection->table("FeedbackForm")->insert($consultantFeedbackForm->toArrayForDbEntry());
+        $this->connection->table("FeedbackForm")->insert($consultantFeedbackFormOne->toArrayForDbEntry());
+        $this->connection->table("FeedbackForm")->insert($this->consultantFeedbackFormTwo->toArrayForDbEntry());
 
         $this->consultationSetup = new RecordOfConsultationSetup(
-                $this->program, $participantConsultationFeedbackForm, $consultantConsultationFeedbackForm, 0);
+                $this->program, $participantFeedbackForm, $consultantFeedbackForm, 0);
         $this->consultationSetupOne = new RecordOfConsultationSetup(
-                $this->program, $participantConsultationFeedbackFormOne, $consultantConsultationFeedbackFormOne, 1);
+                $this->program, $participantFeedbackFormOne, $consultantFeedbackFormOne, 1);
         $this->connection->table("ConsultationSetup")->insert($this->consultationSetup->toArrayForDbEntry());
         $this->connection->table("ConsultationSetup")->insert($this->consultationSetupOne->toArrayForDbEntry());
 
@@ -74,7 +74,7 @@ class ConsultationSetupControllerTest extends ProgramTestCase
     {
         parent::tearDown();
         $this->connection->table("Form")->truncate();
-        $this->connection->table("ConsultationFeedbackForm")->truncate();
+        $this->connection->table("FeedbackForm")->truncate();
         $this->connection->table("ConsultationSetup")->truncate();
     }
 
@@ -101,8 +101,8 @@ class ConsultationSetupControllerTest extends ProgramTestCase
             "Program_id" => $this->program->id,
             "name" => $this->consultationSetupInput['name'],
             "sessionDuration" => $this->consultationSetupInput['sessionDuration'],
-            "ConsultationFeedbackForm_idForParticipant" => $this->consultationSetupInput['participantFeedbackFormId'],
-            "ConsultationFeedbackForm_idForConsultant" => $this->consultationSetupInput['consultantFeedbackFormId'],
+            "FeedbackForm_idForParticipant" => $this->consultationSetupInput['participantFeedbackFormId'],
+            "FeedbackForm_idForConsultant" => $this->consultationSetupInput['consultantFeedbackFormId'],
             "removed" => false,
         ];
         $this->seeInDatabase('ConsultationSetup', $consultationSetupRecord);
@@ -153,12 +153,12 @@ class ConsultationSetupControllerTest extends ProgramTestCase
             "name" => $this->consultationSetup->name,
             "sessionDuration" => $this->consultationSetup->sessionDuration,
             "participantFeedbackForm" => [
-                "id" => $this->consultationSetup->participantConsultationFeedbackForm->id,
-                "name" => $this->consultationSetup->participantConsultationFeedbackForm->form->name,
+                "id" => $this->consultationSetup->participantFeedbackForm->id,
+                "name" => $this->consultationSetup->participantFeedbackForm->form->name,
             ],
             "consultantFeedbackForm" => [
-                "id" => $this->consultationSetup->consultantConsultationFeedbackForm->id,
-                "name" => $this->consultationSetup->consultantConsultationFeedbackForm->form->name,
+                "id" => $this->consultationSetup->consultantFeedbackForm->id,
+                "name" => $this->consultationSetup->consultantFeedbackForm->form->name,
             ],
         ];
         $uri = $this->consultationSetupUri . "/{$this->consultationSetup->id}";

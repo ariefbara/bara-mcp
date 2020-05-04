@@ -5,8 +5,8 @@ namespace Personnel\Domain\Model\Firm\Personnel;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\{
-    Event\ConsultationRequestMutatedByConsultantEvent,
-    Event\ConsultationSessionMutatedByConsultantEvent,
+    Event\ConsultantMutateConsultationRequestEvent,
+    Event\ConsultantMutateConsultationSessionEvent,
     Model\Firm\Personnel,
     Model\Firm\Personnel\ProgramConsultant\ConsultationRequest,
     Model\Firm\Personnel\ProgramConsultant\ConsultationSession
@@ -139,7 +139,7 @@ class ProgramConsultantTest extends TestBase
     {
         $this->programConsultant->clearRecordedEvents();
         $this->executeAcceptConsultationRequest();
-        $this->assertInstanceOf(ConsultationSessionMutatedByConsultantEvent::class,
+        $this->assertInstanceOf(ConsultantMutateConsultationSessionEvent::class,
                 $this->programConsultant->getRecordedEvents()[0]);
     }
 
@@ -192,8 +192,21 @@ class ProgramConsultantTest extends TestBase
     {
         $this->programConsultant->clearRecordedEvents();
         $this->executeOfferConsultationRequestTime();
-        $this->assertInstanceOf(ConsultationRequestMutatedByConsultantEvent::class,
+        $this->assertInstanceOf(ConsultantMutateConsultationRequestEvent::class,
                 $this->programConsultant->getRecordedEvents()[0]);
+    }
+
+    public function test_createNotificationForConsultationRequest_returnPersonnelNotification()
+    {
+        $this->assertInstanceOf(PersonnelNotification::class,
+                $this->programConsultant->createNotificationForConsultationRequest('id', 'message',
+                        $this->consultationRequest));
+    }
+    public function test_createNotificationForConsultationSession_returnPersonnelNotification()
+    {
+        $this->assertInstanceOf(PersonnelNotification::class,
+                $this->programConsultant->createNotificationForConsultationSession('id', 'message',
+                        $this->consultationSession));
     }
 
 }

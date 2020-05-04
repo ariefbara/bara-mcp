@@ -10,9 +10,12 @@ use Firm\ {
     Application\Service\Firm\WorksheetFormAdd,
     Application\Service\Firm\WorksheetFormRemove,
     Application\Service\Firm\WorksheetFormUpdate,
-    Application\Service\Firm\WorksheetFormView,
     Domain\Model\Firm,
     Domain\Model\Firm\WorksheetForm
+};
+use Query\ {
+    Application\Service\Firm\WorksheetFormView,
+    Domain\Model\Firm\WorksheetForm as WorksheetForm2
 };
 
 class WorksheetFormController extends ManagerBaseController
@@ -21,7 +24,10 @@ class WorksheetFormController extends ManagerBaseController
     {
         $service = $this->buildAddService();
         $formData = (new FormDataBuilder($this->request))->build();
-        $worksheetForm = $service->execute($this->firmId(), $formData);
+        $worksheetFormId = $service->execute($this->firmId(), $formData);
+        
+        $viewService = $this->buildViewService();
+        $worksheetForm = $viewService->showById($this->firmId(), $worksheetFormId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheetForm($worksheetForm));
     }
 
@@ -29,9 +35,9 @@ class WorksheetFormController extends ManagerBaseController
     {
         $service = $this->buildUpdateService();
         $formData = (new FormDataBuilder($this->request))->build();
-        $worksheetForm = $service->execute($this->firmId(), $worksheetFormId, $formData);
+        $service->execute($this->firmId(), $worksheetFormId, $formData);
         
-        return $this->singleQueryResponse($this->arrayDataOfWorksheetForm($worksheetForm));
+        return $this->show($worksheetFormId);
     }
 
     public function remove($worksheetFormId)
@@ -64,7 +70,7 @@ class WorksheetFormController extends ManagerBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfWorksheetForm(WorksheetForm $worksheetForm)
+    protected function arrayDataOfWorksheetForm(WorksheetForm2 $worksheetForm)
     {
         $worksheetFormData = (new FormToArrayDataConverter())->convert($worksheetForm);
         $worksheetFormData['id'] = $worksheetForm->getId();
@@ -89,7 +95,7 @@ class WorksheetFormController extends ManagerBaseController
     }
     protected function buildViewService()
     {
-        $worksheetFormRepository = $this->em->getRepository(WorksheetForm::class);
+        $worksheetFormRepository = $this->em->getRepository(WorksheetForm2::class);
         return new WorksheetFormView($worksheetFormRepository);
     }
 

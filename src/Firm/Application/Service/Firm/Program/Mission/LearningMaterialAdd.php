@@ -2,7 +2,7 @@
 
 namespace Firm\Application\Service\Firm\Program\Mission;
 
-use Firm\ {
+use Firm\{
     Application\Service\Firm\Program\MissionRepository,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Program\Mission\LearningMaterial
@@ -29,14 +29,14 @@ class LearningMaterialAdd
         $this->missionRepository = $missionRepository;
     }
 
-    public function execute(ProgramCompositionId $programCompositionId, string $missionId, string $name, string $content): LearningMaterial
+    public function execute(ProgramCompositionId $programCompositionId, string $missionId, string $name, string $content): string
     {
         $mission = $this->missionRepository->ofId($programCompositionId, $missionId);
         $id = $this->learningMaterialRepository->nextIdentity();
-        
+
         $learningMaterial = new LearningMaterial($mission, $id, $name, $content);
         $this->learningMaterialRepository->add($learningMaterial);
-        return $learningMaterial;
+        return $id;
     }
 
 }

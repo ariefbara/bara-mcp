@@ -27,6 +27,7 @@
         ],
         "psr-4": {
             "Shared\\": "src/Shared",
+            "Query\\": "src/Query",
             "Personnel\\": "src/Personnel",
             "Client\\": "src/Client",
             "Firm\\": "src/Firm",

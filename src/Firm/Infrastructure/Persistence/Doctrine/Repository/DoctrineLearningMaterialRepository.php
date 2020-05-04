@@ -13,7 +13,6 @@ use Firm\ {
 };
 use Resources\ {
     Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder,
     Uuid
 };
 
@@ -61,25 +60,6 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
     public function update(): void
     {
         $this->getEntityManager()->flush();
-    }
-
-    public function all(MissionCompositionId $missionCompositionId, int $page, int $pageSize)
-    {
-        $qb = $this->createQueryBuilder('learningMaterial');
-        $qb->select('learningMaterial')
-                ->andWhere($qb->expr()->eq('learningMaterial.removed', 'false'))
-                ->leftJoin('learningMaterial.mission', 'mission')
-                ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
-                ->setParameter('missionId', $missionCompositionId->getMissionId())
-                ->leftJoin('mission.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->setParameter('programId', $missionCompositionId->getProgramId())
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameter('firmId', $missionCompositionId->getFirmId());
-        
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

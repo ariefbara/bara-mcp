@@ -2,10 +2,8 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\{
-    Client,
-    Firm\Program
-};
+use Firm\Domain\Model\Firm\Program;
+use Query\Domain\Model\Client;
 use Tests\TestBase;
 
 class RegistrantTest extends TestBase

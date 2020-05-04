@@ -2,13 +2,14 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
-use Personnel\Domain\Model\Firm\{
+use Personnel\Domain\Model\Firm\ {
+    Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback,
     Program\ConsultationSetup,
     Program\Participant
 };
-use Resources\{
+use Resources\ {
     Domain\ValueObject\DateTimeInterval,
     Uuid
 };
@@ -113,6 +114,11 @@ class ConsultationSession
             $formRecord = $this->consultationSetup->createFormRecordForConsultantFeedback($id, $formRecordData);
             $this->consultantFeedback = new ConsultantFeedback($this, $id, $formRecord);
         }
+    }
+    
+    public function createNotification(string $id, string $message): PersonnelNotification
+    {
+        return $this->programConsultant->createNotificationForConsultationSession($id, $message, $this);
     }
 
 }

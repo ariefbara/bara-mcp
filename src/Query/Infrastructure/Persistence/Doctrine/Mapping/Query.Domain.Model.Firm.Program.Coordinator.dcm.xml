@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Coordinator" 
+            table="Coordinator" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineCoordinatorRepository" 
+    >
+    	<many-to-one  field="program" 
+                      target-entity="Query\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+    	<many-to-one  field="personnel" 
+                      target-entity="Query\Domain\Model\Firm\Personnel"
+                      inversed-by="programCoordinators"
+        >
+            <join-column name="Personnel_id" referenced-column-name="id" />
+        </many-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

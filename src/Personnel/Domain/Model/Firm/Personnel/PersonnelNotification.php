@@ -2,8 +2,13 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel;
 
-use Personnel\Domain\Model\Firm\Personnel;
-use Shared\Domain\Model\Notification;
+use DateTimeImmutable;
+use Personnel\Domain\Model\Firm\{
+    Personnel,
+    Personnel\ProgramConsultant\ConsultationRequest,
+    Personnel\ProgramConsultant\ConsultationSession
+};
+use Resources\DateTimeImmutableBuilder;
 
 class PersonnelNotification
 {
@@ -22,19 +27,62 @@ class PersonnelNotification
 
     /**
      *
-     * @var Notification
+     * @var string
      */
-    protected $notification;
-    function __construct(Personnel $personnel, string $id, Notification $notification)
+    protected $message;
+
+    /**
+     *
+     * @var bool
+     */
+    protected $read = false;
+
+    /**
+     *
+     * @var DateTimeImmutable
+     */
+    protected $notifiedTime;
+
+    /**
+     *
+     * @var ConsultationRequest||null
+     */
+    protected $consultationRequest = null;
+
+    /**
+     *
+     * @var ConsultationSession||null
+     */
+    protected $consultationSession = null;
+
+    protected function __construct(Personnel $personnel, string $id, string $message)
     {
         $this->personnel = $personnel;
         $this->id = $id;
-        $this->notification = $notification;
+        $this->message = $message;
+        $this->read = false;
+        $this->notifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
     }
-    
+
+    public static function notificationForConsultationRequest(
+            Personnel $personnel, string $id, string $message, ConsultationRequest $consultationRequest): self
+    {
+        $notification = new static($personnel, $id, $message);
+        $notification->consultationRequest = $consultationRequest;
+        return $notification;
+    }
+
+    public static function notificationForConsultationSession(
+            Personnel $personnel, string $id, string $message, ConsultationSession $consultationSession)
+    {
+        $notification = new static($personnel, $id, $message);
+        $notification->consultationSession = $consultationSession;
+        return $notification;
+    }
+
     public function read(): void
     {
-        $this->notification->read();
+        $this->read = true;
     }
 
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Shared\FormRecord" 
+            table="FormRecord" 
+    >
+        
+        <many-to-one  field="form" 
+                      target-entity="Query\Domain\Model\Shared\Form"
+                      inversed-by="formRecords"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="submitTime" type="datetime_immutable" nullable="false"/>
+        
+        <one-to-many  field="integerFieldRecords" 
+                      target-entity="Query\Domain\Model\Shared\FormRecord\IntegerFieldRecord"
+                      mapped-by="formRecord"
+        />
+        <one-to-many  field="stringFieldRecords" 
+                      target-entity="Query\Domain\Model\Shared\FormRecord\StringFieldRecord"
+                      mapped-by="formRecord"
+        />
+        <one-to-many  field="textAreaFieldRecords" 
+                      target-entity="Query\Domain\Model\Shared\FormRecord\TextAreaFieldRecord"
+                      mapped-by="formRecord"
+        />
+        <one-to-many  field="singleSelectFieldRecords" 
+                      target-entity="Query\Domain\Model\Shared\FormRecord\SingleSelectFieldRecord"
+                      mapped-by="formRecord"
+        />
+        <one-to-many  field="multiSelectFieldRecords" 
+                      target-entity="Query\Domain\Model\Shared\FormRecord\MultiSelectFieldRecord"
+                      mapped-by="formRecord"
+        />
+        <one-to-many  field="attachmentFieldRecords" 
+                      target-entity="Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord"
+                      mapped-by="formRecord"
+        />
+                
+    </entity>
+</doctrine-mapping>

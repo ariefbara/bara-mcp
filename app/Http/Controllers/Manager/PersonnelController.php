@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Manager;
 
 use Firm\ {
     Application\Service\Firm\PersonnelAdd,
-    Application\Service\Firm\PersonnelView,
     Domain\Model\Firm,
     Domain\Model\Firm\Personnel,
     Domain\Model\Firm\PersonnelData
+};
+use Query\ {
+    Application\Service\Firm\PersonnelView,
+    Domain\Model\Firm\Personnel as Personnel2
 };
 
 class PersonnelController extends ManagerBaseController
@@ -18,7 +21,10 @@ class PersonnelController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
 
         $service = $this->buildAddService();
-        $personnel = $service->execute($this->firmId(), $this->getPersonnelData());
+        $personnelId = $service->execute($this->firmId(), $this->getPersonnelData());
+        
+        $viewservice = $this->buildViewService();
+        $personnel = $viewservice->showById($this->firmId(), $personnelId);
         return $this->commandCreatedResponse($this->arrayDataOfPersonnel($personnel));
     }
 
@@ -50,7 +56,7 @@ class PersonnelController extends ManagerBaseController
         return new PersonnelData($name, $email, $password, $phone);
     }
 
-    protected function arrayDataOfPersonnel(Personnel $personnel)
+    protected function arrayDataOfPersonnel(Personnel2 $personnel)
     {
         return [
             "id" => $personnel->getId(),
@@ -70,7 +76,7 @@ class PersonnelController extends ManagerBaseController
 
     protected function buildViewService()
     {
-        $personnelRepository = $this->em->getRepository(Personnel::class);
+        $personnelRepository = $this->em->getRepository(Personnel2::class);
         return new PersonnelView($personnelRepository);
     }
 

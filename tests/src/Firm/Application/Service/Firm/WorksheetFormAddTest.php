@@ -48,5 +48,12 @@ class WorksheetFormAddTest extends TestBase
             ->method('add');
         $this->execute();
     }
+    public function test_execute_returnNewId()
+    {
+        $this->worksheetFormRepository->expects($this->once())
+            ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+    }
 
 }

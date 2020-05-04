@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Shared\Domain\Model\{
+use Query\Domain\Model\Shared\{
+    ContainFormRecordInterface,
     FormRecord\AttachmentFieldRecord,
     FormRecord\IntegerFieldRecord,
     FormRecord\MultiSelectFieldRecord,
     FormRecord\SingleSelectFieldRecord,
     FormRecord\StringFieldRecord,
-    FormRecord\TextAreaFieldRecord,
-    HasFormRecordInterface
+    FormRecord\TextAreaFieldRecord
 };
 
 class FormRecordToArrayDataConverter
@@ -20,7 +20,7 @@ class FormRecordToArrayDataConverter
         ;
     }
 
-    public function convert(HasFormRecordInterface $formRecord): array
+    public function convert(ContainFormRecordInterface $formRecord): array
     {
         $data = [
             "submitTime" => $formRecord->getSubmitTimeString(),

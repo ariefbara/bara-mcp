@@ -8,6 +8,10 @@ use Bara\ {
     Domain\Model\Admin,
     Domain\Model\AdminData
 };
+use Query\ {
+    Application\Service\AdminView,
+    Domain\Model\Admin as Admin2
+};
 
 class ProfileController extends AdminBaseController
 {
@@ -19,7 +23,11 @@ class ProfileController extends AdminBaseController
         $email = $this->stripTagsInputRequest('email');
         
         $adminData = new AdminData($name, $email);
-        $admin = $service->execute($this->adminId(), $adminData);
+        $service->execute($this->adminId(), $adminData);
+        
+        $adminRepository = $this->em->getRepository(Admin2::class);
+        $viewService = new AdminView($adminRepository);
+        $admin = $viewService->showById($this->adminId());
         return $this->singleQueryResponse($this->arrayDataOfAdmin($admin));
     }
     
@@ -32,7 +40,7 @@ class ProfileController extends AdminBaseController
         return $this->commandOkResponse();
     }
     
-    private function arrayDataOfAdmin(Admin $admin)
+    private function arrayDataOfAdmin(Admin2 $admin)
     {
         return [
             "id" => $admin->getId(),

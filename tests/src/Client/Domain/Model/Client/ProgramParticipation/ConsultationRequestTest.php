@@ -230,18 +230,12 @@ class ConsultationRequestTest extends TestBase
         $this->assertFalse($this->consultationRequest->conflictedWith($this->consultationRequest));
     }
 
-    public function test_createConsultationRequestNotification_returnConsultationRequestNotification()
+    public function test_createClientNotification_returnResultOfProgramParticipationCreateNotificationForConsultationRequest()
     {
-        $clientNotification = $this->buildMockOfClass(ClientNotification::class);
         $this->programParticipation->expects($this->once())
-                ->method('createConsultationRequestNotification')
-                ->with($id = 'id', $message = 'message')
-                ->willReturn($clientNotification);
-        $consultationRequestNotification = new ConsultationRequestNotification(
-                $this->consultationRequest, $id, $clientNotification);
-        $this->assertEquals(
-                $consultationRequestNotification,
-                $this->consultationRequest->createConsultationRequestNotification($id, $message));
+                ->method('createNotificationForConsultationRequest')
+                ->with($id = 'id', $message = 'message', $this->consultationRequest);
+        $this->consultationRequest->createClientNotification($id, $message);
     }
 
 }

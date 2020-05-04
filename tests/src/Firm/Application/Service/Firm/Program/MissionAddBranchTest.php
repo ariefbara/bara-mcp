@@ -73,5 +73,9 @@ class MissionAddBranchTest extends TestBase
         
         $this->execute();
     }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->id, $this->execute());
+    }
 
 }

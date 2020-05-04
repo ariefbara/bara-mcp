@@ -20,13 +20,13 @@ class ProgramAdd
         $this->firmRepository = $firmRepository;
     }
 
-    public function execute(string $firmId, ProgramData $programData): Program
+    public function execute(string $firmId, ProgramData $programData): string
     {
         $firm = $this->firmRepository->ofId($firmId);
         $id = $this->programRepository->nextIdentity();
         $program = new Program($firm, $id, $programData);
         $this->programRepository->add($program);
-        return $program;
+        return $id;
     }
 
 }

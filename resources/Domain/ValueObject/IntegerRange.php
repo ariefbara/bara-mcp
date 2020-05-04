@@ -6,8 +6,16 @@ use Resources\Exception\RegularException;
 class IntegerRange
 {
 
+    /**
+     *
+     * @var int||null
+     */
     protected $minValue = null;
 
+    /**
+     *
+     * @var int||null
+     */
     protected $maxValue = null;
 
     

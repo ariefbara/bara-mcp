@@ -18,12 +18,11 @@ class LearningMaterialUpdate
     }
     
     public function execute(
-            MissionCompositionId $missionCompositionId, string $learningMaterialId, string $name, string $content): LearningMaterial
+            MissionCompositionId $missionCompositionId, string $learningMaterialId, string $name, string $content): void
     {
         $learningMaterial = $this->learningMaterialRepository->ofId($missionCompositionId, $learningMaterialId);
         $learningMaterial->update($name, $content);
         $this->learningMaterialRepository->update();
-        return $learningMaterial;
     }
 
 }

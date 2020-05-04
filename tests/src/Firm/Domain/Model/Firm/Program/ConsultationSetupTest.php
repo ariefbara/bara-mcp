@@ -3,7 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\ {
-    ConsultationFeedbackForm,
+    FeedbackForm,
     Program
 };
 use Tests\TestBase;
@@ -20,8 +20,8 @@ class ConsultationSetupTest extends TestBase
     {
         parent::setUp();
         $this->program = $this->buildMockOfClass(Program::class);
-        $this->participantFeedbackForm = $this->buildMockOfClass(ConsultationFeedbackForm::class);
-        $this->consultantFeedbackForm = $this->buildMockOfClass(ConsultationFeedbackForm::class);
+        $this->participantFeedbackForm = $this->buildMockOfClass(FeedbackForm::class);
+        $this->consultantFeedbackForm = $this->buildMockOfClass(FeedbackForm::class);
 
         $this->consultanting = new TestableConsultationSetup($this->program, 'id', 'name', 90,
             $this->participantFeedbackForm, $this->consultantFeedbackForm);

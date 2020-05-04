@@ -3,12 +3,13 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use DateTimeImmutable;
-use Personnel\Domain\Model\Firm\{
+use Personnel\Domain\Model\Firm\ {
+    Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Program\ConsultationSetup,
     Program\Participant
 };
-use Resources\{
+use Resources\ {
     Domain\ValueObject\DateTimeInterval,
     Exception\RegularException
 };
@@ -170,6 +171,11 @@ class ConsultationRequest
             $errorDetail = 'forbidden: consultation request time in conflict with participan existing consultation session';
             throw RegularException::forbidden($errorDetail);
         }
+    }
+    
+    public function createNotification(string $id, string $message): PersonnelNotification
+    {
+        return $this->programConsultant->createNotificationForConsultationRequest($id, $message, $this);
     }
 
 }

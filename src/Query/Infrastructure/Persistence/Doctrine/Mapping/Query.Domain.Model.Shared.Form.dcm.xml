@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Shared\Form" 
+            table="Form"
+    >
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="description" type="string" length="1024" nullable="true"/>
+        
+        <one-to-many  field="stringFields" 
+                      target-entity="Query\Domain\Model\Shared\Form\StringField"
+                      mapped-by="form"
+        />
+        <one-to-many  field="integerFields" 
+                      target-entity="Query\Domain\Model\Shared\Form\IntegerField"
+                      mapped-by="form"
+        />
+        <one-to-many  field="textAreaFields" 
+                      target-entity="Query\Domain\Model\Shared\Form\TextAreaField"
+                      mapped-by="form"
+        />
+        <one-to-many  field="attachmentFields" 
+                      target-entity="Query\Domain\Model\Shared\Form\AttachmentField"
+                      mapped-by="form"
+        />
+        <one-to-many  field="singleSelectFields" 
+                      target-entity="Query\Domain\Model\Shared\Form\SingleSelectField"
+                      mapped-by="form"
+        />
+        <one-to-many  field="multiSelectFields" 
+                      target-entity="Query\Domain\Model\Shared\Form\MultiSelectField"
+                      mapped-by="form"
+        />
+                
+    </entity>
+</doctrine-mapping>

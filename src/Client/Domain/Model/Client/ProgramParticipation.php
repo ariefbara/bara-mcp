@@ -2,23 +2,23 @@
 
 namespace Client\Domain\Model\Client;
 
-use Client\Domain\ {
-    Event\ConsultationRequestMutatedByParticipantEvent,
-    Event\ConsultationSessionMutatedByParticipantEvent,
+use Client\Domain\{
+    Event\ParticipantMutateConsultationRequestEvent,
+    Event\ParticipantMutateConsultationSessionEvent,
     Model\Client,
     Model\Client\ProgramParticipation\ConsultationRequest,
     Model\Client\ProgramParticipation\ConsultationSession,
-    Model\Client\ProgramParticipation\ParticipantNotification,
+    Model\Client\ProgramParticipation\Worksheet\Comment,
     Model\Firm\Program,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\ConsultationSetup
 };
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Resources\ {
+use Resources\{
     Domain\Model\ModelContainEvents,
     Exception\RegularException,
     Uuid
@@ -130,13 +130,15 @@ class ProgramParticipation extends ModelContainEvents
             ConsultationSetup $consultationSetup, Consultant $consultant, DateTimeImmutable $startTime): ConsultationRequest
     {
         $consultationRequestId = Uuid::generateUuid4();
-        $consultationRequest = new ConsultationRequest($this, $consultationRequestId, $consultationSetup, $consultant, $startTime);
+        $consultationRequest = new ConsultationRequest($this, $consultationRequestId, $consultationSetup, $consultant,
+                $startTime);
 
         $this->assertNoConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
-        
+
         $messageForPersonnel = "you've received consultation request from {$this->client->getName()}";
-        $event = new ConsultationRequestMutatedByParticipantEvent($consultationRequestId, $messageForPersonnel);
+        $event = new ParticipantMutateConsultationRequestEvent(
+                $this->client->getId(), $this->id, $consultationRequestId, $messageForPersonnel);
         $this->recordEvent($event);
 
         return $consultationRequest;
@@ -153,25 +155,27 @@ class ProgramParticipation extends ModelContainEvents
 
 
         $messageForPersonnel = "you've received consultation request from {$this->client->getName()}";
-        $event = new ConsultationRequestMutatedByParticipantEvent($consultationRequestId, $messageForPersonnel);
+        $event = new ParticipantMutateConsultationRequestEvent(
+                $this->client->getId(), $this->id, $consultationRequestId, $messageForPersonnel);
         $this->recordEvent($event);
     }
 
     public function acceptConsultationRequest(string $consultationRequestId): void
     {
         $consultationRequest = $this->getConsultationRequestOrDie($consultationRequestId);
-        
+
         $this->assertNoConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
 
         $consultationRequest->accept();
-        
+
         $consultationSessionId = Uuid::generateUuid4();
         $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
         $this->consultationSessions->add($consultationSession);
-        
+
         $messageForPersonnel = "consultation session with {$this->client->getName()} has been arranged";
-        $event = new ConsultationSessionMutatedByParticipantEvent($consultationSessionId, $messageForPersonnel);
+        $event = new ParticipantMutateConsultationSessionEvent(
+                $this->client->getId(), $this->id, $consultationSessionId, $messageForPersonnel);
         $this->recordEvent($event);
     }
 
@@ -214,16 +218,30 @@ class ProgramParticipation extends ModelContainEvents
         }
         return $consultationRequest;
     }
-    
-    public function createParticipantNotification(string $id, string $message): ParticipantNotification
+
+    public function createNotificationForComment(string $id, string $message, Comment $comment): ClientNotification
     {
-        $clientNotification = $this->client->createClientNotification($id, $message);
-        return new ParticipantNotification($this, $id, $clientNotification);
+        return ClientNotification::notificationForComment(
+                        $this->client, $id, $message, $comment);
+    }
+
+    public function createNotificationForConsultationRequest(
+            string $id, string $message, ConsultationRequest $consultationRequest): ClientNotification
+    {
+        return ClientNotification::notificationForConsultationRequest(
+                        $this->client, $id, $message, $consultationRequest);
+    }
+
+    public function createNotificationForConsultationSession(
+            string $id, string $message, ConsultationSession $consultationSession): ClientNotification
+    {
+        return ClientNotification::notificationForConsultationSession(
+                        $this->client, $id, $message, $consultationSession);
     }
     
     public function createClientNotification(string $id, string $message): ClientNotification
     {
-        return $this->client->createClientNotification($id, $message);
+        return ClientNotification::notificationForProgramParticipation($this->client, $id, $message, $this);
     }
 
 }

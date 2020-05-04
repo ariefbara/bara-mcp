@@ -47,29 +47,9 @@ class Option
      */
     protected $removed = false;
 
-    function getSelectField(): SelectField
-    {
-        return $this->selectField;
-    }
-
     function getId(): string
     {
         return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    function getPosition(): ?string
-    {
-        return $this->position;
     }
 
     function isRemoved(): bool

@@ -2,7 +2,7 @@
 
 namespace Shared\Domain\Model\Form;
 
-use Doctrine\Common\Collections\{
+use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
@@ -33,11 +33,6 @@ class SelectField
     public function getName(): string
     {
         return $this->field->getName();
-    }
-
-    public function getPosition(): ?string
-    {
-        return $this->field->getPosition();
     }
 
     protected function __construct()

@@ -48,11 +48,6 @@ class Option
         return $this->id;
     }
 
-    function getName(): string
-    {
-        return $this->name;
-    }
-
     function isRemoved(): bool
     {
         return $this->removed;

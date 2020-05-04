@@ -22,7 +22,7 @@ class AdminAdd
         $this->adminRepository = $adminRepository;
     }
 
-    public function execute(AdminData $adminData, string $password): Admin
+    public function execute(AdminData $adminData, string $password): string
     {
         $this->assertEmailAvailable($adminData->getEmail());
         
@@ -30,7 +30,7 @@ class AdminAdd
         $admin = new Admin($id, $adminData, $password);
         $this->adminRepository->add($admin);
         
-        return $admin;
+        return $id;
     }
     
     protected function assertEmailAvailable(string $email): void

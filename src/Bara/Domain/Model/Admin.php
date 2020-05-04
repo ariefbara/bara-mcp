@@ -38,26 +38,6 @@ class Admin
      */
     protected $removed = false;
 
-    function getId()
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     protected function setName($name): void
     {
         $errorDetail = 'bad request: sys admin name is required';
@@ -108,11 +88,6 @@ class Admin
     public function remove(): void
     {
         $this->removed = true;
-    }
-
-    public function passwordMatch(string $password): bool
-    {
-        return $this->password->match($password);
     }
 
 }

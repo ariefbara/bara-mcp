@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
-use Firm\ {
-    Application\Auth\Program\CoordinatorAuthorization,
+use Query\ {
+    Application\Auth\Firm\Program\CoordinatorAuthorization,
     Domain\Model\Firm\Program\Coordinator
 };
 

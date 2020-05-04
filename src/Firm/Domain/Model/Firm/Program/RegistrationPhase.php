@@ -3,7 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Program;
-use Resources\{
+use Resources\ {
     Domain\ValueObject\DateInterval,
     ValidationRule,
     ValidationService
@@ -41,36 +41,6 @@ class RegistrationPhase
      * @var bool
      */
     protected $removed;
-
-    function getProgram(): Program
-    {
-        return $this->program;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    function getStartDateString(): ?string
-    {
-        return $this->startEndDate->getStartDateString();
-    }
-
-    function getEndDateString(): ?string
-    {
-        return $this->startEndDate->getEndDateString();
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
 
     protected function setName(string $name): void
     {

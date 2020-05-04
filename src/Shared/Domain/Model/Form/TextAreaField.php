@@ -57,19 +57,9 @@ class TextAreaField
      */
     protected $removed;
 
-    function getId(): string
-    {
-        return $this->id;
-    }
-    
     public function getName(): string
     {
         return $this->field->getName();
-    }
-
-    public function getPosition(): ?string
-    {
-        return $this->field->getPosition();
     }
 
     function isRemoved(): bool

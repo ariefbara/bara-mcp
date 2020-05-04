@@ -43,11 +43,19 @@ class ProgramAddTest extends TestBase
         return $this->service->execute($this->firmId, $this->programData);
     }
 
-    function test_add_addProgramToRepository()
+    function test_execute_addProgramToRepository()
     {
         $this->programRepository->expects($this->once())
                 ->method('add');
         $this->execute();
+    }
+    public function test_execute_returnNewId()
+    {
+        $this->programRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+        
     }
 
 }

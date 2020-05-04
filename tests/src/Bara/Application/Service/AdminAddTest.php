@@ -54,4 +54,11 @@ class AdminAddTest extends TestBase
         $errorDetail = "conflict: email already registered";
         $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
     }
+    public function test_execute_returnNewAdminId()
+    {
+        $this->adminRepository->expects($this->once())
+                ->method('nextIdentity')
+                ->willReturn($id = 'id');
+        $this->assertEquals($id, $this->execute());
+    }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Bara\ {
+use Query\ {
     Application\Auth\AdminAuthorization,
     Domain\Model\Admin
 };

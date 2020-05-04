@@ -37,31 +37,6 @@ class LearningMaterial
      */
     protected $removed = false;
 
-    function getMission(): Mission
-    {
-        return $this->mission;
-    }
-
-    function getId(): string
-    {
-        return $this->id;
-    }
-
-    function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    function getContent(): ?string
-    {
-        return $this->content;
-    }
-
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     function __construct(Mission $mission, string $id, string $name, string $content)
     {
         $this->mission = $mission;

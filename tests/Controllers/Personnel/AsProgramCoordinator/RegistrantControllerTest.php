@@ -21,9 +21,7 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table('Client')->truncate();
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('Participant')->truncate();
-        $this->connection->table('Notification')->truncate();
         $this->connection->table('ClientNotification')->truncate();
-        $this->connection->table('ParticipantNotification')->truncate();
         
         $client = new RecordOfClient(0, 'client@email.org', 'password123');
         $clientOne = new RecordOfClient(1, 'clientOne@email.org', 'password123');
@@ -41,9 +39,7 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table('Client')->truncate();
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('Participant')->truncate();
-        $this->connection->table('Notification')->truncate();
         $this->connection->table('ClientNotification')->truncate();
-        $this->connection->table('ParticipantNotification')->truncate();
     }
     
     public function test_accept()
@@ -59,13 +55,10 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         ];
         $this->seeInDatabase('Registrant', $registrantEntry);
         
-        $notificationEntry = [
-            "message" => "You have been accepted as participant of program {$this->coordinator->program->name}",
-            "isRead" => false,
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
         $clientNotificationEntry = [
             "Client_id" => $this->registrant->client->id,
+            "message" => "You have been accepted as participant of program {$this->coordinator->program->name}",
+            "isRead" => false,
         ];
         $this->seeInDatabase("ClientNotification", $clientNotificationEntry);
     }

@@ -3,19 +3,21 @@
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
 use Client\ {
-    Application\Listener\ParticipantNotificationListener,
-    Application\Service\Client\ProgramParticipation\ParticipantNotificationAdd,
-    Domain\Model\Client\ProgramParticipation,
-    Domain\Model\Client\ProgramParticipation\ParticipantNotification
+    Application\Listener\ProgramManageParticipantListener,
+    Domain\Model\Client\ClientNotification,
+    Domain\Model\Client\ProgramParticipation
 };
 use Firm\ {
     Application\Service\Firm\Program\ProgramCompositionId,
     Application\Service\Firm\Program\RegistrantAccept,
     Application\Service\Firm\Program\RegistrantReject,
-    Application\Service\Firm\Program\RegistrantView,
-    Domain\Event\ParticipantAcceptedEvent,
+    Domain\Event\ProgramManageParticipantEvent,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\Registrant
+};
+use Query\ {
+    Application\Service\Firm\Program\RegistrantView,
+    Domain\Model\Firm\Program\Registrant as Registrant2
 };
 use Resources\Application\Event\Dispatcher;
 
@@ -28,6 +30,7 @@ class RegistrantController extends AsProgramCoordinatorBaseController
 
         $service = $this->buildAcceptService();
         $service->execute($this->firmId(), $programId, $registrantId);
+        
         return $this->show($programId, $registrantId);
     }
 
@@ -38,6 +41,7 @@ class RegistrantController extends AsProgramCoordinatorBaseController
         $service = $this->buildRejectService();
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
         $service->execute($programCompositionId, $registrantId);
+        
         return $this->show($programId, $registrantId);
     }
 
@@ -67,7 +71,7 @@ class RegistrantController extends AsProgramCoordinatorBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfRegistrant(Registrant $registrant): array
+    protected function arrayDataOfRegistrant(Registrant2 $registrant): array
     {
         return [
             "id" => $registrant->getId(),
@@ -86,13 +90,11 @@ class RegistrantController extends AsProgramCoordinatorBaseController
         $programRepository = $this->em->getRepository(Program::class);
         $dispatcher = new Dispatcher();
 
-        $participantNotificationRepository = $this->em->getRepository(ParticipantNotification::class);
+        $clientNotificationRepository = $this->em->getRepository(ClientNotification::class);
         $programParticipationRepository = $this->em->getRepository(ProgramParticipation::class);
-
-        $participantNotificationAdd = new ParticipantNotificationAdd(
-                $participantNotificationRepository, $programParticipationRepository);
-        $listener = new ParticipantNotificationListener($participantNotificationAdd);
-        $dispatcher->addListener(ParticipantAcceptedEvent::EVENT_NAME, $listener);
+        
+        $listener = new ProgramManageParticipantListener($clientNotificationRepository, $programParticipationRepository);
+        $dispatcher->addListener(ProgramManageParticipantEvent::EVENT_NAME, $listener);
 
         return new RegistrantAccept($programRepository, $dispatcher);
     }
@@ -105,7 +107,7 @@ class RegistrantController extends AsProgramCoordinatorBaseController
 
     protected function buildViewService()
     {
-        $registrantRepository = $this->em->getRepository(Registrant::class);
+        $registrantRepository = $this->em->getRepository(Registrant2::class);
         return new RegistrantView($registrantRepository);
     }
 

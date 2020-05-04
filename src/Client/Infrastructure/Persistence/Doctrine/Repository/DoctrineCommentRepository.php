@@ -3,47 +3,22 @@
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
 use Client\ {
+    Application\Listener\CommentRepository as InterfaceForListener,
     Application\Service\Client\ProgramParticipation\Worksheet\CommentRepository,
-    Application\Service\Client\ProgramParticipation\Worksheet\WorksheetCompositionId,
-    Domain\Model\Client\ProgramParticipation\Worksheet\Comment,
-    Domain\Model\Firm\Program\Consultant\ConsultantComment
+    Domain\Model\Client\ProgramParticipation\Worksheet\Comment
 };
 use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId;
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
+use Query\ {
+    Application\Service\Firm\Program\Participant\Worksheet\WorksheetCompositionId,
+    Domain\Model\Firm\Program\Consultant\ConsultantComment
 };
+use Resources\Exception\RegularException;
 
-class DoctrineCommentRepository extends EntityRepository implements CommentRepository
+class DoctrineCommentRepository extends EntityRepository implements CommentRepository, InterfaceForListener
 {
-
-    public function all(WorksheetCompositionId $worksheetCompositionId, int $page, int $pageSize)
-    {
-        $parameters = [
-            "worksheetId" => $worksheetCompositionId->getWorksheetId(),
-            "programParticipationId" => $worksheetCompositionId->getProgramParticipationId(),
-            "clientId" => $worksheetCompositionId->getClientId(),
-        ];
-
-        $qb = $this->createQueryBuilder("comment");
-        $qb->select('comment')
-                ->andWhere($qb->expr()->eq('comment.removed', "false"))
-                ->leftJoin("comment.worksheet", "worksheet")
-                ->andWhere($qb->expr()->eq('worksheet.removed', "false"))
-                ->andWhere($qb->expr()->eq('worksheet.id', ":worksheetId"))
-                ->leftJoin("worksheet.programParticipation", "programParticipation")
-                ->andWhere($qb->expr()->eq('programParticipation.active', "true"))
-                ->andWhere($qb->expr()->eq('programParticipation.id', ":programParticipationId"))
-                ->leftJoin("programParticipation.client", "client")
-                ->andWhere($qb->expr()->eq('client.id', ":clientId"))
-                ->setParameters($parameters);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
 
     public function ofId(WorksheetCompositionId $worksheetCompositionId, string $commentId): Comment
     {
@@ -78,15 +53,16 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
     }
 
     public function aCommentFromConsultant(
-            ProgramConsultantCompositionId $programConsultantCompositionid, string $consultantCommentId): Comment
+            string $firmId, string $personnelId, string $consultantId, string $consultantCommentId): Comment
     {
+
         $parameters = [
             "consultantCommentId" => $consultantCommentId,
-            "consultantId" => $programConsultantCompositionid->getProgramConsultantId(),
-            "personnelId" => $programConsultantCompositionid->getPersonnelId(),
-            "firmId" => $programConsultantCompositionid->getFirmId(),
+            "consultantId" => $consultantCommentId,
+            "personnelId" => $personnelId,
+            "firmId" => $firmId,
         ];
-        
+
         $subQuery = $this->getEntityManager()->createQueryBuilder();
         $subQuery->select('tComment.id')
                 ->from(ConsultantComment::class, "consultantComment")

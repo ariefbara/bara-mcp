@@ -34,19 +34,14 @@ class Coordinator
      */
     protected $removed;
 
-    function getProgram(): Program
+    function getPersonnel(): Personnel
     {
-        return $this->program;
+        return $this->personnel;
     }
 
     function getId(): string
     {
         return $this->id;
-    }
-
-    function getPersonnel(): Personnel
-    {
-        return $this->personnel;
     }
 
     function isRemoved(): bool

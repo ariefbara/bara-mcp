@@ -2,18 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Bara\ {
-    Application\Service\AdminLogin,
-    Domain\Model\Admin
-};
-use Client\ {
-    Application\Service\ClientLogin,
-    Domain\Model\Client
-};
 use Firebase\JWT\JWT;
-use Firm\ {
+use Query\ {
+    Application\Service\AdminLogin,
+    Application\Service\ClientLogin,
     Application\Service\Firm\ManagerLogin,
     Application\Service\Firm\PersonnelLogin,
+    Domain\Model\Admin,
+    Domain\Model\Client,
     Domain\Model\Firm\Manager,
     Domain\Model\Firm\Personnel
 };

@@ -129,17 +129,6 @@ class AdminTest extends TestBase
         $this->assertTrue($this->admin->removed);
     }
     
-    public function test_passwordMatch_returnPasswordsMatchMethod()
-    {
-        $password = $this->buildMockOfClass(\Resources\Domain\ValueObject\Password::class);
-        $this->admin->password = $password;
-        $password->expects($this->once())
-            ->method('match')
-            ->with($passwordString = 'password123')
-            ->willReturn(true);
-        $this->assertTrue($this->admin->passwordMatch($passwordString));
-    }
-
 }
 
 class TestableAdmin extends Admin

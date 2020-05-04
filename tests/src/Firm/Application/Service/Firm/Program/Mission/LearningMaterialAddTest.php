@@ -51,4 +51,9 @@ class LearningMaterialAddTest extends TestBase
                 ->with($this->equalTo($learningMaterial));
         $this->execute();
     }
+    public function test_execute_returnNextIdentity()
+    {
+        $this->assertEquals($this->id, $this->execute());
+        
+    }
 }

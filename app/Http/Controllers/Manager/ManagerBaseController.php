@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Manager;
 
 use App\Http\Controllers\Controller;
 use Doctrine\ORM\EntityManager;
-use Firm\{
-    Application\Auth\ManagerAuthorization,
+use Illuminate\Http\Request;
+use Query\ {
+    Application\Auth\Firm\ManagerAuthorization,
     Domain\Model\Firm\Manager
 };
-use Illuminate\Http\Request;
 
 class ManagerBaseController extends Controller
 {

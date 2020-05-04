@@ -2,10 +2,9 @@
 
 namespace Firm\Application\Service\Firm\Program;
 
-use Firm\ {
-    Application\Service\Firm\PersonnelRepository,
-    Application\Service\Firm\ProgramRepository,
-    Domain\Model\Firm\Program\Coordinator
+use Firm\Application\Service\Firm\ {
+    PersonnelRepository,
+    ProgramRepository
 };
 
 class CoordinatorAssign
@@ -20,13 +19,13 @@ class CoordinatorAssign
         $this->personnelRepository = $personnelRepository;
     }
     
-    public function execute(string $firmId, string $programId, string $personnelId): Coordinator
+    public function execute(string $firmId, string $programId, string $personnelId): string
     {
         $personnel = $this->personnelRepository->ofId($firmId, $personnelId);
-        $coordinator = $this->programRepository->ofId($firmId, $programId)
+        $coordinatorId = $this->programRepository->ofId($firmId, $programId)
                 ->assignPersonnelAsCoordinator($personnel);
         $this->programRepository->update();
-        return $coordinator;
+        return $coordinatorId;
     }
 
 }

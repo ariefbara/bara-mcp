@@ -7,11 +7,14 @@ use Firm\ {
     Application\Service\Firm\Program\Mission\LearningMaterialAdd,
     Application\Service\Firm\Program\Mission\LearningMaterialRemove,
     Application\Service\Firm\Program\Mission\LearningMaterialUpdate,
-    Application\Service\Firm\Program\Mission\LearningMaterialView,
     Application\Service\Firm\Program\Mission\MissionCompositionId,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Program\Mission,
     Domain\Model\Firm\Program\Mission\LearningMaterial
+};
+use Query\ {
+    Application\Service\Firm\Program\Mission\LearningMaterialView,
+    Domain\Model\Firm\Program\Mission\LearningMaterial as LearningMaterial2
 };
 
 class LearningMaterialController extends ManagerBaseController
@@ -24,7 +27,11 @@ class LearningMaterialController extends ManagerBaseController
         $name = $this->stripTagsInputRequest('name');
 //        $content = $this->stripTagsInputRequest('content');
         $content = $this->request->input('content');//temporary disable strip tags to allow iframe
-        $learningMaterial = $service->execute($programCompositionId, $missionId, $name, $content);
+        $learningMaterialId = $service->execute($programCompositionId, $missionId, $name, $content);
+        
+        $viewService = $this->buildViewService();
+        $missionCompositionId = new MissionCompositionId($this->firmId(), $programId, $missionId);
+        $learningMaterial = $viewService->showById($missionCompositionId, $learningMaterialId);
         
         return $this->commandCreatedResponse($this->arrayDataOfLearningMaterial($learningMaterial));
     }
@@ -36,9 +43,9 @@ class LearningMaterialController extends ManagerBaseController
         $name = $this->stripTagsInputRequest('name');
 //        $content = $this->stripTagsInputRequest('content');
         $content = $this->request->input('content');//temporary disable strip tags to allow iframe
-        $learningMaterial = $service->execute($missionCompositionId, $learningMaterialId, $name, $content);
+        $service->execute($missionCompositionId, $learningMaterialId, $name, $content);
         
-        return $this->singleQueryResponse($this->arrayDataOfLearningMaterial($learningMaterial));
+        return $this->show($programId, $missionId, $learningMaterialId);
     }
 
     public function remove($programId, $missionId, $learningMaterialId)
@@ -66,7 +73,7 @@ class LearningMaterialController extends ManagerBaseController
         return $this->commonIdNameListQueryResponse($learningMaterials);
     }
     
-    protected function arrayDataOfLearningMaterial(LearningMaterial $learningMaterial): array
+    protected function arrayDataOfLearningMaterial(LearningMaterial2 $learningMaterial): array
     {
         return [
             "id" => $learningMaterial->getId(),
@@ -94,7 +101,7 @@ class LearningMaterialController extends ManagerBaseController
     }
     protected function buildViewService()
     {
-        $learningMaterialRepository = $this->em->getRepository(LearningMaterial::class);
+        $learningMaterialRepository = $this->em->getRepository(LearningMaterial2::class);
         return new LearningMaterialView($learningMaterialRepository);
     }
 
