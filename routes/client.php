@@ -80,5 +80,10 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("/{consultantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        $router->group(['prefix' => '/missions'], function () use($router) {
+            $controller = "MissionController";
+            $router->get("/{missionId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
     });
 });
