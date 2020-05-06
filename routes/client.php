@@ -69,4 +69,16 @@ $router->group($clientAggregate, function () use ($router) {
         });
         
     });
+    
+    $asProgramParticipantAggregate = [
+        'prefix' => '/as-program-participant/{firmId}/{programId}',
+        'namespace' => 'AsProgramParticipant',
+    ];
+    $router->group($asProgramParticipantAggregate, function () use ($router) {
+        $router->group(['prefix' => '/consultants'], function () use($router) {
+            $controller = "ConsultantController";
+            $router->get("/{consultantId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+    });
 });

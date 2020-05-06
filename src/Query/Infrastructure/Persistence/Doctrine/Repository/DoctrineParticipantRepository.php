@@ -2,22 +2,24 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
 use Firm\Application\Service\Firm\Program\ProgramCompositionId;
-use Query\ {
+use Query\{
+    Application\Auth\Firm\Program\ParticipantRepository as InterfaceForAuthorization,
     Application\Service\Client\ProgramParticipationRepository,
     Application\Service\Firm\Program\ParticipantRepository,
     Domain\Model\Firm\Program\Participant
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, ProgramParticipationRepository
+class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, ProgramParticipationRepository,
+        InterfaceForAuthorization
 {
 
     public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize)
@@ -102,6 +104,31 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
                 ->setParameters($parameters);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function containRecordOfActiveParticipantCorrespondWithClient(
+            string $firmId, string $programId, string $clientId): bool
+    {
+        $params = [
+            'clientId' => $clientId,
+            'programId' => $programId,
+            'firmId' => $firmId,
+        ];
+        
+        $qb = $this->createQueryBuilder('participant');
+        $qb->select('1')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->leftJoin('participant.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.removed', 'false'))
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        return !empty($qb->getQuery()->getResult());
     }
 
 }
