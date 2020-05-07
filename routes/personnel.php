@@ -23,6 +23,17 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
         });
     });
+    $asProgramConsultantAggregate = [
+        'prefix' => '/as-program-consultant/{programId}',
+        'namespace' => 'AsProgramConsultant',
+    ];
+    $router->group($asProgramConsultantAggregate, function () use ($router) {
+        $router->group(['prefix' => '/participants'], function () use($router) {
+            $controller = "ParticipantController";
+            $router->get("/{participantId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+    });
     
     $programConsultantAggregate = [
         'prefix' => '/program-consultant/{programConsultantId}',
