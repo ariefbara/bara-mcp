@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Personnel\ProgramConsultant;
 
-use App\Http\Controllers\ {
+use App\Http\Controllers\{
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter,
     Personnel\PersonnelBaseController
 };
-use Personnel\ {
+use Personnel\{
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedbackSet,
     Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId,
     Domain\Model\Firm\Personnel\PersonnelFileInfo,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
     Domain\Service\PersonnelFileInfoFinder
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView,
     Domain\Model\Firm\Program\Participant\ConsultationSession as ConsultationSession2
@@ -35,7 +35,7 @@ class ConsultationSessionController extends PersonnelBaseController
         $fileInfoFinder = new PersonnelFileInfoFinder($personnelFileInfoRepository, $personnelCompositionId);
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
         $service->execute($programConsultantCompositionId, $consultationSessionId, $formRecordData);
-        
+
         return $this->show($programConsultantId, $consultationSessionId);
     }
 
@@ -87,7 +87,9 @@ class ConsultationSessionController extends PersonnelBaseController
             "endTime" => $consultationSession->getEndTime(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
-                "name" => $consultationSession->getConsultationSetup()->getName()
+                "name" => $consultationSession->getConsultationSetup()->getName(),
+                "consultantFeedbackForm" => $this->arrayDataOfFeedbackForm(
+                        $consultationSession->getConsultationSetup()->getConsultantFeedbackForm()),
             ],
             "participant" => [
                 "id" => $consultationSession->getParticipant()->getId(),
@@ -98,6 +100,13 @@ class ConsultationSessionController extends PersonnelBaseController
             ],
             "consultantFeedback" => $consultantFeedbackData,
         ];
+    }
+
+    protected function arrayDataOfFeedbackForm(\Query\Domain\Model\Firm\FeedbackForm $feedbackForm): array
+    {
+        $data = (new \App\Http\Controllers\FormToArrayDataConverter())->convert($feedbackForm);
+        $data['id'] = $feedbackForm->getId();
+        return $data;
     }
 
     protected function buildSetConsultantFeedbackService()

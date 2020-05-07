@@ -97,6 +97,17 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
             "consultationSetup" => [
                 "id" => $this->consultationSession->consultationSetup->id,
                 "name" => $this->consultationSession->consultationSetup->name,
+                "consultantFeedbackForm" => [
+                    "id" => $this->consultationSession->consultationSetup->consultantFeedbackForm->id,
+                    "name" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->name,
+                    "description" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->description,
+                    "stringFields" => [],
+                    "integerFields" => [],
+                    "textAreaFields" => [],
+                    "attachmentFields" => [],
+                    "singleSelectFields" => [],
+                    "multiSelectFields" => [],
+                ],
             ],
             "participant" => [
                 "id" => $this->consultationSession->participant->id,
@@ -161,6 +172,17 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
             "consultationSetup" => [
                 "id" => $this->consultationSession->consultationSetup->id,
                 "name" => $this->consultationSession->consultationSetup->name,
+                "consultantFeedbackForm" => [
+                    "id" => $this->consultationSession->consultationSetup->consultantFeedbackForm->id,
+                    "name" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->name,
+                    "description" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->description,
+                    "stringFields" => [],
+                    "integerFields" => [],
+                    "textAreaFields" => [],
+                    "attachmentFields" => [],
+                    "singleSelectFields" => [],
+                    "multiSelectFields" => [],
+                ],
             ],
             "participant" => [
                 "id" => $this->consultationSession->participant->id,
@@ -204,6 +226,29 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
             "consultationSetup" => [
                 "id" => $this->consultationSessionOne->consultationSetup->id,
                 "name" => $this->consultationSessionOne->consultationSetup->name,
+                "consultantFeedbackForm" => [
+                    "id" => $this->consultationSessionOne->consultationSetup->consultantFeedbackForm->id,
+                    "name" => $this->consultationSessionOne->consultationSetup->consultantFeedbackForm->form->name,
+                    "description" => $this->consultationSessionOne->consultationSetup->consultantFeedbackForm->form->description,
+                    "stringFields" => [
+                        [
+                            "id" => $this->stringFieldRecord->stringField->id,
+                            "name" => $this->stringFieldRecord->stringField->name,
+                            "description" => $this->stringFieldRecord->stringField->description,
+                            "position" => $this->stringFieldRecord->stringField->position,
+                            "mandatory" => $this->stringFieldRecord->stringField->mandatory,
+                            "defaultValue" => $this->stringFieldRecord->stringField->defaultValue,
+                            "minValue" => $this->stringFieldRecord->stringField->minValue,
+                            "maxValue" => $this->stringFieldRecord->stringField->maxValue,
+                            "placeholder" => $this->stringFieldRecord->stringField->placeholder,
+                        ],
+                    ],
+                    "integerFields" => [],
+                    "textAreaFields" => [],
+                    "attachmentFields" => [],
+                    "singleSelectFields" => [],
+                    "multiSelectFields" => [],
+                ],
             ],
             "participant" => [
                 "id" => $this->consultationSessionOne->participant->id,
