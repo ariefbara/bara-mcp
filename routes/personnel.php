@@ -33,6 +33,28 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{participantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        $participantAggregate = [
+            'prefix' => '/participants/{participantId}',
+            'namespace' => 'Participant',
+        ];
+        $router->group($participantAggregate, function () use ($router) {
+            $router->group(['prefix' => '/worksheets'], function () use($router) {
+                $controller = "WorksheetController";
+                $router->get("/{worksheetId}", ["uses" => "$controller@show"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+            });
+            $worksheetAggregate = [
+                'prefix' => '/worksheets/{worksheetId}',
+                'namespace' => 'Worksheet',
+            ];
+            $router->group($worksheetAggregate, function () use ($router) {
+                $router->group(['prefix' => '/comments'], function () use($router) {
+                    $controller = "CommentController";
+                    $router->get("/{commentId}", ["uses" => "$controller@show"]);
+                    $router->get("", ["uses" => "$controller@showAll"]);
+                });
+            });
+        });
     });
     
     $programConsultantAggregate = [

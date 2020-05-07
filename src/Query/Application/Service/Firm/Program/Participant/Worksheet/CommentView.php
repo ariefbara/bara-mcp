@@ -2,7 +2,8 @@
 
 namespace Query\Application\Service\Firm\Program\Participant\Worksheet;
 
-use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+
 
 class CommentView
 {
@@ -18,7 +19,7 @@ class CommentView
         $this->commentRepository = $commentRepository;
     }
 
-    public function showById(WorksheetCompositionId $worksheetCompositionId, string $commentId): Worksheet
+    public function showById(WorksheetCompositionId $worksheetCompositionId, string $commentId): Comment
     {
         return $this->commentRepository->ofId($worksheetCompositionId, $commentId);
     }
@@ -28,7 +29,7 @@ class CommentView
      * @param WorksheetCompositionId $worksheetCompositionId
      * @param int $page
      * @param int $pageSize
-     * @return Worksheet[]
+     * @return Comment[]
      */
     public function showAll(WorksheetCompositionId $worksheetCompositionId, int $page, int $pageSize)
     {
