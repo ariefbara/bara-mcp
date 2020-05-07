@@ -85,5 +85,22 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("/{missionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        $missionAggregate = [
+            'prefix' => '/missions/{missionId}',
+            'namespace' => 'Mission',
+        ];
+        $router->group($missionAggregate, function () use ($router) {
+            $router->group(['prefix' => '/learning-materials'], function () use($router) {
+                $controller = "LearningMaterialController";
+                $router->get("/{learningMaterialId}", ["uses" => "$controller@show"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+            });
+        });
+        
+        $router->group(['prefix' => '/consultation-setups'], function () use($router) {
+            $controller = "ConsultationSetupController";
+            $router->get("/{consultationSetupId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
     });
 });

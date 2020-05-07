@@ -8,38 +8,27 @@ use Tests\Controllers\RecordPreparation\ {
     Shared\RecordOfForm
 };
 
-class MissionControllerTest extends AsProgramParticipantTestCase
+class MissionControllerTest extends MissionTestCase
 {
-    protected $missionUri;
-    protected $mission;
     protected $missionOne;
     
     protected function setUp(): void
     {
         parent::setUp();
-        $this->missionUri = $this->asProgramparticipantUri . "/missions";
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('WorksheetForm')->truncate();
-        $this->connection->table('Mission')->truncate();
         
-        $form = new RecordOfForm(0);
+        $form = new RecordOfForm(1);
         $this->connection->table('Form')->insert($form->toArrayForDbEntry());
         
         $worksheetForm = new RecordOfWorksheetForm($this->participant->program->firm, $form);
         $this->connection->table('WorksheetForm')->insert($worksheetForm->toArrayForDbEntry());
         
-        $this->mission = new RecordOfMission($this->participant->program, $worksheetForm, 0, null);
         $this->missionOne = new RecordOfMission($this->participant->program, $worksheetForm, 1, $this->mission);
-        $this->connection->table('Mission')->insert($this->mission->toArrayForDbEntry());
         $this->connection->table('Mission')->insert($this->missionOne->toArrayForDbEntry());
         
     }
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('WorksheetForm')->truncate();
-        $this->connection->table('Mission')->truncate();
     }
     
     public function test_show()
@@ -50,9 +39,9 @@ class MissionControllerTest extends AsProgramParticipantTestCase
             'description' => $this->missionOne->description,
             'position' => $this->missionOne->position,
             'worksheetForm' => [
-                "id" => $this->mission->worksheetForm->id,
-                "name" => $this->mission->worksheetForm->form->name,
-                "description" => $this->mission->worksheetForm->form->description,
+                "id" => $this->missionOne->worksheetForm->id,
+                "name" => $this->missionOne->worksheetForm->form->name,
+                "description" => $this->missionOne->worksheetForm->form->description,
                 "stringFields" => [],
                 "integerFields" => [],
                 "textAreaFields" => [],
