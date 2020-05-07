@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\ {
+use App\Http\Controllers\{
     Client\ClientBaseController,
     FormRecordDataBuilder,
-    FormRecordToArrayDataConverter
+    FormRecordToArrayDataConverter,
+    FormToArrayDataConverter
 };
-use Client\ {
+use Client\{
     Application\Service\Client\ProgramParticipation\ConsultationSession\ParticipantFeedbackSet,
     Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
     Domain\Model\Client\ProgramParticipation\ConsultationSession,
     Domain\Model\Client\ProgramParticipation\ParticipantFileInfo,
     Domain\Service\ParticipantFileInfoFinder
 };
-use Query\ {
+use Query\{
     Application\Service\Client\ProgramParticipation\ConsultationSessionView,
+    Domain\Model\Firm\FeedbackForm,
     Domain\Model\Firm\Program\Participant\ConsultationSession as ConsultationSession2
 };
 use Shared\Domain\Model\FormRecordData;
@@ -94,7 +96,9 @@ class ConsultationSessionController extends ClientBaseController
             "endTime" => $consultationSession->getEndTime(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
-                "name" => $consultationSession->getConsultationSetup()->getName()
+                "name" => $consultationSession->getConsultationSetup()->getName(),
+                "participantFeedbackForm" => $this->arrayDataOfFeedbackForm(
+                        $consultationSession->getConsultationSetup()->getParticipantFeedbackForm()),
             ],
             "consultant" => [
                 "id" => $consultationSession->getConsultant()->getId(),
@@ -105,6 +109,13 @@ class ConsultationSessionController extends ClientBaseController
             ],
             "participantFeedback" => $participantFeedback,
         ];
+    }
+
+    protected function arrayDataOfFeedbackForm(FeedbackForm $feedbackForm): array
+    {
+        $data = (new FormToArrayDataConverter())->convert($feedbackForm);
+        $data['id'] = $feedbackForm->getId();
+        return $data;
     }
 
     protected function buildViewService()
