@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Client;
 
-use Client\ {
+use Client\{
     Application\Service\Client\ProgramParticipationQuit,
     Domain\Model\Client\ProgramParticipation
 };
-use Query\ {
+use Query\{
     Application\Service\Client\ProgramParticipationView,
     Domain\Model\Firm\Program\Participant
 };
@@ -32,7 +32,7 @@ class ProgramParticipationController extends ClientBaseController
     {
         $service = $this->buildViewService();
         $programParticipations = $service->showAll($this->clientId(), $this->getPage(), $this->getPageSize());
-        
+
         $result = [];
         $result['total'] = count($programParticipations);
         foreach ($programParticipations as $programParticipation) {
@@ -44,12 +44,16 @@ class ProgramParticipationController extends ClientBaseController
                     "id" => $programParticipation->getProgram()->getId(),
                     "name" => $programParticipation->getProgram()->getName(),
                     "removed" => $programParticipation->getProgram()->isRemoved(),
+                    "firm" => [
+                        "id" => $programParticipation->getProgram()->getFirm()->getId(),
+                        "name" => $programParticipation->getProgram()->getFirm()->getName(),
+                    ],
                 ],
             ];
         }
         return $this->listQueryResponse($result);
     }
-    
+
     protected function arrayDataOfParticipant(Participant $participant): array
     {
         return [
@@ -68,12 +72,13 @@ class ProgramParticipationController extends ClientBaseController
             "note" => $participant->getNote(),
         ];
     }
-    
+
     protected function buildQuitService()
     {
         $programParticipationRepository = $this->em->getRepository(ProgramParticipation::class);
         return new ProgramParticipationQuit($programParticipationRepository);
     }
+
     protected function buildViewService()
     {
         $programParticipationRepository = $this->em->getRepository(Participant::class);

@@ -81,6 +81,11 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                         "id" => $this->programParticipation->program->id,
                         "name" => $this->programParticipation->program->name,
                         "removed" => $this->programParticipation->program->removed,
+                        "firm" => [
+                            "id" => $this->programParticipation->program->firm->id,
+                            "name" => $this->programParticipation->program->firm->name,
+
+                        ],
                     ],
                 ],
                 [
@@ -91,6 +96,11 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                         "id" => $this->programParticipationOne->program->id,
                         "name" => $this->programParticipationOne->program->name,
                         "removed" => $this->programParticipationOne->program->removed,
+                        "firm" => [
+                            "id" => $this->programParticipationOne->program->firm->id,
+                            "name" => $this->programParticipationOne->program->firm->name,
+
+                        ],
                     ],
                 ],
             ],
