@@ -56,10 +56,12 @@ class LearningMaterialControllerTest extends MissionTestCase
                 [
                     "id" => $this->learningMaterial->id,
                     "name" => $this->learningMaterial->name,
+                    "content" => $this->learningMaterial->content,
                 ],
                 [
                     "id" => $this->learningMaterialOne->id,
                     "name" => $this->learningMaterialOne->name,
+                    "content" => $this->learningMaterialOne->content,
                 ],
             ],
         ];

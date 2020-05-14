@@ -31,7 +31,12 @@ class LearningMaterialController extends AsProgramParticipantBaseController
         $missionCompositionId = new MissionCompositionId($firmId, $programId, $missionId);
         $learningMaterials = $service->showAll($missionCompositionId, $this->getPage(), $this->getPageSize());
         
-        return $this->commonIdNameListQueryResponse($learningMaterials);
+        $result = [];
+        $result['total'] = count($learningMaterials);
+        foreach ($learningMaterials as $learningMaterial) {
+            $result['list'][] = $this->arrayDataOfLearningMaterial($learningMaterial);
+        }
+        return $this->listQueryResponse($result);
     }
 
     protected function arrayDataOfLearningMaterial(LearningMaterial $learningMaterial): array
