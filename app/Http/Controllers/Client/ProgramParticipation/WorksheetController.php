@@ -97,7 +97,27 @@ class WorksheetController extends ClientBaseController
         $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
                 $programParticipationId);
         $worksheets = $service->showAll($programParticipationCompositionId, $this->getPage(), $this->getPageSize());
-        return $this->commonIdNameListQueryResponse($worksheets);
+        
+        $result = [];
+        $result['total'] = count($worksheets);
+        foreach ($worksheets as $worksheet) {
+            $parent = empty($worksheet->getParent()) ? null :
+                    [
+                "id" => $worksheet->getParent()->getId(),
+                "name" => $worksheet->getParent()->getName(),
+            ];
+            $result['list'][] = [
+                "id" => $worksheet->getId(),
+                "name" => $worksheet->getName(),
+                "mission" => [
+                    "id" => $worksheet->getMission()->getId(),
+                    "name" => $worksheet->getMission()->getName(),
+                ],
+                "parent" => $parent,
+            ];
+        }
+        return $this->listQueryResponse($result);
+//        return $this->commonIdNameListQueryResponse($worksheets);
     }
 
     protected function arrayDataOfWorksheet(Worksheet2 $worksheet): array

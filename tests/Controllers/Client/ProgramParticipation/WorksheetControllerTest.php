@@ -24,6 +24,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
         
         $this->worksheetOne = new RecordOfWorksheet($this->programParticipation, $formRecord, $this->mission);
+        $this->worksheetOne->parent = $this->worksheet;
         $this->connection->table('Worksheet')->insert($this->worksheetOne->toArrayForDbEntry());
     }
     
@@ -72,7 +73,6 @@ class WorksheetControllerTest extends WorksheetTestCase
     
     public function test_addBranch()
     {
-$this->disableExceptionHandling();
         $this->worksheetInput['missionId'] = $this->branchMission->id;
         $this->worksheetResponse['parent'] = [
             "id" => $this->worksheet->id,
@@ -177,10 +177,23 @@ $this->disableExceptionHandling();
                 [
                     "id" => $this->worksheet->id,
                     "name" => $this->worksheet->name,
+                    "parent" => null,
+                    "mission" => [
+                        "id" => $this->worksheet->mission->id,
+                        "name" => $this->worksheet->mission->name,
+                    ],
                 ],
                 [
                     "id" => $this->worksheetOne->id,
                     "name" => $this->worksheetOne->name,
+                    "parent" => [
+                        "id" => $this->worksheetOne->parent->id,
+                        "name" => $this->worksheetOne->parent->name,
+                    ],
+                    "mission" => [
+                        "id" => $this->worksheetOne->mission->id,
+                        "name" => $this->worksheetOne->mission->name,
+                    ],
                 ],
             ],
         ];
