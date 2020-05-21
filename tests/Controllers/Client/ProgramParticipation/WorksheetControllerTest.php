@@ -23,7 +23,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         $formRecord = new RecordOfFormRecord($this->form, 1);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
         
-        $this->worksheetOne = new RecordOfWorksheet($this->programParticipation, $formRecord, $this->mission);
+        $this->worksheetOne = new RecordOfWorksheet($this->programParticipation, $formRecord, $this->branchMission);
         $this->worksheetOne->parent = $this->worksheet;
         $this->connection->table('Worksheet')->insert($this->worksheetOne->toArrayForDbEntry());
     }
@@ -200,6 +200,84 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->get($this->worksheetUri, $this->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
+    }
+    public function test_showAll_containMissionFilter()
+    {
+        $response = [
+            "total" => 1, 
+            "list" => [
+                [
+                    "id" => $this->worksheet->id,
+                    "name" => $this->worksheet->name,
+                    "parent" => null,
+                    "mission" => [
+                        "id" => $this->worksheet->mission->id,
+                        "name" => $this->worksheet->mission->name,
+                    ],
+                ],
+            ],
+        ];
+        $uri = $this->worksheetUri . "?missionId={$this->worksheet->mission->id}";
+        $this->get($uri, $this->client->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+    }
+    public function test_showAll_containParentWorksheetFilter()
+    {
+        $response = [
+            "total" => 1, 
+            "list" => [
+                [
+                    "id" => $this->worksheetOne->id,
+                    "name" => $this->worksheetOne->name,
+                    "parent" => [
+                        "id" => $this->worksheetOne->parent->id,
+                        "name" => $this->worksheetOne->parent->name,
+                    ],
+                    "mission" => [
+                        "id" => $this->worksheetOne->mission->id,
+                        "name" => $this->worksheetOne->mission->name,
+                    ],
+                ],
+            ],
+        ];
+        $uri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}";
+        $this->get($uri, $this->client->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+    }
+    public function test_showAll_containFilter()
+    {
+        $response = [
+            "total" => 1, 
+            "list" => [
+                [
+                    "id" => $this->worksheetOne->id,
+                    "name" => $this->worksheetOne->name,
+                    "parent" => [
+                        "id" => $this->worksheetOne->parent->id,
+                        "name" => $this->worksheetOne->parent->name,
+                    ],
+                    "mission" => [
+                        "id" => $this->worksheetOne->mission->id,
+                        "name" => $this->worksheetOne->mission->name,
+                    ],
+                ],
+            ],
+        ];
+        $uri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}&missionId={$this->worksheetOne->mission->id}";
+        $this->get($uri, $this->client->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+        
+        $emptyResponse = [
+            'total' => 0,
+        ];
+        $emptyUri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}&missionId={$this->worksheet->mission->id}";
+        $uri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}&missionId={$this->worksheetOne->mission->id}";
+        $this->get($emptyUri, $this->client->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($emptyResponse);
     }
     
 }

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\ {
+use App\Http\Controllers\{
     Client\ClientBaseController,
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter
 };
-use Client\ {
+use Client\{
     Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
     Application\Service\Client\ProgramParticipation\WorksheetAddBranch,
     Application\Service\Client\ProgramParticipation\WorksheetAddRoot,
@@ -19,7 +19,7 @@ use Client\ {
     Domain\Model\Firm\Program\Mission,
     Domain\Service\ParticipantFileInfoFinder
 };
-use Query\ {
+use Query\{
     Application\Service\Client\ProgramParticipation\WorksheetView,
     Domain\Model\Firm\Program\Participant\Worksheet as Worksheet2
 };
@@ -35,7 +35,7 @@ class WorksheetController extends ClientBaseController
         $worksheetId = $service->execute(
                 $this->clientId(), $programParticipationId, $missionId, $name,
                 $this->getFormRecordData($programParticipationId));
-        
+
         $viewService = $this->buildViewService();
         $programParticipationCompositionId = new ProgramParticipationCompositionId(
                 $this->clientId(), $programParticipationId);
@@ -96,8 +96,13 @@ class WorksheetController extends ClientBaseController
         $service = $this->buildViewService();
         $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
                 $programParticipationId);
-        $worksheets = $service->showAll($programParticipationCompositionId, $this->getPage(), $this->getPageSize());
         
+        $missionId = $this->stripTagsVariable($this->request->query('missionId'));
+        $parentWorksheetId = $this->stripTagsVariable($this->request->query('parentWorksheetId'));
+        $worksheets = $service->showAll(
+                $programParticipationCompositionId, $this->getPage(), $this->getPageSize(), $missionId,
+                $parentWorksheetId);
+
         $result = [];
         $result['total'] = count($worksheets);
         foreach ($worksheets as $worksheet) {
@@ -117,7 +122,6 @@ class WorksheetController extends ClientBaseController
             ];
         }
         return $this->listQueryResponse($result);
-//        return $this->commonIdNameListQueryResponse($worksheets);
     }
 
     protected function arrayDataOfWorksheet(Worksheet2 $worksheet): array

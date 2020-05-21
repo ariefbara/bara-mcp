@@ -3,12 +3,12 @@
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
 use Personnel\Application\Service\Firm\Program\Participant\WorksheetRepository as InterfaceForPersonnelBC;
-use Query\ {
+use Query\{
     Application\Service\Client\ProgramParticipation\WorksheetRepository as InterfaceForProgramParticipation,
     Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Program\Participant\ParticipantCompositionId,
@@ -16,7 +16,7 @@ use Query\ {
     Domain\Model\Firm\Program\Consultant,
     Domain\Model\Firm\Program\Participant\Worksheet
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
@@ -111,7 +111,8 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
     }
 
     public function allWorksheetsOfParticipant(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
+            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize,
+            ?string $missionId, ?string $parentWorksheetId)
     {
         $params = [
             "participantId" => $programParticipationCompositionId->getProgramParticipationId(),
@@ -127,6 +128,17 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->leftJoin('participant.client', 'client')
                 ->andWhere($qb->expr()->eq('client.id', ':clientId'))
                 ->setParameters($params);
+        
+        if (!empty($missionId)) {
+            $qb->leftJoin('worksheet.mission', 'mission')
+                    ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
+                    ->setParameter('missionId', $missionId);
+        }
+        if (!empty($parentWorksheetId)) {
+            $qb->leftJoin('worksheet.parent', 'parent')
+                    ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
+                    ->setParameter('parentId', $parentWorksheetId);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
@@ -142,7 +154,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
             "personnelId" => $personnelCompositionId->getPersonnelId(),
             "firmId" => $personnelCompositionId->getFirmId(),
         ];
-        
+
         $subQuery = $this->getEntityManager()->createQueryBuilder();
         $subQuery->select('tProgram.id')
                 ->from(Consultant::class, "consultant")
@@ -155,7 +167,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->andWhere($subQuery->expr()->eq('firm.id', ':firmId'))
                 ->leftJoin('consultant.program', 'tProgram')
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('worksheet');
         $qb->select('worksheet')
                 ->andWhere($qb->expr()->eq('worksheet.removed', 'false'))
@@ -168,7 +180,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->andWhere($qb->expr()->in('program.id', $subQuery->getDQL()))
                 ->setParameters($parameters)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {

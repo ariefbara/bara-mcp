@@ -27,10 +27,11 @@ class WorksheetView
      * @return Worksheet[]
      */
     public function showAll(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
+            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize,
+            ?string $missionId, ?string $parentWorksheetId)
     {
-        return $this->worksheetRepository
-                        ->allWorksheetsOfParticipant($programParticipationCompositionId, $page, $pageSize);
+        return $this->worksheetRepository->allWorksheetsOfParticipant(
+                        $programParticipationCompositionId, $page, $pageSize, $missionId, $parentWorksheetId);
     }
 
     public function showById(ProgramParticipationCompositionId $programParticipationCompositionId, string $worksheetId): Worksheet
