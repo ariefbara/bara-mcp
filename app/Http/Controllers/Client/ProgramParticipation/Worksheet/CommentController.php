@@ -15,6 +15,8 @@ use Client\ {
 };
 use Query\ {
     Application\Service\Client\ProgramParticipation\Worksheet\CommentView,
+    Domain\Model\Firm\Program\Consultant\ConsultantComment,
+    Domain\Model\Firm\Program\Participant\ParticipantComment as ParticipantComment2,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment as Comment2
 };
 
@@ -65,52 +67,51 @@ class CommentController extends ClientBaseController
         $result = [];
         $result["total"] = count($comments);
         foreach ($comments as $comment) {
-            $result['list'][] = [
-                "id" => $comment->getId(),
-                "message" => $comment->getMessage(),
-                "submitTime" => $comment->getSubmitTimeString(),
-                'removed' => $comment->isRemoved(),
-            ];
+            $result['list'][] = $this->arrayDataOfComment($comment);
         }
         return $this->listQueryResponse($result);
     }
     
     protected function arrayDataOfComment(Comment2 $comment): array
     {
-        $parent = (empty($comment->getParent()))? null:
-                [
-                    "id" => $comment->getParent()->getId(),
-                    "message" => $comment->getParent()->getMessage(),
-                    "submitTime" => $comment->getParent()->getSubmitTimeString(),
-                    "removed" => $comment->getParent()->isRemoved(),
-                ];
-        
-        $data = [
+        return  [
             "id" => $comment->getId(),
             "message" => $comment->getMessage(),
             "submitTime" => $comment->getSubmitTimeString(),
-            "parent" => $parent,
-            "participant" => null,
-            "consultant" => null,
+            'removed' => $comment->isRemoved(),
+            "parent" => $this->arrayDataOfParentComment($comment->getParent()),
+            "participant" => $this->arrayDataOfParticipant($comment->getParticipantComment()),
+            "consultant" => $this->arrayDataOfConsultant($comment->getConsultantComment()),
         ];
-        if (!empty($comment->getParticipantComment())) {
-            $data['participant'] = [
-                "id" => $comment->getParticipantComment()->getParticipant()->getId(),
-                "client" => [
-                    "id" => $comment->getParticipantComment()->getParticipant()->getClient()->getId(),
-                    "name" => $comment->getParticipantComment()->getParticipant()->getClient()->getName(),
-                ],
-            ];
-        } elseif (!empty ($comment->getConsultantComment())) {
-            $data['consultant'] = [
-                "id" => $comment->getConsultantComment()->getConsultant()->getId(),
-                "personnel" => [
-                    "id" => $comment->getConsultantComment()->getConsultant()->getPersonnel()->getId(),
-                    "name" => $comment->getConsultantComment()->getConsultant()->getPersonnel()->getName(),
-                ],
-            ];
-        }
-        return $data;
+    }
+    protected function arrayDataOfParentComment(?Comment2 $comment): ?array
+    {
+        return empty($comment)? null: [
+            "id" => $comment->getId(),
+            "message" => $comment->getMessage(),
+            "submitTime" => $comment->getSubmitTimeString(),
+            "removed" => $comment->isRemoved(),
+        ];
+    }
+    protected function arrayDataOfConsultant(?ConsultantComment $consultantComment): ?array
+    {
+        return empty($consultantComment)? null: [
+            'id' => $consultantComment->getConsultant()->getId(),
+            'personnel' => [
+                'id' => $consultantComment->getConsultant()->getPersonnel()->getId(),
+                'name' => $consultantComment->getConsultant()->getPersonnel()->getName(),
+            ],
+        ];
+    }
+    protected function arrayDataOfParticipant(?ParticipantComment2 $participantCOmment): ?array
+    {
+        return empty($participantCOmment)? null: [
+            'id' => $participantCOmment->getParticipant()->getId(),
+            'client' => [
+                'id' => $participantCOmment->getParticipant()->getClient()->getId(),
+                'name' => $participantCOmment->getParticipant()->getClient()->getName(),
+            ],
+        ];
     }
     
     protected function buildSubmitNewService()

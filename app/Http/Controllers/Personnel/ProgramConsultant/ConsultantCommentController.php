@@ -100,6 +100,7 @@ class ConsultantCommentController extends PersonnelBaseController
             "id" => $consultantComment->getId(),
             "message" => $consultantComment->getMessage(),
             "submitTime" => $consultantComment->getSubmitTimeString(),
+            "removed" => $consultantComment->isRemoved(),
             "parent" => $this->arrayDataOfParentComment($consultantComment->getParent()),
             "participant" => null,
             "consultant" => $this->arrayDataOfConsultant($consultantComment->getConsultant()),

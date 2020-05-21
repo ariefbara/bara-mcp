@@ -106,6 +106,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $response = [
             "submitTime" => (new \DateTime())->format('Y-m-d H:i:s'),
             "message" => $this->submitNewRequest['message'],
+            "removed" => false,
             "parent" => null,
             "participant" => null,
             "consultant" => [
@@ -156,6 +157,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $response = [
             "submitTime" => (new \DateTime())->format('Y-m-d H:i:s'),
             "message" => $this->submitReplyRequest['message'],
+            "removed" => false,
             "parent" => [
                 "id" => $this->commentOne->id,
                 "message" => $this->commentOne->message,

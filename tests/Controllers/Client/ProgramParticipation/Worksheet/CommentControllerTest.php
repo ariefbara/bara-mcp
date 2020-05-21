@@ -107,6 +107,7 @@ class CommentControllerTest extends WorksheetTestCase
             "id" => $this->commentOne->id,
             "message" => $this->commentOne->message,
             "submitTime" => $this->commentOne->submitTime,
+            "removed" => $this->commentOne->removed,
             "parent" => [
                 "id" => $this->comment->id,
                 "submitTime" => $this->comment->submitTime,
@@ -138,12 +139,35 @@ class CommentControllerTest extends WorksheetTestCase
                     "message" => $this->comment->message,
                     "submitTime" => $this->comment->submitTime,
                     "removed" => $this->comment->removed,
+                    "parent" => null,
+                    "participant" => [
+                        "id" => $this->programParticipation->id,
+                        "client" => [
+                            "id" => $this->programParticipation->client->id,
+                            "name" => $this->programParticipation->client->name,
+                        ],
+                    ],
+                    "consultant" => null,
                 ],
                 [
                     "id" => $this->commentOne->id,
                     "message" => $this->commentOne->message,
                     "submitTime" => $this->commentOne->submitTime,
                     "removed" => $this->commentOne->removed,
+                    "parent" => [
+                        "id" => $this->comment->id,
+                        "submitTime" => $this->comment->submitTime,
+                        "message" => $this->comment->message,
+                        "removed" => $this->comment->removed,
+                    ],
+                    "participant" => [
+                        "id" => $this->programParticipation->id,
+                        "client" => [
+                            "id" => $this->programParticipation->client->id,
+                            "name" => $this->programParticipation->client->name,
+                        ],
+                    ],
+                    "consultant" => null,
                 ],
             ],
         ];
