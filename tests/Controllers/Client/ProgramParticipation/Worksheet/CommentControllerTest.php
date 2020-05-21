@@ -137,11 +137,13 @@ class CommentControllerTest extends WorksheetTestCase
                     "id" => $this->comment->id,
                     "message" => $this->comment->message,
                     "submitTime" => $this->comment->submitTime,
+                    "removed" => $this->comment->removed,
                 ],
                 [
                     "id" => $this->commentOne->id,
                     "message" => $this->commentOne->message,
                     "submitTime" => $this->commentOne->submitTime,
+                    "removed" => $this->commentOne->removed,
                 ],
             ],
         ];

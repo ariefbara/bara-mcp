@@ -69,6 +69,7 @@ class CommentController extends ClientBaseController
                 "id" => $comment->getId(),
                 "message" => $comment->getMessage(),
                 "submitTime" => $comment->getSubmitTimeString(),
+                'removed' => $comment->isRemoved(),
             ];
         }
         return $this->listQueryResponse($result);
