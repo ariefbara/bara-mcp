@@ -45,6 +45,7 @@ class CommentController extends AsProgramConsultantBaseController
             "id" => $comment->getId(),
             "message" => $comment->getMessage(),
             "submitTime" => $comment->getSubmitTimeString(),
+            "removed" => $comment->isRemoved(),
             "participant" => $this->arrayDataOfParticipant($comment->getParticipantComment()),
             "consultant" => $this->arrayDataOfConsultant($comment->getConsultantComment()),
             "parent" => $this->arrayDataOfparentComment($comment->getParent()),
@@ -59,6 +60,7 @@ class CommentController extends AsProgramConsultantBaseController
             "id" => $parentComment->getId(),
             "message" => $parentComment->getMessage(),
             "submitTime" => $parentComment->getSubmitTimeString(),
+            "removed" => $parentComment->isRemoved(),
             "participant" => $this->arrayDataOfParticipant($parentComment->getParticipantComment()),
             "consultant" => $this->arrayDataOfConsultant($parentComment->getConsultantComment()),
         ];

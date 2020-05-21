@@ -50,6 +50,7 @@ class CommentControllerTest extends WorksheetTestCase
             "id" => $this->commentOne->id,
             "message" => $this->commentOne->message,
             "submitTime" => $this->commentOne->submitTime,
+            "removed" => $this->commentOne->removed,
             "consultant" => null,
             "participant" => [
                 "id" => $this->worksheet->participant->id,
@@ -62,6 +63,7 @@ class CommentControllerTest extends WorksheetTestCase
                 "id" => $this->commentOne->parent->id,
                 "message" => $this->commentOne->parent->message,
                 "submitTime" => $this->commentOne->parent->submitTime,
+                "removed" => $this->commentOne->parent->removed,
                 "consultant" => [
                     "id" => $this->consultant->id,
                     "personnel" => [
@@ -93,6 +95,7 @@ class CommentControllerTest extends WorksheetTestCase
                     "id" => $this->comment->id,
                     "message" => $this->comment->message,
                     "submitTime" => $this->comment->submitTime,
+                    "removed" => $this->comment->removed,
                     "consultant" => [
                         "id" => $this->consultant->id,
                         "personnel" => [
@@ -107,6 +110,7 @@ class CommentControllerTest extends WorksheetTestCase
                     "id" => $this->commentOne->id,
                     "message" => $this->commentOne->message,
                     "submitTime" => $this->commentOne->submitTime,
+                    "removed" => $this->commentOne->removed,
                     "consultant" => null,
                     "participant" => [
                         "id" => $this->worksheet->participant->id,
@@ -119,6 +123,7 @@ class CommentControllerTest extends WorksheetTestCase
                         "id" => $this->commentOne->parent->id,
                         "message" => $this->commentOne->parent->message,
                         "submitTime" => $this->commentOne->parent->submitTime,
+                        "removed" => $this->commentOne->parent->removed,
                         "consultant" => [
                             "id" => $this->consultant->id,
                             "personnel" => [
