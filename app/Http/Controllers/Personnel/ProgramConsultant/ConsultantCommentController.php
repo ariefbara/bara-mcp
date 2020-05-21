@@ -21,6 +21,7 @@ use Personnel\ {
 use Query\ {
     Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultantCommentView,
+    Domain\Model\Firm\Program\Consultant,
     Domain\Model\Firm\Program\Consultant\ConsultantComment as ConsultantComment2,
     Domain\Model\Firm\Program\Participant\Worksheet
 };
@@ -95,16 +96,32 @@ class ConsultantCommentController extends PersonnelBaseController
 
     protected function arrayDataOfConsultantComment(ConsultantComment2 $consultantComment): array
     {
-        $parentData = empty($consultantComment->getParent()) ? null : [
-            "id" => $consultantComment->getParent()->getId(),
-            "message" => $consultantComment->getParent()->getMessage(),
-        ];
-
         return [
             "id" => $consultantComment->getId(),
             "message" => $consultantComment->getMessage(),
             "submitTime" => $consultantComment->getSubmitTimeString(),
-            "parent" => $parentData,
+            "parent" => $this->arrayDataOfParentComment($consultantComment->getParent()),
+            "participant" => null,
+            "consultant" => $this->arrayDataOfConsultant($consultantComment->getConsultant()),
+        ];
+    }
+    protected function arrayDataOfParentComment(?Worksheet\Comment $comment): ?array
+    {
+        return empty($comment)? null: [
+            'id' => $comment->getId(),
+            "message" => $comment->getMessage(),
+            "submitTime" => $comment->getSubmitTimeString(),
+            "removed" => $comment->isRemoved(),
+        ];
+    }
+    protected function arrayDataOfConsultant(Consultant $consultant): array
+    {
+        return [
+            'id' => $consultant->getId(),
+            'personnel' => [
+                'id' => $consultant->getPersonnel()->getId(),
+                'name' => $consultant->getPersonnel()->getName(),
+            ],
         ];
     }
 

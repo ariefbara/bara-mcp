@@ -107,6 +107,14 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
             "submitTime" => (new \DateTime())->format('Y-m-d H:i:s'),
             "message" => $this->submitNewRequest['message'],
             "parent" => null,
+            "participant" => null,
+            "consultant" => [
+                'id' => $this->programConsultant->id,
+                'personnel' => [
+                    'id' => $this->programConsultant->personnel->id,
+                    'name' => $this->programConsultant->personnel->name,
+                ],
+            ],
         ];
 
         $uri = $this->consultantCommentUri . "/new";
@@ -151,6 +159,15 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
             "parent" => [
                 "id" => $this->commentOne->id,
                 "message" => $this->commentOne->message,
+                "submitTime" => $this->commentOne->submitTime,
+                "removed" => $this->commentOne->removed,
+            ],
+            "consultant" => [
+                'id' => $this->programConsultant->id,
+                'personnel' => [
+                    'id' => $this->programConsultant->personnel->id,
+                    'name' => $this->programConsultant->personnel->name,
+                ],
             ],
         ];
 
