@@ -30,7 +30,12 @@ class ConsultationSetupController extends AsProgramParticipantBaseController
         $programCompositionId = new ProgramCompositionId($firmId, $programId);
         
         $consultationSetups = $service->showAll($programCompositionId, $this->getPage(), $this->getPageSize());
-        return $this->commonIdNameListQueryResponse($consultationSetups);
+        $result = [];
+        $result['total'] = count($consultationSetups);
+        foreach ($consultationSetups as $consultationSetup) {
+            $result['list'][] = $this->arrayDataOfConsultationSetup($consultationSetup);
+        }
+        return $this->listQueryResponse($result);
     }
     
     protected function arrayDataOfConsultationSetup(ConsultationSetup $consultationSetup): array

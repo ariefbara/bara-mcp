@@ -77,6 +77,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->worksheetResponse['parent'] = [
             "id" => $this->worksheet->id,
             "name" => $this->worksheet->name,
+            "parent" => null,
         ];
         $this->worksheetResponse['mission'] = [
             "id" => $this->branchMission->id,
@@ -162,9 +163,25 @@ class WorksheetControllerTest extends WorksheetTestCase
     
     public function test_show()
     {
+        $formRecord = new RecordOfFormRecord($this->worksheet->formRecord->form, 2);
+        $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
+        $worksheetTwo = new RecordOfWorksheet($this->programParticipation, $formRecord, $this->mission);
+        $worksheetTwo->parent = $this->worksheetOne;
+        $this->connection->table('Worksheet')->insert($worksheetTwo->toArrayForDbEntry());
+        
         $this->worksheetResponse['id'] = $this->worksheet->id;
         $this->worksheetResponse['name'] = $this->worksheet->name;
-        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->worksheetResponse['parent'] = [
+            'id' => $worksheetTwo->parent->id,
+            'name' => $worksheetTwo->parent->name,
+            'parent' => [
+                'id' => $worksheetTwo->parent->parent->id,
+                'name' => $worksheetTwo->parent->parent->name,
+                'parent' => null,
+            ],
+        ];
+        
+        $uri = $this->worksheetUri . "/{$worksheetTwo->id}";
         $this->get($uri, $this->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($this->worksheetResponse);

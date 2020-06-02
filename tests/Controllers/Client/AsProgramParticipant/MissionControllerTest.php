@@ -98,6 +98,30 @@ class MissionControllerTest extends MissionTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($result);
     }
+    public function test_showAll_containPositionQuery()
+    {
+        $result = [
+            'total' => 1, 
+            'list' => [
+                [
+                    'id' => $this->missionOne->id,
+                    'name' => $this->missionOne->name,
+                    'description' => $this->missionOne->description,
+                    'position' => $this->missionOne->position,
+                    'parent' => [
+                        'id' => $this->missionOne->parent->id,
+                        'name' => $this->missionOne->parent->name,
+                        'description' => $this->missionOne->parent->description,
+                        'position' => $this->missionOne->parent->position,
+                    ],
+                ],
+            ],
+        ];
+        $uri = $this->missionUri . "?position={$this->missionOne->position}";
+        $this->get($uri, $this->participant->client->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($result);
+    }
     public function test_showAll_clientNotActiveParticipant_error401()
     {
         $this->get($this->missionUri, $this->inactiveParticipant->client->token)

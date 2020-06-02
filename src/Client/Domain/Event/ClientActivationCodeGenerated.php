@@ -30,7 +30,7 @@ class ClientActivationCodeGenerated implements CanBeMailedEvent
     public function getMail(): Mail
     {
 //        $baseUri = $_SERVER['SERVER_NAME'];
-        $baseUri = "https://innov.id";
+        $baseUri = "https://konsulta.co";
         $subject = "bara-MCP account activation";
         $body = <<<_BODY_MESSAGE
 this basic message will be shown if client cannot render html mail

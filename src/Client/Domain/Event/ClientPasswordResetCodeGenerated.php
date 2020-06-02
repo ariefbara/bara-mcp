@@ -30,7 +30,7 @@ class ClientPasswordResetCodeGenerated implements CanBeMailedEvent
     public function getMail(): Mail
     {
 //        $baseUri = $_SERVER['SERVER_NAME'];
-        $baseUri = "https://innov.id";
+        $baseUri = "https://konsulta.co";
         $subject = "bara-MCP account password reset request";
         $body = <<<_BODY_MESSAGE
 $baseUri/reset-client-password/{$this->clientEmailAddress}/{$this->resetPasswordCode}

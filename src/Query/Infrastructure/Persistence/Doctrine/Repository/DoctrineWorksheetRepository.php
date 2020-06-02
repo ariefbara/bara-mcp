@@ -128,7 +128,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->leftJoin('participant.client', 'client')
                 ->andWhere($qb->expr()->eq('client.id', ':clientId'))
                 ->setParameters($params);
-        
+
         if (!empty($missionId)) {
             $qb->leftJoin('worksheet.mission', 'mission')
                     ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
@@ -187,6 +187,30 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
             $errorDetail = "not found: worksheet not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function allWorksheetOfParticipantCorrespondWithMission(
+            ProgramParticipationCompositionId $programParticipationCompositionId, string $missionId)
+    {
+        $params = [
+            "participantId" => $programParticipationCompositionId->getProgramParticipationId(),
+            "clientId" => $programParticipationCompositionId->getClientId(),
+            "missionId" => $missionId,
+        ];
+
+        $qb = $this->createQueryBuilder('worksheet');
+        $qb->select('worksheet')
+                ->andWhere($qb->expr()->eq('worksheet.removed', 'false'))
+                ->leftJoin('worksheet.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('participant.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('worksheet.mission', 'mission')
+                ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
+                ->setParameters($params);
+        
+        return $qb->getQuery()->getResult();
     }
 
 }

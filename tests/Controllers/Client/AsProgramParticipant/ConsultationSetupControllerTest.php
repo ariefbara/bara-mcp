@@ -69,10 +69,12 @@ class ConsultationSetupControllerTest extends AsProgramParticipantTestCase
                 [
                     "id" => $this->consultationSetup->id,
                     "name" => $this->consultationSetup->name,
+                    "sessionDuration" => $this->consultationSetup->sessionDuration,
                 ],
                 [
                     "id" => $this->consultationSetupOne->id,
                     "name" => $this->consultationSetupOne->name,
+                    "sessionDuration" => $this->consultationSetupOne->sessionDuration,
                 ],
             ],
         ];

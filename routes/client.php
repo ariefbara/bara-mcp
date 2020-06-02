@@ -54,6 +54,12 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("/{worksheetId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        $router->group(['prefix' => '/missions'], function () use($router) {
+            $controller = "MissionController";
+            $router->get("/by-position/{position}", ["uses" => "$controller@showByPosition"]);
+            $router->get("/by-id/{missionId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
         $worksheetAggregate = [
             'prefix' => '/worksheets/{worksheetId}',
             'namespace' => 'Worksheet',

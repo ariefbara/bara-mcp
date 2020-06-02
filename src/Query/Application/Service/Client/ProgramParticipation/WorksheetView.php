@@ -39,4 +39,17 @@ class WorksheetView
         return $this->worksheetRepository->aWorksheetOfParticipant($programParticipationCompositionId, $worksheetId);
     }
 
+    /**
+     * 
+     * @param ProgramParticipationCompositionId $programParticipationCompositionId
+     * @param string $missionId
+     * @return Worksheet[]
+     */
+    public function showAllWorksheetsCorrespondWithMission(
+            ProgramParticipationCompositionId $programParticipationCompositionId, string $missionId)
+    {
+        return $this->worksheetRepository->allWorksheetOfParticipantCorrespondWithMission(
+                        $programParticipationCompositionId, $missionId);
+    }
+
 }

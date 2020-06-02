@@ -14,4 +14,7 @@ interface WorksheetRepository
     public function allWorksheetsOfParticipant(
             ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize,
             ?string $missionId, ?string $parentWorksheetId);
+
+    public function allWorksheetOfParticipantCorrespondWithMission(
+            ProgramParticipationCompositionId $programParticipationCompositionId, string $missionId);
 }

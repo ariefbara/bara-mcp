@@ -96,7 +96,7 @@ class WorksheetController extends ClientBaseController
         $service = $this->buildViewService();
         $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
                 $programParticipationId);
-        
+
         $missionId = $this->stripTagsVariable($this->request->query('missionId'));
         $parentWorksheetId = $this->stripTagsVariable($this->request->query('parentWorksheetId'));
         $worksheets = $service->showAll(
@@ -106,8 +106,7 @@ class WorksheetController extends ClientBaseController
         $result = [];
         $result['total'] = count($worksheets);
         foreach ($worksheets as $worksheet) {
-            $parent = empty($worksheet->getParent()) ? null :
-                    [
+            $parent = empty($worksheet->getParent()) ? null : [
                 "id" => $worksheet->getParent()->getId(),
                 "name" => $worksheet->getParent()->getName(),
             ];
@@ -127,11 +126,7 @@ class WorksheetController extends ClientBaseController
     protected function arrayDataOfWorksheet(Worksheet2 $worksheet): array
     {
         $data = (new FormRecordToArrayDataConverter())->convert($worksheet);
-        $parent = empty($worksheet->getParent()) ? null :
-                [
-            "id" => $worksheet->getParent()->getId(),
-            "name" => $worksheet->getParent()->getName(),
-        ];
+        $parent = empty($worksheet->getParent()) ? null : $this->arrayDataOfParentWorksheet($worksheet->getParent());
         $data['id'] = $worksheet->getId();
         $data['parent'] = $parent;
         $data['name'] = $worksheet->getName();
@@ -143,6 +138,17 @@ class WorksheetController extends ClientBaseController
             ],
         ];
         return $data;
+    }
+
+    protected function arrayDataOfParentWorksheet(Worksheet2 $parentWorksheet): array
+    {
+        $parent = empty($parentWorksheet->getParent()) ? null :
+                $this->arrayDataOfParentWorksheet($parentWorksheet->getParent());
+        return [
+            'id' => $parentWorksheet->getId(),
+            'name' => $parentWorksheet->getName(),
+            "parent" => $parent,
+        ];
     }
 
     protected function buildAddRootService()
