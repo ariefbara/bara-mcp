@@ -135,6 +135,8 @@ class WorksheetController extends ClientBaseController
             "name" => $worksheet->getMission()->getName(),
             "worksheetForm" => [
                 "id" => $worksheet->getMission()->getWorksheetForm()->getId(),
+                "name" => $worksheet->getMission()->getWorksheetForm()->getName(),
+                "description" => $worksheet->getMission()->getWorksheetForm()->getDescription(),
             ],
         ];
         return $data;

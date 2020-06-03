@@ -84,6 +84,8 @@ class WorksheetControllerTest extends WorksheetTestCase
             "name" => $this->branchMission->name,
             "worksheetForm" => [
                 "id" => $this->branchMission->worksheetForm->id,
+                "name" => $this->branchMission->worksheetForm->form->name,
+                "description" => $this->branchMission->worksheetForm->form->description,
             ],
         ];
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
