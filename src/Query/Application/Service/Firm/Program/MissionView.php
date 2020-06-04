@@ -32,7 +32,7 @@ class MissionView
      * @param string|null $position
      * @return Mission[]
      */
-    public function showAll(ProgramCompositionId $programCompositionId, int $page, int $pageSize, ?string $position)
+    public function showAll(ProgramCompositionId $programCompositionId, int $page, int $pageSize, ?string $position = null)
     {
         return $this->missionRepository->all($programCompositionId, $page, $pageSize, $position);
     }

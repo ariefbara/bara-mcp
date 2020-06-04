@@ -46,7 +46,7 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
         }
     }
 
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize, ?string $position)
+    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize, ?string $position = null)
     {
         $qb = $this->createQueryBuilder('mission');
         $qb->select('mission')
