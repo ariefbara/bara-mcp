@@ -122,11 +122,26 @@ class MissionControllerTest extends ProgramParticipationTestCase
             'parent' => [
                 'id' => $this->mission_2->parent->id,
                 'name' => $this->mission_2->parent->name,
+                'description' => $this->mission_2->parent->description,
+                'position' => $this->mission_2->parent->position,
                 'parent' => [
                     'id' => $this->mission_2->parent->parent->id,
                     'name' => $this->mission_2->parent->parent->name,
+                    'description' => $this->mission_2->parent->parent->description,
+                    'position' => $this->mission_2->parent->parent->position,
                     'parent' => null
                 ],
+            ],
+            'worksheetForm' => [
+                'id' => $this->mission_2->worksheetForm->id,
+                'name' => $this->mission_2->worksheetForm->form->name,
+                'description' => $this->mission_2->worksheetForm->form->description,
+                'stringFields' => [],
+                'integerFields' => [],
+                'textAreaFields' => [],
+                'attachmentFields' => [],
+                'singleSelectFields' => [],
+                'multiSelectFields' => [],
             ],
             'worksheets' => [
                 [
@@ -152,7 +167,6 @@ class MissionControllerTest extends ProgramParticipationTestCase
     
     public function test_showByPosition()
     {
-$this->disableExceptionHandling();
         $response = [
             'id' => $this->mission_2->id,
             'name' => $this->mission_2->name,
@@ -161,11 +175,26 @@ $this->disableExceptionHandling();
             'parent' => [
                 'id' => $this->mission_2->parent->id,
                 'name' => $this->mission_2->parent->name,
+                'description' => $this->mission_2->parent->description,
+                'position' => $this->mission_2->parent->position,
                 'parent' => [
                     'id' => $this->mission_2->parent->parent->id,
                     'name' => $this->mission_2->parent->parent->name,
+                    'description' => $this->mission_2->parent->parent->description,
+                    'position' => $this->mission_2->parent->parent->position,
                     'parent' => null
                 ],
+            ],
+            'worksheetForm' => [
+                'id' => $this->mission_2->worksheetForm->id,
+                'name' => $this->mission_2->worksheetForm->form->name,
+                'description' => $this->mission_2->worksheetForm->form->description,
+                'stringFields' => [],
+                'integerFields' => [],
+                'textAreaFields' => [],
+                'attachmentFields' => [],
+                'singleSelectFields' => [],
+                'multiSelectFields' => [],
             ],
             'worksheets' => [
                 [

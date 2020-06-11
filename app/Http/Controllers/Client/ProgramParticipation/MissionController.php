@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\Client\ClientBaseController;
+use App\Http\Controllers\ {
+    Client\ClientBaseController,
+    FormToArrayDataConverter
+};
 use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Query\{
+use Query\ {
     Application\Service\Client\ProgramParticipation\MissionView,
     Application\Service\Client\ProgramParticipation\WorksheetView,
     Domain\Model\Firm\Program\Mission,
-    Domain\Model\Firm\Program\Participant\Worksheet
+    Domain\Model\Firm\Program\Participant\Worksheet,
+    Domain\Model\Firm\WorksheetForm
 };
 
 class MissionController extends ClientBaseController
@@ -73,7 +77,7 @@ class MissionController extends ClientBaseController
         }
         return $this->listQueryResponse($result);
     }
-
+    
     protected function arrayDataOfMission(Mission $mission): array
     {
         $parent = empty($mission->getParent()) ? null : $this->arrayDataOfParentMission($mission->getParent());
@@ -82,6 +86,7 @@ class MissionController extends ClientBaseController
             "name" => $mission->getName(),
             "description" => $mission->getDescription(),
             "position" => $mission->getPosition(),
+            'worksheetForm' => $this->arrayDataOfWorksheetForm($mission->getWorksheetForm()),
             "parent" => $parent,
         ];
     }
@@ -92,10 +97,19 @@ class MissionController extends ClientBaseController
         return [
             "id" => $parentMission->getId(),
             "name" => $parentMission->getName(),
+            "description" => $parentMission->getDescription(),
+            "position" => $parentMission->getPosition(),
             "parent" => $parent,
         ];
     }
 
+    protected function arrayDataOfWorksheetForm(WorksheetForm $worksheetForm): array
+    {
+        $data = (new FormToArrayDataConverter())->convert($worksheetForm);
+        $data['id'] = $worksheetForm->getId();
+        return $data;
+    }
+    
     protected function arrayDataOfWorksheet(Worksheet $worksheet): array
     {
         $parent = empty($worksheet->getParent()) ? null : $this->arrayDataOfWorksheet($worksheet->getParent());
