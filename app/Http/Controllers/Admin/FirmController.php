@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Bara\ {
+use Bara\{
     Application\Service\FirmAdd,
     Application\Service\FirmSuspend,
     Domain\Model\Firm,
-    Domain\Model\Firm\ManagerData
+    Domain\Model\Firm\ManagerData,
+    Domain\Model\FirmData
 };
-use Query\ {
+use Query\{
     Application\Service\FirmView,
     Domain\Model\Firm as QueryFirm
 };
@@ -21,10 +22,8 @@ class FirmController extends AdminBaseController
         $this->authorizeUserIsAdmin();
 
         $service = $this->buildAddService();
-        $name = $this->stripTagsInputRequest('name');
-        $identifier = $this->stripTagsInputRequest('identifier');
-        $firmId = $service->execute($name, $identifier, $this->getManagerData());
-        
+        $firmId = $service->execute($this->getFirmData(), $this->getManagerData());
+
         $viewService = $this->buildViewService();
         $firm = $viewService->showById($firmId);
         return $this->commandCreatedResponse($this->arrayDataOfFirm($firm));
@@ -33,7 +32,7 @@ class FirmController extends AdminBaseController
     public function suspend($firmId)
     {
         $this->authorizeUserIsAdmin();
-        
+
         $service = $this->buildSuspendService();
         $service->execute($firmId);
         return $this->commandOkResponse();
@@ -42,7 +41,7 @@ class FirmController extends AdminBaseController
     public function show($firmId)
     {
         $this->authorizeUserIsAdmin();
-        
+
         $service = $this->buildViewService();
         $firm = $service->showById($firmId);
         return $this->singleQueryResponse($this->arrayDataOfFirm($firm));
@@ -51,10 +50,21 @@ class FirmController extends AdminBaseController
     public function showAll()
     {
         $this->authorizeUserIsAdmin();
-        
+
         $service = $this->buildViewService();
         $firms = $service->showAll($this->getPage(), $this->getPageSize());
         return $this->commonIdNameListQueryResponse($firms);
+    }
+
+    private function getFirmData()
+    {
+        $name = $this->stripTagsInputRequest('name');
+        $identifier = $this->stripTagsInputRequest('identifier');
+        $whitelableUrl = urldecode($this->stripTagsInputRequest('whitelableUrl'));
+        $whitelableMailSenderAddress = $this->stripTagsInputRequest('whitelableMailSenderAddress');
+        $whitelableMailSenderName = $this->stripTagsInputRequest('whitelableMailSenderName');
+        return new FirmData(
+                $name, $identifier, $whitelableUrl, $whitelableMailSenderAddress, $whitelableMailSenderName);
     }
 
     private function getManagerData()
@@ -65,12 +75,16 @@ class FirmController extends AdminBaseController
         $phone = $this->stripTagsVariable($this->request->input("manager")['phone']);
         return new ManagerData($name, $email, $password, $phone);
     }
+
     private function arrayDataOfFirm(QueryFirm $firm)
     {
         return [
             "id" => $firm->getId(),
             "name" => $firm->getName(),
             "identifier" => $firm->getIdentifier(),
+            'whitelableUrl' =>  $firm->getWhitelableUrl(),
+            'whitelableMailSenderAddress' =>  $firm->getWhitelableMailSenderAddress(),
+            'whitelableMailSenderName' =>  $firm->getWhitelableMailSenderName(),
         ];
     }
 

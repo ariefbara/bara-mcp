@@ -5,12 +5,14 @@
             repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultantCommentRepository"
     >
         
+        <id name="id" type="guid" />
+        
         <many-to-one  field="consultant" 
                       target-entity="Query\Domain\Model\Firm\Program\Consultant"
         >
             <join-column name="Consultant_id" referenced-column-name="id" />
         </many-to-one>
-        <id name="id" type="guid" />
+        
         <one-to-one field="comment" 
                     target-entity="Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment"
                     inversed-by="consultantComment"

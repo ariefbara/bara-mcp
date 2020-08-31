@@ -36,7 +36,6 @@ class Controller extends BaseController
         }
         return strip_tags($this->request->input($label));
     }
-
     protected function integerOfInputRequest($label): ?int
     {
         if ($this->request->input($label) === null) {
@@ -44,15 +43,47 @@ class Controller extends BaseController
         }
         return (int) $this->request->input($label);
     }
+    protected function filterBooleanOfInputRequest($label): ?bool
+    {
+        if ($this->request->input($label) === null) {
+            return null;
+        }
+        return filter_var($this->request->input($label), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    }
+    
+    protected function stripTagQueryRequest($label): ?string
+    {
+        if ($this->request->query($label) === null) {
+            return null;
+        }
+        return strip_tags($this->request->query($label));
+    }
+    protected function integerOfQueryRequest($label): ?int
+    {
+        if ($this->request->query($label) === null) {
+            return null;
+        }
+        return (int) $this->request->query($label);
+    }
+    protected function filterBooleanOfQueryRequest($label): ?bool
+    {
+        if ($this->request->query($label) === null) {
+            return null;
+        }
+        return filter_var($this->request->query($label), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    }
 
     protected function stripTagsVariable($var): ?string
     {
         return isset($var) ? strip_tags($var) : null;
     }
-
     protected function integerOfVariable($var): ?int
     {
         return isset($var) ? (int) $var : null;
+    }
+    protected function filterBooleanOfVariable($var): ?bool
+    {
+        return isset($var) ? filter_var($var, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
     }
 
     protected function commandCreatedResponse(array $result)

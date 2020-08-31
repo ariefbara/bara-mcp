@@ -34,6 +34,7 @@ class ClientJwtMiddleware
                 ]
             ], 400);
         }
+        $request->firmId = $credentials->data->firmId;
         $request->clientId = $credentials->data->clientId;
         return $next($request);
     }

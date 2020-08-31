@@ -4,13 +4,16 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Firm\Domain\Model\Firm\Program;
-use Resources\Domain\ValueObject\DateInterval;
+use Resources\ {
+    DateTimeImmutableBuilder,
+    Domain\ValueObject\DateInterval
+};
 use Tests\TestBase;
 
 class RegistrationPhaseTest extends TestBase
 {
     protected $program;
-    protected $registrationPhase;
+    protected $registrationPhase, $dateInterval;
     protected $id = 'registration-phase-id', $name = 'new registration phase name', $startDate, $endDate;
 
     protected function setUp(): void
@@ -19,6 +22,8 @@ class RegistrationPhaseTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
         $registrationPhaseData = new RegistrationPhaseData('name', null, null);
         $this->registrationPhase = new TestableRegistrationPhase($this->program, 'id', $registrationPhaseData);
+        $this->dateInterval = $this->buildMockOfClass(DateInterval::class);
+        $this->registrationPhase->startEndDate = $this->dateInterval;
         
         $this->startDate = new DateTimeImmutable("+7 days");
         $this->endDate = new DateTimeImmutable("+31 days");
@@ -100,6 +105,23 @@ class RegistrationPhaseTest extends TestBase
     {
         $this->registrationPhase->remove();
         $this->assertTrue($this->registrationPhase->removed);
+    }
+    
+    public function test_isOpen_returnStartEndDateContainCurrentTimeResult()
+    {
+        $this->dateInterval->expects($this->once())
+                ->method('contain')
+                ->with(DateTimeImmutableBuilder::buildYmdHisAccuracy())
+                ->willReturn(true);
+        $this->assertTrue($this->registrationPhase->isOpen());
+    }
+    public function test_isOpen_alreadyRemoved_returnFalse()
+    {
+        $this->registrationPhase->removed = true;
+        $this->dateInterval->expects($this->any())
+                ->method('contain')
+                ->willReturn(true);
+        $this->assertFalse($this->registrationPhase->isOpen());
     }
 }
 

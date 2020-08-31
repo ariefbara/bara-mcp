@@ -17,7 +17,7 @@ class RecordOfPersonnel implements Record
      * @var RecordOfFirm
      */
     public $firm;
-    public $id, $name, $email, $password, $phone = "", $joinTime, $removed = false;
+    public $id, $firstName, $lastName, $email, $password, $phone = "", $joinTime, $removed = false;
     public $rawPassword;
     public $token;
     
@@ -25,7 +25,8 @@ class RecordOfPersonnel implements Record
     {
         $this->firm = $firm;
         $this->id = "personnel-$index-id";
-        $this->name = "personnel $index name";
+        $this->firstName = "personnel $index firstname";
+        $this->lastName = "personnel $index lastname";
         $this->email = $email;
         $this->password = (new TestablePassword($rawPassword))->getHashedPassword();
         $this->phone = "";
@@ -45,13 +46,19 @@ class RecordOfPersonnel implements Record
         return [
             "Firm_id" => $this->firm->id,
             "id" => $this->id,
-            "name" => $this->name,
+            "firstName" => $this->firstName,
+            "lastName" => $this->lastName,
             "email" => $this->email,
             "password" => $this->password,
             "phone" => $this->phone,
             "joinTime" => $this->joinTime,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function getFullName()
+    {
+        return $this->firstName . " " . $this->lastName;
     }
 
 }

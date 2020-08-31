@@ -9,7 +9,7 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ {
     ConsultationSession
 };
 use Query\Domain\Model\ {
-    Client,
+    User,
     Firm\Program
 };
 
@@ -30,7 +30,7 @@ class Participant
 
     /**
      *
-     * @var Client
+     * @var User
      */
     protected $client;
 

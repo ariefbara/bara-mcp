@@ -3,52 +3,57 @@
 namespace App\Http\Controllers\Client;
 
 use Client\ {
-    Application\Service\ClientChangePassword,
-    Application\Service\ClientChangeProfile,
-    Domain\Model\Client
+    Application\Service\ChangePassword,
+    Application\Service\UpdateProfile,
+    Domain\Model\Client as Client2
 };
 use Query\ {
-    Application\Service\ClientView,
-    Domain\Model\Client as Client2
+    Application\Service\Firm\ViewClient,
+    Domain\Model\Firm\Client
 };
 
 class AccountController extends ClientBaseController
 {
     public function updateProfile()
     {
-        $clientRepository = $this->em->getRepository(Client::class);
-        $service = new ClientChangeProfile($clientRepository);
+        $clientRepository = $this->em->getRepository(Client2::class);
+        $service = new UpdateProfile($clientRepository);
         
-        $name = $this->stripTagsInputRequest('name');
-        $service->execute($this->clientId(), $name);
+        $firstName = $this->stripTagsInputRequest('firstName');
+        $lastName = $this->stripTagsInputRequest('lastName');
+        
+        $service->execute($this->firmId(), $this->clientId(), $firstName, $lastName);
         
         $viewService = $this->buildViewService();
-        $client = $viewService->showById($this->clientId());
+        $client = $viewService->showById($this->firmId(), $this->clientId());
         return $this->singleQueryResponse($this->arrayDataOfClient($client));
     }
     public function changePassword()
     {
+        $clientRepository = $this->em->getRepository(Client2::class);
+        $service = new ChangePassword($clientRepository);
         
-        $clientRepository = $this->em->getRepository(Client::class);
-        $service = new ClientChangePassword($clientRepository);
         $previousPassword = $this->stripTagsInputRequest('previousPassword');
         $newPassword = $this->stripTagsInputRequest('newPassword');
-        $service->execute($this->clientId(), $previousPassword, $newPassword);
+        
+        $service->execute($this->firmId(), $this->clientId(), $previousPassword, $newPassword);
+        
         return $this->commandOkResponse();
     }
     
-    protected function arrayDataOfClient(Client2 $client)
+    protected function arrayDataOfClient(Client $client)
     {
         return [
             "id" => $client->getId(),
-            "name" => $client->getName(),
+            "firstName" => $client->getFirstName(),
+            "lastName" => $client->getLastName(),
             "email" => $client->getEmail(),
         ];
     }
     
     protected function buildViewService()
     {
-        $clientRepository = $this->em->getRepository(Client2::class);
-        return new ClientView($clientRepository);
+        $clientRepository = $this->em->getRepository(Client::class);
+        return new ViewClient($clientRepository);
     }
 }

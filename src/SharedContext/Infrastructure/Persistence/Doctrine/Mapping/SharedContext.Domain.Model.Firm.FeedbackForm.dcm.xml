@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\Firm\FeedbackForm" 
+            table="FeedbackForm" 
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        
+        <one-to-one field="form" 
+                    target-entity="SharedContext\Domain\Model\SharedEntity\Form"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

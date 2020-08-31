@@ -1,8 +1,11 @@
 <?php
 namespace Resources;
 
+use Respect\Validation\ {
+    Rules\Url,
+    Validator
+};
 use Tests\TestBase;
-use Respect\Validation\Validator;
 
 class ValidationRuleTest extends TestBase
 {
@@ -72,6 +75,11 @@ class ValidationRuleTest extends TestBase
     public function test_noWhitespace_setRuleAsNoWhitespace()
     {
         $this->assertInstanceOf('\Respect\Validation\Rules\NoWhitespace', ValidationRule::noWhitespace()->getRule());
+    }
+    
+    public function test_url_setRuleAsUrl()
+    {
+        $this->assertInstanceOf(Url::class, ValidationRule::url()->getRule());
     }
     
     public function test_optional_setRuleAsOptional()

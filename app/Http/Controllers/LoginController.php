@@ -5,13 +5,15 @@ namespace App\Http\Controllers;
 use Firebase\JWT\JWT;
 use Query\ {
     Application\Service\AdminLogin,
-    Application\Service\ClientLogin,
+    Application\Service\Firm\ClientLogin,
     Application\Service\Firm\ManagerLogin,
     Application\Service\Firm\PersonnelLogin,
+    Application\Service\UserLogin,
     Domain\Model\Admin,
-    Domain\Model\Client,
+    Domain\Model\Firm\Client,
     Domain\Model\Firm\Manager,
-    Domain\Model\Firm\Personnel
+    Domain\Model\Firm\Personnel,
+    Domain\Model\User
 };
 use function env;
 use function response;
@@ -77,22 +79,49 @@ class LoginController extends Controller
         return $this->buildCredentialsResponse($this->arrayDataOfPersonnel($personnel), $token);
     }
     
+    public function userLogin()
+    {
+        $userRepository = $this->em->getRepository(User::class);
+        $service = new UserLogin($userRepository);
+        
+        $email = $this->stripTagsInputRequest('email');
+        $password = $this->stripTagsInputRequest('password');
+        
+        $user = $service->execute($email, $password);
+        
+        $data = [
+            'id' => $user->getId(),
+            'name' => $user->getFullName(),
+        ];
+        $identifier = [
+            "userId" => $user->getId(),
+        ];
+        $token = $this->generateJwtToken($identifier);
+        return $this->buildCredentialsResponse($data, $token);
+    }
+    
     public function clientLogin()
     {
         $clientRepository = $this->em->getRepository(Client::class);
         $service = new ClientLogin($clientRepository);
+        
+        $firmIdentifier = $this->stripTagsInputRequest('firmIdentifier');
         $email = $this->stripTagsInputRequest('email');
         $password = $this->stripTagsInputRequest('password');
         
-        $client = $service->execute($email, $password);
+        $client = $service->execute($firmIdentifier, $email, $password);
+        
         $data = [
-            "id" => $client->getId(),
-            "name" => $client->getName(),
+            'id' => $client->getId(),
+            'name' => $client->getFullName(),
         ];
+        
         $identifier = [
+            "firmId" => $client->getFirm()->getId(),
             "clientId" => $client->getId(),
         ];
         $token = $this->generateJwtToken($identifier);
+        
         return $this->buildCredentialsResponse($data, $token);
     }
     

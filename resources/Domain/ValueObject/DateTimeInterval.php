@@ -5,6 +5,16 @@ use Resources\Exception\RegularException;
 
 class DateTimeInterval extends TimeInterval
 {
+    
+    const INDONESIAN_DAY_TABLE = [
+        '1' => 'senin',
+        '2' => 'selasa',
+        '3' => 'rabu',
+        '4' => 'kamis',
+        '5' => "jumat",
+        '6' => "sabtu",
+        '7' => "minggu",
+    ];
 
     protected $startDateTime = null, $endDateTime = null;
 
@@ -36,5 +46,9 @@ class DateTimeInterval extends TimeInterval
         return is_null($this->endDateTime)? INF: $this->endDateTime->getTimestamp();
     }
     
+    public function getStartDayInIndonesianFormat(): ?string
+    {
+        return empty($this->getStartTime()) ? null : self::INDONESIAN_DAY_TABLE[$this->getStartTime()->format('N')];
+    }
 }
 

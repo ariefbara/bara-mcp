@@ -25,6 +25,12 @@ class Firm
 
     /**
      *
+     * @var FirmWhitelableInfo
+     */
+    protected $firmWhitelableInfo;
+
+    /**
+     *
      * @var bool
      */
     protected $suspended = false;
@@ -52,6 +58,21 @@ class Firm
     protected function __construct()
     {
         ;
+    }
+
+    public function getWhitelableUrl(): string
+    {
+        return $this->firmWhitelableInfo->getUrl();
+    }
+
+    public function getWhitelableMailSenderAddress(): string
+    {
+        return $this->firmWhitelableInfo->getMailSenderAddress();
+    }
+
+    public function getWhitelableMailSenderName(): string
+    {
+        return $this->firmWhitelableInfo->getMailSenderName();
     }
 
 }

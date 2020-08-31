@@ -32,8 +32,8 @@ class PersonnelAddTest extends TestBase
 
         $this->personnelData = $this->buildMockOfClass(PersonnelData::class);
         $this->personnelData->expects($this->any())
-            ->method('getName')
-            ->willReturn('name');
+            ->method('getFirstname')
+            ->willReturn('firstname');
         $this->personnelData->expects($this->any())
             ->method('getEmail')
             ->willReturn('personnel@email.org');

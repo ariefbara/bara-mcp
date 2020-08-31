@@ -2,13 +2,17 @@
 
 namespace Query\Application\Service\Firm\Program\Participant\Worksheet;
 
-use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+use Query\ {
+    Application\Service\Firm\Client\ProgramParticipation\Worksheet\CommentRepository as InterfaceForClient,
+    Domain\Model\Firm\Program\Participant\Worksheet\Comment
+};
 
-
-interface CommentRepository
+interface CommentRepository extends InterfaceForClient
 {
 
-    public function ofId(WorksheetCompositionId $worksheetCompositionId, string $commentId): Comment;
+    public function ofId(
+            string $firmId, string $programId, string $participantId, string $worksheetId, string $commentId): Comment;
 
-    public function all(WorksheetCompositionId $worksheetCompositionId, int $page, int $pageSize);
+    public function all(
+            string $firmId, string $programId, string $participantId, string $worksheetId, int $page, int $pageSize);
 }

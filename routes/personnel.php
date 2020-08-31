@@ -15,13 +15,27 @@ $router->group($personnelAggregate, function () use ($router) {
         'namespace' => 'AsProgramCoordinator',
     ];
     $router->group($asProgramCoordinatorAggregate, function () use ($router) {
-        $router->group(['prefix' => '/registrants'], function () use($router) {
-            $controller = "RegistrantController";
-            $router->patch("/{registrantId}/accept", ["uses" => "$controller@accept"]);
-            $router->patch("/{registrantId}/reject", ["uses" => "$controller@reject"]);
-            $router->get("/{registrantId}", ["uses" => "$controller@show"]);
+        $router->group(['prefix' => '/client-registrants'], function () use($router) {
+            $controller = "ClientRegistrantController";
+            $router->patch("/{clientRegistrantId}/accept", ["uses" => "$controller@accept"]);
+            $router->patch("/{clientRegistrantId}/reject", ["uses" => "$controller@reject"]);
+            $router->get("/{clientRegistrantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        $router->group(['prefix' => '/user-registrants'], function () use($router) {
+            $controller = "UserRegistrantController";
+            $router->patch("/{userRegistrantId}/accept", ["uses" => "$controller@accept"]);
+            $router->patch("/{userRegistrantId}/reject", ["uses" => "$controller@reject"]);
+            $router->get("/{userRegistrantId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+//        $router->group(['prefix' => '/registrants'], function () use($router) {
+//            $controller = "RegistrantController";
+//            $router->patch("/{registrantId}/accept", ["uses" => "$controller@accept"]);
+//            $router->patch("/{registrantId}/reject", ["uses" => "$controller@reject"]);
+//            $router->get("/{registrantId}", ["uses" => "$controller@show"]);
+//            $router->get("", ["uses" => "$controller@showAll"]);
+//        });
     });
     $asProgramConsultantAggregate = [
         'prefix' => '/as-program-consultant/{programId}',

@@ -2,22 +2,26 @@
 
 namespace App\Http\Controllers\Personnel\ProgramConsultant;
 
-use App\Http\Controllers\{
+use App\Http\Controllers\ {
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter,
+    FormToArrayDataConverter,
     Personnel\PersonnelBaseController
 };
-use Personnel\{
+use DateTimeImmutable;
+use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedbackSet,
     Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId,
     Domain\Model\Firm\Personnel\PersonnelFileInfo,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
     Domain\Service\PersonnelFileInfoFinder
 };
-use Query\{
+use Query\ {
     Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView,
-    Domain\Model\Firm\Program\Participant\ConsultationSession as ConsultationSession2
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
+    Domain\Model\Firm\FeedbackForm,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession as ConsultationSession2
 };
 
 class ConsultationSessionController extends PersonnelBaseController
@@ -42,9 +46,9 @@ class ConsultationSessionController extends PersonnelBaseController
     public function show($programConsultantId, $consultationSessionId)
     {
         $service = $this->buildViewService();
-        $programConsultantCompositionId = new ProgramConsultantCompositionId(
-                $this->firmId(), $this->personnelId(), $programConsultantId);
-        $consultationSession = $service->showById($programConsultantCompositionId, $consultationSessionId);
+
+        $consultationSession = $service->showById(
+                $this->firmId(), $this->personnelId(), $programConsultantId, $consultationSessionId);
 
         return $this->singleQueryResponse($this->arrayDataOfConsultationSession($consultationSession));
     }
@@ -52,10 +56,21 @@ class ConsultationSessionController extends PersonnelBaseController
     public function showAll($programConsultantId)
     {
         $service = $this->buildViewService();
-        $programConsultantCompositionId = new ProgramConsultantCompositionId(
-                $this->firmId(), $this->personnelId(), $programConsultantId);
+        
+        $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new DateTimeImmutable($minTime);
+        $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new DateTimeImmutable($maxTime);
+        $containParticipantFeedback = $this->stripTagQueryRequest('containParticipantFeedback');
+        $containConsultantFeedback = $this->stripTagQueryRequest('containConsultantFeedback');
+        
+        $consultationSessionFilter = (new ConsultationSessionFilter())
+                ->setMinStartTime($minStartTime)
+                ->setMaxStartTime($maxStartTime)
+                ->setContainParticipantFeedback($containParticipantFeedback)
+                ->setContainConsultantFeedback($containConsultantFeedback);
+        
         $consultationSessions = $service->showAll(
-                $programConsultantCompositionId, $this->getPage(), $this->getPageSize());
+                $this->firmId(), $this->personnelId(), $programConsultantId, $this->getPage(), $this->getPageSize(),
+                $consultationSessionFilter);
 
         $result = [];
         $result['total'] = count($consultationSessions);
@@ -102,9 +117,9 @@ class ConsultationSessionController extends PersonnelBaseController
         ];
     }
 
-    protected function arrayDataOfFeedbackForm(\Query\Domain\Model\Firm\FeedbackForm $feedbackForm): array
+    protected function arrayDataOfFeedbackForm(FeedbackForm $feedbackForm): array
     {
-        $data = (new \App\Http\Controllers\FormToArrayDataConverter())->convert($feedbackForm);
+        $data = (new FormToArrayDataConverter())->convert($feedbackForm);
         $data['id'] = $feedbackForm->getId();
         return $data;
     }

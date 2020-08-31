@@ -5,22 +5,49 @@ namespace Firm\Domain\Model\Firm;
 class ProgramData
 {
 
-    protected $name, $description;
+    /**
+     *
+     * @var string||null
+     */
+    protected $name;
 
-    function __construct($name, $description)
-    {
-        $this->name = $name;
-        $this->description = $description;
-    }
+    /**
+     *
+     * @var string||null
+     */
+    protected $description;
 
-    function getName()
+    /**
+     *
+     * @var array||null
+     */
+    protected $participantTypes = [];
+
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    function getDescription()
+    public function getDescription(): ?string
     {
         return $this->description;
+    }
+
+    public function getParticipantTypes(): ?array
+    {
+        return $this->participantTypes;
+    }
+
+    public function __construct(?string $name, ?string $description)
+    {
+        $this->name = $name;
+        $this->description = $description;
+        $this->participantTypes = [];
+    }
+
+    public function addParticipantType(string $type): void
+    {
+        $this->participantTypes[] = $type;
     }
 
 }

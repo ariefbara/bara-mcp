@@ -3,9 +3,10 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\Model\{
-    Client,
-    Firm\Program
+use Query\Domain\Model\ {
+    Firm\Client\ClientRegistrant,
+    Firm\Program,
+    User\UserRegistrant
 };
 
 class Registrant
@@ -25,54 +26,54 @@ class Registrant
 
     /**
      *
-     * @var Client
-     */
-    protected $client;
-
-    /**
-     *
-     * @var DateTimeImmutable
-     */
-    protected $appliedTime;
-
-    /**
-     *
      * @var bool
      */
     protected $concluded;
 
     /**
      *
+     * @var DateTimeImmutable
+     */
+    protected $registeredTime;
+
+    /**
+     *
      * @var string||null
      */
-    protected $note = null;
+    protected $note;
+    
+    /**
+     *
+     * @var ClientRegistrant||null
+     */
+    protected $clientRegistrant;
+    /**
+     *
+     * @var UserRegistrant||null
+     */
+    protected $userRegistrant;
 
-    function getProgram(): Program
+    public function getProgram(): Program
     {
         return $this->program;
     }
 
-    function getId(): string
+    public function getId(): string
     {
         return $this->id;
     }
 
-    function getClient(): Client
-    {
-        return $this->client;
-    }
-
-    function getAppliedTimeString(): string
-    {
-        return $this->appliedTime->format('Y-m-d H:i:s');
-    }
-
-    function isConcluded(): bool
+    public function isConcluded(): bool
     {
         return $this->concluded;
     }
 
-    function getNote(): ?string
+    public function getRegisteredTimeString(): string
+    {
+        return $this->registeredTime->format('Y-m-d H:i:s');
+    }
+
+    public function getNote(): ?string
     {
         return $this->note;
     }

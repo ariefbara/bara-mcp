@@ -5,7 +5,8 @@ namespace Tests\Controllers\Client;
 class AccountControllerTest extends ClientTestCase
 {
     protected $updateInput = [
-        "name" => "new client name",
+        "firstName" => "hadi",
+        "lastName" => "pranoto",
     ];
     protected $changePasswordInput;
     
@@ -22,11 +23,12 @@ class AccountControllerTest extends ClientTestCase
         parent::tearDown();
     }
     
-    public function test_update()
+    public function test_updateProfile()
     {
         $response = [
             "id" => $this->client->id,
-            "name" => $this->updateInput['name'],
+            "firstName" => $this->updateInput['firstName'],
+            "lastName" => $this->updateInput['lastName'],
             "email" => $this->client->email,
         ];
         $uri = $this->clientUri . "/update-profile";
@@ -36,9 +38,23 @@ class AccountControllerTest extends ClientTestCase
         
         $clientRecord = [
             "id" => $this->client->id,
-            "name" => $this->updateInput['name'],
+            "firstName" => $this->updateInput['firstName'],
+            "lastName" => $this->updateInput['lastName'],
         ];
         $this->seeInDatabase('Client', $clientRecord);
+    }
+    public function test_updateProfile_emptyFirstName_400()
+    {
+        $this->updateInput['firstName'] = '';
+        $uri = $this->clientUri . "/update-profile";
+        $this->patch($uri, $this->updateInput, $this->client->token)
+            ->seeStatusCode(400);
+    }
+    public function test_updateProfile_inactiveClient_403()
+    {
+        $uri = $this->clientUri . "/update-profile";
+        $this->patch($uri, $this->updateInput, $this->inactiveClient->token)
+            ->seeStatusCode(403);
     }
     
     public function test_changePassword()
@@ -49,18 +65,24 @@ class AccountControllerTest extends ClientTestCase
         
         $loginUri = "/api/client-login";
         $loginInput = [
+            "firmIdentifier" => $this->client->firm->identifier,
             "email" => $this->client->email,
             "password" => $this->changePasswordInput['newPassword'],
         ];
         $this->post($loginUri, $loginInput)
             ->seeStatusCode(200);
-        
     }
     public function test_changePassword_unmatchedPreviousPassword_error403()
     {
         $this->changePasswordInput['previousPassword'] = 'unmatched-password';
         $uri = $this->clientUri . "/change-password";
         $this->patch($uri, $this->changePasswordInput, $this->client->token)
+            ->seeStatusCode(403);
+    }
+    public function test_changePassword_inactiveClient_403()
+    {
+        $uri = $this->clientUri . "/change-password";
+        $this->patch($uri, $this->changePasswordInput, $this->inactiveClient->token)
             ->seeStatusCode(403);
     }
 }

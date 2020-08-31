@@ -3,16 +3,19 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
+use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
-use Query\Domain\Model\{
+use Query\Domain\Model\ {
     Firm,
     Firm\Program\Consultant,
     Firm\Program\Coordinator
 };
-use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\ {
+    Password,
+    PersonName
+};
 
 class Personnel
 {
@@ -31,7 +34,7 @@ class Personnel
 
     /**
      *
-     * @var string
+     * @var PersonName
      */
     protected $name;
 
@@ -87,11 +90,6 @@ class Personnel
         return $this->id;
     }
 
-    function getName(): string
-    {
-        return $this->name;
-    }
-
     function getEmail(): string
     {
         return $this->email;
@@ -144,6 +142,11 @@ class Personnel
     {
         return Criteria::create()
                         ->andWhere(Criteria::expr()->eq('removed', false));
+    }
+    
+    public function getName(): string
+    {
+        return $this->name->getFullName();
     }
 
 }

@@ -94,8 +94,12 @@ class ProgramController extends ManagerBaseController
     {
         $name = $this->stripTagsInputRequest('name');
         $description = $this->stripTagsInputRequest('description');
+        $programData = new ProgramData($name, $description);
         
-        return new ProgramData($name, $description);
+        foreach ($this->request->input('participantTypes') as $participantType) {
+            $programData->addParticipantType($this->stripTagsVariable($participantType));
+        }
+        return $programData;
     }
 
     protected function arrayDataOfProgram(Program2 $program): array
@@ -104,6 +108,7 @@ class ProgramController extends ManagerBaseController
             "id" => $program->getId(),
             "name" => $program->getName(),
             "description" => $program->getDescription(),
+            "participantTypes" => $program->getParticipantTypeValues(),
             "published" => $program->isPublished(),
         ];
     }

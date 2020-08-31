@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\UserRegistrant" 
+            table="UserRegistrant" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserRegistrantRepository" 
+    >
+        <many-to-one  field="program" 
+                      target-entity="Firm\Domain\Model\Firm\Program"
+                      inversed-by="userRegistrants"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="user" 
+                      target-entity="Firm\Domain\Model\User"
+        >
+            <join-column name="User_id" referenced-column-name="id" />
+        </many-to-one>
+        <one-to-one  field="registrant" 
+                     target-entity="Firm\Domain\Model\Firm\Program\Registrant"
+        >
+            <join-column name="Registrant_id" referenced-column-name="id" />
+        </one-to-one>
+    </entity>
+</doctrine-mapping>

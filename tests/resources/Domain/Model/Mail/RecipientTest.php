@@ -1,17 +1,17 @@
 <?php
 namespace Resources\Domain\Model\Mail;
 
+use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
-use Resources\Domain\ValueObject\Email;
-use Resources\Domain\ValueObject\HumanName;
 
 class RecipientTest extends TestBase
 {
-    protected $name = 'account name', $address = 'account@email.org';
+    protected $name, $address = 'account@email.org';
     
     protected function setUp(): void
     {
         parent::setUp();
+        $this->name = $this->buildMockOfClass(PersonName::class);
     }
     
     private function executeConstruct()
@@ -30,15 +30,6 @@ class RecipientTest extends TestBase
             $this->executeConstruct();
         };
         $errorDetail = "bad request: mail recipient address is required and must be in valid email address format";
-        $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
-    }
-    public function test_construct_emptyName_throwEx()
-    {
-        $this->name = '';
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "bad request: mail recipient name is required";
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
 }

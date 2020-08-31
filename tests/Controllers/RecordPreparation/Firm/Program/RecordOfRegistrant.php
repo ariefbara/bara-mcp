@@ -5,9 +5,9 @@ namespace Tests\Controllers\RecordPreparation\Firm\Program;
 use DateTime;
 use Tests\Controllers\RecordPreparation\ {
     Firm\RecordOfProgram,
-    Record,
-    RecordOfClient
+    Record
 };
+
 
 class RecordOfRegistrant implements Record
 {
@@ -16,19 +16,13 @@ class RecordOfRegistrant implements Record
      * @var RecordOfProgram
      */
     public $program;
-    /**
-     *
-     * @var RecordOfClient
-     */
-    public $client;
-    public $id, $appliedTime, $concluded = false, $note = null;
+    public $id, $registeredTime, $concluded = false, $note = null;
     
-    function __construct(RecordOfProgram $program, RecordOfClient $client, $index)
+    function __construct(RecordOfProgram $program, $index)
     {
         $this->program = $program;
-        $this->client = $client;
-        $this->id = "applicant-$index-id";
-        $this->appliedTime = (new DateTime())->format('Y-m-d H:i:s');
+        $this->id = "registrant-$index-id";
+        $this->registeredTime = (new DateTime())->format('Y-m-d H:i:s');
         $this->concluded = false;
         $this->note = null;
     }
@@ -38,9 +32,8 @@ class RecordOfRegistrant implements Record
     {
         return [
             "Program_id" => $this->program->id,
-            "Client_id" => $this->client->id,
             "id" => $this->id,
-            "appliedTime" => $this->appliedTime,
+            "registeredTime" => $this->registeredTime,
             "concluded" => $this->concluded,
             "note" => $this->note,
         ];

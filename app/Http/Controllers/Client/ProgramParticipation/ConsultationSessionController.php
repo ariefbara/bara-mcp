@@ -2,67 +2,63 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\{
+use App\Http\Controllers\ {
     Client\ClientBaseController,
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter,
     FormToArrayDataConverter
 };
-use Client\{
-    Application\Service\Client\ProgramParticipation\ConsultationSession\ParticipantFeedbackSet,
-    Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
-    Domain\Model\Client\ProgramParticipation\ConsultationSession,
-    Domain\Model\Client\ProgramParticipation\ParticipantFileInfo,
-    Domain\Service\ParticipantFileInfoFinder
+use DateTimeImmutable;
+use Participant\ {
+    Application\Service\Participant\ConsultationSession\ParticipantFeedbackSet,
+    Domain\Model\Participant\ConsultationSession as ConsultationSession2,
+    Domain\Service\ClientFileInfoFinder
 };
-use Query\{
-    Application\Service\Client\ProgramParticipation\ConsultationSessionView,
+use Query\ {
+    Application\Service\Firm\Client\ProgramParticipation\ViewConsultationSession,
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
     Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\Participant\ConsultationSession as ConsultationSession2
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
 };
-use Shared\Domain\Model\FormRecordData;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ConsultationSessionController extends ClientBaseController
 {
 
-    public function setParticipantFeedback($programParticipationId, $consultationSessionId)
+    public function setParticipantFeedback($programId, $consultationSessionId)
     {
         $service = $this->buildSetParticipantFeedbackService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId(
-                $this->clientId(), $programParticipationId);
-        $formRecordData = $this->getFormRecordData($programParticipationCompositionId);
-        $service->execute($programParticipationCompositionId, $consultationSessionId, $formRecordData);
-
-        return $this->show($programParticipationId, $consultationSessionId);
+        $formRecordData = $this->getFormRecordData();
+        $service->execute($this->firmId(), $this->clientId(), $programId, $consultationSessionId, $formRecordData);
+        
+        return $this->show($programId, $consultationSessionId);
     }
 
-    protected function getFormRecordData(ProgramParticipationCompositionId $programParticipationCompositionId): FormRecordData
-    {
-        $programParticipationFileInfoRepository = $this->em->getRepository(ParticipantFileInfo::class);
-        $programParticipationCompositionId;
-
-        $fileInfoFinder = new ParticipantFileInfoFinder(
-                $programParticipationFileInfoRepository, $programParticipationCompositionId);
-        return (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
-    }
-
-    public function show($programParticipationId, $consultationSessionId)
+    public function show($programId, $consultationSessionId)
     {
         $service = $this->buildViewService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId(
-                $this->clientId(), $programParticipationId);
-        $consultationSession = $service->showById($programParticipationCompositionId, $consultationSessionId);
+        $consultationSession = $service->showById($this->firmId(), $this->clientId(), $programId, $consultationSessionId);
+        
         return $this->singleQueryResponse($this->arrayDataOfConsultationSession($consultationSession));
     }
 
-    public function showAll($programParticipationId)
+    public function showAll($programId)
     {
         $service = $this->buildViewService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId(
-                $this->clientId(), $programParticipationId);
-        $consultationSessions = $service->showAll(
-                $programParticipationCompositionId, $this->getPage(), $this->getPageSize());
+        
+        $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new DateTimeImmutable($minTime);
+        $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new DateTimeImmutable($maxTime);
+        $containParticipantFeedback = $this->stripTagQueryRequest('containParticipantFeedback');
+        $containConsultantFeedback = $this->stripTagQueryRequest('containConsultantFeedback');
 
+        $consultationSessionFilter = (new ConsultationSessionFilter())
+                ->setMinStartTime($minStartTime)
+                ->setMaxStartTime($maxStartTime)
+                ->setContainParticipantFeedback($containParticipantFeedback)
+                ->setContainConsultantFeedback($containConsultantFeedback);
+        
+        $consultationSessions = $service->showAll($this->firmId(), $this->clientId(), $programId, $this->getPage(), $this->getPageSize(), $consultationSessionFilter);
+        
         $result = [];
         $result['total'] = count($consultationSessions);
         foreach ($consultationSessions as $consultationSession) {
@@ -86,7 +82,7 @@ class ConsultationSessionController extends ClientBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfConsultationSession(ConsultationSession2 $consultationSession)
+    protected function arrayDataOfConsultationSession(ConsultationSession $consultationSession)
     {
         $participantFeedback = empty($consultationSession->getParticipantFeedback()) ? null :
                 (new FormRecordToArrayDataConverter())->convert($consultationSession->getParticipantFeedback());
@@ -120,14 +116,21 @@ class ConsultationSessionController extends ClientBaseController
 
     protected function buildViewService()
     {
-        $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
-        return new ConsultationSessionView($consultationSessionRepository);
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
+        return new ViewConsultationSession($consultationSessionRepository);
     }
 
     protected function buildSetParticipantFeedbackService()
     {
-        $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
         return new ParticipantFeedbackSet($consultationSessionRepository);
+    }
+    
+    protected function getFormRecordData()
+    {
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        $fileInfoFinder = new ClientFileInfoFinder($fileInfoRepository, $this->firmId(), $this->clientId());
+        return (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
     }
 
 }

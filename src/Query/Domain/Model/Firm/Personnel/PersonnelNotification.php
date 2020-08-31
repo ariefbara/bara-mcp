@@ -3,10 +3,10 @@
 namespace Query\Domain\Model\Firm\Personnel;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\{
+use Query\Domain\Model\Firm\ {
     Personnel,
-    Program\Participant\ConsultationRequest,
-    Program\Participant\ConsultationSession
+    Program\ConsultationSetup\ConsultationRequest,
+    Program\ConsultationSetup\ConsultationSession
 };
 
 class PersonnelNotification

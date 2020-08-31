@@ -2,29 +2,23 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Personnel\Application\Service\Firm\Program\Participant\WorksheetRepository as InterfaceForPersonnelBC;
-use Query\{
-    Application\Service\Client\ProgramParticipation\WorksheetRepository as InterfaceForProgramParticipation,
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
-    Application\Service\Firm\Program\Participant\ParticipantCompositionId,
+use Query\ {
     Application\Service\Firm\Program\Participant\WorksheetRepository,
-    Domain\Model\Firm\Program\Consultant,
+    Domain\Model\Firm\Program\ClientParticipant,
     Domain\Model\Firm\Program\Participant\Worksheet
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository, InterfaceForProgramParticipation,
-        InterfaceForPersonnelBC
+class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository
 {
-
+/*
     public function all(ParticipantCompositionId $participantCompositionId, int $page, int $pageSize)
     {
         $params = [
@@ -211,6 +205,90 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->setParameters($params);
         
         return $qb->getQuery()->getResult();
+    }
+ * 
+ */
+    public function aWorksheetBelongsToClientParticipant(string $firmId, string $clientId, string $programId,
+            string $worksheetId): Worksheet
+    {
+        $params = [
+            'firmId' =>  $firmId,
+            'clientId' =>  $clientId,
+            'programId' =>  $programId,
+            'worksheetId' =>  $worksheetId,
+        ];
+        
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('tParticipant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.participant', 'tParticipant')
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('clientParticipant.program', 'program')
+                ->andWhere($clientParticipantQb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('client.firm', 'cFirm')
+                ->leftJoin('program.firm', 'pFirm')
+                ->andWhere($clientParticipantQb->expr()->eq('cFirm.id', ':firmId'))
+                ->andWhere($clientParticipantQb->expr()->eq('pFirm.id', ':firmId'))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder('worksheet');
+        $qb->select('worksheet')
+                ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
+                ->leftJoin('worksheet.participant', 'participant')
+                ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: worksheet not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allWorksheetsBelongsToClientParticipant(string $firmId, string $clientId, string $programId,
+            int $page, int $pageSize, ?string $missionId, ?string $parentWorksheetId)
+    {
+        $params = [
+            'firmId' =>  $firmId,
+            'clientId' =>  $clientId,
+            'programId' =>  $programId,
+        ];
+        
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('tParticipant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.participant', 'tParticipant')
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('clientParticipant.program', 'program')
+                ->andWhere($clientParticipantQb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('client.firm', 'cFirm')
+                ->leftJoin('program.firm', 'pFirm')
+                ->andWhere($clientParticipantQb->expr()->eq('cFirm.id', ':firmId'))
+                ->andWhere($clientParticipantQb->expr()->eq('pFirm.id', ':firmId'))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder('worksheet');
+        $qb->select('worksheet')
+                ->leftJoin('worksheet.participant', 'participant')
+                ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
+                ->setParameters($params);
+        
+        if (!empty($missionId)) {
+            $qb->leftJoin('worksheet.mission', 'mission')
+                    ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
+                    ->setParameter('missionId', $missionId);
+        }
+        if (!empty($parentWorksheetId)) {
+            $qb->leftJoin('worksheet.parent', 'parent')
+                    ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
+                    ->setParameter('parentId', $parentWorksheetId);
+        }
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

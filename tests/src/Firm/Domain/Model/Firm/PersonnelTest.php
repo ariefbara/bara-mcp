@@ -3,13 +3,17 @@
 namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\Firm;
+use Resources\Domain\ {
+    Model\Mail\Recipient,
+    ValueObject\PersonName
+};
 use Tests\TestBase;
 
 class PersonnelTest extends TestBase
 {
     protected $personnel;
     protected $firm;
-    protected $id = 'personnel-input', $name = 'new personnel name', $email = 'newPersonnel@email.org', 
+    protected $id = 'personnel-input', $firstName = 'hadi', $lastName = 'pranoto', $email = 'newPersonnel@email.org', 
         $password = 'password123', $phone = '08231231231';
     
     protected function setUp(): void
@@ -17,7 +21,7 @@ class PersonnelTest extends TestBase
         parent::setUp();
         
         $this->firm = $this->buildMockOfClass(Firm::class);
-        $personnelData = new PersonnelData('name', 'personnel@email.org', 'password123', '0812312312');
+        $personnelData = new PersonnelData('firstname', 'lastname', 'personnel@email.org', 'password123', '0812312312');
         $this->personnel = new TestablePersonnel($this->firm, 'id', $personnelData);
     }
     
@@ -27,7 +31,7 @@ class PersonnelTest extends TestBase
     }
     protected function getPersonnelData()
     {
-        return new PersonnelData($this->name, $this->email, $this->password, $this->phone);
+        return new PersonnelData($this->firstName, $this->lastName, $this->email, $this->password, $this->phone);
     }
     
     public function test_construct_setProperties()
@@ -35,20 +39,14 @@ class PersonnelTest extends TestBase
         $personnel = $this->executeConstruct();
         $this->assertEquals($this->firm, $personnel->firm);
         $this->assertEquals($this->id, $personnel->id);
-        $this->assertEquals($this->name, $personnel->name);
+        
+        $name = new PersonName($this->firstName, $this->lastName);
+        $this->assertEquals($name, $personnel->name);
+        
         $this->assertEquals($this->email, $personnel->email);
         $this->assertTrue($personnel->password->match($this->password));
         $this->assertEquals($this->YmdHisStringOfCurrentTime(), $personnel->joinTime->format('Y-m-d H:i:s'));
         $this->assertFalse($personnel->removed);
-    }
-    public function test_construct_emptyName_throwEx()
-    {
-        $this->name = '';
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "bad request: personnel name is required";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
     }
     public function test_construct_invalidEmail_throwEx()
     {
@@ -74,6 +72,17 @@ class PersonnelTest extends TestBase
         $this->phone = null;
         $this->executeConstruct();
         $this->markAsSuccess();
+    }
+    
+    public function test_getMailRecipient_returnRecipient()
+    {
+        $recipient = new Recipient($this->personnel->email, $this->personnel->name);
+        $this->assertEquals($recipient, $this->personnel->getMailRecipient());
+    }
+    
+    public function test_getName_returnFullName()
+    {
+        $this->assertEquals($this->personnel->name->getFullName(), $this->personnel->getName());
     }
 }
 

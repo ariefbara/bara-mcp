@@ -2,100 +2,100 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation\Worksheet;
 
-use App\Http\Controllers\Client\ClientBaseController;
-use Client\ {
-    Application\Service\Client\ProgramParticipation\ParticipantCommentSubmitNew,
-    Application\Service\Client\ProgramParticipation\ParticipantCommentSubmitReply,
-    Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
-    Application\Service\Client\ProgramParticipation\Worksheet\WorksheetCompositionId,
-    Domain\Model\Client\ProgramParticipation,
-    Domain\Model\Client\ProgramParticipation\ParticipantComment,
-    Domain\Model\Client\ProgramParticipation\Worksheet,
-    Domain\Model\Client\ProgramParticipation\Worksheet\Comment
+use App\Http\Controllers\{
+    Client\ClientBaseController,
+    SwiftMailerBuilder
 };
-use Query\ {
-    Application\Service\Client\ProgramParticipation\Worksheet\CommentView,
-    Domain\Model\Firm\Program\Consultant\ConsultantComment,
-    Domain\Model\Firm\Program\Participant\ParticipantComment as ParticipantComment2,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment as Comment2
+use Config\EventList;
+use Notification\{
+    Application\Listener\Firm\Program\ClientParticipant\Worksheet\ConsultantCommentRepliedByClientParticipantListener,
+    Application\Service\Firm\Program\ClientParticipant\Worksheet\SendParticipantRepliedConsultantCommentMail,
+    Domain\Model\Firm\Program\Participant\Worksheet\ParticipantComment as ParticipantComment2
 };
+use Participant\{
+    Application\Service\Participant\Worksheet\ReplyConsultantComment,
+    Application\Service\Participant\Worksheet\SubmitNewComment,
+    Domain\Model\ClientParticipant,
+    Domain\Model\Participant\Worksheet,
+    Domain\Model\Participant\Worksheet\ParticipantComment
+};
+use Query\{
+    Application\Service\Firm\Client\ProgramParticipation\Worksheet\ViewComment,
+    Domain\Model\Firm\Program\Participant\Worksheet\Comment,
+    Domain\Model\Firm\Program\Participant\Worksheet\ConsultantComment
+};
+use Resources\Application\Event\Dispatcher;
 
 class CommentController extends ClientBaseController
 {
 
-    public function submitNew($programParticipationId, $worksheetId)
+    public function submitNew($programId, $worksheetId)
     {
         $service = $this->buildSubmitNewService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId(
-                $this->clientId(), $programParticipationId);
         $message = $this->stripTagsInputRequest('message');
-        $commentId = $service->execute($programParticipationCompositionId, $worksheetId, $message);
+        $commentId = $service->execute($this->firmId(), $this->clientId(), $programId, $worksheetId, $message);
         
         $viewService = $this->buildViewService();
-        $worksheetCompositionId = new WorksheetCompositionId($this->clientId(), $programParticipationId, $worksheetId);
-        $comment = $viewService->showById($worksheetCompositionId, $commentId);
+        $comment = $viewService->showById($this->firmId(), $this->clientId(), $programId, $worksheetId, $commentId);
+        return $this->commandCreatedResponse($this->arrayDataOfComment($comment));
+    }
+    
+    protected function replyConsultantComment($programId, $worksheetId, $consultantCommentId)
+    {
+        $service = $this->buildReplyConsultantCommentService();
+        $message = $this->stripTagsInputRequest('message');
+        $commentId = $service->execute($this->firmId(), $this->clientId(), $programId, $worksheetId, $consultantCommentId, $message);
+        
+        $viewService = $this->buildViewService();
+        $comment = $viewService->showById($this->firmId(), $this->clientId(), $programId, $worksheetId, $commentId);
         return $this->commandCreatedResponse($this->arrayDataOfComment($comment));
     }
 
-    public function submitReply($programParticipationId, $worksheetId, $commentId)
+    public function show($programId, $worksheetId, $commentId)
     {
-        $service = $this->buildSubmitReplyService();
-        $worksheetCompositionId = new WorksheetCompositionId($this->clientId(), $programParticipationId, $worksheetId);
-        $message = $this->stripTagsInputRequest('message');
-        $commentId = $service->execute($worksheetCompositionId, $commentId, $message);
-        
         $viewService = $this->buildViewService();
-        $comment = $viewService->showById($worksheetCompositionId, $commentId);
-        return $this->commandCreatedResponse($this->arrayDataOfComment($comment));
-    }
-
-    public function show($programParticipationId, $worksheetId, $commentId)
-    {
-        $service = $this->buildViewService();
-        $worksheetCompositionId = new WorksheetCompositionId($this->clientId(), $programParticipationId, $worksheetId);
-        $comment = $service->showById($worksheetCompositionId, $commentId);
-        
+        $comment = $viewService->showById($this->firmId(), $this->clientId(), $programId, $worksheetId, $commentId);
         return $this->singleQueryResponse($this->arrayDataOfComment($comment));
     }
 
-    public function showAll($programParticipationId, $worksheetId)
+    public function showAll($programId, $worksheetId)
     {
-        $service = $this->buildViewService();
-        $worksheetCompositionId = new WorksheetCompositionId($this->clientId(), $programParticipationId, $worksheetId);
-        $comments = $service->showAll($worksheetCompositionId, $this->getPage(), $this->getPageSize());
+        $viewService = $this->buildViewService();
+        $comments = $viewService->showAll($this->firmId(), $this->clientId(), $programId, $worksheetId, $this->getPage(), $this->getPageSize());
         
         $result = [];
-        $result["total"] = count($comments);
+        $result['total'] = count($comments);
         foreach ($comments as $comment) {
             $result['list'][] = $this->arrayDataOfComment($comment);
         }
         return $this->listQueryResponse($result);
     }
-    
-    protected function arrayDataOfComment(Comment2 $comment): array
+
+    protected function arrayDataOfComment(Comment $comment): array
     {
-        return  [
+        return [
             "id" => $comment->getId(),
             "message" => $comment->getMessage(),
             "submitTime" => $comment->getSubmitTimeString(),
             'removed' => $comment->isRemoved(),
             "parent" => $this->arrayDataOfParentComment($comment->getParent()),
-            "participant" => $this->arrayDataOfParticipant($comment->getParticipantComment()),
             "consultant" => $this->arrayDataOfConsultant($comment->getConsultantComment()),
         ];
     }
-    protected function arrayDataOfParentComment(?Comment2 $comment): ?array
+
+    protected function arrayDataOfParentComment(?Comment $comment): ?array
     {
-        return empty($comment)? null: [
+        return empty($comment) ? null : [
             "id" => $comment->getId(),
             "message" => $comment->getMessage(),
             "submitTime" => $comment->getSubmitTimeString(),
             "removed" => $comment->isRemoved(),
         ];
     }
+
     protected function arrayDataOfConsultant(?ConsultantComment $consultantComment): ?array
     {
-        return empty($consultantComment)? null: [
+        return empty($consultantComment) ? null : [
             'id' => $consultantComment->getConsultant()->getId(),
             'personnel' => [
                 'id' => $consultantComment->getConsultant()->getPersonnel()->getId(),
@@ -103,37 +103,42 @@ class CommentController extends ClientBaseController
             ],
         ];
     }
-    protected function arrayDataOfParticipant(?ParticipantComment2 $participantCOmment): ?array
-    {
-        return empty($participantCOmment)? null: [
-            'id' => $participantCOmment->getParticipant()->getId(),
-            'client' => [
-                'id' => $participantCOmment->getParticipant()->getClient()->getId(),
-                'name' => $participantCOmment->getParticipant()->getClient()->getName(),
-            ],
-        ];
-    }
-    
+
     protected function buildSubmitNewService()
     {
         $participantCommentRepository = $this->em->getRepository(ParticipantComment::class);
-        $programParticipationRepository = $this->em->getRepository(ProgramParticipation::class);
         $worksheetRepository = $this->em->getRepository(Worksheet::class);
-        
-        return new ParticipantCommentSubmitNew(
-                $participantCommentRepository, $programParticipationRepository, $worksheetRepository);
+        return new SubmitNewComment($participantCommentRepository, $worksheetRepository);
     }
-    protected function buildSubmitReplyService()
+
+    protected function buildReplyConsultantCommentService()
     {
         $participantCommentRepository = $this->em->getRepository(ParticipantComment::class);
-        $programParticipationRepository = $this->em->getRepository(ProgramParticipation::class);
-        $commentRepoository = $this->em->getRepository(Comment::class);
-        return new ParticipantCommentSubmitReply($participantCommentRepository, $programParticipationRepository, $commentRepoository);
+        $consultantCommentRepository = $this->em->getRepository(ConsultantComment::class);
+        $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::CONSULTANT_COMMENT_REPLIED_BY_CLIENT_PARTICIPANT,
+                $this->buildConsultantCommentRepliedByParticipantListener());
+
+        return new ReplyConsultantComment(
+                $participantCommentRepository, $consultantCommentRepository, $clientParticipantRepository, $dispatcher);
     }
+
     protected function buildViewService()
     {
-        $commentRepository = $this->em->getRepository(Comment2::class);
-        return new CommentView($commentRepository);
+        $commentRepository = $this->em->getRepository(Comment::class);
+        return new ViewComment($commentRepository);
+    }
+
+    protected function buildConsultantCommentRepliedByParticipantListener()
+    {
+        $participantCommentRepository = $this->em->getRepository(ParticipantComment2::class);
+        $mailer = SwiftMailerBuilder::build();
+
+        $sendParticipantRepliedConsultantCommentMail = new SendParticipantRepliedConsultantCommentMail($participantCommentRepository,
+                $mailer);
+        return new ConsultantCommentRepliedByClientParticipantListener($sendParticipantRepliedConsultantCommentMail);
     }
 
 }

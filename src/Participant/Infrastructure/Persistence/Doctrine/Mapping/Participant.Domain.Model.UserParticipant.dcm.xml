@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\UserParticipant" 
+            table="UserParticipant" 
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserParticipantRepository"
+    >
+        <field name="userId" column="User_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        <many-to-one  field="program" 
+                      target-entity="SharedContext\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        <one-to-one  field="participant" 
+                     target-entity="Participant\Domain\Model\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

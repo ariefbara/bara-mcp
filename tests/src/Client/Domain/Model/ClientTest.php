@@ -1,355 +1,372 @@
 <?php
 
-namespace Client\Domain\Model;
+namespace Client\Dommain\Model;
 
 use Client\Domain\ {
     Event\ClientActivationCodeGenerated,
-    Event\ClientPasswordResetCodeGenerated,
-    Model\Client\ClientNotification,
+    Event\ClientResetPasswordCodeGenerated,
+    Model\Client,
+    Model\Client\ClientFileInfo,
     Model\Client\ProgramParticipation,
     Model\Client\ProgramRegistration,
-    Model\Firm\Program
+    Model\ProgramInterface
 };
-use DateTime;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Resources\Domain\ValueObject\Password;
-use Shared\Domain\Model\Notification;
+use Resources\ {
+    DateTimeImmutableBuilder,
+    Domain\ValueObject\Password,
+    Domain\ValueObject\PersonName
+};
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use Tests\TestBase;
 
 class ClientTest extends TestBase
 {
-
-    protected $client;
-    protected $id = 'new-user-id';
-    protected $name = 'new talent';
-    protected $email = 'new_user@email.org';
-    protected $password = 'password123';
-    protected $baseEmail = 'base_address@email.org', $basePassword = 'basePwd123';
+    protected $client, $password;
+    protected $firstName = 'firstname', $lastName = 'lastname', $previousPassword = 'previous123', $newPassword = 'newPwd123';
     
-    protected $program;
-    protected $programParticipation;
     protected $programRegistration;
+    protected $programParticipation;
+    
+    protected $programRegistrationId = 'programRegistrationId';
+    protected $program;
+    
+    protected $clientFileInfoId = 'clientFileInfoId', $fileInfoData;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->client = new TestableClient('id', 'base name', $this->baseEmail,
-            $this->basePassword);
-
-        $this->client->generateResetPasswordCode();
         
-        $this->program = $this->buildMockOfClass(Program::class);
-        $this->program->expects($this->any())
-                ->method('canAcceptRegistration')
-                ->willReturn(true);
-        $this->client->programParticipations = new ArrayCollection();
+        $this->client = new TestableClient();
+        
+        $this->password = $this->buildMockOfClass(Password::class);
+        $this->client->password = $this->password;
+        
+        $this->client->activationCode = bin2hex(random_bytes(32));
+        $this->client->activationCodeExpiredTime = new DateTimeImmutable('+24 hours');
+        $this->client->resetPasswordCode = bin2hex(random_bytes(32));
+        $this->client->resetPasswordCodeExpiredTime = new DateTimeImmutable('+24 hours');
+        $this->client->activated = true;
         $this->client->programRegistrations = new ArrayCollection();
+        $this->client->programParticipations = new ArrayCollection();
+        
+        $this->programRegistration = $this->buildMockOfClass(ProgramRegistration::class);
+        $this->client->programRegistrations->add($this->programRegistration);
         
         $this->programParticipation = $this->buildMockOfClass(ProgramParticipation::class);
         $this->client->programParticipations->add($this->programParticipation);
-        $this->programRegistration = $this->buildMockOfClass(ProgramRegistration::class);
-        $this->client->programRegistrations->add($this->programRegistration);
+        
+        $this->program = $this->buildMockOfInterface(ProgramInterface::class);
+        $this->program->expects($this->any())->method('isRegistrationOpenFor')->willReturn(true);
+        
+        $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
+        $this->fileInfoData->expects($this->any())->method('getName')->willReturn('docs.pdf');
     }
-
-    private function executeConstruct()
+    
+    protected function executeUpdateProfile()
     {
-        return new TestableClient($this->id, $this->name, $this->email, $this->password);
+        $this->client->updateProfile($this->firstName, $this->lastName);
     }
-
-    public function test_construct_setProperties()
+    
+    public function test_updateProfile_changeName()
     {
-        $client = $this->executeConstruct();
-        $this->assertEquals($this->id, $client->id);
-        $this->assertEquals($this->name, $client->name);
-        $this->assertEquals($this->email, $client->email);
-        $this->assertTrue($client->password->match($this->password));
-        $this->assertEquals($this->YmdHisStringOfCurrentTime(), $client->signupTime->format('Y-m-d H:i:s'));
-        $this->assertFalse($client->activated);
+        $this->executeUpdateProfile();
+        $personName = new PersonName($this->firstName, $this->lastName);
+        $this->assertEquals($personName, $this->client->personName);
     }
-
-    public function test_construct_emptyName_throwEx()
+    public function test_updateProfile_inactiveClient_forbiddenError()
     {
-        $this->name = '';
-        $operation = function () {
-            $this->executeConstruct();
+        $this->client->activated = false;
+        $operation = function (){
+            $this->executeUpdateProfile();
         };
-        $errorDetail = "bad request: client name is required";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
+        $errorDetail = 'forbidden: only active client can  make this request';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
-    public function test_construct_invalidEmail_throwEx()
+    
+    protected function executeChangePassword()
     {
-        $this->email = "invalid format";
-        $operation = function () {
-            $this->executeConstruct();
+        $this->password->expects($this->any())
+                ->method('match')
+                ->with($this->previousPassword)
+                ->willReturn(true);
+        
+        $this->client->changePassword($this->previousPassword, $this->newPassword);
+    }
+    public function test_changePassword()
+    {
+        $this->executeChangePassword();
+        $this->assertTrue($this->client->password->match($this->newPassword));
+    }
+    public function test_changePassword_unmatchPreviousPassword_forbiddenError()
+    {
+        $this->password->expects($this->once())
+                ->method('match')
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeChangePassword();
         };
-        $errorDetail = "bad request: client email is required and must be in valid email address format";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
+        $errorDetail = 'forbidden: previous password not match';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
-    function test_construct_setActivationCodeAndExpiredTime()
+    public function test_changePassword_inactiveClient_forbiddenError()
     {
-        $client = $this->executeConstruct();
-        $this->assertNotEmpty($client->activationCode);
-        $this->assertEquals((new DateTime('+24 hours'))->format("Y-m-d H:i:s"),
-            $client->activationCodeExpiredTime->format('Y-m-d H:i:s'));
-    }
-
-    function test_construct_addTalentActivationCodeGeneratedEvent()
-    {
-        $user = $this->executeConstruct();
-        $this->assertInstanceOf(ClientActivationCodeGenerated::class, $user->getRecordedEvents()[0]);
-    }
-
-    private function executeChangeProfile()
-    {
-        $this->client->changeProfile($this->name);
-    }
-
-    function test_update_changeName()
-    {
-        $this->executeChangeProfile();
-        $this->assertEquals($this->name, $this->client->name);
-    }
-
-    public function test_update_emptyName_throwEx()
-    {
-        $this->name = '';
-        $operation = function () {
-            $this->executeChangeProfile();
+        $this->client->activated = false;
+        $operation = function (){
+            $this->executeChangePassword();
         };
-        $errorDetail = "bad request: client name is required";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
+        $errorDetail = 'forbidden: only active client can  make this request';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
-    function test_generateActivationCode_setActivationCodeAndExpiredDateAlsoRecordTalentActivationCodeGeneratedEvent()
+    
+    protected function executeActivate()
     {
-        $this->client->activationCode = null;
-        $this->client->activationCodeExpiredTime = null;
-        $this->client->clearRecordedEvents();
-        $this->client->generateActivationCode();
-        $this->assertNotEmpty($this->client->activationCode);
-        $this->assertEquals((new DateTime('+24 hours'))->format('Y-m-d H:i:s'),
-            $this->client->activationCodeExpiredTime->format('Y-m-d H:i:s'));
-        $this->assertInstanceOf(ClientActivationCodeGenerated::class,
-            $this->client->getRecordedEvents()[0]);
-    }
-
-    function test_generateActivationCode_accountAlreadyActivated_throwEx()
-    {
-        $this->client->activate($this->client->activationCode);
-        $operation = function () {
-            $this->client->generateActivationCode();
-        };
-        $errorDetail = 'forbidden: account already activated';
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-
-    private function executeGenerateResetPasswordCode()
-    {
-        $this->client->generateResetPasswordCode();
-    }
-
-    function test_generateResetPasswordCode_setResetPasswordCode()
-    {
-        $this->executeGenerateResetPasswordCode();
-        $this->assertNotEmpty($this->client->resetPasswordCode);
-    }
-
-    function test_generateResetPasswordCode_setExpiredTime()
-    {
-        $this->executeGenerateResetPasswordCode();
-        $this->assertEquals((new DateTime('+24 hours'))->format('Y-m-d H:i:s'),
-            $this->client->resetPasswordCodeExpiredTime->format('Y-m-d H:i:s'));
-    }
-
-    function test_generateResetPasswordCode_recordTalentResetPasswordCodeGeneratedEvent()
-    {
-        $this->client->clearRecordedEvents();
-        $this->executeGenerateResetPasswordCode();
-        $this->assertInstanceOf(ClientPasswordResetCodeGenerated::class,
-            $this->client->getRecordedEvents()[0]);
-    }
-
-    private function executeActivate()
-    {
+        $this->client->activated = false;
         $this->client->activate($this->client->activationCode);
     }
-
-    function test_activate_setActivatedTrue()
+    public function test_activate_activateAccount()
     {
         $this->executeActivate();
         $this->assertTrue($this->client->activated);
     }
-
-    function test_activate_invalidActivationCode_throwEx()
-    {
-        $operation = function () {
-            $this->client->activate('invalid code');
-        };
-        $errorDetail = 'bad request: invalid or expired token';
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
-    }
-
-    function test_activate_expiredToken_throwEx()
-    {
-        $this->client->activationCodeExpiredTime = new DateTimeImmutable("-24 hours");
-        $operation = function () {
-            $this->executeActivate();
-        };
-        $errorDetail = 'bad request: invalid or expired token';
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
-    }
-
-    function test_activate_talentHasNoToken_throwEx()
-    {
-        $this->client->activationCode = '';
-        $this->client->activationCodeExpiredTime = null;
-        $operation = function () {
-            $this->executeActivate();
-        };
-        $errorDetail = 'bad request: invalid or expired token';
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
-    }
-
-    function test_activate_setActivationCodeAndExpiredDateNull()
+    public function test_activate_resetActivationCodeAndActivationCodeExpiredTime()
     {
         $this->executeActivate();
         $this->assertNull($this->client->activationCode);
         $this->assertNull($this->client->activationCodeExpiredTime);
     }
-
-    private function executeResetPassword()
+    public function test_activate_activationCodeUnmatch_forbiddenError()
     {
-        $this->client->resetPassword($this->client->resetPasswordCode, $this->password);
+        $this->client->activated = false;
+        $operation = function (){
+            $this->client->activate('unmatchCode');
+        };
+        $errorDetail = 'forbidden: activation code not match or expired';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
-    function test_resetPassword_setPassword()
+    public function test_activate_activationCodeExpired_forbiddenError()
+    {
+        $this->client->activationCodeExpiredTime = new \DateTimeImmutable('-1 second');
+        $operation = function (){
+            $this->executeActivate();
+        };
+        $errorDetail = 'forbidden: activation code not match or expired';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_activate_accountAlreadyActivated_forbiddenError()
+    {
+        $this->client->activated = true;
+        $operation = function (){
+            $this->client->activate($this->client->activationCode);
+        };
+        $errorDetail = 'forbidden: account already activated';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_activate_emptyActivationCode_forbiddenError()
+    {
+        $this->client->activationCode = "";
+        $operation = function (){
+            $this->executeActivate();
+        };
+        $errorDetail = 'forbidden: activation code not match or expired';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    
+    protected function executeResetPassword()
+    {
+        $this->client->resetPassword($this->client->resetPasswordCode, $this->newPassword);
+    }
+    public function test_resetPassword_changePassword()
     {
         $this->executeResetPassword();
-        $this->assertTrue($this->client->password->match($this->password));
+        $this->assertTrue($this->client->password->match($this->newPassword));
     }
-
-    function test_resetPassword_talentHasNoToken_throwEx()
-    {
-        $this->client->resetPasswordCode = '';
-        $this->client->resetPasswordCodeExpiredTime = null;
-        $operation = function () {
-            $this->executeResetPassword();
-        };
-        $errorDetail = "bad request: invalid or expired token";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
-    }
-
-    function test_resetPassword_invalidToken_throwEx()
-    {
-        $operation = function () {
-            $this->client->resetPassword('invalid token', $this->password);
-        };
-        $errorDetail = "bad request: invalid or expired token";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
-    }
-
-    function test_resetPassword_expiredToken_throwEx()
-    {
-        $this->client->resetPasswordCodeExpiredTime = new DateTimeImmutable("-24 hours");
-        $operation = function () {
-            $this->executeResetPassword();
-        };
-        $errorDetail = "bad request: invalid or expired token";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
-    }
-
-    function test_resetPassword_setResetCodeAndExpiredDateNull()
+    public function test__resetPassword_emptyResetPasswordCodeAndExpiredTime()
     {
         $this->executeResetPassword();
         $this->assertNull($this->client->resetPasswordCode);
         $this->assertNull($this->client->resetPasswordCodeExpiredTime);
     }
-
-    function test_changePassword_changePasswordVO()
+    public function test_resetPassword_unmatchResetPasswordCode_forbiddenError()
     {
-        $this->client->changePassword($this->basePassword, $this->password);
-        $this->assertTrue($this->client->password->match($this->password));
-    }
-
-    function test_changePassword_previousPasswordNotMatched_throwEx()
-    {
-        $operation = function () {
-            $this->client->changePassword('not match', $this->password);
-        };
-        $errorDetail = 'forbidden: previous password not match';
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-
-    function test_emailEquals_sameEmail_returnTrue()
-    {
-        $this->assertTrue($this->client->emailEquals($this->baseEmail));
-    }
-
-    function test_emailEquals_differentEmail_returnFalse()
-    {
-        $this->assertFalse($this->client->emailEquals('different_address@email.org'));
-    }
-    
-    protected function executeCreateProgramRegistration()
-    {
-        return $this->client->createProgramRegistration($this->program);
-    }
-    
-    public function test_createProgramRegistration_hasRegistrantInCollectionCorrespondToSameProgram_throwEx()
-    {
-        $this->programRegistration->expects($this->once())
-                ->method('getProgram')
-                ->willReturn($this->program);
         $operation = function (){
-            $this->executeCreateProgramRegistration();
+            $this->client->resetPassword('unmatch', $this->newPassword);
         };
-        $errorDetail = "forbidden: you already registered to this program";
+        $errorDetail = 'forbidden: reset password code not match or expired';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    public function test_createProgramRegistration_programRegistrationInCollectionCorrespondToSameProgramAlreadyConcluded_processNormally()
+    public function test_resetPassword_emptyResetPasswordCode_forbiddenError()
     {
-        $this->programRegistration->expects($this->once())
-                ->method('getProgram')
-                ->willReturn($this->program);
-        $this->programRegistration->expects($this->once())
-                ->method('isConcluded')
-                ->willReturn(true);
-        $this->executeCreateProgramRegistration();
-        $this->markAsSuccess();
-    }
-    public function test_createProgramRegistration_hasActiveParticipantInCollectionCorrespontToSameProgram_throwEx()
-    {
-        $this->programParticipation->expects($this->once())
-                ->method('getProgram')
-                ->willReturn($this->program);
-        $this->programParticipation->expects($this->once())
-                ->method('isActive')
-                ->willReturn(true);
+        $this->client->resetPasswordCode = '';
         $operation = function (){
-            $this->executeCreateProgramRegistration();
+            $this->executeResetPassword();
         };
-        $errorDetail = "forbidden: you already participate in this program";
+        $errorDetail = 'forbidden: reset password code not match or expired';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    public function test_createProgramRegistration_programParticipationInCollectionCorrespontToSameProgramAlreadyInactive_processNormally()
+    public function test_resetPassword_resetPasswordCodeExpired_forbiddenError()
+    {
+        $this->client->resetPasswordCodeExpiredTime = new \DateTimeImmutable('-1 second');
+        $operation = function (){
+            $this->executeResetPassword();
+        };
+        $errorDetail = 'forbidden: reset password code not match or expired';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_resetPassword_inactiveAccount_forbiddenError()
+    {
+        $this->client->activated = false;
+        $operation = function (){
+            $this->executeResetPassword();
+        };
+        $errorDetail = 'forbidden: only active client can  make this request';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    
+    protected function executeGenerateActivationCode()
+    {
+        $this->client->activated = false;
+        $this->client->generateActivationCode();
+    }
+    public function test_generateActivationCode_generateActivationCodeAndExpiredTime()
+    {
+        $this->client->activationCode = null;
+        $this->client->activationCodeExpiredTime = null;
+        $this->executeGenerateActivationCode();
+        $this->assertNotEmpty($this->client->activationCode);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy('+24 hours'), $this->client->activationCodeExpiredTime);
+    }
+    public function test_generateActivationCode_accountAlreadyActivated_forbiddenError()
+    {
+        $this->client->activated = true;
+        $operation = function (){
+            $this->client->generateActivationCode();
+        };
+        $errorDetail = 'forbidden: account already activated';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_generateActivationCode_recordClientActivationCodeGeneratedEvent()
+    {
+        $event = new ClientActivationCodeGenerated($this->client->firmId, $this->client->id);
+        $this->executeGenerateActivationCode();
+        $this->assertEquals($event, $this->client->recordedEvents[0]);
+    }
+    
+    protected function executeGenerateResetPasswordCode()
+    {
+        $this->client->generateResetPasswordCode();
+    }
+    public function test_generateResetPasswordCode_setResetPasswordCodeAndExpiredTime()
+    {
+        $this->client->resetPasswordCode = null;
+        $this->client->resetPasswordCodeExpiredTime= null;
+        
+        $this->executeGenerateResetPasswordCode();
+        $this->assertNotEmpty($this->client->resetPasswordCode);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy('+24 hours'), $this->client->resetPasswordCodeExpiredTime);
+    }
+    public function test_generateResetPasswordCode_inactiveAccount_forbiddenError()
+    {
+        $this->client->activated = false;
+        $operation = function (){
+            $this->executeGenerateResetPasswordCode();
+        };
+        $errorDetail = 'forbidden: only active client can  make this request';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_generateResetPasswordCode_storeClientResetPasswordCodeGeneratedEvent()
+    {
+        $event = new ClientResetPasswordCodeGenerated($this->client->firmId, $this->client->id);
+        $this->executeGenerateResetPasswordCode();
+        $this->assertEquals($event, $this->client->recordedEvents[0]);
+    }
+    
+    protected function executeRegisterToProgram()
+    {
+        $this->program->expects($this->any())
+                ->method('firmIdEquals')
+                ->willReturn(true);
+        return $this->client->registerToProgram($this->programRegistrationId, $this->program);
+    }
+    
+    public function test_executeRegisterToProgram_returnProgramRegistration()
+    {
+        $programRegistration = new ProgramRegistration($this->client, $this->programRegistrationId, $this->program);
+        $this->assertEquals($programRegistration, $this->executeRegisterToProgram());
+    }
+    public function test_registerToProgram_inactiveClient_forbiddenError()
+    {
+        $this->client->activated = false;
+        $operation = function (){
+            $this->executeRegisterToProgram();
+        };
+        $errorDetail = 'forbidden: only active client can  make this request';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_registerToProgram_haveUnconcludedRegistrationToSameProgram_forbiddenError()
+    {
+        $this->programRegistration->expects($this->once())
+                ->method('isUnconcludedRegistrationToProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $operation = function (){
+            $this->executeRegisterToProgram();
+        };
+        $errorDetail = 'forbidden: client already registered to this program';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_registerToProgram_alreadyActiveParticipantOfSameProgram_forbiddenError()
     {
         $this->programParticipation->expects($this->once())
-                ->method('getProgram')
-                ->willReturn($this->program);
-        $this->executeCreateProgramRegistration();
-        $this->markAsSuccess();
+                ->method('isActiveParticipantOfProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $operation = function (){
+            $this->executeRegisterToProgram();
+        };
+        $errorDetail = 'forbidden: client already active participant of this program';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
+    public function test_registerToProgram_programFromDifferentFirm_forbiddenError()
+    {
+        $this->program->expects($this->once())
+                ->method('firmIdEquals')
+                ->with($this->client->firmId)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeRegisterToProgram();
+        };
+        $errorDetail = 'forbidden: cannot register to program from different firm';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    
+    public function test_createClientFileInfo_returnClientFileInfo()
+    {
+        $clientFileInfo = new ClientFileInfo($this->client, $this->clientFileInfoId, $this->fileInfoData);
+        $this->assertEquals($clientFileInfo, $this->client->createClientFileInfo($this->clientFileInfoId, $this->fileInfoData));
+    }
 }
 
 class TestableClient extends Client
 {
-
-    public $id, $password, $name, $email, $signupTime;
-    public $activationCode, $activationCodeExpiredTime, $resetPasswordCode, $resetPasswordCodeExpiredTime, $activated;
-    public $programRegistrations, $programParticipations;
+    public $firmId = 'firmId';
+    public $id = 'clientId';
+    public $personName;
+    public $email;
+    public $password;
+    public $activationCode;
+    public $activationCodeExpiredTime;
+    public $resetPasswordCode;
+    public $resetPasswordCodeExpiredTime;
+    public $activated;
+    public $programRegistrations;
+    public $programParticipations;
+    
+    public $recordedEvents;
+    
+    function __construct()
+    {
+        parent::__construct();
+    }
 }

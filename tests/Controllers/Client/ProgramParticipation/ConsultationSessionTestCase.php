@@ -25,7 +25,7 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
     {
         parent::setUp();
         
-        $this->consultationSessionUri = $this->programParticipationUri . "/{$this->programParticipation->id}/consultation-sessions";
+        $this->consultationSessionUri = $this->programParticipationUri . "/{$this->programParticipation->program->id}/consultation-sessions";
         $this->connection->table('Form')->truncate();
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -49,7 +49,7 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
         $consultant = new RecordOfConsultant($this->programParticipation->program, $personnel, 0);
         $this->connection->table("Consultant")->insert($consultant->toArrayForDbEntry());
         
-        $this->consultationSession = new RecordOfConsultationSession($consultationSetup, $this->programParticipation, $consultant, 0);
+        $this->consultationSession = new RecordOfConsultationSession($consultationSetup, $this->programParticipation->participant, $consultant, 0);
         $this->connection->table("ConsultationSession")->insert($this->consultationSession->toArrayForDbEntry());
     }
     

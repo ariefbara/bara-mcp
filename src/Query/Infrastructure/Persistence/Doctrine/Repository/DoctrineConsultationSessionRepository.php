@@ -2,146 +2,68 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
-    NoResultException
+    NoResultException,
+    QueryBuilder
 };
-use Query\{
-    Application\Service\Client\ProgramParticipation\ConsultationSessionRepository as InterfaceForParticipant,
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionRepository as InterfaceForPersonnel,
-    Application\Service\Firm\Program\Participant\ConsultationSessionRepository,
-    Application\Service\Firm\Program\Participant\ParticipantCompositionId,
-    Domain\Model\Firm\Program\Participant\ConsultationSession
+use Query\ {
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionRepository,
+    Domain\Model\Firm\Program\ClientParticipant,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository, InterfaceForParticipant,
-        InterfaceForPersonnel
+class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository
 {
-
-    public function all(ParticipantCompositionId $participantCompositionId, int $page, int $pageSize)
-    {
-        $params = [
-            "participantId" => $participantCompositionId->getParticipantId(),
-            "programId" => $participantCompositionId->getProgramId(),
-            "firmId" => $participantCompositionId->getFirmId(),
-        ];
-
-        $qb = $this->createQueryBuilder('consultationSession');
-        $qb->select('consultationSession')
-                ->leftJoin('consultationSession.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.active', 'true'))
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params);
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function ofId(ParticipantCompositionId $participantCompositionId, string $consultationSessionId): ConsultationSession
-    {
-        $params = [
-            "consultationSessionId" => $consultationSessionId,
-            "participantId" => $participantCompositionId->getParticipantId(),
-            "programId" => $participantCompositionId->getProgramId(),
-            "firmId" => $participantCompositionId->getFirmId(),
-        ];
-
-        $qb = $this->createQueryBuilder('consultationSession');
-        $qb->select('consultationSession')
-                ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
-                ->leftJoin('consultationSession.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.active', 'true'))
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params)
-                ->setMaxResults(1);
-
-        try {
-            return $qb->getQuery()->getSingleResult();
-        } catch (NoResultException $ex) {
-            $errorDetail = "not found: consultation session not found";
-            throw RegularException::notFound($errorDetail);
-        }
-    }
-
-    public function aConsultationSessionOfParticipant(
-            ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationSessionId): ConsultationSession
-    {
-        $params = [
-            "consultationSessionId" => $consultationSessionId,
-            "participantId" => $programParticipationCompositionId->getProgramParticipationId(),
-            "clientId" => $programParticipationCompositionId->getClientId(),
-        ];
-
-        $qb = $this->createQueryBuilder('consultationSession');
-        $qb->select('consultationSession')
-                ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
-                ->leftJoin('consultationSession.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.active', 'true'))
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.client', 'client')
-                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
-                ->setParameters($params)
-                ->setMaxResults(1);
-
-        try {
-            return $qb->getQuery()->getSingleResult();
-        } catch (NoResultException $ex) {
-            $errorDetail = "not found: consultation session not found";
-            throw RegularException::notFound($errorDetail);
-        }
-    }
-
-    public function allConsultationSessionsOfParticipant(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
-    {
-        $params = [
-            "participantId" => $programParticipationCompositionId->getProgramParticipationId(),
-            "clientId" => $programParticipationCompositionId->getClientId(),
-        ];
-
-        $qb = $this->createQueryBuilder('consultationSession');
-        $qb->select('consultationSession')
-                ->leftJoin('consultationSession.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.active', 'true'))
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.client', 'client')
-                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
-                ->setParameters($params);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function aConsultationSessionOfPersonnel(\Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId $programConsultantCompositionId,
+/*
+    public function aConsultationSessionOfClient(string $clientId, string $programParticipationId,
             string $consultationSessionId): ConsultationSession
     {
         $params = [
-            "consultationSessionId" => $consultationSessionId,
-            'consultantId' => $programConsultantCompositionId->getProgramConsultantId(),
-            'personnelId' => $programConsultantCompositionId->getPersonnelId(),
-            'firmId' => $programConsultantCompositionId->getFirmId(),
+            'consultationSessionId' => $consultationSessionId,
+            'participantId' => $programParticipationId,
+            'clientId' => $clientId,
+        ];
+
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
+                ->leftJoin('consultationSession.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('consultationSession.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: consultation session not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aConsultationSessionOfPersonnel(string $firmId, string $personnelId, string $consultantId,
+            string $consultationSessionId): ConsultationSession
+    {
+        $params = [
+            'consultationSessionId' => $consultationSessionId,
+            'consultantId' => $consultantId,
+            'personnelId' => $personnelId,
+            'firmId' => $firmId,
         ];
 
         $qb = $this->createQueryBuilder('consultationSession');
         $qb->select('consultationSession')
                 ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
                 ->leftJoin('consultationSession.consultant', 'consultant')
-                ->andWhere($qb->expr()->eq('consultant.removed', 'false'))
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
                 ->leftJoin('consultant.personnel', 'personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
@@ -151,33 +73,322 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = "not found: consultation session not found";
+            $errorDetail = 'not found: consultation session not found';
             throw RegularException::notFound($errorDetail);
         }
     }
 
-    public function allConsultationSessionsOfPersonnel(\Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId $programConsultantCompositionId,
-            int $page, int $pageSize)
+    public function all(string $firmId, string $programId, string $consultationSetupId,
+            ?ConsultationSessionFilter $consultationSessionFilter): ConsultationSession
     {
         $params = [
-            'consultantId' => $programConsultantCompositionId->getProgramConsultantId(),
-            'personnelId' => $programConsultantCompositionId->getPersonnelId(),
-            'firmId' => $programConsultantCompositionId->getFirmId(),
+            'consultationSetupId' => $consultationSetupId,
+            'programId' => $programId,
+            'firmId' => $firmId,
+        ];
+
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->leftJoin('consultationSession.consultationSetup', 'consultationSetup')
+                ->andWhere($qb->expr()->eq('consultationSetup.id', ':consultationSetupId'))
+                ->leftJoin('consultationSetup.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+        $this->applyFilter($qb, $consultationSessionFilter);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allConsultationSessionsOfClient(string $clientId, string $programParticipationId, int $page,
+            int $pageSize, ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $params = [
+            'participantId' => $programParticipationId,
+            'clientId' => $clientId,
+        ];
+
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->leftJoin('consultationSession.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('consultationSession.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->setParameters($params);
+        $this->applyFilter($qb, $consultationSessionFilter);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allConsultationSessionsOfPersonnel(string $firmId, string $personnelId, string $consultantId,
+            int $page, int $pageSize, ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $params = [
+            'consultantId' => $consultantId,
+            'personnelId' => $personnelId,
+            'firmId' => $firmId,
         ];
 
         $qb = $this->createQueryBuilder('consultationSession');
         $qb->select('consultationSession')
                 ->leftJoin('consultationSession.consultant', 'consultant')
-                ->andWhere($qb->expr()->eq('consultant.removed', 'false'))
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
                 ->leftJoin('consultant.personnel', 'personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('personnel.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+        $this->applyFilter($qb, $consultationSessionFilter);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function ofId(string $firmId, string $programId, string $consultationSetupId, string $consultationSessionId): ConsultationSession
+    {
+        $params = [
+            'consultationSessionId' => $consultationSessionId,
+            'consultationSetupId' => $consultationSetupId,
+            'programId' => $programId,
+            'firmId' => $firmId,
+        ];
+
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
+                ->leftJoin('consultationSession.consultationSetup', 'consultationSetup')
+                ->andWhere($qb->expr()->eq('consultationSetup.id', ':consultationSetupId'))
+                ->leftJoin('consultationSetup.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: consultation session not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+ * 
+ */
+    protected function applyFilter(QueryBuilder $qb, ?ConsultationSessionFilter $consultationSessionFilter): void
+    {
+        if (empty($consultationSessionFilter)) {
+            return;
+        }
+
+        if (!empty($minStartTime = $consultationSessionFilter->getMinStartTime())) {
+            $qb->andWhere($qb->expr()->gte('consultationSession.startEndTime.startDateTime', ':minStartTime'))
+                    ->setParameter('minStartTime', $minStartTime);
+        }
+        if (!empty($maxStartTime = $consultationSessionFilter->getMaxStartTime())) {
+            $qb->andWhere($qb->expr()->lt('consultationSession.startEndTime.startDateTime', ':maxStartTime'))
+                    ->setParameter('maxStartTime', $maxStartTime);
+        }
+        if (!empty($containConsultantFeedback = $consultationSessionFilter->isContainConsultantFeedback())) {
+            if ($containConsultantFeedback) {
+                $qb->andWhere($qb->expr()->isNotNull('consultationSession.consultantFeedback'));
+            } else {
+                $qb->andWhere($qb->expr()->isNull('consultationSession.consultantFeedback'));
+            }
+        }
+        if (!empty($containParticipantFeedback = $consultationSessionFilter->isContainParticipantFeedback())) {
+            if ($containParticipantFeedback) {
+                $qb->andWhere($qb->expr()->isNotNull('consultationSession.participantFeedback'));
+            } else {
+                $qb->andWhere($qb->expr()->isNull('consultationSession.participantFeedback'));
+            }
+        }
+    }
+    
+    public function aConsultationSessionOfClient(string $firmId, string $clientId, string $programId,
+            string $consultationSessionId): ConsultationSession
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            'programId' => $programId,
+            'consultationSessionId' => $consultationSessionId,
+        ];
+
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('tParticipant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.participant', 'tParticipant')
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('clientParticipant.program', 'program')
+                ->andWhere($clientParticipantQb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('client.firm', 'cFirm')
+                ->leftJoin('program.firm', 'pFirm')
+                ->andWhere($clientParticipantQb->expr()->eq('cFirm.id', ':firmId'))
+                ->andWhere($clientParticipantQb->expr()->eq('pFirm.id', ':firmId'))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
+                ->leftJoin('consultationSession.participant', 'participant')
+                ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: consultation session not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aConsultationSessionOfPersonnel(string $firmId, string $personnelId, string $programId,
+            string $consultationSessionId): ConsultationSession
+    {
+        $params = [
+            'firmId' => $firmId,
+            'personnelId' => $personnelId,
+            'programId' => $programId,
+            'consultationSessionId' => $consultationSessionId,
+        ];
+        
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
+                ->leftJoin('consultationSession.consultant', 'consultant')
+                ->leftJoin('consultant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('consultant.personnel', 'personnel')
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('personnel.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: consultation session not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function all(string $firmId, string $programId, string $consultationSetupId,
+            ?ConsultationSessionFilter $consultationSessionFilter): ConsultationSession
+    {
+        $params = [
+            'firmId' => $firmId,
+            'programId' => $programId,
+            'consultationSetupId' => $consultationSetupId,
+        ];
+        
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->leftJoin('consultationSession.consultationSetup', 'consultationSetup')
+                ->andWhere($qb->expr()->eq('consultationSetup.id', ':consultationSetupId'))
+                ->leftJoin('consultationSetup.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+        
+        $this->applyFilter($qb, $consultationSessionFilter);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allConsultationSessionsOfPersonnel(string $firmId, string $personnelId, string $programId,
+            int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $params = [
+            'firmId' => $firmId,
+            'personnelId' => $personnelId,
+            'programId' => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->leftJoin('consultationSession.consultant', 'consultant')
+                ->leftJoin('consultant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('consultant.personnel', 'personnel')
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
         
+        $this->applyFilter($qb, $consultationSessionFilter);
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allConsultationsSessionOfClient(string $firmId, string $clientId, string $programId, int $page,
+            int $pageSize,
+            ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            'programId' => $programId,
+        ];
+
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('tParticipant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.participant', 'tParticipant')
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('clientParticipant.program', 'program')
+                ->andWhere($clientParticipantQb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('client.firm', 'cFirm')
+                ->leftJoin('program.firm', 'pFirm')
+                ->andWhere($clientParticipantQb->expr()->eq('cFirm.id', ':firmId'))
+                ->andWhere($clientParticipantQb->expr()->eq('pFirm.id', ':firmId'))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->leftJoin('consultationSession.participant', 'participant')
+                ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
+                ->setParameters($params);
+        
+        $this->applyFilter($qb, $consultationSessionFilter);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function ofId(string $firmId, string $programId, string $consultationSetupId, string $consultationSessionId): ConsultationSession
+    {
+        $params = [
+            'firmId' => $firmId,
+            'programId' => $programId,
+            'consultationSetupId' => $consultationSetupId,
+            'consultationSessionId' => $consultationSessionId,
+        ];
+        
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.id', ':consultationSessionId'))
+                ->leftJoin('consultationSession.consultationSetup', 'consultationSetup')
+                ->andWhere($qb->expr()->eq('consultationSetup.id', ':consultationSetupId'))
+                ->leftJoin('consultationSetup.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: consultation session not found';
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

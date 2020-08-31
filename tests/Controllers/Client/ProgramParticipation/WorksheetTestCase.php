@@ -43,7 +43,7 @@ class WorksheetTestCase extends ProgramParticipationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->worksheetUri = $this->programParticipationUri . "/{$this->programParticipation->id}/worksheets";
+        $this->worksheetUri = $this->programParticipationUri . "/{$this->programParticipation->program->id}/worksheets";
         $this->connection->table('Form')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
@@ -63,7 +63,7 @@ class WorksheetTestCase extends ProgramParticipationTestCase
         $this->mission = new RecordOfMission($this->programParticipation->program, $this->worksheetForm, 0, null);
         $this->connection->table('Mission')->insert($this->mission->toArrayForDbEntry());
 
-        $this->worksheet = new RecordOfWorksheet($this->programParticipation, $formRecord, $this->mission);
+        $this->worksheet = new RecordOfWorksheet($this->programParticipation->participant, $formRecord, $this->mission);
         $this->connection->table('Worksheet')->insert($this->worksheet->toArrayForDbEntry());
 
         $this->worksheetInput = [
@@ -106,5 +106,6 @@ class WorksheetTestCase extends ProgramParticipationTestCase
         $this->connection->table('Mission')->truncate();
         $this->connection->table('Worksheet')->truncate();
     }
+    
 
 }

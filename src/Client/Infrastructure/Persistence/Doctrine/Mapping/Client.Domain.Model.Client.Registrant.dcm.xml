@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\Model\Client\Registrant" 
+            table="Registrant" 
+    >
+     
+        <field name="programId" column="Program_id" type="guid" />   
+        <id name="id" type="guid" />
+        <field name="concluded" type="boolean" />
+        <field name="registeredTime" type="datetime_immutable" nullable="false"/>
+        <field name="note" type="string" length="16" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

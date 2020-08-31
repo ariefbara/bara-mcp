@@ -2,44 +2,49 @@
 
 namespace Tests\Controllers\Client;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfParticipant,
-    Firm\RecordOfProgram,
-    RecordOfFirm
+use Tests\Controllers\RecordPreparation\Firm\ {
+    Client\RecordOfClientParticipant,
+    Program\RecordOfParticipant,
+    RecordOfProgram
 };
 
 class ProgramParticipationTestCase extends ClientTestCase
 {
+
     protected $programParticipationUri;
+
     /**
      *
-     * @var RecordOfParticipant
+     * @var RecordOfClientParticipant
      */
     protected $programParticipation;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->programParticipationUri = $this->clientUri . "/program-participations";
-        $this->connection->table('Firm')->truncate();
+
         $this->connection->table('Program')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
-        
-        $firm = new RecordOfFirm(0, 'firm_identifier');
-        $program = new RecordOfProgram($firm, 0);
+
+        $program = new RecordOfProgram($this->client->firm, 0);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
-        
-        $this->programParticipation = new RecordOfParticipant($program, $this->client, 0);
-        $this->connection->table('Participant')->insert($this->programParticipation->toArrayForDbEntry());
+
+        $participant = new RecordOfParticipant($program, 0);
+        $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
+
+        $this->programParticipation = new RecordOfClientParticipant($this->client, $participant);
+        $this->connection->table('ClientParticipant')->insert($this->programParticipation->toArrayForDbEntry());
     }
-    
+
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table('Firm')->truncate();
         $this->connection->table('Program')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
     }
-    
+
 }

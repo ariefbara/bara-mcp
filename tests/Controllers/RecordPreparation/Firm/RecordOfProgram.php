@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm;
 
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Tests\Controllers\RecordPreparation\{
     Record,
     RecordOfFirm
@@ -15,7 +16,7 @@ class RecordOfProgram implements Record
      * @var RecordOfFirm
      */
     public $firm;
-    public $id, $name, $description, $published = false, $removed = false;
+    public $id, $name, $description, $participantTypes, $published = false, $removed = false;
 
     public function __construct(RecordOfFirm $firm, $index)
     {
@@ -23,6 +24,7 @@ class RecordOfProgram implements Record
         $this->id = "program-$index";
         $this->name = "program $index name";
         $this->description = "program $index description";
+        $this->participantTypes = ParticipantTypes::CLIENT_TYPE . "," . ParticipantTypes::USER_TYPE . "," . ParticipantTypes::TEAM_TYPE;
         $this->removed = false;
     }
 
@@ -34,6 +36,7 @@ class RecordOfProgram implements Record
             "name" => $this->name,
             "description" => $this->description,
             "published" => $this->published,
+            "participantTypes" => $this->participantTypes,
             "removed" => $this->removed,
         ];
     }

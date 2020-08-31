@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="Query\Domain\Model\FirmWhitelableInfo">
+        <field name="url" type="string" length="256" nullable="false"/>
+        <field name="mailSenderAddress" type="string" length="256" nullable="false"/>
+        <field name="mailSenderName" type="string" length="256" nullable="false"/>
+    </embeddable>
+</doctrine-mapping>

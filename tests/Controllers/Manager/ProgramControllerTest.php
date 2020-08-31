@@ -10,6 +10,9 @@ class ProgramControllerTest extends ProgramTestCase
     protected $programInput = [
         "name" => "new program name",
         "description" => "new program description",
+        "participantTypes" => [
+            'client', 'user'
+        ],
     ];
 
     protected function setUp(): void
@@ -30,6 +33,7 @@ class ProgramControllerTest extends ProgramTestCase
         $response = [
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
+            "participantTypes" => $this->programInput['participantTypes'],
             "published" => false,
         ];
         $this->post($this->programUri, $this->programInput, $this->manager->token)
@@ -40,6 +44,7 @@ class ProgramControllerTest extends ProgramTestCase
             "Firm_id" => $this->firm->id,
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
+            "participantTypes" => "client,user",
             "published" => false,
             "removed" => false,
         ];
@@ -57,6 +62,7 @@ class ProgramControllerTest extends ProgramTestCase
             "id" => $this->program->id,
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
+            "participantTypes" => $this->programInput['participantTypes'],
             "published" => false,
         ];
         
@@ -69,6 +75,7 @@ class ProgramControllerTest extends ProgramTestCase
             "id" => $this->program->id,
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
+            "participantTypes" => "client,user",
             "published" => false,
             "removed" => false,
         ];

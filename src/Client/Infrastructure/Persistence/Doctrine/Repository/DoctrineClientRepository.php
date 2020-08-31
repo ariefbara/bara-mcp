@@ -2,52 +2,40 @@
 
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\ {
+use Client\{
     Application\Service\ClientRepository,
     Domain\Model\Client
 };
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Query\Domain\Model\Firm;
+use Resources\Exception\RegularException;
 
 class DoctrineClientRepository extends EntityRepository implements ClientRepository
 {
 
-    public function add(Client $client): void
+    public function ofEmail(string $firmIdentifier, string $email): Client
     {
-        $em = $this->getEntityManager();
-        $em->persist($client);
-        $em->flush();
-    }
+        $params = [
+            'firmIdentifier' => $firmIdentifier,
+            'email' => $email,
+        ];
 
-    public function containRecordWithEmail(string $email): bool
-    {
-        $qb = $this->createQueryBuilder('client');
-        $qb->select('1')
-                ->andWhere($qb->expr()->eq('client.email', ':email'))
-                ->setParameter('email', $email)
+        $subQuery = $this->getEntityManager()->createQueryBuilder();
+        $subQuery->select('tFirm.id')
+                ->from(Firm::class, 'tFirm')
+                ->andWhere($subQuery->expr()->eq('tFirm.identifier', ':firmIdentifier'))
                 ->setMaxResults(1);
 
-        return !empty($qb->getQuery()->getResult());
-    }
-
-    public function nextIdentity(): string
-    {
-        return Uuid::generateUuid4();
-    }
-
-    public function ofEmail(string $email): Client
-    {
         $qb = $this->createQueryBuilder('client');
         $qb->select('client')
                 ->andWhere($qb->expr()->eq('client.email', ':email'))
-                ->setParameter('email', $email)
+                ->andWhere($qb->expr()->in('client.firmId', $subQuery->getDQL()))
+                ->setParameters($params)
                 ->setMaxResults(1);
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -56,13 +44,20 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
         }
     }
 
-    public function ofId(string $clientId): Client
+    public function ofId(string $firmId, string $clientId): Client
     {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+        ];
+
         $qb = $this->createQueryBuilder('client');
         $qb->select('client')
                 ->andWhere($qb->expr()->eq('client.id', ':clientId'))
-                ->setParameter('clientId', $clientId)
+                ->andWhere($qb->expr()->in('client.firmId', ':firmId'))
+                ->setParameters($params)
                 ->setMaxResults(1);
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {

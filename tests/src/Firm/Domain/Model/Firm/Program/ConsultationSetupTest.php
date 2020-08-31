@@ -6,6 +6,7 @@ use Firm\Domain\Model\Firm\ {
     FeedbackForm,
     Program
 };
+use Query\Domain\Model\FirmWhitelableInfo;
 use Tests\TestBase;
 use TypeError;
 
@@ -13,7 +14,7 @@ class ConsultationSetupTest extends TestBase
 {
 
     protected $program, $participantFeedbackForm, $consultantFeedbackForm;
-    protected $consultanting;
+    protected $consultationSetup;
     protected $id = 'consultanting-id', $name = 'new consultanting name', $sessionDuration = 60;
 
     protected function setUp(): void
@@ -23,7 +24,7 @@ class ConsultationSetupTest extends TestBase
         $this->participantFeedbackForm = $this->buildMockOfClass(FeedbackForm::class);
         $this->consultantFeedbackForm = $this->buildMockOfClass(FeedbackForm::class);
 
-        $this->consultanting = new TestableConsultationSetup($this->program, 'id', 'name', 90,
+        $this->consultationSetup = new TestableConsultationSetup($this->program, 'id', 'name', 90,
             $this->participantFeedbackForm, $this->consultantFeedbackForm);
 
     }
@@ -74,8 +75,24 @@ class ConsultationSetupTest extends TestBase
 
     public function test_remove_setRemovedFlagTrue()
     {
-        $this->consultanting->remove();
-        $this->assertTrue($this->consultanting->removed);
+        $this->consultationSetup->remove();
+        $this->assertTrue($this->consultationSetup->removed);
+    }
+    
+    public function test_getFirmWhitelableInfo_returnProgramsGetFirmWhitelableInfoResult()
+    {
+        $this->program->expects($this->once())
+                ->method('getFirmWhitelableInfo')
+                ->willReturn($whitelableInfo = $this->buildMockOfClass(FirmWhitelableInfo::class));
+        $this->assertEquals($whitelableInfo, $this->consultationSetup->getFirmWhitelableInfo());
+    }
+    
+    public function test_getProgramId_returnProgramsGetIdResult()
+    {
+        $this->program->expects($this->once())
+                ->method('getId')
+                ->willReturn($programId = 'programId');
+        $this->assertEquals($programId, $this->consultationSetup->getProgramId());
     }
 
 }

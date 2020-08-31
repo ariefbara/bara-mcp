@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Client" 
+            table="Client" 
+    >
+        
+        <many-to-one  field="firm" 
+                      target-entity="Notification\Domain\Model\Firm"
+        >
+            <join-column name="Firm_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <embedded name="personName" 
+                  class="Resources\Domain\ValueObject\PersonName" 
+                  use-column-prefix="false" />
+        <field name="email" type="string" length="256" nullable="false"/>
+        <field name="activationCode" type="string" length="64" nullable="true" />
+        <field name="resetPasswordCode" type="string" length="64" nullable="true" />
+        <field name="activated" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\Model\Client\ClientFileInfo" 
+            table="ClientFileInfo" 
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientFileInfoRepository" 
+    >
+        
+        <many-to-one  field="client" 
+                      target-entity="Client\Domain\Model\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="fileInfo" 
+                    target-entity="SharedContext\Domain\Model\SharedEntity\FileInfo"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="FileInfo_id" referenced-column-name="id" />
+        </one-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

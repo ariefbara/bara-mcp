@@ -6,6 +6,7 @@ use Bara\Domain\Model\Firm\{
     Manager,
     ManagerData
 };
+use Query\Domain\Model\FirmWhitelableInfo;
 use Tests\TestBase;
 
 class FirmTest extends TestBase
@@ -13,7 +14,10 @@ class FirmTest extends TestBase
 
     protected $firm;
     protected $admin;
-    protected $id = 'new-id', $name = 'new firm name', $identifier = 'new_firm_identifier', $managerData;
+    protected $id = 'new-id', $name = 'new firm name', $identifier = 'new_firm_identifier',
+            $whitelableUrl = 'http://barapraja.com/konsulta', $whitelableMailSenderAddress = 'noreply@barapraja.com',
+            $whitelableWhitelableSenderName = 'team konsulta barapraja';
+    protected $managerData;
 
     protected function setUp(): void
     {
@@ -30,12 +34,20 @@ class FirmTest extends TestBase
                 ->method('getPassword')
                 ->willReturn('password123');
 
-        $this->firm = new TestableFirm('id', 'firm name', 'identifier', $this->managerData);
+        $firmData = new FirmData('name', 'identifier', 'http://firm.com', 'admin@firm.com', 'firm name');
+        $this->firm = new TestableFirm('id', $firmData, $this->managerData);
+    }
+
+    protected function getFirmData()
+    {
+        return new FirmData(
+                $this->name, $this->identifier, $this->whitelableUrl, $this->whitelableMailSenderAddress,
+                $this->whitelableWhitelableSenderName);
     }
 
     private function executeConstruct()
     {
-        return new TestableFirm($this->id, $this->name, $this->identifier, $this->managerData);
+        return new TestableFirm($this->id, $this->getFirmData(), $this->managerData);
     }
 
     public function test_construct_setProperties()
@@ -45,6 +57,9 @@ class FirmTest extends TestBase
         $this->assertEquals($this->name, $firm->name);
         $this->assertEquals($this->identifier, $firm->identifier);
         $this->assertFalse($firm->suspended);
+        $firmWhitelableInfo = new FirmWhitelableInfo($this->whitelableUrl, $this->whitelableMailSenderAddress,
+                $this->whitelableWhitelableSenderName);
+        $this->assertEquals($firmWhitelableInfo, $firm->firmWhitelableInfo);
     }
 
     public function test_construct_setManager()
@@ -62,7 +77,7 @@ class FirmTest extends TestBase
         $errorDetail = 'bad request: firm name is required';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
-    
+
     public function test_construct_identifierContainNonAlphanumericUnderscoreOrHypen_throwEx()
     {
         $this->identifier = 'containINvalidChar*#$';
@@ -94,7 +109,7 @@ class FirmTest extends TestBase
 class TestableFirm extends Firm
 {
 
-    public $id, $name, $identifier, $suspended;
+    public $id, $name, $identifier, $suspended, $firmWhitelableInfo;
     public $managers;
 
 }

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\SharedEntity\FormRecord" 
+            table="FormRecord" 
+    >
+        
+        <many-to-one  field="form" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\Form"
+                      inversed-by="formRecords"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="submitTime" type="datetime_immutable" nullable="false"/>
+        
+        <one-to-many  field="integerFieldRecords" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord\IntegerFieldRecord"
+                      mapped-by="formRecord"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        <one-to-many  field="stringFieldRecords" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord\StringFieldRecord"
+                      mapped-by="formRecord"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        <one-to-many  field="textAreaFieldRecords" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord\TextAreaFieldRecord"
+                      mapped-by="formRecord"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        <one-to-many  field="singleSelectFieldRecords" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord\SingleSelectFieldRecord"
+                      mapped-by="formRecord"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        <one-to-many  field="multiSelectFieldRecords" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord\MultiSelectFieldRecord"
+                      mapped-by="formRecord"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        <one-to-many  field="attachmentFieldRecords" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord\AttachmentFieldRecord"
+                      mapped-by="formRecord"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+                
+    </entity>
+</doctrine-mapping>

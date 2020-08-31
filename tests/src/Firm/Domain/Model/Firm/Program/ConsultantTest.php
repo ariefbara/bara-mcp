@@ -2,10 +2,11 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\{
+use Firm\Domain\Model\Firm\ {
     Personnel,
     Program
 };
+use Resources\Domain\Model\Mail\Recipient;
 use Tests\TestBase;
 
 class ConsultantTest extends TestBase
@@ -44,6 +45,22 @@ class ConsultantTest extends TestBase
         $this->consultant->removed = true;
         $this->consultant->reassign();
         $this->assertFalse($this->consultant->removed);
+    }
+    
+    public function test_getMailRecipient_returnPersonnelsGetMailRecipientResult()
+    {
+        $this->personnel->expects($this->once())
+                ->method('getMailRecipient')
+                ->willReturn($recipient = $this->buildMockOfClass(Recipient::class));
+        $this->assertEquals($recipient, $this->consultant->getMailRecipient());
+    }
+    
+    public function test_getPersonnelName_returnPersonnelsGetNameResult()
+    {
+        $this->personnel->expects($this->once())
+                ->method('getName')
+                ->willReturn($name = 'hadi pranoto');
+        $this->assertEquals($name, $this->consultant->getPersonnelName());
     }
 
 }

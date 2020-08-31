@@ -30,7 +30,7 @@ class SwiftMailer implements Mailer
     {
         $recipients = [];
         foreach ($mail->getRecipients() as $recipient) {
-            $recipients[$recipient->getAddress()] = $recipient->getName();
+            $recipients[$recipient->getAddress()] = $recipient->getFullName();
         }
         
         $message = (new Swift_Message())

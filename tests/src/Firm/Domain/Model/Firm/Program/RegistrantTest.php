@@ -2,45 +2,42 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\Program;
-use Query\Domain\Model\Client;
 use Tests\TestBase;
 
 class RegistrantTest extends TestBase
 {
 
-    protected $program, $client;
     protected $registrant;
+    
+    protected $id = 'newRegistrantId';
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->program = $this->buildMockOfClass(Program::class);
-        $this->client = $this->buildMockOfClass(Client::class);
-
-        $this->registrant = new TestableRegistrant();
-        $this->registrant->program = $this->program;
-        $this->registrant->client = $this->client;
+        $this->registrant = new TestableRegistrant('id');
     }
-
+    
+    public function test_construct_setProperties()
+    {
+        $registrant = new TestableRegistrant($this->id);
+        $this->assertEquals($this->id, $registrant->id);
+        $this->assertEquals(\Resources\DateTimeImmutableBuilder::buildYmdHisAccuracy(), $registrant->registeredTime);
+        $this->assertFalse($registrant->concluded);
+        $this->assertEmpty($registrant->note);
+    }
     protected function executeAccept()
     {
         $this->registrant->accept();
     }
 
-    public function test_accept_setConcludedTrue()
+    public function test_accept_setConcludedTrueAndNoteAccepted()
     {
         $this->executeAccept();
         $this->assertTrue($this->registrant->concluded);
-    }
-
-    public function test_accept_setNoteAccepted()
-    {
-        $this->executeAccept();
         $this->assertEquals('accepted', $this->registrant->note);
     }
 
-    public function test_accept_alreadyConcluded_throwEx()
+    public function test_accept_alreadyConcluded_forbiddenError()
     {
         $this->registrant->concluded = true;
         $operation = function () {
@@ -55,18 +52,12 @@ class RegistrantTest extends TestBase
         $this->registrant->reject();
     }
 
-    public function test_reject_setConcludedFlagTrue()
+    public function test_reject_setConcludedFlagTrueAndNoteRejected()
     {
         $this->executeReject();
         $this->assertTrue($this->registrant->concluded);
-    }
-
-    public function test_reject_setNoteStringRejected()
-    {
-        $this->executeReject();
         $this->assertEquals('rejected', $this->registrant->note);
     }
-
     public function test_reject_alreadyConcluded_throwEx()
     {
         $this->registrant->concluded = true;
@@ -81,12 +72,8 @@ class RegistrantTest extends TestBase
 
 class TestableRegistrant extends Registrant
 {
-
-    public $program, $id = 'registrant-id', $client, $concluded = false, $note = null;
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
+    public $id;
+    public $registeredTime;
+    public $concluded;
+    public $note;
 }

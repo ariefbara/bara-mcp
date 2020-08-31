@@ -7,8 +7,8 @@ use Doctrine\ORM\ {
     NoResultException
 };
 use Query\ {
-    Application\Service\ClientRepository,
-    Domain\Model\Client
+    Application\Service\Firm\ClientRepository,
+    Domain\Model\Firm\Client
 };
 use Resources\ {
     Exception\RegularException,
@@ -17,42 +17,68 @@ use Resources\ {
 
 class DoctrineClientRepository extends EntityRepository implements ClientRepository
 {
-
-    public function all(int $page, int $pageSize)
+    
+    public function all(string $firmId, int $page, int $pageSize)
     {
+        $params = [
+            'firmId' => $firmId,
+        ];
+        
         $qb = $this->createQueryBuilder('client');
-        $qb->select('client');
+        $qb->select('client')
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function ofEmail(string $email): Client
+    public function ofEmail(string $firmIdentifier, string $email): Client
     {
+        $params = [
+            'firmIdentifier' => $firmIdentifier,
+            'email' => $email,
+        ];
+        
         $qb = $this->createQueryBuilder('client');
         $qb->select('client')
                 ->andWhere($qb->expr()->eq('client.email', ':email'))
-                ->setParameter('email', $email)
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.identifier', ':firmIdentifier'))
+                ->setParameters($params)
                 ->setMaxResults(1);
+        
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: client not found';
             throw RegularException::notFound($errorDetail);
         }
+        
     }
 
-    public function ofId(string $clientId): Client
+    public function ofId(string $firmId, string $clientId): Client
     {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+        ];
+        
         $qb = $this->createQueryBuilder('client');
         $qb->select('client')
                 ->andWhere($qb->expr()->eq('client.id', ':clientId'))
-                ->setParameter('clientId', $clientId)
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
                 ->setMaxResults(1);
+        
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: client not found';
             throw RegularException::notFound($errorDetail);
         }
+        
     }
 
 }

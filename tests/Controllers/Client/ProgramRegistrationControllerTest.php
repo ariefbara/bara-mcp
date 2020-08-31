@@ -2,57 +2,63 @@
 
 namespace Tests\Controllers\Client;
 
-use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfParticipant,
-    Firm\Program\RecordOfRegistrant,
-    Firm\Program\RecordOfRegistrationPhase,
-    Firm\RecordOfProgram,
-    RecordOfFirm
+use DateTimeImmutable;
+use Query\Domain\Model\Firm\ParticipantTypes;
+use Tests\Controllers\RecordPreparation\Firm\ {
+    Client\RecordOfClientParticipant,
+    Client\RecordOfClientRegistrant,
+    Program\RecordOfParticipant,
+    Program\RecordOfRegistrant,
+    Program\RecordOfRegistrationPhase,
+    RecordOfProgram
 };
 
 class ProgramRegistrationControllerTest extends ClientTestCase
 {
     protected $programRegistrationUri;
-    protected $programRegistrant, $programRegistrantOne;
-    protected $firm, $program, $unpublishedProgram;
-    protected $registrationPhase;
-    protected $registrationInput;
+    protected $programRegistration, $concludedProgramRegistration;
+    protected $programParticipation;
+
+
+    protected $program, $registrationPhase;
+    
+    protected $registerInput = [];
 
     protected function setUp(): void
     {
         parent::setUp();
         
         $this->programRegistrationUri = $this->clientUri . "/program-registrations";
-        $this->connection->table('Firm')->truncate();
         $this->connection->table('Program')->truncate();
         $this->connection->table('RegistrationPhase')->truncate();
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('Participant')->truncate();
+        $this->connection->table('ClientRegistrant')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
         
-        $this->firm = new RecordOfFirm(0, 'firm_identifier');
-        $this->connection->table('Firm')->insert($this->firm->toArrayForDbEntry());
-        
-        $this->program = new RecordOfProgram($this->firm, 2);
-        $this->program->published = true;
-        $this->unpublishedProgram = new RecordOfProgram($this->firm, 1);
+        $this->program = new RecordOfProgram($this->client->firm, 0);
+        $programOne = new RecordOfProgram($this->client->firm, 1);
+        $programTwo = new RecordOfProgram($this->client->firm, 2);
         $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
-        $this->connection->table('Program')->insert($this->unpublishedProgram->toArrayForDbEntry());
+        $this->connection->table('Program')->insert($programOne->toArrayForDbEntry());
+        $this->connection->table('Program')->insert($programTwo->toArrayForDbEntry());
         
         $this->registrationPhase = new RecordOfRegistrationPhase($this->program, 0);
-        $unpublishedProgram_registrationPhase = new RecordOfRegistrationPhase($this->unpublishedProgram, 1);
         $this->connection->table('RegistrationPhase')->insert($this->registrationPhase->toArrayForDbEntry());
-        $this->connection->table('RegistrationPhase')->insert($unpublishedProgram_registrationPhase->toArrayForDbEntry());
         
-        $this->programRegistrant = new RecordOfRegistrant($this->program, $this->client, 0);
-        $this->programRegistrant->concluded = true;
-        $this->programRegistrantOne = new RecordOfRegistrant($this->unpublishedProgram, $this->client, 1);
-        $this->connection->table('Registrant')->insert($this->programRegistrant->toArrayForDbEntry());
-        $this->connection->table('Registrant')->insert($this->programRegistrantOne->toArrayForDbEntry());
+        $registrant = new RecordOfRegistrant($programOne, 0);
+        $concludedRegistrant = new RecordOfRegistrant($programTwo, 1);
+        $concludedRegistrant->concluded = true;
+        $concludedRegistrant->note = 'accepted';
+        $this->connection->table('Registrant')->insert($registrant->toArrayForDbEntry());
+        $this->connection->table('Registrant')->insert($concludedRegistrant->toArrayForDbEntry());
         
+        $this->programRegistration = new RecordOfClientRegistrant($this->client, $registrant);
+        $this->concludedProgramRegistration = new RecordOfClientRegistrant($this->client, $concludedRegistrant);
+        $this->connection->table('ClientRegistrant')->insert($this->programRegistration->toArrayForDbEntry());
+        $this->connection->table('ClientRegistrant')->insert($this->concludedProgramRegistration->toArrayForDbEntry());
         
         $this->registrationInput = [
-            "firmId" => $this->firm->id,
             "programId" => $this->program->id,
         ];
     }
@@ -60,22 +66,22 @@ class ProgramRegistrationControllerTest extends ClientTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table('Program')->truncate();
         $this->connection->table('RegistrationPhase')->truncate();
         $this->connection->table('Registrant')->truncate();
+        $this->connection->table('ClientRegistrant')->truncate();
         $this->connection->table('Participant')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
     }
     
-    public function test_apply()
+    public function test_register_201()
     {
         $response = [
             "program" => [
                 "id" => $this->program->id,
                 "name" => $this->program->name,
-                "firm" => [
-                    "id" => $this->program->firm->id,
-                    "name" => $this->program->firm->name,
-                ],
             ],
+            "registeredTime" => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
             "concluded" => false,
             "note" => null,
         ];
@@ -84,88 +90,107 @@ class ProgramRegistrationControllerTest extends ClientTestCase
             ->seeStatusCode(201)
             ->seeJsonContains($response);
         
-        $programRegistrantEntry = [
-            "Program_id" => $this->program->id,
-            "Client_id" => $this->client->id,
+        $registrantEntry = [
+            'Program_id' => $this->program->id,
+            "registeredTime" => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
             "concluded" => false,
             "note" => null,
         ];
-        $this->seeInDatabase('Registrant', $programRegistrantEntry);
+        $this->seeInDatabase('Registrant', $registrantEntry);
+        $clientRegistrantEntry = [
+            'Client_id' => $this->client->id,
+        ];
+        $this->seeInDatabase('ClientRegistrant', $clientRegistrantEntry);
     }
-    public function test_apply_noOpenRegistrationPhaseAvailable_error403()
+    public function test_register_noOpenRegistrationPhaseAvailable_403()
     {
         $this->connection->table('RegistrationPhase')->truncate();
-        $registrationPhase = new RecordOfRegistrationPhase($this->program, 1);
-        $registrationPhase->startDate = (new DateTime("+7 days"))->format('Y-m-d');
-        $registrationPhase->endDate = (new DateTime("+30 days"))->format('Y-m-d');
-        $this->connection->table('RegistrationPhase')->insert($registrationPhase->toArrayForDbEntry());
-        
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
             ->seeStatusCode(403);
     }
-    public function test_apply_unpublishedProgram_error403()
+    public function test_register_noClientTypeInProgramParticipantTypesList_403()
     {
-        $this->program->published = false;
         $this->connection->table('Program')->truncate();
+        $this->program->participantTypes = ParticipantTypes::USER_TYPE;
         $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
         
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
             ->seeStatusCode(403);
     }
-    public function test_apply_alreadyRegistedInProgram_error403()
+    
+    public function test_register_removedProgram_403()
     {
-        $conflictRegistrant = new RecordOfRegistrant($this->program, $this->client, 3);
-        $this->connection->table('Registrant')->insert($conflictRegistrant->toArrayForDbEntry());
+        $this->connection->table('Program')->truncate();
+        $this->program->removed = true;
+        $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
         
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
             ->seeStatusCode(403);
     }
-    public function test_apply_existingProgramRegistrationAlreadyConcluded_applyNormally()
+    public function test_register_alreadyRegistedInProgram_403()
     {
-        $concludedRegistrant = new RecordOfRegistrant($this->program, $this->client, 3);
-        $concludedRegistrant->concluded = true;
-        $this->connection->table('Registrant')->insert($concludedRegistrant->toArrayForDbEntry());
+        $registrant = new RecordOfRegistrant($this->program, 3);
+        $clientRegistrant = new RecordOfClientRegistrant($this->client, $registrant);
+        $this->connection->table('Registrant')->insert($registrant->toArrayForDbEntry());
+        $this->connection->table('ClientRegistrant')->insert($clientRegistrant->toArrayForDbEntry());
+        
+        $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
+            ->seeStatusCode(403);
+    }
+    public function test_register_existingRegistrationAlreadyConcluded_201()
+    {
+        $registrant = new RecordOfRegistrant($this->program, 3);
+        $registrant->concluded = true;
+        $clientRegistrant = new RecordOfClientRegistrant($this->client, $registrant);
+        $this->connection->table('Registrant')->insert($registrant->toArrayForDbEntry());
+        $this->connection->table('ClientRegistrant')->insert($clientRegistrant->toArrayForDbEntry());
         
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
             ->seeStatusCode(201);
-    }    
-    public function test_apply_alreadyParticipateInProgram_error403()
+    }
+    public function test_register_inactiveClient_403()
     {
-        $conflictParticipant = new RecordOfParticipant($this->program, $this->client, 0);
-        $this->connection->table('Participant')->insert($conflictParticipant->toArrayForDbEntry());
+        $this->post($this->programRegistrationUri, $this->registrationInput, $this->inactiveClient->token)
+            ->seeStatusCode(403);
+    }
+    
+    public function test_apply_alreadyParticipateInProgram_403()
+    {
+        $participant = new RecordOfParticipant($this->program, 0);
+        $clientParticipant = new RecordOfClientParticipant($this->client, $participant);
+        $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
+        $this->connection->table('ClientParticipant')->insert($clientParticipant->toArrayForDbEntry());
         
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
             ->seeStatusCode(403);
     }
-    public function test_apply_conflictParticipantAlreadyInactive_applyNormally()
+    public function test_apply_conflictParticipantAlreadyInactive_201()
     {
-        $inactiveParticipant = new RecordOfParticipant($this->program, $this->client, 0);
-        $inactiveParticipant->active = false;
-        $this->connection->table('Participant')->insert($inactiveParticipant->toArrayForDbEntry());
+        $participant = new RecordOfParticipant($this->program, 0);
+        $participant->active = false;
+        $clientParticipant = new RecordOfClientParticipant($this->client, $participant);
+        $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
+        $this->connection->table('ClientParticipant')->insert($clientParticipant->toArrayForDbEntry());
         
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
             ->seeStatusCode(201);
     }
     
-    public function test_cancel()
+    public function test_cancel_200()
     {
-        $this->connection->table('Registrant')->truncate();
-        $this->programRegistrant->concluded = false;
-        $this->connection->table('Registrant')->insert($this->programRegistrant->toArrayForDbEntry());
-        
-        $uri = $this->programRegistrationUri . "/{$this->programRegistrant->id}/cancel";
+        $uri = $this->programRegistrationUri . "/{$this->programRegistration->id}/cancel";
         $this->patch($uri, [], $this->client->token)
             ->seeStatusCode(200);
-        $programRegistrantEntry = [
-            "id" => $this->programRegistrant->id,
+        $registrantEntry = [
+            "id" => $this->programRegistration->registrant->id,
             "concluded" => true,
             "note" => 'cancelled',
         ];
-        $this->seeInDatabase('Registrant', $programRegistrantEntry);
+        $this->seeInDatabase('Registrant', $registrantEntry);
     }
-    public function test_cancel_programRegistrationAlreadyConcluded_error403()
+    public function test_cancel_alreadyConcluded_403()
     {
-        $uri = $this->programRegistrationUri . "/{$this->programRegistrant->id}/cancel";
+        $uri = $this->programRegistrationUri . "/{$this->concludedProgramRegistration->id}/cancel";
         $this->patch($uri, [], $this->client->token)
             ->seeStatusCode(403);
     }
@@ -173,21 +198,17 @@ class ProgramRegistrationControllerTest extends ClientTestCase
     public function test_show()
     {
         $response = [
-            "id" => $this->programRegistrant->id,
+            "id" => $this->programRegistration->id,
             "program" => [
-                "id" => $this->programRegistrant->program->id,
-                "name" => $this->programRegistrant->program->name,
-                "firm" => [
-                    "id" => $this->programRegistrant->program->firm->id,
-                    "name" => $this->programRegistrant->program->firm->name,
-                ],
+                "id" => $this->programRegistration->registrant->program->id,
+                "name" => $this->programRegistration->registrant->program->name,
             ],
-            "appliedTime" => $this->programRegistrant->appliedTime,
-            "concluded" => $this->programRegistrant->concluded,
-            "note" => $this->programRegistrant->note,
+            "registeredTime" => $this->programRegistration->registrant->registeredTime,
+            "concluded" => $this->programRegistration->registrant->concluded,
+            "note" => $this->programRegistration->registrant->note,
         ];
         
-        $uri = $this->programRegistrationUri . "/{$this->programRegistrant->id}";
+        $uri = $this->programRegistrationUri . "/{$this->programRegistration->id}";
         $this->get($uri, $this->client->token)
             ->seeStatusCode(200)
             ->seeJsonContains($response);
@@ -199,24 +220,24 @@ class ProgramRegistrationControllerTest extends ClientTestCase
             "total" => 2, 
             "list" => [
                 [
-                    "id" => $this->programRegistrant->id,
-                    "note" => $this->programRegistrant->note,
-                    "concluded" => $this->programRegistrant->concluded,
+                    "id" => $this->programRegistration->id,
                     "program" => [
-                        "id" => $this->programRegistrant->program->id,
-                        "name" => $this->programRegistrant->program->name,
-                        "removed" => $this->programRegistrant->program->removed,
+                        "id" => $this->programRegistration->registrant->program->id,
+                        "name" => $this->programRegistration->registrant->program->name,
                     ],
+                    "registeredTime" => $this->programRegistration->registrant->registeredTime,
+                    "concluded" => $this->programRegistration->registrant->concluded,
+                    "note" => $this->programRegistration->registrant->note,
                 ],
                 [
-                    "id" => $this->programRegistrantOne->id,
-                    "note" => $this->programRegistrantOne->note,
-                    "concluded" => $this->programRegistrantOne->concluded,
+                    "id" => $this->concludedProgramRegistration->id,
                     "program" => [
-                        "id" => $this->programRegistrantOne->program->id,
-                        "name" => $this->programRegistrantOne->program->name,
-                        "removed" => $this->programRegistrantOne->program->removed,
+                        "id" => $this->concludedProgramRegistration->registrant->program->id,
+                        "name" => $this->concludedProgramRegistration->registrant->program->name,
                     ],
+                    "registeredTime" => $this->concludedProgramRegistration->registrant->registeredTime,
+                    "concluded" => $this->concludedProgramRegistration->registrant->concluded,
+                    "note" => $this->concludedProgramRegistration->registrant->note,
                 ],
             ],
         ];
@@ -225,5 +246,4 @@ class ProgramRegistrationControllerTest extends ClientTestCase
             ->seeStatusCode(200)
             ->seeJsonContains($response);
     }
-    
 }

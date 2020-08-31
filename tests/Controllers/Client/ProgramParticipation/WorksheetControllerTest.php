@@ -23,7 +23,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         $formRecord = new RecordOfFormRecord($this->form, 1);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
         
-        $this->worksheetOne = new RecordOfWorksheet($this->programParticipation, $formRecord, $this->branchMission);
+        $this->worksheetOne = new RecordOfWorksheet($this->programParticipation->participant, $formRecord, $this->branchMission);
         $this->worksheetOne->parent = $this->worksheet;
         $this->connection->table('Worksheet')->insert($this->worksheetOne->toArrayForDbEntry());
     }
@@ -56,7 +56,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         ];
         $this->seeInDatabase('FormRecord', $formRecordEntry);
     }
-    public function test_addRoot_missionNotRootMission_error403()
+    public function test_addRoot_missionNotRootMission_403()
     {
         $this->worksheetInput['missionId'] = $this->branchMission->id;
         
@@ -167,7 +167,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     {
         $formRecord = new RecordOfFormRecord($this->worksheet->formRecord->form, 2);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
-        $worksheetTwo = new RecordOfWorksheet($this->programParticipation, $formRecord, $this->mission);
+        $worksheetTwo = new RecordOfWorksheet($this->programParticipation->participant, $formRecord, $this->mission);
         $worksheetTwo->parent = $this->worksheetOne;
         $this->connection->table('Worksheet')->insert($worksheetTwo->toArrayForDbEntry());
         

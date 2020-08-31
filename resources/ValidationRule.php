@@ -17,6 +17,7 @@ use Respect\Validation\ {
     Rules\Optional,
     Rules\Phone,
     Rules\Regex,
+    Rules\Url,
     Validatable
 };
 
@@ -105,9 +106,14 @@ class ValidationRule
         return new static(new NoWhitespace());
     }
     
+    public static function url(){
+        return new static(new Url());
+    }
+    
     public static function optional(ValidationRule $rule)
     {
         return new static(new Optional($rule->getRule()));
     }
+    
 
 }

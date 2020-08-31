@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession" 
+            table="ConsultationSession" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultationSessionRepository" 
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="consultationSetup" 
+                      target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup"
+        >
+            <join-column name="ConsultationSetup_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="consultant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        <embedded name="startEndTime" 
+                  class="Resources\Domain\ValueObject\DateTimeInterval" 
+                  use-column-prefix="false" 
+        />
+        
+        <one-to-one field="participantFeedback" 
+                    target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ParticipantFeedback"
+                    mapped-by="consultationSession"
+        />
+        <one-to-one field="consultantFeedback" 
+                    target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultantFeedback"
+                    mapped-by="consultationSession"
+        />
+        
+    </entity>
+</doctrine-mapping>

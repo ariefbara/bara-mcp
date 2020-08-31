@@ -2,8 +2,9 @@
 
 namespace Query\Domain\Model\Firm\Program\Consultant;
 
-use Query\Domain\Model\Firm\Program\ {
+use Query\Domain\Model\Firm\Program\{
     Consultant,
+    Participant\Worksheet,
     Participant\Worksheet\Comment
 };
 
@@ -28,37 +29,37 @@ class ConsultantComment
      */
     protected $comment;
 
-    function getConsultant(): Consultant
-    {
-        return $this->consultant;
-    }
-
-    function getId(): string
+    public function getId(): string
     {
         return $this->id;
     }
 
-    protected function __construct()
+    public function getConsultant(): Consultant
+    {
+        return $this->consultant;
+    }
+
+    public function __construct()
     {
         ;
     }
 
-    function getParent(): ?Comment
+    public function getWorksheet(): Worksheet
     {
-        return $this->comment->getParent();
+        return $this->comment->getWorksheet();
     }
 
-    function getMessage(): ?string
+    public function getMessage(): string
     {
         return $this->comment->getMessage();
     }
 
-    function getSubmitTimeString(): string
+    public function getSubmitTimeString(): string
     {
         return $this->comment->getSubmitTimeString();
     }
 
-    function isRemoved(): bool
+    public function isRemoved(): bool
     {
         return $this->comment->isRemoved();
     }

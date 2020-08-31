@@ -4,6 +4,7 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Program;
 use Resources\ {
+    DateTimeImmutableBuilder,
     Domain\ValueObject\DateInterval,
     ValidationRule,
     ValidationService
@@ -71,6 +72,11 @@ class RegistrationPhase
     public function remove(): void
     {
         $this->removed = true;
+    }
+    
+    public function isOpen(): bool
+    {
+        return !$this->removed && $this->startEndDate->contain(DateTimeImmutableBuilder::buildYmdHisAccuracy());
     }
 
 }

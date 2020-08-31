@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant" 
+            table="Participant" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="active" type="boolean" />
+        <field name="note" type="string" length="256" nullable="true"/>
+        
+        <one-to-many  field="consultationRequests" 
+                      target-entity="Participant\Domain\Model\Participant\ConsultationRequest"
+                      mapped-by="participant"
+        />
+        
+        <one-to-many  field="consultationSessions" 
+                      target-entity="Participant\Domain\Model\Participant\ConsultationSession"
+                      mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Program\Participant\Worksheet\ParticipantComment" 
+            table="ParticipantComment" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantCommentRepository"
+    >
+        
+        <many-to-one  field="worksheet" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Participant\Worksheet"
+        >
+            <join-column name="Worksheet_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="comment" 
+                    target-entity="Notification\Domain\Model\Firm\Program\Participant\Worksheet\Comment"
+                    inversed-by="participantComment"
+        >
+            <join-column name="Comment_id" referenced-column-name="id" />
+        </one-to-one>
+
+    </entity>
+</doctrine-mapping>

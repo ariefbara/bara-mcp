@@ -30,6 +30,12 @@ class Program
      * @var string||null
      */
     protected $description = null;
+    
+    /**
+     *
+     * @var ParticipantTypes
+     */
+    protected $participantTypes;
 
     /**
      *
@@ -76,6 +82,11 @@ class Program
     protected function __construct()
     {
         ;
+    }
+    
+    public function getParticipantTypeValues(): array
+    {
+        return $this->participantTypes->getValues();
     }
 
 }

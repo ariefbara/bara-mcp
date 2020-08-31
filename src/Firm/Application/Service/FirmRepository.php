@@ -8,4 +8,6 @@ interface FirmRepository
 {
 
     public function ofId(string $firmId): Firm;
+
+    public function ofIdentifier(string $firmIdentifier): Firm;
 }

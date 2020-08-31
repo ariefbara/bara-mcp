@@ -2,30 +2,32 @@
 
 namespace Client\Domain\Model;
 
-use Client\Domain\{
+use Client\Domain\ {
     Event\ClientActivationCodeGenerated,
-    Event\ClientPasswordResetCodeGenerated,
-    Model\Client\ClientNotification,
-    Model\Client\ProgramRegistration,
-    Model\Firm\Program
+    Event\ClientResetPasswordCodeGenerated,
+    Model\Client\ClientFileInfo,
+    Model\Client\ProgramParticipation,
+    Model\Client\ProgramRegistration
 };
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Resources\{
+use Doctrine\Common\Collections\ArrayCollection;
+use Resources\ {
+    DateTimeImmutableBuilder,
     Domain\Model\ModelContainEvents,
     Domain\ValueObject\Password,
-    Exception\RegularException,
-    Uuid,
-    ValidationRule,
-    ValidationService
+    Domain\ValueObject\PersonName,
+    Exception\RegularException
 };
-use Shared\Domain\Model\Notification;
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 
 class Client extends ModelContainEvents
 {
+
+    /**
+     *
+     * @var string
+     */
+    protected $firmId;
 
     /**
      *
@@ -35,9 +37,9 @@ class Client extends ModelContainEvents
 
     /**
      *
-     * @var string
+     * @var PersonName
      */
-    protected $name;
+    protected $personName;
 
     /**
      *
@@ -53,33 +55,27 @@ class Client extends ModelContainEvents
 
     /**
      *
-     * @var DateTimeImmutable
+     * @var string||null
      */
-    protected $signupTime;
+    protected $activationCode;
 
     /**
      *
-     * @var string
+     * @var DateTimeImmutable||null
      */
-    protected $activationCode = null;
+    protected $activationCodeExpiredTime;
 
     /**
      *
-     * @var DateTimeImmutable
+     * @var string||null
      */
-    protected $activationCodeExpiredTime = null;
+    protected $resetPasswordCode;
 
     /**
      *
-     * @var string
+     * @var DateTimeImmutable||null
      */
-    protected $resetPasswordCode = null;
-
-    /**
-     *
-     * @var DateTimeImmutable
-     */
-    protected $resetPasswordCodeExpiredTime = null;
+    protected $resetPasswordCodeExpiredTime;
 
     /**
      *
@@ -99,65 +95,25 @@ class Client extends ModelContainEvents
      */
     protected $programParticipations;
 
-    function getId(): string
+    protected function __construct()
     {
-        return $this->id;
+        ;
     }
 
-    function getName(): string
+    public function updateProfile(string $firstName, ?string $lastName): void
     {
-        return $this->name;
+        $this->assertAccountActive();
+        $this->personName = new PersonName($firstName, $lastName);
     }
 
-    private function setName($name)
+    public function changePassword(string $previousPassword, string $newPassword): void
     {
-        $errorDetail = "bad request: client name is required";
-        ValidationService::build()
-                ->addRule(ValidationRule::notEmpty())
-                ->execute($name, $errorDetail);
-        $this->name = $name;
-    }
-
-    private function setEmail($email)
-    {
-        $errorDetail = "bad request: client email is required and must be in valid email address format";
-        ValidationService::build()
-                ->addRule(ValidationRule::email())
-                ->execute($email, $errorDetail);
-        $this->email = $email;
-    }
-
-    function __construct(string $id, string $name, string $email, string $password)
-    {
-        $this->id = $id;
-        $this->setName($name);
-        $this->setEmail($email);
-        $this->password = new Password($password);
-        $this->signupTime = new DateTimeImmutable();
-        $this->activated = false;
-
-        $this->generateActivationCode();
-    }
-
-    public function generateResetPasswordCode(): void
-    {
-        $this->resetPasswordCode = bin2hex(random_bytes(32));
-        $this->resetPasswordCodeExpiredTime = new DateTimeImmutable("+24 hours");
-        $event = new ClientPasswordResetCodeGenerated($this->name, $this->email, $this->resetPasswordCode);
-        $this->recordEvent($event);
-    }
-
-    public function generateActivationCode(): void
-    {
-        if ($this->activated) {
-            $errorDetails = 'forbidden: account already activated';
-            throw RegularException::forbidden($errorDetails);
+        $this->assertAccountActive();
+        if (!$this->password->match($previousPassword)) {
+            $errorDetail = 'forbidden: previous password not match';
+            throw RegularException::forbidden($errorDetail);
         }
-        $this->activationCode = bin2hex(random_bytes(32));
-        $this->activationCodeExpiredTime = new DateTimeImmutable('+24 hours');
-
-        $event = new ClientActivationCodeGenerated($this->name, $this->email, $this->activationCode);
-        $this->recordEvent($event);
+        $this->password = new Password($newPassword);
     }
 
     public function activate(string $activationCode): void
@@ -166,90 +122,98 @@ class Client extends ModelContainEvents
             $errorDetail = 'forbidden: account already activated';
             throw RegularException::forbidden($errorDetail);
         }
-        $this->assertValidToActivate($activationCode);
+
+        if (empty($this->activationCode) || $this->activationCode !== $activationCode || $this->activationCodeExpiredTime < new \DateTimeImmutable()
+        ) {
+            $errorDetail = 'forbidden: activation code not match or expired';
+            throw RegularException::forbidden($errorDetail);
+        }
+
         $this->activated = true;
         $this->activationCode = null;
         $this->activationCodeExpiredTime = null;
     }
 
-    protected function assertValidToActivate(string $activationCode): void
-    {
-        if (
-                empty($this->activationCode) ||
-                $this->activationCode != $activationCode ||
-                $this->activationCodeExpiredTime < new DateTimeImmutable()
-        ) {
-            $errorDetail = 'bad request: invalid or expired token';
-            throw RegularException::badRequest($errorDetail);
-        }
-    }
-
     public function resetPassword(string $resetPasswordCode, string $password): void
     {
-        $this->assertValidToResetPassword($resetPasswordCode);
+        $this->assertAccountActive();
+
+        if (empty($this->resetPasswordCode) || $this->resetPasswordCode !== $resetPasswordCode || $this->resetPasswordCodeExpiredTime < new \DateTimeImmutable()
+        ) {
+            $errorDetail = 'forbidden: reset password code not match or expired';
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->password = new Password($password);
         $this->resetPasswordCode = null;
         $this->resetPasswordCodeExpiredTime = null;
     }
 
-    protected function assertValidToResetPassword(string $resetPasswordCode): void
+    public function generateActivationCode(): void
     {
-        if (
-                empty($this->resetPasswordCode) ||
-                $this->resetPasswordCode != $resetPasswordCode ||
-                $this->resetPasswordCodeExpiredTime < new DateTimeImmutable()
-        ) {
-            $errorDetails = 'bad request: invalid or expired token';
-            throw RegularException::badRequest($errorDetails);
+        if ($this->activated) {
+            $errorDetail = 'forbidden: account already activated';
+            throw RegularException::forbidden($errorDetail);
         }
+        $this->activationCode = bin2hex(random_bytes(32));
+        $this->activationCodeExpiredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy('+24 hours');
+
+        $event = new ClientActivationCodeGenerated($this->firmId, $this->id);
+        $this->recordEvent($event);
     }
 
-    public function changeProfile(string $name): void
+    public function generateResetPasswordCode(): void
     {
-        $this->setName($name);
+        $this->assertAccountActive();
+
+        $this->resetPasswordCode = bin2hex(random_bytes(32));
+        $this->resetPasswordCodeExpiredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy('+24 hours');
+
+        $event = new ClientResetPasswordCodeGenerated($this->firmId, $this->id);
+        $this->recordEvent($event);
+    }
+    
+    public function createClientFileInfo(string $clientFileInfoId, FileInfoData $fileInfoData): ClientFileInfo
+    {
+        return new ClientFileInfo($this, $clientFileInfoId, $fileInfoData);
     }
 
-    public function changePassword(string $previousPassword, string $newPassword): void
+    public function registerToProgram(string $programRegistrationId, ProgramInterface $program): ProgramRegistration
     {
-        if (!$this->password->match($previousPassword)) {
-            $errorDetails = "forbidden: previous password not match";
-            throw RegularException::forbidden($errorDetails);
+        $this->assertAccountActive();
+        if (!$program->firmIdEquals($this->firmId)) {
+            $errorDetail = 'forbidden: cannot register to program from different firm';
+            throw RegularException::forbidden($errorDetail);
         }
-        $this->password = new Password($newPassword);
+        $this->assertNoUnconcludedRegistrationToSameProgram($program);
+        $this->assertNoActiveParticipationInSameProgram($program);
+        return new ProgramRegistration($this, $programRegistrationId, $program);
     }
 
-    public function emailEquals(string $email): bool
+    protected function assertAccountActive(): void
     {
-        return strcasecmp($this->email, $email) == 0;
-    }
-
-    public function createProgramRegistration(string $id, Program $program): ProgramRegistration
-    {
-        $this->assertNoUnconcludedRegistrationInProgram($program);
-        $this->assertNoActiveParticipantionInProgram($program);
-        return new ProgramRegistration($this, $id, $program);
-    }
-
-    protected function assertNoUnconcludedRegistrationInProgram(Program $program): void
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('program', $program))
-                ->andWhere(Criteria::expr()->eq('concluded', false));
-        if (!empty($this->programRegistrations->matching($criteria)->count())) {
-            $errorDetail = "forbidden: you already registered to this program";
+        if (!$this->activated) {
+            $errorDetail = 'forbidden: only active client can  make this request';
             throw RegularException::forbidden($errorDetail);
         }
     }
-
-    protected function assertNoActiveParticipantionInProgram(Program $program): void
+    protected function assertNoUnconcludedRegistrationToSameProgram(ProgramInterface $program): void
     {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('program', $program))
-                ->andWhere(Criteria::expr()->eq('active', true));
-        if (!empty($this->programParticipations->matching($criteria)->count())) {
-            $errorDetail = "forbidden: you already participate in this program";
+        $p = function (ProgramRegistration $programRegistration) use ($program) {
+            return $programRegistration->isUnconcludedRegistrationToProgram($program);
+        };
+        if (!empty($this->programRegistrations->filter($p)->count())) {
+            $errorDetail = 'forbidden: client already registered to this program';
             throw RegularException::forbidden($errorDetail);
         }
     }
-
+    protected function assertNoActiveParticipationInSameProgram(ProgramInterface $program): void
+    {
+        $p = function (ProgramParticipation $programParticipation) use ($program) {
+            return $programParticipation->isActiveParticipantOfProgram($program);
+        };
+        if (!empty($this->programParticipations->filter($p)->count())) {
+            $errorDetail = 'forbidden: client already active participant of this program';
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
 }

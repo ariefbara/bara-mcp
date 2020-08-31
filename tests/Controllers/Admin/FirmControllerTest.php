@@ -9,16 +9,7 @@ class FirmControllerTest extends AdminTestCase
 
     protected $firmOne, $firmTwo;
     protected $firmControllerUri;
-    protected $addRequest = [
-        "name" => 'new firm name',
-        "identifier" => 'new_firm_identifier',
-        "manager" => [
-            "name" => 'new manager name',
-            "email" => 'new_manager@email.org',
-            "password" => 'password123',
-            "phone" => '0812312353242',
-        ],
-    ];
+    protected $addRequest;
 
     protected function setUp(): void
     {
@@ -32,6 +23,20 @@ class FirmControllerTest extends AdminTestCase
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Firm')->insert($this->firmOne->toArrayForDbEntry());
         $this->connection->table('Firm')->insert($this->firmTwo->toArrayForDbEntry());
+        
+        $this->addRequest = [
+            "name" => 'new firm name',
+            "identifier" => 'new_firm_identifier',
+            'whitelableUrl' => 'http://new-firm.com/bara_konsulta',
+            'whitelableMailSenderAddress' => 'noreply@new_firm.com',
+            'whitelableMailSenderName' => 'firm mail sender name',
+            "manager" => [
+                "name" => 'new manager name',
+                "email" => 'new_manager@email.org',
+                "password" => 'password123',
+                "phone" => '0812312353242',
+            ],
+        ];
     }
 
     protected function tearDown(): void
@@ -46,6 +51,9 @@ class FirmControllerTest extends AdminTestCase
         $response = [
             "name" => $this->addRequest['name'],
             "identifier" => $this->addRequest['identifier'],
+            "whitelableUrl" => $this->addRequest['whitelableUrl'],
+            "whitelableMailSenderAddress" => $this->addRequest['whitelableMailSenderAddress'],
+            "whitelableMailSenderName" => $this->addRequest['whitelableMailSenderName'],
         ];
 
         $this->post($this->firmControllerUri, $this->addRequest, $this->admin->token)
@@ -55,6 +63,9 @@ class FirmControllerTest extends AdminTestCase
         $firmRecord = [
             "name" => $this->addRequest['name'],
             "identifier" => $this->addRequest['identifier'],
+            "url" => $this->addRequest['whitelableUrl'],
+            "mailSenderAddress" => $this->addRequest['whitelableMailSenderAddress'],
+            "mailSenderName" => $this->addRequest['whitelableMailSenderName'],
         ];
         $this->seeInDatabase('Firm', $firmRecord);
         $managerRecord = [
@@ -106,6 +117,9 @@ class FirmControllerTest extends AdminTestCase
             "id" => $this->firmOne->id,
             "name" => $this->firmOne->name,
             "identifier" => $this->firmOne->identifier,
+            "whitelableUrl" => $this->firmOne->url,
+            "whitelableMailSenderAddress" => $this->firmOne->mailSenderAddress,
+            "whitelableMailSenderName" => $this->firmOne->mailSenderName,
         ];
         $uri = $this->firmControllerUri . "/{$this->firmOne->id}";
         $this->get($uri, $this->admin->token)

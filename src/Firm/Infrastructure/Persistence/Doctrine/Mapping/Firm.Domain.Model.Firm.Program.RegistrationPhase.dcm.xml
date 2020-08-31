@@ -7,6 +7,7 @@
         
         <many-to-one  field="program" 
                       target-entity="Firm\Domain\Model\Firm\Program"
+                      inversed-by="registrationPhases"
         >
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\SharedEntity\FormRecord\TextAreaFieldRecord" 
+            table="TextAreaFieldRecord" 
+    >
+        
+        <many-to-one  field="formRecord" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord"
+                      inversed-by="textAreaFieldRecords"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="textAreaField" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\Form\TextAreaField"
+        >
+            <join-column name="TextAreaField_id" referenced-column-name="id" />
+        </many-to-one>
+        <field name="value" type="text" nullable="true"/>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

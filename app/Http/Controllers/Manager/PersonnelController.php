@@ -48,12 +48,13 @@ class PersonnelController extends ManagerBaseController
 
     protected function getPersonnelData()
     {
-        $name = $this->stripTagsInputRequest('name');
+        $firstName = $this->stripTagsInputRequest('firstName');
+        $lastName = $this->stripTagsInputRequest('lastName');
         $email = $this->stripTagsInputRequest('email');
         $password = $this->stripTagsInputRequest('password');
         $phone = $this->stripTagsInputRequest('phone');
 
-        return new PersonnelData($name, $email, $password, $phone);
+        return new PersonnelData($firstName, $lastName, $email, $password, $phone);
     }
 
     protected function arrayDataOfPersonnel(Personnel2 $personnel)

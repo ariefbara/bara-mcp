@@ -10,4 +10,8 @@ class ClientBaseController extends Controller
     {
         return $this->request->clientId;
     }
+    protected function firmId()
+    {
+        return $this->request->firmId;
+    }
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
     <entity name="Client\Domain\Model\Client\ProgramRegistration" 
-            table="Registrant" 
-            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineProgramRegistrationRepository" 
+            table="ClientRegistrant" 
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineProgramRegistrationRepository"
     >
         
         <many-to-one  field="client" 
@@ -12,14 +12,12 @@
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
-        <many-to-one  field="program" 
-                      target-entity="Client\Domain\Model\Firm\Program"
+        <one-to-one  field="registrant" 
+                     target-entity="Client\Domain\Model\Client\Registrant"
         >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
-        <field name="appliedTime" type="datetime_immutable" nullable="true"/>
-        <field name="concluded" type="boolean" />
-        <field name="note" type="string" length="256" nullable="true"/>
+            <join-column name="Registrant_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
         
     </entity>
 </doctrine-mapping>

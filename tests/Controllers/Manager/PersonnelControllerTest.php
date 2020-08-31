@@ -13,7 +13,8 @@ class PersonnelControllerTest extends ManagerTestCase
     protected $uri;
     protected $personnel, $personnelOne;
     protected $personnelInput = [
-        "name" => 'new personnel name',
+        "firstName" => 'firstname',
+        "lastName" => 'lastname',
         "email" => 'new_personnel@email.org',
         "password" => 'password213',
         "phone" => '081231231231',
@@ -41,7 +42,7 @@ class PersonnelControllerTest extends ManagerTestCase
     public function test_add()
     {
         $response = [
-            "name" => $this->personnelInput['name'],
+            "name" => $this->personnelInput['firstName'] . " " . $this->personnelInput['lastName'],
             "email" => $this->personnelInput['email'],
             "phone" => $this->personnelInput['phone'],
             "joinTime" => (new DateTime())->format('Y-m-d H:i:s'),
@@ -52,7 +53,8 @@ class PersonnelControllerTest extends ManagerTestCase
         
         $personnelRecord = [
             "Firm_id" => $this->firm->id,
-            "name" => $this->personnelInput['name'],
+            "firstName" => $this->personnelInput['firstName'],
+            "lastName" => $this->personnelInput['lastName'],
             "email" => $this->personnelInput['email'],
             "phone" => $this->personnelInput['phone'],
             "joinTime" => (new DateTime())->format('Y-m-d H:i:s'),
@@ -62,7 +64,7 @@ class PersonnelControllerTest extends ManagerTestCase
     }
     public function test_add_emptyName_error400()
     {
-        $this->personnelInput['name'] = '';
+        $this->personnelInput['firstName'] = '';
         $this->post($this->uri, $this->personnelInput, $this->manager->token)
             ->seeStatusCode(400);
     }
@@ -88,7 +90,7 @@ class PersonnelControllerTest extends ManagerTestCase
     {
         $response = [
             "id" => $this->personnel->id,
-            "name" => $this->personnel->name,
+            "name" => $this->personnel->getFullName(),
             "email" => $this->personnel->email,
             "phone" => $this->personnel->phone,
             "joinTime" => $this->personnel->joinTime,
@@ -112,11 +114,11 @@ class PersonnelControllerTest extends ManagerTestCase
             "list" => [
                 [
                     "id" => $this->personnel->id,
-                    "name" => $this->personnel->name,
+                    "name" => $this->personnel->getFullName(),
                 ],
                 [
                     "id" => $this->personnelOne->id,
-                    "name" => $this->personnelOne->name,
+                    "name" => $this->personnelOne->getFullName(),
                 ],
             ],
         ];

@@ -26,12 +26,17 @@
             "database/factories"
         ],
         "psr-4": {
+            "SharedContext\\": "src/SharedContext",
             "Shared\\": "src/Shared",
-            "Query\\": "src/Query",
-            "Personnel\\": "src/Personnel",
+            "Notification\\": "src/Notification",
+            "Participant\\": "src/Participant",
             "Client\\": "src/Client",
+            "User\\": "src/User",
+            "Personnel\\": "src/Personnel",
             "Firm\\": "src/Firm",
             "Bara\\": "src/Bara",
+            "Query\\": "src/Query",
+            "Config\\": "src/Config",
             "Resources\\": "resources/",
             "App\\": "app/"
         }

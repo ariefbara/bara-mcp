@@ -3,104 +3,94 @@
 namespace App\Http\Controllers\Client;
 
 use Client\ {
-    Application\Service\Client\ProgramRegistrationCancel,
-    Application\Service\Client\ProgramRegistrationSubmit,
+    Application\Service\Client\CancelProgramRegistration,
+    Application\Service\Client\RegisterToProgram,
     Domain\Model\Client,
-    Domain\Model\Client\ProgramRegistration,
-    Domain\Model\Firm\Program
+    Domain\Model\Client\ProgramRegistration
 };
 use Query\ {
-    Application\Service\Client\ProgramRegistrationView,
-    Domain\Model\Firm\Program\Registrant
+    Application\Service\Firm\Client\ViewProgramRegistration,
+    Domain\Model\Firm\Client\ClientRegistrant
 };
+use Resources\Application\Event\Dispatcher;
+use SharedContext\Domain\Model\Firm\Program;
 
 class ProgramRegistrationController extends ClientBaseController
 {
 
-    public function apply()
+    public function register()
     {
-        $service = $this->buildApplyService();
-        $firmId = $this->stripTagsInputRequest('firmId');
+        $service = $this->buildRegisterService();
+        
+        $firmId = $this->firmId();
+        $clientId = $this->clientId();
         $programId = $this->stripTagsInputRequest('programId');
-        $programRegistrationId = $service->execute($this->clientId(), $firmId, $programId);
+        
+        $programRegistrationId = $service->execute($firmId, $clientId, $programId);
         
         $viewService = $this->buildViewService();
-        $registrant = $viewService->showById($this->clientId(), $programRegistrationId);
-        return $this->commandCreatedResponse($this->arrayDataOfRegistrant($registrant));
+        $programRegistration = $viewService->showById($this->firmId(), $this->clientId(), $programRegistrationId);
+        return $this->commandCreatedResponse($this->arrayDataOfProgramRegistration($programRegistration));
     }
 
     public function cancel($programRegistrationId)
     {
         $service = $this->buildCancelService();
-        $service->execute($this->clientId(), $programRegistrationId);
+        $service->execute($this->firmId(), $this->clientId(), $programRegistrationId);
         return $this->commandOkResponse();
     }
 
     public function show($programRegistrationId)
     {
         $service = $this->buildViewService();
-        $programRegistration = $service->showById($this->clientId(), $programRegistrationId);
-        return $this->singleQueryResponse($this->arrayDataOfRegistrant($programRegistration));
+        $programRegistration = $service->showById($this->firmId(), $this->clientId(), $programRegistrationId);
+        return $this->singleQueryResponse($this->arrayDataOfProgramRegistration($programRegistration));
     }
 
     public function showAll()
     {
         $service = $this->buildViewService();
-        $programRegistrations = $service->showAll($this->clientId(), $this->getPage(), $this->getPageSize());
+        $programRegistrations = $service->showAll($this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result['total'] = count($programRegistrations);
         foreach ($programRegistrations as $programRegistration) {
-            $result['list'][] = [
-                "id" => $programRegistration->getId(),
-                "concluded" => $programRegistration->isConcluded(),
-                "note" => $programRegistration->getNote(),
-                "program" => [
-                    "id" => $programRegistration->getProgram()->getId(),
-                    "name" => $programRegistration->getProgram()->getName(),
-                    "removed" => $programRegistration->getProgram()->isRemoved(),
-                ],
-            ];
+            $result['list'][] = $this->arrayDataOfProgramRegistration($programRegistration);
         }
 
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfRegistrant(Registrant $registrant): array
+    protected function arrayDataOfProgramRegistration(ClientRegistrant $programRegistration): array
     {
         return [
-            "id" => $registrant->getId(),
+            "id" => $programRegistration->getId(),
             "program" => [
-                "id" => $registrant->getProgram()->getId(),
-                "name" => $registrant->getProgram()->getName(),
-                "firm" => [
-                    "id" => $registrant->getProgram()->getFirm()->getId(),
-                    "name" => $registrant->getProgram()->getFirm()->getName(),
-                ],
+                "id" => $programRegistration->getProgram()->getId(),
+                "name" => $programRegistration->getProgram()->getName(),
             ],
-            "appliedTime" => $registrant->getAppliedTimeString(),
-            "concluded" => $registrant->isConcluded(),
-            "note" => $registrant->getNote(),
+            "registeredTime" => $programRegistration->getRegisteredTimeString(),
+            "concluded" => $programRegistration->isConcluded(),
+            "note" => $programRegistration->getNote(),
         ];
     }
-
-    protected function buildApplyService()
+    
+    protected function buildRegisterService()
     {
         $programRegistrationRepository = $this->em->getRepository(ProgramRegistration::class);
         $clientRepository = $this->em->getRepository(Client::class);
         $programRepository = $this->em->getRepository(Program::class);
-        return new ProgramRegistrationSubmit($programRegistrationRepository, $clientRepository, $programRepository);
+        $dispatcher = new Dispatcher();
+        return new RegisterToProgram($programRegistrationRepository, $clientRepository, $programRepository, $dispatcher);
     }
-
     protected function buildCancelService()
     {
         $programRegistrationRepository = $this->em->getRepository(ProgramRegistration::class);
-        return new ProgramRegistrationCancel($programRegistrationRepository);
+        return new CancelProgramRegistration($programRegistrationRepository);
     }
-
     protected function buildViewService()
     {
-        $programRegistrationRepository = $this->em->getRepository(Registrant::class);
-        return new ProgramRegistrationView($programRegistrationRepository);
+        $programRegistrationRepository = $this->em->getRepository(ClientRegistrant::class);
+        return new ViewProgramRegistration($programRegistrationRepository);
     }
 }

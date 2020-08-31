@@ -24,7 +24,8 @@ use Personnel\ {
 use Query\ {
     Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestView,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest2
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest as ConsultationRequest2
 };
 use Resources\Application\Event\Dispatcher;
 
@@ -63,9 +64,8 @@ class ConsultationRequestController extends PersonnelBaseController
     public function show($programConsultantId, $consultationRequestId)
     {
         $service = $this->buildViewService();
-        $programConsultantCompositionId = new ProgramConsultantCompositionId(
-                $this->firmId(), $this->personnelId(), $programConsultantId);
-        $consultationRequest = $service->showById($programConsultantCompositionId, $consultationRequestId);
+        $consultationRequest = $service->showById(
+                $this->firmId(), $this->personnelId(), $programConsultantId, $consultationRequestId);
 
         return $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
     }
@@ -73,10 +73,16 @@ class ConsultationRequestController extends PersonnelBaseController
     public function showAll($programConsultantId)
     {
         $service = $this->buildViewService();
-        $programConsultantCompositionId = new ProgramConsultantCompositionId(
-                $this->firmId(), $this->personnelId(), $programConsultantId);
-        $consultationRequests = $service->showAll($programConsultantCompositionId, $this->getPage(),
-                $this->getPageSize());
+
+        $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new \DateTimeImmutable($minTime);
+        $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new \DateTimeImmutable($maxTime);
+        $consultationRequestFilter = (new ConsultationRequestFilter())
+                ->setMinStartTime($minStartTime)
+                ->setMaxStartTime($maxStartTime);
+
+        $consultationRequests = $service->showAll(
+                $this->firmId(), $this->personnelId(), $programConsultantId, $this->getPage(), $this->getPageSize(),
+                $consultationRequestFilter);
 
         $result = [];
         $result['total'] = count($consultationRequests);
@@ -115,7 +121,8 @@ class ConsultationRequestController extends PersonnelBaseController
 
         $clientNotificationRepository = $this->em->getRepository(ClientNotification::class);
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
-        $listener = new ConsultantMutateConsultationSessionListener($clientNotificationRepository, $consultationSessionRepository);
+        $listener = new ConsultantMutateConsultationSessionListener($clientNotificationRepository,
+                $consultationSessionRepository);
         $dispatcher->addListener(
                 ConsultantMutateConsultationSessionEvent::EVENT_NAME, $listener);
 
@@ -129,7 +136,8 @@ class ConsultationRequestController extends PersonnelBaseController
 
         $clientNotificationRepository = $this->em->getRepository(ClientNotification::class);
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequestInClient::class);
-        $listener = new ConsultantMutateConsultationRequestListener($clientNotificationRepository, $consultationRequestRepository);
+        $listener = new ConsultantMutateConsultationRequestListener($clientNotificationRepository,
+                $consultationRequestRepository);
         $dispatcher->addListener(
                 ConsultantMutateConsultationRequestEvent::EVENT_NAME, $listener);
 

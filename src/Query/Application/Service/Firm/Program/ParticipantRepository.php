@@ -2,13 +2,15 @@
 
 namespace Query\Application\Service\Firm\Program;
 
-use Firm\Application\Service\Firm\Program\ProgramCompositionId;
-use Query\Domain\Model\Firm\Program\Participant;
+use Query\ {
+    Application\Auth\Firm\Program\ParticipantRepository as InterfaceForAuth,
+    Domain\Model\Firm\Program\Participant
+};
 
-interface ParticipantRepository
+interface ParticipantRepository extends InterfaceForAuth
 {
 
-    public function ofId(ProgramCompositionId $programCompositionId, string $participantId): Participant;
+    public function ofId(string $firmId, string $programId, string $participantId): Participant;
 
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize);
+    public function all(string $firmId, string $programId, int $page, int $pageSize);
 }

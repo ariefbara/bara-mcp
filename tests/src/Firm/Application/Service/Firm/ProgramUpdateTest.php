@@ -6,6 +6,7 @@ use Firm\Domain\Model\Firm\ {
     Program,
     ProgramData
 };
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Tests\TestBase;
 
 class ProgramUpdateTest extends TestBase
@@ -33,6 +34,9 @@ class ProgramUpdateTest extends TestBase
         $this->programData->expects($this->any())
                 ->method('getName')
                 ->willReturn('new program name');
+        $this->programData->expects($this->any())
+                ->method('getParticipantTypes')
+                ->willReturn([ParticipantTypes::USER_TYPE]);
     }
     
     protected function execute()

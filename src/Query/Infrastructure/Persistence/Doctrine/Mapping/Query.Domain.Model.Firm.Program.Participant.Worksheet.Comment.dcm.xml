@@ -10,11 +10,13 @@
         >
             <join-column name="Worksheet_id" referenced-column-name="id" />
         </many-to-one>
+        
         <many-to-one field="parent" 
                     target-entity="Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment"
         >
             <join-column name="parent_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
         <field name="message" type="text" nullable="true"/>
         <field name="submitTime" type="datetime_immutable" nullable="false"/>
@@ -22,10 +24,6 @@
         
         <one-to-one field="consultantComment" 
                     target-entity="Query\Domain\Model\Firm\Program\Consultant\ConsultantComment"
-                    mapped-by="comment"
-        />
-        <one-to-one field="participantComment" 
-                    target-entity="Query\Domain\Model\Firm\Program\Participant\ParticipantComment"
                     mapped-by="comment"
         />
         

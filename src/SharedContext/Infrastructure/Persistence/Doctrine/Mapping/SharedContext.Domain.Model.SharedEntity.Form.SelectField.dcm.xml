@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\SharedEntity\Form\SelectField" 
+            table="SelectField" 
+    >
+        <id name="id" type="guid" />
+        <embedded name="field" 
+                  class="SharedContext\Domain\Model\SharedEntity\Form\FieldVO" 
+                  use-column-prefix="false" 
+        />
+        <one-to-many  field="options" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\Form\SelectField\Option"
+                      mapped-by="selectField"
+        />
+    </entity>
+</doctrine-mapping>

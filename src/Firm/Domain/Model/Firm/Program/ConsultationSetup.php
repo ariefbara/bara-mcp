@@ -2,11 +2,12 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\{
+use Firm\Domain\Model\Firm\ {
     FeedbackForm,
     Program
 };
-use Resources\{
+use Query\Domain\Model\FirmWhitelableInfo;
+use Resources\ {
     ValidationRule,
     ValidationService
 };
@@ -92,6 +93,16 @@ class ConsultationSetup
     public function remove(): void
     {
         $this->removed = true;
+    }
+    
+    public function getFirmWhitelableInfo(): FirmWhitelableInfo
+    {
+        return $this->program->getFirmWhitelableInfo();
+    }
+    
+    public function getProgramId(): string
+    {
+        return $this->program->getId();
     }
 
 }

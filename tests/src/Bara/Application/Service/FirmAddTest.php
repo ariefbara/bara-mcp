@@ -2,7 +2,10 @@
 
 namespace Bara\Application\Service;
 
-use Bara\Domain\Model\Firm\ManagerData;
+use Bara\Domain\Model\ {
+    Firm\ManagerData,
+    FirmData
+};
 use Tests\TestBase;
 
 class FirmAddTest extends TestBase
@@ -12,7 +15,7 @@ class FirmAddTest extends TestBase
     protected $firmRepository;
     protected $managerRepository;
     protected $adminRepository;
-    protected $name = 'firm name', $identifier = 'identifier';
+    protected $firmData;
     protected $managerData;
 
     protected function setUp(): void
@@ -31,11 +34,13 @@ class FirmAddTest extends TestBase
         $this->managerData->expects($this->any())
             ->method('getPassword')
             ->willReturn('password123');
+        
+        $this->firmData = new FirmData('name', 'identifier', 'http://firm.com', 'noreply@firm.com', 'firm name');
     }
 
     private function execute()
     {
-        return $this->service->execute($this->name, $this->identifier, $this->managerData);
+        return $this->service->execute($this->firmData, $this->managerData);
     }
 
     public function test_execute_addFirmToRepository()
@@ -49,7 +54,7 @@ class FirmAddTest extends TestBase
     {
         $this->firmRepository->expects($this->once())
             ->method('containRecordOfIdentifier')
-            ->with($this->identifier)
+            ->with($this->firmData->getIdentifier())
             ->willReturn(true);
         $operation = function () {
             $this->execute();

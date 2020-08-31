@@ -8,6 +8,9 @@
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
         <field name="identifier" type="string" length="256" nullable="false"/>
+        <embedded name="firmWhitelableInfo" 
+                  class="Query\Domain\Model\FirmWhitelableInfo" 
+                  use-column-prefix="false" />
         <field name="suspended" type="boolean" />
         <one-to-many  field="managers" 
                       target-entity="Bara\Domain\Model\Firm\Manager"

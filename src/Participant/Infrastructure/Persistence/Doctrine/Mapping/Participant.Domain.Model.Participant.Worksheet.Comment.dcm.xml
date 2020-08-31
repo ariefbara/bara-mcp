@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant\Worksheet\Comment" 
+            table="Comment" 
+    >
+        
+        <many-to-one field="parent" 
+                    target-entity="Participant\Domain\Model\Participant\Worksheet\Comment"
+        >
+            <join-column name="parent_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="message" type="text" nullable="true"/>
+        <field name="submitTime" type="datetime_immutable" nullable="false"/>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

@@ -2,15 +2,16 @@
 
 namespace Tests\Controllers;
 
-use Tests\Controllers\RecordPreparation\{
+use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfConsultant,
     Firm\Program\RecordOfCoordinator,
+    Firm\RecordOfClient,
     Firm\RecordOfManager,
     Firm\RecordOfPersonnel,
     Firm\RecordOfProgram,
     RecordOfAdmin,
-    RecordOfClient,
-    RecordOfFirm
+    RecordOfFirm,
+    RecordOfUser
 };
 
 class LoginControllerTest extends ControllerTestCase
@@ -19,17 +20,25 @@ class LoginControllerTest extends ControllerTestCase
     protected $admin;
     protected $adminLoginUri = "/api/admin-login";
     protected $adminLoginRequest;
+    
     protected $firm;
+    
     protected $manager;
     protected $managerLoginUri = "/api/manager-login";
     protected $managerLoginRequest;
+    
     protected $client, $inactiveClient;
     protected $clientLoginUri = "/api/client-login";
     protected $clientLoginRequest;
     protected $personnel, $removedPersonnel;
+    
     protected $personnelLoginUri = "/api/personnel-login";
     protected $personnelLoginRequest;
     protected $coordinator, $consultant;
+    
+    protected $user, $inactiveUser;
+    protected $userLoginUri = "/api/user-login";
+    protected $userLoginRequest;
 
     protected function setUp(): void
     {
@@ -42,6 +51,7 @@ class LoginControllerTest extends ControllerTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('User')->truncate();
 
         $this->admin = new RecordOfAdmin('admin', 'sys_admin@email.org', 'password123');
         $this->connection->table('Admin')->insert($this->admin->toArrayForDbEntry());
@@ -61,12 +71,13 @@ class LoginControllerTest extends ControllerTestCase
             "password" => $this->manager->rawPassword,
         ];
 
-        $this->client = new RecordOfClient(0, 'client@email.org', 'password123');
-        $this->client->activated = true;
-        $this->inactiveClient = new RecordOfClient(1, 'inactiveClient@email.org', 'password123');
+        $this->client = new RecordOfClient($this->firm, 0);
+        $this->inactiveClient = new RecordOfClient($this->firm, 1);
+        $this->inactiveClient->activated = false;
         $this->connection->table('Client')->insert($this->client->toArrayForDbEntry());
         $this->connection->table('Client')->insert($this->inactiveClient->toArrayForDbEntry());
         $this->clientLoginRequest = [
+            "firmIdentifier" => $this->firm->identifier,
             "email" => $this->client->email,
             "password" => $this->client->rawPassword,
         ];
@@ -91,6 +102,16 @@ class LoginControllerTest extends ControllerTestCase
             "email" => $this->personnel->email,
             "password" => $this->personnel->rawPassword,
         ];
+        
+        $this->user = new RecordOfUser(0);
+        $this->inactiveUser = new RecordOfUser(1);
+        $this->inactiveUser->activated = false;
+        $this->connection->table('User')->insert($this->user->toArrayForDbEntry());
+        $this->connection->table('User')->insert($this->inactiveUser->toArrayForDbEntry());
+        $this->userLoginRequest = [
+            'email' => $this->user->email,
+            'password' => $this->user->rawPassword,
+        ];
     }
 
     protected function tearDown(): void
@@ -104,6 +125,7 @@ class LoginControllerTest extends ControllerTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('User')->truncate();
     }
 
     public function test_adminLogin()
@@ -162,7 +184,7 @@ class LoginControllerTest extends ControllerTestCase
     {
         $response = [
             "id" => $this->client->id,
-            "name" => $this->client->name,
+            "name" => $this->client->firstName . " " . $this->client->lastName,
         ];
         $this->post($this->clientLoginUri, $this->clientLoginRequest)
                 ->seeStatusCode(200)
@@ -187,6 +209,7 @@ class LoginControllerTest extends ControllerTestCase
     public function test_clientLogin_inactiveClient_error401()
     {
         $request = [
+            "firmIdentifier" => $this->inactiveClient->firm->identifier,
             "email" => $this->inactiveClient->email,
             "password" => $this->inactiveClient->rawPassword,
         ];
@@ -243,7 +266,35 @@ class LoginControllerTest extends ControllerTestCase
         ];
         $this->post($this->personnelLoginUri, $loginRequest)
                 ->seeStatusCode(401);
-        
+    }
+    
+    public function test_userLogin()
+    {
+        $response = [
+            "id" => $this->user->id,
+            "name" => $this->user->firstName . " " . $this->user->lastName,
+        ];
+        $this->post($this->userLoginUri, $this->userLoginRequest)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+    }
+    public function test_userLogin_inactiveAccount_401()
+    {
+        $this->userLoginRequest['email'] = $this->inactiveUser->email;
+        $this->post($this->userLoginUri, $this->userLoginRequest)
+                ->seeStatusCode(401);
+    }
+    public function test_userLogin_emailNotFound_401()
+    {
+        $this->userLoginRequest['email'] = 'non-existing@email.org';
+        $this->post($this->userLoginUri, $this->userLoginRequest)
+                ->seeStatusCode(401);
+    }
+    public function test_userLogin_unmatchPassword_401()
+    {
+        $this->userLoginRequest['password'] = 'unmatch123';
+        $this->post($this->userLoginUri, $this->userLoginRequest)
+                ->seeStatusCode(401);
     }
 
 }

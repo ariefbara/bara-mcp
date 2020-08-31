@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Shared\Domain\Model\ {
+use SharedContext\Domain\Model\SharedEntity\ {
     FormRecordData,
     FormRecordData\AttachmentFieldRecordData,
     FormRecordData\IFileInfoFinder,

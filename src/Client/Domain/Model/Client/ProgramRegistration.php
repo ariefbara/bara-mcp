@@ -4,9 +4,9 @@ namespace Client\Domain\Model\Client;
 
 use Client\Domain\Model\{
     Client,
-    Firm\Program
+    ProgramInterface
 };
-use DateTimeImmutable;
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Exception\RegularException;
 
 class ProgramRegistration
@@ -26,58 +26,31 @@ class ProgramRegistration
 
     /**
      *
-     * @var Program
+     * @var Registrant
      */
-    protected $program;
+    protected $registrant;
 
-    /**
-     *
-     * @var DateTimeImmutable
-     */
-    protected $appliedTime;
-
-    /**
-     *
-     * @var bool
-     */
-    protected $concluded;
-
-    /**
-     *
-     * @var string
-     */
-    protected $note = null;
-    function getProgram(): Program
+    public function __construct(Client $client, string $id, ProgramInterface $program)
     {
-        return $this->program;
-    }
-    function isConcluded(): bool
-    {
-        return $this->concluded;
-    }
-
-    function __construct(Client $client, $id, Program $program)
-    {
-        if (!$program->canAcceptRegistration()) {
-            $errorDetail = "forbidden: program can't accept registration";
+        if (!$program->isRegistrationOpenFor(ParticipantTypes::CLIENT_TYPE)) {
+            $errorDetail = 'forbidden: program registration is closed';
             throw RegularException::forbidden($errorDetail);
         }
+
         $this->client = $client;
         $this->id = $id;
-        $this->program = $program;
-        $this->appliedTime = new DateTimeImmutable();
-        $this->concluded = false;
+        $this->programId = $program->getId();
+        $this->registrant = new Registrant($program, $id);
     }
 
     public function cancel(): void
     {
-        if ($this->concluded) {
-            $errorDetail = 'forbidden: program registration already concluded';
-            throw RegularException::forbidden($errorDetail);
-        }
+        $this->registrant->cancel();
+    }
 
-        $this->concluded = true;
-        $this->note = 'cancelled';
+    public function isUnconcludedRegistrationToProgram(ProgramInterface $program): bool
+    {
+        return $this->registrant->isUnconcludedRegistrationToProgram($program);
     }
 
 }

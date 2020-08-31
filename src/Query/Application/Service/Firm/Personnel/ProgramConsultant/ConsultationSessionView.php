@@ -2,8 +2,10 @@
 
 namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId;
-use Query\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Query\ {
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
+};
 
 class ConsultationSessionView
 {
@@ -21,22 +23,25 @@ class ConsultationSessionView
 
     /**
      * 
-     * @param ProgramConsultantCompositionId $programConsultantCompositionId
+     * @param string $firmId
+     * @param string $personnelId
+     * @param string $consultantId
      * @param int $page
      * @param int $pageSize
+     * @param ConsultationSessionFilter|null $consultationSessionFilter
      * @return ConsultationSession[]
      */
-    public function showAll(ProgramConsultantCompositionId $programConsultantCompositionId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $personnelId, string $consultantId, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
     {
-        return $this->consultationSessionRepository->allConsultationSessionsOfPersonnel(
-                        $programConsultantCompositionId, $page, $pageSize);
+        return $this->consultationSessionRepository->allConsultationSessionsOfPersonnel($firmId, $personnelId,
+                        $consultantId, $page, $pageSize, $consultationSessionFilter);
     }
 
-    public function showById(ProgramConsultantCompositionId $programConsultantCompositionId,
-            string $consultationSessionId): ConsultationSession
+    public function showById(string $firmId, string $personnelId, string $consultantId, string $consultationSessionId): ConsultationSession
     {
-        return $this->consultationSessionRepository->aConsultationSessionOfPersonnel(
-                        $programConsultantCompositionId, $consultationSessionId);
+        return $this->consultationSessionRepository->aConsultationSessionOfPersonnel($firmId, $personnelId,
+                        $consultantId, $consultationSessionId);
     }
 
 }

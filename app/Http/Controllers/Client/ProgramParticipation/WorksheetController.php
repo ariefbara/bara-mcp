@@ -7,100 +7,92 @@ use App\Http\Controllers\{
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter
 };
-use Client\{
-    Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId,
-    Application\Service\Client\ProgramParticipation\WorksheetAddBranch,
-    Application\Service\Client\ProgramParticipation\WorksheetAddRoot,
-    Application\Service\Client\ProgramParticipation\WorksheetRemove,
-    Application\Service\Client\ProgramParticipation\WorksheetUpdate,
-    Domain\Model\Client\ProgramParticipation,
-    Domain\Model\Client\ProgramParticipation\ParticipantFileInfo,
-    Domain\Model\Client\ProgramParticipation\Worksheet,
-    Domain\Model\Firm\Program\Mission,
-    Domain\Service\ParticipantFileInfoFinder
+use Participant\{
+    Application\Service\Participant\WorksheetAddBranch,
+    Application\Service\Participant\WorksheetAddRoot,
+    Application\Service\Participant\WorksheetRemove,
+    Application\Service\Participant\WorksheetUpdate,
+    Domain\Model\ClientParticipant,
+    Domain\Model\DependencyEntity\Firm\Program\Mission,
+    Domain\Model\Participant\Worksheet as Worksheet2,
+    Domain\Service\ClientFileInfoFinder
 };
 use Query\{
-    Application\Service\Client\ProgramParticipation\WorksheetView,
-    Domain\Model\Firm\Program\Participant\Worksheet as Worksheet2
+    Application\Service\Firm\Program\ClientParticipant\ViewWorksheet,
+    Domain\Model\Firm\Program\Participant\Worksheet
 };
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class WorksheetController extends ClientBaseController
 {
 
-    public function addRoot($programParticipationId)
+    public function addRoot($programId)
     {
         $service = $this->buildAddRootService();
+
         $missionId = $this->stripTagsInputRequest('missionId');
         $name = $this->stripTagsInputRequest('name');
-        $worksheetId = $service->execute(
-                $this->clientId(), $programParticipationId, $missionId, $name,
-                $this->getFormRecordData($programParticipationId));
+        $formRecordData = $this->getFormRecordData();
+
+        $worksheetId = $service->execute($this->firmId(), $this->clientId(), $programId, $missionId, $name,
+                $formRecordData);
 
         $viewService = $this->buildViewService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId(
-                $this->clientId(), $programParticipationId);
-        $worksheet = $viewService->showById($programParticipationCompositionId, $worksheetId);
+        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programId, $worksheetId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
-    public function addBranch($programParticipationId, $worksheetId)
+    public function addBranch($programId, $worksheetId)
     {
         $service = $this->buildAddBranchService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
-                $programParticipationId);
+
         $missionId = $this->stripTagsInputRequest('missionId');
         $name = $this->stripTagsInputRequest('name');
+        $formRecordData = $this->getFormRecordData();
+
         $branchId = $service->execute(
-                $programParticipationCompositionId, $worksheetId, $missionId, $name,
-                $this->getFormRecordData($programParticipationId));
+                $this->firmId(), $this->clientId(), $programId, $worksheetId, $missionId, $name, $formRecordData);
 
         $viewService = $this->buildViewService();
-        $worksheet = $viewService->showById($programParticipationCompositionId, $branchId);
+        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programId, $branchId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
-    public function update($programParticipationId, $worksheetId)
+    public function update($programId, $worksheetId)
     {
         $service = $this->buildUpdateService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
-                $programParticipationId);
-        $name = $this->stripTagsInputRequest('name');
-        $service->execute(
-                $programParticipationCompositionId, $worksheetId, $name,
-                $this->getFormRecordData($programParticipationId));
 
-        return $this->show($programParticipationId, $worksheetId);
+        $name = $this->stripTagsInputRequest('name');
+        $formRecordData = $this->getFormRecordData();
+
+        $service->execute($this->firmId(), $this->clientId(), $programId, $worksheetId, $name, $formRecordData);
+
+        return $this->show($programId, $worksheetId);
     }
 
-    public function remove($programParticipationId, $worksheetId)
+    public function remove($programId, $worksheetId)
     {
         $service = $this->buildRemoveService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
-                $programParticipationId);
-        $service->execute($programParticipationCompositionId, $worksheetId);
-
+        $service->execute($this->firmId(), $this->clientId(), $programId, $worksheetId);
         return $this->commandOkResponse();
     }
 
-    public function show($programParticipationId, $worksheetId)
+    public function show($programId, $worksheetId)
     {
         $service = $this->buildViewService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
-                $programParticipationId);
-        $worksheet = $service->showById($programParticipationCompositionId, $worksheetId);
+        $worksheet = $service->showById($this->firmId(), $this->clientId(), $programId, $worksheetId);
         return $this->singleQueryResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
-    public function showAll($programParticipationId)
+    public function showAll($programId)
     {
         $service = $this->buildViewService();
-        $programParticipationCompositionId = new ProgramParticipationCompositionId($this->clientId(),
-                $programParticipationId);
-
-        $missionId = $this->stripTagsVariable($this->request->query('missionId'));
-        $parentWorksheetId = $this->stripTagsVariable($this->request->query('parentWorksheetId'));
+        
+        $missionId = $this->stripTagQueryRequest('missionId');
+        $parentWorksheetId = $this->stripTagQueryRequest('parentWorksheetId');
+        
         $worksheets = $service->showAll(
-                $programParticipationCompositionId, $this->getPage(), $this->getPageSize(), $missionId,
+                $this->firmId(), $this->clientId(), $programId, $this->getPage(), $this->getPageSize(), $missionId,
                 $parentWorksheetId);
 
         $result = [];
@@ -123,7 +115,7 @@ class WorksheetController extends ClientBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfWorksheet(Worksheet2 $worksheet): array
+    protected function arrayDataOfWorksheet(Worksheet $worksheet): array
     {
         $data = (new FormRecordToArrayDataConverter())->convert($worksheet);
         $parent = empty($worksheet->getParent()) ? null : $this->arrayDataOfParentWorksheet($worksheet->getParent());
@@ -142,7 +134,7 @@ class WorksheetController extends ClientBaseController
         return $data;
     }
 
-    protected function arrayDataOfParentWorksheet(Worksheet2 $parentWorksheet): array
+    protected function arrayDataOfParentWorksheet(Worksheet $parentWorksheet): array
     {
         $parent = empty($parentWorksheet->getParent()) ? null :
                 $this->arrayDataOfParentWorksheet($parentWorksheet->getParent());
@@ -155,45 +147,43 @@ class WorksheetController extends ClientBaseController
 
     protected function buildAddRootService()
     {
-        $worksheetRepository = $this->em->getRepository(Worksheet::class);
-        $programParticipationRepository = $this->em->getRepository(ProgramParticipation::class);
+        $worksheetRepository = $this->em->getRepository(Worksheet2::class);
+        $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
         $missionRepository = $this->em->getRepository(Mission::class);
 
-        return new WorksheetAddRoot($worksheetRepository, $programParticipationRepository, $missionRepository);
+        return new WorksheetAddRoot($worksheetRepository, $clientParticipantRepository, $missionRepository);
     }
 
     protected function buildAddBranchService()
     {
-        $worksheetRepository = $this->em->getRepository(Worksheet::class);
+        $worksheetRepository = $this->em->getRepository(Worksheet2::class);
         $missionRepository = $this->em->getRepository(Mission::class);
+
         return new WorksheetAddBranch($worksheetRepository, $missionRepository);
     }
 
     protected function buildUpdateService()
     {
-        $worksheetRepository = $this->em->getRepository(Worksheet::class);
+        $worksheetRepository = $this->em->getRepository(Worksheet2::class);
         return new WorksheetUpdate($worksheetRepository);
     }
 
     protected function buildRemoveService()
     {
-        $worksheetRepository = $this->em->getRepository(Worksheet::class);
+        $worksheetRepository = $this->em->getRepository(Worksheet2::class);
         return new WorksheetRemove($worksheetRepository);
     }
 
     protected function buildViewService()
     {
-        $worksheetRepository = $this->em->getRepository(Worksheet2::class);
-        return new WorksheetView($worksheetRepository);
+        $worksheetRepository = $this->em->getRepository(Worksheet::class);
+        return new ViewWorksheet($worksheetRepository);
     }
 
-    protected function getFormRecordData($programParticipationId)
+    protected function getFormRecordData()
     {
-        $participantFileInforRepository = $this->em->getRepository(ParticipantFileInfo::class);
-        $programParticipationCompositionId = new ProgramParticipationCompositionId(
-                $this->clientId(), $programParticipationId);
-        $fileInfoFinder = new ParticipantFileInfoFinder(
-                $participantFileInforRepository, $programParticipationCompositionId);
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        $fileInfoFinder = new ClientFileInfoFinder($fileInfoRepository, $this->firmId(), $this->clientId());
         return (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
     }
 

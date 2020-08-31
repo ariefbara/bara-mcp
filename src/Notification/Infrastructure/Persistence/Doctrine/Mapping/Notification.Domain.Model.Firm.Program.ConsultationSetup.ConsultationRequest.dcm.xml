@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest" 
+            table="ConsultationRequest" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultationRequestRepository" 
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="consultationSetup" 
+                      target-entity="Notification\Domain\Model\Firm\Program\ConsultationSetup"
+        >
+            <join-column name="ConsultationSetup_id" referenced-column-name="id" />
+        </many-to-one>
+        <many-to-one  field="consultant" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        <embedded name="startEndTime" 
+                  class="Resources\Domain\ValueObject\DateTimeInterval" 
+                  use-column-prefix="false" 
+        />
+        <field name="concluded" type="boolean" />
+        <field name="status" type="string" length="10" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

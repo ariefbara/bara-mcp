@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\SharedEntity\FileInfo" 
+            table="FileInfo" 
+            repository-class="SharedContext\Infrastructure\Persistence\Doctrine\Repository\DoctrineFileInfoRepository"
+    >
+        <id name="id" type="guid" />
+        <field name="folders" type="simple_array" nullable="true"/>
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="size" type="float" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

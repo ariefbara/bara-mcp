@@ -3,7 +3,9 @@
 namespace Resources\Domain\Model\Mail;
 
 use Resources\{
-    ValidationRule, ValidationService
+    Domain\ValueObject\PersonName,
+    ValidationRule,
+    ValidationService
 };
 
 class Recipient
@@ -17,7 +19,7 @@ class Recipient
 
     /**
      *
-     * @var string
+     * @var PersonName
      */
     protected $name;
 
@@ -26,7 +28,7 @@ class Recipient
         return $this->address;
     }
 
-    function getName(): string
+    function getName(): PersonName
     {
         return $this->name;
     }
@@ -35,24 +37,25 @@ class Recipient
     {
         $errorDetail = "bad request: mail recipient address is required and must be in valid email address format";
         ValidationService::build()
-            ->addRule(ValidationRule::email())
-            ->execute($address, $errorDetail);
+                ->addRule(ValidationRule::email())
+                ->execute($address, $errorDetail);
         $this->address = $address;
     }
 
-    private function setName($name)
-    {
-        $errorDetail = "bad request: mail recipient name is required";
-        ValidationService::build()
-            ->addRule(ValidationRule::notEmpty())
-            ->execute($name, $errorDetail);
-        $this->name = $name;
-    }
-
-    public function __construct(string $address, string $name)
+    public function __construct(string $address, PersonName $name)
     {
         $this->setAddress($address);
-        $this->setName($name);
+        $this->name = $name;
+    }
+    
+    public function getFirstName(): string
+    {
+        return $this->name->getFirstName();
+    }
+    
+    public function getFullName(): string
+    {
+        return $this->name->getFullName();
     }
 
 }

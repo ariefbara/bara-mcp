@@ -2,15 +2,18 @@
 
 namespace Query\Application\Service\Client\ProgramParticipation;
 
-use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Query\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Query\ {
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
+};
 
 interface ConsultationSessionRepository
 {
 
-    public function aConsultationSessionOfParticipant(
-            ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationSessionId): ConsultationSession;
+    public function aConsultationSessionOfClient(
+            string $clientId, string $programParticipationId, string $consultationSessionId): ConsultationSession;
 
-    public function allConsultationSessionsOfParticipant(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize);
+    public function allConsultationSessionsOfClient(
+            string $clientId, string $programParticipationId, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter);
 }

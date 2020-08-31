@@ -2,15 +2,18 @@
 
 namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId;
-use Query\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use Query\ {
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
+};
 
 interface ConsultationRequestRepository
 {
 
     public function aConsultationRequestOfPersonnel(
-            ProgramConsultantCompositionId $programConsultantCompositionId, string $consultationRequestId): ConsultationRequest;
+            string $firmId, string $personnelId, string $programId, string $consultationRequestId): ConsultationRequest;
 
     public function allConsultationRequestsOfPersonnel(
-            ProgramConsultantCompositionId $programConsultantCompositionId, int $page, int $pageSize);
+            string $firmId, string $personnelId, string $programId, int $page, int $pageSize,
+            ?ConsultationRequestFilter $consultationRequestFilter);
 }

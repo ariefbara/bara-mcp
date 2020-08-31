@@ -51,7 +51,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
         $consultant = new RecordOfConsultant($this->programParticipation->program, $personnel, 1);
         $this->connection->table("Consultant")->insert($consultant->toArrayForDbEntry());
 
-        $this->consultationSessionOne = new RecordOfConsultationSession($consultationSetup, $this->programParticipation,
+        $this->consultationSessionOne = new RecordOfConsultationSession($consultationSetup, $this->programParticipation->participant,
                 $consultant, 1);
         $this->connection->table("ConsultationSession")->insert($this->consultationSessionOne->toArrayForDbEntry());
 
@@ -116,7 +116,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 "id" => $this->consultationSession->consultant->id,
                 "personnel" => [
                     "id" => $this->consultationSession->consultant->personnel->id,
-                    "name" => $this->consultationSession->consultant->personnel->name,
+                    "name" => $this->consultationSession->consultant->personnel->getFullName(),
                 ],
             ],
             "participantFeedback" => null,
@@ -144,7 +144,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                         "id" => $this->consultationSession->consultant->id,
                         "personnel" => [
                             "id" => $this->consultationSession->consultant->personnel->id,
-                            "name" => $this->consultationSession->consultant->personnel->name,
+                            "name" => $this->consultationSession->consultant->personnel->getFullName(),
                         ],
                     ],
                 ],
@@ -160,7 +160,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                         "id" => $this->consultationSessionOne->consultant->id,
                         "personnel" => [
                             "id" => $this->consultationSessionOne->consultant->personnel->id,
-                            "name" => $this->consultationSessionOne->consultant->personnel->name,
+                            "name" => $this->consultationSessionOne->consultant->personnel->getFullName(),
                         ],
                     ],
                 ],
@@ -170,7 +170,6 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-
     public function test_setParticipantFeedback()
     {
         $this->participantFeedbackInput["stringFieldRecords"] = [];
@@ -197,7 +196,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 "id" => $this->consultationSession->consultant->id,
                 "personnel" => [
                     "id" => $this->consultationSession->consultant->personnel->id,
-                    "name" => $this->consultationSession->consultant->personnel->name,
+                    "name" => $this->consultationSession->consultant->personnel->getFullName(),
                 ],
             ],
             "participantFeedback" => [
@@ -263,7 +262,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 "id" => $this->consultationSessionOne->consultant->id,
                 "personnel" => [
                     "id" => $this->consultationSessionOne->consultant->personnel->id,
-                    "name" => $this->consultationSessionOne->consultant->personnel->name,
+                    "name" => $this->consultationSessionOne->consultant->personnel->getFullName(),
                 ],
             ],
             "participantFeedback" => [

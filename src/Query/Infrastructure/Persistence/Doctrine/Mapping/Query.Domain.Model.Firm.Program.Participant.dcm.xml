@@ -2,23 +2,28 @@
 <doctrine-mapping>
     <entity name="Query\Domain\Model\Firm\Program\Participant" 
             table="Participant" 
-            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantRepository" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantRepository"
     >
-        
         <many-to-one  field="program" 
                       target-entity="Query\Domain\Model\Firm\Program"
         >
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
-        <many-to-one  field="client" 
-                      target-entity="Query\Domain\Model\Client"
-        >
-            <join-column name="Client_id" referenced-column-name="id" />
-        </many-to-one>
-        <field name="acceptedTime" type="datetime_immutable" nullable="true"/>
+        <field name="enrolledTime" type="datetime_immutable" nullable="true"/>
         <field name="active" type="boolean" />
         <field name="note" type="string" length="256" nullable="true"/>
+        
+        <one-to-one  field="clientParticipant" 
+                     target-entity="Query\Domain\Model\Firm\Client\ClientParticipant"
+                     mapped-by="participant"
+        />
+        
+        <one-to-one  field="userParticipant" 
+                     target-entity="Query\Domain\Model\User\UserParticipant"
+                     mapped-by="participant"
+        />
         
     </entity>
 </doctrine-mapping>

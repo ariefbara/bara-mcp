@@ -2,11 +2,12 @@
 
 namespace Firm\Application\Service\Firm;
 
-use Firm\{
+use Firm\ {
     Application\Service\FirmRepository,
     Domain\Model\Firm,
     Domain\Model\Firm\ProgramData
 };
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Tests\TestBase;
 
 class ProgramAddTest extends TestBase
@@ -36,6 +37,9 @@ class ProgramAddTest extends TestBase
         $this->programData->expects($this->any())
                 ->method('getName')
                 ->willReturn('program name');
+        $this->programData->expects($this->any())
+                ->method('getParticipantTypes')
+                ->willReturn([ParticipantTypes::CLIENT_TYPE]);
     }
 
     protected function execute()

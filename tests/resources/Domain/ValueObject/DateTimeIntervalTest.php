@@ -64,6 +64,35 @@ class DateTimeIntervalTest extends TestBase
         $errorDetail = "bad request: end time must be bigger than or equals start time";
         $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
     }
+    
+    public function test_getStartDayInIndonesianFormat_returnDayFormatInIndonesias()
+    {
+        $this->vo->startDateTime = new \DateTimeImmutable('last monday');
+        $this->assertEquals('senin', $this->vo->getStartDayInIndonesianFormat());
+        
+        $this->vo->startDateTime = new \DateTimeImmutable('last tuesday');
+        $this->assertEquals('selasa', $this->vo->getStartDayInIndonesianFormat());
+        
+        $this->vo->startDateTime = new \DateTimeImmutable('last wednesday');
+        $this->assertEquals('rabu', $this->vo->getStartDayInIndonesianFormat());
+        
+        $this->vo->startDateTime = new \DateTimeImmutable('last thursday');
+        $this->assertEquals('kamis', $this->vo->getStartDayInIndonesianFormat());
+        
+        $this->vo->startDateTime = new \DateTimeImmutable('last friday');
+        $this->assertEquals('jumat', $this->vo->getStartDayInIndonesianFormat());
+        
+        $this->vo->startDateTime = new \DateTimeImmutable('last saturday');
+        $this->assertEquals('sabtu', $this->vo->getStartDayInIndonesianFormat());
+        
+        $this->vo->startDateTime = new \DateTimeImmutable('last sunday');
+        $this->assertEquals('minggu', $this->vo->getStartDayInIndonesianFormat());
+    }
+    public function test_getStartDayInIndonesianFormat_emptyStartDate_returnNull()
+    {
+        $this->vo->startDateTime = null;
+        $this->assertNull($this->vo->getStartDayInIndonesianFormat());
+    }
 }
 
 class TestableDateTimeInterval extends DateTimeInterval{

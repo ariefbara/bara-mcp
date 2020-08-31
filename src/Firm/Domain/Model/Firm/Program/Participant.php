@@ -3,18 +3,14 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\Firm\Program;
-use Query\Domain\Model\Client;
-use Resources\Exception\RegularException;
+use Resources\{
+    DateTimeImmutableBuilder,
+    Domain\Model\Mail\Recipient,
+    Exception\RegularException
+};
 
 class Participant
 {
-
-    /**
-     *
-     * @var Program
-     */
-    protected $program;
 
     /**
      *
@@ -24,15 +20,9 @@ class Participant
 
     /**
      *
-     * @var Client
-     */
-    protected $client;
-
-    /**
-     *
      * @var DateTimeImmutable
      */
-    protected $acceptedTime;
+    protected $enrolledTime;
 
     /**
      *
@@ -42,50 +32,69 @@ class Participant
 
     /**
      *
-     * @var string
+     * @var string||null
      */
     protected $note;
 
-    function getId(): string
+    /**
+     *
+     * @var ClientParticipant||null
+     */
+    protected $clientParticipant;
+
+    /**
+     *
+     * @var UserParticipant||null
+     */
+    protected $userParticipant;
+
+    public function isActive(): bool
     {
-        return $this->id;
+        return $this->active;
     }
 
-    function getClient(): Client
+    public function __construct(string $id)
     {
-        return $this->client;
-    }
-
-    function __construct(Program $program, $id, Client $client)
-    {
-        $this->program = $program;
         $this->id = $id;
-        $this->client = $client;
-        $this->acceptedTime = new DateTimeImmutable();
+        $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->active = true;
         $this->note = null;
     }
 
-    public function remove(): void
+    public function bootout(): void
     {
         if (!$this->active) {
             $errorDetail = 'forbidden: participant already inactive';
             throw RegularException::forbidden($errorDetail);
         }
-
         $this->active = false;
-        $this->note = 'removed';
+        $this->note = 'booted';
     }
 
-    public function reActivate(): void
+    public function reenroll(): void
     {
         if ($this->active) {
-            $errorDetail = 'forbidden: already an active participant';
+            $errorDetail = 'forbidden: already active participant';
             throw RegularException::forbidden($errorDetail);
         }
-
         $this->active = true;
-        $this->note = 'reactivated';
+        $this->note = null;
+    }
+
+    public function getMailRecipient(): Recipient
+    {
+        if (!empty($this->clientParticipant)) {
+            return  $this->clientParticipant->getClientMailRecipient();
+        }
+        return $this->userParticipant->getUserMailRecipient();
+    }
+
+    public function getParticipantName(): string
+    {
+        if (!empty($this->clientParticipant)) {
+            return  $this->clientParticipant->getClientName();
+        }
+        return $this->userParticipant->getUserName();
     }
 
 }

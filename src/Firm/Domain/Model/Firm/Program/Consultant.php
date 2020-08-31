@@ -2,10 +2,11 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\{
+use Firm\Domain\Model\Firm\ {
     Personnel,
     Program
 };
+use Resources\Domain\Model\Mail\Recipient;
 
 class Consultant
 {
@@ -65,6 +66,16 @@ class Consultant
     public function remove(): void
     {
         $this->removed = true;
+    }
+    
+    public function getMailRecipient(): Recipient
+    {
+        return $this->personnel->getMailRecipient();
+    }
+    
+    public function getPersonnelName(): string
+    {
+        return $this->personnel->getName();
     }
 
 }

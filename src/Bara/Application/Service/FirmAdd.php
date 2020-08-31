@@ -4,7 +4,8 @@ namespace Bara\Application\Service;
 
 use Bara\Domain\Model\ {
     Firm,
-    Firm\ManagerData
+    Firm\ManagerData,
+    FirmData
 };
 use Resources\Exception\RegularException;
 
@@ -18,12 +19,12 @@ class FirmAdd
         $this->firmRepository = $firmRepository;
     }
 
-    public function execute(string $name, string $identifier,  ManagerData $managerData): string
+    public function execute(FirmData $firmData,  ManagerData $managerData): string
     {
-        $this->assertIdentifierAvailable($identifier);
+        $this->assertIdentifierAvailable($firmData->getIdentifier());
         
         $id = $this->firmRepository->nextIdentity();
-        $firm = new Firm($id, $name, $identifier, $managerData);
+        $firm = new Firm($id, $firmData, $managerData);
         $this->firmRepository->add($firm);
         return $id;
     }

@@ -2,88 +2,128 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\Program;
-use Query\Domain\Model\Client;
+use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
 {
-    protected $program, $client;
     protected $participant;
+    protected $inactiveParticipant;
     
-    protected $id;
+    protected $clientParticipant;
+    protected $userParticipant;
+
+
+    protected $id = 'newParticipantId';
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->program = $this->buildMockOfClass(Program::class);
-        $this->client = $this->buildMockOfClass(Client::class);
+        $this->participant = new TestableParticipant('id');
+        $this->inactiveParticipant = new TestableParticipant('id');
+        $this->inactiveParticipant->active = false;
+        $this->inactiveParticipant->note = 'booted';
         
-        $this->participant = new TestableParticipant($this->program, 'id', $this->client);
+        $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
+        $this->participant->clientParticipant = $this->clientParticipant;
+        
+        $this->userParticipant = $this->buildMockOfClass(UserParticipant::class);
+        $this->participant->userParticipant = $this->userParticipant;
     }
     
     public function test_construct_setProperties()
     {
-        $participant = new TestableParticipant($this->program, $this->id, $this->client);
-        $this->assertEquals($this->program, $participant->program);
+        $participant = new TestableParticipant($this->id);
         $this->assertEquals($this->id, $participant->id);
-        $this->assertEquals($this->client, $participant->client);
-        $this->assertEquals($this->YmdHisStringOfCurrentTime(), $participant->acceptedTime->format('Y-m-d H:i:s'));
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
         $this->assertTrue($participant->active);
         $this->assertNull($participant->note);
     }
     
-    protected function executeRemove()
+    protected function executeBootout()
     {
-        $this->participant->remove();
+        $this->participant->bootout();
     }
-    public function test_remove_setActiveFlagFalse()
+    public function test_bootout_setActiveFlagFalseAndNoteBooted()
     {
-        $this->executeRemove();
+        $this->executeBootout();
         $this->assertFalse($this->participant->active);
+        $this->assertEquals('booted', $this->participant->note);
     }
-    public function test_remove_setNoteRemoved()
-    {
-        $this->executeRemove();
-        $this->assertEquals('removed', $this->participant->note);
-    }
-    public function test_remove_alreadyInactive_throwEx()
+    public function test_bootout_alreadyInactive_forbiddenError()
     {
         $this->participant->active = false;
         $operation = function (){
-            $this->executeRemove();
+            $this->executeBootout();
         };
         $errorDetail = 'forbidden: participant already inactive';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    
-    protected function executeReActivateWithActiveSetFalse()
+
+    protected function executeReenroll()
     {
-        $this->participant->active = false;
-        $this->participant->reActivate();
+        $this->inactiveParticipant->reenroll();
     }
-    public function test_reActive_setActiveTrue()
+    public function test_reenroll_setActiveTrueAndNulledNote()
     {
-        $this->executeReActivateWithActiveSetFalse();
-        $this->assertTrue($this->participant->active);
+        $this->executeReenroll();
+        $this->assertTrue($this->inactiveParticipant->active);
+        $this->assertNull($this->inactiveParticipant->note);
     }
-    public function test_reActive_setNoteReactivated()
-    {
-        $this->executeReActivateWithActiveSetFalse();
-        $this->assertEquals('reactivated', $this->participant->note);
-    }
-    public function test_reActive_alreadyActive_throwEx()
+    public function test_reenroll_activeParticipant_forbiddenError()
     {
         $operation = function (){
-            $this->participant->reActivate();
+            $this->participant->reenroll();
         };
-        $errorDetail = 'forbidden: already an active participant';
+        $errorDetail = 'forbidden: already active participant';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     
+    protected function executeGetMailRecipient()
+    {
+        return $this->participant->getMailRecipient();
+    }
+    public function test_getMailRecipient_returnClientParticipantsGetClientMailRecipientResult()
+    {
+        $this->clientParticipant->expects($this->once())
+                ->method('getClientMailRecipient');
+        $this->executeGetMailRecipient();
+    }
+    public function test_getMailRecipient_emptyClientParticipant_returnUserParticipantsGetUserMailRecipientResult()
+    {
+        $this->participant->clientParticipant = null;
+        
+        $this->userParticipant->expects($this->once())
+                ->method('getUserMailRecipient');
+        $this->executeGetMailRecipient();
+    }
+    
+    protected function executeGetParticipantName()
+    {
+        return $this->participant->getParticipantName();
+    }
+    public function test_getParticipantName_returnClientParticipantsGetClientNameResult()
+    {
+        $this->clientParticipant->expects($this->once())
+                ->method('getClientName');
+        $this->executeGetParticipantName();
+    }
+    public function test_getParticipantName_nullClientParticipant_returnUserParticipantsGetUserNameResult()
+    {
+        $this->participant->clientParticipant = null;
+        
+        $this->userParticipant->expects($this->once())
+                ->method('getUserName');
+        $this->executeGetParticipantName();
+    }
 }
 
 class TestableParticipant extends Participant
 {
-    public $program, $id, $client, $acceptedTime, $active, $note;
+    public $id;
+    public $enrolledTime;
+    public $active = true;
+    public $note;
+    public $clientParticipant;
+    public $userParticipant;
 }

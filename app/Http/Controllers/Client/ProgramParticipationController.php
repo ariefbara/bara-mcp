@@ -2,87 +2,68 @@
 
 namespace App\Http\Controllers\Client;
 
-use Client\{
-    Application\Service\Client\ProgramParticipationQuit,
-    Domain\Model\Client\ProgramParticipation
+use Participant\ {
+    Application\Service\ClientQuitParticipation,
+    Domain\Model\ClientParticipant as ClientParticipant2
 };
-use Query\{
-    Application\Service\Client\ProgramParticipationView,
-    Domain\Model\Firm\Program\Participant
+use Query\ {
+    Application\Service\Firm\Client\ViewProgramParticipation,
+    Domain\Model\Firm\Client\ClientParticipant
 };
 
 class ProgramParticipationController extends ClientBaseController
 {
-
     public function quit($programParticipationId)
     {
         $service = $this->buildQuitService();
-        $service->execute($this->clientId(), $programParticipationId);
+        $service->execute($this->firmId(), $this->clientId(), $programParticipationId);
         return $this->commandOkResponse();
     }
 
     public function show($programParticipationId)
     {
         $service = $this->buildViewService();
-        $programParticipation = $service->showById($this->clientId(), $programParticipationId);
-        return $this->singleQueryResponse($this->arrayDataOfParticipant($programParticipation));
+        $programParticipation = $service->showById($this->firmId(), $this->clientId(), $programParticipationId);
+        return $this->singleQueryResponse($this->arrayDataOfProgramParticipation($programParticipation));
     }
 
     public function showAll()
     {
         $service = $this->buildViewService();
-        $programParticipations = $service->showAll($this->clientId(), $this->getPage(), $this->getPageSize());
-
+        $programParticipations = $service->showAll($this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize());
+        
         $result = [];
         $result['total'] = count($programParticipations);
         foreach ($programParticipations as $programParticipation) {
-            $result['list'][] = [
-                "id" => $programParticipation->getId(),
-                "note" => $programParticipation->getNote(),
-                "active" => $programParticipation->isActive(),
-                "program" => [
-                    "id" => $programParticipation->getProgram()->getId(),
-                    "name" => $programParticipation->getProgram()->getName(),
-                    "removed" => $programParticipation->getProgram()->isRemoved(),
-                    "firm" => [
-                        "id" => $programParticipation->getProgram()->getFirm()->getId(),
-                        "name" => $programParticipation->getProgram()->getFirm()->getName(),
-                    ],
-                ],
-            ];
+            $result['list'][] = $this->arrayDataOfProgramParticipation($programParticipation);
         }
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfParticipant(Participant $participant): array
+    protected function arrayDataOfProgramParticipation(ClientParticipant $programParticipation): array
     {
         return [
-            "id" => $participant->getId(),
             "program" => [
-                "id" => $participant->getProgram()->getId(),
-                "name" => $participant->getProgram()->getName(),
-                "removed" => $participant->getProgram()->isRemoved(),
-                "firm" => [
-                    "id" => $participant->getProgram()->getFirm()->getId(),
-                    "name" => $participant->getProgram()->getFirm()->getName(),
-                ],
+                "id" => $programParticipation->getProgram()->getId(),
+                "name" => $programParticipation->getProgram()->getName(),
+                "removed" => $programParticipation->getProgram()->isRemoved(),
             ],
-            "acceptedTime" => $participant->getAcceptedTimeString(),
-            "active" => $participant->isActive(),
-            "note" => $participant->getNote(),
+            "enrolledTime" => $programParticipation->getEnrolledTimeString(),
+            "active" => $programParticipation->isActive(),
+            "note" => $programParticipation->getNote(),
         ];
     }
 
     protected function buildQuitService()
     {
-        $programParticipationRepository = $this->em->getRepository(ProgramParticipation::class);
-        return new ProgramParticipationQuit($programParticipationRepository);
+        $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
+        return new ClientQuitParticipation($clientParticipantRepository);
     }
 
     protected function buildViewService()
     {
-        $programParticipationRepository = $this->em->getRepository(Participant::class);
-        return new ProgramParticipationView($programParticipationRepository);
+        $programParticipationRepository = $this->em->getRepository(ClientParticipant::class);
+        return new ViewProgramParticipation($programParticipationRepository);
     }
 
 }

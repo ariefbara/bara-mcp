@@ -3,9 +3,8 @@
 namespace Query\Domain\Model\Firm\Program\Participant\Worksheet;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\Program\{
+use Query\Domain\Model\Firm\Program\ {
     Consultant\ConsultantComment,
-    Participant\ParticipantComment,
     Participant\Worksheet
 };
 
@@ -22,7 +21,7 @@ class Comment
      *
      * @var Comment||null
      */
-    protected $parent = null;
+    protected $parent;
 
     /**
      *
@@ -50,52 +49,41 @@ class Comment
 
     /**
      *
-     * @var ParticipantComment||null
-     */
-    protected $participantComment = null;
-
-    /**
-     *
      * @var ConsultantComment||null
      */
     protected $consultantComment = null;
 
-    function getWorksheet(): Worksheet
+    public function getWorksheet(): Worksheet
     {
         return $this->worksheet;
     }
 
-    function getParent(): ?Comment
+    public function getParent(): ?Comment
     {
         return $this->parent;
     }
 
-    function getId(): string
+    public function getId(): string
     {
         return $this->id;
     }
 
-    function getMessage(): string
+    public function getMessage(): string
     {
         return $this->message;
     }
 
-    function getSubmitTimeString(): string
+    public function getSubmitTimeString(): string
     {
-        return $this->submitTime->format("Y-m-d H:i:s");
+        return $this->submitTime->format('Y-m-d H:i:s');
     }
 
-    function isRemoved(): bool
+    public function isRemoved(): bool
     {
         return $this->removed;
     }
 
-    function getParticipantComment(): ?ParticipantComment
-    {
-        return $this->participantComment;
-    }
-
-    function getConsultantComment(): ?ConsultantComment
+    public function getConsultantComment(): ?ConsultantComment
     {
         return $this->consultantComment;
     }

@@ -3,17 +3,11 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Firm\Domain\Model\{
-    Firm,
-    Firm\Program\Consultant,
-    Firm\Program\Coordinator
-};
-use Resources\{
+use Firm\Domain\Model\Firm;
+use Resources\ {
+    Domain\Model\Mail\Recipient,
     Domain\ValueObject\Password,
+    Domain\ValueObject\PersonName,
     ValidationRule,
     ValidationService
 };
@@ -35,7 +29,7 @@ class Personnel
 
     /**
      *
-     * @var string
+     * @var PersonName
      */
     protected $name;
 
@@ -69,28 +63,6 @@ class Personnel
      */
     protected $removed;
 
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $programCoordinators;
-
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $programConsultants;
-
-
-    protected function setName(string $name): void
-    {
-        $errorDetail = "bad request: personnel name is required";
-        ValidationService::build()
-                ->addRule(ValidationRule::notEmpty())
-                ->execute($name, $errorDetail);
-        $this->name = $name;
-    }
-
     protected function setEmail(string $email): void
     {
         $errorDetail = "bad request: personnel email is required in valid format";
@@ -113,13 +85,23 @@ class Personnel
     {
         $this->firm = $firm;
         $this->id = $id;
-        $this->setName($personnelData->getName());
+        $this->name = new PersonName($personnelData->getFirstName(), $personnelData->getLastName());
         $this->setEmail($personnelData->getEmail());
         $this->password = new Password($personnelData->getPassword());
         $this->setPhone($personnelData->getPhone());
         $this->joinTime = new DateTimeImmutable();
         $this->removed = false;
         $this->assignedAdmin = null;
+    }
+    
+    public function getMailRecipient(): Recipient
+    {
+        return new Recipient($this->email, $this->name);
+    }
+    
+    public function getName(): string
+    {
+        return $this->name->getFullName();
     }
 
 }

@@ -2,8 +2,10 @@
 
 namespace Query\Application\Service\Client\ProgramParticipation;
 
-use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Query\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use Query\ {
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
+};
 
 class ConsultationRequestView
 {
@@ -21,23 +23,25 @@ class ConsultationRequestView
 
     /**
      * 
-     * @param ProgramParticipationCompositionId $programParticipationCompositionId
+     * @param string $clientId
+     * @param string $programParticipationId
      * @param int $page
      * @param int $pageSize
+     * @param ConsultationRequestFilter|null $consultationRequestFilter
      * @return ConsultationRequest[]
      */
     public function showAll(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
+            string $clientId, string $programParticipationId, int $page, int $pageSize,
+            ?ConsultationRequestFilter $consultationRequestFilter)
     {
-        return $this->consultationRequestRepository->allConsultationRequestsOfParticipant(
-                        $programParticipationCompositionId, $page, $pageSize);
+        return $this->consultationRequestRepository->allConsultationRequestsOfClient(
+                        $clientId, $programParticipationId, $page, $pageSize, $consultationRequestFilter);
     }
 
-    public function showById(
-            ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationRequestId): ConsultationRequest
+    public function showById(string $clientId, string $programParticipationId, string $consultationRequestId): ConsultationRequest
     {
-        return $this->consultationRequestRepository->aConsultationRequestOfParticipant(
-                        $programParticipationCompositionId, $consultationRequestId);
+        return $this->consultationRequestRepository->aConsultationRequestOfClient($clientId, $programParticipationId,
+                        $consultationRequestId);
     }
 
 }

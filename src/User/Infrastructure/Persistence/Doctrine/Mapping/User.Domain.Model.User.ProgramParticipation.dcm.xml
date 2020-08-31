@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="User\Domain\Model\User\ProgramParticipation" 
+            table="UserParticipant" 
+    >
+        
+        <many-to-one  field="user" 
+                      target-entity="User\Domain\Model\User"
+                      inversed-by="programParticipations"
+        >
+            <join-column name="User_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="participant" 
+                    target-entity="User\Domain\Model\User\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
+    </entity>
+</doctrine-mapping>

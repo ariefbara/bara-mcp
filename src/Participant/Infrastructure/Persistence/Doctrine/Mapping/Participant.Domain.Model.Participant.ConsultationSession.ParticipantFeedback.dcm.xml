@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant\ConsultationSession\ParticipantFeedback" 
+            table="ParticipantFeedback" 
+    >
+        
+        <one-to-one field="consultationSession" 
+                    target-entity="Participant\Domain\Model\Participant\ConsultationSession"
+                    inversed-by="participantFeedback"
+        >
+            <join-column name="ConsultationSession_id" referenced-column-name="id" />
+        </one-to-one>
+        <id name="id" type="guid" />
+        
+        <one-to-one field="formRecord" 
+                    target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

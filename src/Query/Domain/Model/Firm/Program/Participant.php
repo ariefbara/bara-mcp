@@ -4,8 +4,9 @@ namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Query\Domain\Model\{
-    Client,
-    Firm\Program
+    Firm\Client\ClientParticipant,
+    Firm\Program,
+    User\UserParticipant
 };
 
 class Participant
@@ -25,15 +26,9 @@ class Participant
 
     /**
      *
-     * @var Client
-     */
-    protected $client;
-
-    /**
-     *
      * @var DateTimeImmutable
      */
-    protected $acceptedTime;
+    protected $enrolledTime;
 
     /**
      *
@@ -47,32 +42,39 @@ class Participant
      */
     protected $note;
 
-    function getProgram(): Program
+    /**
+     *
+     * @var ClientParticipant||null
+     */
+    protected $clientParticipant;
+
+    /**
+     *
+     * @var UserParticipant||null
+     */
+    protected $userParticipant;
+
+    public function getProgram(): Program
     {
         return $this->program;
     }
 
-    function getId(): string
+    public function getId(): string
     {
         return $this->id;
     }
 
-    function getClient(): Client
+    public function getEnrolledTimeString(): string
     {
-        return $this->client;
+        return $this->enrolledTime->format('Y-m-d H:i:s');
     }
 
-    function getAcceptedTimeString(): string
-    {
-        return $this->acceptedTime->format('Y-m-d H:i:s');
-    }
-
-    function isActive(): bool
+    public function isActive(): bool
     {
         return $this->active;
     }
 
-    function getNote(): ?string
+    public function getNote(): ?string
     {
         return $this->note;
     }

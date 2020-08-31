@@ -4,23 +4,40 @@ $router->post('/api/generate-doctrine-proxy', ['uses' => "GenerateDoctrineProxie
 $router->post('/api/admin-login', ['uses' => "LoginController@adminLogin"]);
 $router->post('/api/manager-login', ['uses' => "LoginController@managerLogin"]);
 $router->post('/api/personnel-login', ['uses' => "LoginController@personnelLogin"]);
+
 $router->post('/api/client-signup', ['uses' => "SignupController@clientSignup"]);
 $router->post('/api/client-login', ['uses' => "LoginController@clientLogin"]);
-$router->patch('/api/client-generate-activation-code', ['uses' => "NotLoggedClientAccountController@generateActivationCode"]);
-$router->patch('/api/client-generate-reset-password-code', ['uses' => "NotLoggedClientAccountController@generateResetPasswordCode"]);
-$router->patch('/api/client-activate', ['uses' => "NotLoggedClientAccountController@activate"]);
-$router->patch('/api/client-reset-password', ['uses' => "NotLoggedClientAccountController@resetPassword"]);
+
+$router->post('/api/user-signup', ['uses' => "SignupController@userSignup"]);
+$router->post('/api/user-login', ['uses' => "LoginController@userLogin"]);
 
 $guestAggregate = [
     'prefix' => '/api/guest',
     'namespace' => 'Guest',
 ];
 $router->group($guestAggregate, function () use ($router) {
+    
+    $router->group(['prefix' => '/client-account'], function () use($router) {
+        $controller = "ClientAccountController";
+        $router->patch("/activate", ["uses" => "$controller@activate"]);
+        $router->patch("/reset-password", ["uses" => "$controller@resetPassword"]);
+        $router->patch("/generate-activation-code", ["uses" => "$controller@generateActivationCode"]);
+        $router->patch("/generate-reset-password-code", ["uses" => "$controller@generateResetPasswordCode"]);
+    });
+    $router->group(['prefix' => '/user-account'], function () use($router) {
+        $controller = "UserAccountController";
+        $router->patch("/activate", ["uses" => "$controller@activate"]);
+        $router->patch("/reset-password", ["uses" => "$controller@resetPassword"]);
+        $router->patch("/generate-activation-code", ["uses" => "$controller@generateActivationCode"]);
+        $router->patch("/generate-reset-password-code", ["uses" => "$controller@generateResetPasswordCode"]);
+    });
+    
     $router->group(['prefix' => '/firms'], function () use($router) {
         $controller = "FirmController";
         $router->get("/{firmId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $firmAggregate = [
         'prefix' => '/firms/{firmId}',
         'namespace' => 'Firm',

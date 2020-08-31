@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Client\ClientRegistrant" 
+            table="ClientRegistrant" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientRegistrantRepository"
+    >
+        
+        <many-to-one  field="client" 
+                      target-entity="Query\Domain\Model\Firm\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one  field="registrant" 
+                     target-entity="Query\Domain\Model\Firm\Program\Registrant"
+                     inversed-by="clientRegistrant"
+        >
+            <join-column name="Registrant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

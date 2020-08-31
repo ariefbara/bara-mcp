@@ -7,6 +7,7 @@ use Bara\Domain\Model\Firm\{
     ManagerData
 };
 use Doctrine\Common\Collections\ArrayCollection;
+use Query\Domain\Model\FirmWhitelableInfo;
 use Resources\{
     Uuid,
     ValidationRule,
@@ -33,6 +34,12 @@ class Firm
      * @var string
      */
     protected $identifier;
+
+    /**
+     *
+     * @var FirmWhitelableInfo
+     */
+    protected $firmWhitelableInfo;
 
     /**
      *
@@ -66,11 +73,14 @@ class Firm
         $this->identifier = $identifier;
     }
 
-    function __construct(string $id, string $name, string $identifier, ManagerData $managerData)
+    function __construct(string $id, FirmData $firmData, ManagerData $managerData)
     {
         $this->id = $id;
-        $this->setName($name);
-        $this->setIdentifier($identifier);
+        $this->setName($firmData->getName());
+        $this->setIdentifier($firmData->getIdentifier());
+        $this->firmWhitelableInfo = new FirmWhitelableInfo(
+                $firmData->getWhitelableUrl(), $firmData->getWhitelableMailSenderAddress(),
+                $firmData->getWhitelableMailSenderName());
         $this->suspended = false;
 
         $this->managers = new ArrayCollection();

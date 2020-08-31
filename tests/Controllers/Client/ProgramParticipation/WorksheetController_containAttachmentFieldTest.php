@@ -3,7 +3,7 @@
 namespace Tests\Controllers\Client\ProgramParticipation;
 
 use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\Participant\RecordOfParticipantFileInfo,
+    Firm\Client\RecordOfClientFileInfo,
     Shared\Form\RecordOfAttachmentField,
     Shared\FormRecord\AttachmentFieldRecord\RecordOfAttachedFile,
     Shared\FormRecord\RecordOfAttachmentFieldRecord,
@@ -24,7 +24,7 @@ class WorksheetController_containAttachmentFieldTest extends WorksheetTestCase
         $this->connection->table('AttachmentField')->truncate();
         $this->connection->table('AttachmentFieldRecord')->truncate();
         $this->connection->table('AttachedFile')->truncate();
-        $this->connection->table('ParticipantFileInfo')->truncate();
+        $this->connection->table('ClientFileInfo')->truncate();
         $this->connection->table('FileInfo')->truncate();
         
         $this->fieldOne = new RecordOfAttachmentField($this->form, 1);
@@ -59,16 +59,16 @@ class WorksheetController_containAttachmentFieldTest extends WorksheetTestCase
         $this->connection->table('FileInfo')->insert($this->fileInfoTwoOne->toArrayForDbEntry());
         $this->connection->table('FileInfo')->insert($this->fileInfoThreeOne->toArrayForDbEntry());
         
-        $participantFileInfoOneOne = new RecordOfParticipantFileInfo($this->programParticipation, $this->fileInfoOneOne);
-        $participantFileInfoOneTwo = new RecordOfParticipantFileInfo($this->programParticipation, $this->fileInfoOneTwo);
-        $participantFileInfoOneThree = new RecordOfParticipantFileInfo($this->programParticipation, $this->fileInfoOneThree);
-        $participantFileInfoTwoOne= new RecordOfParticipantFileInfo($this->programParticipation, $this->fileInfoTwoOne);
-        $participantFileInfoThreeOne = new RecordOfParticipantFileInfo($this->programParticipation, $this->fileInfoThreeOne);
-        $this->connection->table('ParticipantFileInfo')->insert($participantFileInfoOneOne->toArrayForDbEntry());
-        $this->connection->table('ParticipantFileInfo')->insert($participantFileInfoOneTwo->toArrayForDbEntry());
-        $this->connection->table('ParticipantFileInfo')->insert($participantFileInfoOneThree->toArrayForDbEntry());
-        $this->connection->table('ParticipantFileInfo')->insert($participantFileInfoTwoOne->toArrayForDbEntry());
-        $this->connection->table('ParticipantFileInfo')->insert($participantFileInfoThreeOne->toArrayForDbEntry());
+        $clientFileInfoOneOne = new RecordOfClientFileInfo($this->programParticipation->client, $this->fileInfoOneOne);
+        $clientFileInfoOneTwo = new RecordOfClientFileInfo($this->programParticipation->client, $this->fileInfoOneTwo);
+        $clientFileInfoOneThree = new RecordOfClientFileInfo($this->programParticipation->client, $this->fileInfoOneThree);
+        $clientFileInfoTwoOne = new RecordOfClientFileInfo($this->programParticipation->client, $this->fileInfoTwoOne);
+        $clientFileInfoThreeOne = new RecordOfClientFileInfo($this->programParticipation->client, $this->fileInfoThreeOne);
+        $this->connection->table('ClientFileInfo')->insert($clientFileInfoOneOne->toArrayForDbEntry());
+        $this->connection->table('ClientFileInfo')->insert($clientFileInfoOneTwo->toArrayForDbEntry());
+        $this->connection->table('ClientFileInfo')->insert($clientFileInfoOneThree->toArrayForDbEntry());
+        $this->connection->table('ClientFileInfo')->insert($clientFileInfoTwoOne->toArrayForDbEntry());
+        $this->connection->table('ClientFileInfo')->insert($clientFileInfoThreeOne->toArrayForDbEntry());
         
         $this->attachedFileOneOne = new RecordOfAttachedFile($this->fieldRecordOne, $this->fileInfoOneOne, 11);
         $this->attachedFileOneThree = new RecordOfAttachedFile($this->fieldRecordOne, $this->fileInfoOneThree, 13);
@@ -102,7 +102,7 @@ class WorksheetController_containAttachmentFieldTest extends WorksheetTestCase
         $this->connection->table('AttachmentField')->truncate();
         $this->connection->table('AttachmentFieldRecord')->truncate();
         $this->connection->table('AttachedFile')->truncate();
-        $this->connection->table('ParticipantFileInfo')->truncate();
+        $this->connection->table('ClientFileInfo')->truncate();
         $this->connection->table('FileInfo')->truncate();
     }
     public function test_addRoot()

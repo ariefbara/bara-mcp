@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\SharedEntity\FormRecord\MultiSelectFieldRecord\SelectedOption" 
+            table="SelectedOption" 
+    >
+        
+        <many-to-one  field="multiSelectFieldRecord" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord\MultiSelectFieldRecord"
+                      inversed-by="selectedOptions"
+        >
+            <join-column name="MultiSelectFieldRecord_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <many-to-one  field="option" 
+                      target-entity="SharedContext\Domain\Model\SharedEntity\Form\SelectField\Option"
+        >
+            <join-column name="Option_id" referenced-column-name="id" />
+        </many-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

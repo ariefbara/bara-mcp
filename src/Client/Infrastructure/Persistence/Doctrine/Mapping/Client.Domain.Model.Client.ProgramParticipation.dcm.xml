@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
     <entity name="Client\Domain\Model\Client\ProgramParticipation" 
-            table="Participant" 
-            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineProgramParticipationRepository"
+            table="ClientParticipant" 
     >
         
         <many-to-one  field="client" 
@@ -12,25 +11,11 @@
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
-        <many-to-one  field="program" 
-                      target-entity="Client\Domain\Model\Firm\Program"
+        <one-to-one  field="participant" 
+                     target-entity="Client\Domain\Model\Client\Participant"
         >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
-        <field name="acceptedTime" type="datetime_immutable" nullable="true"/>
-        <field name="active" type="boolean" />
-        <field name="note" type="string" length="256" nullable="true"/>
-        
-        <one-to-many field="consultationRequests" 
-                     target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationRequest"
-                     mapped-by="programParticipation"
-        />
-        <one-to-many field="consultationSessions" 
-                     target-entity="Client\Domain\Model\Client\ProgramParticipation\ConsultationSession"
-                     mapped-by="programParticipation"
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-many>
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
         
     </entity>
 </doctrine-mapping>

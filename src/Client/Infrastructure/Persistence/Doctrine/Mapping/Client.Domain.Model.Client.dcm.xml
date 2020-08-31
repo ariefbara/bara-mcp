@@ -4,26 +4,28 @@
             table="Client" 
             repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientRepository" 
     >
+        <field name="firmId" column="Firm_id" type="guid" />
         <id name="id" type="guid" />
-        <field name="name" type="string" length="256" nullable="false"/>
+        <embedded name="personName" 
+                  class="Resources\Domain\ValueObject\PersonName" 
+                  use-column-prefix="false" />
         <field name="email" type="string" length="256" nullable="false"/>
         <embedded name="password" 
                   class="Resources\Domain\ValueObject\Password" 
                   use-column-prefix="false" />
-        <field name="signupTime" type="datetime_immutable" nullable="true"/>
         <field name="activationCode" type="string" length="64" nullable="true" />
         <field name="activationCodeExpiredTime" type="datetime_immutable" nullable="true" />
         <field name="resetPasswordCode" type="string" length="64" nullable="true" />
         <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true" />
         <field name="activated" type="boolean" />
         
-        <one-to-many  field="programRegistrations" 
-                      target-entity="Client\Domain\Model\Client\ProgramRegistration"
-                      mapped-by="client" 
+        <one-to-many field="programParticipations" 
+                     target-entity="Client\Domain\Model\Client\ProgramParticipation" 
+                     mapped-by="client"
         />
-        <one-to-many  field="programParticipations" 
-                      target-entity="Client\Domain\Model\Client\ProgramParticipation"
-                      mapped-by="client" 
+        <one-to-many field="programRegistrations" 
+                     target-entity="Client\Domain\Model\Client\ProgramRegistration" 
+                     mapped-by="client"
         />
         
     </entity>

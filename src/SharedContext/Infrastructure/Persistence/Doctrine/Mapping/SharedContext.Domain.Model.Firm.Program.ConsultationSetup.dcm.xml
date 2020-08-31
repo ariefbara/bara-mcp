@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\Firm\Program\ConsultationSetup" 
+            table="ConsultationSetup" 
+            repository-class="SharedContext\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultationSetupRepository" 
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="SharedContext\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="sessionDuration" type="smallint" nullable="false"/>
+        
+        <many-to-one  field="participantFeedbackForm" 
+                      target-entity="SharedContext\Domain\Model\Firm\FeedbackForm"
+        >
+            <join-column name="FeedbackForm_idForParticipant" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="consultantFeedbackForm" 
+                      target-entity="SharedContext\Domain\Model\Firm\FeedbackForm"
+        >
+            <join-column name="FeedbackForm_idForConsultant" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

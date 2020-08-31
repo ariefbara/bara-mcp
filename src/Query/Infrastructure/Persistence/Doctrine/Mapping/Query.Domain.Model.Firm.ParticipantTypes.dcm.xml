@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="Query\Domain\Model\Firm\ParticipantTypes">
+        <field name="values" column="participantTypes" type="simple_array" nullable="true"/>
+    </embeddable>
+</doctrine-mapping>

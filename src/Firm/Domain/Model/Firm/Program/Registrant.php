@@ -3,18 +3,13 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\Firm\Program;
-use Query\Domain\Model\Client;
-use Resources\Exception\RegularException;
+use Resources\ {
+    DateTimeImmutableBuilder,
+    Exception\RegularException
+};
 
 class Registrant
 {
-
-    /**
-     *
-     * @var Program
-     */
-    protected $program;
 
     /**
      *
@@ -24,15 +19,9 @@ class Registrant
 
     /**
      *
-     * @var Client
-     */
-    protected $client;
-
-    /**
-     *
      * @var DateTimeImmutable
      */
-    protected $appliedTime;
+    protected $registeredTime;
 
     /**
      *
@@ -42,43 +31,41 @@ class Registrant
 
     /**
      *
-     * @var string
+     * @var string||null
      */
-    protected $note = null;
+    protected $note;
 
-    function getId(): string
+    public function isConcluded(): bool
     {
-        return $this->id;
+        return $this->concluded;
     }
 
-    function getClient(): Client
+    public function __construct(string $id)
     {
-        return $this->client;
-    }
-
-    protected function __construct()
-    {
-        ;
+        $this->id = $id;
+        $this->registeredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
+        $this->concluded = false;
+        $this->note = null;
     }
 
     public function accept(): void
     {
-        $this->assertNotConcluded();
+        $this->assertUnconcluded();
         $this->concluded = true;
         $this->note = 'accepted';
     }
 
     public function reject(): void
     {
-        $this->assertNotConcluded();
+        $this->assertUnconcluded();
         $this->concluded = true;
         $this->note = 'rejected';
     }
-
-    protected function assertNotConcluded(): void
+    
+    protected function assertUnconcluded(): void
     {
         if ($this->concluded) {
-            $errorDetail = 'forbidden: application already concluded';
+            $errorDetail = "forbidden: application already concluded";
             throw RegularException::forbidden($errorDetail);
         }
     }

@@ -2,8 +2,10 @@
 
 namespace Query\Application\Service\Client\ProgramParticipation;
 
-use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Query\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Query\ {
+    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
+};
 
 class ConsultationSessionView
 {
@@ -21,23 +23,24 @@ class ConsultationSessionView
 
     /**
      * 
-     * @param ProgramParticipationCompositionId $programParticipationCompositionId
+     * @param string $clientId
+     * @param string $programParticipationId
      * @param int $page
      * @param int $pageSize
+     * @param ConsultationSessionFilter|null $consultationSessionFilter
      * @return ConsultationSession[]
      */
-    public function showAll(
-            ProgramParticipationCompositionId $programParticipationCompositionId, int $page, int $pageSize)
+    public function showAll(string $clientId, string $programParticipationId, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
     {
-        return $this->consultationSessionRepository->allConsultationSessionsOfParticipant(
-                        $programParticipationCompositionId, $page, $pageSize);
+        return $this->consultationSessionRepository->allConsultationSessionsOfClient($clientId, $programParticipationId,
+                        $page, $pageSize, $consultationSessionFilter);
     }
 
-    public function showById(
-            ProgramParticipationCompositionId $programParticipationCompositionId, string $consultationSessionId): ConsultationSession
+    public function showById(string $clientId, string $programParticipationId, string $consultationSessionId): ConsultationSession
     {
-        return $this->consultationSessionRepository->aConsultationSessionOfParticipant(
-                        $programParticipationCompositionId, $consultationSessionId);
+        return $this->consultationSessionRepository->aConsultationSessionOfClient($clientId, $programParticipationId,
+                        $consultationSessionId);
     }
 
 }
