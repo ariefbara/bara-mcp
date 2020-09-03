@@ -10,7 +10,7 @@ use App\Http\Controllers\ {
 };
 use DateTimeImmutable;
 use Participant\ {
-    Application\Service\Participant\ConsultationSession\ParticipantFeedbackSet,
+    Application\Service\ClientParticipant\ConsultationSession\ParticipantFeedbackSet,
     Domain\Model\Participant\ConsultationSession as ConsultationSession2,
     Domain\Service\ClientFileInfoFinder
 };
@@ -25,24 +25,24 @@ use SharedContext\Domain\Model\SharedEntity\FileInfo;
 class ConsultationSessionController extends ClientBaseController
 {
 
-    public function setParticipantFeedback($programId, $consultationSessionId)
+    public function setParticipantFeedback($programParticipationId, $consultationSessionId)
     {
         $service = $this->buildSetParticipantFeedbackService();
         $formRecordData = $this->getFormRecordData();
-        $service->execute($this->firmId(), $this->clientId(), $programId, $consultationSessionId, $formRecordData);
+        $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $consultationSessionId, $formRecordData);
         
-        return $this->show($programId, $consultationSessionId);
+        return $this->show($programParticipationId, $consultationSessionId);
     }
 
-    public function show($programId, $consultationSessionId)
+    public function show($programParticipationId, $consultationSessionId)
     {
         $service = $this->buildViewService();
-        $consultationSession = $service->showById($this->firmId(), $this->clientId(), $programId, $consultationSessionId);
+        $consultationSession = $service->showById($this->firmId(), $this->clientId(), $programParticipationId, $consultationSessionId);
         
         return $this->singleQueryResponse($this->arrayDataOfConsultationSession($consultationSession));
     }
 
-    public function showAll($programId)
+    public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
         
@@ -57,7 +57,7 @@ class ConsultationSessionController extends ClientBaseController
                 ->setContainParticipantFeedback($containParticipantFeedback)
                 ->setContainConsultantFeedback($containConsultantFeedback);
         
-        $consultationSessions = $service->showAll($this->firmId(), $this->clientId(), $programId, $this->getPage(), $this->getPageSize(), $consultationSessionFilter);
+        $consultationSessions = $service->showAll($this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize(), $consultationSessionFilter);
         
         $result = [];
         $result['total'] = count($consultationSessions);

@@ -4,9 +4,9 @@ namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
 use Participant\Domain\ {
-    Event\ClientAcceptedConsultationRequest,
-    Event\ClientChangedConsultationRequestTime,
-    Event\ClientProposedConsultationRequest,
+    Event\ClientParticipantAcceptedConsultationRequest,
+    Event\ClientParticipantChangedConsultationRequestTime,
+    Event\ClientParticipantProposedConsultationRequest,
     Event\Participant\Worksheet\ConsultantCommentRepliedByClientParticipant,
     Model\DependencyEntity\Firm\Client,
     Model\DependencyEntity\Firm\Program\Consultant,
@@ -14,8 +14,7 @@ use Participant\Domain\ {
     Model\DependencyEntity\Firm\Program\Mission,
     Model\Participant\ConsultationRequest,
     Model\Participant\Worksheet,
-    Model\Participant\Worksheet\ConsultantComment,
-    Model\Participant\Worksheet\ParticipantComment
+    Model\Participant\Worksheet\Comment
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use Tests\TestBase;
@@ -27,33 +26,31 @@ class ClientParticipantTest extends TestBase
     protected $client, $clientId = 'clientId', $firmId = 'firmId';
     protected $participant;
     protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $startTime;
-    
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecord;
-    
-    protected $participantCommentId = 'participantCommentId', $message = 'message';
-    protected $consultantComment;
+    protected $commentId = 'commentId', $message = 'message';
+    protected $comment;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->clientParticipant = new TestableClientParticipant();
-        
+
         $this->client = $this->buildMockOfClass(Client::class);
         $this->client->expects($this->any())->method('getId')->willReturn($this->clientId);
         $this->client->expects($this->any())->method('getFirmId')->willReturn($this->firmId);
         $this->clientParticipant->client = $this->client;
-        
+
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->clientParticipant->participant = $this->participant;
 
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->startTime = new DateTimeImmutable();
-        
+
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->formRecord = $this->buildMockOfClass(FormRecord::class);
-        
-        $this->consultantComment = $this->buildMockOfClass(ConsultantComment::class);
+
+        $this->comment = $this->buildMockOfClass(Comment::class);
     }
 
     public function test_quit_quitParticipant()
@@ -65,14 +62,6 @@ class ClientParticipantTest extends TestBase
 
     protected function executeProposeConsultation()
     {
-        $this->consultationSetup->expects($this->any())
-                ->method('programEquals')
-                ->willReturn(true);
-        
-        $this->consultant->expects($this->any())
-                ->method('programEquals')
-                ->willReturn(true);
-        
         return $this->clientParticipant->proposeConsultation(
                         $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
     }
@@ -85,47 +74,15 @@ class ClientParticipantTest extends TestBase
                 ->willReturn($consultationRequest);
         $this->assertEquals($consultationRequest, $this->executeProposeConsultation());
     }
-    public function test_proposeConsultation_consultationSetupProgramHasDifferentProgramId_forbiddenError()
-    {
-        $this->consultationSetup->expects($this->once())
-                ->method('programEquals')
-                ->with($this->clientParticipant->program)
-                ->willReturn(false);
-        
-        $operation = function (){
-            $this->executeProposeConsultation();
-        };
-        $errorDetail = 'forbidden: consultation setup from different program';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
-    public function test_proposeConsultation_consultantFromDifferentProgram_forbiddenError()
-    {
-        $this->consultant->expects($this->once())
-                ->method('programEquals')
-                ->with($this->clientParticipant->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeProposeConsultation();
-        };
-        $errorDetail = 'forbidden: consultant from different program';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
     public function test_proposeConsultation_recoredClientProposedConsultationRequestEvent()
     {
-        $firmId = 'firmId';
-        $clientId = 'clientId';
-        $programId = 'programId';
-        
-        $this->program->expects($this->any())->method('getId')->willReturn($programId);
-        $this->client->expects($this->any())->method('getId')->willReturn($clientId);
-        $this->client->expects($this->any())->method('getFirmId')->willReturn($firmId);
-        
         $this->executeProposeConsultation();
         
-        $event = new ClientProposedConsultationRequest($firmId, $clientId, $programId, $this->consultationRequestId);
+        $event = new ClientParticipantProposedConsultationRequest(
+                $this->firmId, $this->clientId, $this->clientParticipant->id, $this->consultationRequestId);
         $this->assertEquals($event, $this->clientParticipant->getRecordedEvents()[0]);
     }
-    
+
     protected function executeReProsposeConsultationRequest()
     {
         $this->clientParticipant->reproposeConsultationRequest($this->consultationRequestId, $this->startTime);
@@ -140,7 +97,9 @@ class ClientParticipantTest extends TestBase
     public function test_reProposeConsultationRequest_recordClientChangedConsultationRequestTimeEvent()
     {
         $this->executeReProsposeConsultationRequest();
-        $event = new ClientChangedConsultationRequestTime($this->firmId, $this->clientId, $this->programId, $this->consultationRequestId);
+        
+        $event = new ClientParticipantChangedConsultationRequestTime(
+                $this->firmId, $this->clientId, $this->clientParticipant->id, $this->consultationRequestId);
         $this->assertEquals($event, $this->clientParticipant->getRecordedEvents()[0]);
     }
     
@@ -157,7 +116,8 @@ class ClientParticipantTest extends TestBase
     public function test_acceptConsultationRequest_recordClientAcceptedConsultationRequestEvent()
     {
         $this->executeAcceptConsultationRequest();
-        $this->assertInstanceOf(ClientAcceptedConsultationRequest::class, $this->clientParticipant->getRecordedEvents()[0]);
+        $this->assertInstanceOf(ClientParticipantAcceptedConsultationRequest::class,
+                $this->clientParticipant->getRecordedEvents()[0]);
     }
     
     public function test_createRootWorksheet_returnParticipantsCreateRootWorksheetResult()
@@ -166,34 +126,38 @@ class ClientParticipantTest extends TestBase
                 ->method('createRootWorksheet')
                 ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecord)
                 ->willReturn($worksheet = $this->buildMockOfClass(Worksheet::class));
-        
-        $this->assertEquals($worksheet, $this->clientParticipant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecord));
+
+        $this->assertEquals($worksheet,
+                $this->clientParticipant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission,
+                        $this->formRecord));
     }
     
-    protected function executeReplyToConsultantComment()
+    protected function executeReplyComment()
     {
-        return $this->clientParticipant->replyToConsultantComment($this->participantCommentId, $this->consultantComment, $this->message);
+        return $this->clientParticipant->replyComment($this->commentId, $this->comment,
+                        $this->message);
     }
-    public function test_replyToCosultantComment_returnParticipantCommentReply()
+    public function test_replyComment_returnParticipantCommentReply()
     {
-        $participantComment = $this->buildMockOfClass(ParticipantComment::class);
-        $this->consultantComment->expects($this->once())
+        $this->comment->expects($this->once())
                 ->method('createReply')
-                ->with($this->participantCommentId, $this->message)
-                ->willReturn($participantComment);
-        
-        $this->assertEquals($participantComment, $this->executeReplyToConsultantComment());
+                ->with($this->commentId, $this->message);
+        $this->executeReplyComment();
     }
-    public function test_replyToConsultantComment_recordConsultantCommentRepliedByClientParticipantEvent()
+    public function test_replyComment_repliedCommentInConsultantComment_recordConsultantCommentRepliedByClientParticipantEvent()
     {
         $worksheetId = 'worksheetId';
-        $this->consultantComment->expects($this->once())
+        $this->comment->expects($this->once())
+                ->method('isConsultantComment')
+                ->willReturn(true);
+        $this->comment->expects($this->once())
                 ->method('getWorksheetId')
                 ->willReturn($worksheetId);
-        
-        $this->executeReplyToConsultantComment();
-        
-        $event = new ConsultantCommentRepliedByClientParticipant($this->firmId, $this->clientId, $this->programId, $worksheetId, $this->participantCommentId);
+
+        $this->executeReplyComment();
+
+        $event = new ConsultantCommentRepliedByClientParticipant(
+                $this->firmId, $this->clientId, $this->clientParticipant->id, $worksheetId, $this->commentId);
         $this->assertEquals($event, $this->clientParticipant->getRecordedEvents()[0]);
     }
 
@@ -203,7 +167,7 @@ class TestableClientParticipant extends ClientParticipant
 {
 
     public $client;
-    public $id;
+    public $id = 'programParticipationId';
     public $participant;
 
     function __construct()

@@ -37,12 +37,12 @@ class RecordOfWorksheet implements Record
      */
     public $parent;
 
-    function __construct(RecordOfParticipant $participant, RecordOfFormRecord $formRecord, RecordOfMission $mission)
+    function __construct(RecordOfParticipant $participant, RecordOfFormRecord $formRecord, RecordOfMission $mission, $index)
     {
         $this->participant = $participant;
         $this->formRecord = $formRecord;
         $this->mission = $mission;
-        $this->id = $formRecord->id;
+        $this->id = "worksheet-$index-id";
         $this->name = "worksheet {$this->id} name";
         $this->removed = false;
         $this->parent = null;

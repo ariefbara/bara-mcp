@@ -4,7 +4,8 @@ namespace Notification\Domain\Model\Firm\Program;
 
 use Notification\Domain\Model\Firm\ {
     Personnel,
-    Program
+    Program,
+    Program\Consultant\ConsultantMailNotification
 };
 use Resources\Domain\Model\Mail\Recipient;
 
@@ -35,14 +36,30 @@ class Consultant
      */
     protected $removed;
 
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
     protected function __construct()
     {
         ;
     }
-    
+
     public function getPersonnelMailRecipient(): Recipient
     {
         return $this->personnel->getMailRecipient();
+    }
+    
+    public function getPersonnelName(): string
+    {
+        return $this->personnel->getName();
+    }
+    
+    public function createMailNotification(): ConsultantMailNotification
+    {
+        $personnelMailNotification = $this->personnel->createMailNotification();
+        return new ConsultantMailNotification($this, $personnelMailNotification);
     }
 
 }

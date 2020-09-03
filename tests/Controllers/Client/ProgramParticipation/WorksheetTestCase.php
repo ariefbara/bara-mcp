@@ -43,13 +43,16 @@ class WorksheetTestCase extends ProgramParticipationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->worksheetUri = $this->programParticipationUri . "/{$this->programParticipation->program->id}/worksheets";
+        $this->worksheetUri = $this->programParticipationUri . "/{$this->programParticipation->id}/worksheets";
         $this->connection->table('Form')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
         $this->connection->table('Mission')->truncate();
         $this->connection->table('Worksheet')->truncate();
 
+        $participant = $this->programParticipation->participant;
+        $program = $participant->program;
+        $firm = $program->firm;
 
         $this->form = new RecordOfForm(0);
         $this->connection->table('Form')->insert($this->form->toArrayForDbEntry());
@@ -57,13 +60,13 @@ class WorksheetTestCase extends ProgramParticipationTestCase
         $formRecord = new RecordOfFormRecord($this->form, 0);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
 
-        $this->worksheetForm = new RecordOfWorksheetForm($this->programParticipation->program->firm, $this->form);
+        $this->worksheetForm = new RecordOfWorksheetForm($firm, $this->form);
         $this->connection->table('WorksheetForm')->insert($this->worksheetForm->toArrayForDbEntry());
 
-        $this->mission = new RecordOfMission($this->programParticipation->program, $this->worksheetForm, 0, null);
+        $this->mission = new RecordOfMission($program, $this->worksheetForm, 0, null);
         $this->connection->table('Mission')->insert($this->mission->toArrayForDbEntry());
 
-        $this->worksheet = new RecordOfWorksheet($this->programParticipation->participant, $formRecord, $this->mission);
+        $this->worksheet = new RecordOfWorksheet($participant, $formRecord, $this->mission, 0);
         $this->connection->table('Worksheet')->insert($this->worksheet->toArrayForDbEntry());
 
         $this->worksheetInput = [

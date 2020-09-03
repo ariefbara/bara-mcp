@@ -2,7 +2,9 @@
 
 namespace Notification\Domain\Model;
 
+use Notification\Domain\Model\Firm\FirmMailSender;
 use Query\Domain\Model\FirmWhitelableInfo;
+use Resources\Application\Service\SenderInterface;
 
 class Firm
 {
@@ -31,14 +33,22 @@ class Firm
      */
     protected $suspended = false;
 
-    public function getFirmWhitelableInfo(): FirmWhitelableInfo
-    {
-        return $this->firmWhitelableInfo;
-    }
-
     protected function __construct()
     {
         ;
+    }
+    
+    public function getWhitelableUrl(): string
+    {
+        return $this->firmWhitelableInfo->getUrl();
+    }
+    
+    public function getMailSender(): SenderInterface
+    {
+        $mailAddress = $this->firmWhitelableInfo->getMailSenderAddress();
+        $name = $this->firmWhitelableInfo->getMailSenderName();
+        
+        return new FirmMailSender($mailAddress, $name);
     }
 
 }

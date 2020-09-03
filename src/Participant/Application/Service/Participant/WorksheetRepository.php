@@ -11,10 +11,11 @@ interface WorksheetRepository
 
     public function add(Worksheet $worksheet): void;
 
+    public function aWorksheetBelongsToClientParticipant(
+            string $firmId, string $clientId, string $programParticipationId, string $worksheetId): Worksheet;
+
+    public function aWorksheetBelongsToUserParticipant(
+            string $userId, string $programParticipationId, string $worksheetId): Worksheet;
+    
     public function update(): void;
-
-    public function aWorksheetOfClientParticipant(
-            string $firmId, string $clientId, string $programId, string $worksheetId): Worksheet;
-
-    public function aWorksheetOfUserParticipant(string $userId, string $firmId, string $programId, string $worksheetId): Worksheet;
 }

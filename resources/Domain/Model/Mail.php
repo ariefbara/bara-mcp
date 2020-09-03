@@ -1,16 +1,31 @@
 <?php
+
 namespace Resources\Domain\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Resources\ {
+use Resources\{
+    Application\Service\MailInterface,
     Domain\Model\Mail\DynamicAttachment,
     Domain\Model\Mail\Recipient,
     ValidationRule,
     ValidationService
 };
 
-class Mail
+class Mail implements MailInterface
 {
+
+    /**
+     *
+     * @var string
+     */
+    protected $senderMailAddress;
+
+    /**
+     *
+     * @var string
+     */
+    protected $senderName;
+
     /**
      *
      * @var string
@@ -45,8 +60,8 @@ class Mail
     {
         $errorDetails = "bad request: mail subject is required";
         ValidationService::build()
-            ->addRule(ValidationRule::notEmpty())
-            ->execute($subject, $errorDetails);
+                ->addRule(ValidationRule::notEmpty())
+                ->execute($subject, $errorDetails);
         $this->subject = $subject;
     }
 
@@ -54,23 +69,22 @@ class Mail
     {
         $errorDetails = "bad request: mail body is required";
         ValidationService::build()
-            ->addRule(ValidationRule::notEmpty())
-            ->execute($body, $errorDetails);
+                ->addRule(ValidationRule::notEmpty())
+                ->execute($body, $errorDetails);
         $this->body = $body;
     }
-
 
     public function __construct(string $subject, string $body, ?string $alternativeBody, Recipient $recipient)
     {
         $this->setSubject($subject);
         $this->setBody($body);
         $this->alternativeBody = $alternativeBody;
-        
+
         $this->recipients = new ArrayCollection();
         $this->recipients->add($recipient);
         $this->dynamicAttachments = new ArrayCollection();
     }
-    
+
     public function addRecipient(Recipient $recipient): void
     {
         $this->recipients->add($recipient);
@@ -113,5 +127,15 @@ class Mail
     {
         return $this->dynamicAttachments->getIterator();
     }
-}
 
+    public function getSenderMailAddress(): string
+    {
+        
+    }
+
+    public function getSenderName(): string
+    {
+        
+    }
+
+}

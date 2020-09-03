@@ -17,13 +17,17 @@ class WorksheetControllerTest extends WorksheetTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->branchMission = new RecordOfMission($this->programParticipation->program, $this->worksheetForm, 1, $this->mission);
+        
+        $participant = $this->programParticipation->participant;
+        $program = $participant->program;
+        
+        $this->branchMission = new RecordOfMission($program, $this->worksheetForm, 1, $this->mission);
         $this->connection->table('Mission')->insert($this->branchMission->toArrayForDbEntry());
         
         $formRecord = new RecordOfFormRecord($this->form, 1);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
         
-        $this->worksheetOne = new RecordOfWorksheet($this->programParticipation->participant, $formRecord, $this->branchMission);
+        $this->worksheetOne = new RecordOfWorksheet($participant, $formRecord, $this->branchMission, 1);
         $this->worksheetOne->parent = $this->worksheet;
         $this->connection->table('Worksheet')->insert($this->worksheetOne->toArrayForDbEntry());
     }
@@ -35,6 +39,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     
     public function test_addRoot()
     {
+        
         $this->connection->table('Worksheet')->truncate();
         $this->connection->table('FormRecord')->truncate();
         
@@ -117,7 +122,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     }
     public function test_addBranch_missionNotBranchOfParentWorksheetMission_error403()
     {
-        $mission = new RecordOfMission($this->programParticipation->program, $this->worksheetForm, 2, null);
+        $mission = new RecordOfMission($this->programParticipation->participant->program, $this->worksheetForm, 2, null);
         $this->connection->table('Mission')->insert($mission->toArrayForDbEntry());
         
         $this->worksheetInput["missionId"] = $mission->id;
@@ -167,7 +172,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     {
         $formRecord = new RecordOfFormRecord($this->worksheet->formRecord->form, 2);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
-        $worksheetTwo = new RecordOfWorksheet($this->programParticipation->participant, $formRecord, $this->mission);
+        $worksheetTwo = new RecordOfWorksheet($this->programParticipation->participant, $formRecord, $this->mission, 2);
         $worksheetTwo->parent = $this->worksheetOne;
         $this->connection->table('Worksheet')->insert($worksheetTwo->toArrayForDbEntry());
         
@@ -298,5 +303,4 @@ class WorksheetControllerTest extends WorksheetTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($emptyResponse);
     }
-    
 }

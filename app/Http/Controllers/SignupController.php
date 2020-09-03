@@ -34,10 +34,10 @@ class SignupController extends Controller
         $firmRepository = $this->em->getRepository(Firm::class);
         $dipatcher = new Dispatcher();
         
-        $mailer = SwiftMailerBuilder::build();
-        $sendClientActivationCodeMail = new SendClientActivationCodeMail($clientRepository, $mailer);
-        $listener = new SendMailOnClientActivationCodeGeneratedListener($sendClientActivationCodeMail);
-        $dipatcher->addListener(ClientSignupAcceptedEvent::EVENT_NAME, $listener);
+//        $mailer = SwiftMailerBuilder::build();
+//        $sendClientActivationCodeMail = new SendClientActivationCodeMail($clientRepository, $mailer);
+//        $listener = new SendMailOnClientActivationCodeGeneratedListener($sendClientActivationCodeMail);
+//        $dipatcher->addListener(ClientSignupAcceptedEvent::EVENT_NAME, $listener);
         
         $service = new ClientSignup($clientRepository, $firmRepository, $dipatcher);
         
@@ -64,9 +64,8 @@ class SignupController extends Controller
         $userRepository = $this->em->getRepository(User::class);
         $dispatcher = new Dispatcher();
         
-        $listener = new SendMailWhenUserActivationCodeGeneratedListener($this->buildSendUserActivationCodeMail());
-        $dispatcher->addListener(UserActivationCodeGenerated::EVENT_NAME, $listener);
-        
+//        $listener = new SendMailWhenUserActivationCodeGeneratedListener($this->buildSendUserActivationCodeMail());
+//        $dispatcher->addListener(UserActivationCodeGenerated::EVENT_NAME, $listener);
         
         $firstName = $this->stripTagsInputRequest('firstName');
         $lastName = $this->stripTagsInputRequest('lastName');

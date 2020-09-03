@@ -8,11 +8,9 @@ use Doctrine\ORM\ {
 };
 use Participant\ {
     Application\Service\Participant\ConsultationRequestRepository,
-    Domain\Model\Participant\ConsultationRequest
-};
-use Query\Domain\Model\Firm\Program\ {
-    ClientParticipant,
-    UserParticipant
+    Domain\Model\ClientParticipant,
+    Domain\Model\Participant\ConsultationRequest,
+    Domain\Model\UserParticipant
 };
 use Resources\ {
     Exception\RegularException,
@@ -22,33 +20,24 @@ use Resources\ {
 class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository
 {
 
-    public function add(ConsultationRequest $consultationRequest): void
-    {
-        $em = $this->getEntityManager();
-        $em->persist($consultationRequest);
-        $em->flush();
-    }
-
-    public function consultationRequestFromClient(string $firmId, string $clientId, string $programId,
-            string $consultationRequestId): ConsultationRequest
+    public function aConsultationRequestFromClientParticipant(
+            string $firmId, string $clientId, string $programParticipationId, string $consultationRequestId): ConsultationRequest
     {
         $params = [
             'firmId' => $firmId,
             'clientId' => $clientId,
-            'programId' => $programId,
+            'programParticipationId' => $programParticipationId,
             'consultationRequestId' => $consultationRequestId,
         ];
 
         $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('tParticipant.id')
-                ->from(ClientParticipant::class, 'tClientParticipant')
-                ->leftJoin('tClientParticipant.participant', 'tParticipant')
-                ->leftJoin('tClientParticipant.program', 'tProgram')
-                ->andWhere($clientParticipantQb->expr()->eq('tProgram.id', ':programId'))
-                ->leftJoin('tClientParticipant.client', 'tClient')
-                ->andWhere($clientParticipantQb->expr()->eq('tClient.id', ':clientId'))
-                ->leftJoin('tClient.firm', 'tFirm')
-                ->andWhere($clientParticipantQb->expr()->eq('tFirm.id', ':firmId'))
+        $clientParticipantQb->select('t_participant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
+                ->leftJoin('clientParticipant.participant', 't_participant')
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
+                ->andWhere($clientParticipantQb->expr()->eq('client.firmId', ':firmId'))
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('consultationRequest');
@@ -67,26 +56,21 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         }
     }
 
-    public function consultationRequestFromUser(string $userId, string $firmId, string $programId,
-            string $consultationRequestId): ConsultationRequest
+    public function aConsultationRequestFromUserParticipant(
+            $userId, string $programParticipationId, string $consultationRequestId): ConsultationRequest
     {
         $params = [
             'userId' => $userId,
-            'firmId' => $firmId,
-            'programId' => $programId,
+            'programParticipationId' => $programParticipationId,
             'consultationRequestId' => $consultationRequestId,
         ];
 
         $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
         $userParticipantQb->select('tParticipant.id')
-                ->from(UserParticipant::class, 'tUserParticipant')
-                ->leftJoin('tUserParticipant.participant', 'tParticipant')
-                ->leftJoin('tUserParticipant.user', 'tUser')
-                ->andWhere($userParticipantQb->expr()->eq('tUser.id', ':userId'))
-                ->leftJoin('tUserParticipant.program', 'tProgram')
-                ->andWhere($userParticipantQb->expr()->eq('tProgram.id', ':programId'))
-                ->leftJoin('tProgram.firm', 'tFirm')
-                ->andWhere($userParticipantQb->expr()->eq('tFirm.id', ':firmId'))
+                ->from(UserParticipant::class, 'userParticipant')
+                ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':programParticipationId'))
+                ->andWhere($userParticipantQb->expr()->eq('userParticipant.userId', ':userId'))
+                ->leftJoin('userParticipant.participant', 'tParticipant')
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('consultationRequest');
@@ -103,6 +87,13 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
             $errorDetail = 'not found: consultation request not found';
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function add(ConsultationRequest $consultationRequest): void
+    {
+        $em = $this->getEntityManager();
+        $em->persist($consultationRequest);
+        $em->flush();
     }
 
     public function nextIdentity(): string

@@ -11,18 +11,22 @@
         >
             <join-column name="Participant_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
+        
         <many-to-one  field="consultationSetup" 
-                      target-entity="SharedContext\Domain\Model\Firm\Program\ConsultationSetup"
+                      target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup"
         >
             <join-column name="ConsultationSetup_id" referenced-column-name="id" />
         </many-to-one>
+        
         <many-to-one  field="consultant" 
                       target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\Consultant"
                       inversed-by="consultationSessions"
         >
             <join-column name="Consultant_id" referenced-column-name="id" />
         </many-to-one>
+        
         <embedded name="startEndTime" 
                   class="Resources\Domain\ValueObject\DateTimeInterval" 
                   use-column-prefix="false" 

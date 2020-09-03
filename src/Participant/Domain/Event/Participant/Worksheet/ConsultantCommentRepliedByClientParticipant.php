@@ -3,7 +3,7 @@
 namespace Participant\Domain\Event\Participant\Worksheet;
 
 use Config\EventList;
-use Notification\Application\Listener\Firm\Program\ClientParticipant\Worksheet\ConsultantCommentRepliedByParticipantEventInterface;
+use Notification\Application\Listener\Firm\Program\Participant\Worksheet\ConsultantCommentRepliedByClientParticipantEventInterface;
 
 class ConsultantCommentRepliedByClientParticipant implements ConsultantCommentRepliedByClientParticipantEventInterface
 {
@@ -24,7 +24,7 @@ class ConsultantCommentRepliedByClientParticipant implements ConsultantCommentRe
      *
      * @var string
      */
-    protected $programId;
+    protected $programParticipationId;
 
     /**
      *
@@ -36,7 +36,7 @@ class ConsultantCommentRepliedByClientParticipant implements ConsultantCommentRe
      *
      * @var string
      */
-    protected $participantCommentId;
+    protected $commentId;
 
     public function getFirmId(): string
     {
@@ -48,9 +48,9 @@ class ConsultantCommentRepliedByClientParticipant implements ConsultantCommentRe
         return $this->clientId;
     }
 
-    public function getProgramId(): string
+    public function getProgramParticipationId(): string
     {
-        return $this->programId;
+        return $this->programParticipationId;
     }
 
     public function getWorksheetId(): string
@@ -58,24 +58,24 @@ class ConsultantCommentRepliedByClientParticipant implements ConsultantCommentRe
         return $this->worksheetId;
     }
 
-    public function getParticipantCommentId(): string
+    public function getCommentId(): string
     {
-        return $this->participantCommentId;
+        return $this->commentId;
     }
 
-    public function __construct(
-            string $firmId, string $clientId, string $programId, string $worksheetId, string $participantCommentId)
+    public function __construct(string $firmId, string $clientId, string $programParticipationId, string $worksheetId,
+            string $commentId)
     {
         $this->firmId = $firmId;
         $this->clientId = $clientId;
-        $this->programId = $programId;
+        $this->programParticipationId = $programParticipationId;
         $this->worksheetId = $worksheetId;
-        $this->participantCommentId = $participantCommentId;
+        $this->commentId = $commentId;
     }
 
     public function getName(): string
     {
-        return EventList::CONSULTANT_COMMENT_REPLIED_BY_CLIENT_PARTICIPANT;
+        return EventList::CLIENT_PARTICIPANT_REPLIED_CONSULTANT_COMMENT;
     }
 
 }

@@ -19,11 +19,17 @@ class ProgramTest extends TestBase
         $this->program->firm = $this->firm;
     }
     
-    public function test_getFirmWhitelableInfo_returnFirmsGetWhitelableInfoResult()
+    public function test_getFirmWhitelableUrl_returnFirmsGetWhitelableUrlResult()
     {
         $this->firm->expects($this->once())
-                ->method('getFirmWhitelableInfo');
-        $this->program->getFirmWhitelableInfo();
+                ->method('getWhitelableUrl');
+        $this->program->getFirmWhitelableUrl();
+    }
+    public function test_getFirmMailSender_returnFirmsGetMailSenderResult()
+    {
+        $this->firm->expects($this->once())
+                ->method('getMailSender');
+        $this->program->getFirmMailSender();
     }
 }
 

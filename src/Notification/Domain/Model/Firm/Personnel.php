@@ -2,10 +2,14 @@
 
 namespace Notification\Domain\Model\Firm;
 
-use Notification\Domain\Model\Firm;
-use Resources\Domain\ {
-    Model\Mail\Recipient,
-    ValueObject\PersonName
+use Notification\Domain\Model\ {
+    Firm,
+    Firm\Personnel\PersonnelMailNotification
+};
+use Resources\ {
+    Application\Service\RecipientInterface,
+    Domain\Model\Mail\Recipient,
+    Domain\ValueObject\PersonName
 };
 
 class Personnel
@@ -46,8 +50,19 @@ class Personnel
         ;
     }
     
-    public function getMailRecipient(): Recipient
+    public function getMailRecipient(): RecipientInterface
     {
         return new Recipient($this->email, $this->name);
     }
+    
+    public function getName(): string
+    {
+        return $this->name->getFullName();
+    }
+    
+    public function createMailNotification(): PersonnelMailNotification
+    {
+        return new PersonnelMailNotification($this);
+    }
+    
 }

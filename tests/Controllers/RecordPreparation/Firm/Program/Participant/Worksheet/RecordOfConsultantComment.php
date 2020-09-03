@@ -13,12 +13,6 @@ class RecordOfConsultantComment implements Record
 
     /**
      *
-     * @var RecordOfWorksheet
-     */
-    public $worksheet;
-
-    /**
-     *
      * @var RecordOfConsultant
      */
     public $consultant;
@@ -30,9 +24,8 @@ class RecordOfConsultantComment implements Record
     public $comment;
     public $id;
     
-    public function __construct(RecordOfWorksheet $worksheet, RecordOfConsultant $consultant, RecordOfComment $comment)
+    public function __construct(RecordOfConsultant $consultant, RecordOfComment $comment)
     {
-        $this->worksheet = $worksheet;
         $this->consultant = $consultant;
         $this->comment = $comment;
         $this->id = $comment->id;
@@ -41,7 +34,6 @@ class RecordOfConsultantComment implements Record
     public function toArrayForDbEntry()
     {
         return [
-            'Worksheet_id' => $this->worksheet->id,
             'Consultant_id' => $this->consultant->id,
             'Comment_id' => $this->comment->id,
             'id' => $this->id,

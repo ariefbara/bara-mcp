@@ -2,12 +2,12 @@
 
 namespace Query\Application\Service\User;
 
-use Query\Domain\Model\Firm\Program\UserParticipant;
+use Query\Domain\Model\User\UserParticipant;
 
 interface ProgramParticipationRepository
 {
 
-    public function aProgramParticipationOfUser(string $userId, string $firmId, string $programId): UserParticipant;
+    public function ofId(string $userId, string $userParticipantId): UserParticipant;
 
-    public function allProgramParticipationsOfUser(string $userId, int $page, int $pageSize);
+    public function all(string $userId, int $page, int $pageSize);
 }

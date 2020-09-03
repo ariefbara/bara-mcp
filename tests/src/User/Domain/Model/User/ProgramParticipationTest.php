@@ -15,7 +15,6 @@ class ProgramParticipationTest extends TestBase
     {
         parent::setUp();
         $this->programParticipation = new TestableProgramParticipation();
-        $this->programParticipation->programId = $this->programId;
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->programParticipation->participant = $this->participant;
         
@@ -23,28 +22,13 @@ class ProgramParticipationTest extends TestBase
         $this->program->expects($this->any())->method('getId')->willReturn($this->programId);
     }
     
-    protected function executeIsActiveParticipantInProgram()
-    {
-        $this->participant->expects($this->any())
-                ->method('isActive')
-                ->willReturn(true);
-        return $this->programParticipation->isActiveParticipantInProgram($this->program);
-    }
-    public function test_isActiveParticipantInProgram_sameProgramId_returnTrue()
-    {
-        $this->assertTrue($this->executeIsActiveParticipantInProgram());
-    }
-    public function test_isActiveParticipantInProgram_differentProgramId_returnFalse()
-    {
-        $this->programParticipation->programId = 'differentId';
-        $this->assertFalse($this->executeIsActiveParticipantInProgram());
-    }
-    public function test_isActiveParticipantInProgram_inactiveParticipation_returnFalse()
+    public function test_isActiveParticipantInProgram_returnParticipantIsActiveParticipantInProgramResult()
     {
         $this->participant->expects($this->once())
-                ->method('isActive')
-                ->willReturn(false);
-        $this->assertFalse($this->executeIsActiveParticipantInProgram());
+                ->method('isActiveParticipantInProgram')
+                ->with($this->program);
+        $this->programParticipation->isActiveParticipantInProgram($this->program);
+        
     }
 }
 
@@ -52,7 +36,6 @@ class TestableProgramParticipation extends ProgramParticipation
 {
     public $user;
     public $id;
-    public $programId;
     public $participant;
     
     function __construct()

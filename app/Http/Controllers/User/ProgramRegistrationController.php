@@ -4,7 +4,7 @@ namespace App\Http\Controllers\User;
 
 use Query\ {
     Application\Service\User\ViewProgramRegistration,
-    Domain\Model\Firm\Program\UserRegistrant
+    Domain\Model\User\UserRegistrant
 };
 use SharedContext\Domain\Model\Firm\Program;
 use User\ {

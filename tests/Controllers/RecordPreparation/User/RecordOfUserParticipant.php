@@ -35,7 +35,7 @@ class RecordOfUserParticipant implements Record
         return [
             'User_id' => $this->user->id,
             'Participant_id' => $this->participant->id,
-            'id' => $this->program->id,
+            'id' => $this->id,
         ];
     }
 

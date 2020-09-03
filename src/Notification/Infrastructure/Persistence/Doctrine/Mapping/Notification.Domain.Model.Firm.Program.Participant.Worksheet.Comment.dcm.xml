@@ -2,7 +2,14 @@
 <doctrine-mapping>
     <entity name="Notification\Domain\Model\Firm\Program\Participant\Worksheet\Comment" 
             table="Comment" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineCommentRepository"
     >
+        
+        <many-to-one  field="worksheet" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Participant\Worksheet"
+        >
+            <join-column name="Worksheet_id" referenced-column-name="id" />
+        </many-to-one>
         
         <many-to-one field="parent" 
                     target-entity="Notification\Domain\Model\Firm\Program\Participant\Worksheet\Comment"
@@ -14,12 +21,7 @@
         <field name="removed" type="boolean" />
         
         <one-to-one field="consultantComment" 
-                    target-entity="Notification\Domain\Model\Firm\Program\Participant\Worksheet\ConsultantComment"
-                    mapped-by="comment"
-        />
-        
-        <one-to-one field="participantComment" 
-                    target-entity="Notification\Domain\Model\Firm\Program\Participant\Worksheet\ParticipantComment"
+                    target-entity="Notification\Domain\Model\Firm\Program\Consultant\ConsultantComment"
                     mapped-by="comment"
         />
         

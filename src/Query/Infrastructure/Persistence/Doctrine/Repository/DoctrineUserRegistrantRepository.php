@@ -7,15 +7,15 @@ use Doctrine\ORM\ {
     NoResultException
 };
 use Query\ {
-    Application\Service\Firm\Program\UserRegistrantRepository,
-    Domain\Model\Firm\Program\UserRegistrant
+    Application\Service\User\ProgramRegistrationRepository,
+    Domain\Model\User\UserRegistrant
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineUserRegistrantRepository extends EntityRepository implements UserRegistrantRepository
+class DoctrineUserRegistrantRepository extends EntityRepository implements ProgramRegistrationRepository
 {
 
     public function aProgramRegistrationOfUser(string $userId, string $programRegistrationId): UserRegistrant
@@ -41,24 +41,6 @@ class DoctrineUserRegistrantRepository extends EntityRepository implements UserR
         }
     }
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize)
-    {
-        $params = [
-            'firmId' => $firmId,
-            'programId' => $programId,
-        ];
-
-        $qb = $this->createQueryBuilder('userRegistrant');
-        $qb->select('userRegistrant')
-                ->leftJoin('userRegistrant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
     public function allProgramRegistrationsOfUser(string $userId, int $page, int $pageSize)
     {
         $params = [
@@ -72,32 +54,6 @@ class DoctrineUserRegistrantRepository extends EntityRepository implements UserR
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function ofId(string $firmId, string $programId, string $userRegistrantId): UserRegistrant
-    {
-        $params = [
-            'firmId' => $firmId,
-            'programId' => $programId,
-            'userRegistrantId' => $userRegistrantId,
-        ];
-
-        $qb = $this->createQueryBuilder('userRegistrant');
-        $qb->select('userRegistrant')
-                ->andWhere($qb->expr()->eq('userRegistrant.id', ':userRegistrantId'))
-                ->leftJoin('userRegistrant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params)
-                ->setMaxResults(1);
-
-        try {
-            return $qb->getQuery()->getSingleResult();
-        } catch (NoResultException $ex) {
-            $errorDetail = 'not found: user registration not found';
-            throw RegularException::notFound($errorDetail);
-        }
     }
 
 }

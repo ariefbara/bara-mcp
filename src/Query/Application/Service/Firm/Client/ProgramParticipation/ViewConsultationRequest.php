@@ -25,23 +25,23 @@ class ViewConsultationRequest
      * 
      * @param string $firmId
      * @param string $clientId
-     * @param string $programId
+     * @param string $programParticipationId
      * @param int $page
      * @param int $pageSize
      * @return ConsultationRequest[]
      */
     public function showAll(
-            string $firmId, string $clientId, string $programId, int $page, int $pageSize,
+            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
             ?ConsultationRequestFilter $consultationRequestFilter)
     {
         return $this->consultationRequestRepository->allConsultationRequestsOfClient(
-                        $firmId, $clientId, $programId, $page, $pageSize, $consultationRequestFilter);
+                        $firmId, $clientId, $programParticipationId, $page, $pageSize, $consultationRequestFilter);
     }
 
-    public function showById(string $firmId, string $clientId, string $programId, string $consultationRequestId): ConsultationRequest
+    public function showById(string $firmId, string $clientId, string $programParticipationId, string $consultationRequestId): ConsultationRequest
     {
         return $this->consultationRequestRepository
-                        ->aConsultationRequestOfClient($firmId, $clientId, $programId, $consultationRequestId);
+                        ->aConsultationRequestOfClient($firmId, $clientId, $programParticipationId, $consultationRequestId);
     }
 
 }

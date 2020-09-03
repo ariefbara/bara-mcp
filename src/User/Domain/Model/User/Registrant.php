@@ -11,7 +11,7 @@ use User\Domain\Model\ProgramInterface;
 
 class Registrant
 {
-    
+
     /**
      *
      * @var string
@@ -42,11 +42,6 @@ class Registrant
      */
     protected $note;
 
-    public function isConcluded(): bool
-    {
-        return $this->concluded;
-    }
-
     public function __construct(ProgramInterface $program, string $id)
     {
         $this->programId = $program->getId();
@@ -64,6 +59,11 @@ class Registrant
         }
         $this->concluded = true;
         $this->note = 'cancelled';
+    }
+
+    public function isUnconcludedRegistrationToProgram(ProgramInterface $program): bool
+    {
+        return !$this->concluded && $this->programId === $program->getId();
     }
 
 }

@@ -4,18 +4,18 @@ namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
 use Participant\Domain\ {
-    Event\ClientAcceptedConsultationRequest,
-    Event\ClientChangedConsultationRequestTime,
-    Event\ClientProposedConsultationRequest,
+    Event\ClientParticipantAcceptedConsultationRequest,
+    Event\ClientParticipantChangedConsultationRequestTime,
+    Event\ClientParticipantProposedConsultationRequest,
+    Event\Participant\Worksheet\ConsultantCommentRepliedByClientParticipant,
     Model\DependencyEntity\Firm\Client,
-    Model\DependencyEntity\Firm\Program\Consultant\ConsultantComment,
+    Model\DependencyEntity\Firm\Program\Consultant,
     Model\DependencyEntity\Firm\Program\ConsultationSetup,
     Model\DependencyEntity\Firm\Program\Mission,
     Model\Participant\ConsultationRequest,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment
 };
-use Query\Domain\Model\Firm\Program\Consultant;
 use Resources\ {
     Domain\Model\ModelContainEvents,
     Uuid
@@ -59,9 +59,8 @@ class ClientParticipant extends ModelContainEvents
     {
         $firmId = $this->client->getFirmId();
         $clientId = $this->client->getId();
-        $programId = $this->program->getId();
-
-        $event = new ClientProposedConsultationRequest($firmId, $clientId, $programId, $consultationRequestId);
+        
+        $event = new ClientParticipantProposedConsultationRequest($firmId, $clientId, $this->id, $consultationRequestId);
         $this->recordEvent($event);
 
         return $this->participant->proposeConsultation(
@@ -71,12 +70,11 @@ class ClientParticipant extends ModelContainEvents
     public function reproposeConsultationRequest(string $consultationRequestId, DateTimeImmutable $startTime): void
     {
         $this->participant->reproposeConsultationRequest($consultationRequestId, $startTime);
-
+        
         $firmId = $this->client->getFirmId();
         $clientId = $this->client->getId();
-        $programId = $this->program->getId();
-        $event = new ClientChangedConsultationRequestTime($firmId, $clientId, $programId, $consultationRequestId);
-
+        
+        $event = new ClientParticipantChangedConsultationRequestTime($firmId, $clientId, $this->id, $consultationRequestId);
         $this->recordEvent($event);
     }
 
@@ -84,12 +82,11 @@ class ClientParticipant extends ModelContainEvents
     {
         $consultationSessionId = Uuid::generateUuid4();
         $this->participant->acceptConsultationRequest($consultationRequestId, $consultationSessionId);
-
+        
         $firmId = $this->client->getFirmId();
         $clientId = $this->client->getId();
-        $programId = $this->program->getId();
-        $event = new ClientAcceptedConsultationRequest($firmId, $clientId, $programId, $consultationSessionId);
-
+        
+        $event = new ClientParticipantAcceptedConsultationRequest($firmId, $clientId, $this->id, $consultationSessionId);
         $this->recordEvent($event);
     }
 
@@ -99,11 +96,16 @@ class ClientParticipant extends ModelContainEvents
         return $this->participant->createRootWorksheet($worksheetId, $name, $mission, $formRecord);
     }
 
-    public function replyToComment(
+    public function replyComment(
             string $commentId, Comment $comment, string $message): Comment
     {
         if ($comment->isConsultantComment()) {
-            $event = new \Participant\Domain\Event\Participant\Worksheet\ConsultantCommentRepliedByClientParticipant($message, $commentId, $programId, $worksheetId, $participantCommentId);
+            $firmId = $this->client->getFirmId();
+            $clientId = $this->client->getId();
+            $worksheetId = $comment->getWorksheetId();
+            
+            $event = new ConsultantCommentRepliedByClientParticipant(
+                    $firmId, $clientId, $this->id, $worksheetId, $commentId);
             $this->recordEvent($event);
         }
         return $comment->createReply($commentId, $message);

@@ -2,10 +2,9 @@
 
 namespace Query\Application\Service;
 
-use Firm\Application\Service\Firm\Program\UserRepository as InterfaceForFirmBC;
 use Query\Domain\Model\User;
 
-interface UserRepository extends InterfaceForFirmBC
+interface UserRepository
 {
 
     public function ofEmail(string $email): User;

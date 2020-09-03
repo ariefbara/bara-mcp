@@ -25,7 +25,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->consultationRequestUri = $this->programParticipationUri . "/{$this->programParticipation->program->id}/consultation-requests";
+        $this->consultationRequestUri = $this->programParticipationUri . "/{$this->programParticipation->id}/consultation-requests";
         $this->connection->table('Form')->truncate();
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -35,25 +35,27 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Notification')->truncate();
         $this->connection->table('PersonnelNotification')->truncate();
+        
+        $program = $this->programParticipation->participant->program;
+        $firm = $program->firm;
 
         $formOne = new RecordOfForm(1);
         $formTwo = new RecordOfForm(2);
         $this->connection->table('Form')->insert($formOne->toArrayForDbEntry());
         $this->connection->table('Form')->insert($formTwo->toArrayForDbEntry());
         
-        $participantFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formOne);
-        $consultantFeedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $formTwo);
+        $participantFeedbackForm = new RecordOfFeedbackForm($firm, $formOne);
+        $consultantFeedbackForm = new RecordOfFeedbackForm($firm, $formTwo);
         $this->connection->table('FeedbackForm')->insert($participantFeedbackForm->toArrayForDbEntry());
         $this->connection->table('FeedbackForm')->insert($consultantFeedbackForm->toArrayForDbEntry());
 
-        $this->consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program, $participantFeedbackForm, $consultantFeedbackForm, 0);
+        $this->consultationSetup = new RecordOfConsultationSetup($program, $participantFeedbackForm, $consultantFeedbackForm, 0);
         $this->connection->table('ConsultationSetup')->insert($this->consultationSetup->toArrayForDbEntry());
         
-        
-        $personnel = new RecordOfPersonnel($this->programParticipation->program->firm, 0, "purnama.adi@gmail.com", 'password123');
+        $personnel = new RecordOfPersonnel($firm, 0, "purnama.adi@gmail.com", 'password123');
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
-        $this->consultant = new RecordOfConsultant($this->programParticipation->program, $personnel, 0);
+        $this->consultant = new RecordOfConsultant($program, $personnel, 0);
         $this->connection->table('Consultant')->insert($this->consultant->toArrayForDbEntry());
 
         $this->consultationRequest = new RecordOfConsultationRequest($this->consultationSetup, $this->programParticipation->participant, $this->consultant, 0);
@@ -67,7 +69,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         
         $this->proposeInput = [
             "consultationSetupId" => $this->consultationSetup->id,
-            "personnelId" => $this->consultant->personnel->id,
+            "consultantId" => $this->consultant->id,
             "startTime" => (new DateTime('+36 hours'))->format('Y-m-d H:i:s'),
         ];
         $this->reProposeInput = [
@@ -123,7 +125,6 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         ];
         $this->seeInDatabase('ConsultationRequest', $consultationRequestEntry);
     }
-    
     public function test_rePropose_scenario_expectedResult()
     {
         $response = [

@@ -7,7 +7,10 @@ use Participant\Domain\Model\ {
     DependencyEntity\Firm\Program\Consultant\ConsultantComment,
     Participant\Worksheet
 };
-use Resources\DateTimeImmutableBuilder;
+use Resources\ {
+    DateTimeImmutableBuilder,
+    Exception\RegularException
+};
 
 class Comment
 {
@@ -73,8 +76,21 @@ class Comment
 
     public function remove(): void
     {
+        if ($this->isConsultantComment()) {
+            $errorDetail = 'forbidden: unable to remove consultant comment';
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->removed = true;
     }
-
+    
+    public function getWorksheetId(): string
+    {
+        return $this->worksheet->getId();
+    }
+    
+    public function isConsultantComment(): bool
+    {
+        return !empty($this->consultantComment);
+    }
 
 }

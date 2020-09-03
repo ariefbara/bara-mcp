@@ -4,12 +4,11 @@ namespace SharedContext\Domain\Model\Firm;
 
 use Client\Domain\Model\ProgramInterface as InterfaceForClientBC;
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\Model\DependencyEntity\Firm\ProgramInterface as InterfaceForParticipantBC;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use SharedContext\Domain\Model\Firm\Program\RegistrationPhase;
 use User\Domain\Model\ProgramInterface as InterfaceForUserBC;
 
-class Program implements InterfaceForClientBC, InterfaceForUserBC, InterfaceForParticipantBC
+class Program implements InterfaceForClientBC, InterfaceForUserBC
 {
 
     /**

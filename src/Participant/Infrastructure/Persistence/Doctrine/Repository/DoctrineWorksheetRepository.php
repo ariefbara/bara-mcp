@@ -9,7 +9,8 @@ use Doctrine\ORM\ {
 use Participant\ {
     Application\Service\Participant\WorksheetRepository,
     Domain\Model\ClientParticipant,
-    Domain\Model\Participant\Worksheet
+    Domain\Model\Participant\Worksheet,
+    Domain\Model\UserParticipant
 };
 use Resources\ {
     Exception\RegularException,
@@ -19,26 +20,24 @@ use Resources\ {
 class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository
 {
 
-    public function aWorksheetOfClientParticipant(string $firmId, string $clientId, string $programId,
-            string $worksheetId): Worksheet
+    public function aWorksheetBelongsToClientParticipant(string $firmId, string $clientId,
+            string $programParticipationId, string $worksheetId): Worksheet
     {
         $params = [
             'firmId' => $firmId,
             'clientId' => $clientId,
-            'programId' => $programId,
+            'programParticipationId' => $programParticipationId,
             'worksheetId' => $worksheetId,
         ];
 
         $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
         $clientParticipantQb->select('tParticipant.id')
                 ->from(ClientParticipant::class, 'clientParticipant')
+                ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
                 ->leftJoin('clientParticipant.participant', 'tParticipant')
                 ->leftJoin('clientParticipant.client', 'client')
                 ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
                 ->andWhere($clientParticipantQb->expr()->eq('client.firmId', ':firmId'))
-                ->leftJoin('clientParticipant.program', 'program')
-                ->andWhere($clientParticipantQb->expr()->eq('program.id', ':programId'))
-                ->andWhere($clientParticipantQb->expr()->eq('program.firmId', ':firmId'))
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('worksheet');
@@ -57,24 +56,21 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         }
     }
 
-    public function aWorksheetOfUserParticipant(string $userId, string $firmId, string $programId, string $worksheetId): Worksheet
+    public function aWorksheetBelongsToUserParticipant(string $userId, string $programParticipationId,
+            string $worksheetId): Worksheet
     {
         $params = [
             'userId' => $userId,
-            'firmId' => $firmId,
-            'programId' => $programId,
+            'programParticipationId' => $programParticipationId,
             'worksheetId' => $worksheetId,
         ];
 
         $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
         $userParticipantQb->select('tParticipant.id')
-                ->from(\Participant\Domain\Model\UserParticipant::class, 'userParticipant')
+                ->from(UserParticipant::class, 'userParticipant')
+                ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':programParticipationId'))
+                ->andWhere($userParticipantQb->expr()->eq('userParticipant.userId', ':userId'))
                 ->leftJoin('userParticipant.participant', 'tParticipant')
-                ->leftJoin('userParticipant.user', 'user')
-                ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
-                ->leftJoin('userParticipant.program', 'program')
-                ->andWhere($userParticipantQb->expr()->eq('program.id', ':programId'))
-                ->andWhere($userParticipantQb->expr()->eq('program.firmId', ':firmId'))
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('worksheet');

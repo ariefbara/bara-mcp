@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\{
+use App\Http\Controllers\ {
     Client\ClientBaseController,
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter
 };
-use Participant\{
-    Application\Service\Participant\WorksheetAddBranch,
-    Application\Service\Participant\WorksheetAddRoot,
-    Application\Service\Participant\WorksheetRemove,
-    Application\Service\Participant\WorksheetUpdate,
+use Participant\ {
+    Application\Service\ClientParticipant\WorksheetAddBranch,
+    Application\Service\ClientParticipant\WorksheetAddRoot,
+    Application\Service\ClientParticipant\WorksheetRemove,
+    Application\Service\ClientParticipant\WorksheetUpdate,
     Domain\Model\ClientParticipant,
     Domain\Model\DependencyEntity\Firm\Program\Mission,
     Domain\Model\Participant\Worksheet as Worksheet2,
     Domain\Service\ClientFileInfoFinder
 };
-use Query\{
-    Application\Service\Firm\Program\ClientParticipant\ViewWorksheet,
+use Query\ {
+    Application\Service\Firm\Client\ProgramParticipation\ViewWorksheet,
     Domain\Model\Firm\Program\Participant\Worksheet
 };
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
@@ -26,7 +26,7 @@ use SharedContext\Domain\Model\SharedEntity\FileInfo;
 class WorksheetController extends ClientBaseController
 {
 
-    public function addRoot($programId)
+    public function addRoot($programParticipationId)
     {
         $service = $this->buildAddRootService();
 
@@ -34,15 +34,15 @@ class WorksheetController extends ClientBaseController
         $name = $this->stripTagsInputRequest('name');
         $formRecordData = $this->getFormRecordData();
 
-        $worksheetId = $service->execute($this->firmId(), $this->clientId(), $programId, $missionId, $name,
+        $worksheetId = $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $missionId, $name,
                 $formRecordData);
 
         $viewService = $this->buildViewService();
-        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programId, $worksheetId);
+        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programParticipationId, $worksheetId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
-    public function addBranch($programId, $worksheetId)
+    public function addBranch($programParticipationId, $worksheetId)
     {
         $service = $this->buildAddBranchService();
 
@@ -51,40 +51,40 @@ class WorksheetController extends ClientBaseController
         $formRecordData = $this->getFormRecordData();
 
         $branchId = $service->execute(
-                $this->firmId(), $this->clientId(), $programId, $worksheetId, $missionId, $name, $formRecordData);
+                $this->firmId(), $this->clientId(), $programParticipationId, $worksheetId, $missionId, $name, $formRecordData);
 
         $viewService = $this->buildViewService();
-        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programId, $branchId);
+        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programParticipationId, $branchId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
-    public function update($programId, $worksheetId)
+    public function update($programParticipationId, $worksheetId)
     {
         $service = $this->buildUpdateService();
 
         $name = $this->stripTagsInputRequest('name');
         $formRecordData = $this->getFormRecordData();
 
-        $service->execute($this->firmId(), $this->clientId(), $programId, $worksheetId, $name, $formRecordData);
+        $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $worksheetId, $name, $formRecordData);
 
-        return $this->show($programId, $worksheetId);
+        return $this->show($programParticipationId, $worksheetId);
     }
 
-    public function remove($programId, $worksheetId)
+    public function remove($programParticipationId, $worksheetId)
     {
         $service = $this->buildRemoveService();
-        $service->execute($this->firmId(), $this->clientId(), $programId, $worksheetId);
+        $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $worksheetId);
         return $this->commandOkResponse();
     }
 
-    public function show($programId, $worksheetId)
+    public function show($programParticipationId, $worksheetId)
     {
         $service = $this->buildViewService();
-        $worksheet = $service->showById($this->firmId(), $this->clientId(), $programId, $worksheetId);
+        $worksheet = $service->showById($this->firmId(), $this->clientId(), $programParticipationId, $worksheetId);
         return $this->singleQueryResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
-    public function showAll($programId)
+    public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
         
@@ -92,7 +92,7 @@ class WorksheetController extends ClientBaseController
         $parentWorksheetId = $this->stripTagQueryRequest('parentWorksheetId');
         
         $worksheets = $service->showAll(
-                $this->firmId(), $this->clientId(), $programId, $this->getPage(), $this->getPageSize(), $missionId,
+                $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize(), $missionId,
                 $parentWorksheetId);
 
         $result = [];

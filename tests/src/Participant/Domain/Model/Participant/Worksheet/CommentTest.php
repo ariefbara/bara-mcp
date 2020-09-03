@@ -2,7 +2,10 @@
 
 namespace Participant\Domain\Model\Participant\Worksheet;
 
-use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Model\ {
+    DependencyEntity\Firm\Program\Consultant\ConsultantComment,
+    Participant\Worksheet
+};
 use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
 
@@ -10,6 +13,7 @@ class CommentTest extends TestBase
 {
     protected $comment;
     protected $worksheet;
+    protected $consultantComment;
     
     protected $id = 'commentId', $message = 'new message';
 
@@ -19,6 +23,8 @@ class CommentTest extends TestBase
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         
         $this->comment = new TestableComment($this->worksheet, 'id', 'root');
+        
+        $this->consultantComment = $this->buildMockOfClass(ConsultantComment::class);
     }
     
     public function test_construct_setProperties()
@@ -45,6 +51,33 @@ class CommentTest extends TestBase
         $this->comment->remove();
         $this->assertTrue($this->comment->removed);
     }
+    public function test_remove_commentBelongsToConsultant_forbiddenError()
+    {
+        $this->comment->consultantComment = $this->consultantComment;
+        $operation = function (){
+            $this->comment->remove();
+        };
+        $errorDetail = 'forbidden: unable to remove consultant comment';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    
+    public function test_getWorksheetId_returnWorksheetsGetIdResult()
+    {
+        $this->worksheet->expects($this->once())
+                ->method('getId');
+        $this->comment->getWorksheetId();
+    }
+    
+    public function test_isConsultantComment_returnFalse()
+    {
+        $this->assertFalse($this->comment->isConsultantComment());
+    }
+    public function test_isConsultantComment_commentIsConsultantComment_returnTrue()
+    {
+        $this->comment->consultantComment = $this->consultantComment;
+        $this->assertTrue($this->comment->isConsultantComment());
+    }
+    
 }
 
 class TestableComment extends Comment
@@ -55,4 +88,5 @@ class TestableComment extends Comment
     public $message;
     public $submitTime;
     public $removed;
+    public $consultantComment;
 }

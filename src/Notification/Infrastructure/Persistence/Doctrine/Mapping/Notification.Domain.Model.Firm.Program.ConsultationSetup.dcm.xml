@@ -2,7 +2,6 @@
 <doctrine-mapping>
     <entity name="Notification\Domain\Model\Firm\Program\ConsultationSetup" 
             table="ConsultationSetup" 
-            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultationSetupRepository" 
     >
         
         <many-to-one  field="program" 
@@ -10,19 +9,9 @@
         >
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
-        <field name="sessionDuration" type="smallint" nullable="false"/>
-        <many-to-one  field="participantFeedbackForm" 
-                      target-entity="Notification\Domain\Model\Firm\FeedbackForm"
-        >
-            <join-column name="FeedbackForm_idForParticipant" referenced-column-name="id" />
-        </many-to-one>
-        <many-to-one  field="consultantFeedbackForm" 
-                      target-entity="Notification\Domain\Model\Firm\FeedbackForm"
-        >
-            <join-column name="FeedbackForm_idForConsultant" referenced-column-name="id" />
-        </many-to-one>
         <field name="removed" type="boolean" />
         
     </entity>

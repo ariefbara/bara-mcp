@@ -69,25 +69,12 @@ class ProgramRegistrationTest extends TestBase
         $this->programRegistration->cancel();
     }
     
-    protected function executeIsUnconcludedRegistrationToProgram()
-    {
-        return $this->programRegistration->isUnconcludedRegistrationToProgram($this->program);
-    }
-    public function test_isUnconcludedRegistrationToProgram_sameProgramId_returnTrue()
-    {
-        $this->assertTrue($this->executeIsUnconcludedRegistrationToProgram());
-    }
-    public function test_isUnconcludedRegistrationToProgram_differentProgramId_returnFalse()
-    {
-        $this->programRegistration->programId = 'differentProgramId';
-        $this->assertFalse($this->executeIsUnconcludedRegistrationToProgram());
-    }
-    public function test_isUnconcludedRegistrationToProgram_registrationAlreadyConcluded()
+    public function test_isUnconcludedRegistrationToProgram_returnRegistrantIsUnconcludedRegistrationToProgramResult()
     {
         $this->registrant->expects($this->once())
-                ->method('isConcluded')
-                ->willReturn(true);
-        $this->assertFalse($this->executeIsUnconcludedRegistrationToProgram());
+                ->method('isUnconcludedRegistrationToProgram')
+                ->with($this->program);
+        $this->programRegistration->isUnconcludedRegistrationToProgram($this->program);
     }
 }
 

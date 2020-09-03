@@ -50,7 +50,7 @@ class ProgramRegistration
 
     public function isUnconcludedRegistrationToProgram(ProgramInterface $program): bool
     {
-        return !$this->registrant->isConcluded() && $this->programId === $program->getId();
+        return $this->registrant->isUnconcludedRegistrationToProgram($program);
     }
 
 }

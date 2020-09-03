@@ -59,8 +59,8 @@ class ClientAccountController extends Controller
         $clientRepository = $this->em->getRepository(Client::class);
         $dispatcher = new Dispatcher();
         
-        $listener = $this->buildSendMailOnClientActivationCodeGeneratedListener();
-        $dispatcher->addListener(ClientActivationCodeGenerated::EVENT_NAME, $listener);
+//        $listener = $this->buildSendMailOnClientActivationCodeGeneratedListener();
+//        $dispatcher->addListener(ClientActivationCodeGenerated::EVENT_NAME, $listener);
         
         $service = new GenerateActivationCode($clientRepository, $dispatcher);
         
@@ -77,8 +77,8 @@ class ClientAccountController extends Controller
         $clientRepository = $this->em->getRepository(Client::class);
         $dispatcher = new Dispatcher();
         
-        $listener = $this->buildSendMainOnClientResetPasswordCodeGeneratedListener();
-        $dispatcher->addListener(ClientResetPasswordCodeGenerated::EVENT_NAME, $listener);
+//        $listener = $this->buildSendMainOnClientResetPasswordCodeGeneratedListener();
+//        $dispatcher->addListener(ClientResetPasswordCodeGenerated::EVENT_NAME, $listener);
         
         $service = new GenerateResetPasswordCode($clientRepository, $dispatcher);
         

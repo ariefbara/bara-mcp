@@ -2,6 +2,8 @@
 
 namespace User\Domain\Model\User;
 
+use User\Domain\Model\ProgramInterface;
+
 class Participant
 {
 
@@ -23,14 +25,14 @@ class Participant
      */
     protected $active;
 
-    public function isActive(): bool
-    {
-        return $this->active;
-    }
-
     protected function __construct()
     {
         ;
+    }
+
+    public function isActiveParticipantInProgram(ProgramInterface $program): bool
+    {
+        return $this->active && $this->programId === $program->getId();
     }
 
 }

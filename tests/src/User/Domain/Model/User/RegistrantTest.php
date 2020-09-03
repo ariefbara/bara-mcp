@@ -52,6 +52,25 @@ class RegistrantTest extends TestBase
         $errorDetail = 'forbidden: program registration already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+    
+    protected function executeIsUnconcludedRegistrationToProgram()
+    {
+        return $this->registrant->isUnconcludedRegistrationToProgram($this->program);
+    }
+    public function test_isUnconcludedRegistrationToProgram_unconcludedToSameProgram_returnTrue()
+    {
+        $this->assertTrue($this->executeIsUnconcludedRegistrationToProgram());
+    }
+    public function test_isUnconcludedRegistrationToProgram_concludedProgram_returnFalse()
+    {
+        $this->registrant->concluded = true;
+        $this->assertFalse($this->executeIsUnconcludedRegistrationToProgram());
+    }
+    public function test_isUnconcludedRegistrationToProgram_differentProgram_returnFalse()
+    {
+        $this->registrant->programId = 'different';
+        $this->assertFalse($this->executeIsUnconcludedRegistrationToProgram());
+    }
 }
 
 class TestableRegistrant extends Registrant

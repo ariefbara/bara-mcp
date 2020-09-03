@@ -2,6 +2,7 @@
 
 namespace Notification\Domain\Model\Firm;
 
+use Notification\Domain\Model\Firm\Personnel\PersonnelMailNotification;
 use Resources\Domain\ {
     Model\Mail\Recipient,
     ValueObject\PersonName
@@ -28,6 +29,18 @@ class PersonnelTest extends TestBase
     {
         $recipient = new Recipient($this->personnel->email, $this->personnel->name);
         $this->assertEquals($recipient, $this->personnel->getMailRecipient());
+    }
+    public function test_getName_returnFullName()
+    {
+        $this->personName->expects($this->once())
+                ->method('getFullName');
+        $this->personnel->getName();
+    }
+    
+    public function test_createMailNotification_returnPersonnelMailNotification()
+    {
+        $personnelMailNotification = new PersonnelMailNotification($this->personnel);
+        $this->assertEquals($personnelMailNotification, $this->personnel->createMailNotification());
     }
 }
 

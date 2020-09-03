@@ -133,7 +133,7 @@ class WorksheetController_containTextAreaFieldTest extends WorksheetTestCase
                 "value" => $this->fieldRecordThree->value,
             ],
         ];
-        $uri = $this->worksheetUri . "/{$this->worksheet->formRecord->id}";
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->get($uri, $this->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($this->worksheet->formRecordResponse);

@@ -25,23 +25,23 @@ class ViewConsultationSession
      * 
      * @param string $firmId
      * @param string $clientId
-     * @param string $programId
+     * @param string $programParticipationId
      * @param int $page
      * @param int $pageSize
      * @return ConsultationSession[]
      */
     public function showAll(
-            string $firmId, string $clientId, string $programId, int $page, int $pageSize,
+            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
             ConsultationSessionFilter $consultationSessionFilter)
     {
         return $this->consultationSessionRepository->allConsultationsSessionOfClient(
-                        $firmId, $clientId, $programId, $page, $pageSize, $consultationSessionFilter);
+                        $firmId, $clientId, $programParticipationId, $page, $pageSize, $consultationSessionFilter);
     }
 
-    public function showById(string $firmId, string $clientId, string $programId, string $consultationSessionId): ConsultationSession
+    public function showById(string $firmId, string $clientId, string $programParticipationId, string $consultationSessionId): ConsultationSession
     {
         return $this->consultationSessionRepository
-                        ->aConsultationSessionOfClient($firmId, $clientId, $programId, $consultationSessionId);
+                        ->aConsultationSessionOfClient($firmId, $clientId, $programParticipationId, $consultationSessionId);
     }
 
 }

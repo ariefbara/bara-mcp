@@ -15,16 +15,16 @@ use Resources\Exception\RegularException;
 class DoctrineUserParticipantRepository extends EntityRepository implements UserParticipantRepository
 {
     
-    public function ofId(string $userId, string $programParticipationId): UserParticipant
+    public function ofId(string $userId, string $userParticipantId): UserParticipant
     {
         $params = [
             'userId' => $userId,
-            'programParticipationId' => $programParticipationId,
+            'userParticipantId' => $userParticipantId,
         ];
         
         $qb = $this->createQueryBuilder('userParticipant');
         $qb->select('userParticipant')
-                ->andWhere($qb->expr()->eq('userParticipant.id', ':programParticipationId'))
+                ->andWhere($qb->expr()->eq('userParticipant.id', ':userParticipantId'))
                 ->andWhere($qb->expr()->eq('userParticipant.userId', ':userId'))
                 ->setParameters($params)
                 ->setMaxResults(1);

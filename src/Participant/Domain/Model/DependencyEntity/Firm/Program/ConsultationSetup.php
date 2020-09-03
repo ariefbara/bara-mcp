@@ -4,21 +4,21 @@ namespace Participant\Domain\Model\DependencyEntity\Firm\Program;
 
 use DateInterval;
 use DateTimeImmutable;
+use Participant\Domain\Model\DependencyEntity\Firm\FeedbackForm;
 use Resources\Domain\ValueObject\DateTimeInterval;
-use SharedContext\Domain\Model\ {
-    Firm\FeedbackForm,
-    SharedEntity\FormRecord,
-    SharedEntity\FormRecordData
+use SharedContext\Domain\Model\SharedEntity\ {
+    FormRecord,
+    FormRecordData
 };
 
 class ConsultationSetup
 {
+
     /**
      *
      * @var string
      */
     protected $programId;
-
 
     /**
      *
@@ -43,17 +43,17 @@ class ConsultationSetup
      * @var bool
      */
     protected $removed = false;
-    
+
     protected function __construct()
     {
         ;
     }
-    
+
     public function programIdEquals(string $programId): bool
     {
         return $this->programId == $programId;
     }
-    
+
     public function createFormRecordForParticipantFeedback(string $formRecordId, FormRecordData $formRecordData): FormRecord
     {
         return $this->participantFeedbackForm->createFormRecord($formRecordId, $formRecordData);
@@ -64,4 +64,5 @@ class ConsultationSetup
         $endTime = $startTime->add(new DateInterval("PT{$this->sessionDuration}M"));
         return new DateTimeInterval($startTime, $endTime);
     }
+
 }

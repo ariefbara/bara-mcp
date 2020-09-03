@@ -11,9 +11,11 @@ interface ConsultationRequestRepository
 
     public function add(ConsultationRequest $consultationRequest): void;
 
-    public function consultationRequestFromClient(string $firmId, string $clientId, string $programId, string $consultationRequestId): ConsultationRequest;
-    
-    public function consultationRequestFromUser(string $userId, string $firmId, string $programId, string $consultationRequestId): ConsultationRequest;
+    public function aConsultationRequestFromClientParticipant(
+            string $firmId, string $clientId, string $programParticipationId, string $consultationRequestId): ConsultationRequest;
+
+    public function aConsultationRequestFromUserParticipant(
+            $userId, string $programParticipationId, string $consultationRequestId): ConsultationRequest;
 
     public function update(): void;
 }

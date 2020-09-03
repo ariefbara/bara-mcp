@@ -4,9 +4,10 @@ namespace Notification\Domain\Model\Firm\Program;
 
 use Notification\Domain\Model\Firm\ {
     Client\ClientParticipant,
-    Program
+    Program,
+    Program\Participant\ParticipantMailNotification
 };
-use Query\Domain\Model\FirmWhitelableInfo;
+use Query\Domain\Model\User\UserParticipant;
 
 class Participant
 {
@@ -50,7 +51,18 @@ class Participant
     {
         ;
     }
-
+    
+    public function createMailNotification(): ParticipantMailNotification
+    {
+        return new ParticipantMailNotification($this);
+    }
+    
+    public function getParticipantName(): string
+    {
+        
+    }
+    
+/*
     public function getFirmWhitelableInfo(): FirmWhitelableInfo
     {
         return $this->program->getFirmWhitelableInfo();
@@ -68,5 +80,16 @@ class Participant
     {
         return $this->program->getId();
     }
+    
+    public function getMailRecipient(): Recipient
+    {
+    }
+    
+    public function getProgramParticipationId(): string
+    {
+        
+    }
+ * 
+ */
 
 }

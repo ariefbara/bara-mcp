@@ -2,13 +2,15 @@
 
 namespace Query\Application\Service\Firm\Program;
 
-use Firm\Application\Service\Firm\Program\ProgramCompositionId;
-use Query\Domain\Model\Firm\Program\Consultant;
+use Query\ {
+    Application\Service\Firm\Personnel\ProgramConsultationRepository as InterfaceForPersonnel,
+    Domain\Model\Firm\Program\Consultant
+};
 
-interface ConsultantRepository
+interface ConsultantRepository extends InterfaceForPersonnel
 {
 
-    public function ofId(ProgramCompositionId $programCompositionId, string $consultantId): Consultant;
+    public function ofId(string $firmId, string $programId, string $consultantId): Consultant;
 
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize);
+    public function all(string $firmId, string $programId, int $page, int $pageSize);
 }

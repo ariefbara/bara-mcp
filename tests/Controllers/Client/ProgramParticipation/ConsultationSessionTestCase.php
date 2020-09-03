@@ -25,7 +25,7 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
     {
         parent::setUp();
         
-        $this->consultationSessionUri = $this->programParticipationUri . "/{$this->programParticipation->program->id}/consultation-sessions";
+        $this->consultationSessionUri = $this->programParticipationUri . "/{$this->programParticipation->id}/consultation-sessions";
         $this->connection->table('Form')->truncate();
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -33,20 +33,23 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         
+        $program = $this->programParticipation->participant->program;
+        $firm = $program->firm;
+        
         $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
         
-        $feedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm, $form);
+        $feedbackForm = new RecordOfFeedbackForm($firm, $form);
         $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
         
-        $consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program, $feedbackForm, $feedbackForm, 0);
+        $consultationSetup = new RecordOfConsultationSetup($program, $feedbackForm, $feedbackForm, 0);
         $this->connection->table("ConsultationSetup")->insert($consultationSetup->toArrayForDbEntry());
         
-        $personnel = new RecordOfPersonnel($this->programParticipation->program->firm, 0, "personnel@email.org", 'password123');
+        $personnel = new RecordOfPersonnel($firm, 0, "personnel@email.org", 'password123');
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
         
         
-        $consultant = new RecordOfConsultant($this->programParticipation->program, $personnel, 0);
+        $consultant = new RecordOfConsultant($program, $personnel, 0);
         $this->connection->table("Consultant")->insert($consultant->toArrayForDbEntry());
         
         $this->consultationSession = new RecordOfConsultationSession($consultationSetup, $this->programParticipation->participant, $consultant, 0);

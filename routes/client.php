@@ -24,7 +24,7 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
     });
     $programParticipationAggregate = [
-        'prefix' => '/program-participations/{programId}',
+        'prefix' => '/program-participations/{programParticipationId}',
         'namespace' => 'ProgramParticipation',
     ];
     $router->group($programParticipationAggregate, function () use ($router) {
@@ -46,7 +46,7 @@ $router->group($clientAggregate, function () use ($router) {
             $router->group(['prefix' => '/comments'], function () use($router) {
                 $controller = "CommentController";
                 $router->post("", ["uses" => "$controller@submitNew"]);
-                $router->post("/{consultantCommentId}", ["uses" => "$controller@replyConsultantComment"]);
+                $router->post("/{commentId}", ["uses" => "$controller@reply"]);
                 $router->get("/{commentId}", ["uses" => "$controller@show"]);
                 $router->get("", ["uses" => "$controller@showAll"]);
             });

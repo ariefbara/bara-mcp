@@ -31,24 +31,24 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
         $this->connection->table('ParticipantFeedback')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        
+        $program = $this->programParticipation->participant->program;
+        $firm = $program->firm;
 
         $form = new RecordOfForm(1);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
 
-        $feedbackForm = new RecordOfFeedbackForm($this->programParticipation->program->firm,
-                $form);
+        $feedbackForm = new RecordOfFeedbackForm($firm,$form);
         $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
 
-        $consultationSetup = new RecordOfConsultationSetup($this->programParticipation->program,
-                $feedbackForm, $feedbackForm, 1);
+        $consultationSetup = new RecordOfConsultationSetup($program,$feedbackForm, $feedbackForm, 1);
         $this->connection->table("ConsultationSetup")->insert($consultationSetup->toArrayForDbEntry());
 
-        $personnel = new RecordOfPersonnel($this->programParticipation->program->firm, 1, "personnel_1@email.org",
-                'password123');
+        $personnel = new RecordOfPersonnel($firm, 1, "personnel_1@email.org", 'password123');
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
 
 
-        $consultant = new RecordOfConsultant($this->programParticipation->program, $personnel, 1);
+        $consultant = new RecordOfConsultant($program, $personnel, 1);
         $this->connection->table("Consultant")->insert($consultant->toArrayForDbEntry());
 
         $this->consultationSessionOne = new RecordOfConsultationSession($consultationSetup, $this->programParticipation->participant,
@@ -170,6 +170,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
+    
     public function test_setParticipantFeedback()
     {
         $this->participantFeedbackInput["stringFieldRecords"] = [];
@@ -224,7 +225,6 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
         ];
         $this->seeInDatabase("FormRecord", $formRecordEntry);
     }
-
     public function test_setParticipantFeedback_consultationSessionAlreadyHasParticipantFeedback_updateExistingParticipantFeedback()
     {
         $response = [

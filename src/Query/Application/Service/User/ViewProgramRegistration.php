@@ -2,7 +2,8 @@
 
 namespace Query\Application\Service\User;
 
-use Query\Domain\Model\Firm\Program\UserRegistrant;
+use Query\Domain\Model\User\UserRegistrant;
+
 
 class ViewProgramRegistration
 {

@@ -2,9 +2,9 @@
 
 namespace Resources\Infrastructure\MailManager;
 
-use Resources\ {
-    Application\Service\Mailer,
-    Domain\Model\Mail
+use Resources\Application\Service\ {
+    Mailer,
+    MailInterface
 };
 use Swift_Attachment;
 use Swift_Mailer;
@@ -26,16 +26,16 @@ class SwiftMailer implements Mailer
     }
 
     
-    public function send(Mail $mail, string $senderName, string $senderAddress): void
+    public function send(MailInterface $mail): void
     {
         $recipients = [];
         foreach ($mail->getRecipients() as $recipient) {
-            $recipients[$recipient->getAddress()] = $recipient->getFullName();
+            $recipients[$recipient->getMailAddress()] = $recipient->getFullName();
         }
         
         $message = (new Swift_Message())
             ->setSubject($mail->getSubject())
-            ->setFrom($senderAddress, $senderName)
+            ->setFrom($mail->getSenderMailAddress(), $mail->getSenderName())
             ->setBody($mail->getBody())
             ->setTo($recipients);
         

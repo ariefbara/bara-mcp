@@ -8,23 +8,23 @@ use Participant\ {
 };
 use Query\ {
     Application\Service\User\ViewProgramParticipation,
-    Domain\Model\Firm\Program\UserParticipant
+    Domain\Model\User\UserParticipant
 };
 
 class ProgramParticipationController extends UserBaseController
 {
 
-    public function quit($firmId, $programId)
+    public function quit($programParticipationId)
     {
         $service = $this->buildQuitService();
-        $service->execute($this->userId(), $firmId, $programId);
+        $service->execute($this->userId(), $programParticipationId);
         return $this->commandOkResponse();
     }
 
-    public function show($firmId, $programId)
+    public function show($programParticipationId)
     {
         $service = $this->buildViewService();
-        $programParticipation = $service->showById($this->userId(), $firmId, $programId);
+        $programParticipation = $service->showById($this->userId(), $programParticipationId);
         return $this->singleQueryResponse($this->arrayDataOfProgramParticipation($programParticipation));
     }
 

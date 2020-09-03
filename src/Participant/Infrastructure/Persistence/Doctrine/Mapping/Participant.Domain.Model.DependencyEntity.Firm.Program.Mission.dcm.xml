@@ -5,12 +5,7 @@
             repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineMissionRepository" 
     >
         
-        <many-to-one  field="program" 
-                      target-entity="SharedContext\Domain\Model\Firm\Program"
-        >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
-        
+        <field name="programId" column="Program_id" type="guid" nullable="false"/>
         <many-to-one field="parent" 
                     target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\Mission" 
                     inversed-by="branches"
@@ -20,11 +15,13 @@
         
         <id name="id" type="guid" />
         <field name="published" type="boolean"/>
+        
         <many-to-one  field="worksheetForm" 
                       target-entity="Participant\Domain\Model\DependencyEntity\Firm\WorksheetForm"
         >
             <join-column name="WorksheetForm_id" referenced-column-name="id" />
         </many-to-one>
+        
         <one-to-many field="branches" 
                     target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\Mission" 
                     mapped-by="parent"

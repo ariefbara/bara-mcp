@@ -58,8 +58,8 @@ class UserAccountController extends Controller
         $userRepository = $this->em->getRepository(User::class);
         $dispatcher = new Dispatcher();
 
-        $listener = $this->buildSendMailWhenUserActivationCodeGeneratedListener();
-        $dispatcher->addListener(UserActivationCodeGenerated::EVENT_NAME, $listener);
+//        $listener = $this->buildSendMailWhenUserActivationCodeGeneratedListener();
+//        $dispatcher->addListener(UserActivationCodeGenerated::EVENT_NAME, $listener);
 
         $service = new GenerateUserActivationCode($userRepository, $dispatcher);
         $email = $this->stripTagsInputRequest('email');
@@ -73,8 +73,8 @@ class UserAccountController extends Controller
         $userRepository = $this->em->getRepository(User::class);
         $dispatcher = new Dispatcher();
 
-        $listener = $this->buildSendMailWhenUserResetPasswordCodeGeneratedListener();
-        $dispatcher->addListener(UserPasswordResetCodeGenerated::EVENT_NAME, $listener);
+//        $listener = $this->buildSendMailWhenUserResetPasswordCodeGeneratedListener();
+//        $dispatcher->addListener(UserPasswordResetCodeGenerated::EVENT_NAME, $listener);
 
         $service = new GenerateUserResetPasswordCode($userRepository, $dispatcher);
         $email = $this->stripTagsInputRequest('email');

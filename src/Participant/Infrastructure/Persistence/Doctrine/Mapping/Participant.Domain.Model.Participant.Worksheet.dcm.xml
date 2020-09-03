@@ -9,24 +9,29 @@
         >
             <join-column name="Participant_id" referenced-column-name="id" />
         </many-to-one>
+        
         <many-to-one  field="parent" 
                       target-entity="Participant\Domain\Model\Participant\Worksheet"
         >
             <join-column name="parent_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
+        
         <many-to-one  field="mission" 
                       target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\Mission"
         >
             <join-column name="Mission_id" referenced-column-name="id" />
         </many-to-one>
+        
         <one-to-one field="formRecord" 
                     target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord"
         >
             <cascade><cascade-persist /></cascade>
             <join-column name="FormRecord_id" referenced-column-name="id" />
         </one-to-one>
+        
         <field name="removed" type="boolean" />
         
     </entity>

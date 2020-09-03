@@ -132,7 +132,7 @@ class WorksheetController_containStringFieldTest extends WorksheetTestCase
                 "value" => $this->stringFieldRecordThree->value,
             ],
         ];
-        $uri = $this->worksheetUri . "/{$this->worksheet->formRecord->id}";
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->get($uri, $this->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($this->profileResponse);

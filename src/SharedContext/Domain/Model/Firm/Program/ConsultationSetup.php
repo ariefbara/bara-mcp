@@ -4,7 +4,6 @@ namespace SharedContext\Domain\Model\Firm\Program;
 
 use DateInterval;
 use DateTimeImmutable;
-use Participant\Domain\Model\DependencyEntity\Firm\Program\ConsultationSetupInterface as InterfaceForParticipantBC;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\ {
     Firm\FeedbackForm,
@@ -13,7 +12,7 @@ use SharedContext\Domain\Model\ {
     SharedEntity\FormRecordData
 };
 
-class ConsultationSetup implements InterfaceForParticipantBC
+class ConsultationSetup
 {
 
     /**

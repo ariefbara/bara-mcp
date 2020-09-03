@@ -11,9 +11,9 @@ interface ConsultationSessionRepository
 {
 
     public function aConsultationSessionOfPersonnel(
-            string $firmId, string $personnelId, string $programId, string $consultationSessionId): ConsultationSession;
+            string $firmId, string $personnelId, string $programConsultationId, string $consultationSessionId): ConsultationSession;
 
     public function allConsultationSessionsOfPersonnel(
-            string $firmId, string $personnelId, string $programId, int $page, int $pageSize,
+            string $firmId, string $personnelId, string $programConsultationId, int $page, int $pageSize,
             ?ConsultationSessionFilter $consultationSessionFilter);
 }

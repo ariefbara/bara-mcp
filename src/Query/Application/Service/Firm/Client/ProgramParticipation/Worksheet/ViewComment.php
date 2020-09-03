@@ -22,24 +22,24 @@ class ViewComment
      * 
      * @param string $firmId
      * @param string $clientId
-     * @param string $programId
+     * @param string $programParticipationId
      * @param string $worksheetId
      * @param int $page
      * @param int $pageSize
      * @return Comment[]
      */
     public function showAll(
-            string $firmId, string $clientId, string $programId, string $worksheetId, int $page, int $pageSize)
+            string $firmId, string $clientId, string $programParticipationId, string $worksheetId, int $page, int $pageSize)
     {
         return $this->commentRepository
-                        ->allCommentsInClientWorksheet($firmId, $clientId, $programId, $worksheetId, $page, $pageSize);
+                        ->allCommentsInClientWorksheet($firmId, $clientId, $programParticipationId, $worksheetId, $page, $pageSize);
     }
 
     public function showById(
-            string $firmId, string $clientId, string $programId, string $worksheetId, string $commentId): Comment
+            string $firmId, string $clientId, string $programParticipationId, string $worksheetId, string $commentId): Comment
     {
         return $this->commentRepository
-                        ->aCommentInClientWorksheet($firmId, $clientId, $programId, $worksheetId, $commentId);
+                        ->aCommentInClientWorksheet($firmId, $clientId, $programParticipationId, $worksheetId, $commentId);
     }
 
 }

@@ -2,7 +2,7 @@
 
 namespace Query\Application\Service\User;
 
-use Query\Domain\Model\Firm\Program\UserParticipant;
+use Query\Domain\Model\User\UserParticipant;
 
 class ViewProgramParticipation
 {
@@ -27,12 +27,12 @@ class ViewProgramParticipation
      */
     public function showAll(string $userId, int $page, int $pageSize)
     {
-        return $this->programParticipationRepository->allProgramParticipationsOfUser($userId, $page, $pageSize);
+        return $this->programParticipationRepository->all($userId, $page, $pageSize);
     }
 
-    public function showById(string $userId, string $firmId, string $programId): UserParticipant
+    public function showById(string $userId, string $userParticipantId): UserParticipant
     {
-        return $this->programParticipationRepository->aProgramParticipationOfUser($userId, $firmId, $programId);
+        return $this->programParticipationRepository->ofId($userId, $userParticipantId);
     }
 
 }

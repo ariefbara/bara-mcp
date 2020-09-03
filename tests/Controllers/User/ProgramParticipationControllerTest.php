@@ -4,9 +4,9 @@ namespace Tests\Controllers\User;
 
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfParticipant,
-    Firm\Program\RecordOfUserParticipant,
     Firm\RecordOfProgram,
-    RecordOfFirm
+    RecordOfFirm,
+    User\RecordOfUserParticipant
 };
 
 class ProgramParticipationControllerTest extends ProgramParticipationTestCase
@@ -23,12 +23,12 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $program = new RecordOfProgram($firm, 1);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
         
-        $participant = new RecordOfParticipant(1);
+        $participant = new RecordOfParticipant($program, 1);
         $participant->active = false;
         $participant->note = 'quit';
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
         
-        $this->inactiveProgramParticipation = new RecordOfUserParticipant($program, $this->user, $participant);
+        $this->inactiveProgramParticipation = new RecordOfUserParticipant($this->user, $participant);
         $this->connection->table('UserParticipant')->insert($this->inactiveProgramParticipation->toArrayForDbEntry());
     }
     
@@ -39,7 +39,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     
     public function test_quit_200()
     {
-        $uri = $this->programParticipationUri . "/{$this->programParticipation->program->firm->id}/{$this->programParticipation->program->id}/quit";
+        $uri = $this->programParticipationUri . "/{$this->programParticipation->id}/quit";
         $this->patch($uri, [], $this->user->token)
                 ->seeStatusCode(200);
         
@@ -52,7 +52,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     }
     public function test_quit_alreadyInactive_403()
     {
-        $uri = $this->programParticipationUri . "/{$this->inactiveProgramParticipation->program->firm->id}/{$this->inactiveProgramParticipation->program->id}/quit";
+        $uri = $this->programParticipationUri . "/{$this->inactiveProgramParticipation->id}/quit";
         $this->patch($uri, [], $this->user->token)
                 ->seeStatusCode(403);
         
@@ -62,12 +62,12 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     {
         $response = [
             'program' => [
-                'id' => $this->programParticipation->program->id,
-                'name' => $this->programParticipation->program->name,
-                'removed' => $this->programParticipation->program->removed,
+                'id' => $this->programParticipation->participant->program->id,
+                'name' => $this->programParticipation->participant->program->name,
+                'removed' => $this->programParticipation->participant->program->removed,
                 'firm' => [
-                    'id' => $this->programParticipation->program->firm->id,
-                    'name' => $this->programParticipation->program->firm->name,
+                    'id' => $this->programParticipation->participant->program->firm->id,
+                    'name' => $this->programParticipation->participant->program->firm->name,
                 ],
             ],
             'enrolledTime' => $this->programParticipation->participant->enrolledTime,
@@ -75,7 +75,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
             'note' => $this->programParticipation->participant->note,
         ];
         
-        $uri = $this->programParticipationUri . "/{$this->programParticipation->program->firm->id}/{$this->programParticipation->program->id}";
+        $uri = $this->programParticipationUri . "/{$this->programParticipation->id}";
         $this->get($uri, $this->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
@@ -87,12 +87,12 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
             'list' => [
                 [
                     'program' => [
-                        'id' => $this->programParticipation->program->id,
-                        'name' => $this->programParticipation->program->name,
-                        'removed' => $this->programParticipation->program->removed,
+                        'id' => $this->programParticipation->participant->program->id,
+                        'name' => $this->programParticipation->participant->program->name,
+                        'removed' => $this->programParticipation->participant->program->removed,
                         'firm' => [
-                            'id' => $this->programParticipation->program->firm->id,
-                            'name' => $this->programParticipation->program->firm->name,
+                            'id' => $this->programParticipation->participant->program->firm->id,
+                            'name' => $this->programParticipation->participant->program->firm->name,
                         ],
                     ],
                     'enrolledTime' => $this->programParticipation->participant->enrolledTime,
@@ -101,12 +101,12 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                 ],
                 [
                     'program' => [
-                        'id' => $this->inactiveProgramParticipation->program->id,
-                        'name' => $this->inactiveProgramParticipation->program->name,
-                        'removed' => $this->inactiveProgramParticipation->program->removed,
+                        'id' => $this->inactiveProgramParticipation->participant->program->id,
+                        'name' => $this->inactiveProgramParticipation->participant->program->name,
+                        'removed' => $this->inactiveProgramParticipation->participant->program->removed,
                         'firm' => [
-                            'id' => $this->inactiveProgramParticipation->program->firm->id,
-                            'name' => $this->inactiveProgramParticipation->program->firm->name,
+                            'id' => $this->inactiveProgramParticipation->participant->program->firm->id,
+                            'name' => $this->inactiveProgramParticipation->participant->program->firm->name,
                         ],
                     ],
                     'enrolledTime' => $this->inactiveProgramParticipation->participant->enrolledTime,

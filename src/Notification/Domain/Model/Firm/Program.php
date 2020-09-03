@@ -3,7 +3,7 @@
 namespace Notification\Domain\Model\Firm;
 
 use Notification\Domain\Model\Firm;
-use Query\Domain\Model\FirmWhitelableInfo;
+use Resources\Application\Service\SenderInterface;
 
 class Program
 {
@@ -32,19 +32,19 @@ class Program
      */
     protected $removed = false;
 
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
     protected function __construct()
     {
         ;
     }
-
-    public function getFirmWhitelableInfo(): FirmWhitelableInfo
+    
+    public function getFirmWhitelableUrl(): string
     {
-        return $this->firm->getFirmWhitelableInfo();
+        return $this->firm->getWhitelableUrl();
+    }
+    
+    public function getFirmMailSender(): SenderInterface
+    {
+        return $this->firm->getMailSender();
     }
 
 }

@@ -4,9 +4,9 @@ namespace Tests\Controllers\User;
 
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfParticipant,
-    Firm\Program\RecordOfUserParticipant,
     Firm\RecordOfProgram,
-    RecordOfFirm
+    RecordOfFirm,
+    User\RecordOfUserParticipant
 };
 
 class ProgramParticipationTestCase extends UserTestCase
@@ -35,10 +35,10 @@ class ProgramParticipationTestCase extends UserTestCase
         $program = new RecordOfProgram($firm, 0);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
         
-        $participant = new RecordOfParticipant(0);
+        $participant = new RecordOfParticipant($program, 0);
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
         
-        $this->programParticipation = new RecordOfUserParticipant($program, $this->user, $participant);
+        $this->programParticipation = new RecordOfUserParticipant($this->user, $participant);
         $this->connection->table('UserParticipant')->insert($this->programParticipation->toArrayForDbEntry());
     }
     

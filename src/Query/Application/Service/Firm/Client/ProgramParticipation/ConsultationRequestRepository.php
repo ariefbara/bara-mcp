@@ -11,9 +11,9 @@ interface ConsultationRequestRepository
 {
 
     public function aConsultationRequestOfClient(
-            string $firmId, string $clientId, string $programId, string $consultationRequestId): ConsultationRequest;
+            string $firmId, string $clientId, string $programParticipationId, string $consultationRequestId): ConsultationRequest;
 
     public function allConsultationRequestsOfClient(
-            string $firmId, string $clientId, string $programId, int $page, int $pageSize,
+            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
             ?ConsultationRequestFilter $consultationRequestFilter);
 }

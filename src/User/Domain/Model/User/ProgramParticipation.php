@@ -35,7 +35,7 @@ class ProgramParticipation
     
     public function isActiveParticipantInProgram(ProgramInterface $program): bool
     {
-        return $this->participant->isActive() && $this->programId === $program->getId();
+        return $this->participant->isActiveParticipantInProgram($program);
     }
 
 }

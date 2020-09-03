@@ -8,8 +8,9 @@ interface CommentRepository
 {
 
     public function aCommentInClientWorksheet(
-            string $firmId, string $clientId, string $programId, string $worksheetId, string $commentId): Comment;
+            string $firmId, string $clientId, string $programParticipationId, string $worksheetId, string $commentId): Comment;
 
     public function allCommentsInClientWorksheet(
-            string $firmId, string $clientId, string $programId, string $worksheetId, int $page, int $pageSize);
+            string $firmId, string $clientId, string $programParticipationId, string $worksheetId, int $page,
+            int $pageSize);
 }

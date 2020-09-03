@@ -4,6 +4,7 @@
             table="Participant" 
     >
         
+        <field name="programId" column="Program_id" type="guid" />
         <id name="id" type="guid" />
         <field name="active" type="boolean" />
         <field name="note" type="string" length="256" nullable="true"/>

@@ -10,8 +10,9 @@ use Doctrine\ORM\ {
 use Query\ {
     Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
     Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestRepository,
-    Domain\Model\Firm\Program\ClientParticipant,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
+    Domain\Model\Firm\Client\ClientParticipant,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
+    Domain\Model\User\UserParticipant
 };
 use Resources\ {
     Exception\RegularException,
@@ -21,28 +22,25 @@ use Resources\ {
 class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository
 {
 
-    public function aConsultationRequestOfClient(string $firmId, string $clientId, string $programId,
-            string $consultationRequestId): ConsultationRequest
+    public function aConsultationRequestOfClient(
+            string $firmId, string $clientId, string $programParticipationId, string $consultationRequestId): ConsultationRequest
     {
         $params = [
             'firmId' => $firmId,
             'clientId' => $clientId,
-            'programId' => $programId,
+            'programParticipationId' => $programParticipationId,
             'consultationRequestId' => $consultationRequestId,
         ];
 
         $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('tParticipant.id')
+        $clientParticipantQb->select('t_participant.id')
                 ->from(ClientParticipant::class, 'clientParticipant')
-                ->leftJoin('clientParticipant.participant', 'tParticipant')
+                ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
                 ->leftJoin('clientParticipant.client', 'client')
+                ->leftJoin('clientParticipant.participant', 't_participant')
                 ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
-                ->leftJoin('clientParticipant.program', 'program')
-                ->andWhere($clientParticipantQb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('client.firm', 'cFirm')
-                ->leftJoin('program.firm', 'pFirm')
-                ->andWhere($clientParticipantQb->expr()->eq('cFirm.id', ':firmId'))
-                ->andWhere($clientParticipantQb->expr()->eq('pFirm.id', ':firmId'))
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($clientParticipantQb->expr()->eq('firm.id', ':firmId'))
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('consultationRequest');
@@ -61,22 +59,21 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         }
     }
 
-    public function aConsultationRequestOfPersonnel(string $firmId, string $personnelId, string $programId,
-            string $consultationRequestId): ConsultationRequest
+    public function aConsultationRequestOfPersonnel(
+            string $firmId, string $personnelId, string $programConsultationId, string $consultationRequestId): ConsultationRequest
     {
         $params = [
             'firmId' => $firmId,
-            'personnelId' => $firmId,
-            'programId' => $programId,
+            'personnelId' => $personnelId,
+            'programConsultationId' => $programConsultationId,
             'consultationRequestId' => $consultationRequestId,
         ];
-        $qb = $this->createQueryBuilder('consulationRequest');
-        $qb->select('consulationRequest')
-                ->andWhere($qb->expr()->eq('consulationRequest.id', ':consulationRequestId'))
-                ->leftJoin('consulationRequest.consultant', 'consultant')
-                ->leftJoin('consultant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('consultant.personnel', 'personnel')
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->andWhere($qb->expr()->eq('consultationRequest.id', ':consultationRequestId'))
+                ->leftJoin('consultationRequest.consultant', 'programConsultation')
+                ->andWhere($qb->expr()->eq('programConsultation.id', ':programConsultationId'))
+                ->leftJoin('programConsultation.personnel', 'personnel')
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
@@ -91,7 +88,8 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         }
     }
 
-    public function all(string $firmId, string $programId, string $consultationSetupId, int $page, int $pageSize,
+    public function all(
+            string $firmId, string $programId, string $consultationSetupId, int $page, int $pageSize,
             ?ConsultationRequestFilter $consultationRequestFilter)
     {
         $params = [
@@ -99,9 +97,9 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
             'programId' => $programId,
             'consultationSetupId' => $consultationSetupId,
         ];
-        $qb = $this->createQueryBuilder('consulationRequest');
-        $qb->select('consulationRequest')
-                ->leftJoin('consulationRequest.consultationSetup', 'consultationSetup')
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->leftJoin('consultationRequest.consultationSetup', 'consultationSetup')
                 ->andWhere($qb->expr()->eq('consultationSetup.id', ':consultationSetupId'))
                 ->leftJoin('consultationSetup.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
@@ -110,67 +108,60 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
                 ->setParameters($params);
 
         $this->applyFilter($qb, $consultationRequestFilter);
-
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
     public function allConsultationRequestsOfClient(
-            string $firmId, string $clientId, string $programId, int $page, int $pageSize,
+            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
             ?ConsultationRequestFilter $consultationRequestFilter)
     {
         $params = [
             'firmId' => $firmId,
             'clientId' => $clientId,
-            'programId' => $programId,
+            'programParticipationId' => $programParticipationId,
         ];
 
         $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('tParticipant.id')
+        $clientParticipantQb->select('t_participant.id')
                 ->from(ClientParticipant::class, 'clientParticipant')
-                ->leftJoin('clientParticipant.participant', 'tParticipant')
+                ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
                 ->leftJoin('clientParticipant.client', 'client')
+                ->leftJoin('clientParticipant.participant', 't_participant')
                 ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
-                ->leftJoin('clientParticipant.program', 'program')
-                ->andWhere($clientParticipantQb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('client.firm', 'cFirm')
-                ->leftJoin('program.firm', 'pFirm')
-                ->andWhere($clientParticipantQb->expr()->eq('cFirm.id', ':firmId'))
-                ->andWhere($clientParticipantQb->expr()->eq('pFirm.id', ':firmId'))
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($clientParticipantQb->expr()->eq('firm.id', ':firmId'))
                 ->setMaxResults(1);
 
-        $qb = $this->createQueryBuilder('consulationRequest');
-        $qb->select('consulationRequest')
-                ->leftJoin('consulationRequest.participant', 'participant')
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->leftJoin('consultationRequest.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
                 ->setParameters($params);
 
         $this->applyFilter($qb, $consultationRequestFilter);
-
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
     public function allConsultationRequestsOfPersonnel(
-            string $firmId, string $personnelId, string $programId, int $page, int $pageSize,
+            string $firmId, string $personnelId, string $programConsultationId, int $page, int $pageSize,
             ?ConsultationRequestFilter $consultationRequestFilter)
     {
         $params = [
             'firmId' => $firmId,
-            'personnelId' => $firmId,
-            'programId' => $programId,
+            'personnelId' => $personnelId,
+            'programConsultationId' => $programConsultationId,
         ];
-        $qb = $this->createQueryBuilder('consulationRequest');
-        $qb->select('consulationRequest')
-                ->leftJoin('consulationRequest.consultant', 'consultant')
-                ->leftJoin('consultant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('consultant.personnel', 'personnel')
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->leftJoin('consultationRequest.consultant', 'programConsultation')
+                ->andWhere($qb->expr()->eq('programConsultation.id', ':programConsultationId'))
+                ->leftJoin('programConsultation.personnel', 'personnel')
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
 
         $this->applyFilter($qb, $consultationRequestFilter);
-
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -182,10 +173,10 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
             'consultationSetupId' => $consultationSetupId,
             'consultationRequestId' => $consultationRequestId,
         ];
-        $qb = $this->createQueryBuilder('consulationRequest');
-        $qb->select('consulationRequest')
-                ->andWhere($qb->expr()->eq('consulationRequest.id', ':consulationRequestId'))
-                ->leftJoin('consulationRequest.consultationSetup', 'consultationSetup')
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->andWhere($qb->expr()->eq('consultationRequest.id', ':consultationRequestId'))
+                ->leftJoin('consultationRequest.consultationSetup', 'consultationSetup')
                 ->andWhere($qb->expr()->eq('consultationSetup.id', ':consultationSetupId'))
                 ->leftJoin('consultationSetup.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
@@ -216,6 +207,68 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
             $qb->andWhere($qb->expr()->lt('consultationRequest.startEndTime.startDateTime', ':maxStartTime'))
                     ->setParameter('maxStartTime', $maxStartTime);
         }
+    }
+
+    public function aConsultationRequestFromUserParticipant(string $userId, string $userParticipantId,
+            string $consultationRequestId): ConsultationRequest
+    {
+        $params = [
+            'userId' => $userId,
+            'userParticipantId' => $userParticipantId,
+            'consultationRequestId' => $consultationRequestId,
+        ];
+
+        $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $userParticipantQb->select('t_participant.id')
+                ->from(UserParticipant::class, 'userParticipant')
+                ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':userParticipantId'))
+                ->leftJoin('userParticipant.participant', 't_participant')
+                ->leftJoin('userParticipant.user', 'user')
+                ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->andWhere($qb->expr()->eq('consultationRequest.id', ':consultationRequestId'))
+                ->leftJoin('consultationRequest.participant', 'participant')
+                ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: consultation request not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allConsultationRequestFromUserParticipant(string $userId, string $userParticipantId, int $page,
+            int $pageSize, ?ConsultationRequestFilter $consultationRequestFilter)
+    {
+        $params = [
+            'userId' => $userId,
+            'userParticipantId' => $userParticipantId,
+        ];
+
+        $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $userParticipantQb->select('t_participant.id')
+                ->from(UserParticipant::class, 'userParticipant')
+                ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':userParticipantId'))
+                ->leftJoin('userParticipant.participant', 't_participant')
+                ->leftJoin('userParticipant.user', 'user')
+                ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('consultationRequest');
+        $qb->select('consultationRequest')
+                ->leftJoin('consultationRequest.participant', 'participant')
+                ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
+                ->setParameters($params);
+        
+        $this->applyFilter($qb, $consultationRequestFilter);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+        
     }
 
 }

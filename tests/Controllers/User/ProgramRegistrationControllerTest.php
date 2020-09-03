@@ -8,10 +8,10 @@ use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfParticipant,
     Firm\Program\RecordOfRegistrant,
     Firm\Program\RecordOfRegistrationPhase,
-    Firm\Program\RecordOfUserParticipant,
-    Firm\Program\RecordOfUserRegistrant,
     Firm\RecordOfProgram,
-    RecordOfFirm
+    RecordOfFirm,
+    User\RecordOfUserParticipant,
+    User\RecordOfUserRegistrant
 };
 
 class ProgramRegistrationControllerTest extends UserTestCase
@@ -52,15 +52,15 @@ class ProgramRegistrationControllerTest extends UserTestCase
         $this->registrationPhase = new RecordOfRegistrationPhase($this->program, 0);
         $this->connection->table('RegistrationPhase')->insert($this->registrationPhase->toArrayForDbEntry());
         
-        $registrant = new RecordOfRegistrant(0);
-        $concludedRegistrant = new RecordOfRegistrant(1);
+        $registrant = new RecordOfRegistrant($programOne, 0);
+        $concludedRegistrant = new RecordOfRegistrant($programTwo, 1);
         $concludedRegistrant->concluded = true;
         $concludedRegistrant->note = 'accepted';
         $this->connection->table('Registrant')->insert($registrant->toArrayForDbEntry());
         $this->connection->table('Registrant')->insert($concludedRegistrant->toArrayForDbEntry());
         
-        $this->programRegistration = new RecordOfUserRegistrant($programOne, $this->user, $registrant);
-        $this->concludedProgramRegistration = new RecordOfUserRegistrant($programTwo, $this->user, $concludedRegistrant);
+        $this->programRegistration = new RecordOfUserRegistrant($this->user, $registrant);
+        $this->concludedProgramRegistration = new RecordOfUserRegistrant($this->user, $concludedRegistrant);
         $this->connection->table('UserRegistrant')->insert($this->programRegistration->toArrayForDbEntry());
         $this->connection->table('UserRegistrant')->insert($this->concludedProgramRegistration->toArrayForDbEntry());
         
@@ -102,16 +102,12 @@ class ProgramRegistrationControllerTest extends UserTestCase
             ->seeJsonContains($response);
         
         $registrantEntry = [
+            'Program_id' => $this->program->id,
             "registeredTime" => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
             "concluded" => false,
             "note" => null,
         ];
         $this->seeInDatabase('Registrant', $registrantEntry);
-        $userRegistrantEntry = [
-            'Program_id' => $this->program->id,
-            'User_id' => $this->user->id,
-        ];
-        $this->seeInDatabase('UserRegistrant', $userRegistrantEntry);
     }
     public function test_register_noOpenRegistrationPhaseAvailable_403()
     {
@@ -139,8 +135,8 @@ class ProgramRegistrationControllerTest extends UserTestCase
     }
     public function test_register_alreadyRegistedInProgram_403()
     {
-        $registrant = new RecordOfRegistrant(3);
-        $userRegistrant = new RecordOfUserRegistrant($this->program, $this->user, $registrant);
+        $registrant = new RecordOfRegistrant($this->program, 3);
+        $userRegistrant = new RecordOfUserRegistrant($this->user, $registrant);
         $this->connection->table('Registrant')->insert($registrant->toArrayForDbEntry());
         $this->connection->table('UserRegistrant')->insert($userRegistrant->toArrayForDbEntry());
         
@@ -149,9 +145,9 @@ class ProgramRegistrationControllerTest extends UserTestCase
     }
     public function test_register_existingRegistrationAlreadyConcluded_201()
     {
-        $registrant = new RecordOfRegistrant(3);
+        $registrant = new RecordOfRegistrant($this->program, 3);
         $registrant->concluded = true;
-        $userRegistrant = new RecordOfUserRegistrant($this->program, $this->user, $registrant);
+        $userRegistrant = new RecordOfUserRegistrant($this->user, $registrant);
         $this->connection->table('Registrant')->insert($registrant->toArrayForDbEntry());
         $this->connection->table('UserRegistrant')->insert($userRegistrant->toArrayForDbEntry());
         
@@ -165,8 +161,8 @@ class ProgramRegistrationControllerTest extends UserTestCase
     }
     public function test_register_alreadyParticipateInProgram_403()
     {
-        $participant = new RecordOfParticipant(0);
-        $userParticipant = new RecordOfUserParticipant($this->program, $this->user, $participant);
+        $participant = new RecordOfParticipant($this->program, 0);
+        $userParticipant = new RecordOfUserParticipant($this->user, $participant);
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
         $this->connection->table('UserParticipant')->insert($userParticipant->toArrayForDbEntry());
         
@@ -175,9 +171,9 @@ class ProgramRegistrationControllerTest extends UserTestCase
     }
     public function test_apply_conflictedParticipationAlreadyInactive_201()
     {
-        $participant = new RecordOfParticipant(0);
+        $participant = new RecordOfParticipant($this->program, 0);
         $participant->active = false;
-        $userParticipant = new RecordOfUserParticipant($this->program, $this->user, $participant);
+        $userParticipant = new RecordOfUserParticipant($this->user, $participant);
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
         $this->connection->table('UserParticipant')->insert($userParticipant->toArrayForDbEntry());
         
@@ -209,11 +205,11 @@ class ProgramRegistrationControllerTest extends UserTestCase
         $response = [
             "id" => $this->programRegistration->id,
             "program" => [
-                "id" => $this->programRegistration->program->id,
-                "name" => $this->programRegistration->program->name,
+                "id" => $this->programRegistration->registrant->program->id,
+                "name" => $this->programRegistration->registrant->program->name,
                 'firm' => [
-                    "id" => $this->programRegistration->program->firm->id,
-                    "name" => $this->programRegistration->program->firm->name,
+                    "id" => $this->programRegistration->registrant->program->firm->id,
+                    "name" => $this->programRegistration->registrant->program->firm->name,
                 ],
             ],
             "registeredTime" => $this->programRegistration->registrant->registeredTime,
@@ -235,11 +231,11 @@ class ProgramRegistrationControllerTest extends UserTestCase
                 [
                     "id" => $this->programRegistration->id,
                     "program" => [
-                        "id" => $this->programRegistration->program->id,
-                        "name" => $this->programRegistration->program->name,
+                        "id" => $this->programRegistration->registrant->program->id,
+                        "name" => $this->programRegistration->registrant->program->name,
                         'firm' => [
-                            "id" => $this->programRegistration->program->firm->id,
-                            "name" => $this->programRegistration->program->firm->name,
+                            "id" => $this->programRegistration->registrant->program->firm->id,
+                            "name" => $this->programRegistration->registrant->program->firm->name,
                         ],
                     ],
                     "registeredTime" => $this->programRegistration->registrant->registeredTime,
@@ -249,11 +245,11 @@ class ProgramRegistrationControllerTest extends UserTestCase
                 [
                     "id" => $this->concludedProgramRegistration->id,
                     "program" => [
-                        "id" => $this->concludedProgramRegistration->program->id,
-                        "name" => $this->concludedProgramRegistration->program->name,
+                        "id" => $this->concludedProgramRegistration->registrant->program->id,
+                        "name" => $this->concludedProgramRegistration->registrant->program->name,
                         'firm' => [
-                            "id" => $this->concludedProgramRegistration->program->firm->id,
-                            "name" => $this->concludedProgramRegistration->program->firm->name,
+                            "id" => $this->concludedProgramRegistration->registrant->program->firm->id,
+                            "name" => $this->concludedProgramRegistration->registrant->program->firm->name,
                         ],
                     ],
                     "registeredTime" => $this->concludedProgramRegistration->registrant->registeredTime,
