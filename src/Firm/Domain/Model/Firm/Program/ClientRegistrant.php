@@ -2,19 +2,16 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\ {
-    Client,
-    Program
-};
+use Firm\Domain\Model\Firm\Program;
 
 class ClientRegistrant
 {
 
     /**
      *
-     * @var Program
+     * @var Registrant
      */
-    protected $program;
+    protected $registrant;
 
     /**
      *
@@ -24,49 +21,23 @@ class ClientRegistrant
 
     /**
      *
-     * @var Client
+     * @var string
      */
-    protected $client;
-
-    /**
-     *
-     * @var Registrant
-     */
-    protected $registrant;
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
+    protected $clientId;
     
-    public function getClientId(): string
-    {
-        return $this->client->getId();
-    }
-
     protected function __construct()
     {
         ;
     }
-
-    public function accept(): void
+    
+    public function createParticipant(Program $program, string $participantId): Participant
     {
-        $this->registrant->accept();
+        return Participant::participantForClient($program, $participantId, $this->clientId);
     }
-
-    public function createParticipant(string $clientParticipantId): ClientParticipant
+    
+    public function clientIdEquals(string $clientId): bool
     {
-        return new ClientParticipant($this->program, $clientParticipantId, $this->client);
-    }
-
-    public function reject(): void
-    {
-        $this->registrant->reject();
-    }
-
-    public function clientEquals(Client $client): bool
-    {
-        return $this->client === $client;
+        return $this->clientId === $clientId;
     }
 
 }

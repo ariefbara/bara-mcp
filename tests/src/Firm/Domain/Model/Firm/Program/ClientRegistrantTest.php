@@ -2,74 +2,48 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\ {
-    Client,
-    Program
-};
+use Firm\Domain\Model\Firm\Program;
 use Tests\TestBase;
 
 class ClientRegistrantTest extends TestBase
 {
-    protected $clientRegistrant, $registrant;
+    protected $clientRegistrant;
     
     protected $program;
-    protected $client;
-    protected $id = 'newClientRegistrantId';
-    
-    protected $clientParticipantId = 'newClientParticipantId';
+    protected $participantId = 'participantId';
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->program = $this->buildMockOfClass(Program::class);
-        $this->client = $this->buildMockOfClass(Client::class);
-        
         $this->clientRegistrant = new TestableClientRegistrant();
-        $this->clientRegistrant->program = $this->program;
-        $this->clientRegistrant->client = $this->client;
+        $this->clientRegistrant->clientId = "clientId";
         
-        $this->registrant = $this->buildMockOfClass(Registrant::class);
-        $this->clientRegistrant->registrant = $this->registrant;
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
-    public function test_accept_executeRegistrantAcceptMethod()
+    public function test_createParticipant_returnParticipant()
     {
-        $this->registrant->expects($this->once())
-                ->method('accept');
-        $this->clientRegistrant->accept();
+        $participant = Participant::participantForClient(
+                $this->program, $this->participantId, $this->clientRegistrant->clientId);
+        
+        $this->assertEquals($participant, $this->clientRegistrant->createParticipant($this->program, $this->participantId));
     }
     
-    public function test_createParticipant_returnClientParticipant()
+    public function test_clientIdEquals_sameId_returnTrue()
     {
-        $clientParticipant = new ClientParticipant($this->program, $this->clientParticipantId, $this->client);
-        $this->assertEquals($clientParticipant, $this->clientRegistrant->createParticipant($this->clientParticipantId));
+        $this->assertTrue($this->clientRegistrant->clientIdEquals($this->clientRegistrant->clientId));
     }
-    
-    public function test_reject_executeRegistrantsRejectMethod()
+    public function test_clientIdEquals_differentId_returnFalse()
     {
-        $this->registrant->expects($this->once())
-                ->method('reject');
-        $this->clientRegistrant->reject();
+        $this->assertFalse($this->clientRegistrant->clientIdEquals('differentId'));
     }
-    
-    public function test_clientEquals_sameClient_returnTrue()
-    {
-        $this->assertTrue($this->clientRegistrant->clientEquals($this->client));
-    }
-    public function test_clientEquals_differenetClient_returnFalse()
-    {
-        $client = $this->buildMockOfClass(Client::class);
-        $this->assertFalse($this->clientRegistrant->clientEquals($client));
-    }
-    
 }
 
 class TestableClientRegistrant extends ClientRegistrant
 {
-    public $program;
-    public $id;
-    public $client;
     public $registrant;
+    public $id;
+    public $clientId;
     
     function __construct()
     {

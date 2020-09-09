@@ -4,33 +4,32 @@ namespace App\Http\Controllers\Personnel\AsProgramConsultant\Participant\Workshe
 
 use App\Http\Controllers\Personnel\AsProgramConsultant\AsProgramConsultantBaseController;
 use Query\ {
-    Application\Service\Firm\Program\Participant\Worksheet\CommentView,
-    Application\Service\Firm\Program\Participant\Worksheet\WorksheetCompositionId,
+    Application\Service\Firm\Program\Participant\Worksheet\ViewComment,
     Domain\Model\Firm\Program\Consultant\ConsultantComment,
-    Domain\Model\Firm\Program\Participant\ParticipantComment,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
 };
 
 class CommentController extends AsProgramConsultantBaseController
 {
+
     public function show($programId, $participantId, $worksheetId, $commentId)
     {
         $this->authorizedPersonnelIsProgramConsultant($programId);
-        
+
         $service = $this->buildViewService();
-        $worksheetCompositionId = new WorksheetCompositionId($this->firmId(), $programId, $participantId, $worksheetId);
-        $comment = $service->showById($worksheetCompositionId, $commentId);
-        
+        $comment = $service->showById($this->firmId(), $programId, $participantId, $worksheetId, $commentId);
+
         return $this->singleQueryResponse($this->arrayDataOfComment($comment));
     }
+
     public function showAll($programId, $participantId, $worksheetId)
     {
         $this->authorizedPersonnelIsProgramConsultant($programId);
-        
+
         $service = $this->buildViewService();
-        $worksheetCompositionId = new WorksheetCompositionId($this->firmId(), $programId, $participantId, $worksheetId);
-        $comments = $service->showAll($worksheetCompositionId, $this->getPage(), $this->getPageSize());
-        
+        $comments = $service->showAll(
+                $this->firmId(), $programId, $participantId, $worksheetId, $this->getPage(), $this->getPageSize());
+
         $result = [];
         $result['total'] = count($comments);
         foreach ($comments as $comment) {
@@ -38,7 +37,7 @@ class CommentController extends AsProgramConsultantBaseController
         }
         return $this->listQueryResponse($result);
     }
-    
+
     protected function arrayDataOfComment(Comment $comment): array
     {
         return [
@@ -46,11 +45,11 @@ class CommentController extends AsProgramConsultantBaseController
             "message" => $comment->getMessage(),
             "submitTime" => $comment->getSubmitTimeString(),
             "removed" => $comment->isRemoved(),
-            "participant" => $this->arrayDataOfParticipant($comment->getParticipantComment()),
             "consultant" => $this->arrayDataOfConsultant($comment->getConsultantComment()),
             "parent" => $this->arrayDataOfparentComment($comment->getParent()),
         ];
     }
+
     protected function arrayDataOfparentComment(?Comment $parentComment): ?array
     {
         if (empty($parentComment)) {
@@ -61,24 +60,10 @@ class CommentController extends AsProgramConsultantBaseController
             "message" => $parentComment->getMessage(),
             "submitTime" => $parentComment->getSubmitTimeString(),
             "removed" => $parentComment->isRemoved(),
-            "participant" => $this->arrayDataOfParticipant($parentComment->getParticipantComment()),
             "consultant" => $this->arrayDataOfConsultant($parentComment->getConsultantComment()),
         ];
-        
     }
-    protected function arrayDataOfParticipant(?ParticipantComment $participantComment): ?array
-    {
-        if (empty($participantComment)) {
-            return null;
-        }
-        return [
-            "id" => $participantComment->getParticipant()->getId(),
-            "client" => [
-                "id" => $participantComment->getParticipant()->getClient()->getId(),
-                "name" => $participantComment->getParticipant()->getClient()->getName(),
-            ],
-        ];
-    }
+
     protected function arrayDataOfConsultant(?ConsultantComment $consultantComment): ?array
     {
         if (empty($consultantComment)) {
@@ -92,10 +77,11 @@ class CommentController extends AsProgramConsultantBaseController
             ],
         ];
     }
-    
+
     protected function buildViewService()
     {
         $commentRepository = $this->em->getRepository(Comment::class);
-        return new CommentView($commentRepository);
+        return new ViewComment($commentRepository);
     }
+
 }

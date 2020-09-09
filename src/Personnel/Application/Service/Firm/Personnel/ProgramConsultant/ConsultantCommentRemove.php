@@ -17,9 +17,9 @@ class ConsultantCommentRemove
     }
 
     public function execute(
-            ProgramConsultantCompositionId $programConsultantCompositionId, string $consultantCommentId): void
+            string $firmId, string $personnelId, string $programConsultationId, string $consultantCommentId): void
     {
-        $this->consultantCommentRepository->ofId($programConsultantCompositionId, $consultantCommentId)
+        $this->consultantCommentRepository->ofId($firmId, $personnelId, $programConsultationId, $consultantCommentId)
                 ->remove();
         $this->consultantCommentRepository->update();
     }

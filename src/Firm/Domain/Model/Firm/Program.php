@@ -7,20 +7,14 @@ use Doctrine\Common\Collections\ {
     Criteria
 };
 use Firm\Domain\ {
-    Event\Firm\Program\ClientRegistrationAccepted,
-    Event\Firm\Program\UserRegistrationAccepted,
+    Event\Firm\Program\RegistrantAccepted,
     Model\Firm,
-    Model\Firm\Program\ClientParticipant,
-    Model\Firm\Program\ClientRegistrant,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Coordinator,
-    Model\Firm\Program\UserParticipant,
-    Model\Firm\Program\UserRegistrant
+    Model\Firm\Program\Participant,
+    Model\Firm\Program\Registrant
 };
-use Query\Domain\Model\ {
-    Firm\ParticipantTypes,
-    FirmWhitelableInfo
-};
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\ {
     Domain\Model\ModelContainEvents,
     Exception\RegularException,
@@ -90,51 +84,13 @@ class Program extends ModelContainEvents
      *
      * @var ArrayCollection
      */
-    protected $clientRegistrants;
+    protected $participants;
 
     /**
      *
      * @var ArrayCollection
      */
-    protected $clientParticipants;
-
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $userRegistrants;
-
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $userParticipants;
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-    
-    public function getFirmWhitelableInfo(): FirmWhitelableInfo
-    {
-        return $this->firm->getWhitelableInfo();
-    }
-
-    public function getFirmName(): string
-    {
-        return $this->firm->getName();
-    }
-    
-    public function getFirmId(): string
-    {
-        return $this->firm->getId();
-    }
-
+    protected $registrants;
 
     protected function setName(string $name)
     {
@@ -220,80 +176,42 @@ class Program extends ModelContainEvents
         return $coordinator->getId();
     }
 
-    public function acceptClientRegistration(string $clientRegistrationId): void
+    public function acceptRegistrant(string $registrantId): void
     {
-        $clientRegistrant = $this->findClientRegistrantOrDie($clientRegistrationId);
-        $clientRegistrant->accept();
-
-        if (!empty($clientParticipant = $this->findClientParticipantCorrespondWithRegistrant($clientRegistrant))) {
-            $clientParticipant->reenroll();
+        $registrant = $this->findRegistrantOrDie($registrantId);
+        $registrant->accept();
+        
+        if (!empty($participant = $this->findParticipantCorrespondToRegistrant($registrant))) {
+            $participant->reenroll();
         } else {
-            $clientParticipantId = Uuid::generateUuid4();
-            $this->clientParticipants->add($clientRegistrant->createParticipant($clientParticipantId));
+            $participantId = Uuid::generateUuid4();
+            $participant = $registrant->createParticipant($participantId);
+            $this->participants->add($participant);
         }
         
-        $clientId = $clientRegistrant->getClientId();
-        $event = new ClientRegistrationAccepted($this->firm->getId(), $this->id, $clientId);
+        $event = new RegistrantAccepted($this->firm->getId(), $this->id, $participant->getId());
         $this->recordEvent($event);
+
     }
 
-    public function acceptUserRegistration(string $userRegistrationId): void
-    {
-        $userRegistrant = $this->findUserRegistrantOrDie($userRegistrationId);
-        $userRegistrant->accept();
-
-        if (!empty($userParticipant = $this->findUserParticipantCorrespondWithRegistrant($userRegistrant))) {
-            $userParticipant->reenroll();
-        } else {
-            $userRegistrationId = Uuid::generateUuid4();
-            $this->userParticipants->add($userRegistrant->createParticipant($userRegistrationId));
-        }
-        
-        $userId = $userRegistrant->getUserId();
-        $event = new UserRegistrationAccepted($this->firm->getId(), $this->id, $userId);
-        $this->recordEvent($event);
-    }
-
-    protected function findClientRegistrantOrDie(string $clientRegistrantId): ClientRegistrant
+    protected function findRegistrantOrDie(string $registrantId): Registrant
     {
         $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('id', $clientRegistrantId));
-        $clientRegistrant = $this->clientRegistrants->matching($criteria)->first();
-        if (empty($clientRegistrant)) {
-            $errorDetail = 'not found: client registrant not found';
+                ->andWhere(Criteria::expr()->eq('id', $registrantId));
+        $registrant = $this->registrants->matching($criteria)->first();
+        if (empty($registrant)) {
+            $errorDetail = 'not found: registrant not found';
             throw RegularException::notFound($errorDetail);
         }
-        return $clientRegistrant;
+        return $registrant;
     }
-
-    protected function findClientParticipantCorrespondWithRegistrant(ClientRegistrant $clientRegistrant): ?ClientParticipant
+    protected function findParticipantCorrespondToRegistrant(Registrant $registrant): ?Participant
     {
-        $p = function (ClientParticipant $clientParticipant) use ($clientRegistrant) {
-            return $clientParticipant->correspondWithRegistrant($clientRegistrant);
+        $p = function (Participant $participant) use ($registrant) {
+            return $participant->correspondWithRegistrant($registrant);
         };
-        $clientParticipant = $this->clientParticipants->filter($p)->first();
-        return empty($clientParticipant) ? null : $clientParticipant;
-    }
-
-    protected function findUserRegistrantOrDie(string $userRegistrantId): UserRegistrant
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('id', $userRegistrantId));
-        $userRegistrant = $this->userRegistrants->matching($criteria)->first();
-        if (empty($userRegistrant)) {
-            $errorDetail = 'not found: user registrant not found';
-            throw RegularException::notFound($errorDetail);
-        }
-        return $userRegistrant;
-    }
-
-    protected function findUserParticipantCorrespondWithRegistrant(UserRegistrant $userRegistrant): ?UserParticipant
-    {
-        $p = function (UserParticipant $userParticipant) use ($userRegistrant) {
-            return $userParticipant->correspondWithRegistrant($userRegistrant);
-        };
-        $userParticipant = $this->userParticipants->filter($p)->first();
-        return empty($userParticipant) ? null : $userParticipant;
+        $participant = $this->participants->filter($p)->first();
+        return empty($participant) ? null : $participant;
     }
 
 }

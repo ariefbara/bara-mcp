@@ -2,11 +2,8 @@
 
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession;
 
-use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\{
-    ConsultationSessionRepository,
-    ProgramConsultantCompositionId
-};
-use Shared\Domain\Model\FormRecordData;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionRepository;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class ConsultantFeedbackSet
 {
@@ -23,10 +20,10 @@ class ConsultantFeedbackSet
     }
 
     public function execute(
-            ProgramConsultantCompositionId $programConsultantCompositionId, string $consultationSessionId,
+            string $firmId, string $personnelId, string $programConsultantId, string $consultationSessionId,
             FormRecordData $formRecordData): void
     {
-        $this->consultationSessionRepository->ofId($programConsultantCompositionId, $consultationSessionId)
+        $this->consultationSessionRepository->ofId($firmId, $personnelId, $programConsultantId, $consultationSessionId)
                 ->setConsultantFeedback($formRecordData);
         $this->consultationSessionRepository->update();
     }

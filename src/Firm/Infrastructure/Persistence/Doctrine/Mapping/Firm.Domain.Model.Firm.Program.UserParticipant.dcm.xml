@@ -2,29 +2,17 @@
 <doctrine-mapping>
     <entity name="Firm\Domain\Model\Firm\Program\UserParticipant" 
             table="UserParticipant" 
-            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserParticipantRepository"
     >
         
-        <many-to-one  field="program" 
-                      target-entity="Firm\Domain\Model\Firm\Program"
-                      inversed-by="userParticipants"
-        >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
-        
-        <id name="id" type="guid" />
-        <many-to-one  field="user" 
-                      target-entity="Firm\Domain\Model\User"
-        >
-            <join-column name="User_id" referenced-column-name="id" />
-        </many-to-one>
         <one-to-one  field="participant" 
                      target-entity="Firm\Domain\Model\Firm\Program\Participant"
                      inversed-by="userParticipant"
         >
             <join-column name="Participant_id" referenced-column-name="id" />
-            <cascade><cascade-persist /></cascade>
         </one-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="userId" column="User_id" type="guid" nullable="false"/>
         
     </entity>
 </doctrine-mapping>

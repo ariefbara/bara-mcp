@@ -2,21 +2,21 @@
 
 namespace Personnel\Domain\Model\Firm;
 
-use Query\Domain\Model\Firm;
-use Shared\Domain\Model\ {
+use SharedContext\Domain\Model\SharedEntity\ {
     Form,
     FormRecord,
     FormRecordData
 };
+
 
 class FeedbackForm
 {
 
     /**
      *
-     * @var Firm
+     * @var string
      */
-    protected $firm;
+    protected $firmId;
 
     /**
      *

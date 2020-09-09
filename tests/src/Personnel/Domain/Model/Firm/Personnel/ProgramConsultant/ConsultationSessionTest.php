@@ -3,14 +3,13 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use Personnel\Domain\Model\Firm\ {
-    Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback,
     Program\ConsultationSetup,
     Program\Participant
 };
 use Resources\Domain\ValueObject\DateTimeInterval;
-use Shared\Domain\Model\FormRecordData;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
 class ConsultationSessionTest extends TestBase
@@ -80,14 +79,6 @@ class ConsultationSessionTest extends TestBase
         $this->executeSetConsultantFeedback();
     }
     
-    public function test_createNotification_returnResultOfCreatingNotificationForConsultationSessionInProgramConsultant()
-    {
-        $this->programConsultant->expects($this->once())
-                ->method('createNotificationForConsultationSession')
-                ->with($id = 'id', $message = 'message', $this->consultationSession)
-                ->willReturn($personnelNotification = $this->buildMockOfClass(PersonnelNotification::class));
-        $this->assertEquals($personnelNotification, $this->consultationSession->createNotification($id, $message));
-    }
 
 }
 

@@ -20,7 +20,7 @@ use Resources\ {
 class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository
 {
 
-    public function all(string $firmId, string $programId, string $participantId, int $page, int $pageSize): Worksheet
+    public function all(string $firmId, string $programId, string $participantId, int $page, int $pageSize)
     {
         $params = [
             'firmId' => $firmId,
@@ -28,7 +28,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
             'participantId' => $participantId,
         ];
 
-        $qb = $this->createQueryBuilder('comment');
+        $qb = $this->createQueryBuilder('worksheet');
         $qb->select('worksheet')
                 ->leftJoin('worksheet.participant', 'participant')
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
@@ -50,7 +50,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
             'worksheetId' => $worksheetId,
         ];
 
-        $qb = $this->createQueryBuilder('comment');
+        $qb = $this->createQueryBuilder('worksheet');
         $qb->select('worksheet')
                 ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
                 ->leftJoin('worksheet.participant', 'participant')

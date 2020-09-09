@@ -2,13 +2,15 @@
 
 namespace Tests\Controllers\Personnel\ProgramConsultant;
 
-use Tests\Controllers\RecordPreparation\{
+use DateTime;
+use Tests\Controllers\RecordPreparation\ {
     Firm\Program\Participant\RecordOfConsultationRequest,
     Firm\Program\RecordOfConsultationSetup,
     Firm\Program\RecordOfParticipant,
     Firm\RecordOfFeedbackForm,
-    RecordOfClient,
-    Shared\RecordOfForm
+    RecordOfUser,
+    Shared\RecordOfForm,
+    User\RecordOfUserParticipant
 };
 
 class ConsultationRequestControllerTest extends ProgramConsultantTestCase
@@ -17,6 +19,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
     protected $consultationRequestUri;
     protected $consultationRequest;
     protected $consultationRequest_concluded;
+    protected $userParticipant;
     protected $participant;
     protected $offerInput;
 
@@ -27,11 +30,11 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $this->connection->table('Form')->truncate();
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
-        $this->connection->table('Client')->truncate();
+        $this->connection->table('User')->truncate();
         $this->connection->table('Participant')->truncate();
+        $this->connection->table('UserParticipant')->truncate();
         $this->connection->table('ConsultationRequest')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
-        $this->connection->table('ClientNotification')->truncate();
 
         $form = new RecordOfForm(0);
         $this->connection->table('Form')->insert($form->toArrayForDbEntry());
@@ -43,11 +46,14 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
                 $this->programConsultant->program, $feedbackForm, $feedbackForm, 0);
         $this->connection->table('ConsultationSetup')->insert($consultationSetup->toArrayForDbEntry());
         
-        $client = new RecordOfClient(0, 'adi@barapraja.com', 'password123');
-        $this->connection->table('Client')->insert($client->toArrayForDbEntry());
+        $user = new RecordOfUser(0);
+        $this->connection->table('User')->insert($user->toArrayForDbEntry());
         
-        $this->participant = new RecordOfParticipant($this->programConsultant->program, $client, 0);
+        $this->participant = new RecordOfParticipant($this->programConsultant->program, 0);
         $this->connection->table('Participant')->insert($this->participant->toArrayForDbEntry());
+        
+        $this->userParticipant = new RecordOfUserParticipant($user, $this->participant);
+        $this->connection->table('UserParticipant')->insert($this->userParticipant->toArrayForDbEntry());
         
         $this->consultationRequest = new RecordOfConsultationRequest(
                 $consultationSetup, $this->participant, $this->programConsultant, 0);
@@ -59,7 +65,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $this->connection->table('ConsultationRequest')->insert($this->consultationRequest_concluded->toArrayForDbEntry());
         
         $this->offerInput = [
-            "startTime" => (new \DateTime('+5 hours'))->format('Y-m-d H:i:s'),
+            "startTime" => (new DateTime('+5 hours'))->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -69,11 +75,11 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $this->connection->table('Form')->truncate();
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
-        $this->connection->table('Client')->truncate();
+        $this->connection->table('User')->truncate();
         $this->connection->table('Participant')->truncate();
+        $this->connection->table('UserParticipant')->truncate();
         $this->connection->table('ConsultationRequest')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
-        $this->connection->table('ClientNotification')->truncate();
     }
     
     public function test_reject()
@@ -101,7 +107,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $response = [
             "id" => $this->consultationRequest->id,
             "startTime" => $this->offerInput['startTime'],
-            "endTime" => (new \DateTime('+6 hours'))->format("Y-m-d H:i:s"),
+            "endTime" => (new DateTime('+6 hours'))->format("Y-m-d H:i:s"),
             "status" => "offered",
         ];
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/offer";
@@ -112,24 +118,12 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $consultationRequestEntry = [
             "id" => $this->consultationRequest->id,
             "startDateTime" => $this->offerInput['startTime'],
-            "endDateTime" => (new \DateTime('+6 hours'))->format("Y-m-d H:i:s"),
+            "endDateTime" => (new DateTime('+6 hours'))->format("Y-m-d H:i:s"),
             "status" => "offered",
         ];
         $this->seeInDatabase("ConsultationRequest", $consultationRequestEntry);
     }
-    public function test_offer_notifyClient()
-    {
-        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/offer";
-        $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
-                ->seeStatusCode(200);
-        
-        $clientNotificationEntry = [
-            "Client_id" => $this->consultationRequest->participant->client->id,
-            "message" => "consultant {$this->programConsultant->personnel->name} has offer new consultation time to you",
-            "isRead" => false,
-        ];
-        $this->seeInDatabase('ClientNotification', $clientNotificationEntry);
-    }
+    
     public function test_offer_consultationRequestAlreadyConcluded_error403()
     {
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest_concluded->id}/offer";
@@ -154,18 +148,22 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         ];
         $this->seeInDatabase("ConsultationRequest", $consultationRequestEntry);
     }
-    public function test_acceptNotifiyClient()
+    public function test_accept_persistConsultationSession()
     {
+        $this->connection->table('ConsultationSession')->truncate();
+        
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
         $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
                 ->seeStatusCode(200);
-        
-        $clientNotificationEntry = [
-            "Client_id" => $this->consultationRequest->participant->client->id,
-            "message" => "consultation with consultant {$this->programConsultant->personnel->name} has been scheduled",
-            "isRead" => false,
+        $consulattionSessionEntry = [
+            "Participant_id" => $this->consultationRequest->participant->id,
+            "Consultant_id" => $this->consultationRequest->consultant->id,
+            "ConsultationSetup_id" => $this->consultationRequest->consultationSetup->id,
+            "startDateTime" => $this->consultationRequest->startDateTime,
+            "endDateTime" => $this->consultationRequest->endDateTime,
         ];
-        $this->seeInDatabase('ClientNotification', $clientNotificationEntry);
+        $this->seeInDatabase("ConsultationSession", $consulattionSessionEntry);
+        
     }
     public function test_accept_statusNotProposed_error403()
     {
@@ -184,6 +182,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
                 ->seeStatusCode(403);
     }
     
+/*
     public function test_show()
     {
         $response = [
@@ -198,9 +197,10 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
             ],
             "participant" => [
                 "id" => $this->consultationRequest->participant->id,
-                "client" => [
-                    "id" => $this->consultationRequest->participant->client->id,
-                    "name" => $this->consultationRequest->participant->client->name,
+                "clientParticipant" => null,
+                "userParticipant" => [
+                    "id" => $this->userParticipant->user->id,
+                    "name" => $this->userParticipant->user->getFullName(),
                 ],
                 
             ],
@@ -261,4 +261,6 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
+ * 
+ */
 }

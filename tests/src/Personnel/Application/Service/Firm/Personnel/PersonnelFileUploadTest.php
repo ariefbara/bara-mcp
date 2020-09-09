@@ -3,8 +3,8 @@
 namespace Personnel\Application\Service\Firm\Personnel;
 
 use Personnel\Application\Service\Firm\PersonnelRepository;
-use Shared\Domain\ {
-    Model\FileInfoData,
+use SharedContext\Domain\ {
+    Model\SharedEntity\FileInfoData,
     Service\UploadFile
 };
 use Tests\TestBase;

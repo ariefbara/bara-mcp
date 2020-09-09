@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramConsultant;
 
-use Firm\Application\Service\Firm\Program\ProgramCompositionId;
 use Query\ {
-    Application\Service\Firm\Program\ParticipantView,
+    Application\Service\Firm\Program\ViewParticipant,
     Domain\Model\Firm\Program\Participant
 };
 
@@ -16,8 +15,7 @@ class ParticipantController extends AsProgramConsultantBaseController
         $this->authorizedPersonnelIsProgramConsultant($programId);
         
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $participant = $service->showById($programCompositionId, $participantId);
+        $participant = $service->showById($this->firmId(), $programId, $participantId);
         
         return $this->singleQueryResponse($this->arrayDataOfParticipant($participant));
     }
@@ -27,8 +25,7 @@ class ParticipantController extends AsProgramConsultantBaseController
         $this->authorizedPersonnelIsProgramConsultant($programId);
         
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $participants = $service->showAll($programCompositionId, $this->getPage(), $this->getPageSize());
+        $participants = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
         
         $result = [];
         $result['total'] = count($participants);
@@ -42,20 +39,32 @@ class ParticipantController extends AsProgramConsultantBaseController
     {
         return [
             "id" => $participant->getId(),
-            "acceptedTime" => $participant->getAcceptedTimeString(),
+            "enrolledTime" => $participant->getEnrolledTimeString(),
             "active" => $participant->isActive(),
             "note" => $participant->getNote(),
-            "client" => [
-                "id" => $participant->getClient()->getId(),
-                "name" => $participant->getClient()->getName(),
-            ],
+            "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
+            "client" => $this->arrayDataOfClient($participant->getClientParticipant()),
+        ];
+    }
+    protected function arrayDataOfUser(?\Query\Domain\Model\User\UserParticipant $userParticipant): ?array
+    {
+        return empty($userParticipant)? null:[
+            "id" => $userParticipant->getUser()->getId(),
+            "name" => $userParticipant->getUser()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfClient(?\Query\Domain\Model\Firm\Client\ClientParticipant $clientParticipant): ?array
+    {
+        return empty($clientParticipant)? null: [
+            "id" => $clientParticipant->getClient()->getId(),
+            "name" => $clientParticipant->getClient()->getFullName(),
         ];
     }
 
     protected function buildViewService()
     {
         $participantRepository = $this->em->getRepository(Participant::class);
-        return new ParticipantView($participantRepository);
+        return new ViewParticipant($participantRepository);
     }
 
 }

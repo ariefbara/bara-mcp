@@ -4,13 +4,12 @@ namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\ {
-    Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Program\ConsultationSetup,
     Program\Participant
 };
 use Resources\Domain\ValueObject\DateTimeInterval;
-use Shared\Domain\Model\ConsultationRequestStatusVO;
+use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 use Tests\TestBase;
 
 class ConsultationRequestTest extends TestBase
@@ -162,50 +161,37 @@ class ConsultationRequestTest extends TestBase
         $this->assertEquals($consultationSession, $this->consultationRequest->createConsultationSession($id));
     }
 
-    protected function executeIntersectWithOtherConsultationRequest()
+    protected function executeIsOfferedConsultationRequestConflictedWith()
     {
-        $this->consultationRequest->intersectWithOtherConsultationRequest($this->otherConsultationRequest);
+        return $this->consultationRequest->isOfferedConsultationRequestConflictedWith($this->otherConsultationRequest);
     }
-
-    public function test_intersectWithOtherConsultationRequest_returnStartEndTimeIntersectComparisonWithOthersStartEndTimeResult()
+    public function test_isOfferedConsultaionRequestConflictedWith_noConflict_returnFalse()
     {
-        $this->otherConsultationRequest->expects($this->once())
-                ->method('getStartEndTime')
-                ->willReturn($otherStartEndTime = $this->buildMockOfClass(DateTimeInterval::class));
+        $this->assertFalse($this->executeIsOfferedConsultationRequestConflictedWith());
+    }
+    public function test_isOfferedConsultationRequestConflictedWith_timeIntersectWithOther_returnTrue()
+    {
+        $this->consultationRequest->status = new ConsultationRequestStatusVO('offered');
         $this->startEndTime->expects($this->once())
                 ->method('intersectWith')
-                ->with($otherStartEndTime)
                 ->willReturn(true);
-        $this->executeIntersectWithOtherConsultationRequest();
+        $this->assertTrue($this->executeIsOfferedConsultationRequestConflictedWith());
     }
-
-    public function test_intersectWithOtherConsultationRequest_comparingToSelf_returnFalse()
+    public function test_isOfferedConsultationRequestConflictedWith_statusNotOffered_returnFalse()
     {
-        $this->startEndTime->expects($this->never())
-                ->method('intersectWith');
-        $this->assertFalse($this->consultationRequest->intersectWithOtherConsultationRequest($this->consultationRequest));
-    }
-
-    public function test_statusEquals_returnStatusSameValueComparisonResult()
-    {
-        $status = $this->buildMockOfClass(ConsultationRequestStatusVO::class);
-        $status->expects($this->once())
-                ->method('sameValueAs')
-                ->with($other = $this->buildMockOfClass(ConsultationRequestStatusVO::class))
+        $this->startEndTime->expects($this->any())
+                ->method('intersectWith')
                 ->willReturn(true);
-        $this->consultationRequest->status = $status;
-        $this->assertTrue($this->consultationRequest->statusEquals($other));
+        $this->assertFalse($this->executeIsOfferedConsultationRequestConflictedWith());
     }
-    
-    public function test_createNotification_returnResultOfCreatingNotificationForConsultationRequestInProgramConsultant()
+    public function test_isOfferedConsultationRequestConflictedWith_comparedToSelf_returnFalse()
     {
-        $this->programConsultant->expects($this->once())
-                ->method('createNotificationForConsultationRequest')
-                ->with($id = 'id', $message = 'message', $this->consultationRequest)
-                ->willReturn($notification = $this->buildMockOfClass(PersonnelNotification::class));
-        $this->assertEquals($notification, $this->consultationRequest->createNotification($id, $message));
+        $this->consultationRequest->status = new ConsultationRequestStatusVO('offered');
+        $this->startEndTime->expects($this->any())
+                ->method('intersectWith')
+                ->willReturn(true);
+        $this->assertFalse($this->consultationRequest->isOfferedConsultationRequestConflictedWith($this->consultationRequest));
     }
-
 }
 
 class TestableConsultationRequest extends ConsultationRequest

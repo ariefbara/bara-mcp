@@ -2,12 +2,11 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Query\{
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
+use Query\ {
     Application\Service\Firm\Personnel\PersonnelFileInfoRepository,
     Domain\Model\Firm\Personnel\PersonnelFileInfo
 };
@@ -16,12 +15,12 @@ use Resources\Exception\RegularException;
 class DoctrinePersonnelFileInfoRepository extends EntityRepository implements PersonnelFileInfoRepository
 {
 
-    public function ofId(PersonnelCompositionId $personnelCompositionId, string $personnelFileInfoId): PersonnelFileInfo
+    public function ofId(string $firmId, string $personnelId, string $personnelFileInfoId): PersonnelFileInfo
     {
         $params = [
+            "firmId" => $firmId,
+            "personnelId" => $personnelId,
             "personnelFileInfoId" => $personnelFileInfoId,
-            "personnelId" => $personnelCompositionId->getPersonnelId(),
-            "firmId" => $personnelCompositionId->getFirmId(),
         ];
 
         $qb = $this->createQueryBuilder('personnelFileInfo');

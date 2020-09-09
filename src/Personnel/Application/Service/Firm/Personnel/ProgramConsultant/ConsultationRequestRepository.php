@@ -10,5 +10,5 @@ interface ConsultationRequestRepository
     public function update(): void;
 
     public function ofId(
-            ProgramConsultantCompositionId $programConsultantCompositionId, string $consultationRequestId): ConsultationRequest;
+            string $firmId, string $personnelId, string $programConsultationId, string $consultationRequestId): ConsultationRequest;
 }

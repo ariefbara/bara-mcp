@@ -2,20 +2,16 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\ {
-    Firm\Program,
-    User
-};
+use Firm\Domain\Model\Firm\Program;
 
 class UserRegistrant
 {
-
     /**
      *
-     * @var Program
+     * @var Registrant
      */
-    protected $program;
-
+    protected $registrant;
+    
     /**
      *
      * @var string
@@ -24,49 +20,23 @@ class UserRegistrant
 
     /**
      *
-     * @var User
+     * @var string
      */
-    protected $user;
-
-    /**
-     *
-     * @var Registrant
-     */
-    protected $registrant;
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
-    
-    public function getUserId(): string
-    {
-        return $this->user->getId();
-    }
+    protected $userId;
 
     protected function __construct()
     {
         ;
     }
     
-    public function accept(): void
+    public function createParticipant(Program $program, string $participantId): Participant
     {
-        $this->registrant->accept();
+        return Participant::participantForUser($program, $participantId, $this->userId);
     }
-
-    public function reject(): void
+    
+    public function userIdEquals(string $userId): bool
     {
-        $this->registrant->reject();
-    }
-
-    public function createParticipant(string $userParticipantId): UserParticipant
-    {
-        return new UserParticipant($this->program, $userParticipantId, $this->user);
-    }
-
-    public function userEquals(User $user): bool
-    {
-        return $this->user === $user;
+        return $this->userId === $userId;
     }
 
 }

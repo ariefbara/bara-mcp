@@ -3,7 +3,7 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\Model\ {
+use Query\Domain\Model\{
     Firm\Client\ClientRegistrant,
     Firm\Program,
     User\UserRegistrant
@@ -41,12 +41,13 @@ class Registrant
      * @var string||null
      */
     protected $note;
-    
+
     /**
      *
      * @var ClientRegistrant||null
      */
     protected $clientRegistrant;
+
     /**
      *
      * @var UserRegistrant||null
@@ -81,6 +82,16 @@ class Registrant
     protected function __construct()
     {
         ;
+    }
+
+    public function getClientRegistrant(): ?ClientRegistrant
+    {
+        return $this->clientRegistrant;
+    }
+
+    public function getUserRegistrant(): ?UserRegistrant
+    {
+        return $this->userRegistrant;
     }
 
 }

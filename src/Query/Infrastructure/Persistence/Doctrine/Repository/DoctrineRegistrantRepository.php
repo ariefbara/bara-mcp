@@ -32,7 +32,7 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($parameters);
-
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

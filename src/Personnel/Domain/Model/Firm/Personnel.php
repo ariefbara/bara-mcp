@@ -3,9 +3,9 @@
 namespace Personnel\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm;
-use Resources\{
+use Resources\ {
     Domain\ValueObject\Password,
+    Domain\ValueObject\PersonName,
     Exception\RegularException,
     ValidationRule,
     ValidationService
@@ -16,9 +16,9 @@ class Personnel
 
     /**
      *
-     * @var Firm
+     * @var string
      */
-    protected $firm;
+    protected $firmId;
 
     /**
      *
@@ -28,7 +28,7 @@ class Personnel
 
     /**
      *
-     * @var string
+     * @var PersonName
      */
     protected $name;
 
@@ -62,28 +62,14 @@ class Personnel
      */
     protected $removed;
 
-    function getFirm(): Firm
+    public function getFirmId(): string
     {
-        return $this->firm;
+        return $this->firmId;
     }
 
     function getId(): string
     {
         return $this->id;
-    }
-
-    function getName(): string
-    {
-        return $this->name;
-    }
-
-    protected function setName(string $name): void
-    {
-        $errorDetail = 'bad request: personnel name is mandatory';
-        ValidationService::build()
-                ->addRule(ValidationRule::notEmpty())
-                ->execute($name, $errorDetail);
-        $this->name = $name;
     }
 
     protected function setPhone(?string $phone): void
@@ -101,10 +87,10 @@ class Personnel
         
     }
 
-    public function updateProfile(string $name, ?string $phone): void
+    public function updateProfile(PersonnelProfileData $data): void
     {
-        $this->setName($name);
-        $this->setPhone($phone);
+        $this->name = new PersonName($data->getFirstName(), $data->getLastName());
+        $this->setPhone($data->getPhone());
     }
 
     public function changePassword(string $previousPassword, string $newPassword): void

@@ -3,29 +3,20 @@
 namespace App\Http\Controllers\Personnel\ProgramConsultant;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
-use Client\ {
-    Application\Listener\ConsultantMutateConsultationRequestListener,
-    Application\Listener\ConsultantMutateConsultationSessionListener,
-    Domain\Model\Client\ClientNotification,
-    Domain\Model\Client\ProgramParticipation\ConsultationRequest as ConsultationRequestInClient,
-    Domain\Model\Client\ProgramParticipation\ConsultationSession
-};
 use DateTimeImmutable;
 use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestAccept,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestOffer,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestReject,
-    Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId,
-    Domain\Event\ConsultantMutateConsultationRequestEvent,
-    Domain\Event\ConsultantMutateConsultationSessionEvent,
     Domain\Model\Firm\Personnel\ProgramConsultant,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest
 };
 use Query\ {
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestView,
     Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest as ConsultationRequest2
+    Domain\Model\Firm\Client\ClientParticipant,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest as ConsultationRequest2,
+    Domain\Model\User\UserParticipant
 };
 use Resources\Application\Event\Dispatcher;
 
@@ -35,8 +26,7 @@ class ConsultationRequestController extends PersonnelBaseController
     public function accept($programConsultantId, $consultationRequestId)
     {
         $service = $this->buildAcceptService();
-        $personnelCompositionId = new PersonnelCompositionId($this->firmId(), $this->personnelId());
-        $service->execute($personnelCompositionId, $programConsultantId, $consultationRequestId);
+        $service->execute($this->firmId(), $this->personnelId(), $programConsultantId, $consultationRequestId);
 
         return $this->show($programConsultantId, $consultationRequestId);
     }
@@ -44,9 +34,8 @@ class ConsultationRequestController extends PersonnelBaseController
     public function offer($programConsultantId, $consultationRequestId)
     {
         $service = $this->buildOfferService();
-        $personnelCompositionId = new PersonnelCompositionId($this->firmId(), $this->personnelId());
         $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
-        $service->execute($personnelCompositionId, $programConsultantId, $consultationRequestId, $startTime);
+        $service->execute($this->firmId(), $this->personnelId(), $programConsultantId, $consultationRequestId, $startTime);
 
         return $this->show($programConsultantId, $consultationRequestId);
     }
@@ -54,9 +43,7 @@ class ConsultationRequestController extends PersonnelBaseController
     public function reject($programConsultantId, $consultationRequestId)
     {
         $service = $this->buildRejectService();
-        $programConsultantCompositionId = new ProgramConsultantCompositionId(
-                $this->firmId(), $this->personnelId(), $programConsultantId);
-        $service->execute($programConsultantCompositionId, $consultationRequestId);
+        $service->execute($this->firmId(), $this->personnelId(), $programConsultantId, $consultationRequestId);
 
         return $this->commandOkResponse();
     }
@@ -106,11 +93,24 @@ class ConsultationRequestController extends PersonnelBaseController
             ],
             "participant" => [
                 "id" => $consultationRequest->getParticipant()->getId(),
-                "client" => [
-                    "id" => $consultationRequest->getParticipant()->getClient()->getId(),
-                    "name" => $consultationRequest->getParticipant()->getClient()->getName(),
-                ],
+                "clientParticipant" => $this->arrayDataOfClientParticipant($consultationRequest->getParticipant()->getClientParticipant()),
+                "userParticipant" => $this->arrayDataOfUserParticipant($consultationRequest->getParticipant()->getUserParticipant()),
             ],
+        ];
+    }
+    
+    protected function arrayDataOfClientParticipant(?ClientParticipant $clientParticipant): ?array
+    {
+        return empty($clientParticipant)? null: [
+            "id" => $clientParticipant->getClient()->getId(),
+            "name" => $clientParticipant->getClient()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfUserParticipant(?UserParticipant $userParticipant): ?array
+    {
+        return empty($userParticipant)? null: [
+            "id" => $userParticipant->getUser()->getId(),
+            "name" => $userParticipant->getUser()->getFullName(),
         ];
     }
 
@@ -119,13 +119,6 @@ class ConsultationRequestController extends PersonnelBaseController
         $programConsultantRepository = $this->em->getRepository(ProgramConsultant::class);
         $dispatcher = new Dispatcher();
 
-        $clientNotificationRepository = $this->em->getRepository(ClientNotification::class);
-        $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
-        $listener = new ConsultantMutateConsultationSessionListener($clientNotificationRepository,
-                $consultationSessionRepository);
-        $dispatcher->addListener(
-                ConsultantMutateConsultationSessionEvent::EVENT_NAME, $listener);
-
         return new ConsultationRequestAccept($programConsultantRepository, $dispatcher);
     }
 
@@ -133,13 +126,6 @@ class ConsultationRequestController extends PersonnelBaseController
     {
         $programConsultantRepository = $this->em->getRepository(ProgramConsultant::class);
         $dispatcher = new Dispatcher();
-
-        $clientNotificationRepository = $this->em->getRepository(ClientNotification::class);
-        $consultationRequestRepository = $this->em->getRepository(ConsultationRequestInClient::class);
-        $listener = new ConsultantMutateConsultationRequestListener($clientNotificationRepository,
-                $consultationRequestRepository);
-        $dispatcher->addListener(
-                ConsultantMutateConsultationRequestEvent::EVENT_NAME, $listener);
 
         return new ConsultationRequestOffer($programConsultantRepository, $dispatcher);
     }

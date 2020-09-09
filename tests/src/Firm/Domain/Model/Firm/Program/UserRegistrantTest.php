@@ -2,70 +2,48 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\ {
-    Firm\Program,
-    User
-};
+use Firm\Domain\Model\Firm\Program;
 use Tests\TestBase;
 
 class UserRegistrantTest extends TestBase
 {
-    protected $userRegistrant, $registrant;
+    protected $userRegistrant;
     protected $program;
-    protected $user;
-    protected $id = 'userRegistrantId';
     
-    protected $userParticipantId = 'userParticipantId';
+    protected $participantId = 'participantId';
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->program = $this->buildMockOfClass(Program::class);
-        $this->user = $this->buildMockOfClass(User::class);
-        
         $this->userRegistrant = new TestableUserRegistrant();
-        $this->userRegistrant->program = $this->program;
-        $this->userRegistrant->user = $this->user;
+        $this->userRegistrant->userId = 'userId';
         
-        $this->registrant = $this->buildMockOfClass(Registrant::class);
-        $this->userRegistrant->registrant = $this->registrant;
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
-    public function test_accept_acceptRegistrant()
+    public function test_createParticipant_returnParticipantForUser()
     {
-        $this->registrant->expects($this->once())
-                ->method('accept');
-        $this->userRegistrant->accept();
-    }
-    public function test_reject_rejectRegistrant()
-    {
-        $this->registrant->expects($this->once())
-                ->method('reject');
-        $this->userRegistrant->reject();
+        $participant = Participant::participantForUser($this->program, $this->participantId, $this->userRegistrant->userId);
+        
+        $this->assertEquals($participant, $this->userRegistrant->createParticipant($this->program, $this->participantId));
     }
     
-    public function test_createParticipant_returnUserParticipant()
+    public function test_userIdEquals_sameUserId_returnTrue()
     {
-        $userParticipant = new UserParticipant($this->program, $this->userParticipantId, $this->user);
-        $this->assertEquals($userParticipant, $this->userRegistrant->createParticipant($this->userParticipantId));
+        $this->assertTrue($this->userRegistrant->userIdEquals($this->userRegistrant->userId));
+    }
+    public function test_userIdEquals_differentUserId_returnFalse()
+    {
+        $this->assertFalse($this->userRegistrant->userIdEquals('differentId'));
     }
     
-    public function test_userEquals_sameUser_returnTrue()
-    {
-        $this->assertTrue($this->userRegistrant->userEquals($this->user));
-    }
-    public function test_userIdEquals_differentUserid_returnFalse()
-    {
-        $this->assertFalse($this->userRegistrant->userEquals($this->buildMockOfClass(User::class)));
-    }
 }
 
 class TestableUserRegistrant extends UserRegistrant
 {
-    public $program;
-    public $id;
-    public $user;
     public $registrant;
+    public $id;
+    public $userId;
     
     function __construct()
     {

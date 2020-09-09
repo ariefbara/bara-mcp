@@ -92,7 +92,7 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
 
         $qb = $this->createQueryBuilder('consultant');
         $qb->select('1')
-                ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
+                ->andWhere($qb->expr()->eq('consultant.removed', 'false'))
                 ->leftJoin('consultant.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->leftJoin('program.firm', 'program_firm')

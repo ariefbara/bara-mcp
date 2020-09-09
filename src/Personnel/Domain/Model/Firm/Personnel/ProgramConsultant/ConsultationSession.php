@@ -3,7 +3,6 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use Personnel\Domain\Model\Firm\ {
-    Personnel\PersonnelNotification,
     Personnel\ProgramConsultant,
     Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback,
     Program\ConsultationSetup,
@@ -13,7 +12,7 @@ use Resources\ {
     Domain\ValueObject\DateTimeInterval,
     Uuid
 };
-use Shared\Domain\Model\FormRecordData;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class ConsultationSession
 {
@@ -79,11 +78,6 @@ class ConsultationSession
             $formRecord = $this->consultationSetup->createFormRecordForConsultantFeedback($id, $formRecordData);
             $this->consultantFeedback = new ConsultantFeedback($this, $id, $formRecord);
         }
-    }
-    
-    public function createNotification(string $id, string $message): PersonnelNotification
-    {
-        return $this->programConsultant->createNotificationForConsultationSession($id, $message, $this);
     }
 
 }

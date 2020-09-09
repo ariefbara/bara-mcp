@@ -7,7 +7,6 @@ use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultantRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant
 };
-use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
@@ -15,20 +14,20 @@ class ConsultationRequestAcceptTest extends TestBase
 {
     protected $service;
     protected $personnelCompositionId;
-    protected $programConsultantRepository, $programConsultant, $programConsultantId = 'program-mentorship-id';
+    protected $programConsultantRepository, $programConsultant;
     protected $dispatcher;
-    protected $consultationRequestId = 'negotiate-mentoring-schedule-id', $startTime;
+    
+    protected $firmId = 'firmId', $personnelId = 'personnelId', $programConsultationId = 'programConsultationId', 
+            $consultationRequestId = 'consultationRequetId';
     
     protected function setUp(): void
     {
         parent::setUp();
-        $this->personnelCompositionId = $this->buildMockOfClass(PersonnelCompositionId::class);
-        
-        $this->programConsultantRepository = $this->buildMockOfInterface(ProgramConsultantRepository::class);
         $this->programConsultant = $this->buildMockOfClass(ProgramConsultant::class);
+        $this->programConsultantRepository = $this->buildMockOfInterface(ProgramConsultantRepository::class);
         $this->programConsultantRepository->expects($this->any())
             ->method('ofId')
-            ->with($this->personnelCompositionId, $this->programConsultantId)
+            ->with($this->firmId, $this->personnelId, $this->programConsultationId)
             ->willReturn($this->programConsultant);
         
         $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
@@ -39,8 +38,7 @@ class ConsultationRequestAcceptTest extends TestBase
     }
     protected function execute()
     {
-        $this->service->execute(
-            $this->personnelCompositionId, $this->programConsultantId, $this->consultationRequestId);
+        $this->service->execute($this->firmId, $this->personnelId, $this->programConsultationId, $this->consultationRequestId);
     }
     
     public function test_accept_acceptConsultationRequestOfProgramConsultant()

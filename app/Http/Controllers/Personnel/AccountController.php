@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Personnel;
 use Personnel\ {
     Application\Service\Firm\PersonnelChangePassword,
     Application\Service\Firm\PersonnelUpdateProfile,
-    Domain\Model\Firm\Personnel
+    Domain\Model\Firm\Personnel,
+    Domain\Model\Firm\PersonnelProfileData
 };
 use Query\ {
     Application\Service\Firm\PersonnelView,
@@ -18,10 +19,13 @@ class AccountController extends PersonnelBaseController
     {
         $personnelRepository = $this->em->getRepository(Personnel::class);
         $service = new PersonnelUpdateProfile($personnelRepository);
-        $name = $this->stripTagsInputRequest("name");
+        
+        $firstName = $this->stripTagsInputRequest('firstName');
+        $lastName = $this->stripTagsInputRequest('lastName');
         $phone = $this->stripTagsInputRequest('phone');
         
-        $service->execute($this->firmId(), $this->personnelId(), $name, $phone);
+        $personnelProfileData = new PersonnelProfileData($firstName, $lastName, $phone);
+        $service->execute($this->firmId(), $this->personnelId(), $personnelProfileData);
         
         $viewService = $this->buildViewService();
         $personnel = $viewService->showById($this->firmId(), $this->personnelId());

@@ -79,6 +79,16 @@ class Participant
         return $this->note;
     }
 
+    public function getClientParticipant(): ?ClientParticipant
+    {
+        return $this->clientParticipant;
+    }
+
+    public function getUserParticipant(): ?UserParticipant
+    {
+        return $this->userParticipant;
+    }
+
     protected function __construct()
     {
         ;

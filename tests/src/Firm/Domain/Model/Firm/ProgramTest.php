@@ -4,20 +4,14 @@ namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\ {
-    Event\Firm\Program\ClientRegistrationAccepted,
-    Event\Firm\Program\UserRegistrationAccepted,
+    Event\Firm\Program\RegistrantAccepted,
     Model\Firm,
-    Model\Firm\Program\ClientParticipant,
-    Model\Firm\Program\ClientRegistrant,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Coordinator,
-    Model\Firm\Program\UserParticipant,
-    Model\Firm\Program\UserRegistrant
+    Model\Firm\Program\Participant,
+    Model\Firm\Program\Registrant
 };
-use Query\Domain\Model\ {
-    Firm\ParticipantTypes,
-    User
-};
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Tests\TestBase;
 
 class ProgramTest extends TestBase
@@ -25,17 +19,14 @@ class ProgramTest extends TestBase
     protected $program, $participantTypes;
     protected $firm;
     protected $id = 'program-id', $name = 'new name', $description = 'new description', $types = ['user', 'client'];
+    
     protected $consultant;
     protected $coordinator;
-    protected $clientRegistrant;
-    protected $clientParticipant;
-    protected $userRegistrant;
-    protected $userParticipant;
+    
+    protected $registrant, $registrantId = "registrantId";
+    protected $participant;
 
     protected $personnel;
-    
-    protected $client, $clientRegistrantId = 'clientRegistrantId';
-    protected $user, $userId = 'userId', $userRegistrantId = 'userRegistrantId';
 
     protected function setUp(): void
     {
@@ -48,33 +39,21 @@ class ProgramTest extends TestBase
         
         $this->program->consultants = new ArrayCollection();
         $this->program->coordinators = new ArrayCollection();
-        $this->program->clientRegistrants = new ArrayCollection();
-        $this->program->clientParticipants = new ArrayCollection();
-        $this->program->userRegistrants = new ArrayCollection();
-        $this->program->userParticipants = new ArrayCollection();
+        $this->program->registrants = new ArrayCollection();
+        $this->program->participants = new ArrayCollection();
 
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->program->consultants->add($this->consultant);
-        
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
         $this->program->coordinators->add($this->coordinator);
         
-        $this->clientRegistrant = $this->buildMockOfClass(ClientRegistrant::class);
-        $this->program->clientRegistrants->add($this->clientRegistrant);
+        $this->registrant = $this->buildMockOfClass(Registrant::class);
+        $this->program->registrants->add($this->registrant);
         
-        $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
-        $this->program->clientParticipants->add($this->clientParticipant);
-        
-        $this->userRegistrant = $this->buildMockOfClass(UserRegistrant::class);
-        $this->program->userRegistrants->add($this->userRegistrant);
-        
-        $this->userParticipant = $this->buildMockOfClass(UserParticipant::class);
-        $this->program->userParticipants->add($this->userParticipant);
+        $this->participant = $this->buildMockOfClass(Participant::class);
+        $this->program->participants->add($this->participant);
         
         $this->personnel = $this->buildMockOfClass(Personnel::class);
-        $this->client = $this->buildMockOfClass(Client::class);
-        $this->user = $this->buildMockOfClass(User::class);
-        $this->user->expects($this->any())->method('getId')->willReturn($this->userId);
     }
 
     protected function getProgramData()
@@ -231,133 +210,63 @@ class ProgramTest extends TestBase
         $this->assertEquals($id, $this->executeAssignPersonnelAsCoordinator());
     }
     
-    protected function executeAcceptClientRegistration()
+    protected function executeAcceptRegistrant()
     {
-        $this->clientRegistrant->expects($this->any())
+        $this->registrant->expects($this->any())
                 ->method('getId')
-                ->willReturn($this->clientRegistrantId);
-        $this->program->acceptClientRegistration($this->clientRegistrantId);
+                ->willReturn($this->registrantId);
+        
+        $this->program->acceptRegistrant($this->registrantId);
     }
-    public function test_acceptClientRegistration_acceptClientRegistrant()
+    public function test_acceptRegistrant_acceptRegistrant()
     {
-        $this->clientRegistrant->expects($this->once())
+        $this->registrant->expects($this->once())
                 ->method('accept');
-        $this->executeAcceptClientRegistration();
+        $this->executeAcceptRegistrant();
     }
-    public function test_acceptClientRegistration_noExistringRegistrantCorrespondToId_notFoundError()
+    public function test_acceptRegistrant_noMatchingRegistrantToId_notFoundError()
     {
-        $this->clientRegistrant->expects($this->once())
+        $this->registrant->expects($this->once())
                 ->method('getId')
-                ->willReturn('unmatchId');
+                ->willReturn('noMatch');
         $operation = function (){
-            $this->executeAcceptClientRegistration();
+            $this->executeAcceptRegistrant();
         };
-        $errorDetail = 'not found: client registrant not found';
+        $errorDetail = "not found: registrant not found";
         $this->assertRegularExceptionThrowed($operation, 'Not Found', $errorDetail);
     }
-    public function test_acceptClientRegistrant_addClientParticipantToCollection()
+    public function test_acceptRegistrant_addParticipantToRepository()
     {
-        $clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
-        $this->clientRegistrant->expects($this->once())
+        $this->registrant->expects($this->once())
                 ->method('createParticipant')
-                ->willReturn($clientParticipant);
-        
-        $this->executeAcceptClientRegistration();
-        $this->assertEquals($clientParticipant, $this->program->clientParticipants->last());
+                ->with($this->anything());
+        $this->executeAcceptRegistrant();
+        $this->assertEquals(2, $this->program->participants->count());
     }
-    public function test_acceptClientRegistration_clientIsFormerParticipant_reenrollExistingParticipant()
+    public function test_acceptRegistrant_alreadyHasParticipantCorrespondWithRegistrant_reenroolParticipant()
     {
-        $this->clientParticipant->expects($this->once())
+        $this->participant->expects($this->once())
                 ->method('correspondWithRegistrant')
-                ->with($this->clientRegistrant)
+                ->with($this->registrant)
                 ->willReturn(true);
-        $this->clientParticipant->expects($this->once())
+        $this->participant->expects($this->once())
                 ->method('reenroll');
-        $this->executeAcceptClientRegistration();
+        $this->executeAcceptRegistrant();
     }
-    public function test_acceptClientRegistration_clientIsFormerParticipant_preventAddNewParticipantInCollection()
+    public function test_acceptRegistrant_reenrollParticipant_preventAddNewParticipant()
     {
-        $this->clientParticipant->expects($this->once())
+        $this->participant->expects($this->once())
                 ->method('correspondWithRegistrant')
-                ->with($this->clientRegistrant)
+                ->with($this->registrant)
                 ->willReturn(true);
-        $this->executeAcceptClientRegistration();
-        $this->assertEquals(1, $this->program->clientParticipants->count());
+        $this->executeAcceptRegistrant();
+        $this->assertEquals(1, $this->program->participants->count());
     }
-    public function test_acceptClientRegistration_recordClientRegistrationAcceptedEvent()
+    public function test_acceptRegistrant_recordRegistrantAcceptedEvent()
     {
-        $this->firm->expects($this->once())->method('getId')->willReturn($firmId = 'firmId');
-        $this->clientRegistrant->expects($this->once())->method('getClientId')->willReturn($clientId = 'clientId');
-        
         $this->program->clearRecordedEvents();
-        $this->executeAcceptClientRegistration();
-        
-        $event = new ClientRegistrationAccepted($firmId, $this->program->id, $clientId);
-        $this->assertEquals($event, $this->program->getRecordedEvents()[0]);
-    }
-    
-    protected function executeAcceptUserRegistration()
-    {
-        $this->userRegistrant->expects($this->any())
-                ->method('getId')
-                ->willReturn($this->userRegistrantId);
-        $this->program->acceptUserRegistration($this->userRegistrantId);
-    }
-    public function test_acceptUserRegistration_acceptUserRegistrant()
-    {
-        $this->userRegistrant->expects($this->once())
-                ->method('accept');
-        $this->executeAcceptUserRegistration();
-    }
-    public function test_acceptUserRegistration_noRegistrantCorrespontToId_notFoundError()
-    {
-        $this->userRegistrant->expects($this->once())
-                ->method('getId')
-                ->willReturn('unmatchId');
-        $operation = function (){
-            $this->executeAcceptUserRegistration();
-        };
-        $errorDetail = 'not found: user registrant not found';
-        $this->assertRegularExceptionThrowed($operation, 'Not Found', $errorDetail);
-    }
-    public function test_acceptUserRegistration_addNewUserParticipantToCollection()
-    {
-        $userParticipant = $this->buildMockOfClass(UserParticipant::class);
-        $this->userRegistrant->expects($this->once())
-                ->method('createParticipant')
-                ->willReturn($userParticipant);
-        $this->executeAcceptUserRegistration();
-        $this->assertEquals($userParticipant, $this->program->userParticipants->last());
-    }
-    public function test_acceptUserRegistration_userIsFormerParticipant_reenrollPastParticipation()
-    {
-        $this->userParticipant->expects($this->once())
-                ->method('correspondWithRegistrant')
-                ->with($this->userRegistrant)
-                ->willReturn(true);
-        $this->userParticipant->expects($this->once())
-                ->method('reenroll');
-        $this->executeAcceptUserRegistration();
-    }
-    public function test_acceptUserRegistration_userIsFormerParticipant_preventAddAsNewParticipant()
-    {
-        $this->userParticipant->expects($this->once())
-                ->method('correspondWithRegistrant')
-                ->with($this->userRegistrant)
-                ->willReturn(true);
-        $this->executeAcceptUserRegistration();
-        $this->assertEquals(1, $this->program->userParticipants->count());
-    }
-    public function test_acceptUserRegistration_recordUserRegistrationAcceptedEvent()
-    {
-        $this->firm->expects($this->once())->method('getId')->willReturn($firmId = 'firmId');
-        $this->userRegistrant->expects($this->once())->method('getUserId')->willReturn($userId = 'userId');
-        
-        $this->program->clearRecordedEvents();
-        $this->executeAcceptUserRegistration();
-        
-        $event = new UserRegistrationAccepted($firmId, $this->program->id, $userId);
-        $this->assertEquals($event, $this->program->getRecordedEvents()[0]);
+        $this->executeAcceptRegistrant();
+        $this->assertInstanceOf(RegistrantAccepted::class, $this->program->getRecordedEvents()[0]);
     }
     
 }
@@ -367,6 +276,5 @@ class TestableProgram extends Program
 
     public $firm, $id, $name, $description, $participantTypes, $published, $removed;
     public $consultants, $coordinators;
-    public $clientParticipants, $clientRegistrants;
-    public $userParticipants, $userRegistrants;
+    public $participants, $registrants;
 }

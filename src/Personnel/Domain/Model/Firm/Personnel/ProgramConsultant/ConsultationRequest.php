@@ -3,17 +3,16 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use DateTimeImmutable;
-use Personnel\Domain\Model\Firm\{
-    Personnel\PersonnelNotification,
+use Personnel\Domain\Model\Firm\ {
     Personnel\ProgramConsultant,
     Program\ConsultationSetup,
     Program\Participant
 };
-use Resources\{
+use Resources\ {
     Domain\ValueObject\DateTimeInterval,
     Exception\RegularException
 };
-use Shared\Domain\Model\ConsultationRequestStatusVO;
+use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 
 class ConsultationRequest
 {
@@ -99,7 +98,7 @@ class ConsultationRequest
     public function accept(): void
     {
         $this->assertNotConcluded();
-        if (!$this->statusEquals(new ConsultationRequestStatusVO('proposed'))) {
+        if (!$this->status->sameValueAs(new ConsultationRequestStatusVO('proposed'))) {
             $errorDetail = "forbidden: can only accept proposed consultation request";
             throw RegularException::forbidden($errorDetail);
         }
@@ -113,18 +112,14 @@ class ConsultationRequest
                 $this->programConsultant, $consultationSessionId, $this->participant, $this->consultationSetup,
                 $this->startEndTime);
     }
-
-    public function intersectWithOtherConsultationRequest(ConsultationRequest $other): bool
+    
+    public function isOfferedConsultationRequestConflictedWith(ConsultationRequest $other): bool
     {
-        if ($this->id == $other->id) {
+        if ($this->id === $other->id) {
             return false;
         }
-        return $this->startEndTime->intersectWith($other->getStartEndTime());
-    }
-
-    public function statusEquals(ConsultationRequestStatusVO $other): bool
-    {
-        return $this->status->sameValueAs($other);
+        return $this->status->sameValueAs(new ConsultationRequestStatusVO('offered'))
+            && $this->startEndTime->intersectWith($other->getStartEndTime());
     }
 
     protected function assertNotConcluded(): void
@@ -141,11 +136,6 @@ class ConsultationRequest
             $errorDetail = 'forbidden: consultation request time in conflict with participan existing consultation session';
             throw RegularException::forbidden($errorDetail);
         }
-    }
-
-    public function createNotification(string $id, string $message): PersonnelNotification
-    {
-        return $this->programConsultant->createNotificationForConsultationRequest($id, $message, $this);
     }
 
 }

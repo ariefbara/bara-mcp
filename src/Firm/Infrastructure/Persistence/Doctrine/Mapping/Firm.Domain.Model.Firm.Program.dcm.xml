@@ -4,17 +4,21 @@
             table="Program" 
             repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineProgramRepository" 
     >
+        
         <many-to-one field="firm" 
                      target-entity="Firm\Domain\Model\Firm" 
         >
             <join-column name="Firm_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
         <field name="description" type="text" nullable="true"/>
+        
         <embedded name="participantTypes" 
                   class="Query\Domain\Model\Firm\ParticipantTypes" 
                   use-column-prefix="false" />
+        
         <field name="published" type="boolean" />
         <field name="removed" type="boolean" />
         
@@ -24,28 +28,21 @@
         >
             <cascade><cascade-persist /></cascade>
         </one-to-many>
+        
         <one-to-many  field="consultants" 
                       target-entity="Firm\Domain\Model\Firm\Program\Consultant"
                       mapped-by="program" 
         >
             <cascade><cascade-persist /></cascade>
         </one-to-many>
-        <one-to-many  field="clientRegistrants" 
-                      target-entity="Firm\Domain\Model\Firm\Program\ClientRegistrant"
+        
+        <one-to-many  field="registrants" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Registrant"
                       mapped-by="program" 
         />
-        <one-to-many  field="userRegistrants" 
-                      target-entity="Firm\Domain\Model\Firm\Program\UserRegistrant"
-                      mapped-by="program" 
-        />
-        <one-to-many  field="clientParticipants" 
-                      target-entity="Firm\Domain\Model\Firm\Program\ClientParticipant"
-                      mapped-by="program" 
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-many>
-        <one-to-many  field="userParticipants" 
-                      target-entity="Firm\Domain\Model\Firm\Program\UserParticipant"
+        
+        <one-to-many  field="participants" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant"
                       mapped-by="program" 
         >
             <cascade><cascade-persist /></cascade>

@@ -4,20 +4,9 @@
             table="Participant" 
     >
         
-        <many-to-one  field="program" 
-                      target-entity="Query\Domain\Model\Firm\Program"
-        >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
+        <field name="programId" column="Program_id" type="guid" nullable="false"/>
         <id name="id" type="guid" />
-        <many-to-one  field="client" 
-                      target-entity="Query\Domain\Model\Client"
-        >
-            <join-column name="Client_id" referenced-column-name="id" />
-        </many-to-one>
-        <field name="acceptedTime" type="datetime_immutable" nullable="true"/>
         <field name="active" type="boolean" />
-        <field name="note" type="string" length="256" nullable="true"/>
         
         <one-to-many field="consultationSessions" 
                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession"

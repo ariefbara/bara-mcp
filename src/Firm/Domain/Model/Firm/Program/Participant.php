@@ -3,14 +3,20 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
+use Firm\Domain\Model\Firm\Program;
 use Resources\{
     DateTimeImmutableBuilder,
-    Domain\Model\Mail\Recipient,
     Exception\RegularException
 };
 
 class Participant
 {
+
+    /**
+     *
+     * @var Program
+     */
+    protected $program;
 
     /**
      *
@@ -48,17 +54,32 @@ class Participant
      */
     protected $userParticipant;
 
-    public function isActive(): bool
+    public function getId(): string
     {
-        return $this->active;
+        return $this->id;
     }
 
-    public function __construct(string $id)
+    public function __construct(Program $program, string $id)
     {
+        $this->program = $program;
         $this->id = $id;
         $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->active = true;
         $this->note = null;
+    }
+
+    public static function participantForUser(Program $program, string $id, string $userId): self
+    {
+        $participant = new static($program, $id);
+        $participant->userParticipant = new UserParticipant($participant, $id, $userId);
+        return $participant;
+    }
+
+    public static function participantForClient(Program $program, string $id, string $clientId): self
+    {
+        $participant = new static($program, $id);
+        $participant->clientParticipant = new ClientParticipant($participant, $id, $clientId);
+        return $participant;
     }
 
     public function bootout(): void
@@ -81,20 +102,11 @@ class Participant
         $this->note = null;
     }
 
-    public function getMailRecipient(): Recipient
+    public function correspondWithRegistrant(Registrant $registrant): bool
     {
-        if (!empty($this->clientParticipant)) {
-            return  $this->clientParticipant->getClientMailRecipient();
-        }
-        return $this->userParticipant->getUserMailRecipient();
-    }
-
-    public function getParticipantName(): string
-    {
-        if (!empty($this->clientParticipant)) {
-            return  $this->clientParticipant->getClientName();
-        }
-        return $this->userParticipant->getUserName();
+        return !empty($this->clientParticipant) ?
+                $this->clientParticipant->correspondWithRegistrant($registrant) :
+                $this->userParticipant->correspondWithRegistrant($registrant);
     }
 
 }

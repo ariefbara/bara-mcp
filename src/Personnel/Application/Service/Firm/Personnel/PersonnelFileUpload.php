@@ -6,9 +6,9 @@ use Personnel\ {
     Application\Service\Firm\PersonnelRepository,
     Domain\Model\Firm\Personnel\PersonnelFileInfo
 };
-use Shared\Domain\ {
-    Model\FileInfo,
-    Model\FileInfoData,
+use SharedContext\Domain\ {
+    Model\SharedEntity\FileInfo,
+    Model\SharedEntity\FileInfoData,
     Service\UploadFile
 };
 

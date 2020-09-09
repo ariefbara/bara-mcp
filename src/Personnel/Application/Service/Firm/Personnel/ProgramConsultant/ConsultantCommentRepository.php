@@ -13,5 +13,5 @@ interface ConsultantCommentRepository
 
     public function update(): void;
 
-    public function ofId(ProgramConsultantCompositionId $programConsultantCompositionId, string $consultantCommentId): ConsultantComment;
+    public function ofId(string $firmId, string $personnelId, string $programConsultationId, string $consultantCommentId): ConsultantComment;
 }

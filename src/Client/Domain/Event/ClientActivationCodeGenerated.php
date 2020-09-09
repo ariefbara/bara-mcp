@@ -2,9 +2,9 @@
 
 namespace Client\Domain\Event;
 
-use Firm\Application\Listener\ClientActivationCodeGeneratedEventInterface;
+use Resources\Application\Event\Event;
 
-class ClientActivationCodeGenerated implements ClientActivationCodeGeneratedEventInterface
+class ClientActivationCodeGenerated implements Event
 {
 
     const EVENT_NAME = "ClientActivationCodeGenerated";

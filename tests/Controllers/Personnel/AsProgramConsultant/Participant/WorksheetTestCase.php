@@ -44,7 +44,7 @@ class WorksheetTestCase extends ParticipantTestCase
         $mission = new RecordOfMission($this->consultant->program, $worksheetForm, 0, null);
         $this->connection->table('Mission')->insert($mission->toArrayForDbEntry());
 
-        $this->worksheet = new RecordOfWorksheet($this->participant, $formRecord, $mission);
+        $this->worksheet = new RecordOfWorksheet($this->participant, $formRecord, $mission, 0);
         $this->connection->table('Worksheet')->insert($this->worksheet->toArrayForDbEntry());
     }
 

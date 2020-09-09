@@ -7,8 +7,7 @@ use App\Http\Controllers\ {
     Personnel\AsProgramConsultant\AsProgramConsultantBaseController
 };
 use Query\ {
-    Application\Service\Firm\Program\Participant\ParticipantCompositionId,
-    Application\Service\Firm\Program\Participant\WorksheetView,
+    Application\Service\Firm\Program\Participant\ViewWorksheet,
     Domain\Model\Firm\Program\Mission,
     Domain\Model\Firm\Program\Participant\Worksheet
 };
@@ -20,8 +19,7 @@ class WorksheetController extends AsProgramConsultantBaseController
         $this->authorizedPersonnelIsProgramConsultant($programId);
         
         $service = $this->buildViewService();
-        $participantCompositionId = new ParticipantCompositionId($this->firmId(), $programId, $participantId);
-        $worksheet = $service->showById($participantCompositionId, $worksheetId);
+        $worksheet = $service->showById($this->firmId(), $programId, $participantId, $worksheetId);
         
         return $this->singleQueryResponse($this->arrayDataOfWorksheet($worksheet));
     }
@@ -29,9 +27,8 @@ class WorksheetController extends AsProgramConsultantBaseController
     {
         $this->authorizedPersonnelIsProgramConsultant($programId);
         $service = $this->buildViewService();
-        $participantCompositionId = new ParticipantCompositionId($this->firmId(), $programId, $participantId);
         
-        $worksheets = $service->showAll($participantCompositionId, $this->getPage(), $this->getPageSize());
+        $worksheets = $service->showAll($this->firmId(), $programId, $participantId, $this->getPage(), $this->getPageSize());
         
         $result = [];
         $result['total'] = count($worksheets);
@@ -76,6 +73,6 @@ class WorksheetController extends AsProgramConsultantBaseController
     protected function buildViewService()
     {
         $worksheetRepository = $this->em->getRepository(Worksheet::class);
-        return new WorksheetView($worksheetRepository);
+        return new ViewWorksheet($worksheetRepository);
     }
 }

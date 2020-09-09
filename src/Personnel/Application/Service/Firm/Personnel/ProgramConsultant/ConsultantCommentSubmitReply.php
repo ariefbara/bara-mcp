@@ -7,7 +7,6 @@ use Personnel\ {
     Application\Service\Firm\Program\Participant\Worksheet\CommentRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment
 };
-use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultantCommentSubmitReply
@@ -49,19 +48,20 @@ class ConsultantCommentSubmitReply
     }
 
     public function execute(
-            PersonnelCompositionId $personnelCompositionId, string $programConsultantId, string $participantId,
+            string $firmId, string $personnelId, string $programConsultantId, string $participantId,
             string $worksheetId, string $commentId, string $message): string
     {
-        $programConsultant = $this->programConsultantRepository->ofId($personnelCompositionId, $programConsultantId);
         $id = $this->consultantCommentRepository->nextIdentity();
-        $comment = $this->commentRepository->aCommentInProgramWorksheetWhereConsultantInvolved(
-                        $personnelCompositionId, $programConsultantId, $participantId, $worksheetId, $commentId)
-                ->createReply($id, $message);
-
-        $consultantComment = new ConsultantComment($programConsultant, $id, $comment);
+        $comment = $this->commentRepository->aCommentInProgramWorksheetWhereConsultantInvolved($firmId, $personnelId,
+                $programConsultantId, $participantId, $worksheetId, $commentId);
+        
+        $programConsultation = $this->programConsultantRepository->ofId($firmId, $personnelId, $programConsultantId);
+        $consultantComment = $programConsultation->submitReplyOnWorksheetComment($id, $comment, $message);
+        
         $this->consultantCommentRepository->add($consultantComment);
         
-        $this->dispatcher->dispatch($consultantComment);
+        $this->dispatcher->dispatch($programConsultation);
+        
         return $id;
     }
 

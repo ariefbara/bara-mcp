@@ -45,6 +45,7 @@ class FileUploadControllerTest extends PersonnelTestCase
     
     public function test_upload()
     {
+$this->disableExceptionHandling();
         $header = $this->personnel->token;
         $header['fileName'] = 'cat_pile.jpg';
         $this->post($this->fileUploadUri, $this->fileUploadInput, $header)

@@ -13,7 +13,7 @@ use Query\ {
     Application\Service\Firm\Personnel\PersonnelFileInfoView,
     Domain\Model\Firm\Personnel\PersonnelFileInfo as PersonnelFileInfo2
 };
-use Shared\Domain\Model\FileInfoData;
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 
 class FileUploadController extends PersonnelBaseController
 {
@@ -35,8 +35,7 @@ class FileUploadController extends PersonnelBaseController
         }
         
         $viewService = $this->buildViewService();
-        $personnelCompositionId = new PersonnelCompositionId($this->firmId(), $this->personnelId());
-        $personnelFileInfo = $viewService->showById($personnelCompositionId, $personnelFileInfoId);
+        $personnelFileInfo = $viewService->showById($this->firmId(), $this->personnelId(), $personnelFileInfoId);
 
         return $this->commandCreatedResponse($this->arrayDataOfPersonnelFileInfo($personnelFileInfo));
     }

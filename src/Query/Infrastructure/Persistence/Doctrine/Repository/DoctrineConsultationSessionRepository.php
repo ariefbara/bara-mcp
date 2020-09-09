@@ -36,18 +36,22 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
             $qb->andWhere($qb->expr()->lt('consultationSession.startEndTime.startDateTime', ':maxStartTime'))
                     ->setParameter('maxStartTime', $maxStartTime);
         }
-        if (!empty($containConsultantFeedback = $consultationSessionFilter->isContainConsultantFeedback())) {
+        if (!is_null($containConsultantFeedback = $consultationSessionFilter->isContainConsultantFeedback())) {
             if ($containConsultantFeedback) {
-                $qb->andWhere($qb->expr()->isNotNull('consultationSession.consultantFeedback'));
+                $qb->leftJoin('consultationSession.consultantFeedback', 'consultantFeedback')
+                        ->andWhere($qb->expr()->isNotNull('consultantFeedback.id'));
             } else {
-                $qb->andWhere($qb->expr()->isNull('consultationSession.consultantFeedback'));
+                $qb->leftJoin('consultationSession.consultantFeedback', 'consultantFeedback')
+                        ->andWhere($qb->expr()->isNull('consultantFeedback.id'));
             }
         }
-        if (!empty($containParticipantFeedback = $consultationSessionFilter->isContainParticipantFeedback())) {
+        if (!is_null($containParticipantFeedback = $consultationSessionFilter->isContainParticipantFeedback())) {
             if ($containParticipantFeedback) {
-                $qb->andWhere($qb->expr()->isNotNull('consultationSession.participantFeedback'));
+                $qb->leftJoin('consultationSession.consultantFeedback', 'participantFeedback')
+                        ->andWhere($qb->expr()->isNotNull('participantFeedback.id'));
             } else {
-                $qb->andWhere($qb->expr()->isNull('consultationSession.participantFeedback'));
+                $qb->leftJoin('consultationSession.consultantFeedback', 'participantFeedback')
+                        ->andWhere($qb->expr()->isNull('participantFeedback.id'));
             }
         }
     }
@@ -119,7 +123,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
     }
 
     public function all(
-            string $firmId, string $programId, string $consultationSetupId,
+            string $firmId, string $programId, string $consultationSetupId, int $page, int $pageSize,
             ?ConsultationSessionFilter $consultationSessionFilter): ConsultationSession
     {
         $params = [
@@ -161,6 +165,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
                 ->setParameters($params);
         
         $this->applyFilter($qb, $consultationSessionFilter);
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

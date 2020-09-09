@@ -2,24 +2,14 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\ {
-    Client,
-    Program
-};
-use Resources\ {
-    Application\Service\Mailer,
-    Domain\Model\Mail,
-    Domain\Model\Mail\Recipient
-};
-
 class ClientParticipant
 {
 
     /**
      *
-     * @var Program
+     * @var Participant
      */
-    protected $program;
+    protected $participant;
 
     /**
      *
@@ -29,79 +19,20 @@ class ClientParticipant
 
     /**
      *
-     * @var Client
+     * @var string
      */
-    protected $client;
-
-    /**
-     *
-     * @var Participant
-     */
-    protected $participant;
-
-    public function getId(): string
+    protected $clientId;
+    
+    public function __construct(Participant $participant, string $id, string $clientId)
     {
-        return $this->id;
-    }
-
-    public function __construct(Program $program, string $id, Client $client)
-    {
-        $this->program = $program;
+        $this->participant = $participant;
         $this->id = $id;
-        $this->client = $client;
-        $this->participant = new Participant($id);
-    }
-
-    public function bootout(): void
-    {
-        $this->participant->bootout();
-    }
-
-    public function reenroll(): void
-    {
-        $this->participant->reenroll();
-    }
-
-    public function correspondWithRegistrant(ClientRegistrant $clientRegistrant): bool
-    {
-        return $clientRegistrant->clientEquals($this->client);
+        $this->clientId = $clientId;
     }
     
-    public function sendRegistrationAcceptedMail(Mailer $mailer): void
+    public function correspondWithRegistrant(Registrant $registrant): bool
     {
-        $whiteLableInfo = $this->program->getFirmWhitelableInfo();
-        
-        $subject = "Konsulta - {$this->program->getFirmName()}: program registration accepted";
-        
-        $body = <<<_MAILBODY
-Hi {$this->client->getPersonName()->getFirstName()},
-
-Selamat, kamu telah diterima sebagai peserta program {$this->program->getName()}.
-
-Sekarang kamu bisa mulai perjalanan kamu di program dengan mengunjungi:
-
-{$whiteLableInfo->getUrl()}/client/program-participations/{$this->program->getId()}
-_MAILBODY;
-
-        $alternativeBody = null;
-        $recipient = $this->getClientMailRecipient();
-        
-        $mail = new Mail($subject, $body, $alternativeBody, $recipient);
-        
-        $senderName = $whiteLableInfo->getMailSenderName();
-        $senderAddress = $whiteLableInfo->getMailSenderAddress();
-        
-        $mailer->send($mail, $senderName, $senderAddress);
-    }
-    
-    public function getClientMailRecipient(): Recipient
-    {
-        return $this->client->getMailRecipient();
-    }
-    
-    public function getClientName(): string
-    {
-        return $this->client->getName();
+        return $registrant->correspondWithClient($this->clientId);
     }
 
 }

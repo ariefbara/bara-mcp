@@ -3,7 +3,6 @@
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
 use Personnel\Application\Service\Firm\Personnel\ProgramConsultantRepository;
-use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestAccept
@@ -28,9 +27,9 @@ class ConsultationRequestAccept
     }
 
     public function execute(
-            PersonnelCompositionId $personnelCompositionId, string $programConsultantId, string $consultationRequestId): void
+            string $firmId, string $personnelId, string $programConsultantId, string $consultationRequestId): void
     {
-        $programConsultant = $this->programConsultantRepository->ofId($personnelCompositionId, $programConsultantId);
+        $programConsultant = $this->programConsultantRepository->ofId($firmId, $personnelId, $programConsultantId);
         $programConsultant->acceptConsultationRequest($consultationRequestId);
         $this->programConsultantRepository->update();
         $this->dispatcher->dispatch($programConsultant);

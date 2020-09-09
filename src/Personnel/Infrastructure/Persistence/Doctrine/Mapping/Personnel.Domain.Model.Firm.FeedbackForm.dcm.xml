@@ -4,16 +4,11 @@
             table="FeedbackForm" 
     >
         
-        <many-to-one  field="firm" 
-                      target-entity="Query\Domain\Model\Firm"
-        >
-            <join-column name="Firm_id" referenced-column-name="id" />
-        </many-to-one>
-        
+        <field name="firmId" column="Firm_id" type="guid" nullable="false"/>
         <id name="id" type="guid" />
         
         <one-to-one field="form" 
-                    target-entity="Shared\Domain\Model\Form"
+                    target-entity="SharedContext\Domain\Model\SharedEntity\Form"
         >
             <join-column name="Form_id" referenced-column-name="id" />
         </one-to-one>

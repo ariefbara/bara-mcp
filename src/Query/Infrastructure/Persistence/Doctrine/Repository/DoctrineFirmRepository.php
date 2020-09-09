@@ -41,4 +41,20 @@ class DoctrineFirmRepository extends EntityRepository implements FirmRepository
         }
     }
 
+    public function ofIdentifier(string $firmIdentifier): Firm
+    {
+        $qb = $this->createQueryBuilder('firm');
+        $qb->select('firm')
+                ->andWhere($qb->expr()->eq('firm.identifier', ':identifier'))
+                ->setParameter('identifier', $firmIdentifier)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: firm not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

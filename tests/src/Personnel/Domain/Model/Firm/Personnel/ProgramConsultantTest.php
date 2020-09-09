@@ -4,14 +4,17 @@ namespace Personnel\Domain\Model\Firm\Personnel;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Personnel\Domain\{
-    Event\ConsultantMutateConsultationRequestEvent,
-    Event\ConsultantMutateConsultationSessionEvent,
+use Personnel\Domain\ {
+    Event\Consultant\ConsultantAcceptedConsultationRequest,
+    Event\Consultant\ConsultantOfferedConsultationRequest,
+    Event\Consultant\ConsultantSubmittedCommentOnWorksheet,
     Model\Firm\Personnel,
+    Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
     Model\Firm\Personnel\ProgramConsultant\ConsultationRequest,
-    Model\Firm\Personnel\ProgramConsultant\ConsultationSession
+    Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
+    Model\Firm\Program\Participant\Worksheet,
+    Model\Firm\Program\Participant\Worksheet\Comment
 };
-use Shared\Domain\Model\ConsultationRequestStatusVO;
 use Tests\TestBase;
 
 class ProgramConsultantTest extends TestBase
@@ -22,6 +25,9 @@ class ProgramConsultantTest extends TestBase
     protected $otherConsultationRequest;
     protected $consultationSession;
     protected $startTime;
+    
+    protected $consultantCommentId = 'newCommentId', $worksheet, $message = 'new comment message';
+    protected $comment;
 
     protected function setUp(): void
     {
@@ -43,6 +49,9 @@ class ProgramConsultantTest extends TestBase
         $this->programConsultant->consultationSessions->add($this->consultationSession);
 
         $this->startTime = new DateTimeImmutable('+1 days');
+        
+        $this->worksheet = $this->buildMockOfClass(Worksheet::class);
+        $this->comment = $this->buildMockOfClass(Comment::class);
     }
 
     protected function executeAcceptConsultationRequest()
@@ -89,14 +98,10 @@ class ProgramConsultantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
 
-    public function test_accept_containOtherProposedConsultationRequestInConflictWithConsultationRequestToBeAccepted_throwEx()
+    public function test_accept_containOtherOfferedConsultationRequestInConflictWithConsultationRequestToBeAccepted_throwEx()
     {
-        $this->otherConsultationRequest->expects($this->any())
-                ->method('statusEquals')
-                ->with($this->equalTo(new ConsultationRequestStatusVO("offered")))
-                ->willReturn(true);
         $this->otherConsultationRequest->expects($this->once())
-                ->method('intersectWithOtherConsultationRequest')
+                ->method('isOfferedConsultationRequestConflictedWith')
                 ->with($this->consultationRequest)
                 ->willReturn(true);
         $operation = function () {
@@ -106,40 +111,11 @@ class ProgramConsultantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
 
-    public function test_accept_otherConflicedConsultationRequestStatusVONotProposed_processNormally()
-    {
-        $this->otherConsultationRequest->expects($this->any())
-                ->method('intersectWithOtherConsultationRequest')
-                ->with($this->consultationRequest)
-                ->willReturn(true);
-        $this->otherConsultationRequest->expects($this->once())
-                ->method('statusEquals')
-                ->with($this->equalTo(new ConsultationRequestStatusVO("offered")))
-                ->willReturn(false);
-        $this->executeAcceptConsultationRequest();
-    }
-
-    public function test_accept_otherProposedAndConflictedConsultationRequestAlreadyConcluded_processNormallly()
-    {
-        $this->otherConsultationRequest->expects($this->any())
-                ->method('intersectWithOtherConsultationRequest')
-                ->with($this->consultationRequest)
-                ->willReturn(true);
-        $this->otherConsultationRequest->expects($this->any())
-                ->method('statusEquals')
-                ->with($this->equalTo(new ConsultationRequestStatusVO("offered")))
-                ->willReturn(true);
-        $this->otherConsultationRequest->expects($this->once())
-                ->method('isConcluded')
-                ->willReturn(true);
-        $this->executeAcceptConsultationRequest();
-    }
-
-    public function test_accept_recordConsultationSessionMutatedByConsultantEvent()
+    public function test_accept_recordConsultantAcceptConsultationRequestEvent()
     {
         $this->programConsultant->clearRecordedEvents();
         $this->executeAcceptConsultationRequest();
-        $this->assertInstanceOf(ConsultantMutateConsultationSessionEvent::class,
+        $this->assertInstanceOf(ConsultantAcceptedConsultationRequest::class,
                 $this->programConsultant->getRecordedEvents()[0]);
     }
 
@@ -174,11 +150,7 @@ class ProgramConsultantTest extends TestBase
     public function test_offer_containOtherProposedConsultationRequestInConflictWithOfferedConsultationRequest_throwEx()
     {
         $this->otherConsultationRequest->expects($this->once())
-                ->method('statusEquals')
-                ->with($this->equalTo(new ConsultationRequestStatusVO("offered")))
-                ->willReturn(true);
-        $this->otherConsultationRequest->expects($this->once())
-                ->method('intersectWithOtherConsultationRequest')
+                ->method('isOfferedConsultationRequestConflictedWith')
                 ->with($this->consultationRequest)
                 ->willReturn(true);
         $operation = function () {
@@ -188,27 +160,54 @@ class ProgramConsultantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
 
-    public function test_offer_recordConsultationRequestMutatedByConsultantEvent()
+    public function test_offer_recordConsultantOfferedConsultationRequstEvent()
     {
         $this->programConsultant->clearRecordedEvents();
         $this->executeOfferConsultationRequestTime();
-        $this->assertInstanceOf(ConsultantMutateConsultationRequestEvent::class,
-                $this->programConsultant->getRecordedEvents()[0]);
+        $this->assertInstanceOf(ConsultantOfferedConsultationRequest::class, $this->programConsultant->getRecordedEvents()[0]);
+    }
+    
+    protected function executeSubmitNewCommentOnWorksheet()
+    {
+        return $this->programConsultant->submitNewCommentOnWorksheet($this->consultantCommentId, $this->worksheet, $this->message);
+    }
+    public function test_submitNewCommentOnWorksheet_returnConsultantComment()
+    {
+        $comment = new Comment($this->worksheet, $this->consultantCommentId, $this->message);
+        $consultantComment = new ConsultantComment($this->programConsultant, $this->consultantCommentId, $comment);
+        
+        $this->assertEquals($consultantComment, $this->executeSubmitNewCommentOnWorksheet());
+    }
+    public function test_submitNewCommentOnWorksheet_recordConsultantSubmittedCommentOnWorksheetEvent()
+    {
+        $this->programConsultant->clearRecordedEvents();
+        $this->executeSubmitNewCommentOnWorksheet();
+        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->getRecordedEvents()[0]);
+    }
+    
+    protected function executeSubmitReplyOnWorksheetComment()
+    {
+        return $this->programConsultant->submitReplyOnWorksheetComment($this->consultantCommentId, $this->comment, $this->message);
+    }
+        
+    public function test_submitReplyOnWorksheetComment_returnConsultantRepliedComment()
+    {
+        $reply = $this->buildMockOfClass(Comment::class);
+        $this->comment->expects($this->once())
+                ->method('createReply')
+                ->with($this->consultantCommentId, $this->message)
+                ->willReturn($reply);
+        $consultantComment = new ConsultantComment($this->programConsultant, $this->consultantCommentId, $reply);
+        
+        $this->assertEquals($consultantComment, $this->executeSubmitReplyOnWorksheetComment());
     }
 
-    public function test_createNotificationForConsultationRequest_returnPersonnelNotification()
+    public function test_submitReplyOnWorksheetComment_recordConsultantSubmittedCommentOnWorksheetEvent()
     {
-        $this->assertInstanceOf(PersonnelNotification::class,
-                $this->programConsultant->createNotificationForConsultationRequest('id', 'message',
-                        $this->consultationRequest));
+        $this->programConsultant->clearRecordedEvents();
+        $this->executeSubmitReplyOnWorksheetComment();
+        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->getRecordedEvents()[0]);
     }
-    public function test_createNotificationForConsultationSession_returnPersonnelNotification()
-    {
-        $this->assertInstanceOf(PersonnelNotification::class,
-                $this->programConsultant->createNotificationForConsultationSession('id', 'message',
-                        $this->consultationSession));
-    }
-
 }
 
 class TestableProgramConsultant extends ProgramConsultant

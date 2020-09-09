@@ -2,16 +2,19 @@
 
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\{
+use Client\ {
     Application\Service\ClientRepository,
     Domain\Model\Client
 };
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
 use Query\Domain\Model\Firm;
-use Resources\Exception\RegularException;
+use Resources\ {
+    Exception\RegularException,
+    Uuid
+};
 
 class DoctrineClientRepository extends EntityRepository implements ClientRepository
 {
@@ -69,6 +72,40 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function add(Client $client): void
+    {
+        $em = $this->getEntityManager();
+        $em->persist($client);
+        $em->flush();
+    }
+
+    public function containRecordWithEmail(string $firmIdentifier, string $email): bool
+    {
+        $params = [
+            'firmIdentifier' => $firmIdentifier,
+            'email' => $email,
+        ];
+        $firmQb = $this->getEntityManager()->createQueryBuilder();
+        $firmQb->select('firm.id')
+                ->from(Firm::class, 'firm')
+                ->andWhere($firmQb->expr()->eq('firm.identifier', ':firmIdentifier'))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder('client');
+        $qb->select('1')
+                ->andWhere($qb->expr()->eq('client.email', ':email'))
+                ->andWhere($qb->expr()->in('client.firmId', $firmQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        return !empty($qb->getQuery()->getResult());
+    }
+
+    public function nextIdentity(): string
+    {
+        return Uuid::generateUuid4();
     }
 
 }

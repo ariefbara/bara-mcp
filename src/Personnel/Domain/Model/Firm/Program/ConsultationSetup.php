@@ -5,9 +5,8 @@ namespace Personnel\Domain\Model\Firm\Program;
 use DateInterval;
 use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\FeedbackForm;
-use Query\Domain\Model\Firm\Program;
 use Resources\Domain\ValueObject\DateTimeInterval;
-use Shared\Domain\Model\ {
+use SharedContext\Domain\Model\SharedEntity\ {
     FormRecord,
     FormRecordData
 };
@@ -17,9 +16,9 @@ class ConsultationSetup
 
     /**
      *
-     * @var Program
+     * @var string
      */
-    protected $program;
+    protected $programId;
 
     /**
      *

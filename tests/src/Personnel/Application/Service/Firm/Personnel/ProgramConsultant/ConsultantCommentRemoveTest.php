@@ -8,9 +8,11 @@ use Tests\TestBase;
 class ConsultantCommentRemoveTest extends TestBase
 {
     protected $service;
-    protected $programConsultantCompositionId;
-    protected $consultantCommentRepository, $consultantComment, $consultantCommentId = 'consultantCommentId';
+    protected $consultantCommentRepository, $consultantComment; 
     
+    protected $firmId = 'firmId', $personnelId = 'personnelId', $programConsultationId = 'programConsultationId', 
+            $consultantCommentId = 'consultantCommentId';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -19,7 +21,7 @@ class ConsultantCommentRemoveTest extends TestBase
         $this->consultantComment = $this->buildMockOfClass(ConsultantComment::class);
         $this->consultantCommentRepository->expects($this->any())
                 ->method('ofId')
-                ->with($this->programConsultantCompositionId, $this->consultantCommentId)
+                ->with($this->firmId, $this->personnelId, $this->programConsultationId, $this->consultantCommentId)
                 ->willReturn($this->consultantComment);
         
         $this->service = new ConsultantCommentRemove($this->consultantCommentRepository);
@@ -27,7 +29,7 @@ class ConsultantCommentRemoveTest extends TestBase
     
     protected function execute()
     {
-        $this->service->execute($this->programConsultantCompositionId, $this->consultantCommentId);
+        $this->service->execute($this->firmId, $this->personnelId, $this->programConsultationId, $this->consultantCommentId);
     }
     public function test_execute_removeConsultantComment()
     {

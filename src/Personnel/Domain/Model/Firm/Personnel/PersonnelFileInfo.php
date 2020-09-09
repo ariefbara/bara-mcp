@@ -3,7 +3,7 @@
 namespace Personnel\Domain\Model\Firm\Personnel;
 
 use Personnel\Domain\Model\Firm\Personnel;
-use Shared\Domain\Model\FileInfo;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class PersonnelFileInfo
 {

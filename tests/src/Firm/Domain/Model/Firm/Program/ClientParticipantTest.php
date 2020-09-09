@@ -16,91 +16,42 @@ class ClientParticipantTest extends TestBase
 {
     protected $clientParticipant, $participant;
     
-    protected $program;
-    protected $client;
+    protected $id = 'newClientParticipantId', $clientId = 'clientId';
     
-    protected $id = 'newClientParticipantId';
-    
-    protected $mailer;
+    protected $registrant;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->program = $this->buildMockOfClass(Program::class);
-        $this->client = $this->buildMockOfClass(Client::class);
-        
-        $this->clientParticipant = new TestableClientParticipant($this->program, 'id', $this->client);
         $this->participant = $this->buildMockOfClass(Participant::class);
-        $this->clientParticipant->participant = $this->participant;
         
-        $this->mailer = $this->buildMockOfInterface(Mailer::class);
-        $this->client->expects($this->any())->method('getEmail')->willReturn('client@email.org');
-        $this->client->expects($this->any())->method('getPersonName')->willReturn(new PersonName('hadi', 'pranoto'));
+        $this->clientParticipant = new TestableClientParticipant($this->participant, 'id', 'clientId');
+        
+        $this->registrant = $this->buildMockOfClass(Registrant::class);
     }
     
     public function test_construct_setProperties()
     {
-        $clientParticipant = new TestableClientParticipant($this->program, $this->id, $this->client);
-        $this->assertEquals($this->program, $clientParticipant->program);
+        $clientParticipant = new TestableClientParticipant($this->participant, $this->id, $this->clientId);
+        $this->assertEquals($this->participant, $clientParticipant->participant);
         $this->assertEquals($this->id, $clientParticipant->id);
-        $this->assertEquals($this->client, $clientParticipant->client);
+        $this->assertEquals($this->clientId, $clientParticipant->clientId);
+    }
+    
+    public function test_correspondWithRegistrant_returnRegistrantsCorrespondWithClientResult()
+    {
+        $this->registrant->expects($this->once())
+                ->method('correspondWithClient')
+                ->with($this->clientId);
         
-        $participant = new Participant($this->id);
-        $this->assertEquals($participant, $clientParticipant->participant);
-    }
-    
-    public function test_bootout_executeParticipantsBootoutMethod()
-    {
-        $this->participant->expects($this->once())
-                ->method('bootout');
-        $this->clientParticipant->bootout();
-    }
-    
-    public function test_reenroll_executeParticipantsReenrollMethod()
-    {
-        $this->participant->expects($this->once())
-                ->method('reenroll');
-        $this->clientParticipant->reenroll();
-    }
-    
-    public function test_correspondWithRegistrant_returnRegistrantClientEqualsMethod()
-    {
-        $clientRegistrant = $this->buildMockOfClass(ClientRegistrant::class);
-        $clientRegistrant->expects($this->once())
-                ->method('clientEquals')
-                ->with($this->client)
-                ->willReturn(true);
-        
-        $this->assertTrue($this->clientParticipant->correspondWithRegistrant($clientRegistrant));
-    }
-    
-    public function test_sendRegistrationAcceptedMail_setMailToMailer()
-    {
-        $this->mailer->expects($this->once())
-                ->method('send');
-        $this->clientParticipant->sendRegistrationAcceptedMail($this->mailer);
-    }
-    
-    public function test_getClientMailRecipient_returnClienstGetMailRecipientResult()
-    {
-        $this->client->expects($this->once())
-                ->method('getMailRecipient');
-        $this->clientParticipant->getClientMailRecipient();
-    }
-    
-    public function test_getClientName_returnClientsGetNameResult()
-    {
-        $this->client->expects($this->once())
-                ->method('getName');
-        $this->clientParticipant->getClientName();
+        $this->clientParticipant->correspondWithRegistrant($this->registrant);
     }
     
 }
 
 class TestableClientParticipant extends ClientParticipant
 {
-    public $program;
-    public $id;
-    public $client;
     public $participant;
+    public $id;
+    public $clientId;
 }

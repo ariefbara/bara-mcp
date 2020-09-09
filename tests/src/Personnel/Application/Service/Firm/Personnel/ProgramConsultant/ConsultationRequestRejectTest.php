@@ -8,19 +8,20 @@ use Tests\TestBase;
 class ConsultationRequestRejectTest extends TestBase
 {
     protected $service;
-    protected $programConsultantCompositionId;
-    protected $consultationRequestRepository, $consultationRequest, $consultationRequestId = 'negotiate-mentoring-schedule-id';
+    protected $consultationRequestRepository, $consultationRequest;
     
+    protected $firmId = 'firmId', $personnelId = 'personnelId', $programConsultationId = 'programConsultationId', 
+            $consultationRequestId = 'consultationRequetId';
+
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->programConsultantCompositionId = $this->buildMockOfClass(ProgramConsultantCompositionId::class);
-        
-        $this->consultationRequestRepository = $this->buildMockOfInterface(ConsultationRequestRepository::class);
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
+        $this->consultationRequestRepository = $this->buildMockOfInterface(ConsultationRequestRepository::class);
         $this->consultationRequestRepository->expects($this->any())
             ->method('ofId')
-            ->with($this->programConsultantCompositionId, $this->consultationRequestId)
+            ->with($this->firmId, $this->personnelId, $this->programConsultationId, $this->consultationRequestId)
             ->willReturn($this->consultationRequest);
         
         $this->service = new ConsultationRequestReject($this->consultationRequestRepository);
@@ -28,7 +29,7 @@ class ConsultationRequestRejectTest extends TestBase
     
     protected function execute()
     {
-        $this->service->execute($this->programConsultantCompositionId, $this->consultationRequestId);
+        $this->service->execute($this->firmId, $this->personnelId, $this->programConsultationId, $this->consultationRequestId);
     }
     public function test_execute_rejectConsultationRequest()
     {

@@ -11,11 +11,7 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <many-to-one  field="program" 
-                      target-entity="Query\Domain\Model\Firm\Program"
-        >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
+        <field name="programId" column="Program_id" type="guid" nullable="false"/>
         <field name="removed" type="boolean" />
         
         <one-to-many field="consultationSessions" 

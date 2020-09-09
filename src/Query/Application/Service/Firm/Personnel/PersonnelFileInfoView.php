@@ -18,9 +18,8 @@ class PersonnelFileInfoView
         $this->personnelFileInfoRepository = $personnelFileInfoRepository;
     }
 
-    public function showById(PersonnelCompositionId $personnelCompositionId, string $personnelFileInfoId): PersonnelFileInfo
+    public function showById(string $firmId, string $personnelId, string $personnelFileInfoId): PersonnelFileInfo
     {
-        return $this->personnelFileInfoRepository->ofId($personnelCompositionId, $personnelFileInfoId);
+        return $this->personnelFileInfoRepository->ofId($firmId, $personnelId, $personnelFileInfoId);
     }
-
 }

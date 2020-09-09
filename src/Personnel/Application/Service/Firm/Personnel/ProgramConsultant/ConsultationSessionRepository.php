@@ -6,8 +6,9 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
 
 interface ConsultationSessionRepository
 {
-    
+
     public function update(): void;
 
-    public function ofId(ProgramConsultantCompositionId $programConsultantCompositionId, string $consultationSessionId): ConsultationSession;
+    public function ofId(
+            string $firmId, string $personnelId, string $programConsultationId, string $consultationSessionId): ConsultationSession;
 }

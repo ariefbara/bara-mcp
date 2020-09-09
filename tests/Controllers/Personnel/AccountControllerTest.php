@@ -7,7 +7,8 @@ class AccountControllerTest extends PersonnelTestCase
     protected $updateProfileUri;
     protected $changePasswordUri;
     protected $updateProfileInput = [
-        "name" => 'new personnel name',
+        'firstName' => 'firstname',
+        'lastName' => 'lastname',
         "phone" => '08123123123',
     ];
     protected $changePasswordInput;
@@ -32,7 +33,7 @@ class AccountControllerTest extends PersonnelTestCase
     {
         $response = [
             "id" => $this->personnel->id,
-            "name" => $this->updateProfileInput['name'],
+            "name" => $this->updateProfileInput['firstName'] . " " . $this->updateProfileInput['lastName'],
             "phone" => $this->updateProfileInput['phone'],
         ];
         $this->patch($this->updateProfileUri, $this->updateProfileInput, $this->personnel->token)
@@ -41,14 +42,15 @@ class AccountControllerTest extends PersonnelTestCase
         
         $personnelEntry = [
             "id" => $this->personnel->id,
-            "name" => $this->updateProfileInput['name'],
+            'firstName' => 'firstname',
+            'lastName' => 'lastname',
             "phone" => $this->updateProfileInput['phone'],
         ];
         $this->seeInDatabase("Personnel", $personnelEntry);
     }
     public function test_updateProfile_emptyName_error400()
     {
-        $this->updateProfileInput['name'] = '';
+        $this->updateProfileInput['firstName'] = '';
         $this->patch($this->updateProfileUri, $this->updateProfileInput, $this->personnel->token)
                 ->seeStatusCode(400);
     }
@@ -65,7 +67,6 @@ class AccountControllerTest extends PersonnelTestCase
                 ->seeStatusCode(200);
         $personnelEntry = [
             "id" => $this->personnel->id,
-            "name" => $this->updateProfileInput['name'],
             "phone" => null,
         ];
         $this->seeInDatabase("Personnel", $personnelEntry);

@@ -11,18 +11,18 @@ use App\Http\Controllers\ {
 use DateTimeImmutable;
 use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedbackSet,
-    Application\Service\Firm\Personnel\ProgramConsultant\ProgramConsultantCompositionId,
-    Domain\Model\Firm\Personnel\PersonnelFileInfo,
     Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
     Domain\Service\PersonnelFileInfoFinder
 };
 use Query\ {
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView,
     Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
+    Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession as ConsultationSession2
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession as ConsultationSession2,
+    Domain\Model\User\UserParticipant
 };
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ConsultationSessionController extends PersonnelBaseController
 {
@@ -30,15 +30,13 @@ class ConsultationSessionController extends PersonnelBaseController
     public function setConsultantFeedback($programConsultantId, $consultationSessionId)
     {
         $service = $this->buildSetConsultantFeedbackService();
-        $programConsultantCompositionId = new ProgramConsultantCompositionId(
-                $this->firmId(), $this->personnelId(), $programConsultantId);
-
-        $personnelFileInfoRepository = $this->em->getRepository(PersonnelFileInfo::class);
-        $personnelCompositionId = new PersonnelCompositionId($this->firmId(), $this->personnelId());
-
-        $fileInfoFinder = new PersonnelFileInfoFinder($personnelFileInfoRepository, $personnelCompositionId);
+        
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        $fileInfoFinder = new PersonnelFileInfoFinder($fileInfoRepository, $this->firmId(), $this->personnelId());
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
-        $service->execute($programConsultantCompositionId, $consultationSessionId, $formRecordData);
+        
+        $service->execute(
+                $this->firmId(), $this->personnelId(), $programConsultantId, $consultationSessionId, $formRecordData);
 
         return $this->show($programConsultantId, $consultationSessionId);
     }
@@ -59,8 +57,8 @@ class ConsultationSessionController extends PersonnelBaseController
         
         $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new DateTimeImmutable($minTime);
         $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new DateTimeImmutable($maxTime);
-        $containParticipantFeedback = $this->stripTagQueryRequest('containParticipantFeedback');
-        $containConsultantFeedback = $this->stripTagQueryRequest('containConsultantFeedback');
+        $containParticipantFeedback = $this->filterBooleanOfInputRequest('containParticipantFeedback');
+        $containConsultantFeedback = $this->filterBooleanOfInputRequest('containConsultantFeedback');
         
         $consultationSessionFilter = (new ConsultationSessionFilter())
                 ->setMinStartTime($minStartTime)
@@ -81,10 +79,8 @@ class ConsultationSessionController extends PersonnelBaseController
                 "endTime" => $consultationSession->getEndTime(),
                 "participant" => [
                     "id" => $consultationSession->getParticipant()->getId(),
-                    "client" => [
-                        "id" => $consultationSession->getParticipant()->getClient()->getId(),
-                        "name" => $consultationSession->getParticipant()->getClient()->getName(),
-                    ],
+                    "clientParticipant" => $this->arrayDataOfClientParticipant($consultationSession->getParticipant()->getClientParticipant()),
+                    "userParticipant" => $this->arrayDataOfUserParticipant($consultationSession->getParticipant()->getUserParticipant()),
                 ],
                 "hasConsultantFeedback" => !empty($consultationSession->getConsultantFeedback()),
             ];
@@ -108,12 +104,24 @@ class ConsultationSessionController extends PersonnelBaseController
             ],
             "participant" => [
                 "id" => $consultationSession->getParticipant()->getId(),
-                "client" => [
-                    "id" => $consultationSession->getParticipant()->getClient()->getId(),
-                    "name" => $consultationSession->getParticipant()->getClient()->getName(),
-                ],
+                "clientParticipant" => $this->arrayDataOfClientParticipant($consultationSession->getParticipant()->getClientParticipant()),
+                "userParticipant" => $this->arrayDataOfUserParticipant($consultationSession->getParticipant()->getUserParticipant()),
             ],
             "consultantFeedback" => $consultantFeedbackData,
+        ];
+    }
+    protected function arrayDataOfClientParticipant(?ClientParticipant $clientParticipant): ?array
+    {
+        return empty($clientParticipant)? null: [
+            "id" => $clientParticipant->getClient()->getId(),
+            "name" => $clientParticipant->getClient()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfUserParticipant(?UserParticipant $userParticipant): ?array
+    {
+        return empty($userParticipant)? null: [
+            "id" => $userParticipant->getUser()->getId(),
+            "name" => $userParticipant->getUser()->getFullName(),
         ];
     }
 

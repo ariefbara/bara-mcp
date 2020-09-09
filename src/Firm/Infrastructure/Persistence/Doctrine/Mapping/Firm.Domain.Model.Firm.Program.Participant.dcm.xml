@@ -3,6 +3,13 @@
     <entity name="Firm\Domain\Model\Firm\Program\Participant" 
             table="Participant" 
     >
+        
+        <many-to-one field="program" 
+                     target-entity="Firm\Domain\Model\Firm\Program" 
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
         <id name="id" type="guid" />
         <field name="enrolledTime" type="datetime_immutable" nullable="false"/>
         <field name="active" type="boolean" />
@@ -11,12 +18,16 @@
         <one-to-one field="clientParticipant" 
                     target-entity="Firm\Domain\Model\Firm\Program\ClientParticipant"
                     mapped-by="participant"
-        />
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
         
         <one-to-one field="userParticipant" 
                     target-entity="Firm\Domain\Model\Firm\Program\UserParticipant"
                     mapped-by="participant"
-        />
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
         
     </entity>
 </doctrine-mapping>

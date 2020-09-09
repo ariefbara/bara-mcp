@@ -5,7 +5,6 @@ namespace Tests\Controllers\Personnel\AsProgramConsultant\Participant\Worksheet;
 use Tests\Controllers\ {
     Personnel\AsProgramConsultant\Participant\WorksheetTestCase,
     RecordPreparation\Firm\Program\Consultant\RecordOfConsultantComment,
-    RecordPreparation\Firm\Program\Participant\RecordOfParticipantComment,
     RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment
 };
 
@@ -21,7 +20,6 @@ class CommentControllerTest extends WorksheetTestCase
         $this->commentUri = $this->worksheetUri . "/{$this->worksheet->id}/comments";
         $this->connection->table('Comment')->truncate();
         $this->connection->table('ConsultantComment')->truncate();
-        $this->connection->table('ParticipantComment')->truncate();
         
         $this->comment = new RecordOfComment($this->worksheet, 0);
         $this->commentOne = new RecordOfComment($this->worksheet, 1);
@@ -32,8 +30,6 @@ class CommentControllerTest extends WorksheetTestCase
         $consultantComment = new RecordOfConsultantComment($this->consultant, $this->comment);
         $this->connection->table('ConsultantComment')->insert($consultantComment->toArrayForDbEntry());
         
-        $participantComment = new RecordOfParticipantComment($this->worksheet->participant, $this->commentOne);
-        $this->connection->table('ParticipantComment')->insert($participantComment->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
@@ -41,7 +37,6 @@ class CommentControllerTest extends WorksheetTestCase
         parent::tearDown();
         $this->connection->table('Comment')->truncate();
         $this->connection->table('ConsultantComment')->truncate();
-        $this->connection->table('ParticipantComment')->truncate();
     }
     
     public function test_show()
@@ -52,13 +47,6 @@ class CommentControllerTest extends WorksheetTestCase
             "submitTime" => $this->commentOne->submitTime,
             "removed" => $this->commentOne->removed,
             "consultant" => null,
-            "participant" => [
-                "id" => $this->worksheet->participant->id,
-                "client" => [
-                    "id" => $this->worksheet->participant->client->id,
-                    "name" => $this->worksheet->participant->client->name,
-                ],
-            ],
             "parent" => [
                 "id" => $this->commentOne->parent->id,
                 "message" => $this->commentOne->parent->message,
@@ -68,10 +56,9 @@ class CommentControllerTest extends WorksheetTestCase
                     "id" => $this->consultant->id,
                     "personnel" => [
                         "id" => $this->consultant->personnel->id,
-                        "name" => $this->consultant->personnel->name,
+                        "name" => $this->consultant->personnel->getFullName(),
                     ],
                 ],
-                "participant" => null,
             ],
         ];
         $uri = $this->commentUri . "/{$this->commentOne->id}";
@@ -100,10 +87,9 @@ class CommentControllerTest extends WorksheetTestCase
                         "id" => $this->consultant->id,
                         "personnel" => [
                             "id" => $this->consultant->personnel->id,
-                            "name" => $this->consultant->personnel->name,
+                            "name" => $this->consultant->personnel->getFullName(),
                         ],
                     ],
-                    "participant" => null,
                     "parent" => null,
                 ],
                 [
@@ -112,13 +98,6 @@ class CommentControllerTest extends WorksheetTestCase
                     "submitTime" => $this->commentOne->submitTime,
                     "removed" => $this->commentOne->removed,
                     "consultant" => null,
-                    "participant" => [
-                        "id" => $this->worksheet->participant->id,
-                        "client" => [
-                            "id" => $this->worksheet->participant->client->id,
-                            "name" => $this->worksheet->participant->client->name,
-                        ],
-                    ],
                     "parent" => [
                         "id" => $this->commentOne->parent->id,
                         "message" => $this->commentOne->parent->message,
@@ -128,10 +107,9 @@ class CommentControllerTest extends WorksheetTestCase
                             "id" => $this->consultant->id,
                             "personnel" => [
                                 "id" => $this->consultant->personnel->id,
-                                "name" => $this->consultant->personnel->name,
+                                "name" => $this->consultant->personnel->getFullName(),
                             ],
                         ],
-                        "participant" => null,
                     ],
                 ],
             ],

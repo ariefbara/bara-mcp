@@ -2,9 +2,9 @@
 
 namespace Client\Domain\Event;
 
-use Firm\Application\Listener\ClientResetPasswordCodeGeneratedEventInterface;
+use Resources\Application\Event\Event;
 
-class ClientResetPasswordCodeGenerated implements ClientResetPasswordCodeGeneratedEventInterface
+class ClientResetPasswordCodeGenerated implements Event
 {
 
     const EVENT_NAME = "ClientResetPasswordCodeGenerated";

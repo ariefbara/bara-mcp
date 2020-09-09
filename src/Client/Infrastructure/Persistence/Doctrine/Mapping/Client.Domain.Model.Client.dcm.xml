@@ -13,6 +13,7 @@
         <embedded name="password" 
                   class="Resources\Domain\ValueObject\Password" 
                   use-column-prefix="false" />
+        <field name="signupTime" type="datetime_immutable" nullable="false" />
         <field name="activationCode" type="string" length="64" nullable="true" />
         <field name="activationCodeExpiredTime" type="datetime_immutable" nullable="true" />
         <field name="resetPasswordCode" type="string" length="64" nullable="true" />

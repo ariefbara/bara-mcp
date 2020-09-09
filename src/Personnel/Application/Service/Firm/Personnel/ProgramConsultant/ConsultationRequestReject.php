@@ -17,9 +17,9 @@ class ConsultationRequestReject
     }
 
     public function execute(
-            ProgramConsultantCompositionId $programConsultantCompositionId, string $consultationRequestId): void
+            string $firmId, string $personnelId, string $programConsultantId, string $consultationRequestId): void
     {
-        $this->consultationRequestRepository->ofId($programConsultantCompositionId, $consultationRequestId)
+        $this->consultationRequestRepository->ofId($firmId, $personnelId, $programConsultantId, $consultationRequestId)
                 ->reject();
         $this->consultationRequestRepository->update();
     }

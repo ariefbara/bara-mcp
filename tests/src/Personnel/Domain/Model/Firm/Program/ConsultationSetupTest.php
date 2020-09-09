@@ -5,7 +5,7 @@ namespace Personnel\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\FeedbackForm;
 use Resources\Domain\ValueObject\DateTimeInterval;
-use Shared\Domain\Model\ {
+use SharedContext\Domain\Model\SharedEntity\ {
     FormRecord,
     FormRecordData
 };

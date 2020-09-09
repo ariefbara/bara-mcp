@@ -3,6 +3,7 @@
 namespace Personnel\Domain\Model\Firm\Personnel;
 
 use Personnel\Domain\Model\Firm\Personnel;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
 use Tests\TestBase;
 
 class PersonnelFileInfoTest extends TestBase
@@ -16,7 +17,7 @@ class PersonnelFileInfoTest extends TestBase
     {
         parent::setUp();
         $this->personnel = $this->buildMockOfClass(Personnel::class);
-        $this->fileInfo = $this->buildMockOfClass(\Shared\Domain\Model\FileInfo::class);
+        $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
     }
     
     public function test_construct_setProperties()

@@ -2,8 +2,7 @@
 
 namespace Personnel\Domain\Service;
 
-use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
-use Shared\Domain\Model\ {
+use SharedContext\Domain\Model\SharedEntity\{
     FileInfo,
     FormRecordData\IFileInfoFinder
 };
@@ -13,26 +12,33 @@ class PersonnelFileInfoFinder implements IFileInfoFinder
 
     /**
      *
-     * @var PersonnelFileInfoRepository
+     * @var FileInfoRepository
      */
-    protected $personnelFileInfoRepository;
+    protected $fileInfoRepository;
 
     /**
      *
-     * @var PersonnelCompositionId
+     * @var string
      */
-    protected $personnelCompositionId;
+    protected $firmId;
 
-    function __construct(PersonnelFileInfoRepository $personnelFileInfoRepository,
-            PersonnelCompositionId $personnelCompositionId)
+    /**
+     *
+     * @var string
+     */
+    protected $personnelId;
+
+    public function __construct(FileInfoRepository $fileInfoRepository, string $firmId,
+            string $personnelId)
     {
-        $this->personnelFileInfoRepository = $personnelFileInfoRepository;
-        $this->personnelCompositionId = $personnelCompositionId;
+        $this->fileInfoRepository = $fileInfoRepository;
+        $this->firmId = $firmId;
+        $this->personnelId = $personnelId;
     }
 
     public function ofId(string $fileInfoId): FileInfo
     {
-        return $this->personnelFileInfoRepository->fileInfoOf($this->personnelCompositionId, $fileInfoId);
+        return $this->fileInfoRepository->aFileInfoOfPersonnel($this->firmId, $this->personnelId, $fileInfoId);
     }
 
 }

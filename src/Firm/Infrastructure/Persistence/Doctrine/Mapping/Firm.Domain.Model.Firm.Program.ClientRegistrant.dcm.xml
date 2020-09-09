@@ -2,26 +2,17 @@
 <doctrine-mapping>
     <entity name="Firm\Domain\Model\Firm\Program\ClientRegistrant" 
             table="ClientRegistrant" 
-            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientRegistrantRepository"
     >
         
-        <many-to-one  field="program" 
-                      target-entity="Firm\Domain\Model\Firm\Program"
-                      inversed-by="clientRegistrants"
-        >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
-        <id name="id" type="guid" />
-        <many-to-one  field="client" 
-                      target-entity="Firm\Domain\Model\Firm\Client"
-        >
-            <join-column name="Client_id" referenced-column-name="id" />
-        </many-to-one>
         <one-to-one  field="registrant" 
                      target-entity="Firm\Domain\Model\Firm\Program\Registrant"
+                     inversed-by="clientRegistrant"
         >
             <join-column name="Registrant_id" referenced-column-name="id" />
         </one-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="clientId" column="Client_id" type="guid" nullable="false"/>
         
     </entity>
 </doctrine-mapping>

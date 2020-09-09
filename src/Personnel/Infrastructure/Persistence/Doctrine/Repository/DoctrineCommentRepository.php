@@ -11,58 +11,47 @@ use Personnel\ {
     Domain\Model\Firm\Personnel\ProgramConsultant,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
 };
-use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Exception\RegularException;
 
 class DoctrineCommentRepository extends EntityRepository implements CommentRepository
 {
-
-    public function aCommentInProgramWorksheetWhereConsultantInvolved(
-            PersonnelCompositionId $personnelCompositionId, string $programConsultantId, string $participantId,
-            string $worksheetId, string $commentId): Comment
+    
+    public function aCommentInProgramWorksheetWhereConsultantInvolved(string $firmId, string $personnelId,
+            string $programConsultationId, string $participantId, string $worksheetId, string $commentId): Comment
     {
-        $parameters = [
-            "commentId" => $commentId,
-            "worksheetId" => $worksheetId,
-            "participantId" => $participantId,
-            "programConsultantId" => $programConsultantId,
-            "personnelId" => $personnelCompositionId->getPersonnelId(),
-            "firmId" => $personnelCompositionId->getFirmId(),
+        $params = [
+            'firmId' => $firmId,
+            'personnelId' => $personnelId,
+            'programConsultationId' => $programConsultationId,
+            'participantId' => $participantId,
+            'worksheetId' => $worksheetId,
+            'commentId' => $commentId,
         ];
         
-        $subQuery = $this->getEntityManager()->createQueryBuilder();
-        $subQuery->select('tProgram.id')
-                ->from(ProgramConsultant::class, "programConsultant")
-                ->andWhere($subQuery->expr()->eq('programConsultant.removed', 'false'))
-                ->andWhere($subQuery->expr()->eq('programConsultant.id', ':programConsultantId'))
-                ->leftJoin('programConsultant.personnel', 'personnel')
-                ->andWhere($subQuery->expr()->eq('personnel.removed', 'false'))
-                ->andWhere($subQuery->expr()->eq('personnel.id', ':personnelId'))
-                ->leftJoin('personnel.firm', 'firm')
-                ->andWhere($subQuery->expr()->eq('firm.id', ':firmId'))
-                ->leftJoin('programConsultant.program', 'tProgram')
+        $programConsultationQb = $this->getEntityManager()->createQueryBuilder();
+        $programConsultationQb->select('programConsultation.programId')
+                ->from(ProgramConsultant::class, 'programConsultation')
+                ->andWhere($programConsultationQb->expr()->eq('programConsultation.id', ':programConsultationId'))
+                ->leftJoin('programConsultation.personnel', 'personnel')
+                ->andWhere($programConsultationQb->expr()->eq('personnel.id', ':personnelId'))
+                ->andWhere($programConsultationQb->expr()->eq('personnel.firmId', ':firmId'))
                 ->setMaxResults(1);
         
         $qb = $this->createQueryBuilder('comment');
         $qb->select('comment')
-                ->andWhere($qb->expr()->eq('comment.removed', 'false'))
                 ->andWhere($qb->expr()->eq('comment.id', ':commentId'))
                 ->leftJoin('comment.worksheet', 'worksheet')
-                ->andWhere($qb->expr()->eq('worksheet.removed', 'false'))
                 ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
                 ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.active', 'true'))
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->in('program.id', $subQuery->getDQL()))
-                ->setParameters($parameters)
+                ->andWhere($qb->expr()->in('participant.programId', $programConsultationQb->getDQL()))
+                ->setParameters($params)
                 ->setMaxResults(1);
         
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = "not found: comment not found";
+            $errorDetail = 'not found: comment not found';
             throw RegularException::notFound($errorDetail);
         }
     }

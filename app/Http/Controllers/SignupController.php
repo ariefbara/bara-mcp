@@ -3,23 +3,18 @@
 namespace App\Http\Controllers;
 
 use Bara\ {
-    Application\Listener\SendMailWhenUserActivationCodeGeneratedListener,
     Application\Service\SendUserActivationCodeMail,
     Domain\Model\User as User2
 };
-use Firm\ {
-    Application\Listener\SendMailOnClientActivationCodeGeneratedListener,
-    Application\Service\Firm\ClientSignup,
-    Application\Service\Firm\SendClientActivationCodeMail,
-    Domain\Event\ClientSignupAcceptedEvent,
-    Domain\Model\Firm,
-    Domain\Model\Firm\Client,
-    Domain\Model\Firm\ClientData
+use Client\ {
+    Application\Service\ClientSignup,
+    Domain\Model\Client,
+    Domain\Model\ClientData
 };
+use Query\Domain\Model\Firm;
 use Resources\Application\Event\Dispatcher;
 use User\ {
     Application\Service\UserSignup,
-    Domain\Event\UserActivationCodeGenerated,
     Domain\Model\User,
     Domain\Model\UserData
 };

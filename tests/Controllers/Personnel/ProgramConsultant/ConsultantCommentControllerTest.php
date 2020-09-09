@@ -2,14 +2,14 @@
 
 namespace Tests\Controllers\Personnel\ProgramConsultant;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\Program\Consultant\RecordOfConsultantComment,
+use DateTime;
+use Tests\Controllers\RecordPreparation\ {
     Firm\Program\Participant\RecordOfWorksheet,
     Firm\Program\Participant\Worksheet\RecordOfComment,
+    Firm\Program\Participant\Worksheet\RecordOfConsultantComment,
     Firm\Program\RecordOfMission,
     Firm\Program\RecordOfParticipant,
     Firm\RecordOfWorksheetForm,
-    RecordOfClient,
     Shared\RecordOfForm,
     Shared\RecordOfFormRecord
 };
@@ -41,10 +41,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->connection->table('ConsultantComment')->truncate();
         $this->connection->table('ClientNotification')->truncate();
 
-        $this->client = new RecordOfClient(0, 'client@email.org', 'password123');
-        $this->connection->table('Client')->insert($this->client->toArrayForDbEntry());
-
-        $participant = new RecordOfParticipant($this->programConsultant->program, $this->client, 0);
+        $participant = new RecordOfParticipant($this->programConsultant->program, 0);
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
 
         $form = new RecordOfForm(0);
@@ -59,7 +56,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $mission = new RecordOfMission($this->programConsultant->program, $worksheetForm, 0, null);
         $this->connection->table('Mission')->insert($mission->toArrayForDbEntry());
 
-        $this->worksheet = new RecordOfWorksheet($participant, $formRecord, $mission);
+        $this->worksheet = new RecordOfWorksheet($participant, $formRecord, $mission, 0);
         $this->connection->table('Worksheet')->insert($this->worksheet->toArrayForDbEntry());
 
         $comment = new RecordOfComment($this->worksheet, 0);
@@ -104,18 +101,10 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->connection->table('Comment')->truncate();
 
         $response = [
-            "submitTime" => (new \DateTime())->format('Y-m-d H:i:s'),
+            "submitTime" => (new DateTime())->format('Y-m-d H:i:s'),
             "message" => $this->submitNewRequest['message'],
             "removed" => false,
-            "parent" => null,
             "participant" => null,
-            "consultant" => [
-                'id' => $this->programConsultant->id,
-                'personnel' => [
-                    'id' => $this->programConsultant->personnel->id,
-                    'name' => $this->programConsultant->personnel->name,
-                ],
-            ],
         ];
 
         $uri = $this->consultantCommentUri . "/new";
@@ -126,7 +115,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $commentEntry = [
             "Worksheet_id" => $this->worksheet->id,
             "message" => $this->submitNewRequest['message'],
-            "submitTime" => (new \DateTime())->format("Y-m-d H:i:s"),
+            "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
             "parent_id" => null,
             "removed" => false,
         ];
@@ -137,40 +126,13 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         ];
         $this->seeInDatabase("ConsultantComment", $consultantCommentEntry);
     }
-    public function test_submitNew_notifyClient()
-    {
-        $uri = $this->consultantCommentUri . "/new";
-        $this->post($uri, $this->submitNewRequest, $this->programConsultant->personnel->token)
-                ->seeStatusCode(201);
-
-        $clientNotificationEntry = [
-            "Client_id" => $this->client->id,
-            "message" => "consultant {$this->programConsultant->personnel->name} has commented on your worksheet",
-            "notifiedTime" => (new \DateTime())->format('Y-m-d H:i:s'),
-            "isRead" => false,
-        ];
-        $this->seeInDatabase('ClientNotification', $clientNotificationEntry);
-    }
     
     public function test_submitReply()
     {
         $response = [
-            "submitTime" => (new \DateTime())->format('Y-m-d H:i:s'),
+            "submitTime" => (new DateTime())->format('Y-m-d H:i:s'),
             "message" => $this->submitReplyRequest['message'],
             "removed" => false,
-            "parent" => [
-                "id" => $this->commentOne->id,
-                "message" => $this->commentOne->message,
-                "submitTime" => $this->commentOne->submitTime,
-                "removed" => $this->commentOne->removed,
-            ],
-            "consultant" => [
-                'id' => $this->programConsultant->id,
-                'personnel' => [
-                    'id' => $this->programConsultant->personnel->id,
-                    'name' => $this->programConsultant->personnel->name,
-                ],
-            ],
         ];
 
         $uri = $this->consultantCommentUri . "/reply";
@@ -181,7 +143,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $commentEntry = [
             "Worksheet_id" => $this->worksheet->id,
             "message" => $this->submitReplyRequest['message'],
-            "submitTime" => (new \DateTime())->format("Y-m-d H:i:s"),
+            "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
             "parent_id" => $this->commentOne->id,
             "removed" => false,
         ];
@@ -191,21 +153,6 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
             "Consultant_id" => $this->programConsultant->id,
         ];
         $this->seeInDatabase("ConsultantComment", $consultantCommentEntry);
-    }
-    
-    public function test_submitReply_notifyClient()
-    {
-        $uri = $this->consultantCommentUri . "/reply";
-        $this->post($uri, $this->submitReplyRequest, $this->programConsultant->personnel->token)
-                ->seeStatusCode(201);
-        
-        $clientNotificationEntry = [
-            "Client_id" => $this->client->id,
-            "message" => "consultant {$this->programConsultant->personnel->name} has commented on your worksheet",
-            "notifiedTime" => (new \DateTime())->format('Y-m-d H:i:s'),
-            "isRead" => false,
-        ];
-        $this->seeInDatabase('ClientNotification', $clientNotificationEntry);
     }
     
     public function test_remove()

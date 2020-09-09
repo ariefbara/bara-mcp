@@ -2,13 +2,10 @@
 
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use Personnel\ {
-    Application\Service\Firm\Personnel\ProgramConsultantRepository,
-    Application\Service\Firm\Program\Participant\WorksheetRepository,
-    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment
+use Personnel\Application\Service\Firm\ {
+    Personnel\ProgramConsultantRepository,
+    Program\Participant\WorksheetRepository
 };
-use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultantCommentSubmitNew
@@ -50,19 +47,19 @@ class ConsultantCommentSubmitNew
     }
 
     public function execute(
-            PersonnelCompositionId $personnelCompositionId, string $programConsultantId, string $participantId,
+            string $firmId, string $personnelId, string $programConsultationId, string $participantId,
             string $worksheetId, string $message): string
     {
-        $programConsultant = $this->programConsultantRepository->ofId($personnelCompositionId, $programConsultantId);
         $id = $this->consultantCommentRepository->nextIdentity();
         $worksheet = $this->worksheetRepository->aWorksheetInProgramsWhereConsultantInvolved(
-                $personnelCompositionId, $programConsultantId, $participantId, $worksheetId);
-        $comment = Comment::createNew($worksheet, $id, $message);
+                $firmId, $personnelId, $programConsultationId, $participantId, $worksheetId);
 
-        $consultantComment = new ConsultantComment($programConsultant, $id, $comment);
+        $programConsultation = $this->programConsultantRepository->ofId($firmId, $personnelId, $programConsultationId);
+        $consultantComment = $programConsultation->submitNewCommentOnWorksheet($id, $worksheet, $message);
         $this->consultantCommentRepository->add($consultantComment);
         
-        $this->dispatcher->dispatch($consultantComment);
+        $this->dispatcher->dispatch($programConsultation);
+        
         return $id;
     }
 

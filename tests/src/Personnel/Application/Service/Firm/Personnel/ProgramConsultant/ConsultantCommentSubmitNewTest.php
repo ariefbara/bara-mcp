@@ -6,11 +6,6 @@ use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultantRepository,
     Application\Service\Firm\Program\Participant\WorksheetRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant,
-    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment
-};
-use Query\ {
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
     Domain\Model\Firm\Program\Participant\Worksheet
 };
 use Resources\Application\Event\Dispatcher;
@@ -19,27 +14,37 @@ use Tests\TestBase;
 class ConsultantCommentSubmitNewTest extends TestBase
 {
 
-    protected $personnelCompositionId;
     protected $consultantCommentRepository, $nextIdentity = 'nextIdentity';
-    protected $programConsultantRepository, $programConsultant, $programConsultantId = 'programConsultantId';
+    protected $programConsultantRepository, $programConsultant;
     protected $dispatcher;
     protected $service;
     protected $worksheetRepository, $worksheet, $participantId = 'participantId', $worksheetId = 'worksheetId';
+    
+    protected $firmId = 'firmId', $personnelId = 'personnelId', $programConsultationId = 'programConsultationId'; 
     protected $message = 'message';
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->personnelCompositionId = $this->buildMockOfClass(PersonnelCompositionId::class);
-        $this->consultantCommentRepository = $this->buildMockOfInterface(ConsultantCommentRepository::class);
+        $this->programConsultant = $this->buildMockOfClass(ProgramConsultant::class);
         $this->programConsultantRepository = $this->buildMockOfInterface(ProgramConsultantRepository::class);
+        $this->programConsultantRepository->expects($this->any())
+                ->method('ofId')
+                ->with($this->firmId, $this->personnelId, $this->programConsultationId)
+                ->willReturn($this->programConsultant);
+        
+        $this->consultantCommentRepository = $this->buildMockOfInterface(ConsultantCommentRepository::class);
         $this->consultantCommentRepository->expects($this->any())
                 ->method('nextIdentity')
                 ->willReturn($this->nextIdentity);
-        $this->programConsultant = $this->buildMockOfClass(ProgramConsultant::class);
 
-        $this->worksheetRepository = $this->buildMockOfInterface(WorksheetRepository::class);
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
+        $this->worksheetRepository = $this->buildMockOfInterface(WorksheetRepository::class);
+        $this->worksheetRepository->expects($this->any())
+                ->method('aWorksheetInProgramsWhereConsultantInvolved')
+                ->with($this->firmId, $this->personnelId, $this->programConsultationId, $this->participantId, $this->worksheetId)
+                ->willReturn($this->worksheet);
+        
         $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
 
         $this->service = new ConsultantCommentSubmitNew(
@@ -49,39 +54,26 @@ class ConsultantCommentSubmitNewTest extends TestBase
     
     protected function execute()
     {
-        $this->programConsultantRepository->expects($this->once())
-                ->method('ofId')
-                ->with($this->personnelCompositionId, $this->programConsultantId)
-                ->willReturn($this->programConsultant);
-        $this->worksheetRepository->expects($this->once())
-                ->method('aWorksheetInProgramsWhereConsultantInvolved')
-                ->with($this->personnelCompositionId, $this->programConsultantId, $this->participantId,
-                        $this->worksheetId)
-                ->willReturn($this->worksheet);
-
-        
         return $this->service->execute(
-                $this->personnelCompositionId, $this->programConsultantId, $this->participantId, $this->worksheetId,
+                $this->firmId, $this->personnelId, $this->programConsultationId, $this->participantId, $this->worksheetId,
                 $this->message);
     }
 
     public function test_execute_addConsultantCommentToRepository()
     {
-        $comment = Comment::createNew($this->worksheet, $this->nextIdentity, $this->message);
-        $consultantComment = new ConsultantComment($this->programConsultant, $this->nextIdentity, $comment);
+        $this->programConsultant->expects($this->once())
+                ->method('submitNewCommentOnWorksheet')
+                ->with($this->nextIdentity, $this->worksheet, $this->message);
 
         $this->consultantCommentRepository->expects($this->once())
-                ->method('add')
-                ->with($consultantComment);
+                ->method('add');
         $this->execute();
     }
-    public function test_execute_dispatchConsultantCommentToDispatcher()
+    public function test_execute_dispatchProgramConsultationToDispatcher()
     {
-        $comment = Comment::createNew($this->worksheet, $this->nextIdentity, $this->message);
-        $consultantComment = new ConsultantComment($this->programConsultant, $this->nextIdentity, $comment);
         $this->dispatcher->expects($this->once())
                 ->method('dispatch')
-                ->with($consultantComment);
+                ->with($this->programConsultant);
         $this->execute();
     }
     public function test_execute_returnNextId()

@@ -13,5 +13,5 @@ interface WorksheetRepository extends InterfaceForClient, InterfaceForUser
 
     public function ofId(string $firmId, string $programId, string $participantId, string $worksheetId): Worksheet;
 
-    public function all(string $firmId, string $programId, string $participantId, int $page, int $pageSize): Worksheet;
+    public function all(string $firmId, string $programId, string $participantId, int $page, int $pageSize);
 }

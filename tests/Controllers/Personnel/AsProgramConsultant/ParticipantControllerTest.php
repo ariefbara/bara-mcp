@@ -4,22 +4,28 @@ namespace Tests\Controllers\Personnel\AsProgramConsultant;
 
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfParticipant,
-    RecordOfClient
+    RecordOfUser,
+    User\RecordOfUserParticipant
 };
 
 class ParticipantControllerTest extends ParticipantTestCase
 {
     protected $participantOne;
+    protected $userParticipantOne;
     
     protected function setUp(): void
     {
         parent::setUp();
         
-        $client = new RecordOfClient(1, 'clientOne@email.org', 'password123');
-        $this->connection->table('Client')->insert($client->toArrayForDbEntry());
+        $user = new RecordOfUser(1);
+        $this->connection->table('User')->insert($user->toArrayForDbEntry());
         
-        $this->participantOne = new RecordOfParticipant($this->consultant->program, $client, 1);
+        $this->participantOne = new RecordOfParticipant($this->consultant->program, 1);
         $this->connection->table('Participant')->insert($this->participantOne->toArrayForDbEntry());
+        
+        $this->userParticipantOne = new RecordOfUserParticipant($user, $this->participantOne);
+        $this->connection->table('UserParticipant')->insert($this->userParticipantOne->toArrayForDbEntry());
+        
     }
     protected function tearDown(): void
     {
@@ -30,13 +36,14 @@ class ParticipantControllerTest extends ParticipantTestCase
     {
         $response = [
             "id" => $this->participant->id,
-            "acceptedTime" => $this->participant->acceptedTime,
+            "enrolledTime" => $this->participant->enrolledTime,
             "active" => $this->participant->active,
             "note" => $this->participant->note,
-            "client" => [
-                "id" => $this->participant->client->id,
-                "name" => $this->participant->client->name,
+            "user" => [
+                "id" => $this->userParticipant->user->id,
+                "name" => $this->userParticipant->user->getFullName(),
             ],
+            "client" => null,
         ];
         
         $uri = $this->participantUri . "/{$this->participant->id}";
@@ -59,23 +66,25 @@ class ParticipantControllerTest extends ParticipantTestCase
             "list" => [
                 [
                     "id" => $this->participant->id,
-                    "acceptedTime" => $this->participant->acceptedTime,
+                    "enrolledTime" => $this->participant->enrolledTime,
                     "active" => $this->participant->active,
                     "note" => $this->participant->note,
-                    "client" => [
-                        "id" => $this->participant->client->id,
-                        "name" => $this->participant->client->name,
+                    "user" => [
+                        "id" => $this->userParticipant->user->id,
+                        "name" => $this->userParticipant->user->getFullName(),
                     ],
+                    "client" => null,
                 ],
                 [
                     "id" => $this->participantOne->id,
-                    "acceptedTime" => $this->participantOne->acceptedTime,
+                    "enrolledTime" => $this->participantOne->enrolledTime,
                     "active" => $this->participantOne->active,
                     "note" => $this->participantOne->note,
-                    "client" => [
-                        "id" => $this->participantOne->client->id,
-                        "name" => $this->participantOne->client->name,
+                    "user" => [
+                        "id" => $this->userParticipantOne->user->id,
+                        "name" => $this->userParticipantOne->user->getFullName(),
                     ],
+                    "client" => null,
                 ],
             ],
         ];

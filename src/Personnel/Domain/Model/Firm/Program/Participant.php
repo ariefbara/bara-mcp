@@ -2,15 +2,10 @@
 
 namespace Personnel\Domain\Model\Firm\Program;
 
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ {
     ConsultationRequest,
     ConsultationSession
-};
-use Query\Domain\Model\ {
-    User,
-    Firm\Program
 };
 
 class Participant
@@ -18,9 +13,9 @@ class Participant
 
     /**
      *
-     * @var Program
+     * @var string
      */
-    protected $program;
+    protected $programId;
 
     /**
      *
@@ -30,27 +25,9 @@ class Participant
 
     /**
      *
-     * @var User
-     */
-    protected $client;
-
-    /**
-     *
-     * @var DateTimeImmutable
-     */
-    protected $acceptedTime;
-
-    /**
-     *
      * @var bool
      */
     protected $active = true;
-
-    /**
-     *
-     * @var string
-     */
-    protected $note;
 
     /**
      *

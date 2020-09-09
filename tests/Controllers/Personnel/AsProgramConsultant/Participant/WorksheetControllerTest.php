@@ -30,7 +30,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         $mission = new RecordOfMission($this->consultant->program, $worksheetForm, 1, $this->worksheet->mission);
         $this->connection->table('Mission')->insert($mission->toArrayForDbEntry());
 
-        $this->worksheetOne = new RecordOfWorksheet($this->participant, $formRecord, $mission);
+        $this->worksheetOne = new RecordOfWorksheet($this->participant, $formRecord, $mission, 1);
         $this->worksheetOne->parent = $this->worksheet;
         $this->connection->table('Worksheet')->insert($this->worksheetOne->toArrayForDbEntry());
     }

@@ -11,12 +11,15 @@ use Client\Domain\ {
 };
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Query\Domain\Model\Firm;
 use Resources\ {
     DateTimeImmutableBuilder,
     Domain\Model\ModelContainEvents,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
-    Exception\RegularException
+    Exception\RegularException,
+    ValidationRule,
+    ValidationService
 };
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 
@@ -52,6 +55,12 @@ class Client extends ModelContainEvents
      * @var Password
      */
     protected $password;
+    
+    /**
+     *
+     * @var DateTimeImmutable
+     */
+    protected $signupTime;
 
     /**
      *
@@ -94,10 +103,29 @@ class Client extends ModelContainEvents
      * @var ArrayCollection
      */
     protected $programParticipations;
-
-    protected function __construct()
+    
+    protected function setEmail(string $email): void
     {
-        ;
+        $errorDetail = 'bad request: invalid email format';
+        ValidationService::build()
+                ->addRule(ValidationRule::email())
+                ->execute($email, $errorDetail);
+        $this->email = $email;
+    }
+
+    function __construct(Firm $firm, string $id, ClientData $clientData)
+    {
+        $this->firmId = $firm->getId();
+        $this->id = $id;
+        $this->personName = new PersonName($clientData->getFirstName(), $clientData->getLastName());
+        $this->setEmail($clientData->getEmail());
+        $this->password = new Password($clientData->getPassword());
+        $this->signupTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
+        $this->resetPasswordCode = null;
+        $this->resetPasswordCodeExpiredTime = null;
+        $this->activated = false;
+        
+        $this->generateActivationCode();
     }
 
     public function updateProfile(string $firstName, ?string $lastName): void

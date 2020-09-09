@@ -3,7 +3,7 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
 
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
-use Shared\Domain\Model\ {
+use SharedContext\Domain\Model\SharedEntity\ {
     FormRecord,
     FormRecordData
 };

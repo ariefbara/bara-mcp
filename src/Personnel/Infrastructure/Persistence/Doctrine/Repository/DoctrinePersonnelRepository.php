@@ -26,8 +26,7 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
         $qb->select('personnel')
                 ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
-                ->leftJoin('personnel.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->andWhere($qb->expr()->eq('personnel.firmId', ':firmId'))
                 ->setParameters($parameters)
                 ->setMaxResults(1);
 

@@ -49,7 +49,7 @@ class ParticipantTest extends TestBase
 
 class TestableParticipant extends Participant
 {
-    public $program, $id, $client, $acceptedTime, $active, $note; 
+    public $programId, $id, $acceptedTime, $active, $note; 
     public $consultationSessions;
     
     public function __construct()

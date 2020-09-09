@@ -2,25 +2,16 @@
 
 namespace Personnel\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
+use Doctrine\ORM\EntityRepository;
 use Personnel\ {
-    Application\Service\Firm\Personnel\PersonnelCompositionId,
     Application\Service\Firm\Personnel\PersonnelFileInfoRepository,
-    Domain\Model\Firm\Personnel\PersonnelFileInfo,
-    Domain\Service\PersonnelFileInfoRepository as InterfaceForDomainService
+    Domain\Model\Firm\Personnel\PersonnelFileInfo
 };
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
-use Shared\Domain\Model\FileInfo;
+use Resources\Uuid;
 
-class DoctrinePersonnelFileInfoRepository extends EntityRepository implements PersonnelFileInfoRepository, InterfaceForDomainService
+class DoctrinePersonnelFileInfoRepository extends EntityRepository implements PersonnelFileInfoRepository
 {
-
+    
     public function add(PersonnelFileInfo $personnelFileInfo): void
     {
         $em = $this->getEntityManager();
@@ -31,41 +22,6 @@ class DoctrinePersonnelFileInfoRepository extends EntityRepository implements Pe
     public function nextIdentity(): string
     {
         return Uuid::generateUuid4();
-    }
-
-    public function fileInfoOf(
-            PersonnelCompositionId $personnelCompositionId, string $personnelFileInfoId): FileInfo
-    {
-        $parameters = [
-            "personnelFileInfoId" => $personnelFileInfoId,
-            "personnelId" => $personnelCompositionId->getPersonnelId(),
-            "firmId" => $personnelCompositionId->getFirmId(),
-        ];
-        
-        $subQuery = $this->createQueryBuilder('personnelFileInfo');
-        $subQuery->select('tFileInfo.id')
-                ->leftJoin('personnelFileInfo.fileInfo', 'tFileInfo')
-                ->andWhere($subQuery->expr()->eq('personnelFileInfo.removed', 'false'))
-                ->andWhere($subQuery->expr()->eq('personnelFileInfo.id', ':personnelFileInfoId'))
-                ->leftJoin('personnelFileInfo.personnel', 'personnel')
-                ->andWhere($subQuery->expr()->eq('personnel.id', ':personnelId'))
-                ->leftJoin('personnel.firm', 'firm')
-                ->andWhere($subQuery->expr()->eq('firm.id', ':clientId'))
-                ->setMaxResults(1);
-
-        $qb = $this->getEntityManager()->createQueryBuilder();
-        $qb->select('fileInfo')
-                ->from(FileInfo::class, 'fileInfo')
-                ->andWhere($qb->expr()->in('fileInfo.id', $subQuery->getDQL()))
-                ->setParameters($parameters)
-                ->setMaxResults(1);
-
-        try {
-            return $qb->getQuery()->getSingleResult();
-        } catch (NoResultException $ex) {
-            $errorDetail = "not found: file info not found";
-            throw RegularException::notFound($errorDetail);
-        }
     }
 
 }

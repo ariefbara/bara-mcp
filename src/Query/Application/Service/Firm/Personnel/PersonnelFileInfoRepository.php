@@ -6,5 +6,5 @@ use Query\Domain\Model\Firm\Personnel\PersonnelFileInfo;
 
 interface PersonnelFileInfoRepository
 {
-    public function ofId(PersonnelCompositionId $personnelCompositionId, string $personnelFileInfoId): PersonnelFileInfo;
+    public function ofId(string $firmId, string $personnelId, string $personnelFileInfoId): PersonnelFileInfo;
 }

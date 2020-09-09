@@ -9,10 +9,12 @@ use Client\Domain\ {
     Model\Client\ClientFileInfo,
     Model\Client\ProgramParticipation,
     Model\Client\ProgramRegistration,
+    Model\ClientData,
     Model\ProgramInterface
 };
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Query\Domain\Model\Firm;
 use Resources\ {
     DateTimeImmutableBuilder,
     Domain\ValueObject\Password,
@@ -23,8 +25,13 @@ use Tests\TestBase;
 
 class ClientTest extends TestBase
 {
-    protected $client, $password;
-    protected $firstName = 'firstname', $lastName = 'lastname', $previousPassword = 'previous123', $newPassword = 'newPwd123';
+    protected $client;
+    protected $firm, $firmId = 'firmId';
+
+    protected $id = 'newClientId', $firstName = 'hadi', $lastName = 'pranoto', $email = 'covid@hadipranoto.com', 
+            $password = 'obatcovid19';
+    
+    protected $previousPassword = 'previous123', $newPassword = 'newPwd123';
     
     protected $programRegistration;
     protected $programParticipation;
@@ -37,11 +44,12 @@ class ClientTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->firm = $this->buildMockOfClass(Firm::class);
+        $this->firm->expects($this->any())->method('getId')->willReturn($this->firmId);
         
-        $this->client = new TestableClient();
-        
-        $this->password = $this->buildMockOfClass(Password::class);
-        $this->client->password = $this->password;
+        $clientData = new ClientData('firstname', 'lastname', 'client@email.org', 'password12312');
+        $this->client = new TestableClient($this->firm, 'id', $clientData);        
+        $this->client->password = $this->buildMockOfClass(Password::class);
         
         $this->client->activationCode = bin2hex(random_bytes(32));
         $this->client->activationCodeExpiredTime = new DateTimeImmutable('+24 hours');
@@ -62,6 +70,44 @@ class ClientTest extends TestBase
         
         $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
         $this->fileInfoData->expects($this->any())->method('getName')->willReturn('docs.pdf');
+    }
+    
+    protected function getClientData()
+    {
+        return new ClientData($this->firstName, $this->lastName, $this->email, $this->password);
+    }
+    protected function executeConstruct()
+    {
+        return new TestableClient($this->firm, $this->id, $this->getClientData());
+    }
+    public function test_construct_setProperties()
+    {
+        $client = $this->executeConstruct();
+        $this->assertEquals($this->firmId, $client->firmId);
+        $this->assertEquals($this->id, $client->id);
+        $this->assertEquals($this->email, $client->email);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $client->signupTime);
+        $this->assertFalse($client->activated);
+        
+        $personName = new PersonName($this->firstName, $this->lastName);
+        $this->assertEquals($personName, $client->personName);
+        
+        $this->assertTrue($client->password->match($this->password));
+        
+        $this->assertNotEmpty($client->activationCode);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy('+24 hours'), $client->activationCodeExpiredTime);
+        
+        $this->assertNull($client->resetPasswordCode);
+        $this->assertNull($client->resetPasswordCodeExpiredTime);
+    }
+    public function test_construct_invalidEmail_badRequest()
+    {
+        $this->email = 'invalid format';
+        $operation = function (){
+            $this->executeConstruct();
+        };
+        $errorDetail = 'bad request: invalid email format';
+        $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
     
     protected function executeUpdateProfile()
@@ -87,7 +133,7 @@ class ClientTest extends TestBase
     
     protected function executeChangePassword()
     {
-        $this->password->expects($this->any())
+        $this->client->password->expects($this->any())
                 ->method('match')
                 ->with($this->previousPassword)
                 ->willReturn(true);
@@ -101,7 +147,7 @@ class ClientTest extends TestBase
     }
     public function test_changePassword_unmatchPreviousPassword_forbiddenError()
     {
-        $this->password->expects($this->once())
+        $this->client->password->expects($this->once())
                 ->method('match')
                 ->willReturn(false);
         $operation = function (){
@@ -248,6 +294,7 @@ class ClientTest extends TestBase
     }
     public function test_generateActivationCode_recordClientActivationCodeGeneratedEvent()
     {
+        $this->client->clearRecordedEvents();
         $event = new ClientActivationCodeGenerated($this->client->firmId, $this->client->id);
         $this->executeGenerateActivationCode();
         $this->assertEquals($event, $this->client->recordedEvents[0]);
@@ -277,6 +324,7 @@ class ClientTest extends TestBase
     }
     public function test_generateResetPasswordCode_storeClientResetPasswordCodeGeneratedEvent()
     {
+        $this->client->clearRecordedEvents();
         $event = new ClientResetPasswordCodeGenerated($this->client->firmId, $this->client->id);
         $this->executeGenerateResetPasswordCode();
         $this->assertEquals($event, $this->client->recordedEvents[0]);
@@ -355,6 +403,7 @@ class TestableClient extends Client
     public $personName;
     public $email;
     public $password;
+    public $signupTime;
     public $activationCode;
     public $activationCodeExpiredTime;
     public $resetPasswordCode;
@@ -365,8 +414,4 @@ class TestableClient extends Client
     
     public $recordedEvents;
     
-    function __construct()
-    {
-        parent::__construct();
-    }
 }

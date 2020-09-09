@@ -2,13 +2,16 @@
 
 namespace Personnel\Domain\Model\Firm;
 
-use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\ {
+    Password,
+    PersonName
+};
 use Tests\TestBase;
 
 class PersonnelTest extends TestBase
 {
     protected $personnel;
-    protected $name = 'new personnel name', $phone = '0821323123';
+    protected $firstName = 'firstname', $lastName = 'lastname', $phone = '0821323123';
     protected $previousPassword = 'password123', $newPassword = 'newPwd123';
 
 
@@ -21,22 +24,15 @@ class PersonnelTest extends TestBase
     
     protected function executeUpdate()
     {
-        $this->personnel->updateProfile($this->name, $this->phone);
+        $data = new PersonnelProfileData($this->firstName, $this->lastName, $this->phone);
+        $this->personnel->updateProfile($data);
     }
     public function test_update_changeNameAndPhone()
     {
         $this->executeUpdate();
-        $this->assertEquals($this->name, $this->personnel->name);
+        $name = new PersonName($this->firstName, $this->lastName);
+        $this->assertEquals($name, $this->personnel->name);
         $this->assertEquals($this->phone, $this->personnel->phone);
-    }
-    public function test_update_emptyName_throwEx()
-    {
-        $this->name = '';
-        $operation = function (){
-            $this->executeUpdate();
-        };
-        $errorDetail = 'bad request: personnel name is mandatory';
-        $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
     public function test_update_invalidPhoneFormat_throwEx()
     {
