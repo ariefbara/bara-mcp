@@ -1,31 +1,30 @@
 <?php
 
-namespace App\Http\Controllers\Client\ProgramParticipation;
+namespace App\Http\Controllers\User\ProgramParticipation;
 
 use App\Http\Controllers\ {
-    Client\ClientBaseController,
-    FormToArrayDataConverter
+    FormToArrayDataConverter,
+    User\UserBaseController
 };
 use Query\ {
-    Application\Service\Firm\Client\ProgramParticipation\ViewMission,
-    Application\Service\Firm\Client\ProgramParticipation\ViewWorksheet,
+    Application\Service\User\ProgramParticipation\ViewMission,
+    Application\Service\User\ProgramParticipation\ViewWorksheet,
     Domain\Model\Firm\Program\Mission,
     Domain\Model\Firm\Program\Participant\Worksheet,
     Domain\Model\Firm\WorksheetForm
 };
 
-class MissionController extends ClientBaseController
+class MissionController extends UserBaseController
 {
 
     public function show($programParticipationId, $missionId)
     {
         $viewService = $this->buildViewService();
-        $mission = $viewService->showById($this->firmId(), $this->clientId(), $programParticipationId, $missionId);
+        $mission = $viewService->showById($this->userId(), $programParticipationId, $missionId);
         $missionData = $this->arrayDataOfMission($mission);
 
         $worksheetView = $this->buildWorksheetViewService();
-        $worksheets = $worksheetView->showAll(
-                $this->firmId(), $this->clientId(), $programParticipationId, 1, 100, $missionId, null);
+        $worksheets = $worksheetView->showAll($this->userId(), $programParticipationId, 1, 100, $missionId, null);
         $worksheetData = [];
         foreach ($worksheets as $worksheet) {
             $worksheetData[] = $this->arrayDataOfWorksheet($worksheet);
@@ -38,12 +37,11 @@ class MissionController extends ClientBaseController
     public function showByPosition($programParticipationId, $position)
     {
         $viewService = $this->buildViewService();
-        $mission = $viewService->showByPosition($this->firmId(), $this->clientId(), $programParticipationId, $position);
+        $mission = $viewService->showByPosition($this->userId(), $programParticipationId, $position);
         $missionData = $this->arrayDataOfMission($mission);
 
         $worksheetView = $this->buildWorksheetViewService();
-        $worksheets = $worksheetView->showAll(
-                $this->firmId(), $this->clientId(), $programParticipationId, 1, 100, $mission->getId(), null);
+        $worksheets = $worksheetView->showAll($this->userId(), $programParticipationId, 1, 100, $mission->getId(), null);
         $worksheetData = [];
         foreach ($worksheets as $worksheet) {
             $worksheetData[] = $this->arrayDataOfWorksheet($worksheet);
@@ -56,7 +54,7 @@ class MissionController extends ClientBaseController
     public function showAll($programParticipationId)
     {
         $viewService = $this->buildViewService();
-        $missions = $viewService->showAll($this->firmId(), $this->clientId(), $programParticipationId);
+        $missions = $viewService->showAll($this->userId(), $programParticipationId);
 
         $result = [];
         foreach ($missions as $mission) {

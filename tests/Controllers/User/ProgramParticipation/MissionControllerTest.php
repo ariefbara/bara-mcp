@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Controllers\Client\ProgramParticipation;
+namespace Tests\Controllers\User\ProgramParticipation;
 
 use Tests\Controllers\ {
-    Client\ProgramParticipationTestCase,
+    User\ProgramParticipationTestCase,
     RecordPreparation\Firm\Program\Participant\RecordOfWorksheet,
     RecordPreparation\Firm\Program\RecordOfMission,
     RecordPreparation\Firm\RecordOfWorksheetForm,
@@ -112,7 +112,7 @@ class MissionControllerTest extends ProgramParticipationTestCase
                 ],
             ],
         ];
-        $this->get($this->missionUri, $this->programParticipation->client->token)
+        $this->get($this->missionUri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
@@ -165,7 +165,7 @@ class MissionControllerTest extends ProgramParticipationTestCase
             ],
         ];
         $uri = $this->missionUri . "/by-id/{$this->mission_2->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
@@ -218,7 +218,7 @@ class MissionControllerTest extends ProgramParticipationTestCase
             ],
         ];
         $uri = $this->missionUri . "/by-position/{$this->mission_2->position}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
         

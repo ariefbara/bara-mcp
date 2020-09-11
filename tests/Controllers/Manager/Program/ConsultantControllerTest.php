@@ -51,7 +51,7 @@ class ConsultantControllerTest extends ProgramTestCase
         $response = [
             "personnel" => [
                 "id" => $this->personnel2->id,
-                "name" => $this->personnel2->name,
+                "name" => $this->personnel2->getFullName(),
             ],
         ];
         
@@ -97,7 +97,7 @@ class ConsultantControllerTest extends ProgramTestCase
             "id" => $this->consultant->id,
             "personnel" => [
                 "id" => $this->consultant->personnel->id,
-                "name" => $this->consultant->personnel->name,
+                "name" => $this->consultant->personnel->getFullName(),
             ],
         ];
         $uri = $this->consultantUri . "/{$this->consultant->id}";
@@ -121,14 +121,14 @@ class ConsultantControllerTest extends ProgramTestCase
                     "id" => $this->consultant->id,
                     "personnel" => [
                         "id" => $this->consultant->personnel->id,
-                        "name" => $this->consultant->personnel->name,
+                        "name" => $this->consultant->personnel->getFullName(),
                     ],
                 ],
                 [
                     "id" => $this->consultant1->id,
                     "personnel" => [
                         "id" => $this->consultant1->personnel->id,
-                        "name" => $this->consultant1->personnel->name,
+                        "name" => $this->consultant1->personnel->getFullName(),
                     ],
                 ],
             ],

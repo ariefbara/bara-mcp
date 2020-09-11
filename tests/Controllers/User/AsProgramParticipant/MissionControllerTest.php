@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant;
+namespace Tests\Controllers\User\AsProgramParticipant;
 
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfMission,
@@ -60,15 +60,15 @@ class MissionControllerTest extends MissionTestCase
             ],
         ];
         $uri = $this->missionUri . "/{$this->missionOne->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($resuls);
     }
-    public function test_show_clientNotActiveParticipant_error401()
+    public function test_show_userNotActiveParticipant_error403()
     {
         $uri = $this->missionUri . "/{$this->missionOne->id}";
-        $this->get($uri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($uri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
     }
     
     public function test_showAll()
@@ -97,7 +97,7 @@ class MissionControllerTest extends MissionTestCase
                 ],
             ],
         ];
-        $this->get($this->missionUri, $this->programParticipation->client->token)
+        $this->get($this->missionUri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($result);
     }
@@ -121,13 +121,13 @@ class MissionControllerTest extends MissionTestCase
             ],
         ];
         $uri = $this->missionUri . "?position={$this->missionOne->position}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($result);
     }
-    public function test_showAll_clientNotActiveParticipant_error401()
+    public function test_showAll_userNotActiveParticipant_error403()
     {
-        $this->get($this->missionUri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($this->missionUri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
     }
 }

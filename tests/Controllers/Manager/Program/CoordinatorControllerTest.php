@@ -51,7 +51,7 @@ class CoordinatorControllerTest extends ProgramTestCase
         $response = [
             "personnel" => [
                 "id" => $this->personnel2->id,
-                "name" => $this->personnel2->name,
+                "name" => $this->personnel2->getFullName(),
             ],
         ];
         $this->put($this->coordinatorUri, $this->coordinatorInput, $this->manager->token)
@@ -96,7 +96,7 @@ class CoordinatorControllerTest extends ProgramTestCase
             "id" => $this->coordinator->id,
             "personnel" => [
                 "id" => $this->coordinator->personnel->id,
-                "name" => $this->coordinator->personnel->name,
+                "name" => $this->coordinator->personnel->getFullName(),
             ],
         ];
         $uri = $this->coordinatorUri . "/{$this->coordinator->id}";
@@ -120,14 +120,14 @@ class CoordinatorControllerTest extends ProgramTestCase
                     "id" => $this->coordinator->id,
                     "personnel" => [
                         "id" => $this->coordinator->personnel->id,
-                        "name" => $this->coordinator->personnel->name,
+                        "name" => $this->coordinator->personnel->getFullName(),
                     ],
                 ],
                 [
                     "id" => $this->coordinator1->id,
                     "personnel" => [
                         "id" => $this->coordinator1->personnel->id,
-                        "name" => $this->coordinator1->personnel->name,
+                        "name" => $this->coordinator1->personnel->getFullName(),
                     ],
                 ],
             ],

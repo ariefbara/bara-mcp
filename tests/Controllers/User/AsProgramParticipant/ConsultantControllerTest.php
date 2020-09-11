@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant;
+namespace Tests\Controllers\User\AsProgramParticipant;
 
 use Tests\Controllers\RecordPreparation\Firm\ {
     Program\RecordOfConsultant,
@@ -52,15 +52,15 @@ class ConsultantControllerTest extends AsProgramParticipantTestCase
             ],
         ];
         $uri = $this->consultantUri . "/{$this->consultant->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_show_clientNotActiveParticipant_error401()
+    public function test_show_userNotActiveParticipant_error403()
     {
         $uri = $this->consultantUri . "/{$this->consultant->id}";
-        $this->get($uri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($uri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
         
     }
     
@@ -85,13 +85,13 @@ class ConsultantControllerTest extends AsProgramParticipantTestCase
                 ],
             ],
         ];
-        $this->get($this->consultantUri, $this->programParticipation->client->token)
+        $this->get($this->consultantUri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_showAll_ClientNotActiveParticipant_error401()
+    public function test_showAll_UserNotActiveParticipant_error403()
     {
-        $this->get($this->consultantUri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($this->consultantUri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
     }
 }

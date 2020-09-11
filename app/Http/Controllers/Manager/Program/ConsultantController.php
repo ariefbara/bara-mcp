@@ -12,7 +12,7 @@ use Firm\ {
     Domain\Model\Firm\Program\Consultant
 };
 use Query\ {
-    Application\Service\Firm\Program\ConsultantView,
+    Application\Service\Firm\Program\ViewConsultant,
     Domain\Model\Firm\Program\Consultant as Consultant2
 };
 
@@ -26,8 +26,7 @@ class ConsultantController extends ManagerBaseController
         $consultantId = $service->execute($this->firmId(), $programId, $personnelId);
         
         $viewService = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $consultant = $viewService->showById($programCompositionId, $consultantId);
+        $consultant = $viewService->showById($this->firmId(), $programId, $consultantId);
         return $this->singleQueryResponse($this->arrayDataOfConsultant($consultant));
     }
 
@@ -43,9 +42,8 @@ class ConsultantController extends ManagerBaseController
     public function show($programId, $consultantId)
     {
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
 
-        $consultant = $service->showById($programCompositionId, $consultantId);
+        $consultant = $service->showById($this->firmId(), $programId, $consultantId);
 
         return $this->singleQueryResponse($this->arrayDataOfConsultant($consultant));
     }
@@ -55,7 +53,7 @@ class ConsultantController extends ManagerBaseController
         $service = $this->buildViewService();
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
 
-        $consultants = $service->showAll($programCompositionId, $this->getPage(), $this->getPageSize());
+        $consultants = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
         $result = [];
         $result['total'] = count($consultants);
         foreach ($consultants as $consultant) {
@@ -92,7 +90,7 @@ class ConsultantController extends ManagerBaseController
     protected function buildViewService()
     {
         $consultantRepository = $this->em->getRepository(Consultant2::class);
-        return new ConsultantView($consultantRepository);
+        return new ViewConsultant($consultantRepository);
     }
 
 }

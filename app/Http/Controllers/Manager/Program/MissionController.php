@@ -14,7 +14,7 @@ use Firm\ {
     Domain\Model\Firm\WorksheetForm
 };
 use Query\ {
-    Application\Service\Firm\Program\MissionView,
+    Application\Service\Firm\Program\ViewMission,
     Domain\Model\Firm\Program\Mission as Mission2
 };
 
@@ -34,8 +34,7 @@ class MissionController extends ManagerBaseController
                 $this->firmId(), $programId, $name, $description, $worksheetFormId, $position);
         
         $viewService = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $mission = $viewService->showById($programCompositionId, $missionId);
+        $mission = $viewService->showById($this->firmId(), $programId, $missionId);
         return $this->commandCreatedResponse($this->arrayDataOfMission($mission));
     }
 
@@ -53,7 +52,7 @@ class MissionController extends ManagerBaseController
                 $programCompositionId, $missionId, $name, $description, $worksheetFormId, $position);
         
         $viewService = $this->buildViewService();
-        $mission = $viewService->showById($programCompositionId, $branchId);
+        $mission = $viewService->showById($this->firmId(), $programId, $branchId);
         return $this->commandCreatedResponse($this->arrayDataOfMission($mission));
     }
 
@@ -75,25 +74,21 @@ class MissionController extends ManagerBaseController
         $service = $this->buildPublishService();
         
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $mission = $service->execute($programCompositionId, $missionId);
+        $service->execute($programCompositionId, $missionId);
         return $this->show($programId, $missionId);
     }
 
     public function show($programId, $missionId)
     {
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        
-        $mission = $service->showById($programCompositionId, $missionId);
+        $mission = $service->showById($this->firmId(), $programId, $missionId);
         return $this->singleQueryResponse($this->arrayDataOfMission($mission));
     }
 
     public function showAll($programId)
     {
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        
-        $missions = $service->showAll($programCompositionId, $this->getPage(), $this->getPageSize());
+        $missions = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), null);
         
         $result = [];
         $result['total'] = count($missions);
@@ -163,7 +158,7 @@ class MissionController extends ManagerBaseController
     protected function buildViewService()
     {
         $missionRepository = $this->em->getRepository(Mission2::class);
-        return new MissionView($missionRepository);
+        return new ViewMission($missionRepository);
     }
 
 }

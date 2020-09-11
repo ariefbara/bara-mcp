@@ -35,7 +35,6 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     
     public function test_quit_200()
     {
-$this->disableExceptionHandling();
         $uri = $this->programParticipationUri . "/{$this->programParticipation->id}/quit";
         $this->patch($uri, [], $this->client->token)
             ->seeStatusCode(200);
@@ -56,6 +55,7 @@ $this->disableExceptionHandling();
     public function test_show()
     {
         $response = [
+            "id" => $this->programParticipation->id,
             "program" => [
                 "id" => $this->programParticipation->participant->program->id,
                 "name" => $this->programParticipation->participant->program->name,
@@ -77,6 +77,7 @@ $this->disableExceptionHandling();
             "total" => 2, 
             "list" => [
                 [
+                    "id" => $this->programParticipation->id,
                     "program" => [
                         "id" => $this->programParticipation->participant->program->id,
                         "name" => $this->programParticipation->participant->program->name,
@@ -87,6 +88,7 @@ $this->disableExceptionHandling();
                     "note" => $this->programParticipation->participant->note,
                 ],
                 [
+                    "id" => $this->inactiveProgramParticipation->id,
                     "program" => [
                         "id" => $this->inactiveProgramParticipation->participant->program->id,
                         "name" => $this->inactiveProgramParticipation->participant->program->name,

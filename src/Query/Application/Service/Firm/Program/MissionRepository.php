@@ -2,14 +2,17 @@
 
 namespace Query\Application\Service\Firm\Program;
 
-use Firm\Application\Service\Firm\Program\ProgramCompositionId;
-use Query\Domain\Model\Firm\Program\Mission;
+use Query\ {
+    Application\Service\Firm\Client\ProgramParticipation\MissionRepository as InterfaceForClient,
+    Application\Service\User\ProgramParticipation\MissionRepository as InterfaceForUser,
+    Domain\Model\Firm\Program\Mission
+};
 
-interface MissionRepository
+interface MissionRepository extends InterfaceForClient, InterfaceForUser
 {
 
-    public function ofId(ProgramCompositionId $programCompositionId, string $missionId): Mission;
+    public function ofId(string $firmId, string $programId, string $missionId): Mission;
 
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize, ?string $position = null);
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?string $position);
     
 }

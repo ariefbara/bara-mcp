@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant;
+namespace App\Http\Controllers\User\AsProgramParticipant;
 
 use App\Http\Controllers\FormToArrayDataConverter;
 use Query\ {
@@ -12,22 +12,23 @@ use Query\ {
 class MissionController extends AsProgramParticipantBaseController
 {
 
-    public function show($programId, $missionId)
+    public function show($firmId, $programId, $missionId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
         
-        $viewService = $this->buildViewService();
-        $mission = $viewService->showById($this->firmId(), $programId, $missionId);
+        $service = $this->buildViewService();
+        $mission = $service->showById($firmId, $programId, $missionId);
+        
         return $this->singleQueryResponse($this->arrayDataOfMission($mission));
     }
     
-    public function showAll($programId)
+    public function showAll($firmId, $programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
         
-        $viewService = $this->buildViewService();
+        $service = $this->buildViewService();
         $position = $this->stripTagQueryRequest("position");
-        $missions = $viewService->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $position);
+        $missions = $service->showAll($firmId, $programId, $this->getPage(), $this->getPageSize(), $position);
         
         $result = [];
         $result['total'] = count($missions);

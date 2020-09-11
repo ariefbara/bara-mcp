@@ -2,17 +2,17 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Program\Participant\WorksheetRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant\Worksheet,
     Domain\Model\User\UserParticipant
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
@@ -134,19 +134,19 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->leftJoin('worksheet.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
                 ->setParameters($params);
-        
+
         if (!empty($missionId)) {
             $qb->leftJoin('worksheet.mission', 'mission')
                     ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
                     ->setParameter('missionId', $missionId);
         }
-        
+
         if (!empty($parentWorksheetId)) {
             $qb->leftJoin('worksheet.parent', 'parent')
                     ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
                     ->setParameter('parentId', $parentWorksheetId);
         }
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -166,7 +166,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->leftJoin('userParticipant.user', 'user')
                 ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('worksheet');
         $qb->select('worksheet')
                 ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
@@ -199,26 +199,27 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->leftJoin('userParticipant.user', 'user')
                 ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('worksheet');
         $qb->select('worksheet')
                 ->leftJoin('worksheet.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
                 ->setParameters($params);
-        
+
         if (!empty($missionId)) {
             $qb->leftJoin('worksheet.mission', 'mission')
                     ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
                     ->setParameter('missionId', $missionId);
         }
-        
+
         if (!empty($parentWorksheetId)) {
             $qb->leftJoin('worksheet.parent', 'parent')
                     ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
                     ->setParameter('parentId', $parentWorksheetId);
         }
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
+
 
 }

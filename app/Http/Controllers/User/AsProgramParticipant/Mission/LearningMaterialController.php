@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant\Mission;
+namespace App\Http\Controllers\User\AsProgramParticipant\Mission;
 
-use App\Http\Controllers\Client\AsProgramParticipant\AsProgramParticipantBaseController;
+use App\Http\Controllers\User\AsProgramParticipant\AsProgramParticipantBaseController;
 use Query\ {
     Application\Service\Firm\Program\Mission\ViewLearningMaterial,
     Domain\Model\Firm\Program\Mission\LearningMaterial
@@ -11,22 +11,22 @@ use Query\ {
 class LearningMaterialController extends AsProgramParticipantBaseController
 {
 
-    public function show($programId, $missionId, $learningMaterialId)
+    public function show($firmId, $programId, $missionId, $learningMaterialId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
         
         $service = $this->buildViewService();
-        $learningMaterial = $service->showById($this->firmId(), $programId, $missionId, $learningMaterialId);
+        $learningMaterial = $service->showById($firmId, $programId, $missionId, $learningMaterialId);
         
         return $this->singleQueryResponse($this->arrayDataOfLearningMaterial($learningMaterial));
     }
 
-    public function showAll($programId, $missionId)
+    public function showAll($firmId, $programId, $missionId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
         
         $service = $this->buildViewService();
-        $learningMaterials = $service->showAll($this->firmId(), $programId, $missionId, $this->getPage(), $this->getPageSize());
+        $learningMaterials = $service->showAll($firmId, $programId, $missionId, $this->getPage(), $this->getPageSize());
         
         $result = [];
         $result['total'] = count($learningMaterials);

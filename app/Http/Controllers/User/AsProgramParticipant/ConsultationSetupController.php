@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant;
+namespace App\Http\Controllers\User\AsProgramParticipant;
 
 use Query\ {
     Application\Service\Firm\Program\ViewConsultationSetup,
@@ -10,22 +10,22 @@ use Query\ {
 class ConsultationSetupController extends AsProgramParticipantBaseController
 {
 
-    public function show($programId, $consultationSetupId)
+    public function show($firmId, $programId, $consultationSetupId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
-        
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
         $service = $this->buildViewService();
-        $consultationSetup = $service->showById($this->firmId(), $programId, $consultationSetupId);
+        $consultationSetup = $service->showById($firmId, $programId, $consultationSetupId);
         
         return $this->singleQueryResponse($this->arrayDataOfConsultationSetup($consultationSetup));
     }
 
-    public function showAll($programId)
+    public function showAll($firmId, $programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
-        
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
         $service = $this->buildViewService();
-        $consultationSetups = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
+        
+        $consultationSetups = $service->showAll($firmId, $programId, $this->getPage(), $this->getPageSize());
+        
         $result = [];
         $result['total'] = count($consultationSetups);
         foreach ($consultationSetups as $consultationSetup) {

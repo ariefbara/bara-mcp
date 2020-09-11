@@ -12,7 +12,7 @@ use Firm\ {
     Domain\Model\Firm\Program\ConsultationSetup
 };
 use Query\ {
-    Application\Service\Firm\Program\ConsultationSetupView,
+    Application\Service\Firm\Program\ViewConsultationSetup,
     Domain\Model\Firm\Program\ConsultationSetup as ConsultationSetup2
 };
 
@@ -32,8 +32,7 @@ class ConsultationSetupController extends ManagerBaseController
                 $consultantFeedbackFormId);
         
         $viewService = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $consultationSetup = $viewService->showById($programCompositionId, $consultationSetupId);
+        $consultationSetup = $viewService->showById($this->firmId(), $programId, $consultationSetupId);
         return $this->commandCreatedResponse($this->arrayDataOfConsultationSetup($consultationSetup));
     }
 
@@ -50,17 +49,14 @@ class ConsultationSetupController extends ManagerBaseController
     public function show($programId, $consultationSetupId)
     {
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-
-        $consultationSetup = $service->showById($programCompositionId, $consultationSetupId);
+        $consultationSetup = $service->showById($this->firmId(), $programId, $consultationSetupId);
         return $this->singleQueryResponse($this->arrayDataOfConsultationSetup($consultationSetup));
     }
 
     public function showAll($programId)
     {
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $consultationSetups = $service->showAll($programCompositionId, $this->getPage(), $this->getPageSize());
+        $consultationSetups = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
         return $this->commonIdNameListQueryResponse($consultationSetups);
     }
 
@@ -100,7 +96,7 @@ class ConsultationSetupController extends ManagerBaseController
     protected function buildViewService()
     {
         $consultationSetupRepository = $this->em->getRepository(ConsultationSetup2::class);
-        return new ConsultationSetupView($consultationSetupRepository);
+        return new ViewConsultationSetup($consultationSetupRepository);
     }
 
 }

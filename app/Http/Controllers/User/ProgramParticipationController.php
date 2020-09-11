@@ -44,6 +44,7 @@ class ProgramParticipationController extends UserBaseController
     protected function arrayDataOfProgramParticipation(UserParticipant $programParticipation): array
     {
         return [
+            "id" => $programParticipation->getId(),
             'program' => [
                 'id' => $programParticipation->getProgram()->getId(),
                 'name' => $programParticipation->getProgram()->getName(),

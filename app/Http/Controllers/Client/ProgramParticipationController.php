@@ -43,6 +43,7 @@ class ProgramParticipationController extends ClientBaseController
     protected function arrayDataOfProgramParticipation(ClientParticipant $programParticipation): array
     {
         return [
+            "id" => $programParticipation->getId(),
             "program" => [
                 "id" => $programParticipation->getProgram()->getId(),
                 "name" => $programParticipation->getProgram()->getName(),

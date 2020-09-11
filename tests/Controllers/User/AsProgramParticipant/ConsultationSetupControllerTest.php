@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant;
+namespace Tests\Controllers\User\AsProgramParticipant;
 
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfConsultationSetup,
@@ -54,15 +54,15 @@ class ConsultationSetupControllerTest extends AsProgramParticipantTestCase
             "sessionDuration" => $this->consultationSetup->sessionDuration,
         ];
         $uri = $this->consultationSetupUri . "/{$this->consultationSetup->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_show_clientNotActiveParticipant_error401()
+    public function test_show_userNotActiveParticipant_error403()
     {
         $uri = $this->consultationSetupUri . "/{$this->consultationSetup->id}";
-        $this->get($uri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($uri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
     }
     
     public function test_showAll()
@@ -82,13 +82,13 @@ class ConsultationSetupControllerTest extends AsProgramParticipantTestCase
                 ],
             ],
         ];
-        $this->get($this->consultationSetupUri, $this->programParticipation->client->token)
+        $this->get($this->consultationSetupUri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_showAll_clientNotActiveParticipant_error401()
+    public function test_showAll_userNotActiveParticipant_error403()
     {
-        $this->get($this->consultationSetupUri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($this->consultationSetupUri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
     }
 }

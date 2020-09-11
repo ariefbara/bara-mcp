@@ -81,7 +81,7 @@ $router->group($clientAggregate, function () use ($router) {
     });
     
     $asProgramParticipantAggregate = [
-        'prefix' => '/as-program-participant/{firmId}/{programId}',
+        'prefix' => '/as-program-participant/{programId}',
         'namespace' => 'AsProgramParticipant',
     ];
     $router->group($asProgramParticipantAggregate, function () use ($router) {

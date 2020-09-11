@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant\Mission;
+namespace Tests\Controllers\User\AsProgramParticipant\Mission;
 
 use Tests\Controllers\ {
-    Client\AsProgramParticipant\MissionTestCase,
+    User\AsProgramParticipant\MissionTestCase,
     RecordPreparation\Firm\Program\Mission\RecordOfLearningMaterial
 };
 
@@ -32,22 +32,21 @@ class LearningMaterialControllerTest extends MissionTestCase
     
     public function test_show()
     {
-$this->disableExceptionHandling();
         $response = [
             "id" => $this->learningMaterial->id,
             "name" => $this->learningMaterial->name,
             "content" => $this->learningMaterial->content,
         ];
         $uri = $this->learningMaterialUri . "/{$this->learningMaterial->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_show_clientNotActiveParticipant_error401()
+    public function test_show_userNotActiveParticipant_error403()
     {
         $uri = $this->learningMaterialUri . "/{$this->learningMaterial->id}";
-        $this->get($uri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($uri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
     }
     public function test_showAll()
     {
@@ -66,13 +65,13 @@ $this->disableExceptionHandling();
                 ],
             ],
         ];
-        $this->get($this->learningMaterialUri, $this->programParticipation->client->token)
+        $this->get($this->learningMaterialUri, $this->programParticipation->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
     public function test_showAll_userNotActiveParticipant()
     {
-        $this->get($this->learningMaterialUri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+        $this->get($this->learningMaterialUri, $this->inactiveProgramParticipation->user->token)
+                ->seeStatusCode(403);
     }
 }

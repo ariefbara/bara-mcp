@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant;
+namespace Tests\Controllers\User\AsProgramParticipant;
 
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\RecordOfMission,

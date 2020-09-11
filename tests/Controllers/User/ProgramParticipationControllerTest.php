@@ -61,6 +61,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     public function test_show_200()
     {
         $response = [
+            "id" => $this->programParticipation->id,
             'program' => [
                 'id' => $this->programParticipation->participant->program->id,
                 'name' => $this->programParticipation->participant->program->name,
@@ -86,6 +87,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
             'total' => 2,
             'list' => [
                 [
+                    "id" => $this->programParticipation->id,
                     'program' => [
                         'id' => $this->programParticipation->participant->program->id,
                         'name' => $this->programParticipation->participant->program->name,
@@ -100,6 +102,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                     'note' => $this->programParticipation->participant->note,
                 ],
                 [
+                    "id" => $this->inactiveProgramParticipation->id,
                     'program' => [
                         'id' => $this->inactiveProgramParticipation->participant->program->id,
                         'name' => $this->inactiveProgramParticipation->participant->program->name,

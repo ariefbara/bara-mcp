@@ -2,187 +2,299 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\Application\Service\Client\ProgramParticipation\ProgramParticipationCompositionId;
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Firm\Application\Service\Firm\Program\ProgramCompositionId;
 use PDO;
-use Query\{
-    Application\Service\Client\ProgramParticipation\MissionRepository as InterfaceForProgramParticipant,
+use Query\ {
     Application\Service\Firm\Program\MissionRepository,
+    Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Mission,
-    Domain\Model\Firm\Program\Participant
+    Domain\Model\User\UserParticipant
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineMissionRepository extends EntityRepository implements MissionRepository, InterfaceForProgramParticipant
+class DoctrineMissionRepository extends EntityRepository implements MissionRepository
 {
 
-    public function ofId(ProgramCompositionId $programCompositionId, string $missionId): Mission
+    public function ofId(string $firmId, string $programId, string $missionId): Mission
     {
-        $qb = $this->createQueryBuilder('mission');
-        $qb->select('mission')
-                ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
-                ->setParameter('missionId', $missionId)
-                ->leftJoin('mission.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->setParameter('programId', $programCompositionId->getProgramId())
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameter('firmId', $programCompositionId->getFirmId())
+        $params = [
+            "firmId" => $firmId,
+            "programId" => $programId,
+            "missionId" => $missionId,
+        ];
+
+        $qb = $this->createQueryBuilder("mission");
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.id", ":missionId"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->leftJoin("program.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
                 ->setMaxResults(1);
 
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = 'not found: mission not found';
+            $errorDetail = "not found: mission not found";
             throw RegularException::notFound($errorDetail);
         }
     }
 
-    public function all(ProgramCompositionId $programCompositionId, int $page, int $pageSize, ?string $position = null)
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?string $position)
     {
-        $qb = $this->createQueryBuilder('mission');
-        $qb->select('mission')
-                ->leftJoin('mission.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->setParameter('programId', $programCompositionId->getProgramId())
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameter('firmId', $programCompositionId->getFirmId());
+        $params = [
+            "firmId" => $firmId,
+            "programId" => $programId,
+        ];
 
-        if (!empty($position)) {
-            $qb->andWhere($qb->expr()->eq('mission.position', ':position'))
-                    ->setParameter('position', $position);
+        $qb = $this->createQueryBuilder("mission");
+        $qb->select("mission")
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->leftJoin("program.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params);
+
+        if (isset($position)) {
+            $qb->andWhere($qb->expr()->eq("mission.position", ":position"))
+                    ->setParameter("position", $position);
         }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function allMissionsContainSubmittedWorksheetCount(
-            ProgramParticipationCompositionId $programParticipationCompositionId)
+    public function aMissionInProgramWhereClientParticipate(
+            string $firmId, string $clientId, string $programParticipationId, string $missionId): Mission
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            'programParticipationId' => $programParticipationId,
+            'missionId' => $missionId,
+        ];
+
+        $programQb = $this->getEntityManager()->createQueryBuilder();
+        $programQb->select("t_program.id")
+                ->from(ClientParticipant::class, "clientParticipant")
+                ->andWhere($programQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($programQb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($programQb->expr()->eq('firm.id', ':firmId'))
+                ->leftJoin('clientParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('mission');
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.id", ":missionId"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->in("program.id", $programQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: mission not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aMissionByPositionInProgramWhereClientParticipate(
+            string $firmId, string $clientId, string $programParticipationId, string $missionPosition): Mission
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            'programParticipationId' => $programParticipationId,
+            'missionPosition' => $missionPosition,
+        ];
+
+        $programQb = $this->getEntityManager()->createQueryBuilder();
+        $programQb->select("t_program.id")
+                ->from(ClientParticipant::class, "clientParticipant")
+                ->andWhere($programQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($programQb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($programQb->expr()->eq('firm.id', ':firmId'))
+                ->leftJoin('clientParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('mission');
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.position", ":missionPosition"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->in("program.id", $programQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: mission not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allMissionsInProgramWhereClientParticipate(
+            string $firmId, string $clientId, string $programParticipationId)
     {
         $statement = <<<_STATEMENT
 SELECT y.id, y.name, y.description, y.position, z.submittedWorksheet
 FROM (
-    SELECT Mission.id, Mission.name, Mission.description, Mission.position
+    SELECT Participant.id participantId, Participant.Program_id programId
+    FROM ClientParticipant
+        LEFT JOIN Participant ON Participant.id = ClientParticipant.Participant_id
+        LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    WHERE Participant.active = true
+        AND ClientParticipant.id = :programParticipationId
+        AND Client.id = :clientId
+        AND Client.Firm_id = :firmId
+)x
+LEFT JOIN (
+    SELECT Mission.id, Mission.name, Mission.description, Mission.position, Mission.Program_id programId
     FROM Mission
-        LEFT JOIN Program ON Program.id = Mission.Program_id
     WHERE Mission.published = true
-        AND Program.id = (
-            SELECT Program.id
-            FROM Participant
-                LEFT JOIN Program ON Program.id = Participant.Program_id
-                LEFT JOIN Client ON Client.id = Participant.Client_id
-            WHERE Participant.id = :participantId
-                AND Participant.active = true
-                AND Client.id = :clientId
-        )
-)y
+    GROUP BY id
+)y ON y.programId = x.programId
 LEFT JOIN (
     SELECT 
+        Worksheet.Participant_id participantId,
         Worksheet.Mission_id missionId,
         COUNT(Worksheet.id) AS submittedWorksheet
     FROM Worksheet
-        LEFT JOIN Mission ON Mission.id = Worksheet.Mission_id
-        LEFT JOIN Participant ON Participant.id = Worksheet.Participant_id
-        LEFT JOIN Client ON Client.id = Participant.Client_id
     WHERE Worksheet.removed = false
-        AND Participant.id = :participantId
-        AND Participant.active = true
-        AND Client.id = :clientId
-    GROUP BY missionId
-)z ON z.missionId = y.id
+    GROUP BY missionId, participantId
+)z ON z.missionId = y.id AND z.participantId = x.participantId                
 _STATEMENT;
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
         $params = [
-            'participantId' => $programParticipationCompositionId->getProgramParticipationId(),
-            'clientId' => $programParticipationCompositionId->getClientId(),
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "programParticipationId" => $programParticipationId,
         ];
         $query->execute($params);
 
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function aMissionInProgramWhereParticipantParticipate(
-            ProgramParticipationCompositionId $programParticipationCompositionId, string $missionId): Mission
+    public function aMissionInProgramWhereUserParticipate(
+            string $userId, string $programParticipationId, string $missionId): Mission
     {
         $params = [
-            'participantId' => $programParticipationCompositionId->getProgramParticipationId(),
-            'clientId' => $programParticipationCompositionId->getClientId(),
+            'userId' => $userId,
+            'programParticipationId' => $programParticipationId,
             'missionId' => $missionId,
         ];
 
-        $subQuery = $this->getEntityManager()->createQueryBuilder();
-        $subQuery->select('x_program.id')
-                ->from(Participant::class, 'x_participant')
-                ->andWhere($subQuery->expr()->eq('x_participant.id', ':participantId'))
-                ->andWhere($subQuery->expr()->eq('x_participant.active', 'true'))
-                ->leftJoin('x_participant.client', 'x_client')
-                ->andWhere($subQuery->expr()->eq('x_client.id', ':clientId'))
-                ->leftJoin('x_participant.program', 'x_program')
+        $programQb = $this->getEntityManager()->createQueryBuilder();
+        $programQb->select("t_program.id")
+                ->from(UserParticipant::class, "userParticipant")
+                ->andWhere($programQb->expr()->eq('userParticipant.id', ':programParticipationId'))
+                ->leftJoin('userParticipant.user', 'user')
+                ->andWhere($programQb->expr()->eq('user.id', ':userId'))
+                ->leftJoin('userParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('mission');
-        $qb->select('mission')
-                ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
-                ->andWhere($qb->expr()->eq('mission.published', 'true'))
-                ->leftJoin('mission.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->in('program.id', $subQuery->getDQL()))
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.id", ":missionId"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->in("program.id", $programQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = 'not found: mission not found';
+            $errorDetail = "not found: mission not found";
             throw RegularException::notFound($errorDetail);
         }
     }
 
-    public function aMissionByPositionInProgramWhereParticipantParticipate(
-            ProgramParticipationCompositionId $programParticipationCompositionId, string $position): Mission
+    public function aMissionByPositionInProgramWhereUserParticipate(string $userId, string $programParticipationId,
+            string $missionPosition): Mission
     {
         $params = [
-            'participantId' => $programParticipationCompositionId->getProgramParticipationId(),
-            'clientId' => $programParticipationCompositionId->getClientId(),
-            'position' => $position,
+            'userId' => $userId,
+            'programParticipationId' => $programParticipationId,
+            'missionPosition' => $missionPosition,
         ];
 
-        $subQuery = $this->getEntityManager()->createQueryBuilder();
-        $subQuery->select('x_program.id')
-                ->from(Participant::class, 'x_participant')
-                ->andWhere($subQuery->expr()->eq('x_participant.id', ':participantId'))
-                ->andWhere($subQuery->expr()->eq('x_participant.active', 'true'))
-                ->leftJoin('x_participant.client', 'x_client')
-                ->andWhere($subQuery->expr()->eq('x_client.id', ':clientId'))
-                ->leftJoin('x_participant.program', 'x_program')
+        $programQb = $this->getEntityManager()->createQueryBuilder();
+        $programQb->select("t_program.id")
+                ->from(UserParticipant::class, "userParticipant")
+                ->andWhere($programQb->expr()->eq('userParticipant.id', ':programParticipationId'))
+                ->leftJoin('userParticipant.user', 'user')
+                ->andWhere($programQb->expr()->eq('user.id', ':userId'))
+                ->leftJoin('userParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('mission');
-        $qb->select('mission')
-                ->andWhere($qb->expr()->eq('mission.position', ':position'))
-                ->andWhere($qb->expr()->eq('mission.published', 'true'))
-                ->leftJoin('mission.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->in('program.id', $subQuery->getDQL()))
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.position", ":missionPosition"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->in("program.id", $programQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = 'not found: mission not found';
+            $errorDetail = "not found: mission not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function allMissionsInProgramWhereUserParticipate(string $userId, string $programParticipationId)
+    {
+
+        $statement = <<<_STATEMENT
+SELECT y.id, y.name, y.description, y.position, z.submittedWorksheet
+FROM (
+    SELECT Participant.id participantId, Participant.Program_id programId
+    FROM UserParticipant
+        LEFT JOIN Participant ON Participant.id = UserParticipant.Participant_id
+    WHERE Participant.active = true
+        AND UserParticipant.id = :programParticipationId
+        AND UserParticipant.User_id = :userId
+)x
+LEFT JOIN (
+    SELECT Mission.id, Mission.name, Mission.description, Mission.position, Mission.Program_id programId
+    FROM Mission
+    WHERE Mission.published = true
+    GROUP BY id
+)y ON y.programId = x.programId
+LEFT JOIN (
+    SELECT 
+        Worksheet.Participant_id participantId,
+        Worksheet.Mission_id missionId,
+        COUNT(Worksheet.id) AS submittedWorksheet
+    FROM Worksheet
+    WHERE Worksheet.removed = false
+    GROUP BY missionId, participantId
+)z ON z.missionId = y.id AND z.participantId = x.participantId                
+_STATEMENT;
+        $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        $params = [
+            "userId" => $userId,
+            "programParticipationId" => $programParticipationId,
+        ];
+        $query->execute($params);
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
 }

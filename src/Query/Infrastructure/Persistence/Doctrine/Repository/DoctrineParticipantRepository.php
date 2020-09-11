@@ -9,7 +9,8 @@ use Doctrine\ORM\ {
 use Query\ {
     Application\Service\Firm\Program\ParticipantRepository,
     Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant
+    Domain\Model\Firm\Program\Participant,
+    Domain\Model\User\UserParticipant
 };
 use Resources\ {
     Exception\RegularException,
@@ -86,6 +87,36 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
         $qb->select('1')
                 ->andWhere($qb->expr()->eq('participant.active', 'true'))
                 ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        return !empty($qb->getQuery()->getResult());
+    }
+
+    public function containRecordOfActiveParticipantCorrespondWithUser(string $firmId, string $programId, string $userId): bool
+    {
+        $params = [
+            'firmId' => $firmId,
+            'programId' => $programId,
+            'userId' => $userId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select('cp_participant.id')
+                ->from(UserParticipant::class, 'userParticipant')
+                ->leftJoin('userParticipant.participant', 'cp_participant')
+                ->leftJoin('userParticipant.user', 'user')
+                ->andWhere($participantQb->expr()->eq('user.id', ':userId'))
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('participant');
+        $qb->select('1')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->andWhere($qb->expr()->in('participant.id', $participantQb->getDQL()))
                 ->leftJoin('participant.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->leftJoin('program.firm', 'firm')
