@@ -2,9 +2,12 @@
 
 namespace Query\Application\Service\Firm;
 
-use Query\Domain\Model\Firm\Program;
+use Query\ {
+    Application\Service\User\ProgramRepository as InterfaceForUser,
+    Domain\Model\Firm\Program
+};
 
-interface ProgramRepository
+interface ProgramRepository extends InterfaceForUser
 {
 
     public function ofId(string $firmId, string $programId): Program;

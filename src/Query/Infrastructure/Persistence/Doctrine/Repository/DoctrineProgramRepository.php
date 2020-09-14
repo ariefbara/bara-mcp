@@ -8,6 +8,7 @@ use Doctrine\ORM\ {
 };
 use Query\ {
     Application\Service\Firm\ProgramRepository,
+    Domain\Model\Firm\ParticipantTypes,
     Domain\Model\Firm\Program
 };
 use Resources\ {
@@ -52,6 +53,17 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
                     ->setParameter("participantType", "%$participantType%");
         }
 
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allProgramForUser(int $page, int $pageSize)
+    {
+        $qb = $this->createQueryBuilder('program');
+        $qb->select('program')
+                ->andWhere($qb->expr()->like('program.participantTypes.values', ":participantType"))
+                ->setParameter("participantType", "%".ParticipantTypes::USER_TYPE."%")
+                ->andWhere($qb->expr()->eq('program.removed', 'false'));
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
