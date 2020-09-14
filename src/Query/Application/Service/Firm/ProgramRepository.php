@@ -9,5 +9,5 @@ interface ProgramRepository
 
     public function ofId(string $firmId, string $programId): Program;
 
-    public function all(string $firmId, int $page, int $pageSize);
+    public function all(string $firmId, int $page, int $pageSize, ?string $participantType);
 }

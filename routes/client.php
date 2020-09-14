@@ -10,6 +10,11 @@ $router->group($clientAggregate, function () use ($router) {
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     
+    $router->group(['prefix' => '/programs'], function () use($router) {
+        $controller = "ProgramController";
+        $router->get("/{programId}", ["uses" => "$controller@show"]);
+        $router->get("", ["uses" => "$controller@showAll"]);
+    });
     $router->group(['prefix' => '/program-registrations'], function () use($router) {
         $controller = "ProgramRegistrationController";
         $router->post("", ["uses" => "$controller@register"]);

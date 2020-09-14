@@ -38,7 +38,7 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
         }
     }
 
-    public function all(string $firmId, int $page, int $pageSize)
+    public function all(string $firmId, int $page, int $pageSize, ?string $participantType)
     {
         $qb = $this->createQueryBuilder('program');
         $qb->select('program')
@@ -46,6 +46,11 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameter('firmId', $firmId);
+        
+        if (isset($participantType)) {
+            $qb->andWhere($qb->expr()->like("program.participantTypes.values", ":participantType"))
+                    ->setParameter("participantType", "%$participantType%");
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
