@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\User\ProgramParticipation;
 
+use DateTimeImmutable;
 use Tests\Controllers\ {
     RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession,
     RecordPreparation\Firm\Program\RecordOfConsultant,
@@ -53,6 +54,8 @@ class ConsultationSessionTestCase extends ProgramParticipationTestCase
         $this->connection->table("Consultant")->insert($consultant->toArrayForDbEntry());
         
         $this->consultationSession = new RecordOfConsultationSession($consultationSetup, $this->programParticipation->participant, $consultant, 0);
+        $this->consultationSession->startDateTime = (new DateTimeImmutable('+48 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSession->endDateTime = (new DateTimeImmutable('+49 hours'))->format('Y-m-d H:i:s');
         $this->connection->table("ConsultationSession")->insert($this->consultationSession->toArrayForDbEntry());
     }
     

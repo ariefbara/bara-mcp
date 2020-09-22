@@ -3,7 +3,8 @@
 namespace Tests\Controllers\User\ProgramParticipation;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\{
+use DateTimeImmutable;
+use Tests\Controllers\RecordPreparation\ {
     Firm\Program\Participant\ConsultationSession\RecordOfParticipantFeedback,
     Firm\Program\Participant\RecordOfConsultationSession,
     Firm\Program\RecordOfConsultant,
@@ -53,6 +54,8 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
 
         $this->consultationSessionOne = new RecordOfConsultationSession($consultationSetup, $this->programParticipation->participant,
                 $consultant, 1);
+        $this->consultationSessionOne->startDateTime = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSessionOne->endDateTime = (new DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
         $this->connection->table("ConsultationSession")->insert($this->consultationSessionOne->toArrayForDbEntry());
 
         $formRecord = new RecordOfFormRecord($feedbackForm->form, 1);
@@ -136,6 +139,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                     "id" => $this->consultationSession->id,
                     "startTime" => $this->consultationSession->startDateTime,
                     "endTime" => $this->consultationSession->endDateTime,
+                    "hasParticipantFeedback" => false,
                     "consultationSetup" => [
                         "id" => $this->consultationSession->consultationSetup->id,
                         "name" => $this->consultationSession->consultationSetup->name,
@@ -152,6 +156,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                     "id" => $this->consultationSessionOne->id,
                     "startTime" => $this->consultationSessionOne->startDateTime,
                     "endTime" => $this->consultationSessionOne->endDateTime,
+                    "hasParticipantFeedback" => true,
                     "consultationSetup" => [
                         "id" => $this->consultationSessionOne->consultationSetup->id,
                         "name" => $this->consultationSessionOne->consultationSetup->name,
@@ -167,6 +172,38 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
             ],
         ];
         $this->get($this->consultationSessionUri, $this->user->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+    }
+    public function test_showAll_hasMaxStartTimeAndContainParticipantFeedbackQueryParameters()
+    {
+        $response = [
+            "total" => 1,
+            "list" => [
+                [
+                    "id" => $this->consultationSessionOne->id,
+                    "startTime" => $this->consultationSessionOne->startDateTime,
+                    "endTime" => $this->consultationSessionOne->endDateTime,
+                    "hasParticipantFeedback" => true,
+                    "consultationSetup" => [
+                        "id" => $this->consultationSessionOne->consultationSetup->id,
+                        "name" => $this->consultationSessionOne->consultationSetup->name,
+                    ],
+                    "consultant" => [
+                        "id" => $this->consultationSessionOne->consultant->id,
+                        "personnel" => [
+                            "id" => $this->consultationSessionOne->consultant->personnel->id,
+                            "name" => $this->consultationSessionOne->consultant->personnel->getFullName(),
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $maxStartTimeString = (new DateTime())->format('Y-m-d H:i:s');
+        $uri = $this->consultationSessionUri
+                . "?maxStartTime=$maxStartTimeString"
+                . "&containParticipantFeedback=true";
+        $this->get($uri, $this->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }

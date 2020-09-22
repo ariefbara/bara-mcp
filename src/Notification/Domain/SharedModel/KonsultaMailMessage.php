@@ -1,6 +1,6 @@
 <?php
 
-namespace Notification\Domain\Model\SharedEntity;
+namespace Notification\Domain\SharedModel;
 
 use Resources\Application\Service\MailMessageInterface;
 

@@ -47,10 +47,10 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
         }
         if (!is_null($containParticipantFeedback = $consultationSessionFilter->isContainParticipantFeedback())) {
             if ($containParticipantFeedback) {
-                $qb->leftJoin('consultationSession.consultantFeedback', 'participantFeedback')
+                $qb->leftJoin('consultationSession.participantFeedback', 'participantFeedback')
                         ->andWhere($qb->expr()->isNotNull('participantFeedback.id'));
             } else {
-                $qb->leftJoin('consultationSession.consultantFeedback', 'participantFeedback')
+                $qb->leftJoin('consultationSession.participantFeedback', 'participantFeedback')
                         ->andWhere($qb->expr()->isNull('participantFeedback.id'));
             }
         }

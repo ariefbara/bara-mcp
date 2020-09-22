@@ -2,7 +2,7 @@
 
 namespace Query\Domain\Model\Firm\Program\ConsultationSetup;
 
-use Query\Domain\Model\Firm\Program\ {
+use Query\Domain\Model\Firm\Program\{
     Consultant,
     ConsultationSetup,
     ConsultationSetup\ConsultationSession\ConsultantFeedback,
@@ -99,6 +99,16 @@ class ConsultationSession
     function getEndTime(): string
     {
         return $this->startEndTime->getEndTime()->format("Y-m-d H:i:s");
+    }
+
+    public function hasConsultantFeedback(): bool
+    {
+        return isset($this->consultantFeedback);
+    }
+
+    public function hasParticipantFeedback(): bool
+    {
+        return isset($this->participantFeedback);
     }
 
 }

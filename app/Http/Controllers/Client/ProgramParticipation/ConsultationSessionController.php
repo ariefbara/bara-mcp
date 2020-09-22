@@ -66,6 +66,7 @@ class ConsultationSessionController extends ClientBaseController
                 "id" => $consultationSession->getId(),
                 "startTime" => $consultationSession->getStartTime(),
                 "endTime" => $consultationSession->getEndTime(),
+                "hasParticipantFeedback" => $consultationSession->hasParticipantFeedback(),
                 "consultationSetup" => [
                     "id" => $consultationSession->getConsultationSetup()->getId(),
                     "name" => $consultationSession->getConsultationSetup()->getName()
