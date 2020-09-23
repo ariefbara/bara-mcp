@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Client;
 
+use Client\ {
+    Application\Service\Client\QuitTeamMembership,
+    Domain\Model\Client\TeamMembership
+};
 use Query\ {
     Application\Service\Firm\Client\ViewTeamMembership,
     Domain\Model\Firm\Team\Member
@@ -12,7 +16,9 @@ class TeamMembershipController extends ClientBaseController
 
     public function quit($teamMembershipId)
     {
-        
+        $service = $this->buildQuitService();
+        $service->execute($this->firmId(), $this->clientId(), $teamMembershipId);
+        return $this->commandOkResponse();
     }
 
     public function show($teamMembershipId)
@@ -54,6 +60,11 @@ class TeamMembershipController extends ClientBaseController
     {
         $teamMembershipRepository = $this->em->getRepository(Member::class);
         return new ViewTeamMembership($teamMembershipRepository);
+    }
+    protected function buildQuitService()
+    {
+        $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
+        return new QuitTeamMembership($teamMembershipRepository);
     }
 
 }

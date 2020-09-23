@@ -11,7 +11,7 @@ class TeamMembershipControllerTest extends ClientTestCase
 {
     protected $teamMembershipUri;
     protected $teamMembership;
-    protected $teamMembershipOne;
+    protected $teamMembershipOne_inactive;
     
     protected function setUp(): void
     {
@@ -29,15 +29,35 @@ class TeamMembershipControllerTest extends ClientTestCase
         $this->connection->table("Team")->insert($teamOne->toArrayForDbEntry());
         
         $this->teamMembership = new RecordOfMember($team, $this->client, 0);
-        $this->teamMembershipOne = new RecordOfMember($teamOne, $this->client, 1);
+        $this->teamMembershipOne_inactive = new RecordOfMember($teamOne, $this->client, 1);
+        $this->teamMembershipOne_inactive->active = false;
         $this->connection->table("T_Member")->insert($this->teamMembership->toArrayForDbEntry());
-        $this->connection->table("T_Member")->insert($this->teamMembershipOne->toArrayForDbEntry());
+        $this->connection->table("T_Member")->insert($this->teamMembershipOne_inactive->toArrayForDbEntry());
     }
     protected function tearDown(): void
     {
         parent::tearDown();
         $this->connection->table("Team")->truncate();
         $this->connection->table("T_Member")->truncate();
+    }
+    
+    public function test_quit_200()
+    {
+        $uri = $this->teamMembershipUri . "/{$this->teamMembership->id}";
+        $this->delete($uri, [], $this->client->token)
+                ->seeStatusCode(200);
+        
+        $memberEntry = [
+            "id" => $this->teamMembership->id,
+            "active" => false,
+        ];
+        $this->seeInDatabase("T_Member", $memberEntry);
+    }
+    public function test_quit_alreadyInactive_403()
+    {
+        $uri = $this->teamMembershipUri . "/{$this->teamMembershipOne_inactive->id}";
+        $this->delete($uri, [], $this->client->token)
+                ->seeStatusCode(403);
     }
     
     public function test_show_200()
@@ -76,14 +96,14 @@ class TeamMembershipControllerTest extends ClientTestCase
                     ],
                 ],
                 [
-                    "id" => $this->teamMembershipOne->id,
-                    "position" => $this->teamMembershipOne->position,
-                    "anAdmin" => $this->teamMembershipOne->anAdmin,
-                    "active" => $this->teamMembershipOne->active,
-                    "joinTime" => $this->teamMembershipOne->joinTime,
+                    "id" => $this->teamMembershipOne_inactive->id,
+                    "position" => $this->teamMembershipOne_inactive->position,
+                    "anAdmin" => $this->teamMembershipOne_inactive->anAdmin,
+                    "active" => $this->teamMembershipOne_inactive->active,
+                    "joinTime" => $this->teamMembershipOne_inactive->joinTime,
                     "team" => [
-                        "id" => $this->teamMembershipOne->team->id,
-                        "name" => $this->teamMembershipOne->team->name,
+                        "id" => $this->teamMembershipOne_inactive->team->id,
+                        "name" => $this->teamMembershipOne_inactive->team->name,
                     ],
                 ],
             ],

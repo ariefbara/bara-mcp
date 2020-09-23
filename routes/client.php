@@ -16,6 +16,7 @@ $router->group($clientAggregate, function () use ($router) {
     });
     $router->group(['prefix' => '/team-memberships'], function () use($router) {
         $controller = "TeamMembershipController";
+        $router->delete("/{teamMembershipId}", ["uses" => "$controller@quit"]);
         $router->get("", ["uses" => "$controller@showAll"]);
         $router->get("/{teamMembershipId}", ["uses" => "$controller@show"]);
     });

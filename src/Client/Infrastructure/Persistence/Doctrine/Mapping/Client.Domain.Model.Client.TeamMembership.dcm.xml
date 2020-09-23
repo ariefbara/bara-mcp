@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\Model\Client\TeamMembership" 
+            table="T_Member" 
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamMembershipRepository"
+    >
+        
+        <many-to-one  field="client" 
+                      target-entity="Client\Domain\Model\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="active" type="boolean"/>
+        
+    </entity>
+</doctrine-mapping>
