@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Team\Domain\DependencyModel\Firm\Client" 
+            table="Client" 
+            repository-class="Team\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientRepository" 
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" nullable="false" />
+        <id name="id" type="guid" />
+        <field name="activated" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

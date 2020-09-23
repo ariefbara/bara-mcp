@@ -26,6 +26,7 @@
             "database/factories"
         ],
         "psr-4": {
+            "Team\\": "src/Team",
             "SharedContext\\": "src/SharedContext",
             "Shared\\": "src/Shared",
             "Notification\\": "src/Notification",

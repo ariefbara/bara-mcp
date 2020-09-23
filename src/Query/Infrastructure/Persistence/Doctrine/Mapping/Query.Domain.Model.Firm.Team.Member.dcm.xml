@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Team\Member" 
+            table="T_Member" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineMemberRepository"
+    >
+        
+        <many-to-one  field="team" 
+                      target-entity="Query\Domain\Model\Firm\Team"
+        >
+            <join-column name="Team_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="client" 
+                      target-entity="Query\Domain\Model\Firm\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="position" type="string" length="256" nullable="true"/>
+        <field name="anAdmin" type="boolean" />
+        <field name="active" type="boolean" />
+        <field name="joinTime" type="datetime_immutable" nullable="false"/>
+        
+    </entity>
+</doctrine-mapping>

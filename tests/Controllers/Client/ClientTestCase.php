@@ -33,7 +33,7 @@ class ClientTestCase extends ControllerTestCase
         $firm = new RecordOfFirm(0, 'firm-identifier');
         $this->connection->table('Firm')->insert($firm->toArrayForDbEntry());
 
-        $this->client = new RecordOfClient($firm, 0);
+        $this->client = new RecordOfClient($firm, "main");
         $this->client->email = 'adi@barapraja.com';
         $this->inactiveClient = new RecordOfClient($firm, 'inactive');
         $this->inactiveClient->activated = false;

@@ -10,11 +10,22 @@ $router->group($clientAggregate, function () use ($router) {
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     
+    $router->group(['prefix' => '/create-team'], function () use($router) {
+        $controller = "CreateTeamController";
+        $router->post("", ["uses" => "$controller@create"]);
+    });
+    $router->group(['prefix' => '/team-memberships'], function () use($router) {
+        $controller = "TeamMembershipController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{teamMembershipId}", ["uses" => "$controller@show"]);
+    });
+    
     $router->group(['prefix' => '/programs'], function () use($router) {
         $controller = "ProgramController";
         $router->get("/{programId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $router->group(['prefix' => '/program-registrations'], function () use($router) {
         $controller = "ProgramRegistrationController";
         $router->post("", ["uses" => "$controller@register"]);
@@ -22,12 +33,14 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("/{programRegistrationId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $router->group(['prefix' => '/program-participations'], function () use($router) {
         $controller = "ProgramParticipationController";
         $router->patch("/{programParticipationId}/quit", ["uses" => "$controller@quit"]);
         $router->get("/{programParticipationId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $programParticipationAggregate = [
         'prefix' => '/program-participations/{programParticipationId}',
         'namespace' => 'ProgramParticipation',
@@ -115,6 +128,20 @@ $router->group($clientAggregate, function () use ($router) {
         $router->group(['prefix' => '/consultation-setups'], function () use($router) {
             $controller = "ConsultationSetupController";
             $router->get("/{consultationSetupId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+    });
+    
+    $asTeamAdminAggregate = [
+        'prefix' => '/as-team-admin/{teamId}',
+        'namespace' => 'AsTeamAdmin',
+    ];
+    $router->group($asTeamAdminAggregate, function () use ($router) {
+        $router->group(['prefix' => '/members'], function () use($router) {
+            $controller = "MemberController";
+            $router->post("", ["uses" => "$controller@add"]);
+            $router->delete("/{memberId}", ["uses" => "$controller@remove"]);
+            $router->get("/{memberId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
     });
