@@ -7,13 +7,14 @@ use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
-use Participant\Domain\Model\ {
-    DependencyEntity\Firm\Program\Consultant,
-    DependencyEntity\Firm\Program\ConsultationSetup,
-    DependencyEntity\Firm\Program\Mission,
-    Participant\ConsultationRequest,
-    Participant\ConsultationSession,
-    Participant\Worksheet
+use Participant\Domain\ {
+    DependencyModel\Firm\Program,
+    DependencyModel\Firm\Program\Consultant,
+    DependencyModel\Firm\Program\ConsultationSetup,
+    DependencyModel\Firm\Program\Mission,
+    Model\Participant\ConsultationRequest,
+    Model\Participant\ConsultationSession,
+    Model\Participant\Worksheet
 };
 use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
@@ -23,9 +24,9 @@ class Participant
 
     /**
      *
-     * @var string
+     * @var Program
      */
-    protected $programId;
+    protected $program;
 
     /**
      *
@@ -71,12 +72,12 @@ class Participant
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
             DateTimeImmutable $startTime): ConsultationRequest
     {
-        if (!$consultationSetup->programIdEquals($this->programId)) {
+        if (!$consultationSetup->programEquals($this->program)) {
             $errorDetail = 'forbidden: consultation setup from different program';
             throw RegularException::forbidden($errorDetail);
         }
         
-        if (!$consultant->programIdEquals($this->programId)) {
+        if (!$consultant->programEquals($this->program)) {
             $errorDetail = 'forbidden: consultant from different program';
             throw RegularException::forbidden($errorDetail);
         }
@@ -116,6 +117,11 @@ class Participant
     public function createRootWorksheet(string $worksheetId, string $name, Mission $mission, FormRecord $formRecord): Worksheet
     {
         return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecord);
+    }
+    
+    public function isActiveParticipantOfProgram(Program $program): bool
+    {
+        return $this->active && $this->program === $program;
     }
 
     protected function getConsultationRequestOrDie(string $consultationRequestId): ConsultationRequest

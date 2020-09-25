@@ -20,7 +20,7 @@
         <field name="name" type="string" length="256" nullable="false"/>
         
         <many-to-one  field="mission" 
-                      target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\Mission"
+                      target-entity="Participant\Domain\DependencyModel\Firm\Program\Mission"
         >
             <join-column name="Mission_id" referenced-column-name="id" />
         </many-to-one>

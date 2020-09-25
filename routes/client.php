@@ -20,6 +20,20 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
         $router->get("/{teamMembershipId}", ["uses" => "$controller@show"]);
     });
+    $teamMembershipAggregate = [
+        'prefix' => '/team-memberships/{teamMembershipId}',
+        'namespace' => 'TeamMembership',
+    ];
+    $router->group($teamMembershipAggregate, function () use ($router) {
+        $router->group(['prefix' => '/program-registrations'], function () use($router) {
+            $controller = "ProgramRegistrationController";
+            $router->post("", ["uses" => "$controller@register"]);
+            $router->patch("/{teamProgramRegistrationId}/cancel", ["uses" => "$controller@cancel"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{teamprogramRegistrationId}", ["uses" => "$controller@show"]);
+        });
+        
+    });
     
     $router->group(['prefix' => '/programs'], function () use($router) {
         $controller = "ProgramController";

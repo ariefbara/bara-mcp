@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\DependencyModel\Firm\Program\RegistrationPhase" 
+            table="RegistrationPhase" 
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Program"
+                      inversed-by="registrationPhases"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="startEndDate" 
+                  class="Resources\Domain\ValueObject\DateInterval" 
+                  use-column-prefix="false" />
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

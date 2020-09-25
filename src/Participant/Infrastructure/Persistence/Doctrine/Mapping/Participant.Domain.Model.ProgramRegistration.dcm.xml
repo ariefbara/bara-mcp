@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\ProgramRegistration" 
+            table="Registrant" 
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="concluded" type="boolean" />
+        <field name="registeredTime" type="datetime_immutable" nullable="true"/>
+        <field name="note" type="string" length="256" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

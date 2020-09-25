@@ -2,10 +2,10 @@
 
 namespace Participant\Domain\Model\Participant;
 
-use Participant\Domain\Model\ {
-    DependencyEntity\Firm\Program\Mission,
-    Participant,
-    Participant\Worksheet\Comment
+use Participant\Domain\ {
+    DependencyModel\Firm\Program\Mission,
+    Model\Participant,
+    Model\Participant\Worksheet\Comment
 };
 use Resources\ {
     Exception\RegularException,

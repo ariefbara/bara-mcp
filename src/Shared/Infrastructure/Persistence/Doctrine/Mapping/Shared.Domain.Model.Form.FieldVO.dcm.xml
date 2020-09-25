@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<doctrine-mapping>
-    <embeddable name="Shared\Domain\Model\Form\FieldVO">
-        <field name="name" type="string" length="256" nullable="false"/>
-        <field name="description" type="string" length="1024" nullable="true"/>
-        <field name="position" type="string" length="256" nullable="true"/>
-        <field name="mandatory" type="boolean" />
-    </embeddable>
-</doctrine-mapping>

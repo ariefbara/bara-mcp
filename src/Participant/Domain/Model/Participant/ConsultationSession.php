@@ -2,11 +2,11 @@
 
 namespace Participant\Domain\Model\Participant;
 
-use Participant\Domain\Model\ {
-    DependencyEntity\Firm\Program\Consultant,
-    DependencyEntity\Firm\Program\ConsultationSetup,
-    Participant,
-    Participant\ConsultationSession\ParticipantFeedback
+use Participant\Domain\ {
+    DependencyModel\Firm\Program\Consultant,
+    DependencyModel\Firm\Program\ConsultationSetup,
+    Model\Participant,
+    Model\Participant\ConsultationSession\ParticipantFeedback
 };
 use Resources\ {
     Domain\ValueObject\DateTimeInterval,

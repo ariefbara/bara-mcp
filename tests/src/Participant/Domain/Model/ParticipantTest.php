@@ -4,13 +4,14 @@ namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\Model\ {
-    DependencyEntity\Firm\Program\Consultant,
-    DependencyEntity\Firm\Program\ConsultationSetup,
-    DependencyEntity\Firm\Program\Mission,
-    Participant\ConsultationRequest,
-    Participant\ConsultationSession,
-    Participant\Worksheet
+use Participant\Domain\ {
+    DependencyModel\Firm\Program,
+    DependencyModel\Firm\Program\Consultant,
+    DependencyModel\Firm\Program\ConsultationSetup,
+    DependencyModel\Firm\Program\Mission,
+    Model\Participant\ConsultationRequest,
+    Model\Participant\ConsultationSession,
+    Model\Participant\Worksheet
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use Tests\TestBase;
@@ -19,6 +20,7 @@ class ParticipantTest extends TestBase
 {
 
     protected $participant;
+    protected $program;
     protected $consultationRequest;
     protected $consultationSession;
     
@@ -26,16 +28,19 @@ class ParticipantTest extends TestBase
     protected $consultationSessionId = 'consultationSessionId';
     protected $otherConsultationRequest;
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecord;
+    
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->participant = new TestableParticipant();
-        $this->participant->programId = 'programId';
         $this->participant->active = true;
         $this->participant->note = null;
         $this->participant->consultationRequests = new ArrayCollection();
         $this->participant->consultationSessions = new ArrayCollection();
+        
+        $this->program = $this->buildMockOfClass(Program::class);
+        $this->participant->program = $this->program;
 
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $this->consultationRequest->expects($this->any())->method('getId')->willReturn($this->consultationRequestId);
@@ -80,10 +85,10 @@ class ParticipantTest extends TestBase
     protected function executeProposeConsultation()
     {
         $this->consultationSetup->expects($this->any())
-                ->method('programIdEquals')
+                ->method('programEquals')
                 ->willReturn(true);
         $this->consultant->expects($this->any())
-                ->method('programIdEquals')
+                ->method('programEquals')
                 ->willReturn(true);
         $this->consultationRequest->expects($this->any())
                 ->method('isProposedConsultationRequestConflictedWith')
@@ -104,8 +109,8 @@ class ParticipantTest extends TestBase
     public function test_proposeConsultation_consultationSetupFromDifferentProgram_forbiddenError()
     {
         $this->consultationSetup->expects($this->once())
-                ->method('programIdEquals')
-                ->with($this->participant->programId)
+                ->method('programEquals')
+                ->with($this->participant->program)
                 ->willReturn(false);
         $operation = function () {
             $this->executeProposeConsultation();
@@ -116,8 +121,8 @@ class ParticipantTest extends TestBase
     public function test_proposeConsultation_consultantFromDifferentProgram_forbiddenError()
     {
         $this->consultant->expects($this->once())
-                ->method('programIdEquals')
-                ->with($this->participant->programId)
+                ->method('programEquals')
+                ->with($this->participant->program)
                 ->willReturn(false);
         $operation = function () {
             $this->executeProposeConsultation();
@@ -261,13 +266,31 @@ class ParticipantTest extends TestBase
 
         $this->assertEquals($worksheet, $this->participant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission,$this->formRecord));
     }
-
+    
+    protected function executeIsActiveParticipantOfProgram()
+    {
+        return $this->participant->isActiveParticipantOfProgram($this->program);
+    }
+    public function test_isActiveParticipantOfProgram_anActiveParticicpantOfSameProgram_returnTrue()
+    {
+        $this->assertTrue($this->participant->isActiveParticipantOfProgram($this->program));
+    }
+    public function test_isActiveParticipantOfProgram_inactiveParticipant_returnFalse()
+    {
+        $this->participant->active = false;
+        $this->assertFalse($this->participant->isActiveParticipantOfProgram($this->program));
+    }
+    public function test_isActiveParticipantOfProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->participant->isActiveParticipantOfProgram($program));
+    }
 }
 
 class TestableParticipant extends Participant
 {
 
-    public $programId;
+    public $program;
     public $id;
     public $active = true;
     public $note;

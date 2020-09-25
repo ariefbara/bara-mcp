@@ -3,10 +3,10 @@
 namespace Participant\Domain\Model\Participant;
 
 use DateTimeImmutable;
-use Participant\Domain\Model\ {
-    DependencyEntity\Firm\Program\Consultant,
-    DependencyEntity\Firm\Program\ConsultationSetup,
-    Participant
+use Participant\Domain\ {
+    DependencyModel\Firm\Program\Consultant,
+    DependencyModel\Firm\Program\ConsultationSetup,
+    Model\Participant
 };
 use Resources\ {
     Domain\ValueObject\DateTimeInterval,

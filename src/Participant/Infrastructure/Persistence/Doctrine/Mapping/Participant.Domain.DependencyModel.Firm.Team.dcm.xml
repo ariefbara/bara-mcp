@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\DependencyModel\Firm\Team" 
+            table="Team" 
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        
+        <one-to-many  field="teamProgramParticipations" 
+                      target-entity="Participant\Domain\Model\TeamProgramParticipation"
+                      mapped-by="team"
+        />
+        <one-to-many  field="teamProgramRegistrations" 
+                      target-entity="Participant\Domain\Model\TeamProgramRegistration"
+                      mapped-by="team"
+        />
+        
+    </entity>
+</doctrine-mapping>

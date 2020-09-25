@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\DependencyModel\Firm\Program" 
+            table="Program" 
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineProgramRepository" 
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        <embedded name="participantTypes" 
+                  class="Query\Domain\Model\Firm\ParticipantTypes" 
+                  use-column-prefix="false" />
+        <field name="removed" type="boolean" />
+        
+        <one-to-many  field="registrationPhases" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Program\RegistrationPhase"
+                      mapped-by="program"
+        />
+        
+    </entity>
+</doctrine-mapping>

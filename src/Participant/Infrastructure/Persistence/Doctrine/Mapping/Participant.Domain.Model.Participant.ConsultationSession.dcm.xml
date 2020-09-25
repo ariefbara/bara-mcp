@@ -15,13 +15,13 @@
         <id name="id" type="guid" />
         
         <many-to-one  field="consultationSetup" 
-                      target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup"
+                      target-entity="Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup"
         >
             <join-column name="ConsultationSetup_id" referenced-column-name="id" />
         </many-to-one>
         
         <many-to-one  field="consultant" 
-                      target-entity="Participant\Domain\Model\DependencyEntity\Firm\Program\Consultant"
+                      target-entity="Participant\Domain\DependencyModel\Firm\Program\Consultant"
                       inversed-by="consultationSessions"
         >
             <join-column name="Consultant_id" referenced-column-name="id" />

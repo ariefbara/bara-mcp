@@ -154,7 +154,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
             ->seeStatusCode(403);
     }
     
-    public function test_apply_alreadyParticipateInProgram_403()
+    public function test_register_alreadyParticipateInProgram_403()
     {
         $participant = new RecordOfParticipant($this->program, 0);
         $clientParticipant = new RecordOfClientParticipant($this->client, $participant);
@@ -164,7 +164,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->client->token)
             ->seeStatusCode(403);
     }
-    public function test_apply_conflictParticipantAlreadyInactive_201()
+    public function test_register_conflictParticipantAlreadyInactive_201()
     {
         $participant = new RecordOfParticipant($this->program, 0);
         $participant->active = false;

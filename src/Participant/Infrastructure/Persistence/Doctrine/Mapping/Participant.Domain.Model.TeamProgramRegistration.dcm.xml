@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\TeamProgramRegistration" 
+            table="TeamRegistrant"
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamProgramRegistrationRepository" 
+    >
+        
+        <many-to-one  field="team" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Team"
+                      inversed-by="teamProgramRegistrations"
+        >
+            <join-column name="Team_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="programRegistration" 
+                    target-entity="Participant\Domain\Model\ProgramRegistration"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Registrant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>
