@@ -25,6 +25,12 @@ $router->group($clientAggregate, function () use ($router) {
         'namespace' => 'TeamMembership',
     ];
     $router->group($teamMembershipAggregate, function () use ($router) {
+        
+        $router->group(['prefix' => '/find-client-by-email'], function () use($router) {
+            $controller = "FindClientByEmailController";
+            $router->get("", ["uses" => "$controller@show"]);
+        });
+        
         $router->group(['prefix' => '/program-registrations'], function () use($router) {
             $controller = "ProgramRegistrationController";
             $router->post("", ["uses" => "$controller@register"]);

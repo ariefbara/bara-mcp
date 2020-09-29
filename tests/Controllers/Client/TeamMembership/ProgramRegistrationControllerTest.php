@@ -211,8 +211,8 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
     }
     public function test_cancel_programRegistrationBelongsToOtherTeam_403()
     {
-        $uri = $this->clientUri . "/team-memberships/{$this->otherTeamMember->id}/program-registrations/{$this->programRegistration->id}/cancel";
-        $this->patch($uri, [], $this->otherTeamMember->client->token)
+        $uri = $this->clientUri . "/team-memberships/{$this->outsiderTeamMembership_otherTeam->id}/program-registrations/{$this->programRegistration->id}/cancel";
+        $this->patch($uri, [], $this->outsiderTeamMembership_otherTeam->client->token)
             ->seeStatusCode(403);
     }
     

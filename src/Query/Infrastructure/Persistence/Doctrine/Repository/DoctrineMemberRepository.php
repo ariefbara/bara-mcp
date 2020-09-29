@@ -159,26 +159,4 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
         return !empty($qb->getQuery()->getResult());
     }
 
-    public function isActiveTeamMembership(string $firmId, string $clientId, string $teamMembershipId): bool
-    {
-        $params = [
-            "firmId" => $firmId,
-            "clientId" => $clientId,
-            "teamMembershipId" => $teamMembershipId,
-        ];
-        
-        $qb = $this->createQueryBuilder("teamMembership");
-        $qb->select("1")
-                ->andWhere($qb->expr()->eq("teamMembership.active", "true"))
-                ->andWhere($qb->expr()->eq("teamMembership.id", ":teamMembershipId"))
-                ->leftJoin("teamMembership.client", "client")
-                ->andWhere($qb->expr()->eq("client.id", ":clientId"))
-                ->leftJoin("client.firm", "firm")
-                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
-                ->setParameters($params)
-                ->setMaxResults(1);
-        
-        return !empty($qb->getQuery()->getResult());
-    }
-
 }

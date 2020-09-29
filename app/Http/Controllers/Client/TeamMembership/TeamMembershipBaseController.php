@@ -10,6 +10,10 @@ use Query\ {
 
 class TeamMembershipBaseController extends ClientBaseController
 {
+    protected function teamMembershipRepository()
+    {
+        return $this->em->getRepository(Member::class);
+    }
     protected function buildActiveTeamMembershipAuthorization(): ActiveTeamMembershipAuthorization
     {
         $teamMemberRepository = $this->em->getRepository(Member::class);

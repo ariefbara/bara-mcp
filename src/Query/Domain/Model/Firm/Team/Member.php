@@ -3,10 +3,12 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\ {
-    Client,
-    Team
+use Query\Domain\ {
+    Model\Firm\Client,
+    Model\Firm\Team,
+    Service\Firm\ClientFinder
 };
+use Resources\Exception\RegularException;
 
 class Member
 {
@@ -91,6 +93,29 @@ class Member
     public function getJoinTimeString(): string
     {
         return $this->joinTime->format("Y-m-d H:i:s");
+    }
+    
+    public function viewClientByEmail(ClientFinder $clientFinder, string $clientEmail): Client
+    {
+        $this->assertAnAdmin();
+        $this->assertActive();
+        return $clientFinder->findByEmail($this->client->getFirm()->getId(), $clientEmail);
+    }
+    
+    protected function assertAnAdmin(): void
+    {
+        if (!$this->anAdmin) {
+            $errorDetail = "forbidden: only team admin can make this requests";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+    protected function assertActive(): void
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active team member can make this requests";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
     }
 
 }
