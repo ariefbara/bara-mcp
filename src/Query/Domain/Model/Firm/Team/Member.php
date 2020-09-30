@@ -5,10 +5,12 @@ namespace Query\Domain\Model\Firm\Team;
 use DateTimeImmutable;
 use Query\Domain\ {
     Model\Firm\Client,
+    Model\Firm\Program,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team,
     Service\Firm\ClientFinder,
     Service\Firm\Program\Participant\WorksheetFinder,
+    Service\Firm\ProgramFinder,
     Service\Firm\Team\TeamFileInfoFinder,
     Service\Firm\Team\TeamProgramParticipationFinder
 };
@@ -165,6 +167,17 @@ class Member
     {
         $this->assertActive();
         return $teamFileInfoFinder->findFileInfoBelongsToTeam($this->team, $teamFileInfoId);
+    }
+    
+    public function viewProgram(ProgramFinder $programFinder, string $programId): Program
+    {
+        $this->assertActive();
+        return $programFinder->findProgramAvaiableForTeam($this->team, $programId);
+    }
+    public function viewAllAvailablePrograms(ProgramFinder $programFinder, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $programFinder->findAllProgramsAvailableForTeam($this->team, $page, $pageSize);
     }
 
     protected function assertAnAdmin(): void

@@ -9,14 +9,15 @@ use Doctrine\ORM\ {
 use Query\ {
     Application\Service\Firm\ProgramRepository,
     Domain\Model\Firm\ParticipantTypes,
-    Domain\Model\Firm\Program
+    Domain\Model\Firm\Program,
+    Domain\Service\Firm\ProgramRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineProgramRepository extends EntityRepository implements ProgramRepository
+class DoctrineProgramRepository extends EntityRepository implements ProgramRepository, InterfaceForDomainService
 {
 
     public function ofId(string $firmId, string $programId): Program

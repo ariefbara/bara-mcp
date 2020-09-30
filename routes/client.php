@@ -33,6 +33,12 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@show"]);
         });
         
+        $router->group(['prefix' => '/programs'], function () use($router) {
+            $controller = "ProgramController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{teamprogramRegistrationId}", ["uses" => "$controller@show"]);
+        });
+        
         $router->group(['prefix' => '/program-registrations'], function () use($router) {
             $controller = "ProgramRegistrationController";
             $router->post("", ["uses" => "$controller@register"]);
@@ -52,16 +58,18 @@ $router->group($clientAggregate, function () use ($router) {
             'namespace' => 'ProgramParticipation',
         ];
         $router->group($teamProgramParticipationAggregate, function () use ($router) {
+            
             $router->group(['prefix' => '/worksheets'], function () use($router) {
-            $controller = "WorksheetController";
-            $router->post("", ["uses" => "$controller@submitRoot"]);
-            $router->post("/{worksheetId}", ["uses" => "$controller@submitBranch"]);
-            $router->patch("/{worksheetId}", ["uses" => "$controller@update"]);
-            $router->get("", ["uses" => "$controller@showAll"]);
-            $router->get("/roots", ["uses" => "$controller@showAllRoots"]);
-            $router->get("/{worksheetId}/branches", ["uses" => "$controller@showAllBranches"]);
-            $router->get("/{worksheetId}", ["uses" => "$controller@show"]);
-        });
+                $controller = "WorksheetController";
+                $router->post("", ["uses" => "$controller@submitRoot"]);
+                $router->post("/{worksheetId}", ["uses" => "$controller@submitBranch"]);
+                $router->patch("/{worksheetId}", ["uses" => "$controller@update"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/roots", ["uses" => "$controller@showAllRoots"]);
+                $router->get("/{worksheetId}/branches", ["uses" => "$controller@showAllBranches"]);
+                $router->get("/{worksheetId}", ["uses" => "$controller@show"]);
+            });
+            
         });
         
     });
