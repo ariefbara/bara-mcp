@@ -18,4 +18,6 @@ interface WorksheetRepository
             string $userId, string $programParticipationId, string $worksheetId): Worksheet;
     
     public function update(): void;
+    
+    public function ofId(string $worksheetId): Worksheet;
 }

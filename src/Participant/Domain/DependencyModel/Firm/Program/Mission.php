@@ -55,6 +55,11 @@ class Mission
     {
         ;
     }
+    
+    public function programEquals(Program $program): bool
+    {
+        return $this->program === $program;
+    }
 
     public function isRootMission(): bool
     {

@@ -8,8 +8,8 @@ use Doctrine\ORM\ {
 };
 use Participant\ {
     Application\Service\Firm\Program\MissionRepository,
+    Domain\DependencyModel\Firm\Program\Mission,
     Domain\Model\ClientParticipant,
-    Domain\Model\DependencyEntity\Firm\Program\Mission,
     Domain\Model\UserParticipant
 };
 use Resources\Exception\RegularException;
@@ -80,6 +80,25 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: mission not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function ofId(string $missionId): Mission
+    {
+        $params = [
+            "missionId" => $missionId,
+        ];
+        $qb = $this->createQueryBuilder("mission");
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.id", ":missionId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: mission not found";
             throw RegularException::notFound($errorDetail);
         }
     }

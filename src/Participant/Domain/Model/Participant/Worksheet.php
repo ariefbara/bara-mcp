@@ -4,6 +4,7 @@ namespace Participant\Domain\Model\Participant;
 
 use Participant\Domain\ {
     DependencyModel\Firm\Program\Mission,
+    Model\AssetBelongsToParticipantInterface,
     Model\Participant,
     Model\Participant\Worksheet\Comment
 };
@@ -17,7 +18,7 @@ use SharedContext\Domain\Model\SharedEntity\ {
     FormRecordData
 };
 
-class Worksheet
+class Worksheet implements AssetBelongsToParticipantInterface
 {
 
     /**
@@ -77,33 +78,38 @@ class Worksheet
     }
 
     protected function __construct(
-            Participant $participant, string $id, string $name, Mission $mission, FormRecord $formRecord)
+            Participant $participant, string $id, string $name, Mission $mission, FormRecordData $formRecordData)
     {
         $this->participant = $participant;
         $this->id = $id;
         $this->setName($name);
         $this->mission = $mission;
-        $this->formRecord = $formRecord;
+        $this->formRecord = $this->mission->createWorksheetFormRecord($id, $formRecordData);
         $this->removed = false;
+    }
+    
+    public function belongsTo(Participant $participant): bool
+    {
+        return $this->participant === $participant;
     }
 
     public static function createRootWorksheet(
-            Participant $participant, string $id, string $name, Mission $mission, FormRecord $formRecord): self
+            Participant $participant, string $id, string $name, Mission $mission, FormRecordData $formRecordData): self
     {
         if (!$mission->isRootMission()) {
             $errorDetail = 'forbidden: root worksheet can only refer to root mission';
             throw RegularException::forbidden($errorDetail);
         }
-        return new static($participant, $id, $name, $mission, $formRecord);
+        return new static($participant, $id, $name, $mission, $formRecordData);
     }
 
-    public function createBranchWorksheet(string $id, string $name, Mission $mission, FormRecord $formRecord): self
+    public function createBranchWorksheet(string $id, string $name, Mission $mission, FormRecordData $formRecordData): self
     {
         if (!$this->mission->hasBranch($mission)) {
             $errorDetail = "forbidden: parent worksheet mission doesn't contain this mission";
             throw RegularException::forbidden($errorDetail);
         }
-        $branch = new static($this->participant, $id, $name, $mission, $formRecord);
+        $branch = new static($this->participant, $id, $name, $mission, $formRecordData);
         $branch->parent = $this;
         return $branch;
     }

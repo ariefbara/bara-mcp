@@ -3,11 +3,12 @@
 namespace Team\Domain\Model\Team;
 
 use DateTimeImmutable;
-use Resources\{
+use Resources\ {
     DateTimeImmutableBuilder,
     Exception\RegularException
 };
-use Team\Domain\{
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
+use Team\Domain\ {
     DependencyModel\Firm\Client,
     Model\Team
 };
@@ -126,6 +127,15 @@ class Member
     public function isCorrespondWithClient(Client $client): bool
     {
         return $this->client === $client;
+    }
+    
+    public function uploadFile(string $teamFileInfoId, FileInfoData $fileInfoData): TeamFileInfo
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active team member can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return new TeamFileInfo($this->team, $teamFileInfoId, $fileInfoData);
     }
 
 }

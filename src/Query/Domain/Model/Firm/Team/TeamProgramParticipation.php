@@ -2,10 +2,12 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
-use Query\Domain\Model\Firm\ {
-    Program,
-    Program\Participant,
-    Team
+use Query\Domain\ {
+    Model\Firm\Program,
+    Model\Firm\Program\Participant,
+    Model\Firm\Program\Participant\Worksheet,
+    Model\Firm\Team,
+    Service\Firm\Program\Participant\WorksheetFinder
 };
 
 class TeamProgramParticipation
@@ -43,25 +45,45 @@ class TeamProgramParticipation
     {
         
     }
-    
+
     public function getProgram(): Program
     {
-        return $this->participant->getProgram();
+        return $this->programParticipation->getProgram();
     }
 
     public function getEnrolledTimeString(): string
     {
-        return $this->participant->getEnrolledTimeString();
+        return $this->programParticipation->getEnrolledTimeString();
     }
 
     public function isActive(): bool
     {
-        return $this->participant->isActive();
+        return $this->programParticipation->isActive();
     }
 
     public function getNote(): ?string
     {
-        return $this->participant->getNote();
+        return $this->programParticipation->getNote();
+    }
+
+    public function viewWorksheet(WorksheetFinder $worksheetFinder, string $worksheetId): Worksheet
+    {
+        return $this->programParticipation->viewWorksheet($worksheetFinder, $worksheetId);
+    }
+
+    public function viewAllWorksheets(WorksheetFinder $worksheetFinder, int $page, int $pageSize)
+    {
+        return $this->programParticipation->viewAllWorksheet($worksheetFinder, $page, $pageSize);
+    }
+    
+    public function viewAllRootWorksheets(WorksheetFinder $worksheetFinder, int $page, int $pageSize)
+    {
+        return $this->programParticipation->viewAllRootWorksheets($worksheetFinder, $page, $pageSize);
+    }
+    
+    public function viewAllBranchesWorksheets(WorksheetFinder $worksheetFinder, string $worksheetId, int $page, int $pageSize)
+    {
+        return $this->programParticipation->viewAllBranchWorksheets($worksheetFinder, $worksheetId, $page, $pageSize);
     }
 
 }

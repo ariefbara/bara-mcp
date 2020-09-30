@@ -106,4 +106,24 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         $this->getEntityManager()->flush();
     }
 
+    public function ofId(string $worksheetId): Worksheet
+    {
+        $params = [
+            "worksheetId" => $worksheetId,
+        ];
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: worksheet not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

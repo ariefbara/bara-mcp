@@ -2,7 +2,7 @@
 
 namespace Participant\Application\Service\UserParticipant;
 
-use Participant\Domain\Model\DependencyEntity\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
 
 interface MissionRepository
 {

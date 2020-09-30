@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Team\TeamFileInfo" 
+            table="TeamFileInfo" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamFileInfoRepository" 
+    >
+        
+        <many-to-one  field="team" 
+                      target-entity="Query\Domain\Model\Firm\Team"
+        >
+            <join-column name="Team_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <one-to-one field="fileInfo" 
+                    target-entity="Query\Domain\Model\Shared\FileInfo"
+        >
+            <join-column name="FileInfo_id" referenced-column-name="id" />
+        </one-to-one>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

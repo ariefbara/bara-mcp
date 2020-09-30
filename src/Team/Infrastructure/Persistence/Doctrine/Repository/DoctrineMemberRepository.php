@@ -14,7 +14,7 @@ use Team\ {
 
 class DoctrineMemberRepository extends EntityRepository implements MemberRepository
 {
-    
+
     public function aMemberCorrespondWithClient(string $firmId, string $teamId, string $clientId): Member
     {
         $params = [
@@ -22,7 +22,7 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
             "teamId" => $teamId,
             "clientId" => $clientId,
         ];
-        
+
         $qb = $this->createQueryBuilder("t_member");
         $qb->select("t_member")
                 ->leftJoin("t_member.team", "team")
@@ -33,7 +33,7 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
                 ->andWhere($qb->expr()->eq("client.firmId", ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -49,7 +49,7 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
             "teamId" => $teamId,
             "memberId" => $memberId,
         ];
-        
+
         $qb = $this->createQueryBuilder("t_member");
         $qb->select("t_member")
                 ->andWhere($qb->expr()->eq("t_member.id", ":memberId"))
@@ -58,7 +58,7 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
                 ->andWhere($qb->expr()->eq("team.firmId", ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -70,6 +70,31 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aTeamMembershipOfClient(string $firmId, string $clientId, string $teamMembershipId): Member
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "teamMembershipId" => $teamMembershipId,
+        ];
+
+        $qb = $this->createQueryBuilder("teamMembership");
+        $qb->select("teamMembership")
+                ->andWhere($qb->expr()->eq("teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("teamMembership.client", "client")
+                ->andWhere($qb->expr()->eq("client.id", ":clientId"))
+                ->andWhere($qb->expr()->eq("client.firmId", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: team membership not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

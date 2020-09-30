@@ -17,7 +17,7 @@ use Participant\Domain\ {
     Model\Participant\Worksheet
 };
 use Resources\Exception\RegularException;
-use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class Participant
 {
@@ -76,12 +76,12 @@ class Participant
             $errorDetail = 'forbidden: consultation setup from different program';
             throw RegularException::forbidden($errorDetail);
         }
-        
+
         if (!$consultant->programEquals($this->program)) {
             $errorDetail = 'forbidden: consultant from different program';
             throw RegularException::forbidden($errorDetail);
         }
-        
+
         $consultationRequest = new ConsultationRequest($this, $consultationRequestId, $consultationSetup, $consultant,
                 $startTime);
 
@@ -114,11 +114,33 @@ class Participant
         $this->consultationSessions->add($consultationSession);
     }
 
-    public function createRootWorksheet(string $worksheetId, string $name, Mission $mission, FormRecord $formRecord): Worksheet
+    public function createRootWorksheet(string $worksheetId, string $name, Mission $mission,
+            FormRecordData $formRecordData): Worksheet
     {
-        return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecord);
+        $this->assertActive();
+        if (!$mission->programEquals($this->program)) {
+            $errorDetail = "forbidden: can only access mission in same program";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecordData);
+    }
+
+    public function submitBranchWorksheet(
+            Worksheet $parentWorksheet, string $worksheetId, string $worksheetName, Mission $mission,
+            FormRecordData $formRecordData): Worksheet
+    {
+        $this->assertActive();
+        $this->assertOwnAsset($parentWorksheet);
+        return $parentWorksheet->createBranchWorksheet($worksheetId, $worksheetName, $mission, $formRecordData);
     }
     
+    public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData): void
+    {
+        $this->assertActive();
+        $this->assertOwnAsset($worksheet);
+        $worksheet->update($name, $formRecordData);
+    }
+
     public function isActiveParticipantOfProgram(Program $program): bool
     {
         return $this->active && $this->program === $program;
@@ -157,6 +179,22 @@ class Participant
         if (!empty($this->consultationSessions->filter($p)->count())) {
             $errorDetail = "conflict: requested time already occupied by your other consultation session";
             throw RegularException::conflict($errorDetail);
+        }
+    }
+    
+    protected function assertActive(): void
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active program participant can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+    
+    protected function assertOwnAsset(AssetBelongsToParticipantInterface $asset): void
+    {
+        if (!$asset->belongsTo($this)) {
+            $errorDetail = "forbidden: unable to manage asset of other participant";
+            throw RegularException::forbidden($errorDetail);
         }
     }
 

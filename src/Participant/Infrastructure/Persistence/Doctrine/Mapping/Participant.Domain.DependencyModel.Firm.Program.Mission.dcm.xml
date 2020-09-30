@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
-    <entity name="Participant\Domain\DependencyModel\Firm\Program\Program\Mission" 
+    <entity name="Participant\Domain\DependencyModel\Firm\Program\Mission" 
             table="Mission" 
             repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineMissionRepository" 
     >
@@ -12,7 +12,7 @@
         </many-to-one>
         
         <many-to-one field="parent" 
-                    target-entity="Participant\Domain\DependencyModel\Firm\Program\Program\Mission" 
+                    target-entity="Participant\Domain\DependencyModel\Firm\Program\Mission" 
                     inversed-by="branches"
         >
             <join-column name="parent_id" referenced-column-name="id" />
@@ -22,13 +22,13 @@
         <field name="published" type="boolean"/>
         
         <many-to-one  field="worksheetForm" 
-                      target-entity="Participant\Domain\DependencyModel\Firm\\WorksheetForm"
+                      target-entity="Participant\Domain\DependencyModel\Firm\WorksheetForm"
         >
             <join-column name="WorksheetForm_id" referenced-column-name="id" />
         </many-to-one>
         
         <one-to-many field="branches" 
-                    target-entity="Participant\Domain\DependencyModel\Firm\Program\Program\Mission" 
+                    target-entity="Participant\Domain\DependencyModel\Firm\Program\Mission" 
                     mapped-by="parent"
         />
         

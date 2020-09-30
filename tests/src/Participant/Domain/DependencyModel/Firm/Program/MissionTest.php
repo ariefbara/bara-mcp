@@ -3,7 +3,10 @@
 namespace Participant\Domain\DependencyModel\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\DependencyModel\Firm\WorksheetForm;
+use Participant\Domain\DependencyModel\Firm\ {
+    Program,
+    WorksheetForm
+};
 use SharedContext\Domain\Model\SharedEntity\ {
     FormRecord,
     FormRecordData
@@ -20,11 +23,22 @@ class MissionTest extends TestBase
     {
         parent::setUp();
         $this->mission = new TestableMission();
+        $this->mission->program = $this->buildMockOfClass(Program::class);
         $this->mission->branches = new ArrayCollection();
         $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
         $this->mission->worksheetForm = $this->worksheetForm;
         
         $this->branchMission = $this->buildMockOfClass(Mission::class);
+    }
+    
+    public function test_programEquals_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->mission->programEquals($this->mission->program));
+    }
+    public function test_programEquals_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->mission->programEquals($program));
     }
     
     public function test_isRootMission_hasNoParent_returnTrue()

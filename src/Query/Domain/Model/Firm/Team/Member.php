@@ -5,8 +5,12 @@ namespace Query\Domain\Model\Firm\Team;
 use DateTimeImmutable;
 use Query\Domain\ {
     Model\Firm\Client,
+    Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team,
-    Service\Firm\ClientFinder
+    Service\Firm\ClientFinder,
+    Service\Firm\Program\Participant\WorksheetFinder,
+    Service\Firm\Team\TeamFileInfoFinder,
+    Service\Firm\Team\TeamProgramParticipationFinder
 };
 use Resources\Exception\RegularException;
 
@@ -94,14 +98,75 @@ class Member
     {
         return $this->joinTime->format("Y-m-d H:i:s");
     }
-    
+
     public function viewClientByEmail(ClientFinder $clientFinder, string $clientEmail): Client
     {
         $this->assertAnAdmin();
         $this->assertActive();
         return $clientFinder->findByEmail($this->client->getFirm()->getId(), $clientEmail);
     }
-    
+
+    public function viewTeamProgramParticipation(
+            TeamProgramParticipationFinder $teamProgramParticipationFinder, string $teamProgramParticipationId): TeamProgramParticipation
+    {
+        $this->assertActive();
+        return $teamProgramParticipationFinder
+                        ->findProgramParticipationBelongsToTeam($this->team, $teamProgramParticipationId);
+    }
+
+    public function viewAllProgramParticipation(
+            TeamProgramParticipationFinder $teamProgramParticipationFinder, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $teamProgramParticipationFinder->findAllProgramParticipationsBelongsToTeam($this->team, $page, $pageSize);
+    }
+
+    public function viewWorksheet(
+            TeamProgramParticipationFinder $teamProgramParticipationFinder, string $teamProgramParticipationId,
+            WorksheetFinder $worksheetFinder, string $worksheetId): Worksheet
+    {
+        $this->assertActive();
+        return $teamProgramParticipationFinder
+                        ->findProgramParticipationBelongsToTeam($this->team, $teamProgramParticipationId)
+                        ->viewWorksheet($worksheetFinder, $worksheetId);
+    }
+
+    public function viewAllWorksheets(
+            TeamProgramParticipationFinder $teamProgramParticipationFinder, string $teamProgramParticipationId,
+            WorksheetFinder $worksheetFinder, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $teamProgramParticipationFinder
+                        ->findProgramParticipationBelongsToTeam($this->team, $teamProgramParticipationId)
+                        ->viewAllWorksheets($worksheetFinder, $page, $pageSize);
+    }
+
+    public function viewAllRootWorksheets(
+            TeamProgramParticipationFinder $teamProgramParticipationFinder, string $teamProgramParticipationId,
+            WorksheetFinder $worksheetFinder, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $teamProgramParticipationFinder
+                        ->findProgramParticipationBelongsToTeam($this->team, $teamProgramParticipationId)
+                        ->viewAllRootWorksheets($worksheetFinder, $page, $pageSize);
+    }
+
+    public function viewAllBranchWorksheets(
+            TeamProgramParticipationFinder $teamProgramParticipationFinder, string $teamProgramParticipationId,
+            WorksheetFinder $worksheetFinder, string $worksheetId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $teamProgramParticipationFinder
+                        ->findProgramParticipationBelongsToTeam($this->team, $teamProgramParticipationId)
+                        ->viewAllBranchesWorksheets($worksheetFinder, $worksheetId, $page, $pageSize);
+    }
+
+    public function viewTeamFileInfo(TeamFileInfoFinder $teamFileInfoFinder, string $teamFileInfoId): TeamFileInfo
+    {
+        $this->assertActive();
+        return $teamFileInfoFinder->findFileInfoBelongsToTeam($this->team, $teamFileInfoId);
+    }
+
     protected function assertAnAdmin(): void
     {
         if (!$this->anAdmin) {
@@ -109,13 +174,13 @@ class Member
             throw RegularException::forbidden($errorDetail);
         }
     }
+
     protected function assertActive(): void
     {
         if (!$this->active) {
             $errorDetail = "forbidden: only active team member can make this requests";
             throw RegularException::forbidden($errorDetail);
         }
-        
     }
 
 }

@@ -27,15 +27,17 @@ class WorksheetTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         $this->formRecord = $this->buildMockOfClass(FormRecord::class);
         
         $this->rootMission = $this->buildMockOfClass(Mission::class);
         $this->mission = $this->buildMockOfClass(Mission::class);
         
         $this->participant = $this->buildMockOfClass(Participant::class);
-        $this->worksheet = new TestableWorksheet($this->participant, 'id', "worksheet name", $this->rootMission, $this->formRecord);
         
-        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        $this->worksheet = new TestableWorksheet($this->participant, 'id', "worksheet name", $this->rootMission, $this->formRecordData);
+        $this->worksheet->formRecord = $this->formRecord;
+        
     }
     
     protected function executeCreateRootWorksheet()
@@ -43,18 +45,24 @@ class WorksheetTest extends TestBase
         $this->rootMission->expects($this->once())
                 ->method('isRootMission')
                 ->willReturn(true);
-        return TestableWorksheet::createRootWorksheet($this->participant, $this->id, $this->name, $this->rootMission, $this->formRecord);
+        return TestableWorksheet::createRootWorksheet($this->participant, $this->id, $this->name, $this->rootMission, $this->formRecordData);
     }
     public function test_createRootWorksheet_setProperties()
     {
+        $formRecord = $this->buildMockOfClass(FormRecord::class);
+        $this->rootMission->expects($this->once())
+                ->method("createWorksheetFormRecord")
+                ->with($this->id, $this->formRecordData)
+                ->willReturn($formRecord);
+        
         $worksheet = $this->executeCreateRootWorksheet();
         $this->assertEquals($this->participant, $worksheet->participant);
         $this->assertEquals($this->id, $worksheet->id);
         $this->assertEquals($this->name, $worksheet->name);
         $this->assertEquals($this->rootMission, $worksheet->mission);
-        $this->assertEquals($this->formRecord, $worksheet->formRecord);
         $this->assertFalse($worksheet->removed);
         $this->assertNull($worksheet->parent);
+        $this->assertEquals($formRecord, $worksheet->formRecord);
     }
     public function test_createWorksheet_emptyName_throwEx()
     {
@@ -77,21 +85,37 @@ class WorksheetTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     
+    public function test_belongsTo_sameParticipant_returnTrue()
+    {
+        $this->assertTrue($this->worksheet->belongsTo($this->worksheet->participant));
+    }
+    public function test_belongsTo_differentParticipant_returnFalse()
+    {
+        $participant = $this->buildMockOfClass(Participant::class);
+        $this->assertFalse($this->worksheet->belongsTo($participant));
+    }
+    
     protected function executeCreateBranchWorksheet()
     {
         $this->rootMission->expects($this->once())
                 ->method('hasBranch')
                 ->willReturn(true);
-        return $this->worksheet->createBranchWorksheet($this->id, $this->name, $this->mission, $this->formRecord);
+        return $this->worksheet->createBranchWorksheet($this->id, $this->name, $this->mission, $this->formRecordData);
     }
     public function test_createBranchWorksheet_setProperties()
     {
+        $formRecord = $this->buildMockOfClass(FormRecord::class);
+        $this->mission->expects($this->once())
+                ->method("createWorksheetFormRecord")
+                ->with($this->id, $this->formRecordData)
+                ->willReturn($formRecord);
+        
         $worksheet = $this->executeCreateBranchWorksheet();
         $this->assertEquals($this->participant, $worksheet->participant);
         $this->assertEquals($this->id, $worksheet->id);
         $this->assertEquals($this->name, $worksheet->name);
         $this->assertEquals($this->mission, $worksheet->mission);
-        $this->assertEquals($this->formRecord, $worksheet->formRecord);
+        $this->assertEquals($formRecord, $worksheet->formRecord);
     }
     public function test_createBranchWorksheet_setWorksheetAsBranchWorksheetParent()
     {
@@ -149,8 +173,8 @@ class TestableWorksheet extends Worksheet
     public $branches;
     
     public function __construct(Participant $participant, string $id, string $name,
-            Mission $mission, FormRecord $formRecord)
+            Mission $mission, FormRecordData $formRecordData)
     {
-        parent::__construct($participant, $id, $name, $mission, $formRecord);
+        parent::__construct($participant, $id, $name, $mission, $formRecordData);
     }
 }

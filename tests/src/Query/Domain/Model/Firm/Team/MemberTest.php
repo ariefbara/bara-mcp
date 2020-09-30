@@ -4,7 +4,9 @@ namespace Query\Domain\Model\Firm\Team;
 
 use Query\Domain\ {
     Model\Firm\Client,
-    Service\Firm\ClientFinder
+    Model\Firm\Team,
+    Service\Firm\ClientFinder,
+    Service\Firm\Team\TeamProgramParticipationFinder
 };
 use Tests\TestBase;
 
@@ -13,14 +15,17 @@ class MemberTest extends TestBase
     protected $member;
 
     protected $clientFinder, $clientEmail = "client@email.org";
+    protected $teamProgramParticipationFinder, $teamProgramParticipationId = "teamProgramParticipationid";
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->member = new TestableMember();
         $this->member->client = $this->buildMockOfClass(Client::class);
+        $this->member->team = $this->buildMockOfClass(Team::class);
         
         $this->clientFinder = $this->buildMockOfClass(ClientFinder::class);
+        $this->teamProgramParticipationFinder = $this->buildMockOfClass(TeamProgramParticipationFinder::class);
     }
     protected function assertNotAdminForbiddenError(callable $operation): void
     {
@@ -56,6 +61,21 @@ class MemberTest extends TestBase
         $this->member->active = false;
         $this->assertInactiveForbiddenError(function (){
             $this->executeViewClientByEmail();
+        });
+    }
+    
+    public function test_viewTeamProgramParticipation_returnTeamProgramParticipationFinderFindByIdResult()
+    {
+        $this->teamProgramParticipationFinder->expects($this->once())
+                ->method("findProgramParticipationBelongsToTeam")
+                ->with($this->member->team, $this->teamProgramParticipationId);
+        $this->member->viewTeamProgramParticipation($this->teamProgramParticipationFinder, $this->teamProgramParticipationId);
+    }
+    public function test_viewTeamprogramParticipation_inactiveMember_forbiddenError()
+    {
+        $this->member->active = false;
+        $this->assertInactiveForbiddenError(function (){
+            $this->member->viewTeamProgramParticipation($this->teamProgramParticipationFinder, $this->teamProgramParticipationId);
         });
     }
 }

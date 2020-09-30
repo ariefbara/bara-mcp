@@ -3,6 +3,7 @@
 namespace Team\Domain\Model\Team;
 
 use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use Team\Domain\ {
     DependencyModel\Firm\Client,
     Model\Team
@@ -19,6 +20,8 @@ class MemberTest extends TestBase
     protected $id = "newMemberId", $anAdmin = false, $position = "new member position";
     
     protected $otherMember;
+    
+    protected $teamFileInfoId = "teamFileInfoId", $fileInfoData;
 
     protected function setUp(): void
     {
@@ -29,6 +32,9 @@ class MemberTest extends TestBase
         $this->member = new TestableMember($this->team, "id", $this->client, true, "position");
         
         $this->otherMember = $this->buildMockOfClass(Member::class);
+        
+        $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
+        $this->fileInfoData->expects($this->any())->method("getName")->willReturn("fileName.txt");
     }
     public function test_construct_setProperties()
     {
@@ -149,6 +155,25 @@ class MemberTest extends TestBase
     public function test_isCorrespondWithClient_differentClient_returnFalse()
     {
         $this->assertFalse($this->member->isCorrespondWithClient($this->buildMockOfClass(Client::class)));
+    }
+    
+    protected function executeUploadFile()
+    {
+        return $this->member->uploadFile($this->teamFileInfoId, $this->fileInfoData);
+    }
+    public function test_uploadFile_returnTeamFileInfo()
+    {
+        $teamFileInfo = new TeamFileInfo($this->team, $this->teamFileInfoId, $this->fileInfoData);
+        $this->assertEquals($teamFileInfo, $this->executeUploadFile());
+    }
+    public function test_uploadFile_inactiveMember_forbiddenError()
+    {
+        $this->member->active = false;
+        $operation = function (){
+            $this->executeUploadFile();
+        };
+        $errorDetail = "forbidden: only active team member can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 }
 

@@ -13,7 +13,7 @@ use Participant\Domain\ {
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
-use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -27,8 +27,8 @@ class ParticipantTest extends TestBase
     protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $startTime;
     protected $consultationSessionId = 'consultationSessionId';
     protected $otherConsultationRequest;
-    protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecord;
-    
+    protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
+    protected $parentWorksheet;
 
     protected function setUp(): void
     {
@@ -56,21 +56,32 @@ class ParticipantTest extends TestBase
         $this->startTime = new DateTimeImmutable();
 
         $this->mission = $this->buildMockOfClass(Mission::class);
-        $this->formRecord = $this->buildMockOfClass(FormRecord::class);
+        $this->mission->expects($this->any())->method("isRootMission")->willReturn(true);
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        
+        $this->parentWorksheet = $this->buildMockOfClass(Worksheet::class);
+    }
+    protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
+    {
+        $errorDetail = "forbidden: only active program participant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    protected function assertOperationCauseAssetNotOwnedForbiddenError(callable $operation): void
+    {
+        $errorDetail = "forbidden: unable to manage asset of other participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
     protected function executeQuit()
     {
         $this->participant->quit();
     }
-
     public function test_quit_setActiveFalseAndNoteQuit()
     {
         $this->executeQuit();
         $this->assertFalse($this->participant->active);
         $this->assertEquals('quit', $this->participant->note);
     }
-
     public function test_quit_alreadyInactive_forbiddenError()
     {
         $this->participant->active = false;
@@ -96,7 +107,6 @@ class ParticipantTest extends TestBase
         return $this->participant->proposeConsultation(
                         $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
     }
-
     public function test_proposeConsultation_returnConsultationRequest()
     {
         $consultationRequest = new ConsultationRequest(
@@ -105,7 +115,6 @@ class ParticipantTest extends TestBase
 
         $this->assertEquals($consultationRequest, $this->executeProposeConsultation());
     }
-    
     public function test_proposeConsultation_consultationSetupFromDifferentProgram_forbiddenError()
     {
         $this->consultationSetup->expects($this->once())
@@ -130,7 +139,6 @@ class ParticipantTest extends TestBase
         $errorDetail = 'forbidden: consultant from different program';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
     public function test_proposeConsultation_containProposedConsultationRequestInConflictWithNewConsultationRequestSchedule_conflictError()
     {
         $this->consultationRequest->expects($this->once())
@@ -142,7 +150,6 @@ class ParticipantTest extends TestBase
         $errorDetail = "conflict: requested time already occupied by your other consultation request waiting for consultant response";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-
     public function test_proposeConsultation_containConsultationSessionConflictedWithNewConsultationRequest_throwEx()
     {
         $this->consultationSession->expects($this->once())
@@ -163,7 +170,6 @@ class ParticipantTest extends TestBase
                 ->willReturn(false);
         $this->participant->reproposeConsultationRequest($this->consultationRequestId, $this->startTime);
     }
-
     public function test_reProposeConsultationRequest_reProposeConsultationRequest()
     {
         $this->consultationRequest->expects($this->once())
@@ -171,7 +177,6 @@ class ParticipantTest extends TestBase
                 ->with($this->startTime);
         $this->executeReProposeConsultationRequest();
     }
-
     public function test_reProposeNegotinateConsultationSession_containOtherConsultationRequestConflictedWithReProposedSchedule_throwEx()
     {
         $this->otherConsultationRequest->expects($this->once())
@@ -184,7 +189,6 @@ class ParticipantTest extends TestBase
         $errorDetail = "conflict: requested time already occupied by your other consultation request waiting for consultant response";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-
     public function test_reProposeNegotinateConsultationSession_containConsultationRequestConflictedWithReProposedSchedule_throwEx()
     {
         $this->consultationSession->expects($this->once())
@@ -196,7 +200,6 @@ class ParticipantTest extends TestBase
         $errorDetail = "conflict: requested time already occupied by your other consultation session";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-
     public function test_reProposeNegotinateConsultationSetupScXhedule_consultationRequestNotFound_throwEx()
     {
         $operation = function () {
@@ -213,14 +216,12 @@ class ParticipantTest extends TestBase
                 ->willReturn(false);
         $this->participant->acceptConsultationRequest($this->consultationRequestId, $this->consultationSessionId);
     }
-
     public function test_acceptConsultationRequest_acceptConsultationRequest()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('accept');
         $this->executeAcceptConsultationRequest();
     }
-
     public function test_acceptConsultationRequest_containOtherConsultationRequestConflictedWithThisSchedule_throwEx()
     {
         $this->otherConsultationRequest->expects($this->once())
@@ -233,7 +234,6 @@ class ParticipantTest extends TestBase
         $errorDetail = "conflict: requested time already occupied by your other consultation request waiting for consultant response";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-
     public function test_acceptConsultationRequest_containConsultationSessionConflictedWithThisSchedule_throwEx()
     {
         $this->consultationSession->expects($this->once())
@@ -245,7 +245,6 @@ class ParticipantTest extends TestBase
         $errorDetail = "conflict: requested time already occupied by your other consultation session";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-
     public function test_acceptConsultationRequest_addConsultationSessionFromConsultationRequestAndAddToCollection()
     {
         $this->consultationRequest->expects($this->once())
@@ -254,17 +253,113 @@ class ParticipantTest extends TestBase
 
         $this->assertEquals(2, $this->participant->consultationSessions->count());
     }
-
-    public function test_createRootWorksheet_returnRootWorksheet()
+    
+    protected function executeCreateRootWorksheet()
     {
         $this->mission->expects($this->any())
-                ->method('isRootMission')
+                ->method("programEquals")
                 ->willReturn(true);
-        
+        return $this->participant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
+    }
+    public function test_createRootWorksheet_returnRootWorksheet()
+    {
+        $this->mission->expects($this->once())
+                ->method("programEquals")
+                ->willReturn(true);
         $worksheet = Worksheet::createRootWorksheet(
-                        $this->participant, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecord);
-
-        $this->assertEquals($worksheet, $this->participant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission,$this->formRecord));
+                        $this->participant, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
+        $this->assertEquals($worksheet, $this->executeCreateRootWorksheet());
+    }
+    public function test_createRootWorksheet_missionsProgramDifferentFromParticipantsProgram_forbiddenError()
+    {
+        $this->mission->expects($this->once())
+                ->method("programEquals")
+                ->with($this->participant->program)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeCreateRootWorksheet();
+        };
+        $errorDetail = "forbidden: can only access mission in same program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_createRootWorksheet_inactiveParticipant_forbiddenError()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeCreateRootWorksheet();
+        };
+        $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
+    }
+    
+    protected function executeSubmitBranchWorksheet()
+    {
+        $this->parentWorksheet->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        return $this->participant->submitBranchWorksheet(
+                $this->parentWorksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
+    }
+    public function test_submitBranchWorksheet_returnWorksheetsCreateBranchResult()
+    {
+        $branch = $this->buildMockOfClass(Worksheet::class);
+        $this->parentWorksheet->expects($this->once())
+                ->method("createBranchWorksheet")
+                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData)
+                ->willReturn($branch);
+        $this->assertEquals($branch, $this->executeSubmitBranchWorksheet());
+    }
+    public function test_submitBranchworksheet_WorksheetDoesntBelongsToParticipant_forbiddenError()
+    {
+        $this->parentWorksheet->expects($this->once())
+                ->method("belongsTo")
+                ->with($this->participant)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeSubmitBranchWorksheet();
+        };
+        $this->assertOperationCauseAssetNotOwnedForbiddenError($operation);
+    }
+    public function test_submitBranchWorksheet_inactiveProgramParticipant_forbiddenError()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeSubmitBranchWorksheet();
+        };
+        $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
+    }
+    
+    protected function executeUpdateWorksheet()
+    {
+        $this->parentWorksheet->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        $this->participant->updateWorksheet($this->parentWorksheet, $this->worksheetName, $this->formRecordData);
+    }
+    public function test_updateWorksheet_executeWorksheetsUpdateMethod()
+    {
+        $this->parentWorksheet->expects($this->once())
+                ->method("update")
+                ->with($this->worksheetName, $this->formRecordData);
+        $this->executeUpdateWorksheet();
+    }
+    public function test_updateWorksheet_inactiveProgramParticipation_forbiddenError()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeUpdateWorksheet();
+        };
+        $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
+    }
+    public function test_updateWorksheet_worksheetDoesntBelongsToParticipant_forbiddenError()
+    {
+        $this->parentWorksheet->expects($this->once())
+                ->method("belongsTo")
+                ->with($this->participant)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeUpdateWorksheet();
+        };
+        $this->assertOperationCauseAssetNotOwnedForbiddenError($operation);
     }
     
     protected function executeIsActiveParticipantOfProgram()

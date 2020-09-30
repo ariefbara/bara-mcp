@@ -10,14 +10,15 @@ use Query\{
     Application\Service\Firm\Program\Participant\WorksheetRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant\Worksheet,
-    Domain\Model\User\UserParticipant
+    Domain\Model\User\UserParticipant,
+    Domain\Service\Firm\Program\Participant\WorksheetRepository as WorksheetRepository2
 };
 use Resources\{
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository
+class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository, WorksheetRepository2
 {
 
     public function all(string $firmId, string $programId, string $participantId, int $page, int $pageSize)
@@ -221,5 +222,75 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
+    public function aWorksheetBelongToParticipant(string $participantId, string $worksheetId): Worksheet
+    {
+        $params = [
+            "participantId" => $participantId,
+            "worksheetId" => $worksheetId,
+        ];
+
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: worksheet not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allWorksheetBelongToParticipant(string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            "participantId" => $participantId,
+        ];
+
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+                ->setParameters($params);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allBranchesOfWorksheetBelongToParticipant(
+            string $participantId, string $worksheetId, int $page, int $pageSize)
+    {
+        $params = [
+            "participantId" => $participantId,
+            "parentId" => $worksheetId,
+        ];
+
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+                ->leftJoin("worksheet.parent", "parent")
+                ->andWhere($qb->expr()->eq("parent.id", ":parentId"))
+                ->setParameters($params);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allRootWorksheetsBelongToParticipant(string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            "participantId" => $participantId,
+        ];
+
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+                ->leftJoin("worksheet.parent", "parent")
+                ->andWhere($qb->expr()->isNull("parent.id"))
+                ->setParameters($params);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
 
 }
