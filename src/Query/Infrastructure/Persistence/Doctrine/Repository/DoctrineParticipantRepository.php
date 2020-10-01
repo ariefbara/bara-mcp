@@ -10,14 +10,15 @@ use Query\ {
     Application\Service\Firm\Program\ParticipantRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant,
-    Domain\Model\User\UserParticipant
+    Domain\Model\User\UserParticipant,
+    Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository
+class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, InterfaceForDomainService
 {
 
     public function all(string $firmId, string $programId, int $page, int $pageSize)
@@ -125,6 +126,49 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
                 ->setMaxResults(1);
 
         return !empty($qb->getQuery()->getResult());
+    }
+
+    public function aParticipantOfProgram(string $programId, string $participantId): Participant
+    {
+        $params = [
+            "programId" => $programId,
+            "participantId" => $participantId,
+        ];
+
+        $qb = $this->createQueryBuilder("participant");
+        $qb->select("participant")
+                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+                ->leftJoin("participant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: participant not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allParticipantsOfProgram(string $programId, int $page, int $pageSize, ?bool $activeStatus)
+    {
+        $params = [
+            "programId" => $programId,
+        ];
+
+        $qb = $this->createQueryBuilder("participant");
+        $qb->select("participant")
+                ->leftJoin("participant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params);
+        
+        if (isset($activeStatus)) {
+            $qb->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

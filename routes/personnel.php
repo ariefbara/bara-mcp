@@ -57,11 +57,18 @@ $router->group($personnelAggregate, function () use ($router) {
         });
     });
     
-    $programConsultantAggregate = [
-        'prefix' => '/program-consultant/{programConsultantId}',
-        'namespace' => 'ProgramConsultant',
+    $programConsultationAggregate = [
+        'prefix' => '/program-consultations/{programConsultationId}',
+        'namespace' => 'ProgramConsultation',
     ];
-    $router->group($programConsultantAggregate, function () use ($router) {
+    $router->group($programConsultationAggregate, function () use ($router) {
+        
+        $router->group(['prefix' => '/participants'], function () use($router) {
+            $controller = "ParticipantController";
+            $router->get("/{participantId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+        
         $router->group(['prefix' => '/consultation-requests'], function () use($router) {
             $controller = "ConsultationRequestController";
             $router->patch("/{consultationRequestId}/accept", ["uses" => "$controller@accept"]);

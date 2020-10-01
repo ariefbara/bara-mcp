@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Personnel\ProgramConsultant;
+namespace Tests\Controllers\Personnel\ProgramConsultation;
 
 use DateTime;
 use DateTimeImmutable;
@@ -19,7 +19,7 @@ use Tests\Controllers\RecordPreparation\{
     User\RecordOfUserParticipant
 };
 
-class ConsultationSessionControllerTest extends ProgramConsultantTestCase
+class ConsultationSessionControllerTest extends ProgramConsultationTestCase
 {
 
     protected $consultationSessionUri;
@@ -34,7 +34,7 @@ class ConsultationSessionControllerTest extends ProgramConsultantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->consultationSessionUri = $this->programConsultantUri . "/consultation-sessions";
+        $this->consultationSessionUri = $this->programConsultationUri . "/consultation-sessions";
         $this->connection->table('Form')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('IntegerField')->truncate();
@@ -59,29 +59,29 @@ class ConsultationSessionControllerTest extends ProgramConsultantTestCase
         $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
 
-        $feedbackForm = new RecordOfFeedbackForm($this->programConsultant->program->firm, $form);
+        $feedbackForm = new RecordOfFeedbackForm($this->programConsultation->program->firm, $form);
         $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
 
-        $consultationSetup = new RecordOfConsultationSetup($this->programConsultant->program, $feedbackForm,
+        $consultationSetup = new RecordOfConsultationSetup($this->programConsultation->program, $feedbackForm,
                 $feedbackForm, 0);
         $this->connection->table("ConsultationSetup")->insert($consultationSetup->toArrayForDbEntry());
 
         $user = new RecordOfUser(0);
         $this->connection->table("User")->insert($user->toArrayForDbEntry());
 
-        $participant = new RecordOfParticipant($this->programConsultant->program, 0);
+        $participant = new RecordOfParticipant($this->programConsultation->program, 0);
         $this->connection->table("Participant")->insert($participant->toArrayForDbEntry());
 
         $this->userParticipant = new RecordOfUserParticipant($user, $participant);
         $this->connection->table("UserParticipant")->insert($this->userParticipant->toArrayForDbEntry());
 
         $this->consultationSession = new RecordOfConsultationSession(
-                $consultationSetup, $participant, $this->programConsultant, 0);
+                $consultationSetup, $participant, $this->programConsultation, 0);
         $this->consultationSession->startDateTime = (new DateTimeImmutable('+48 hours'))->format('Y-m-d H:i:s');
         $this->consultationSession->endDateTime = (new DateTimeImmutable('+49 hours'))->format('Y-m-d H:i:s');
 
         $this->consultationSessionOne = new RecordOfConsultationSession(
-                $consultationSetup, $participant, $this->programConsultant, 1);
+                $consultationSetup, $participant, $this->programConsultation, 1);
         $this->consultationSessionOne->startDateTime = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
         $this->consultationSessionOne->endDateTime = (new DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
 

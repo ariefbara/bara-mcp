@@ -7,6 +7,7 @@ use Query\Domain\{
     Model\Firm\Client\ClientParticipant,
     Model\Firm\Program,
     Model\Firm\Program\Participant\Worksheet,
+    Model\Firm\Team\TeamProgramParticipation,
     Model\User\UserParticipant,
     Service\Firm\Program\Participant\WorksheetFinder
 };
@@ -57,6 +58,12 @@ class Participant
      */
     protected $userParticipant;
 
+    /**
+     *
+     * @var TeamProgramParticipation||null
+     */
+    protected $teamParticipant;
+
     public function getProgram(): Program
     {
         return $this->program;
@@ -90,6 +97,11 @@ class Participant
     public function getUserParticipant(): ?UserParticipant
     {
         return $this->userParticipant;
+    }
+
+    public function getTeamParticipant(): ?TeamProgramParticipation
+    {
+        return $this->teamParticipant;
     }
 
     protected function __construct()

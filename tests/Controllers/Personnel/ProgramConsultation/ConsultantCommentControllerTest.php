@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Personnel\ProgramConsultant;
+namespace Tests\Controllers\Personnel\ProgramConsultation;
 
 use DateTime;
 use Tests\Controllers\RecordPreparation\ {
@@ -14,7 +14,7 @@ use Tests\Controllers\RecordPreparation\ {
     Shared\RecordOfFormRecord
 };
 
-class ConsultantCommentControllerTest extends ProgramConsultantTestCase
+class ConsultantCommentControllerTest extends ProgramConsultationTestCase
 {
 
     protected $consultantCommentUri;
@@ -28,7 +28,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->consultantCommentUri = $this->programConsultantUri . "/consultant-comments";
+        $this->consultantCommentUri = $this->programConsultationUri . "/consultant-comments";
 
         $this->connection->table('Client')->truncate();
         $this->connection->table('Participant')->truncate();
@@ -41,7 +41,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->connection->table('ConsultantComment')->truncate();
         $this->connection->table('ClientNotification')->truncate();
 
-        $participant = new RecordOfParticipant($this->programConsultant->program, 0);
+        $participant = new RecordOfParticipant($this->programConsultation->program, 0);
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
 
         $form = new RecordOfForm(0);
@@ -50,10 +50,10 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $formRecord = new RecordOfFormRecord($form, 0);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
 
-        $worksheetForm = new RecordOfWorksheetForm($this->programConsultant->program->firm, $form);
+        $worksheetForm = new RecordOfWorksheetForm($this->programConsultation->program->firm, $form);
         $this->connection->table('WorksheetForm')->insert($worksheetForm->toArrayForDbEntry());
 
-        $mission = new RecordOfMission($this->programConsultant->program, $worksheetForm, 0, null);
+        $mission = new RecordOfMission($this->programConsultation->program, $worksheetForm, 0, null);
         $this->connection->table('Mission')->insert($mission->toArrayForDbEntry());
 
         $this->worksheet = new RecordOfWorksheet($participant, $formRecord, $mission, 0);
@@ -64,7 +64,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->connection->table('Comment')->insert($comment->toArrayForDbEntry());
         $this->connection->table('Comment')->insert($this->commentOne->toArrayForDbEntry());
 
-        $this->consultantComment = new RecordOfConsultantComment($this->programConsultant, $comment);
+        $this->consultantComment = new RecordOfConsultantComment($this->programConsultation, $comment);
         $this->connection->table('ConsultantComment')->insert($this->consultantComment->toArrayForDbEntry());
 
         $this->submitNewRequest = [
@@ -108,7 +108,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         ];
 
         $uri = $this->consultantCommentUri . "/new";
-        $this->post($uri, $this->submitNewRequest, $this->programConsultant->personnel->token)
+        $this->post($uri, $this->submitNewRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201)
                 ->seeJsonContains($response);
 
@@ -122,7 +122,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->seeInDatabase("Comment", $commentEntry);
 
         $consultantCommentEntry = [
-            "Consultant_id" => $this->programConsultant->id,
+            "Consultant_id" => $this->programConsultation->id,
         ];
         $this->seeInDatabase("ConsultantComment", $consultantCommentEntry);
     }
@@ -136,7 +136,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         ];
 
         $uri = $this->consultantCommentUri . "/reply";
-        $this->post($uri, $this->submitReplyRequest, $this->programConsultant->personnel->token)
+        $this->post($uri, $this->submitReplyRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201)
                 ->seeJsonContains($response);
 
@@ -150,7 +150,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
         $this->seeInDatabase("Comment", $commentEntry);
 
         $consultantCommentEntry = [
-            "Consultant_id" => $this->programConsultant->id,
+            "Consultant_id" => $this->programConsultation->id,
         ];
         $this->seeInDatabase("ConsultantComment", $consultantCommentEntry);
     }
@@ -158,7 +158,7 @@ class ConsultantCommentControllerTest extends ProgramConsultantTestCase
     public function test_remove()
     {
         $uri = $this->consultantCommentUri . "/{$this->consultantComment->id}";
-        $this->delete($uri, [], $this->programConsultant->personnel->token)
+        $this->delete($uri, [], $this->programConsultation->personnel->token)
                 ->seeStatusCode(200);
         
         $commentEntry = [

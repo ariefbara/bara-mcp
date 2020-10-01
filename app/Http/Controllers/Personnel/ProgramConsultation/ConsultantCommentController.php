@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Personnel\ProgramConsultant;
+namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
 use Personnel\ {

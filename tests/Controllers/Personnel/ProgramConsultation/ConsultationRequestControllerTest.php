@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Personnel\ProgramConsultant;
+namespace Tests\Controllers\Personnel\ProgramConsultation;
 
 use DateTime;
 use Tests\Controllers\RecordPreparation\ {
@@ -13,7 +13,7 @@ use Tests\Controllers\RecordPreparation\ {
     User\RecordOfUserParticipant
 };
 
-class ConsultationRequestControllerTest extends ProgramConsultantTestCase
+class ConsultationRequestControllerTest extends ProgramConsultationTestCase
 {
 
     protected $consultationRequestUri;
@@ -26,7 +26,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->consultationRequestUri = $this->programConsultantUri . "/consultation-requests";
+        $this->consultationRequestUri = $this->programConsultationUri . "/consultation-requests";
         $this->connection->table('Form')->truncate();
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -39,26 +39,26 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $form = new RecordOfForm(0);
         $this->connection->table('Form')->insert($form->toArrayForDbEntry());
         
-        $feedbackForm = new RecordOfFeedbackForm($this->programConsultant->program->firm, $form);
+        $feedbackForm = new RecordOfFeedbackForm($this->programConsultation->program->firm, $form);
         $this->connection->table('FeedbackForm')->insert($feedbackForm->toArrayForDbEntry());
         
         $consultationSetup = new RecordOfConsultationSetup(
-                $this->programConsultant->program, $feedbackForm, $feedbackForm, 0);
+                $this->programConsultation->program, $feedbackForm, $feedbackForm, 0);
         $this->connection->table('ConsultationSetup')->insert($consultationSetup->toArrayForDbEntry());
         
         $user = new RecordOfUser(0);
         $this->connection->table('User')->insert($user->toArrayForDbEntry());
         
-        $this->participant = new RecordOfParticipant($this->programConsultant->program, 0);
+        $this->participant = new RecordOfParticipant($this->programConsultation->program, 0);
         $this->connection->table('Participant')->insert($this->participant->toArrayForDbEntry());
         
         $this->userParticipant = new RecordOfUserParticipant($user, $this->participant);
         $this->connection->table('UserParticipant')->insert($this->userParticipant->toArrayForDbEntry());
         
         $this->consultationRequest = new RecordOfConsultationRequest(
-                $consultationSetup, $this->participant, $this->programConsultant, 0);
+                $consultationSetup, $this->participant, $this->programConsultation, 0);
         $this->consultationRequest_concluded = new RecordOfConsultationRequest(
-                $consultationSetup, $this->participant, $this->programConsultant, 1);
+                $consultationSetup, $this->participant, $this->programConsultation, 1);
         $this->consultationRequest_concluded->concluded = true;
         $this->consultationRequest_concluded->status = "rejected";
         $this->connection->table('ConsultationRequest')->insert($this->consultationRequest->toArrayForDbEntry());
@@ -85,7 +85,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
     public function test_reject()
     {
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/reject";
-        $this->patch($uri, [], $this->programConsultant->personnel->token)
+        $this->patch($uri, [], $this->programConsultation->personnel->token)
                 ->seeStatusCode(200);
         
         $consultationRequestEntry = [
@@ -98,7 +98,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
     public function test_reject_consultationRequestAlreadyConcluded_error403()
     {
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest_concluded->id}/reject";
-        $this->patch($uri, [], $this->programConsultant->personnel->token)
+        $this->patch($uri, [], $this->programConsultation->personnel->token)
                 ->seeStatusCode(403);
     }
     
@@ -111,7 +111,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
             "status" => "offered",
         ];
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/offer";
-        $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
+        $this->patch($uri, $this->offerInput, $this->programConsultation->personnel->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
         
@@ -127,7 +127,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
     public function test_offer_consultationRequestAlreadyConcluded_error403()
     {
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest_concluded->id}/offer";
-        $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
+        $this->patch($uri, $this->offerInput, $this->programConsultation->personnel->token)
                 ->seeStatusCode(403);
     }
     
@@ -138,7 +138,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
             "status" => "scheduled",
         ];
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
-        $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
+        $this->patch($uri, $this->offerInput, $this->programConsultation->personnel->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
         
@@ -153,7 +153,7 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $this->connection->table('ConsultationSession')->truncate();
         
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
-        $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
+        $this->patch($uri, $this->offerInput, $this->programConsultation->personnel->token)
                 ->seeStatusCode(200);
         $consulattionSessionEntry = [
             "Participant_id" => $this->consultationRequest->participant->id,
@@ -172,13 +172,13 @@ class ConsultationRequestControllerTest extends ProgramConsultantTestCase
         $this->connection->table('ConsultationRequest')->insert($this->consultationRequest->toArrayForDbEntry());
         
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
-        $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
+        $this->patch($uri, $this->offerInput, $this->programConsultation->personnel->token)
                 ->seeStatusCode(403);
     }
     public function test_accept_consultationRequestAlreadyConcluded_error403()
     {
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest_concluded->id}/accept";
-        $this->patch($uri, $this->offerInput, $this->programConsultant->personnel->token)
+        $this->patch($uri, $this->offerInput, $this->programConsultation->personnel->token)
                 ->seeStatusCode(403);
     }
     
