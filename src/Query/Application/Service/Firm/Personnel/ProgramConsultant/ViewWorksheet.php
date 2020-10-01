@@ -1,6 +1,6 @@
 <?php
 
-namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
+namespace Query\Application\Service\Firm\Personnel\ProgramConsultant\Participant;
 
 use Query\{
     Application\Service\Firm\Personnel\ProgramConsultationRepository,

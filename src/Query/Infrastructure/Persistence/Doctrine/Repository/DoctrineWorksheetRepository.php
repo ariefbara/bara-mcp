@@ -222,74 +222,51 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function aWorksheetBelongToParticipant(string $participantId, string $worksheetId): Worksheet
+    public function allBranchesOfParentWorksheet(
+            string $firmId, string $programId, string $participantId, string $worksheetId, int $page, int $pageSize)
     {
         $params = [
-            "participantId" => $participantId,
-            "worksheetId" => $worksheetId,
+            'firmId' => $firmId,
+            'programId' => $programId,
+            'participantId' => $participantId,
+            'parentId' => $worksheetId,
         ];
 
-        $qb = $this->createQueryBuilder("worksheet");
-        $qb->select("worksheet")
-                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
-                ->leftJoin("worksheet.participant", "participant")
-                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
-                ->setParameters($params)
-                ->setMaxResults(1);
-
-        try {
-            return $qb->getQuery()->getSingleResult();
-        } catch (NoResultException $ex) {
-            $errorDetail = "not found: worksheet not found";
-            throw RegularException::notFound($errorDetail);
-        }
-    }
-
-    public function allWorksheetBelongToParticipant(string $participantId, int $page, int $pageSize)
-    {
-        $params = [
-            "participantId" => $participantId,
-        ];
-
-        $qb = $this->createQueryBuilder("worksheet");
-        $qb->select("worksheet")
-                ->leftJoin("worksheet.participant", "participant")
-                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+        $qb = $this->createQueryBuilder('worksheet');
+        $qb->select('worksheet')
+                ->leftJoin('worksheet.parent', 'parent')
+                ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
+                ->leftJoin('worksheet.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function allBranchesOfWorksheetBelongToParticipant(
-            string $participantId, string $worksheetId, int $page, int $pageSize)
+    public function allRootWorksheets(string $firmId, string $programId, string $participantId, int $page, int $pageSize)
     {
         $params = [
-            "participantId" => $participantId,
-            "parentId" => $worksheetId,
+            'firmId' => $firmId,
+            'programId' => $programId,
+            'participantId' => $participantId,
         ];
 
-        $qb = $this->createQueryBuilder("worksheet");
-        $qb->select("worksheet")
-                ->leftJoin("worksheet.participant", "participant")
-                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+        $qb = $this->createQueryBuilder('worksheet');
+        $qb->select('worksheet')
                 ->leftJoin("worksheet.parent", "parent")
-                ->andWhere($qb->expr()->eq("parent.id", ":parentId"))
+                ->andWhere($qb->expr()->isNull('parent.id'))
+                ->leftJoin('worksheet.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
 
-    public function allRootWorksheetsBelongToParticipant(string $participantId, int $page, int $pageSize)
-    {
-        $params = [
-            "participantId" => $participantId,
-        ];
-
-        $qb = $this->createQueryBuilder("worksheet");
-        $qb->select("worksheet")
-                ->leftJoin("worksheet.participant", "participant")
-                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
-                ->leftJoin("worksheet.parent", "parent")
-                ->andWhere($qb->expr()->isNull("parent.id"))
-                ->setParameters($params);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

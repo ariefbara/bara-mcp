@@ -7,12 +7,12 @@ use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 interface WorksheetRepository
 {
 
-    public function aWorksheetBelongToParticipant(string $participantId, string $worksheetId): Worksheet;
+    public function ofId(string $firmId, string $programId, string $participantId, string $worksheetId): Worksheet;
 
-    public function allWorksheetBelongToParticipant(string $participantId, int $page, int $pageSize);
+    public function all(string $firmId, string $programId, string $participantId, int $page, int $pageSize);
 
-    public function allRootWorksheetsBelongToParticipant(string $participantId, int $page, int $pageSize);
+    public function allRootWorksheets(string $firmId, string $programId, string $participantId, int $page, int $pageSize);
 
-    public function allBranchesOfWorksheetBelongToParticipant(string $participantId, string $worksheetId, int $page,
-            int $pageSize);
+    public function allBranchesOfParentWorksheet(
+            string $firmId, string $programId, string $participantId, string $worksheetId, int $page, int $pageSize);
 }
