@@ -8,8 +8,8 @@ use Doctrine\ORM\ {
 };
 use Participant\ {
     Application\Service\Firm\Program\ConsultationSetupRepository,
+    Domain\DependencyModel\Firm\Program\ConsultationSetup,
     Domain\Model\ClientParticipant,
-    Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup,
     Domain\Model\UserParticipant
 };
 use Resources\Exception\RegularException;
@@ -80,6 +80,25 @@ class DoctrineConsultationSetupRepository extends EntityRepository implements Co
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: consultation setup not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function ofId(string $consultationSetupId): ConsultationSetup
+    {
+        $params = [
+            "consultationSetupId" => $consultationSetupId,
+        ];
+        $qb = $this->createQueryBuilder("consultationSetup");
+        $qb->select("consultationSetup")
+                ->andWhere($qb->expr()->eq("consultationSetup.id", ":consultationSetupId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: consultation setup not found";
             throw RegularException::notFound($errorDetail);
         }
     }

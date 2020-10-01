@@ -93,7 +93,7 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
 
-    protected function executeProposeConsultation()
+    protected function executeSubmitConsultationRequest()
     {
         $this->consultationSetup->expects($this->any())
                 ->method('programEquals')
@@ -104,154 +104,180 @@ class ParticipantTest extends TestBase
         $this->consultationRequest->expects($this->any())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->willReturn(false);
-        return $this->participant->proposeConsultation(
+        return $this->participant->submitConsultationRequest(
                         $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
     }
-    public function test_proposeConsultation_returnConsultationRequest()
+    public function test_submitConsultationRequest_returnConsultationRequest()
     {
         $consultationRequest = new ConsultationRequest(
                 $this->participant, $this->consultationRequestId, $this->consultationSetup, $this->consultant,
                 $this->startTime);
 
-        $this->assertEquals($consultationRequest, $this->executeProposeConsultation());
+        $this->assertEquals($consultationRequest, $this->executeSubmitConsultationRequest());
     }
-    public function test_proposeConsultation_consultationSetupFromDifferentProgram_forbiddenError()
+    public function test_submitConsultationRequest_consultationSetupFromDifferentProgram_forbiddenError()
     {
         $this->consultationSetup->expects($this->once())
                 ->method('programEquals')
                 ->with($this->participant->program)
                 ->willReturn(false);
         $operation = function () {
-            $this->executeProposeConsultation();
+            $this->executeSubmitConsultationRequest();
         };
         $errorDetail = 'forbidden: consultation setup from different program';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    public function test_proposeConsultation_consultantFromDifferentProgram_forbiddenError()
+    public function test_submitConsultationRequest_consultantFromDifferentProgram_forbiddenError()
     {
         $this->consultant->expects($this->once())
                 ->method('programEquals')
                 ->with($this->participant->program)
                 ->willReturn(false);
         $operation = function () {
-            $this->executeProposeConsultation();
+            $this->executeSubmitConsultationRequest();
         };
         $errorDetail = 'forbidden: consultant from different program';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    public function test_proposeConsultation_containProposedConsultationRequestInConflictWithNewConsultationRequestSchedule_conflictError()
+    public function test_submitConsultationRequest_containProposedConsultationRequestInConflictWithNewConsultationRequestSchedule_conflictError()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->willReturn(true);
         $operation = function () {
-            $this->executeProposeConsultation();
+            $this->executeSubmitConsultationRequest();
         };
         $errorDetail = "conflict: requested time already occupied by your other consultation request waiting for consultant response";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-    public function test_proposeConsultation_containConsultationSessionConflictedWithNewConsultationRequest_throwEx()
+    public function test_submitConsultationRequest_containConsultationSessionConflictedWithNewConsultationRequest_throwEx()
     {
         $this->consultationSession->expects($this->once())
                 ->method('conflictedWithConsultationRequest')
                 ->willReturn(true);
         $operation = function () {
-            $this->executeProposeConsultation();
+            $this->executeSubmitConsultationRequest();
         };
 
         $errorDetail = "conflict: requested time already occupied by your other consultation session";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
 
-    protected function executeReProposeConsultationRequest()
+    protected function executeChangeConsultationRequestTime()
     {
         $this->otherConsultationRequest->expects($this->any())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->willReturn(false);
-        $this->participant->reproposeConsultationRequest($this->consultationRequestId, $this->startTime);
+        $this->participant->changeConsultationRequestTime($this->consultationRequestId, $this->startTime);
     }
-    public function test_reProposeConsultationRequest_reProposeConsultationRequest()
+    public function test_changeConsultationRequestTime_changeConsultationRequestTime()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('rePropose')
                 ->with($this->startTime);
-        $this->executeReProposeConsultationRequest();
+        $this->executeChangeConsultationRequestTime();
     }
-    public function test_reProposeNegotinateConsultationSession_containOtherConsultationRequestConflictedWithReProposedSchedule_throwEx()
+    public function test_changeConsultationRequestTime_containOtherConsultationRequestConflictedWithReProposedSchedule_throwEx()
     {
         $this->otherConsultationRequest->expects($this->once())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->with($this->consultationRequest)
                 ->willReturn(true);
         $operation = function () {
-            $this->executeReProposeConsultationRequest();
+            $this->executeChangeConsultationRequestTime();
         };
         $errorDetail = "conflict: requested time already occupied by your other consultation request waiting for consultant response";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-    public function test_reProposeNegotinateConsultationSession_containConsultationRequestConflictedWithReProposedSchedule_throwEx()
+    public function test_changeConsultationRequestTime_containConsultationRequestConflictedWithReProposedSchedule_throwEx()
     {
         $this->consultationSession->expects($this->once())
                 ->method('conflictedWithConsultationRequest')
                 ->willReturn(true);
         $operation = function () {
-            $this->executeReProposeConsultationRequest();
+            $this->executeChangeConsultationRequestTime();
         };
         $errorDetail = "conflict: requested time already occupied by your other consultation session";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-    public function test_reProposeNegotinateConsultationSetupScXhedule_consultationRequestNotFound_throwEx()
+    public function test_changeConsultationRequestTime_consultationRequestNotFound_throwEx()
     {
         $operation = function () {
-            $this->participant->reProposeConsultationRequest('non-existing-schedule', $this->startTime);
+            $this->participant->changeConsultationRequestTime('non-existing-schedule', $this->startTime);
         };
         $errorDetail = "not found: consultation request not found";
         $this->assertRegularExceptionThrowed($operation, 'Not Found', $errorDetail);
     }
 
-    protected function executeAcceptConsultationRequest()
+    protected function executeAcceptOfferedConsultationRequest()
     {
         $this->otherConsultationRequest->expects($this->any())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->willReturn(false);
-        $this->participant->acceptConsultationRequest($this->consultationRequestId, $this->consultationSessionId);
+        $this->participant->acceptOfferedConsultationRequest($this->consultationRequestId, $this->consultationSessionId);
     }
-    public function test_acceptConsultationRequest_acceptConsultationRequest()
+    public function test_acceptOfferedConsultationRequest_acceptConsultationRequest()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('accept');
-        $this->executeAcceptConsultationRequest();
+        $this->executeAcceptOfferedConsultationRequest();
     }
-    public function test_acceptConsultationRequest_containOtherConsultationRequestConflictedWithThisSchedule_throwEx()
+    public function test_acceptOfferedConsultationRequest_containOtherConsultationRequestConflictedWithThisSchedule_throwEx()
     {
         $this->otherConsultationRequest->expects($this->once())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->with($this->consultationRequest)
                 ->willReturn(true);
         $operation = function () {
-            $this->executeAcceptConsultationRequest();
+            $this->executeAcceptOfferedConsultationRequest();
         };
         $errorDetail = "conflict: requested time already occupied by your other consultation request waiting for consultant response";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-    public function test_acceptConsultationRequest_containConsultationSessionConflictedWithThisSchedule_throwEx()
+    public function test_acceptOfferedConsultationRequest_containConsultationSessionConflictedWithThisSchedule_throwEx()
     {
         $this->consultationSession->expects($this->once())
                 ->method('conflictedWithConsultationRequest')
                 ->willReturn(true);
         $operation = function () {
-            $this->executeAcceptConsultationRequest();
+            $this->executeAcceptOfferedConsultationRequest();
         };
         $errorDetail = "conflict: requested time already occupied by your other consultation session";
         $this->assertRegularExceptionThrowed($operation, 'Conflict', $errorDetail);
     }
-    public function test_acceptConsultationRequest_addConsultationSessionFromConsultationRequestAndAddToCollection()
+    public function test_acceptOfferedConsultationRequest_addConsultationSessionFromConsultationRequestAndAddToCollection()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('createConsultationSession');
-        $this->executeAcceptConsultationRequest();
+        $this->executeAcceptOfferedConsultationRequest();
 
         $this->assertEquals(2, $this->participant->consultationSessions->count());
+    }
+    
+    protected function executeCancelConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        $this->participant->cancelConsultationRequest($this->consultationRequest);
+    }
+    public function test_cancelConsultationRequest_cancelConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("cancel");
+        $this->executeCancelConsultationRequest();
+    }
+    public function test_cancelConsultationRequest_belongsToOtherParticipant_forbiddenError()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("belongsTo")
+                ->with($this->participant)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeCancelConsultationRequest();
+        };
+        $errorDetail = "forbidden: unable to manage consultation request of other participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeCreateRootWorksheet()

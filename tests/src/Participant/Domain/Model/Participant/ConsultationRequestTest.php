@@ -227,6 +227,16 @@ class ConsultationRequestTest extends TestBase
                 ->willReturn(true);
         $this->assertFalse($this->consultationRequest->isProposedConsultationRequestConflictedWith($this->consultationRequest));
     }
+    
+    public function test_belongsTo_sameParticipant_returnTrue()
+    {
+        $this->assertTrue($this->consultationRequest->belongsTo($this->consultationRequest->participant));
+    }
+    public function test_belongsTo_differentParticipant_returnFalse()
+    {
+        $participant = $this->buildMockOfClass(Participant::class);
+        $this->assertFalse($this->consultationRequest->belongsTo($participant));
+    }
 
 }
 

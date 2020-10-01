@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Countable;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
@@ -71,6 +72,13 @@ class Controller extends BaseController
             return null;
         }
         return filter_var($this->request->query($label), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    }
+    protected function dateTimeImmutableOfQueryRequest($label): ?DateTimeImmutable
+    {
+        if ($this->request->query($label) === null) {
+            return null;
+        }
+        return new DateTimeImmutable($this->request->query($label));
     }
 
     protected function stripTagsVariable($var): ?string
@@ -155,7 +163,6 @@ class Controller extends BaseController
     protected function getPageSize()
     {
         $pageSize = (int) $this->request->query('pageSize');
-//        $pageSize = filter_var($this->request->query('pageSize'), FILTER_SANITIZE_NUMBER_INT);
         $safeSize = $pageSize > 100 ? 100 : $pageSize;
         return empty($safeSize) ? 25 : $safeSize;
     }

@@ -2,12 +2,17 @@
 
 namespace Participant\Domain\Model;
 
-use Participant\Domain\{
+use DateTimeImmutable;
+use Participant\Domain\ {
     DependencyModel\Firm\Program,
+    DependencyModel\Firm\Program\Consultant,
+    DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
+    Model\Participant\ConsultationRequest,
     Model\Participant\Worksheet
 };
+use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class TeamProgramParticipation
@@ -59,16 +64,39 @@ class TeamProgramParticipation
         return $this->programParticipation
                         ->submitBranchWorksheet($parentWorksheet, $worksheetId, $name, $mission, $formRecordData);
     }
-    
+
     public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData): void
     {
         $this->programParticipation->updateWorksheet($worksheet, $name, $formRecordData);
     }
-    
+
     public function quit(): void
     {
         $this->programParticipation->quit();
     }
-    
+
+    public function submitConsultationRequest(
+            string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
+            DateTimeImmutable $startTime): ConsultationRequest
+    {
+        return $this->programParticipation->submitConsultationRequest(
+                        $consultationRequestId, $consultationSetup, $consultant, $startTime);
+    }
+
+    public function changeConsultationRequestTime(string $consultationRequestId, DateTimeImmutable $startTime): void
+    {
+        $this->programParticipation->changeConsultationRequestTime($consultationRequestId, $startTime);
+    }
+
+    public function cancelConsultationRequest(ConsultationRequest $consultationRequest): void
+    {
+        $this->programParticipation->cancelConsultationRequest($consultationRequest);
+    }
+
+    public function acceptOfferedConsultationRequest(string $consultationRequestId): void
+    {
+        $consultationSessionId = Uuid::generateUuid4();
+        $this->programParticipation->acceptOfferedConsultationRequest($consultationRequestId, $consultationSessionId);
+    }
 
 }

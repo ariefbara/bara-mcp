@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
-use Query\{
-    Application\Service\Firm\Personnel\ProgramConsultant\ViewParticipant,
+use Query\ {
+    Application\Service\Firm\Personnel\ProgramConsultation\ViewParticipant,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant,
     Domain\Model\Firm\Team\TeamProgramParticipation,

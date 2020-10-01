@@ -14,7 +14,7 @@
         <field name="sessionDuration" type="smallint" nullable="false"/>
         
         <many-to-one  field="participantFeedbackForm" 
-                      target-entity="Participant\Domain\DependencyModel\Firm\\FeedbackForm"
+                      target-entity="Participant\Domain\DependencyModel\Firm\FeedbackForm"
         >
             <join-column name="FeedbackForm_idForParticipant" referenced-column-name="id" />
         </many-to-one>

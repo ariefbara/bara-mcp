@@ -2,11 +2,14 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
-use Query\Domain\ {
+use Query\Domain\{
     Model\Firm\Program,
+    Model\Firm\Program\ConsultationSetup\ConsultationRequest,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team,
+    Service\Firm\Program\ConsultationSetup\ConsultationRequestFilter,
+    Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder,
     Service\Firm\Program\Participant\WorksheetFinder
 };
 
@@ -75,13 +78,14 @@ class TeamProgramParticipation
     {
         return $this->programParticipation->viewAllWorksheet($worksheetFinder, $page, $pageSize);
     }
-    
+
     public function viewAllRootWorksheets(WorksheetFinder $worksheetFinder, int $page, int $pageSize)
     {
         return $this->programParticipation->viewAllRootWorksheets($worksheetFinder, $page, $pageSize);
     }
-    
-    public function viewAllBranchesWorksheets(WorksheetFinder $worksheetFinder, string $worksheetId, int $page, int $pageSize)
+
+    public function viewAllBranchesWorksheets(WorksheetFinder $worksheetFinder, string $worksheetId, int $page,
+            int $pageSize)
     {
         return $this->programParticipation->viewAllBranchWorksheets($worksheetFinder, $worksheetId, $page, $pageSize);
     }

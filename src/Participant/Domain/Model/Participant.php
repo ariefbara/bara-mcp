@@ -68,7 +68,7 @@ class Participant
         $this->note = 'quit';
     }
 
-    public function proposeConsultation(
+    public function submitConsultationRequest(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
             DateTimeImmutable $startTime): ConsultationRequest
     {
@@ -91,7 +91,7 @@ class Participant
         return $consultationRequest;
     }
 
-    public function reproposeConsultationRequest(
+    public function changeConsultationRequestTime(
             string $consultationRequestId, DateTimeImmutable $startTime): void
     {
         $consultationRequest = $this->getConsultationRequestOrDie($consultationRequestId);
@@ -101,7 +101,7 @@ class Participant
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
     }
 
-    public function acceptConsultationRequest(string $consultationRequestId, string $consultationSessionId): void
+    public function acceptOfferedConsultationRequest(string $consultationRequestId, string $consultationSessionId): void
     {
         $consultationRequest = $this->getConsultationRequestOrDie($consultationRequestId);
 
@@ -112,6 +112,14 @@ class Participant
 
         $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
         $this->consultationSessions->add($consultationSession);
+    }
+    public function cancelConsultationRequest(ConsultationRequest $consultationRequest): void
+    {
+        if (!$consultationRequest->belongsTo($this)) {
+            $errorDetail = "forbidden: unable to manage consultation request of other participant";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $consultationRequest->cancel();
     }
 
     public function createRootWorksheet(string $worksheetId, string $name, Mission $mission,

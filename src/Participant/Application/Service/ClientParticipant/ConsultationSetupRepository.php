@@ -2,7 +2,7 @@
 
 namespace Participant\Application\Service\ClientParticipant;
 
-use Participant\Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 
 interface ConsultationSetupRepository
 {

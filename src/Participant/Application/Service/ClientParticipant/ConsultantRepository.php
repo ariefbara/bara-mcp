@@ -2,7 +2,7 @@
 
 namespace Participant\Application\Service\ClientParticipant;
 
-use Participant\Domain\Model\DependencyEntity\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 
 interface ConsultantRepository
 {

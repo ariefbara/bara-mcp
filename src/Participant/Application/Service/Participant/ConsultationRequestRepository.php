@@ -16,6 +16,8 @@ interface ConsultationRequestRepository
 
     public function aConsultationRequestFromUserParticipant(
             $userId, string $programParticipationId, string $consultationRequestId): ConsultationRequest;
+    
+    public function ofId(string $consultationRequestId): ConsultationRequest;
 
     public function update(): void;
 }

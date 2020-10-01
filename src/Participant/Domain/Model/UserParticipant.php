@@ -59,7 +59,7 @@ class UserParticipant extends ModelContainEvents
         $event = new UserParticipantProposedConsultationRequest($this->userId, $this->id, $consultationRequestId);
         $this->recordEvent($event);
         
-        return $this->participant->proposeConsultation($consultationRequestId, $consultationSetup, $consultant, $startTime);
+        return $this->participant->submitConsultationRequest($consultationRequestId, $consultationSetup, $consultant, $startTime);
     }
     
     public function reproposeConsultationRequest(string $consultationRequestId, DateTimeImmutable $startTime): void
@@ -67,7 +67,7 @@ class UserParticipant extends ModelContainEvents
         $event = new UserParticipantChangedConsultationRequestTime($this->userId, $this->id, $consultationRequestId);
         $this->recordEvent($event);
         
-        $this->participant->reproposeConsultationRequest($consultationRequestId, $startTime);
+        $this->participant->changeConsultationRequestTime($consultationRequestId, $startTime);
     }
     
     public function acceptConsultationRequest(string $consultationRequestId): void
@@ -77,7 +77,7 @@ class UserParticipant extends ModelContainEvents
         $event = new UserParticipantAcceptedConsultationRequest($this->userId, $this->id, $consultationSessionId);
         $this->recordEvent($event);
         
-        $this->participant->acceptConsultationRequest($consultationRequestId, $consultationSessionId);
+        $this->participant->acceptOfferedConsultationRequest($consultationRequestId, $consultationSessionId);
     }
     
     public function createRootWorksheet(

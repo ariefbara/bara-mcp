@@ -106,4 +106,24 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         $this->getEntityManager()->flush();
     }
 
+    public function ofId(string $consultationRequestId): ConsultationRequest
+    {
+        $params = [
+            "consultationRequestId" => $consultationRequestId,
+        ];
+        
+        $qb = $this->createQueryBuilder("consultationRequest");
+        $qb->select("consultationRequest")
+                ->andWhere($qb->expr()->eq("consultationRequest.id", ":consultationRequestId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: consultation request not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

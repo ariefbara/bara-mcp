@@ -3,16 +3,18 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
-use Query\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Program,
-    Model\Firm\Program\Participant\Worksheet,
-    Model\Firm\Team,
-    Service\Firm\ClientFinder,
-    Service\Firm\Program\Participant\WorksheetFinder,
-    Service\Firm\ProgramFinder,
-    Service\Firm\Team\TeamFileInfoFinder,
-    Service\Firm\Team\TeamProgramParticipationFinder
+use Query\{
+    Domain\Model\Firm\Client,
+    Domain\Model\Firm\Program,
+    Domain\Model\Firm\Program\Participant\Worksheet,
+    Domain\Model\Firm\Team,
+    Domain\Service\Firm\ClientFinder,
+    Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder,
+    Domain\Service\Firm\Program\Participant\WorksheetFinder,
+    Domain\Service\Firm\ProgramFinder,
+    Domain\Service\Firm\Team\TeamFileInfoFinder,
+    Domain\Service\Firm\Team\TeamProgramParticipationFinder,
+    Infrastructure\QueryFilter\ConsultationRequestFilter
 };
 use Resources\Exception\RegularException;
 
@@ -84,6 +86,22 @@ class Member
     protected function __construct()
     {
         ;
+    }
+
+    protected function assertAnAdmin(): void
+    {
+        if (!$this->anAdmin) {
+            $errorDetail = "forbidden: only team admin can make this requests";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+
+    protected function assertActive(): void
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active team member can make this requests";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
     public function isAnAdmin(): bool
@@ -168,32 +186,35 @@ class Member
         $this->assertActive();
         return $teamFileInfoFinder->findFileInfoBelongsToTeam($this->team, $teamFileInfoId);
     }
-    
+
     public function viewProgram(ProgramFinder $programFinder, string $programId): Program
     {
         $this->assertActive();
         return $programFinder->findProgramAvaiableForTeam($this->team, $programId);
     }
+
     public function viewAllAvailablePrograms(ProgramFinder $programFinder, int $page, int $pageSize)
     {
         $this->assertActive();
         return $programFinder->findAllProgramsAvailableForTeam($this->team, $page, $pageSize);
     }
 
-    protected function assertAnAdmin(): void
+    public function viewConsultationRequest(
+            ConsultationRequestFinder $consultationRequestFinder, string $teamProgramParticipationId,
+            string $consultationRequestId)
     {
-        if (!$this->anAdmin) {
-            $errorDetail = "forbidden: only team admin can make this requests";
-            throw RegularException::forbidden($errorDetail);
-        }
+        $this->assertActive();
+        return $consultationRequestFinder->findConsultationRequestBelongsToTeam(
+                        $this->team, $teamProgramParticipationId, $consultationRequestId);
     }
 
-    protected function assertActive(): void
+    public function viewAllConsultationRequest(
+            ConsultationRequestFinder $consultationRequestFinder, string $teamProgramParticipationId, int $page,
+            int $pageSize, ?ConsultationRequestFilter $consultationRequestFilter)
     {
-        if (!$this->active) {
-            $errorDetail = "forbidden: only active team member can make this requests";
-            throw RegularException::forbidden($errorDetail);
-        }
+        $this->assertActive();
+        return $consultationRequestFinder->findAllConsultationRequestsBelongsToTeam(
+                        $this->team, $teamProgramParticipationId, $page, $pageSize, $consultationRequestFilter);
     }
 
 }

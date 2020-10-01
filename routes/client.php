@@ -70,6 +70,16 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{worksheetId}", ["uses" => "$controller@show"]);
             });
             
+            $router->group(['prefix' => '/consultation-requests'], function () use($router) {
+                $controller = "ConsultationRequestController";
+                $router->post("", ["uses" => "$controller@submit"]);
+                $router->patch("/{consultationRequestId}/change-time", ["uses" => "$controller@changeTime"]);
+                $router->patch("/{consultationRequestId}/cancel", ["uses" => "$controller@cancel"]);
+                $router->patch("/{consultationRequestId}/accept", ["uses" => "$controller@accept"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{consultationRequestId}", ["uses" => "$controller@show"]);
+            });
+            
         });
         
     });

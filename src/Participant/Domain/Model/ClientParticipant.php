@@ -63,13 +63,13 @@ class ClientParticipant extends ModelContainEvents
         $event = new ClientParticipantProposedConsultationRequest($firmId, $clientId, $this->id, $consultationRequestId);
         $this->recordEvent($event);
 
-        return $this->participant->proposeConsultation(
+        return $this->participant->submitConsultationRequest(
                         $consultationRequestId, $consultationSetup, $consultant, $startTime);
     }
 
     public function reproposeConsultationRequest(string $consultationRequestId, DateTimeImmutable $startTime): void
     {
-        $this->participant->reproposeConsultationRequest($consultationRequestId, $startTime);
+        $this->participant->changeConsultationRequestTime($consultationRequestId, $startTime);
         
         $firmId = $this->client->getFirmId();
         $clientId = $this->client->getId();
@@ -81,7 +81,7 @@ class ClientParticipant extends ModelContainEvents
     public function acceptConsultationRequest(string $consultationRequestId): void
     {
         $consultationSessionId = Uuid::generateUuid4();
-        $this->participant->acceptConsultationRequest($consultationRequestId, $consultationSessionId);
+        $this->participant->acceptOfferedConsultationRequest($consultationRequestId, $consultationSessionId);
         
         $firmId = $this->client->getFirmId();
         $clientId = $this->client->getId();

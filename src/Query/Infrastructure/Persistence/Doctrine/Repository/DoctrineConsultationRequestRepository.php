@@ -12,14 +12,17 @@ use Query\ {
     Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
-    Domain\Model\User\UserParticipant
+    Domain\Model\Firm\Team\TeamProgramParticipation,
+    Domain\Model\User\UserParticipant,
+    Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestRepository as InterfaceForDomainService,
+    Infrastructure\QueryFilter\ConsultationRequestFilter as ConsultationRequestFilter2
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository
+class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository, InterfaceForDomainService
 {
 
     public function aConsultationRequestOfClient(
@@ -265,10 +268,92 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
                 ->leftJoin('consultationRequest.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
                 ->setParameters($params);
-        
+
         $this->applyFilter($qb, $consultationRequestFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aConsultationRequestBelongsToTeam(string $teamId, string $teamProgramParticipationId,
+            string $consultationRequestId): ConsultationRequest
+    {
+        $params = [
+            "teamId" => $teamId,
+            "teamProgramParticipationId" => $teamProgramParticipationId,
+            "consultationRequestId" => $consultationRequestId,
+        ];
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder("consultationRequest");
+        $qb->select("consultationRequest")
+                ->andWhere($qb->expr()->eq("consultationRequest.id", ":consultationRequestId"))
+                ->leftJoin("consultationRequest.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: consultation request not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allConsultationRequestsBelongsToTeam(string $teamId, string $teamProgramParticipationId, int $page,
+            int $pageSize, ?ConsultationRequestFilter2 $consultationRequestFilter)
+    {
+        $params = [
+            "teamId" => $teamId,
+            "teamProgramParticipationId" => $teamProgramParticipationId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder("consultationRequest");
+        $qb->select("consultationRequest")
+                ->leftJoin("consultationRequest.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params);
         
+        $this->applyCompleteFilter($qb, $consultationRequestFilter);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+    protected function applyCompleteFilter(QueryBuilder $qb, ?ConsultationRequestFilter2 $consultationRequestFilter): void
+    {
+        if (!isset($consultationRequestFilter)) {
+            return;
+        }
+        
+        if (!empty($consultationRequestFilter->getMinStartTime())) {
+            $qb->andWhere($qb->expr()->eq("consultationRequest.startEndTime.startDateTime", ":minStartTime"))
+                    ->setParameter("minStartTime", $consultationRequestFilter->getMinStartTime());
+        }
+        if (!empty($consultationRequestFilter->getMaxEndTime())) {
+            $qb->andWhere($qb->expr()->eq("consultationRequest.startEndTime.endDateTime", ":maxEndTime"))
+                    ->setParameter("maxEndTime", $consultationRequestFilter->getMaxEndTime());
+        }
+        if (!empty($consultationRequestFilter->getConcludedStatus())) {
+            $qb->andWhere($qb->expr()->eq("consultationRequest.concluded", ":concludedStatus"))
+                    ->setParameter("concludedStatus", $consultationRequestFilter->getConcludedStatus());
+        }
+        if (!empty($consultationRequestFilter->getStatus())) {
+            $qb->andWhere($qb->expr()->in("consultationRequest.status", ":status"))
+                    ->setParameter("status", $consultationRequestFilter->getStatus());
+        }
     }
 
 }

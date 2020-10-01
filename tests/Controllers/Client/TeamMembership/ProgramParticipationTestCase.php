@@ -17,7 +17,7 @@ class ProgramParticipationTestCase extends TeamMembershipTestCase
 
     /**
      *
-     * @var RecordOfClientParticipant
+     * @var RecordOfTeamProgramParticipation
      */
     protected $programParticipation;
 

@@ -143,5 +143,10 @@ class ConsultationRequest
             throw RegularException::conflict($errorDetail);
         }
     }
+    
+    public function belongsTo(Participant $participant): bool
+    {
+        return $this->participant === $participant;
+    }
 
 }

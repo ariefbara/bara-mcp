@@ -36,8 +36,8 @@ class RecordOfConsultationRequest implements Record
         $this->participant = $participant;
         $this->consultant = $consultant;
         $this->id = "negotiate-schedule-$index-id";
-        $this->startDateTime = (new DateTime("+24 hours"))->format('Y-m-d H:i:s');
-        $this->endDateTime = (new DateTime("+25 hours"))->format('Y-m-d H:i:s');
+        $this->startDateTime = (new DateTime("+128 hours"))->format('Y-m-d H:i:s');
+        $this->endDateTime = (new DateTime("+129 hours"))->format('Y-m-d H:i:s');
         $this->concluded = false;
         $this->status = "proposed";
     }

@@ -8,14 +8,15 @@ use Doctrine\ORM\ {
 };
 use Participant\ {
     Application\Service\Firm\Program\ConsultantRepository,
+    Domain\DependencyModel\Firm\Program\Consultant,
     Domain\Model\ClientParticipant,
-    Domain\Model\DependencyEntity\Firm\Program\Consultant,
     Domain\Model\UserParticipant
 };
 use Resources\Exception\RegularException;
 
 class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository
 {
+
     public function aConsultantInProgramWhereClientParticipate(string $firmId, string $clientId,
             string $programParticipationId, string $consultantId): Consultant
     {
@@ -35,7 +36,7 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
                 ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
                 ->andWhere($clientParticipantQb->expr()->eq('client.firmId', ':firmId'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('consultant');
         $qb->select('consultant')
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
@@ -67,7 +68,7 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
                 ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':userParticipantId'))
                 ->leftJoin('userParticipant.participant', 'participant')
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('consultant');
         $qb->select('consultant')
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
@@ -79,6 +80,25 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: consultant not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function ofId(string $consultantId): Consultant
+    {
+        $params = [
+            "consultantId" => $consultantId,
+        ];
+        $qb = $this->createQueryBuilder("consultant");
+        $qb->select("consultant")
+                ->andWhere($qb->expr()->eq("consultant.id", ":consultantId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: consultant not found";
             throw RegularException::notFound($errorDetail);
         }
     }
