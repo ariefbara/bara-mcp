@@ -4,6 +4,7 @@ namespace Participant\Domain\Model\Participant;
 
 use Participant\Domain\ {
     DependencyModel\Firm\Program\Mission,
+    DependencyModel\Firm\Team,
     Model\Participant,
     Model\Participant\Worksheet\Comment
 };
@@ -164,6 +165,15 @@ class WorksheetTest extends TestBase
     {
         $comment = new Comment($this->worksheet, $this->commentId, $this->commentMessage);
         $this->assertEquals($comment, $this->worksheet->createComment($this->commentId, $this->commentMessage));
+    }
+    
+    public function test_belongsToTeam_returnParticipantsIsATeamProgramParticipationOfTeamResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("isATeamProgramParticipationOfTeam")
+                ->with($team = $this->buildMockOfClass(Team::class))
+                ->willReturn(true);
+        $this->assertTrue($this->worksheet->belongsToTeam($team));
     }
 }
 

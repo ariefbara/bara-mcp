@@ -12,6 +12,7 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
+    DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
@@ -57,6 +58,22 @@ class Participant
      * @var ArrayCollection
      */
     protected $consultationSessions;
+
+    /**
+     *
+     * @var TeamProgramParticipation|null
+     */
+    protected $teamProgramParticipation;
+
+    protected function __construct()
+    {
+        
+    }
+    
+    public function isATeamProgramParticipationOfTeam(Team $team): bool
+    {
+        return isset($this->teamProgramParticipation)? $this->teamProgramParticipation->teamEquals($team): false;
+    }
 
     public function quit(): void
     {
@@ -113,6 +130,7 @@ class Participant
         $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
         $this->consultationSessions->add($consultationSession);
     }
+
     public function cancelConsultationRequest(ConsultationRequest $consultationRequest): void
     {
         if (!$consultationRequest->belongsTo($this)) {
@@ -141,7 +159,7 @@ class Participant
         $this->assertOwnAsset($parentWorksheet);
         return $parentWorksheet->createBranchWorksheet($worksheetId, $worksheetName, $mission, $formRecordData);
     }
-    
+
     public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData): void
     {
         $this->assertActive();
@@ -189,7 +207,7 @@ class Participant
             throw RegularException::conflict($errorDetail);
         }
     }
-    
+
     protected function assertActive(): void
     {
         if (!$this->active) {
@@ -197,7 +215,7 @@ class Participant
             throw RegularException::forbidden($errorDetail);
         }
     }
-    
+
     protected function assertOwnAsset(AssetBelongsToParticipantInterface $asset): void
     {
         if (!$asset->belongsTo($this)) {
@@ -205,8 +223,9 @@ class Participant
             throw RegularException::forbidden($errorDetail);
         }
     }
-    
-    public function submitConsultationSessionReport(ConsultationSession $consultationSession, FormRecordData $formRecordData): void
+
+    public function submitConsultationSessionReport(ConsultationSession $consultationSession,
+            FormRecordData $formRecordData): void
     {
         $this->assertActive();
         $this->assertOwnAsset($consultationSession);

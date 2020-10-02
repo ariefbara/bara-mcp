@@ -10,6 +10,7 @@ use Participant\ {
     Application\Service\Participant\Worksheet\CommentRepository,
     Domain\Model\ClientParticipant,
     Domain\Model\Participant\Worksheet\Comment,
+    Domain\Model\TeamProgramParticipation,
     Domain\Model\UserParticipant
 };
 use Resources\ {
@@ -110,6 +111,40 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aCommentBelongsToTeamParticipant(string $teamProgramParticipationId, string $worksheetId,
+            string $commentId): Comment
+    {
+        $params = [
+            "teamProgramParticipationId" => $teamProgramParticipationId,
+            "worksheetId" => $worksheetId,
+            "commentId" => $commentId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("comment");
+        $qb->select("comment")
+                ->andWhere($qb->expr()->eq("comment.id", ":commentId"))
+                ->leftJoin("comment.worksheet", "worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: comment not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

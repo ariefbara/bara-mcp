@@ -17,6 +17,8 @@ interface WorksheetRepository
     public function aWorksheetBelongsToUserParticipant(
             string $userId, string $programParticipationId, string $worksheetId): Worksheet;
     
+    public function aWorksheetBelongsToTeamParticipant(string $teamProgramParticipationId, string $worksheetId): Worksheet;
+    
     public function update(): void;
     
     public function ofId(string $worksheetId): Worksheet;

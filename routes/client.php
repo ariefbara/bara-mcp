@@ -69,6 +69,20 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{worksheetId}/branches", ["uses" => "$controller@showAllBranches"]);
                 $router->get("/{worksheetId}", ["uses" => "$controller@show"]);
             });
+            $worksheetAggregate = [
+                'prefix' => '/worksheets/{worksheetId}',
+                'namespace' => 'Worksheet',
+            ];
+            $router->group($worksheetAggregate, function () use ($router) {
+                $router->group(['prefix' => '/comments'], function () use($router) {
+                    $controller = "CommentController";
+                    $router->post("", ["uses" => "$controller@submitNew"]);
+                    $router->post("/{commentId}", ["uses" => "$controller@reply"]);
+                    $router->get("", ["uses" => "$controller@showAll"]);
+                    $router->get("/{commentId}", ["uses" => "$controller@show"]);
+                });
+                
+            });
             
             $router->group(['prefix' => '/consultation-requests'], function () use($router) {
                 $controller = "ConsultationRequestController";

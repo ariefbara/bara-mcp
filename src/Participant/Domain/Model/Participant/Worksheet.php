@@ -3,7 +3,9 @@
 namespace Participant\Domain\Model\Participant;
 
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Program\Mission,
+    DependencyModel\Firm\Team,
     Model\AssetBelongsToParticipantInterface,
     Model\Participant,
     Model\Participant\Worksheet\Comment
@@ -18,7 +20,7 @@ use SharedContext\Domain\Model\SharedEntity\ {
     FormRecordData
 };
 
-class Worksheet implements AssetBelongsToParticipantInterface
+class Worksheet implements AssetBelongsToParticipantInterface, AssetBelongsToTeamInterface
 {
 
     /**
@@ -128,6 +130,11 @@ class Worksheet implements AssetBelongsToParticipantInterface
     public function createComment(string $commentId, string $message): Comment
     {
         return new Comment($this, $commentId, $message);
+    }
+    
+    public function belongsToTeam(Team $team): bool
+    {
+        return $this->participant->isATeamProgramParticipationOfTeam($team);
     }
 
 }

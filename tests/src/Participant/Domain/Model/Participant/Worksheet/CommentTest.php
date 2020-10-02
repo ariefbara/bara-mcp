@@ -2,9 +2,10 @@
 
 namespace Participant\Domain\Model\Participant\Worksheet;
 
-use Participant\Domain\Model\ {
-    DependencyEntity\Firm\Program\Consultant\ConsultantComment,
-    Participant\Worksheet
+use Participant\Domain\ {
+    DependencyModel\Firm\Program\Consultant\ConsultantComment,
+    DependencyModel\Firm\Team,
+    Model\Participant\Worksheet
 };
 use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
@@ -76,6 +77,15 @@ class CommentTest extends TestBase
     {
         $this->comment->consultantComment = $this->consultantComment;
         $this->assertTrue($this->comment->isConsultantComment());
+    }
+    
+    public function test_belongsToTeam_returnWorksheetBelongsToTeamResult()
+    {
+        $this->worksheet->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($team = $this->buildMockOfClass(Team::class))
+                ->willReturn(true);
+        $this->assertTrue($this->comment->belongsToTeam($team));
     }
     
 }

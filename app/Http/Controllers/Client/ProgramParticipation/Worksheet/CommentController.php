@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Client\ProgramParticipation\Worksheet;
 
 use App\Http\Controllers\Client\ClientBaseController;
-use Participant\{
+use Participant\ {
     Application\Service\ClientParticipant\Worksheet\ReplyComment,
     Application\Service\ClientParticipant\Worksheet\SubmitNewComment,
     Domain\Model\ClientParticipant,
     Domain\Model\Participant\Worksheet,
     Domain\Model\Participant\Worksheet\Comment as Comment2
 };
-use Query\{
+use Query\ {
     Application\Service\Firm\Client\ProgramParticipation\Worksheet\ViewComment,
-    Domain\Model\Firm\Program\Consultant,
+    Domain\Model\Firm\Program\Consultant\ConsultantComment,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
 };
 use Resources\Application\Event\Dispatcher;
@@ -94,7 +94,7 @@ class CommentController extends ClientBaseController
         ];
     }
 
-    protected function arrayDataOfConsultantComment(?Consultant\ConsultantComment $consultantComment): ?array
+    protected function arrayDataOfConsultantComment(?ConsultantComment $consultantComment): ?array
     {
         return empty($consultantComment) ? null : [
             'id' => $consultantComment->getId(),

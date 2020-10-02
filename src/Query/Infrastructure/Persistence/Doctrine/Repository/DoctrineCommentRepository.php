@@ -10,6 +10,8 @@ use Query\ {
     Application\Service\Firm\Program\Participant\Worksheet\CommentRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment,
+    Domain\Model\Firm\Team\Member,
+    Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
 use Resources\ {
@@ -41,7 +43,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($clientParticipantQb->expr()->eq('firm.id', ':firmId'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('comment');
         $qb->select('comment')
                 ->andWhere($qb->expr()->eq('comment.id', ':commentId'))
@@ -51,7 +53,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -69,7 +71,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
             'participantId' => $participantId,
             'worksheetId' => $worksheetId,
         ];
-        
+
         $qb = $this->createQueryBuilder('comment');
         $qb->select('comment')
                 ->leftJoin('comment.worksheet', 'worksheet')
@@ -81,7 +83,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -105,7 +107,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($clientParticipantQb->expr()->eq('firm.id', ':firmId'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('comment');
         $qb->select('comment')
                 ->leftJoin('comment.worksheet', 'worksheet')
@@ -113,7 +115,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->leftJoin('worksheet.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
                 ->setParameters($params);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -127,7 +129,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
             'worksheetId' => $worksheetId,
             'commentId' => $commentId,
         ];
-        
+
         $qb = $this->createQueryBuilder('comment');
         $qb->select('comment')
                 ->andWhere($qb->expr()->eq('comment.id', ':commentId'))
@@ -141,7 +143,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -168,7 +170,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->leftJoin('userParticipant.user', 'user')
                 ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('comment');
         $qb->select('comment')
                 ->andWhere($qb->expr()->eq('comment.id', ':commentId'))
@@ -178,7 +180,7 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -204,13 +206,107 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
                 ->leftJoin('userParticipant.user', 'user')
                 ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('comment');
         $qb->select('comment')
                 ->leftJoin('comment.worksheet', 'worksheet')
                 ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
                 ->leftJoin('worksheet.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aCommentBelongsToTeamWhereClientIsMember(
+            string $firmId, string $clientId, string $teamMembershipId, string $teamProgramParticipationId,
+            string $worksheetId, string $commentId): Comment
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "teamMembershipId" => $teamMembershipId,
+            "teamProgramParticipationId" => $teamProgramParticipationId,
+            "worksheetId" => $worksheetId,
+            "commentId" => $commentId,
+        ];
+        
+        $teamQb = $this->getEntityManager()->createQueryBuilder();
+        $teamQb->select("t_team.id")
+                ->from(Member::class, "teamMembership")
+                ->andWhere($teamQb->expr()->eq("teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("teamMembership.client", "client")
+                ->andWhere($teamQb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($teamQb->expr()->eq("firm.id", ":firmId"))
+                ->leftJoin("teamMembership.team", "t_team")
+                ->setMaxResults(1);
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($participantQb->expr()->in("team.id", $teamQb->getDQL()))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("comment");
+        $qb->select("comment")
+                ->andWhere($qb->expr()->eq("comment.id", ":commentId"))
+                ->leftJoin("comment.worksheet", "worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: comment not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allCommentsBelongsToTeamWhereClientIsMember(
+            string $firmId, string $clientId, string $teamMembershipId, string $teamProgramParticipationId,
+            string $worksheetId, int $page, int $pageSize)
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "teamMembershipId" => $teamMembershipId,
+            "teamProgramParticipationId" => $teamProgramParticipationId,
+            "worksheetId" => $worksheetId,
+        ];
+        
+        $teamQb = $this->getEntityManager()->createQueryBuilder();
+        $teamQb->select("t_team.id")
+                ->from(Member::class, "teamMembership")
+                ->andWhere($teamQb->expr()->eq("teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("teamMembership.client", "client")
+                ->andWhere($teamQb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($teamQb->expr()->eq("firm.id", ":firmId"))
+                ->leftJoin("teamMembership.team", "t_team")
+                ->setMaxResults(1);
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($participantQb->expr()->in("team.id", $teamQb->getDQL()))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("comment");
+        $qb->select("comment")
+                ->leftJoin("comment.worksheet", "worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);

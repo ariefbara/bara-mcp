@@ -10,6 +10,7 @@ use Participant\ {
     Application\Service\Participant\WorksheetRepository,
     Domain\Model\ClientParticipant,
     Domain\Model\Participant\Worksheet,
+    Domain\Model\TeamProgramParticipation,
     Domain\Model\UserParticipant
 };
 use Resources\ {
@@ -115,6 +116,36 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         $qb = $this->createQueryBuilder("worksheet");
         $qb->select("worksheet")
                 ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: worksheet not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aWorksheetBelongsToTeamParticipant(string $teamProgramParticipationId, string $worksheetId): Worksheet
+    {
+        $params = [
+            "teamProgramParticipationId" => $teamProgramParticipationId,
+            "worksheetId" => $worksheetId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
         

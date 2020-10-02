@@ -9,6 +9,7 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
+    DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
@@ -23,12 +24,14 @@ class ParticipantTest extends TestBase
     protected $program;
     protected $consultationRequest;
     protected $consultationSession;
-    
+    protected $teamProgramParticipation;
+
     protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $startTime;
     protected $consultationSessionId = 'consultationSessionId';
     protected $otherConsultationRequest;
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
     protected $parentWorksheet;
+    protected $team;
 
     protected function setUp(): void
     {
@@ -38,6 +41,9 @@ class ParticipantTest extends TestBase
         $this->participant->note = null;
         $this->participant->consultationRequests = new ArrayCollection();
         $this->participant->consultationSessions = new ArrayCollection();
+        
+        $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
+        $this->participant->teamProgramParticipation = $this->teamProgramParticipation;
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->participant->program = $this->program;
@@ -60,6 +66,9 @@ class ParticipantTest extends TestBase
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         
         $this->parentWorksheet = $this->buildMockOfClass(Worksheet::class);
+        
+        $this->team = $this->buildMockOfClass(Team::class);
+        
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -438,6 +447,24 @@ class ParticipantTest extends TestBase
             $this->executeSubmitConsultationSessionReport();
         });
     }
+    
+    protected function executeIsATeamProgramParticipationOfTeam()
+    {
+        return $this->participant->isATeamProgramParticipationOfTeam($this->team);
+    }
+    public function test_isATeamProgramParticipationOfTeam_returnTeamProgramParticipationsTeamEqualsResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("teamEquals")
+                ->with($this->team)
+                ->willReturn(true);
+        $this->assertTrue($this->executeIsATeamProgramParticipationOfTeam());
+    }
+    public function test_isATeamProgramParticipationOfTeam_notATeamProgramParticipation_returnFalse()
+    {
+        $this->participant->teamProgramParticipation = null;
+        $this->assertFalse($this->executeIsATeamProgramParticipationOfTeam());
+    }
 }
 
 class TestableParticipant extends Participant
@@ -449,6 +476,7 @@ class TestableParticipant extends Participant
     public $note;
     public $consultationRequests;
     public $consultationSessions;
+    public $teamProgramParticipation;
 
     function __construct()
     {

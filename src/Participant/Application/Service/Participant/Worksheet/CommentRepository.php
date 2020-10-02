@@ -17,5 +17,8 @@ interface CommentRepository
     public function aCommentInUserParticipantWorksheet(
             string $userId, string $programParticipationId, string $worksheetId, string $commentId): Comment;
 
+    public function aCommentBelongsToTeamParticipant(
+            string $teamProgramParticipationId, string $worksheetId, string $commentId): Comment;
+
     public function update(): void;
 }

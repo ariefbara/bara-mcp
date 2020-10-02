@@ -2,21 +2,22 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Query\{
+use Query\ {
+    Application\Auth\Firm\Client\TeamMembershipRepository,
     Application\Auth\Firm\Team\MemberRepository as InterfaceForAuthorization,
     Application\Service\Firm\Team\MemberRepository,
     Domain\Model\Firm\Team\Member
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization
+class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository
 {
 
     public function aTeamMembershipOfClient(string $firmId, string $clientId, string $teamMembershipId): Member
@@ -156,6 +157,27 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
                 ->setParameters($params)
                 ->setMaxResults(1);
         
+        return !empty($qb->getQuery()->getResult());
+    }
+
+    public function containRecordOfActiveTeamMembership(string $firmId, string $clientId, string $teamMembershipId): bool
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "teamMembershipId" => $teamMembershipId,
+        ];
+        
+        $qb = $this->createQueryBuilder("teamMembership");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("teamMembership.id", ":teamMembershipId"))
+                ->andWhere($qb->expr()->eq("teamMembership.active", "true"))
+                ->leftJoin("teamMembership.client", "client")
+                ->andWhere($qb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
         return !empty($qb->getQuery()->getResult());
     }
 

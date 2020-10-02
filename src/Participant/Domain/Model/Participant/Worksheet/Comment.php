@@ -3,16 +3,18 @@
 namespace Participant\Domain\Model\Participant\Worksheet;
 
 use DateTimeImmutable;
-use Participant\Domain\Model\ {
-    DependencyEntity\Firm\Program\Consultant\ConsultantComment,
-    Participant\Worksheet
+use Participant\Domain\ {
+    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
+    DependencyModel\Firm\Program\Consultant\ConsultantComment,
+    DependencyModel\Firm\Team,
+    Model\Participant\Worksheet
 };
 use Resources\ {
     DateTimeImmutableBuilder,
     Exception\RegularException
 };
 
-class Comment
+class Comment implements AssetBelongsToTeamInterface
 {
 
     /**
@@ -91,6 +93,11 @@ class Comment
     public function isConsultantComment(): bool
     {
         return !empty($this->consultantComment);
+    }
+
+    public function belongsToTeam(Team $team): bool
+    {
+        return $this->worksheet->belongsToTeam($team);
     }
 
 }

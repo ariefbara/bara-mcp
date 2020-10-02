@@ -16,6 +16,7 @@
         
         <one-to-one field="programParticipation" 
                     target-entity="Participant\Domain\Model\Participant"
+                    inversed-by="teamProgramParticipation"
         >
             <join-column name="Participant_id" referenced-column-name="id" />
         </one-to-one>

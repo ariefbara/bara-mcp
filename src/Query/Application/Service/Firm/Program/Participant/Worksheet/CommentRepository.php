@@ -4,11 +4,12 @@ namespace Query\Application\Service\Firm\Program\Participant\Worksheet;
 
 use Query\ {
     Application\Service\Firm\Client\ProgramParticipation\Worksheet\CommentRepository as InterfaceForClient,
+    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet\CommentRepository as InterfaceForTeamMember,
     Application\Service\User\ProgramParticipation\Worksheet\CommentRepository as InterfaceForUser,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
 };
 
-interface CommentRepository extends InterfaceForClient, InterfaceForUser
+interface CommentRepository extends InterfaceForClient, InterfaceForUser, InterfaceForTeamMember
 {
 
     public function ofId(

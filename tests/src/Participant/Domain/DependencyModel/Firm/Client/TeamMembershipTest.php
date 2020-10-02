@@ -3,7 +3,7 @@
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
@@ -12,6 +12,7 @@ use Participant\Domain\{
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet,
+    Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
     Model\TeamProgramRegistration
 };
@@ -32,6 +33,7 @@ class TeamMembershipTest extends TestBase
     protected $consultationSetup, $consultant;
     protected $startTIme;
     protected $consultationSession;
+    protected $comment, $commentId = "commentId", $commentMessage = "comment message";
 
     protected function setUp(): void
     {
@@ -55,6 +57,13 @@ class TeamMembershipTest extends TestBase
         $this->startTIme = new DateTimeImmutable();
 
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
+        
+        $this->comment = $this->buildMockOfClass(Comment::class);
+    }
+    protected function assertAssetDoesntBelongsToTeamForbiddenError(callable $operation)
+    {
+        $errorDetail = "forbidden: you can only manage asset belongs to your team";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
     protected function setOnceTeamProgramParticipationTeamEqualsMethodCallReturnFalse()
@@ -426,6 +435,69 @@ class TeamMembershipTest extends TestBase
         $this->setOnceTeamProgramParticipationTeamEqualsMethodCallReturnFalse();
         $this->assertOperationCauseManageOtherTeamAsserForbiddenError(function (){
             $this->executeSubmitConsultationSessionReport();
+        });
+    }
+    
+    protected function executeSubmitNewCommentInWorksheet()
+    {
+        $this->worksheet->expects($this->any())->method("belongsToTeam")->willReturn(true);
+        return $this->teamMembership->submitNewCommentInWorksheet($this->worksheet, $this->commentId, $this->commentMessage);
+    }
+    public function test_submitNewCommentInWorksheet_returnWorksheetCreateCommentResult()
+    {
+        $this->worksheet->expects($this->once())
+                ->method("createComment")
+                ->with($this->commentId, $this->commentMessage);
+        $this->executeSubmitNewCommentInWorksheet();
+    }
+    public function test_submitNewCommentInWorksheet_worksheetDoesntBelongsToTeam_forbiddenError()
+    {
+        $this->worksheet->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($this->team)
+                ->willReturn(false);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeSubmitNewCommentInWorksheet();
+        });
+    }
+    public function test_submitNewCommentInWorksheet_inactiveMember_forbiddenError()
+    {
+        $this->teamMembership->active = false;
+        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function (){
+            $this->executeSubmitNewCommentInWorksheet();
+        });
+    }
+    
+    protected function executeReplyComment()
+    {
+        $this->comment->expects($this->any())
+                ->method("belongsToTeam")
+                ->willReturn(true);
+        return $this->teamMembership->replyComment($this->comment, $this->commentId, $this->commentMessage);
+    }
+    public function test_replyComment_returnCommentCreateReplyResult()
+    {
+        $this->comment->expects($this->once())
+                ->method("createReply")
+                ->with($this->commentId, $this->commentMessage)
+                ->willReturn($reply = $this->buildMockOfClass(Comment::class));
+        $this->assertEquals($reply, $this->executeReplyComment());
+    }
+    public function test_replyComment_commentDoesntBelongsToTeam_forbiddenError()
+    {
+        $this->comment->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($this->team)
+                ->willReturn(false);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeReplyComment();
+        });
+    }
+    public function test_replyComment_inactiveMember_forbiddenError()
+    {
+        $this->teamMembership->active = false;
+        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function (){
+            $this->executeReplyComment();
         });
     }
 

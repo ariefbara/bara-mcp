@@ -14,6 +14,11 @@
         <field name="active" type="boolean" />
         <field name="note" type="string" length="256" nullable="true"/>
         
+        <one-to-one field="teamProgramParticipation" 
+                    target-entity="Participant\Domain\Model\TeamProgramParticipation"
+                    mapped-by="programParticipation"
+        />
+        
         <one-to-many  field="consultationRequests" 
                       target-entity="Participant\Domain\Model\Participant\ConsultationRequest"
                       mapped-by="participant"

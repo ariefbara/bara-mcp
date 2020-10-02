@@ -3,7 +3,7 @@
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
@@ -13,6 +13,7 @@ use Participant\Domain\{
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet,
+    Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
     Model\TeamProgramRegistration
 };
@@ -55,6 +56,14 @@ class TeamMembership
     {
         if (!$teamProgramParticipation->teamEquals($this->team)) {
             $errorDetail = "forbbiden: not allowed to manage asset of other team";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+    
+    protected function assertAssetBelongsToTeam(AssetBelongsToTeamInterface $assetBelongsToTeam): void
+    {
+        if (!$assetBelongsToTeam->belongsToTeam($this->team)) {
+            $errorDetail = "forbidden: you can only manage asset belongs to your team";
             throw RegularException::forbidden($errorDetail);
         }
     }
@@ -160,6 +169,19 @@ class TeamMembership
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
         $teamProgramParticipation->submitConsultationSessionReport($consultationSession, $formRecordData);
+    }
+    
+    public function submitNewCommentInWorksheet(Worksheet $worksheet, string $commentId, string $message): Comment
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($worksheet);
+        return $worksheet->createComment($commentId, $message);
+    }
+    public function replyComment(Comment $comment, string $replyId, string $message): Comment
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($comment);
+        return $comment->createReply($replyId, $message);
     }
 
 }
