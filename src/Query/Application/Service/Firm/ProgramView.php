@@ -29,9 +29,9 @@ class ProgramView
      * @param int $pageSize
      * @return Program[]
      */
-    public function showAll(string $firmId, int $page, int $pageSize, ?string $participantType = null)
+    public function showAll(string $firmId, int $page, int $pageSize)
     {
-        return $this->programRepository->all($firmId, $page, $pageSize, $participantType);
+        return $this->programRepository->allProgramViewableByClient($firmId, $page, $pageSize);
     }
 
 }

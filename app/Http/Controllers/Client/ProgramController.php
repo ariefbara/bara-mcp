@@ -19,8 +19,7 @@ class ProgramController extends ClientBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $participantType = ParticipantTypes::CLIENT_TYPE;
-        $programs = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize(), $participantType);
+        $programs = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize());
         
         $result = [];
         $result["total"] = count($programs);
@@ -29,6 +28,7 @@ class ProgramController extends ClientBaseController
                 "id" => $program->getId(),
                 "name" => $program->getName(),
                 "published" => $program->isPublished(),
+                "participantTypes" => $program->getParticipantTypeValues(),
                 "removed" => $program->isRemoved(),
             ];
         }

@@ -13,4 +13,6 @@ interface ProgramRepository extends InterfaceForUser
     public function ofId(string $firmId, string $programId): Program;
 
     public function all(string $firmId, int $page, int $pageSize, ?string $participantType);
+    
+    public function allProgramViewableByClient(string $firmId, int $page, int $pageSize);
 }

@@ -68,4 +68,23 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
+    public function allProgramViewableByClient(string $firmId, int $page, int $pageSize)
+    {
+        $clientType = "%" . ParticipantTypes::CLIENT_TYPE . "%";
+        $teamType = "%". ParticipantTypes::TEAM_TYPE . "%";
+        
+        $qb = $this->createQueryBuilder('program');
+        $qb->select('program')
+                ->andWhere($qb->expr()->eq('program.removed', 'false'))
+                ->andWhere($qb->expr()->orX(
+                        $qb->expr()->like('program.participantTypes.values', "'$clientType'"),
+                        $qb->expr()->like('program.participantTypes.values', "'$teamType'")
+                ))
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameter('firmId', $firmId);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
 }
