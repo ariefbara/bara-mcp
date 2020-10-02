@@ -5,6 +5,7 @@ namespace Participant\Domain\Model\Participant;
 use Participant\Domain\ {
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
+    Model\AssetBelongsToParticipantInterface,
     Model\Participant,
     Model\Participant\ConsultationSession\ParticipantFeedback
 };
@@ -14,7 +15,7 @@ use Resources\ {
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
-class ConsultationSession
+class ConsultationSession implements AssetBelongsToParticipantInterface
 {
 
     /**
@@ -79,4 +80,10 @@ class ConsultationSession
             $this->participantFeedback = new ParticipantFeedback($this, $id, $formRecord);
         }
     }
+
+    public function belongsTo(Participant $participant): bool
+    {
+        return $this->participant === $participant;
+    }
+
 }

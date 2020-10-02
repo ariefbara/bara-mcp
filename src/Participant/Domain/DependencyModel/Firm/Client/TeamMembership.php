@@ -11,6 +11,7 @@ use Participant\Domain\{
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
+    Model\Participant\ConsultationSession,
     Model\Participant\Worksheet,
     Model\TeamProgramParticipation,
     Model\TeamProgramRegistration
@@ -150,6 +151,15 @@ class TeamMembership
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
         $teamProgramParticipation->acceptOfferedConsultationRequest($consultationRequestId);
+    }
+
+    public function submitConsultationSessionReport(
+            TeamProgramParticipation $teamProgramParticipation, ConsultationSession $consultationSession,
+            FormRecordData $formRecordData): void
+    {
+        $this->assertActive();
+        $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
+        $teamProgramParticipation->submitConsultationSessionReport($consultationSession, $formRecordData);
     }
 
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Client\TeamMembership;
 
-use App\Http\Controllers\Client\ClientBaseController;
 use Participant\{
     Application\Service\Firm\Client\TeamMembership\CancelTeamProgramRegistration,
     Application\Service\Firm\Client\TeamMembership\RegisterTeamToProgram,
@@ -12,7 +11,8 @@ use Participant\{
 };
 use Query\{
     Application\Service\Firm\Client\TeamMembership\ViewTeamProgramRegistration,
-    Domain\Model\Firm\Team\TeamProgramRegistration as TeamProgramRegistration2
+    Domain\Model\Firm\Team\TeamProgramRegistration as TeamProgramRegistration2,
+    Domain\Service\Firm\Team\TeamProgramRegistrationFinder
 };
 
 class ProgramRegistrationController extends TeamMembershipBaseController
@@ -49,8 +49,10 @@ class ProgramRegistrationController extends TeamMembershipBaseController
     public function showAll($teamMembershipId)
     {
         $service = $this->buildViewService();
+        $concludedStatus = $this->filterBooleanOfQueryRequest("concludedStatus");
         $teamProgramRegistrations = $service->showAll(
-                $this->firmId(), $this->clientId(), $teamMembershipId, $this->getPage(), $this->getPageSize());
+                $this->firmId(), $this->clientId(), $teamMembershipId, $this->getPage(), $this->getPageSize(),
+                $concludedStatus);
 
         $result = [];
         $result["total"] = count($teamProgramRegistrations);
@@ -77,8 +79,8 @@ class ProgramRegistrationController extends TeamMembershipBaseController
     protected function buildViewService()
     {
         $teamProgramRegistrationRepository = $this->em->getRepository(TeamProgramRegistration2::class);
-        return new ViewTeamProgramRegistration(
-                $teamProgramRegistrationRepository, $this->buildActiveTeamMembershipAuthorization());
+        $teamProgramRegistrationFinder = new TeamProgramRegistrationFinder($teamProgramRegistrationRepository);
+        return new ViewTeamProgramRegistration($this->teamMembershipRepository(), $teamProgramRegistrationFinder);
     }
 
     protected function buildRegisterService()

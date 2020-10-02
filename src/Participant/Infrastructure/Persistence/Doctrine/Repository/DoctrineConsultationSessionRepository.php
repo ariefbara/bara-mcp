@@ -91,4 +91,23 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
         $this->getEntityManager()->flush();
     }
 
+    public function ofId(string $consultationSessionId): ConsultationSession
+    {
+        $params = [
+            "consultationSessionId" => $consultationSessionId,
+        ];
+        $qb = $this->createQueryBuilder("consultationSession");
+        $qb->select("consultationSession")
+                ->andWhere($qb->expr()->eq("consultationSession.id", ":consultationSessionId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: consultation session not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

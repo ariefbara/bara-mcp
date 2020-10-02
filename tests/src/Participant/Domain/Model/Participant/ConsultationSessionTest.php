@@ -82,6 +82,16 @@ class ConsultationSessionTest extends TestBase
                 ->with($this->formRecordData);
         $this->executeSetParticipantFeedback();
     }
+    
+    public function test_belongsTo_sameParticipant_returnTrue()
+    {
+        $this->assertTrue($this->consultationSession->belongsTo($this->consultationSession->participant));
+    }
+    public function test_belongsTo_differentParticipant_returnFalse()
+    {
+        $participant = $this->buildMockOfClass(Participant::class);
+        $this->assertFalse($this->consultationSession->belongsTo($participant));
+    }
 
 }
 

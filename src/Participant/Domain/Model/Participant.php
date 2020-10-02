@@ -205,5 +205,12 @@ class Participant
             throw RegularException::forbidden($errorDetail);
         }
     }
+    
+    public function submitConsultationSessionReport(ConsultationSession $consultationSession, FormRecordData $formRecordData): void
+    {
+        $this->assertActive();
+        $this->assertOwnAsset($consultationSession);
+        $consultationSession->setParticipantFeedback($formRecordData);
+    }
 
 }

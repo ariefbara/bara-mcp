@@ -3,13 +3,14 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
+    Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -25,6 +26,7 @@ class TeamProgramParticipationTest extends TestBase
     protected $worksheet;
     protected $consultationRequest, $consultationRequestId = "consultationRequestId", $startTime;
     protected $consultationSetup, $consultant;
+    protected $consultationSession;
 
     protected function setUp(): void
     {
@@ -45,6 +47,8 @@ class TeamProgramParticipationTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->startTime = new DateTimeImmutable();
+        
+        $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
     }
 
     public function test_isActiveParticipantOfProgram_returnProgramParticipationsIsActiveParticipantOfProgramResult()
@@ -132,6 +136,13 @@ class TeamProgramParticipationTest extends TestBase
                 ->method("acceptOfferedConsultationRequest")
                 ->with($this->consultationRequestId, $this->anything());
         $this->teamProgramParticipation->acceptOfferedConsultationRequest($this->consultationRequestId);
+    }
+    public function test_submitConsultationSessionReport_executeProgramParticipationSubmitConsultationSessionReport()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method("submitConsultationSessionReport")
+                ->with($this->consultationSession, $this->formRecordData);
+        $this->teamProgramParticipation->submitConsultationSessionReport($this->consultationSession, $this->formRecordData);
     }
 
 }

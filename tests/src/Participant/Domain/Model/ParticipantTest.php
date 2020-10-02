@@ -406,6 +406,38 @@ class ParticipantTest extends TestBase
         $program = $this->buildMockOfClass(Program::class);
         $this->assertFalse($this->participant->isActiveParticipantOfProgram($program));
     }
+    
+    protected function executeSubmitConsultationSessionReport()
+    {
+        $this->consultationSession->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        $this->participant->submitConsultationSessionReport($this->consultationSession, $this->formRecordData);
+    }
+    public function test_submitConsultationSessionReport_setConsultationSessionParticipantFeedback()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("setParticipantFeedback")
+                ->with($this->formRecordData);
+        $this->executeSubmitConsultationSessionReport();
+    }
+    public function test_submitConsultationSessionReport_inactiveParticipant_forbiddenError()
+    {
+        $this->participant->active = false;
+        $this->assertOperationCauseInactiveParticipantForbiddenError(function (){
+            $this->executeSubmitConsultationSessionReport();
+        });
+    }
+    public function test_submitConsultationSessionReport_consultationSessionBelongsToOtherTeam_forbiddenError()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("belongsTo")
+                ->with($this->participant)
+                ->willReturn(false);
+        $this->assertOperationCauseAssetNotOwnedForbiddenError(function (){
+            $this->executeSubmitConsultationSessionReport();
+        });
+    }
 }
 
 class TestableParticipant extends Participant

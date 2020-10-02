@@ -32,7 +32,7 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
     {
         parent::setUp();
         
-        $this->programRegistrationUri = $this->teamMembershipUri . "/{$this->teamMembership->id}/program-registrations";
+        $this->programRegistrationUri = $this->teamMembershipUri . "/program-registrations";
         $this->connection->table('Program')->truncate();
         $this->connection->table('RegistrationPhase')->truncate();
         $this->connection->table('Registrant')->truncate();
@@ -79,6 +79,7 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
         $this->connection->table('Participant')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
     }
+    
     public function test_register_201()
     {
         $this->connection->table('Registrant')->truncate();
@@ -116,7 +117,6 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->teamMembership->client->token)
             ->seeStatusCode(403);
     }
-    
     public function test_register_noTeamTypeInProgramParticipantTypesList_403()
     {
         $this->connection->table('Program')->truncate();
@@ -126,7 +126,6 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->teamMembership->client->token)
             ->seeStatusCode(403);
     }
-    
     public function test_register_removedProgram_403()
     {
         $this->connection->table('Program')->truncate();
@@ -159,8 +158,8 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
     }
     public function test_register_inactiveMember_403()
     {
-        $uri = $this->clientUri . "/team-memberships/{$this->inactiveTeamMembership->id}/program-registrations";
-        $this->post($uri, $this->registrationInput, $this->inactiveTeamMembership->client->token)
+        $this->setTeamMembershipInactive();
+        $this->post($this->programRegistrationUri, $this->registrationInput, $this->teamMembership->client->token)
             ->seeStatusCode(403);
     }
     public function test_register_alreadyParticipateInProgram_403()
@@ -205,14 +204,9 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
     }
     public function test_cancel_inactiveMember_403()
     {
-        $uri = $this->clientUri . "/team-memberships/{$this->inactiveTeamMembership->id}/program-registrations/{$this->programRegistration->id}/cancel";
-        $this->patch($uri, [], $this->inactiveTeamMembership->client->token)
-            ->seeStatusCode(403);
-    }
-    public function test_cancel_programRegistrationBelongsToOtherTeam_403()
-    {
-        $uri = $this->clientUri . "/team-memberships/{$this->outsiderTeamMembership_otherTeam->id}/program-registrations/{$this->programRegistration->id}/cancel";
-        $this->patch($uri, [], $this->outsiderTeamMembership_otherTeam->client->token)
+        $this->setTeamMembershipInactive();
+        $uri = $this->programRegistrationUri . "/{$this->programRegistration->id}/cancel";
+        $this->patch($uri, [], $this->teamMembership->client->token)
             ->seeStatusCode(403);
     }
     
@@ -236,8 +230,9 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
     }
     public function test_show_inactiveMember_403()
     {
-        $uri = $this->clientUri . "/team-memberships/{$this->inactiveTeamMembership->id}/program-registrations/{$this->programRegistration->id}";
-        $this->get($uri, $this->inactiveTeamMembership->client->token)
+        $this->setTeamMembershipInactive();
+        $uri = $this->programRegistrationUri . "/{$this->programRegistration->id}";
+        $this->get($uri, $this->teamMembership->client->token)
             ->seeStatusCode(403);
     }
     
@@ -275,10 +270,7 @@ class ProgramRegistrationControllerTest extends TeamMembershipTestCase
     }
     public function test_showAll_inactiveMember_403()
     {
-        $this->connection->table("T_Member")->truncate();
-        $this->teamMembership->active = false;
-        $this->connection->table("T_Member")->insert($this->teamMembership->toArrayForDbEntry());
-        
+        $this->setTeamMembershipInactive();
         $this->get($this->programRegistrationUri, $this->teamMembership->client->token)
             ->seeStatusCode(403);
     }

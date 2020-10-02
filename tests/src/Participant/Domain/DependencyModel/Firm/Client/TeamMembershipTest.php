@@ -10,6 +10,7 @@ use Participant\Domain\{
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
+    Model\Participant\ConsultationSession,
     Model\Participant\Worksheet,
     Model\TeamProgramParticipation,
     Model\TeamProgramRegistration
@@ -30,6 +31,7 @@ class TeamMembershipTest extends TestBase
     protected $consultationRequest, $consultationRequestId = "consultatioNRequestId";
     protected $consultationSetup, $consultant;
     protected $startTIme;
+    protected $consultationSession;
 
     protected function setUp(): void
     {
@@ -51,6 +53,8 @@ class TeamMembershipTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->startTIme = new DateTimeImmutable();
+
+        $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
     }
 
     protected function setOnceTeamProgramParticipationTeamEqualsMethodCallReturnFalse()
@@ -394,6 +398,34 @@ class TeamMembershipTest extends TestBase
         $this->setOnceTeamProgramParticipationTeamEqualsMethodCallReturnFalse();
         $this->assertOperationCauseManageOtherTeamAsserForbiddenError(function () {
             $this->executeAcceptOfferedConsultationRequest();
+        });
+    }
+
+    protected function executeSubmitConsultationSessionReport()
+    {
+        $this->setAnyTeamProgramParticipationTeamEqualsMethodCallReturnTrue();
+        $this->teamMembership->submitConsultationSessionReport(
+                $this->teamProgramParticipation, $this->consultationSession, $this->formRecordData);
+    }
+    public function test_submitConsultationSessionReport_executeTeamProgramParticipationSubmitConsultationReportMethod()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("submitConsultationSessionReport")
+                ->with($this->consultationSession, $this->formRecordData);
+        $this->executeSubmitConsultationSessionReport();
+    }
+    public function test_submitConsultationSessionReport_inactiveMember_forbiddenError()
+    {
+        $this->teamMembership->active = false;
+        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function (){
+            $this->executeSubmitConsultationSessionReport();
+        });
+    }
+    public function test_submitConsultationSessionReport_programParticipationBelongsToOtherTeam_forbiddenError()
+    {
+        $this->setOnceTeamProgramParticipationTeamEqualsMethodCallReturnFalse();
+        $this->assertOperationCauseManageOtherTeamAsserForbiddenError(function (){
+            $this->executeSubmitConsultationSessionReport();
         });
     }
 

@@ -80,6 +80,13 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{consultationRequestId}", ["uses" => "$controller@show"]);
             });
             
+            $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
+                $controller = "ConsultationSessionController";
+                $router->put("/{consultationSessionId}/submit-report", ["uses" => "$controller@submitReport"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
+            });
+            
         });
         
     });

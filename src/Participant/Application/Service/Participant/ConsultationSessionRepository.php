@@ -12,6 +12,8 @@ interface ConsultationSessionRepository
 
     public function aConsultationSessionOfUserParticipant(
             string $userId, string $programParticipationId, string $consultationSessionId): ConsultationSession;
+    
+    public function ofId(string $consultationSessionId): ConsultationSession;
 
     public function update(): void;
 }

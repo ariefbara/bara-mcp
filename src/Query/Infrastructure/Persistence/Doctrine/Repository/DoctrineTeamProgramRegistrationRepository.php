@@ -9,14 +9,15 @@ use Doctrine\ORM\ {
 use Query\ {
     Application\Service\Firm\Team\TeamProgramRegistrationRepository,
     Domain\Model\Firm\Team\Member,
-    Domain\Model\Firm\Team\TeamProgramRegistration
+    Domain\Model\Firm\Team\TeamProgramRegistration,
+    Domain\Service\Firm\Team\TeamProgramRegistrationRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineTeamProgramRegistrationRepository extends EntityRepository implements TeamProgramRegistrationRepository
+class DoctrineTeamProgramRegistrationRepository extends EntityRepository implements TeamProgramRegistrationRepository, InterfaceForDomainService
 {
 
     public function all(string $firmId, string $teamId, int $page, int $pageSize)
@@ -126,6 +127,49 @@ class DoctrineTeamProgramRegistrationRepository extends EntityRepository impleme
                 ->andWhere($qb->expr()->in("team.id", $teamQb->getDQL()))
                 ->setParameters($params);
         
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+        
+    }
+
+    public function aProgramRegistrationOfTeam(string $teamId, string $teamProgramRegistrationId): TeamProgramRegistration
+    {
+        $params = [
+            "teamId" => $teamId, 
+            "teamProgramRegistrationId" => $teamProgramRegistrationId, 
+        ];
+        
+        $qb = $this->createQueryBuilder("teamProgramRegistration");
+        $qb->select("teamProgramRegistration")
+                ->andWhere($qb->expr()->eq("teamProgramRegistration.id", ":teamProgramRegistrationId"))
+                ->leftJoin("teamProgramRegistration.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: team program registration not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allProgramRegistrationsOfTeam(string $teamId, int $page, int $pageSize, ?bool $concludedStatus)
+    {
+        $params = [
+            "teamId" => $teamId, 
+        ];
+        
+        $qb = $this->createQueryBuilder("teamProgramRegistration");
+        $qb->select("teamProgramRegistration")
+                ->leftJoin("teamProgramRegistration.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
+                ->setParameters($params);
+        
+        if (isset($concludedStatus)) {
+            $qb->andWhere($qb->expr()->eq("teamProgramRegistration.concluded", ":concludedStatus"))
+                    ->setParameter("concludedStatus", $concludedStatus);
+        }
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
         
     }

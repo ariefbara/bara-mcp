@@ -3,13 +3,14 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
+    Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
 use Resources\Uuid;
@@ -97,6 +98,12 @@ class TeamProgramParticipation
     {
         $consultationSessionId = Uuid::generateUuid4();
         $this->programParticipation->acceptOfferedConsultationRequest($consultationRequestId, $consultationSessionId);
+    }
+
+    public function submitConsultationSessionReport(
+            ConsultationSession $consultationSession, FormRecordData $formRecordData): void
+    {
+        $this->programParticipation->submitConsultationSessionReport($consultationSession, $formRecordData);
     }
 
 }

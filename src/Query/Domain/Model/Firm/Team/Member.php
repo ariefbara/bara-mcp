@@ -6,15 +6,19 @@ use DateTimeImmutable;
 use Query\{
     Domain\Model\Firm\Client,
     Domain\Model\Firm\Program,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
     Domain\Model\Firm\Program\Participant\Worksheet,
     Domain\Model\Firm\Team,
     Domain\Service\Firm\ClientFinder,
     Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder,
+    Domain\Service\Firm\Program\Participant\ConsultationSessionFinder,
     Domain\Service\Firm\Program\Participant\WorksheetFinder,
     Domain\Service\Firm\ProgramFinder,
     Domain\Service\Firm\Team\TeamFileInfoFinder,
     Domain\Service\Firm\Team\TeamProgramParticipationFinder,
-    Infrastructure\QueryFilter\ConsultationRequestFilter
+    Domain\Service\Firm\Team\TeamProgramRegistrationFinder,
+    Infrastructure\QueryFilter\ConsultationRequestFilter,
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 use Resources\Exception\RegularException;
 
@@ -126,6 +130,22 @@ class Member
         return $clientFinder->findByEmail($this->client->getFirm()->getId(), $clientEmail);
     }
 
+    public function viewTeamProgramRegistration(TeamProgramRegistrationFinder $teamProgramRegistrationFinder,
+            string $teamProgramRegistrationId): TeamProgramRegistration
+    {
+        $this->assertActive();
+        return $teamProgramRegistrationFinder
+                        ->findProgramRegistrationBelongsToTeam($this->team, $teamProgramRegistrationId);
+    }
+
+    public function viewAllTeamProgramRegistration(TeamProgramRegistrationFinder $teamProgramRegistrationFinder,
+            int $page, int $pageSize, ?bool $concludedStatus)
+    {
+        $this->assertActive();
+        return $teamProgramRegistrationFinder
+                        ->findAllProgramRegistrationsBelongsToTeam($this->team, $page, $pageSize, $concludedStatus);
+    }
+
     public function viewTeamProgramParticipation(
             TeamProgramParticipationFinder $teamProgramParticipationFinder, string $teamProgramParticipationId): TeamProgramParticipation
     {
@@ -215,6 +235,24 @@ class Member
         $this->assertActive();
         return $consultationRequestFinder->findAllConsultationRequestsBelongsToTeam(
                         $this->team, $teamProgramParticipationId, $page, $pageSize, $consultationRequestFilter);
+    }
+
+    public function viewConsultationSession(
+            ConsultationSessionFinder $consultationSessionFinder, string $teamProgramParticipationId,
+            string $consultationSessionId): ConsultationSession
+    {
+        $this->assertActive();
+        return $consultationSessionFinder->findConsultationSessionBelongsToTeam(
+                        $this->team, $teamProgramParticipationId, $consultationSessionId);
+    }
+
+    public function viewAllConsultationSession(
+            ConsultationSessionFinder $consultationSessionFinder, string $teamProgramParticipationId, int $page,
+            int $pageSize, ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $this->assertActive();
+        return $consultationSessionFinder->findAllConsultationSessionBelongsToTeam(
+                        $this->team, $teamProgramParticipationId, $page, $pageSize, $consultationSessionFilter);
     }
 
 }
