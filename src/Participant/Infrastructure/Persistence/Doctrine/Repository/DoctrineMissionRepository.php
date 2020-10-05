@@ -76,7 +76,7 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
         $qb->select('mission')
                 ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
                 ->leftJoin("mission.program", "program")
-                ->andWhere($qb->expr()->in('mission.programId', $userParticipantQb->getDQL()))
+                ->andWhere($qb->expr()->in('program.id', $userParticipantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 

@@ -33,11 +33,10 @@ class SubmitBranchWorksheet
 
         $mission = $this->missionRepository
                 ->aMissionInProgramWhereUserParticipate($userId, $userParticipantId, $missionId);
-        $formRecord = $mission->createWorksheetFormRecord($id, $formRecordData);
         
         $worksheet = $this->worksheetRepository
                 ->aWorksheetBelongsToUserParticipant($userId, $userParticipantId, $worksheetId)
-                ->createBranchWorksheet($id, $name, $mission, $formRecord);
+                ->createBranchWorksheet($id, $name, $mission, $formRecordData);
         
         $this->worksheetRepository->add($worksheet);
         return $id;

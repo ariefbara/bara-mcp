@@ -39,7 +39,6 @@ class WorksheetControllerTest extends WorksheetTestCase
     
     public function test_addRoot()
     {
-        
         $this->connection->table('Worksheet')->truncate();
         $this->connection->table('FormRecord')->truncate();
         

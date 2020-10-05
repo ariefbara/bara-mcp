@@ -44,10 +44,9 @@ class SubmitRootWorksheet
         $id = $this->worksheetRepository->nextIdentity();
         $mission = $this->missionRepository
                 ->aMissionInProgramWhereUserParticipate($userId, $userParticipantId, $missionId);
-        $formRecord = $mission->createWorksheetFormRecord($id, $formRecordData);
 
         $worksheet = $this->userParticipantRepository->ofId($userId, $userParticipantId)
-                ->createRootWorksheet($id, $name, $mission, $formRecord);
+                ->createRootWorksheet($id, $name, $mission, $formRecordData);
 
         $this->worksheetRepository->add($worksheet);
         return $id;

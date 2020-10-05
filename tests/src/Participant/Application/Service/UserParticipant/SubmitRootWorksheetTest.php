@@ -3,10 +3,9 @@
 namespace Participant\Application\Service\UserParticipant;
 
 use Participant\ {
-    Application\Service\ClientParticipant\WorksheetAddRoot,
     Application\Service\Participant\WorksheetRepository,
     Application\Service\UserParticipantRepository,
-    Domain\Model\DependencyEntity\Firm\Program\Mission,
+    Domain\DependencyModel\Firm\Program\Mission,
     Domain\Model\UserParticipant
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;

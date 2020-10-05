@@ -12,7 +12,7 @@ use Participant\ {
     Application\Service\UserParticipant\SubmitBranchWorksheet,
     Application\Service\UserParticipant\SubmitRootWorksheet,
     Application\Service\UserParticipant\UpdateWorksheet,
-    Domain\Model\DependencyEntity\Firm\Program\Mission,
+    Domain\DependencyModel\Firm\Program\Mission,
     Domain\Model\Participant\Worksheet as Worksheet2,
     Domain\Model\UserParticipant,
     Domain\Service\UserFileInfoFinder
