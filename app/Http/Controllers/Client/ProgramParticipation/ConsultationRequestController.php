@@ -4,17 +4,17 @@ namespace App\Http\Controllers\Client\ProgramParticipation;
 
 use App\Http\Controllers\Client\ClientBaseController;
 use DateTimeImmutable;
-use Participant\{
+use Participant\ {
     Application\Service\ClientParticipant\ClientAcceptConsultationRequest,
     Application\Service\ClientParticipant\ClientCancelConcultationRequest,
     Application\Service\ClientParticipant\ClientChangeConsultationRequestTime,
     Application\Service\ClientParticipant\ClientSubmitConsultationRequest,
+    Domain\DependencyModel\Firm\Program\Consultant,
+    Domain\DependencyModel\Firm\Program\ConsultationSetup,
     Domain\Model\ClientParticipant,
-    Domain\Model\DependencyEntity\Firm\Program\Consultant,
-    Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup,
     Domain\Model\Participant\ConsultationRequest as ConsultationRequest2
 };
-use Query\{
+use Query\ {
     Application\Service\Firm\Client\ProgramParticipation\ViewConsultationRequest,
     Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest

@@ -4,11 +4,11 @@ namespace Tests\Controllers\User\ProgramParticipation\Worksheet;
 
 use DateTime;
 use Tests\Controllers\ {
-    User\ProgramParticipation\WorksheetTestCase,
+    RecordPreparation\Firm\Program\Consultant\RecordOfConsultantComment,
     RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment,
-    RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfConsultantComment,
     RecordPreparation\Firm\Program\RecordOfConsultant,
-    RecordPreparation\Firm\RecordOfPersonnel
+    RecordPreparation\Firm\RecordOfPersonnel,
+    User\ProgramParticipation\WorksheetTestCase
 };
 
 class CommentControllerTest extends WorksheetTestCase

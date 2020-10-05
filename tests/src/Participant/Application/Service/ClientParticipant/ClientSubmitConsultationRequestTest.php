@@ -6,9 +6,9 @@ use DateTimeImmutable;
 use Participant\ {
     Application\Service\ClientParticipantRepository,
     Application\Service\Participant\ConsultationRequestRepository,
-    Domain\Model\ClientParticipant,
-    Domain\Model\DependencyEntity\Firm\Program\Consultant,
-    Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup
+    Domain\DependencyModel\Firm\Program\Consultant,
+    Domain\DependencyModel\Firm\Program\ConsultationSetup,
+    Domain\Model\ClientParticipant
 };
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
