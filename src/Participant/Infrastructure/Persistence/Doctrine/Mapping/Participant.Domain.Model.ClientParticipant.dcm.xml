@@ -5,7 +5,7 @@
             repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientParticipantRepository"
     >
         <many-to-one  field="client" 
-                      target-entity="Participant\Domain\Model\DependencyEntity\Firm\Client"
+                      target-entity="Participant\Domain\DependencyModel\Firm\Client"
         >
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>

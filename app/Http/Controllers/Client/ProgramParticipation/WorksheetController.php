@@ -12,8 +12,8 @@ use Participant\ {
     Application\Service\ClientParticipant\WorksheetAddRoot,
     Application\Service\ClientParticipant\WorksheetRemove,
     Application\Service\ClientParticipant\WorksheetUpdate,
+    Domain\DependencyModel\Firm\Program\Mission,
     Domain\Model\ClientParticipant,
-    Domain\Model\DependencyEntity\Firm\Program\Mission,
     Domain\Model\Participant\Worksheet as Worksheet2,
     Domain\Service\ClientFileInfoFinder
 };

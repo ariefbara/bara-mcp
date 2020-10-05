@@ -39,7 +39,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     
     public function test_addRoot()
     {
-        
+$this->disableExceptionHandling();   
         $this->connection->table('Worksheet')->truncate();
         $this->connection->table('FormRecord')->truncate();
         
@@ -78,6 +78,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     
     public function test_addBranch()
     {
+$this->disableExceptionHandling();
         $this->worksheetInput['missionId'] = $this->branchMission->id;
         $this->worksheetResponse['parent'] = [
             "id" => $this->worksheet->id,

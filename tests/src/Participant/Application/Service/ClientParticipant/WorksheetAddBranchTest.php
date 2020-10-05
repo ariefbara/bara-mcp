@@ -5,7 +5,7 @@ namespace Participant\Application\Service\ClientParticipant;
 use Participant\ {
     Application\Service\Firm\Program\MissionRepository,
     Application\Service\Participant\WorksheetRepository,
-    Domain\Model\DependencyEntity\Firm\Program\Mission,
+    Domain\DependencyModel\Firm\Program\Mission,
     Domain\Model\Participant\Worksheet
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -56,12 +56,9 @@ class WorksheetAddBranchTest extends TestBase
     public function test_execute_addBranchWorksheetToRepository()
     {
         $branchWorksheet = $this->buildMockOfClass(Worksheet::class);
-        $this->mission->expects($this->once())
-                ->method('createWorksheetFormRecord')
-                ->with($this->nextId, $this->formRecordData);
         $this->worksheet->expects($this->once())
                 ->method('createBranchWorksheet')
-                ->with($this->nextId, $this->name, $this->mission, $this->anything())
+                ->with($this->nextId, $this->name, $this->mission, $this->formRecordData)
                 ->willReturn($branchWorksheet);
         $this->worksheetRepository->expects($this->once())
                 ->method('add')

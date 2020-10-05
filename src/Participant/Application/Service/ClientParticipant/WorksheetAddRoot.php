@@ -44,11 +44,10 @@ class WorksheetAddRoot
         $id = $this->worksheetRepository->nextIdentity();
         $mission = $this->missionRepository
                 ->aMissionInProgramWhereClientParticipate($firmId, $clientId, $programParticipationId, $missionId);
-        $formRecord = $mission->createWorksheetFormRecord($id, $formRecordData);
 
         $worksheet = $this->clientParticipantRepository
                 ->ofId($firmId, $clientId, $programParticipationId)
-                ->createRootWorksheet($id, $name, $mission, $formRecord);
+                ->createRootWorksheet($id, $name, $mission, $formRecordData);
 
         $this->worksheetRepository->add($worksheet);
         return $id;

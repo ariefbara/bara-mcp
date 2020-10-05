@@ -29,15 +29,15 @@ class KonsultaMailMessage implements MailMessageInterface
      *
      * @var string
      */
-    protected $url;
+    protected $domain;
 
     /**
      *
      * @var string
      */
-    protected $apiPath;
+    protected $urlPath;
 
-    public function __construct(string $subject, string $greetings, string $mainMessage, string $url, string $apiPath)
+    public function __construct(string $subject, string $greetings, string $mainMessage, string $domain, string $apiPath)
     {
         $this->subject = $subject;
         $this->greetings = $greetings;

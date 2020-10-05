@@ -28,10 +28,11 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
         ];
 
         $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('participant.programId')
+        $clientParticipantQb->select('t_program.id')
                 ->from(ClientParticipant::class, 'clientParticipant')
                 ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
                 ->leftJoin('clientParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
                 ->leftJoin('clientParticipant.client', 'client')
                 ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
                 ->andWhere($clientParticipantQb->expr()->eq('client.firmId', ':firmId'))
@@ -40,7 +41,8 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
         $qb = $this->createQueryBuilder('mission');
         $qb->select('mission')
                 ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
-                ->andWhere($qb->expr()->in('mission.programId', $clientParticipantQb->getDQL()))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->in('program.id', $clientParticipantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 
@@ -62,16 +64,18 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
         ];
 
         $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $userParticipantQb->select('participant.programId')
+        $userParticipantQb->select('t_program.id')
                 ->from(UserParticipant::class, 'userParticipant')
                 ->andWhere($userParticipantQb->expr()->eq('userParticipant.userId', ':userId'))
                 ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':programParticipationId'))
                 ->leftJoin('userParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
                 ->setMaxResults(1);
         
         $qb = $this->createQueryBuilder('mission');
         $qb->select('mission')
                 ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
+                ->leftJoin("mission.program", "program")
                 ->andWhere($qb->expr()->in('mission.programId', $userParticipantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);

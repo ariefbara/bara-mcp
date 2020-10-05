@@ -37,11 +37,10 @@ class WorksheetAddBranch
 
         $mission = $this->missionRepository
                 ->aMissionInProgramWhereClientParticipate($firmId, $clientId, $programParticipationId, $missionId);
-        $formRecord = $mission->createWorksheetFormRecord($id, $formRecordData);
         
         $worksheet = $this->worksheetRepository
                 ->aWorksheetBelongsToClientParticipant($firmId, $clientId, $programParticipationId, $worksheetId)
-                ->createBranchWorksheet($id, $name, $mission, $formRecord);
+                ->createBranchWorksheet($id, $name, $mission, $formRecordData);
         
         $this->worksheetRepository->add($worksheet);
         return $id;

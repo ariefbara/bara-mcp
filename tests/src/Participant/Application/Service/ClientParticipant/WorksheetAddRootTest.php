@@ -6,8 +6,8 @@ use Participant\ {
     Application\Service\ClientParticipant\WorksheetAddRoot,
     Application\Service\ClientParticipantRepository,
     Application\Service\Participant\WorksheetRepository,
-    Domain\Model\ClientParticipant,
-    Domain\Model\DependencyEntity\Firm\Program\Mission
+    Domain\DependencyModel\Firm\Program\Mission,
+    Domain\Model\ClientParticipant
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -65,7 +65,7 @@ class WorksheetAddRootTest extends TestBase
     {
         $this->clientParticipant->expects($this->once())
                 ->method('createRootWorksheet')
-                ->with($this->nextId, $this->name, $this->mission, $this->anything());
+                ->with($this->nextId, $this->name, $this->mission, $this->formRecordData);
         $this->worksheetRepository->expects($this->once())
                 ->method('add');
         $this->execute();
