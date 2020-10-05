@@ -6,8 +6,8 @@ use DateTimeImmutable;
 use Participant\ {
     Application\Service\Participant\ConsultationRequestRepository,
     Application\Service\UserParticipantRepository,
-    Domain\Model\DependencyEntity\Firm\Program\Consultant,
-    Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup,
+    Domain\DependencyModel\Firm\Program\Consultant,
+    Domain\DependencyModel\Firm\Program\ConsultationSetup,
     Domain\Model\UserParticipant
 };
 use Resources\Application\Event\Dispatcher;

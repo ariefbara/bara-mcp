@@ -28,19 +28,21 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
         ];
 
         $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('participant.programId')
+        $clientParticipantQb->select('t_program.id')
                 ->from(ClientParticipant::class, 'clientParticipant')
                 ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
-                ->leftJoin('clientParticipant.participant', 'participant')
                 ->leftJoin('clientParticipant.client', 'client')
                 ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
                 ->andWhere($clientParticipantQb->expr()->eq('client.firmId', ':firmId'))
+                ->leftJoin('clientParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('consultant');
         $qb->select('consultant')
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
-                ->andWhere($qb->expr()->in('consultant.programId', $clientParticipantQb->getDQL()))
+                ->leftJoin("consultant.program", "program")
+                ->andWhere($qb->expr()->in('program.id', $clientParticipantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 
@@ -62,17 +64,19 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
         ];
 
         $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $userParticipantQb->select('participant.programId')
+        $userParticipantQb->select('t_program.id')
                 ->from(UserParticipant::class, 'userParticipant')
                 ->andWhere($userParticipantQb->expr()->eq('userParticipant.userId', ':userId'))
                 ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':userParticipantId'))
                 ->leftJoin('userParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 't_program')
                 ->setMaxResults(1);
 
         $qb = $this->createQueryBuilder('consultant');
         $qb->select('consultant')
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
-                ->andWhere($qb->expr()->in('consultant.programId', $userParticipantQb->getDQL()))
+                ->leftJoin("consultant.program", "program")
+                ->andWhere($qb->expr()->in('program.id', $userParticipantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 

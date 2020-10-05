@@ -9,8 +9,9 @@ use Participant\ {
     Application\Service\UserParticipant\UserParticipantCancelConcultationRequest,
     Application\Service\UserParticipant\UserParticipantChangeConsultationRequestTime,
     Application\Service\UserParticipant\UserParticipantSubmitConsultationRequest,
-    Domain\Model\DependencyEntity\Firm\Program\Consultant,
-    Domain\Model\DependencyEntity\Firm\Program\ConsultationSetup,
+    Domain\DependencyModel\Firm\Program\Consultant,
+    Domain\DependencyModel\Firm\Program\ConsultationSetup,
+    Domain\Model\Participant\ConsultationRequest as ConsultationRequest2,
     Domain\Model\UserParticipant
 };
 use Query\ {
@@ -19,7 +20,6 @@ use Query\ {
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
 };
 use Resources\Application\Event\Dispatcher;
-use \Participant\Domain\Model\Participant\ConsultationRequest as ConsultationRequest2;
 
 class ConsultationRequestController extends UserBaseController
 {

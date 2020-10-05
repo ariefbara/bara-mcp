@@ -92,6 +92,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
     
     public function test_propose()
     {
+$this->disableExceptionHandling();
         $this->connection->table('ConsultationRequest')->truncate();
         
         $response = [
