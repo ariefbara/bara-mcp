@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Query\Domain\Model\{
     Firm\Client\ClientRegistrant,
     Firm\Program,
+    Firm\Team\TeamProgramRegistration,
     User\UserRegistrant
 };
 
@@ -44,15 +45,21 @@ class Registrant
 
     /**
      *
-     * @var ClientRegistrant||null
+     * @var ClientRegistrant|null
      */
     protected $clientRegistrant;
 
     /**
      *
-     * @var UserRegistrant||null
+     * @var UserRegistrant|null
      */
     protected $userRegistrant;
+
+    /**
+     *
+     * @var TeamProgramRegistration|null
+     */
+    protected $teamRegistrant;
 
     public function getProgram(): Program
     {
@@ -92,6 +99,11 @@ class Registrant
     public function getUserRegistrant(): ?UserRegistrant
     {
         return $this->userRegistrant;
+    }
+
+    public function getTeamRegistrant(): ?TeamProgramRegistration
+    {
+        return $this->teamRegistrant;
     }
 
 }

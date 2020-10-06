@@ -37,10 +37,19 @@ class TeamTest extends TestBase
         $this->program->expects($this->any())
                 ->method('firmIdEquals')
                 ->willReturn(true);
+        $this->program->expects($this->any())
+                ->method('isRegistrationOpenFor')
+                ->willReturn(true);
         return $this->team->registerToProgram($this->teamProgramRegistrationId, $this->program);
     }
     public function test_executeRegisterToProgram_returnProgramRegistration()
     {
+        $this->program->expects($this->any())
+                ->method('firmIdEquals')
+                ->willReturn(true);
+        $this->program->expects($this->any())
+                ->method('isRegistrationOpenFor')
+                ->willReturn(true);
         $teamProgramRegistration = new TeamProgramRegistration($this->team, $this->teamProgramRegistrationId, $this->program);
         $this->assertEquals($teamProgramRegistration, $this->executeRegisterToProgram());
     }

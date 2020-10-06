@@ -12,6 +12,7 @@ use Query\ {
     Application\Service\Firm\Program\ViewRegistrant,
     Domain\Model\Firm\Client\ClientRegistrant,
     Domain\Model\Firm\Program\Registrant,
+    Domain\Model\Firm\Team\TeamProgramRegistration,
     Domain\Model\User\UserRegistrant
 };
 use Resources\Application\Event\Dispatcher;
@@ -71,10 +72,11 @@ class RegistrantController extends AsProgramCoordinatorBaseController
             "concluded" => $registrant->isConcluded(),
             "user" => $this->arrayDataOfUser($registrant->getUserRegistrant()),
             "client" => $this->arrayDataOfClient($registrant->getClientRegistrant()),
+            "team" => $this->arrayDataOfTeam($registrant->getTeamRegistrant()),
         ];
     }
     
-    public function arrayDataOfUser(?UserRegistrant $userRegistrant): ?array
+    protected function arrayDataOfUser(?UserRegistrant $userRegistrant): ?array
     {
         return empty($userRegistrant)? null: [
             "id" => $userRegistrant->getUser()->getId(),
@@ -82,11 +84,18 @@ class RegistrantController extends AsProgramCoordinatorBaseController
         ];
     }
     
-    public function arrayDataOfClient(?ClientRegistrant $clientRegistrant): ?array
+    protected function arrayDataOfClient(?ClientRegistrant $clientRegistrant): ?array
     {
         return empty($clientRegistrant)? null: [
             "id" => $clientRegistrant->getClient()->getId(),
             "name" => $clientRegistrant->getClient()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfTeam(?TeamProgramRegistration $teamRegistrant): ?array
+    {
+        return empty($teamRegistrant)? null: [
+            "id" => $teamRegistrant->getTeam()->getId(),
+            "name" => $teamRegistrant->getTeam()->getName(),
         ];
     }
     

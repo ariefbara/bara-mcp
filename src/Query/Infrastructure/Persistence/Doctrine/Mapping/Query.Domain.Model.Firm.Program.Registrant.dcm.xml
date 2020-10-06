@@ -26,5 +26,10 @@
                      mapped-by="registrant"
         />
         
+        <one-to-one  field="teamRegistrant" 
+                     target-entity="Query\Domain\Model\Firm\Team\TeamProgramRegistration"
+                     mapped-by="programRegistration"
+        />
+        
     </entity>
 </doctrine-mapping>

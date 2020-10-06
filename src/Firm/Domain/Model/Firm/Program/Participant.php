@@ -4,7 +4,7 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Firm\Domain\Model\Firm\Program;
-use Resources\{
+use Resources\ {
     DateTimeImmutableBuilder,
     Exception\RegularException
 };
@@ -44,15 +44,21 @@ class Participant
 
     /**
      *
-     * @var ClientParticipant||null
+     * @var ClientParticipant|null
      */
     protected $clientParticipant;
 
     /**
      *
-     * @var UserParticipant||null
+     * @var UserParticipant|null
      */
     protected $userParticipant;
+
+    /**
+     *
+     * @var TeamParticipant|null
+     */
+    protected $teamParticipant;
 
     public function getId(): string
     {
@@ -81,6 +87,13 @@ class Participant
         $participant->clientParticipant = new ClientParticipant($participant, $id, $clientId);
         return $participant;
     }
+    
+    public static function participantForTeam(Program $program, string $id, string $teamId): self
+    {
+        $participant = new static($program, $id);
+        $participant->teamParticipant = new TeamParticipant($participant, $id, $teamId);
+        return $participant;
+    }
 
     public function bootout(): void
     {
@@ -104,9 +117,15 @@ class Participant
 
     public function correspondWithRegistrant(Registrant $registrant): bool
     {
-        return !empty($this->clientParticipant) ?
-                $this->clientParticipant->correspondWithRegistrant($registrant) :
-                $this->userParticipant->correspondWithRegistrant($registrant);
+        if (isset($this->clientParticipant)) {
+            return $this->clientParticipant->correspondWithRegistrant($registrant);
+        }
+        if (isset($this->userParticipant)) {
+            return $this->userParticipant->correspondWithRegistrant($registrant);
+        }
+        if (isset($this->teamParticipant)) {
+            return $this->teamParticipant->correspondWithRegistrant($registrant);
+        }
     }
 
 }

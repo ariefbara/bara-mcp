@@ -14,8 +14,9 @@ class ParticipantTest extends TestBase
     
     protected $clientParticipant;
     protected $userParticipant;
+    protected $teamParticipant;
 
-    protected $id = 'newParticipantId', $userId = 'userId', $clientId = 'clientId';
+    protected $id = 'newParticipantId', $userId = 'userId', $clientId = 'clientId', $teamId = "teamId";
     
     protected $registrant;
 
@@ -36,6 +37,8 @@ class ParticipantTest extends TestBase
         $this->inactiveParticipant->userParticipant = $this->userParticipant;
         
         $this->registrant = $this->buildMockOfClass(Registrant::class);
+        
+        $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
     }
     
     public function test_participantForUser_setProperties()
@@ -63,6 +66,20 @@ class ParticipantTest extends TestBase
         $clientParticipant = new ClientParticipant($participant, $this->id, $this->clientId);
         $this->assertEquals($clientParticipant, $participant->clientParticipant);
         $this->assertNull($participant->userParticipant);
+    }
+    public function test_participantForTeam_setProperties()
+    {
+        $participant = TestableParticipant::participantForTeam($this->program, $this->id, $this->teamId);
+        $this->assertEquals($this->program, $participant->program);
+        $this->assertEquals($this->id, $participant->id);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
+        $this->assertTrue($participant->active);
+        $this->assertNull($participant->note);
+        
+        $teamParticipant = new TeamParticipant($participant, $this->id, $this->teamId);
+        $this->assertEquals($teamParticipant, $participant->teamParticipant);
+        $this->assertNull($participant->userParticipant);
+        $this->assertNull($participant->clientParticipant);
     }
     
     protected function executeBootout()
@@ -123,6 +140,15 @@ class ParticipantTest extends TestBase
                 ->method('correspondWithRegistrant');
         $this->executeCorrespondWithRegistrant();
     }
+    public function test_correspondWithRegistrant_aTeamParticipant_returnTeamParticipantCorrespondWithRegistrantResult()
+    {
+        $this->participant->clientParticipant = null;
+        $this->participant->teamParticipant = $this->teamParticipant;
+        
+        $this->teamParticipant->expects($this->once())
+                ->method("correspondWithRegistrant");
+        $this->executeCorrespondWithRegistrant();
+    }
 }
 
 class TestableParticipant extends Participant
@@ -134,6 +160,7 @@ class TestableParticipant extends Participant
     public $note;
     public $clientParticipant;
     public $userParticipant;
+    public $teamParticipant;
     
     public function __construct(Program $program, string $id)
     {

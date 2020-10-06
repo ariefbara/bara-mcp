@@ -12,12 +12,13 @@ class RegistrantTest extends TestBase
     protected $program;
     protected $userRegistrant;
     protected $clientRegistrant;
+    protected $teamRegistrant;
 
     protected $id = 'newRegistrantId';
     
     protected $participantId = 'participantId';
     
-    protected $userId = 'userId', $clientId = 'clientId';
+    protected $userId = 'userId', $clientId = 'clientId', $teamId = "clientId";
 
     protected function setUp(): void
     {
@@ -32,6 +33,7 @@ class RegistrantTest extends TestBase
         
         $this->clientRegistrant = $this->buildMockOfClass(ClientRegistrant::class);
         
+        $this->teamRegistrant = $this->buildMockOfClass(TeamRegistrant::class);
     }
     
     protected function executeAccept()
@@ -81,19 +83,29 @@ class RegistrantTest extends TestBase
     {
         return $this->registrant->createParticipant($this->participantId);
     }
-    public function test_createParticipant_returnUserRegistrantCreateParticipantResult()
+    public function test_createParticipant_aUserRegistrant_returnUserRegistrantCreateParticipantResult()
     {
         $this->userRegistrant->expects($this->once())
                 ->method('createParticipant')
                 ->with($this->program, $this->participantId);
         $this->executeCreateParticipant();
     }
-    public function test_createParticipant_emptyUserRegistrant_returnClientRegistrantCreateParticipantResult()
+    public function test_createParticipant_aClientRegistrant_returnClientRegistrantCreateParticipantResult()
     {
         $this->registrant->userRegistrant = null;
         $this->registrant->clientRegistrant = $this->clientRegistrant;
         
         $this->clientRegistrant->expects($this->once())
+                ->method('createParticipant')
+                ->with($this->program, $this->participantId);
+        $this->executeCreateParticipant();
+    }
+    public function test_createParticipant_aTeamRegistrant_returnTeamRegistrantCreateParticipantResult()
+    {
+        $this->registrant->userRegistrant = null;
+        $this->registrant->teamRegistrant = $this->teamRegistrant;
+        
+        $this->teamRegistrant->expects($this->once())
                 ->method('createParticipant')
                 ->with($this->program, $this->participantId);
         $this->executeCreateParticipant();
@@ -124,6 +136,19 @@ class RegistrantTest extends TestBase
                 ->with($this->clientId);
         $this->registrant->correspondWithClient($this->clientId);
     }
+    
+    public function test_correspondWithTeam_emptyTeamRegistrant_returnFalse()
+    {
+        $this->assertFalse($this->registrant->correspondWithTeam($this->teamId));
+    }
+    public function test_correspondWithTeam_hasTeamRegistrant_returnTeamRegistrantsTeamIdEqualsResult()
+    {
+        $this->registrant->teamRegistrant = $this->teamRegistrant;
+        $this->teamRegistrant->expects($this->once())
+                ->method('teamIdEquals')
+                ->with($this->teamId);
+        $this->registrant->correspondWithTeam($this->teamId);
+    }
 
 }
 
@@ -136,6 +161,7 @@ class TestableRegistrant extends Registrant
     public $note = null;
     public $userRegistrant;
     public $clientRegistrant;
+    public $teamRegistrant;
     
     function __construct()
     {

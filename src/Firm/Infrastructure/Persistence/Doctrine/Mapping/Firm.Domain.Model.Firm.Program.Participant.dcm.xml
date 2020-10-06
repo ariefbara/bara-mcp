@@ -29,5 +29,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-one>
         
+        <one-to-one field="teamParticipant" 
+                    target-entity="Firm\Domain\Model\Firm\Program\TeamParticipant"
+                    mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
     </entity>
 </doctrine-mapping>

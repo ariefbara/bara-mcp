@@ -41,15 +41,21 @@ class Registrant
 
     /**
      *
-     * @var UserRegistrant||null
+     * @var UserRegistrant|null
      */
     protected $userRegistrant;
 
     /**
      *
-     * @var ClientRegistrant||null
+     * @var ClientRegistrant|null
      */
     protected $clientRegistrant;
+
+    /**
+     *
+     * @var TeamRegistrant|null
+     */
+    protected $teamRegistrant;
 
     protected function __construct()
     {
@@ -77,9 +83,15 @@ class Registrant
 
     public function createParticipant(string $participantId): Participant
     {
-        return empty($this->userRegistrant) ?
-                $this->clientRegistrant->createParticipant($this->program, $participantId) :
-                $this->userRegistrant->createParticipant($this->program, $participantId);
+        if (isset($this->userRegistrant)) {
+            return $this->userRegistrant->createParticipant($this->program, $participantId);
+        }
+        if (isset($this->clientRegistrant)) {
+            return $this->clientRegistrant->createParticipant($this->program, $participantId);
+        }
+        if (isset($this->teamRegistrant)) {
+            return $this->teamRegistrant->createParticipant($this->program, $participantId);
+        }
     }
 
     public function correspondWithUser(string $userId): bool
@@ -89,7 +101,12 @@ class Registrant
 
     public function correspondWithClient(string $clientId): bool
     {
-        return empty($this->clientRegistrant)? false: $this->clientRegistrant->clientIdEquals($clientId);
+        return empty($this->clientRegistrant) ? false : $this->clientRegistrant->clientIdEquals($clientId);
+    }
+
+    public function correspondWithTeam(string $teamId): bool
+    {
+        return isset($this->teamRegistrant) ? $this->teamRegistrant->teamIdEquals($teamId) : false;
     }
 
     protected function assertUnconcluded(): void

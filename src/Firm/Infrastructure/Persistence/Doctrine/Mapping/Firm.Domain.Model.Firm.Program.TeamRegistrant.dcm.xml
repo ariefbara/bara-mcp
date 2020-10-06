@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\TeamRegistrant" 
+            table="TeamRegistrant" 
+    >
+        
+        <one-to-one  field="registrant" 
+                     target-entity="Firm\Domain\Model\Firm\Program\Registrant"
+                     inversed-by="teamRegistrant"
+        >
+            <join-column name="Registrant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="teamId" column="Team_id" type="guid" nullable="false"/>
+        
+    </entity>
+</doctrine-mapping>
