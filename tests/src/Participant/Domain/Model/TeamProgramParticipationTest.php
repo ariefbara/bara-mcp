@@ -145,8 +145,8 @@ class TeamProgramParticipationTest extends TestBase
     {
         $this->programParticipation->expects($this->once())
                 ->method("submitConsultationSessionReport")
-                ->with($this->consultationSession, $this->formRecordData);
-        $this->teamProgramParticipation->submitConsultationSessionReport($this->consultationSession, $this->formRecordData);
+                ->with($this->consultationSession, $this->formRecordData, $this->teamMember);
+        $this->teamProgramParticipation->submitConsultationSessionReport($this->consultationSession, $this->formRecordData, $this->teamMember);
     }
 
 }

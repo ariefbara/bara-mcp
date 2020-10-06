@@ -2,11 +2,14 @@
 
 namespace Participant\Domain\Model\Participant;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     Model\AssetBelongsToParticipantInterface,
     Model\Participant,
+    Model\Participant\ConsultationSession\ConsultationSessionActivityLog,
     Model\Participant\ConsultationSession\ParticipantFeedback
 };
 use Resources\ {
@@ -54,15 +57,23 @@ class ConsultationSession implements AssetBelongsToParticipantInterface
      */
     protected $participantFeedback = null;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $consultationSessionActivityLogs;
+
     function __construct(
-            Participant $participant, $id, ConsultationSetup $consultationSetup,
-            Consultant $consultant, DateTimeInterval $startEndTime)
+            Participant $participant, $id, ConsultationSetup $consultationSetup, Consultant $consultant,
+            DateTimeInterval $startEndTime)
     {
         $this->participant = $participant;
         $this->id = $id;
         $this->consultationSetup = $consultationSetup;
         $this->consultant = $consultant;
         $this->startEndTime = $startEndTime;
+        
+        $this->consultationSessionActivityLogs = new ArrayCollection();
     }
 
     public function conflictedWithConsultationRequest(ConsultationRequest $consultationRequest): bool
@@ -70,7 +81,7 @@ class ConsultationSession implements AssetBelongsToParticipantInterface
         return $this->startEndTime->intersectWith($consultationRequest->getStartEndTime());
     }
 
-    public function setParticipantFeedback(FormRecordData $formRecordData): void
+    public function setParticipantFeedback(FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
     {
         if (!empty($this->participantFeedback)) {
             $this->participantFeedback->update($formRecordData);
@@ -79,11 +90,25 @@ class ConsultationSession implements AssetBelongsToParticipantInterface
             $formRecord = $this->consultationSetup->createFormRecordForParticipantFeedback($id, $formRecordData);
             $this->participantFeedback = new ParticipantFeedback($this, $id, $formRecord);
         }
+        $this->addActivityLog("submitted consultation report", $teamMember);
     }
 
     public function belongsTo(Participant $participant): bool
     {
         return $this->participant === $participant;
+    }
+
+    protected function addActivityLog(string $message, ?TeamMembership $teamMember): void
+    {
+        $messageWithActor = isset($teamMember)? "team member $message": "participant $message";
+        $id = Uuid::generateUuid4();
+        $consultationSesssionActivityLog = new ConsultationSessionActivityLog($this, $id, $messageWithActor);
+        
+        if (isset($teamMember)) {
+            $teamMember->setAsActivityOperator($consultationSesssionActivityLog);
+        }
+        
+        $this->consultationSessionActivityLogs->add($consultationSesssionActivityLog);
     }
 
 }

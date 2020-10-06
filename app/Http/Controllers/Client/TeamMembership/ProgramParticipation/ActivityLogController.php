@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Client\TeamMembership\ProgramParticipation;
 
 use App\Http\Controllers\Client\TeamMembership\TeamMembershipBaseController;
-use Query\{
+use Query\ {
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ViewActivityLog,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
     Domain\SharedModel\ActivityLog
 };
 
@@ -42,6 +43,7 @@ class ActivityLogController extends TeamMembershipBaseController
                 ],
             ],
             "consultationRequest" => $this->arrayDataOfConsultationRequest($activityLog->getConsultationRequestActivityLog()),
+            "consultationSession" => $this->arrayDataOfConsultationSession($activityLog->getConsultationSessionActivityLog()),
         ];
     }
 
@@ -49,6 +51,12 @@ class ActivityLogController extends TeamMembershipBaseController
     {
         return empty($consultationRequestActivityLog) ? null : [
             "id" => $consultationRequestActivityLog->getConsultationRequest()->getId(),
+        ];
+    }
+    protected function arrayDataOfConsultationSession(?ConsultationSessionActivityLog $consultationSessionActivityLog): ?array
+    {
+        return empty($consultationSessionActivityLog)? null: [
+            "id" => $consultationSessionActivityLog->getConsultationSession()->getId(),
         ];
     }
 

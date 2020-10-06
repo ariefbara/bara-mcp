@@ -5,7 +5,9 @@ namespace Tests\Controllers\Client\TeamMembership\ProgramParticipation;
 use Tests\Controllers\ {
     Client\TeamMembership\ProgramParticipationTestCase,
     RecordPreparation\Firm\Program\Participant\ConsultationRequest\RecordOfConsultationRequestActivityLog,
+    RecordPreparation\Firm\Program\Participant\ConsultationSession\RecordOfConsultationSessionActivityLog,
     RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest,
+    RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession,
     RecordPreparation\Firm\Program\RecordOfConsultant,
     RecordPreparation\Firm\Program\RecordOfConsultationSetup,
     RecordPreparation\Firm\RecordOfFeedbackForm,
@@ -19,8 +21,9 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
 {
     protected $activityLogUri;
     protected $activityLog;
-    protected $activityLogOne;
     protected $consultationRequest;
+    protected $activityLogOne;
+    protected $consultationSession;
     
     protected function setUp(): void
     {
@@ -30,12 +33,14 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->connection->table("ActivityLog")->truncate();
         $this->connection->table("TeamMemberActivityLog")->truncate();
         $this->connection->table("ConsultationRequestActivityLog")->truncate();
+        $this->connection->table("ConsultationSessionActivityLog")->truncate();
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
         $this->connection->table("ConsultationSetup")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("ConsultationRequest")->truncate();
+        $this->connection->table("ConsultationSession")->truncate();
         
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
@@ -72,9 +77,14 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->connection->table("ConsultationRequest")->insert($this->consultationRequest->toArrayForDbEntry());
         
         $consultationRequestActivityLog = new RecordOfConsultationRequestActivityLog($this->consultationRequest, $this->activityLog);
-        $consultationRequestActivityLogOne = new RecordOfConsultationRequestActivityLog($this->consultationRequest, $this->activityLogOne);
         $this->connection->table("ConsultationRequestActivityLog")->insert($consultationRequestActivityLog->toArrayForDbEntry());
-        $this->connection->table("ConsultationRequestActivityLog")->insert($consultationRequestActivityLogOne->toArrayForDbEntry());
+        
+        $this->consultationSession = new RecordOfConsultationSession($consultationSetup, $participant, $consultant, 0);
+        $this->connection->table("ConsultationSession")->insert($this->consultationSession->toArrayForDbEntry());
+        
+        $consultationSessionActivityLogOne = new RecordOfConsultationSessionActivityLog($this->consultationSession, $this->activityLogOne);
+        $this->connection->table("ConsultationSessionActivityLog")->insert($consultationSessionActivityLogOne->toArrayForDbEntry());
+        
     }
     
     protected function tearDown(): void
@@ -83,12 +93,14 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->connection->table("ActivityLog")->truncate();
         $this->connection->table("TeamMemberActivityLog")->truncate();
         $this->connection->table("ConsultationRequestActivityLog")->truncate();
+        $this->connection->table("ConsultationSessionActivityLog")->truncate();
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
         $this->connection->table("ConsultationSetup")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("ConsultationRequest")->truncate();
+        $this->connection->table("ConsultationSession")->truncate();
     }
     
     public function test_showAll_200()
@@ -110,6 +122,7 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                     "consultationRequest" => [
                         "id" => $this->consultationRequest->id,
                     ],
+                    "consultationSession" => null
                 ],
                 [
                     "id" => $this->activityLogOne->id,
@@ -122,8 +135,9 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                             "name" => $this->teamMembership->client->getFullName(),
                         ],
                     ],
-                    "consultationRequest" => [
-                        "id" => $this->consultationRequest->id,
+                    "consultationRequest" => null,
+                    "consultationSession" => [
+                        "id" => $this->consultationSession->id,
                     ],
                 ],
             ],
@@ -133,3 +147,4 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                 ->seeStatusCode(200);
     }
 }
+ 

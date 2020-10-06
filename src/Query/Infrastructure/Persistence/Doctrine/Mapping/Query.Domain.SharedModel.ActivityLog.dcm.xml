@@ -14,6 +14,11 @@
                     mapped-by="activityLog"
         />
         
+        <one-to-one field="consultationSessionActivityLog" 
+                    target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog"
+                    mapped-by="activityLog"
+        />
+        
         <one-to-one field="teamMemberActivityLog" 
                     target-entity="Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog"
                     mapped-by="activityLog"

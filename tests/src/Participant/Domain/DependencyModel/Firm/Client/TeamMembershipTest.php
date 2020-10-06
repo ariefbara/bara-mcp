@@ -428,7 +428,7 @@ class TeamMembershipTest extends TestBase
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("submitConsultationSessionReport")
-                ->with($this->consultationSession, $this->formRecordData);
+                ->with($this->consultationSession, $this->formRecordData, $this->teamMembership);
         $this->executeSubmitConsultationSessionReport();
     }
     public function test_submitConsultationSessionReport_inactiveMember_forbiddenError()

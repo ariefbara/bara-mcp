@@ -227,11 +227,11 @@ class Participant
     }
 
     public function submitConsultationSessionReport(ConsultationSession $consultationSession,
-            FormRecordData $formRecordData): void
+            FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
     {
         $this->assertActive();
         $this->assertOwnAsset($consultationSession);
-        $consultationSession->setParticipantFeedback($formRecordData);
+        $consultationSession->setParticipantFeedback($formRecordData, $teamMember);
     }
 
 }

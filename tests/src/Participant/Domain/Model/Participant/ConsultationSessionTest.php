@@ -3,9 +3,11 @@
 namespace Participant\Domain\Model\Participant;
 
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     Model\Participant,
+    Model\Participant\ConsultationSession\ConsultationSessionActivityLog,
     Model\Participant\ConsultationSession\ParticipantFeedback
 };
 use Resources\Domain\ValueObject\DateTimeInterval;
@@ -21,6 +23,7 @@ class ConsultationSessionTest extends TestBase
     protected $consultationRequest;
     protected $participantFeedback;
     protected $formRecordData;
+    protected $teamMember;
 
     protected function setUp(): void
     {
@@ -37,6 +40,8 @@ class ConsultationSessionTest extends TestBase
 
         $this->participantFeedback = $this->buildMockOfClass(ParticipantFeedback::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        
+        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
 
     public function test_construct_setProperties()
@@ -82,6 +87,17 @@ class ConsultationSessionTest extends TestBase
                 ->with($this->formRecordData);
         $this->executeSetParticipantFeedback();
     }
+    public function test_setParticipantFeedback_addActivityLog()
+    {
+        $this->executeSetParticipantFeedback();
+        $this->assertInstanceOf(ConsultationSessionActivityLog::class, $this->consultationSession->consultationSessionActivityLogs->first());
+    }
+    public function test_setParticipantFeedback_forTeamParticipant_setTeamMemberAsActivityLogOperator()
+    {
+        $this->teamMember->expects($this->once())
+                ->method("setAsActivityOperator");
+        $this->consultationSession->setParticipantFeedback($this->formRecordData, $this->teamMember);
+    }
     
     public function test_belongsTo_sameParticipant_returnTrue()
     {
@@ -100,5 +116,5 @@ class TestableConsultationSession extends ConsultationSession
 
     public $consultationSetup, $id, $participant, $consultant, $startEndTime;
     public $participantFeedback;
-
+    public $consultationSessionActivityLogs;
 }

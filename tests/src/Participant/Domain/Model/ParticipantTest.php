@@ -471,6 +471,17 @@ class ParticipantTest extends TestBase
             $this->executeSubmitConsultationSessionReport();
         });
     }
+    public function test_submitConsultationSessionReport_teamParticipant_includeTeamMemberInSubmittance()
+    {
+        $this->consultationSession->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        
+        $this->consultationSession->expects($this->once())
+                ->method("setParticipantFeedback")
+                ->with($this->formRecordData, $this->teamMember);
+        $this->participant->submitConsultationSessionReport($this->consultationSession, $this->formRecordData, $this->teamMember);
+    }
     
     protected function executeIsATeamProgramParticipationOfTeam()
     {

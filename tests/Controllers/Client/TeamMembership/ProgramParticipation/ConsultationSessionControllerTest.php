@@ -42,6 +42,9 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ParticipantFeedback')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ConsultationSessionActivityLog')->truncate();
+        $this->connection->table('TeamMemberActivityLog')->truncate();
 
         $program = $this->programParticipation->participant->program;
         $firm = $program->firm;
@@ -112,6 +115,9 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ParticipantFeedback')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ConsultationSessionActivityLog')->truncate();
+        $this->connection->table('TeamMemberActivityLog')->truncate();
     }
     public function test_show()
     {
@@ -343,6 +349,28 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
             "value" => $this->participantFeedbackInput['stringFieldRecords'][0]['value'],
         ];
         $this->seeInDatabase("StringFieldRecord", $stringFieldRecordEntry);
+    }
+    public function test_submitReport_logActivity()
+    {
+        $uri = $this->consultationSessionUri . "/{$this->consultationSessionOne->id}/submit-report";
+        $this->put($uri, $this->participantFeedbackInput, $this->teamMembership->client->token)
+                ->seeStatusCode(200);
+        
+        $activityLogEntry = [
+            "message" => "team member submitted consultation report",
+            "occuredTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $consultationSessionActivityLogEntry = [
+            "ConsultationSession_id" => $this->consultationSessionOne->id,
+        ];
+        $this->seeInDatabase("ConsultationSessionActivityLog", $consultationSessionActivityLogEntry);
+        
+        $teamMemberActivityLogEntry = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teamMemberActivityLogEntry);
     }
 
 }

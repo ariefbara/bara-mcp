@@ -39,5 +39,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-one>
         
+        <one-to-many  field="consultationSessionActivityLogs" 
+                      target-entity="Participant\Domain\Model\Participant\ConsultationSession\ConsultationSessionActivityLog"
+                      mapped-by="consultationSession"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

@@ -7,5 +7,5 @@ use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
 interface ContainActvityLog
 {
 
-    public function setOperator(TeamMembership $teamMembership): void;
+    public function setOperator(TeamMembership $teamMember): void;
 }

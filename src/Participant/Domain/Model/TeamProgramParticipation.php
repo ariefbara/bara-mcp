@@ -104,9 +104,9 @@ class TeamProgramParticipation
     }
 
     public function submitConsultationSessionReport(
-            ConsultationSession $consultationSession, FormRecordData $formRecordData): void
+            ConsultationSession $consultationSession, FormRecordData $formRecordData, TeamMembership $teamMember): void
     {
-        $this->programParticipation->submitConsultationSessionReport($consultationSession, $formRecordData);
+        $this->programParticipation->submitConsultationSessionReport($consultationSession, $formRecordData, $teamMember);
     }
 
 }

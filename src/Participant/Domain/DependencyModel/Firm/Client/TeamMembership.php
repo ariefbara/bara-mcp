@@ -174,7 +174,7 @@ class TeamMembership
     {
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
-        $teamProgramParticipation->submitConsultationSessionReport($consultationSession, $formRecordData);
+        $teamProgramParticipation->submitConsultationSessionReport($consultationSession, $formRecordData, $this);
     }
     
     public function submitNewCommentInWorksheet(Worksheet $worksheet, string $commentId, string $message): Comment
