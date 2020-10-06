@@ -24,7 +24,7 @@ class WorksheetFinder
 
     public function findWorksheetBelongsToParticipant(Participant $participant, string $worksheetId): Worksheet
     {
-        $firmId = $participant->getProgram()->getFirm();
+        $firmId = $participant->getProgram()->getFirm()->getId();
         $programId = $participant->getProgram()->getId();
         $participantId = $participant->getId();
         return $this->worksheetRepository->ofId($firmId, $programId, $participantId, $worksheetId);
@@ -32,7 +32,7 @@ class WorksheetFinder
 
     public function findAllWorksheetsBelongsToParticipant(Participant $participant, int $page, int $pageSize)
     {
-        $firmId = $participant->getProgram()->getFirm();
+        $firmId = $participant->getProgram()->getFirm()->getId();
         $programId = $participant->getProgram()->getId();
         $participantId = $participant->getId();
         return $this->worksheetRepository->all($firmId, $programId, $participantId, $page, $pageSize);
@@ -40,7 +40,7 @@ class WorksheetFinder
 
     public function findAllRootWorksheetBelongsToParticipant(Participant $participant, int $page, int $pageSize)
     {
-        $firmId = $participant->getProgram()->getFirm();
+        $firmId = $participant->getProgram()->getFirm()->getId();
         $programId = $participant->getProgram()->getId();
         $participantId = $participant->getId();
         return $this->worksheetRepository->allRootWorksheets($firmId, $programId, $participantId, $page, $pageSize);
@@ -49,7 +49,7 @@ class WorksheetFinder
     public function findAllBranchesOfWorksheetBelongsToParticipant(
             Participant $participant, string $worksheetId, int $page, int $pageSize)
     {
-        $firmId = $participant->getProgram()->getFirm();
+        $firmId = $participant->getProgram()->getFirm()->getId();
         $programId = $participant->getProgram()->getId();
         $participantId = $participant->getId();
         return $this->worksheetRepository->allBranchesOfParentWorksheet(

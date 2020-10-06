@@ -3,10 +3,12 @@
 namespace Participant\Domain\Model\Participant;
 
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant,
-    Model\Participant\Worksheet\Comment
+    Model\Participant\Worksheet\Comment,
+    Model\Participant\Worksheet\WorksheetActivityLog
 };
 use SharedContext\Domain\Model\SharedEntity\ {
     FormRecord,
@@ -24,6 +26,7 @@ class WorksheetTest extends TestBase
     protected $formRecordData;
     
     protected $commentId = 'commentId', $commentMessage = 'commentMessage';
+    protected $teamMember;
 
     protected function setUp(): void
     {
@@ -38,7 +41,9 @@ class WorksheetTest extends TestBase
         
         $this->worksheet = new TestableWorksheet($this->participant, 'id', "worksheet name", $this->rootMission, $this->formRecordData);
         $this->worksheet->formRecord = $this->formRecord;
+        $this->worksheet->worksheetActivityLogs->clear();
         
+        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
     
     protected function executeCreateRootWorksheet()
@@ -46,7 +51,7 @@ class WorksheetTest extends TestBase
         $this->rootMission->expects($this->once())
                 ->method('isRootMission')
                 ->willReturn(true);
-        return TestableWorksheet::createRootWorksheet($this->participant, $this->id, $this->name, $this->rootMission, $this->formRecordData);
+        return TestableWorksheet::createRootWorksheet($this->participant, $this->id, $this->name, $this->rootMission, $this->formRecordData, null);
     }
     public function test_createRootWorksheet_setProperties()
     {
@@ -84,6 +89,22 @@ class WorksheetTest extends TestBase
         };
         $errorDetail = 'forbidden: root worksheet can only refer to root mission';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_createRootWorksheet_addActivity()
+    {
+        $worksheet = $this->executeCreateRootWorksheet();
+        $this->assertInstanceOf(WorksheetActivityLog::class, $worksheet->worksheetActivityLogs->first());
+    }
+    public function test_createRootWorksheet_forParticipantTeam_executeTeamMemberSetAsActivityOperatorMethod()
+    {
+        $this->rootMission->expects($this->once())
+                ->method('isRootMission')
+                ->willReturn(true);
+        
+        $this->teamMember->expects($this->once())
+                ->method("setAsActivityOperator");
+        TestableWorksheet::createRootWorksheet(
+                $this->participant, $this->id, $this->name, $this->rootMission, $this->formRecordData, $this->teamMember);
     }
     
     public function test_belongsTo_sameParticipant_returnTrue()
@@ -135,6 +156,22 @@ class WorksheetTest extends TestBase
         $errorDetail = "forbidden: parent worksheet mission doesn't contain this mission";
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+    public function test_createBranch_logActivity()
+    {
+        $branch = $this->executeCreateBranchWorksheet();
+        $this->assertInstanceOf(WorksheetActivityLog::class, $branch->worksheetActivityLogs->first());
+    }
+    public function test_createBranch_participantTeam_executeTeamMembersSetAsActivityOperator()
+    {
+        $this->rootMission->expects($this->once())
+                ->method('hasBranch')
+                ->willReturn(true);
+        
+        $this->teamMember->expects($this->once())
+                ->method("setAsActivityOperator");
+        
+        $this->worksheet->createBranchWorksheet($this->id, $this->name, $this->mission, $this->formRecordData, $this->teamMember);
+    }
     
     protected function executeUpdate()
     {
@@ -154,11 +191,33 @@ class WorksheetTest extends TestBase
                 ->with($this->formRecordData);
         $this->executeUpdate();
     }
+    public function test_update_logActivity()
+    {
+        $this->executeUpdate();
+        $this->assertInstanceOf(WorksheetActivityLog::class, $this->worksheet->worksheetActivityLogs->first());
+    }
+    public function test_update_teamParticipant_executeTeamMemberSetAsActivityOperator()
+    {
+        $this->teamMember->expects($this->once())
+                ->method("setAsActivityOperator");
+        $this->worksheet->update($this->name, $this->formRecordData, $this->teamMember);
+    }
     
     public function test_remove_setRemovedFlagTrue()
     {
         $this->worksheet->remove();
         $this->assertTrue($this->worksheet->removed);
+    }
+    public function test_remove_logActivity()
+    {
+        $this->worksheet->remove();
+        $this->assertInstanceOf(WorksheetActivityLog::class, $this->worksheet->worksheetActivityLogs->first());
+    }
+    public function test_remove_teamParticipant_executeTeamMemberSetAsActivityOperator()
+    {
+        $this->teamMember->expects($this->once())
+                ->method("setAsActivityOperator");
+        $this->worksheet->remove($this->teamMember);
     }
     
     public function test_createComment_returnComment()
@@ -181,10 +240,11 @@ class TestableWorksheet extends Worksheet
 {
     public $mission, $id, $name, $parent, $participant, $formRecord, $removed;
     public $branches;
+    public $worksheetActivityLogs;
     
-    public function __construct(Participant $participant, string $id, string $name,
-            Mission $mission, FormRecordData $formRecordData)
+    function __construct(Participant $participant, string $id, string $name, Mission $mission,
+            FormRecordData $formRecordData, ?TeamMembership $teamMember = null)
     {
-        parent::__construct($participant, $id, $name, $mission, $formRecordData);
+        parent::__construct($participant, $id, $name, $mission, $formRecordData, $teamMember);
     }
 }

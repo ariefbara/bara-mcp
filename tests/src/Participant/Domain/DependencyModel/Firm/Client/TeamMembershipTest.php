@@ -195,14 +195,14 @@ class TeamMembershipTest extends TestBase
         $this->setAnyTeamProgramParticipationTeamEqualsMethodCallReturnTrue();
         return $this->teamMembership->submitRootWorksheet(
                         $this->teamProgramParticipation, $this->worksheetId, $this->worksheetName, $this->mission,
-                        $this->formRecordData);
+                        $this->formRecordData, $this->teamMembership);
     }
 
     public function test_submitRootWorksheet_returnTeamProgramParticipationSubmitRootWorksheetResult()
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("submitRootWorksheet")
-                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
+                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMembership);
         $this->executeSubmitRootWorksheet();
     }
 
@@ -229,7 +229,7 @@ class TeamMembershipTest extends TestBase
         $this->setAnyTeamProgramParticipationTeamEqualsMethodCallReturnTrue();
         return $this->teamMembership->submitBranchWorksheet(
                         $this->teamProgramParticipation, $this->worksheet, $this->worksheetId, $this->worksheetName,
-                        $this->mission, $this->formRecordData);
+                        $this->mission, $this->formRecordData, $this->teamMembership);
     }
 
     public function test_executeSubmitBranchWorksheet_returnTeamProgramParticipationSubmitBranchWorksheetResult()
@@ -237,7 +237,7 @@ class TeamMembershipTest extends TestBase
         $branch = $this->buildMockOfClass(Worksheet::class);
         $this->teamProgramParticipation->expects($this->once())
                 ->method("submitBranchWorksheet")
-                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData)
+                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMembership)
                 ->willReturn($branch);
         $this->assertEquals($branch, $this->executeSubmitBranchWorksheet());
     }
@@ -264,14 +264,14 @@ class TeamMembershipTest extends TestBase
     {
         $this->setAnyTeamProgramParticipationTeamEqualsMethodCallReturnTrue();
         $this->teamMembership->updateWorksheet(
-                $this->teamProgramParticipation, $this->worksheet, $this->worksheetName, $this->formRecordData);
+                $this->teamProgramParticipation, $this->worksheet, $this->worksheetName, $this->formRecordData, $this->teamMembership);
     }
 
     public function test_updateWorksheet_executeTeamProgramParticipationsUpdateWorksheet()
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("updateWorksheet")
-                ->with($this->worksheet, $this->worksheetName, $this->formRecordData);
+                ->with($this->worksheet, $this->worksheetName, $this->formRecordData, $this->teamMembership);
         $this->executeUpdateWorksheet();
     }
 

@@ -111,7 +111,7 @@ class TeamMembership
     {
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
-        return $teamProgramParticipation->submitRootWorksheet($worksheetId, $name, $mission, $formRecordData);
+        return $teamProgramParticipation->submitRootWorksheet($worksheetId, $name, $mission, $formRecordData, $this);
     }
 
     public function submitBranchWorksheet(
@@ -121,7 +121,7 @@ class TeamMembership
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
         return $teamProgramParticipation->submitBranchWorksheet(
-                        $parentWorksheet, $branchWorksheetId, $branchWorksheetName, $mission, $formRecordData);
+                        $parentWorksheet, $branchWorksheetId, $branchWorksheetName, $mission, $formRecordData, $this);
     }
 
     public function updateWorksheet(
@@ -130,7 +130,7 @@ class TeamMembership
     {
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
-        $teamProgramParticipation->updateWorksheet($worksheet, $worksheetName, $formRecordData);
+        $teamProgramParticipation->updateWorksheet($worksheet, $worksheetName, $formRecordData, $this);
     }
 
     public function submitConsultationRequest(

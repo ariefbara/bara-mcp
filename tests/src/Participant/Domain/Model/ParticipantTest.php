@@ -318,16 +318,11 @@ class ParticipantTest extends TestBase
         $this->mission->expects($this->any())
                 ->method("programEquals")
                 ->willReturn(true);
-        return $this->participant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
+        return $this->participant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, null);
     }
     public function test_createRootWorksheet_returnRootWorksheet()
     {
-        $this->mission->expects($this->once())
-                ->method("programEquals")
-                ->willReturn(true);
-        $worksheet = Worksheet::createRootWorksheet(
-                        $this->participant, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
-        $this->assertEquals($worksheet, $this->executeCreateRootWorksheet());
+        $this->assertInstanceOf(Worksheet::class, $this->executeCreateRootWorksheet());
     }
     public function test_createRootWorksheet_missionsProgramDifferentFromParticipantsProgram_forbiddenError()
     {
@@ -386,6 +381,16 @@ class ParticipantTest extends TestBase
         };
         $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
     }
+    public function test_submitBranchWorksheet_teamParticipant_includeTeamMemberInBranchCreation()
+    {
+        $this->parentWorksheet->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        $this->parentWorksheet->expects($this->once())
+                ->method("createBranchWorksheet")
+                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
+        $this->participant->submitBranchWorksheet($this->parentWorksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
+    }
     
     protected function executeUpdateWorksheet()
     {
@@ -419,6 +424,16 @@ class ParticipantTest extends TestBase
             $this->executeUpdateWorksheet();
         };
         $this->assertOperationCauseAssetNotOwnedForbiddenError($operation);
+    }
+    public function test_updateWorksheet_teamParticipant_includeTeamMemberInBranchCreation()
+    {
+        $this->parentWorksheet->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        $this->parentWorksheet->expects($this->once())
+                ->method("update")
+                ->with($this->worksheetName, $this->formRecordData, $this->teamMember);
+        $this->participant->updateWorksheet($this->parentWorksheet, $this->worksheetName, $this->formRecordData, $this->teamMember);
     }
     
     protected function executeIsActiveParticipantOfProgram()

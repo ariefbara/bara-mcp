@@ -34,5 +34,12 @@
         
         <field name="removed" type="boolean" />
         
+        <one-to-many  field="worksheetActivityLogs" 
+                      target-entity="Participant\Domain\Model\Participant\Worksheet\WorksheetActivityLog"
+                      mapped-by="worksheet"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

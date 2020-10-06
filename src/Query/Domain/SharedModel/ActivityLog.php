@@ -3,9 +3,10 @@
 namespace Query\Domain\SharedModel;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\ {
+use Query\Domain\Model\Firm\{
     Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
     Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
+    Program\Participant\Worksheet\WorksheetActivityLog,
     Team\Member\TeamMemberActivityLog
 };
 
@@ -44,6 +45,12 @@ class ActivityLog
 
     /**
      *
+     * @var WorksheetActivityLog|null
+     */
+    protected $worksheetActivityLog;
+
+    /**
+     *
      * @var TeamMemberActivityLog|null
      */
     protected $teamMemberActivityLog;
@@ -76,6 +83,11 @@ class ActivityLog
     public function getConsultationSessionActivityLog(): ?ConsultationSessionActivityLog
     {
         return $this->consultationSessionActivityLog;
+    }
+
+    public function getWorksheetActivityLog(): ?WorksheetActivityLog
+    {
+        return $this->worksheetActivityLog;
     }
 
     public function getTeamMemberActivityLog(): ?TeamMemberActivityLog

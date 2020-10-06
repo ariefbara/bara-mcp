@@ -3,7 +3,7 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
@@ -54,22 +54,22 @@ class TeamProgramParticipation
     }
 
     public function submitRootWorksheet(
-            string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData): Worksheet
+            string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData, TeamMembership $teamMember): Worksheet
     {
-        return $this->programParticipation->createRootWorksheet($worksheetId, $name, $mission, $formRecordData);
+        return $this->programParticipation->createRootWorksheet($worksheetId, $name, $mission, $formRecordData, $teamMember);
     }
 
     public function submitBranchWorksheet(
             Worksheet $parentWorksheet, string $worksheetId, string $name, Mission $mission,
-            FormRecordData $formRecordData): Worksheet
+            FormRecordData $formRecordData, TeamMembership $teamMember): Worksheet
     {
         return $this->programParticipation
-                        ->submitBranchWorksheet($parentWorksheet, $worksheetId, $name, $mission, $formRecordData);
+                        ->submitBranchWorksheet($parentWorksheet, $worksheetId, $name, $mission, $formRecordData, $teamMember);
     }
 
-    public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData): void
+    public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData, TeamMembership $teamMember): void
     {
-        $this->programParticipation->updateWorksheet($worksheet, $name, $formRecordData);
+        $this->programParticipation->updateWorksheet($worksheet, $name, $formRecordData, $teamMember);
     }
 
     public function quit(): void

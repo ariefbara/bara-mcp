@@ -80,6 +80,23 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->post($this->worksheetUri, $this->worksheetInput, $this->teamMembership->client->token)
                 ->seeStatusCode(403);
     }
+    public function test_submitRoot_logActivity()
+    {
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $activityLogEntry = [
+            "message" => "team member submitted worksheet",
+            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+//see database manually to check WorksheetActivityLog recorded successfully
+    }
     
     public function test_submitBranch()
     {
@@ -127,6 +144,7 @@ class WorksheetControllerTest extends WorksheetTestCase
     }
     public function test_submitBranch_missionNotBranchOfParentWorksheetMission_error403()
     {
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
         $mission = new RecordOfMission($this->programParticipation->participant->program, $this->worksheetForm, 2, null);
         $this->connection->table('Mission')->insert($mission->toArrayForDbEntry());
         
@@ -137,15 +155,34 @@ class WorksheetControllerTest extends WorksheetTestCase
     }
     public function test_submitBranch_inactiveMember_403()
     {
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
         $this->setTeamMembershipInactive();
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->post($uri, $this->worksheetInput, $this->teamMembership->client->token)
                 ->seeStatusCode(403);
     }
+    public function test_submitBranch_logActivity()
+    {
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $activityLogEntry = [
+            "message" => "team member submitted worksheet",
+            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+//see WorksheetActivityLog column manually to check record persisted
+    }
     
     public function test_update()
     {
-$this->disableExceptionHandling();
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->patch($uri, $this->worksheetInput, $this->teamMembership->client->token)
                 ->seeStatusCode(200)
@@ -174,6 +211,28 @@ $this->disableExceptionHandling();
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->patch($uri, $this->worksheetInput, $this->teamMembership->client->token)
                 ->seeStatusCode(403);
+    }
+    public function test_update_logActivity()
+    {
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->patch($uri, $this->worksheetInput, $this->teamMembership->client->token)
+                ->seeStatusCode(200);
+                
+        $activityLogEntry = [
+            "message" => "team member updated worksheet",
+            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+        
+        $worksheetActivityLogEntry = [
+            "Worksheet_id" => $this->worksheet->id,
+        ];
+        $this->seeInDatabase("WorksheetActivityLog", $worksheetActivityLogEntry);
     }
     
     public function test_show()

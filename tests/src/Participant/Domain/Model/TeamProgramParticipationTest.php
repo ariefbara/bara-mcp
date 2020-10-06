@@ -79,9 +79,9 @@ class TeamProgramParticipationTest extends TestBase
     {
         $this->programParticipation->expects($this->once())
                 ->method("createRootWorksheet")
-                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
+                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
         $this->teamProgramParticipation->submitRootWorksheet(
-                $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
+                $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
     }
 
     public function test_submitBranchWorksheet_returnProgramParticipationSubmitBranchWorksheetResult()
@@ -89,20 +89,20 @@ class TeamProgramParticipationTest extends TestBase
         $branch = $this->buildMockOfClass(Worksheet::class);
         $this->programParticipation->expects($this->once())
                 ->method("submitBranchWorksheet")
-                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData)
+                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember)
                 ->willReturn($branch);
         $this->assertEquals(
                 $branch,
                 $this->teamProgramParticipation->submitBranchWorksheet($this->worksheet, $this->worksheetId,
-                        $this->worksheetName, $this->mission, $this->formRecordData));
+                        $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember));
     }
 
     public function test_updateWorksheet_executeProgramParticipationsUpdateWorksheet()
     {
         $this->programParticipation->expects($this->once())
                 ->method("updateWorksheet")
-                ->with($this->worksheet, $this->worksheetName, $this->formRecordData);
-        $this->teamProgramParticipation->updateWorksheet($this->worksheet, $this->worksheetName, $this->formRecordData);
+                ->with($this->worksheet, $this->worksheetName, $this->formRecordData, $this->teamMember);
+        $this->teamProgramParticipation->updateWorksheet($this->worksheet, $this->worksheetName, $this->formRecordData, $this->teamMember);
     }
 
     public function test_quit_executeProgramParticipationQuitMethod()

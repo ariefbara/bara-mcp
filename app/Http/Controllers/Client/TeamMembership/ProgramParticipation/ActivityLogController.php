@@ -7,6 +7,7 @@ use Query\ {
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ViewActivityLog,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
+    Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog,
     Domain\SharedModel\ActivityLog
 };
 
@@ -44,6 +45,7 @@ class ActivityLogController extends TeamMembershipBaseController
             ],
             "consultationRequest" => $this->arrayDataOfConsultationRequest($activityLog->getConsultationRequestActivityLog()),
             "consultationSession" => $this->arrayDataOfConsultationSession($activityLog->getConsultationSessionActivityLog()),
+            "worksheet" => $this->arrayDataOfWorksheet($activityLog->getWorksheetActivityLog()),
         ];
     }
 
@@ -57,6 +59,12 @@ class ActivityLogController extends TeamMembershipBaseController
     {
         return empty($consultationSessionActivityLog)? null: [
             "id" => $consultationSessionActivityLog->getConsultationSession()->getId(),
+        ];
+    }
+    protected function arrayDataOfWorksheet(?WorksheetActivityLog $worksheetActivityLog): ?array
+    {
+        return empty($worksheetActivityLog)? null: [
+            "id" => $worksheetActivityLog->getWorksheet()->getId(),
         ];
     }
 

@@ -143,30 +143,31 @@ class Participant
     }
 
     public function createRootWorksheet(string $worksheetId, string $name, Mission $mission,
-            FormRecordData $formRecordData): Worksheet
+            FormRecordData $formRecordData, ?TeamMembership $teamMember): Worksheet
     {
         $this->assertActive();
         if (!$mission->programEquals($this->program)) {
             $errorDetail = "forbidden: can only access mission in same program";
             throw RegularException::forbidden($errorDetail);
         }
-        return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecordData);
+        return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecordData, $teamMember);
     }
 
     public function submitBranchWorksheet(
             Worksheet $parentWorksheet, string $worksheetId, string $worksheetName, Mission $mission,
-            FormRecordData $formRecordData): Worksheet
+            FormRecordData $formRecordData, ?TeamMembership $teamMember = null): Worksheet
     {
         $this->assertActive();
         $this->assertOwnAsset($parentWorksheet);
-        return $parentWorksheet->createBranchWorksheet($worksheetId, $worksheetName, $mission, $formRecordData);
+        return $parentWorksheet
+                        ->createBranchWorksheet($worksheetId, $worksheetName, $mission, $formRecordData, $teamMember);
     }
 
-    public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData): void
+    public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
     {
         $this->assertActive();
         $this->assertOwnAsset($worksheet);
-        $worksheet->update($name, $formRecordData);
+        $worksheet->update($name, $formRecordData, $teamMember);
     }
 
     public function isActiveParticipantOfProgram(Program $program): bool
