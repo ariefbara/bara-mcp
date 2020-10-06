@@ -33,7 +33,7 @@ class SubmitNewComment
         $id = $this->commentRepository->nextIdentity();
         $comment = $this->worksheetRepository
                 ->aWorksheetBelongsToUserParticipant($userId, $userParticipantId, $worksheetId)
-                ->createComment($id, $message);
+                ->createComment($id, $message, $teamMember = null);
 
         $this->commentRepository->add($comment);
         return $id;

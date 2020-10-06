@@ -455,7 +455,7 @@ class TeamMembershipTest extends TestBase
     {
         $this->worksheet->expects($this->once())
                 ->method("createComment")
-                ->with($this->commentId, $this->commentMessage);
+                ->with($this->commentId, $this->commentMessage, $this->teamMembership);
         $this->executeSubmitNewCommentInWorksheet();
     }
     public function test_submitNewCommentInWorksheet_worksheetDoesntBelongsToTeam_forbiddenError()
@@ -487,7 +487,7 @@ class TeamMembershipTest extends TestBase
     {
         $this->comment->expects($this->once())
                 ->method("createReply")
-                ->with($this->commentId, $this->commentMessage)
+                ->with($this->commentId, $this->commentMessage, $this->teamMembership)
                 ->willReturn($reply = $this->buildMockOfClass(Comment::class));
         $this->assertEquals($reply, $this->executeReplyComment());
     }

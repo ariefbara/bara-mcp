@@ -3,9 +3,11 @@
 namespace Participant\Domain\Model\Participant\Worksheet;
 
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant\ConsultantComment,
     DependencyModel\Firm\Team,
-    Model\Participant\Worksheet
+    Model\Participant\Worksheet,
+    Model\Participant\Worksheet\Comment\CommentActivityLog
 };
 use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
@@ -17,20 +19,28 @@ class CommentTest extends TestBase
     protected $consultantComment;
     
     protected $id = 'commentId', $message = 'new message';
+    protected $teamMember;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         
-        $this->comment = new TestableComment($this->worksheet, 'id', 'root');
+        $this->comment = new TestableComment($this->worksheet, 'id', 'root', null);
+        $this->comment->commentActivityLogs->clear();
         
         $this->consultantComment = $this->buildMockOfClass(ConsultantComment::class);
+        
+        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
     
+    protected function executeConstruct()
+    {
+        return new TestableComment($this->worksheet, $this->id, $this->message, null);
+    }
     public function test_construct_setProperties()
     {
-        $comment = new TestableComment($this->worksheet, $this->id, $this->message);
+        $comment = $this->executeConstruct();
         $this->assertEquals($this->worksheet, $comment->worksheet);
         $this->assertNull($comment->parent);
         $this->assertEquals($this->id, $comment->id);
@@ -38,28 +48,45 @@ class CommentTest extends TestBase
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $comment->submitTime);
         $this->assertFalse($comment->removed);
     }
+    public function test_construct_logActivity()
+    {
+        $comment = $this->executeConstruct();
+        $this->assertInstanceOf(CommentActivityLog::class, $comment->commentActivityLogs->first());
+    }
+    public function test_construct_forTeamParticipant_executeTeamMembersSetAsActivityOperatorMethod()
+    {
+        $this->teamMember->expects($this->once())
+                ->method("setAsActivityOperator");
+        new TestableComment($this->worksheet, $this->id, $this->message, $this->teamMember);
+    }
     
     public function test_createReply_returnRepliedComment()
     {
-        $reply = new TestableComment($this->worksheet, $this->id, $this->message);
-        $reply->parent = $this->comment;
-        
-        $this->assertEquals($reply, $this->comment->createReply($this->id, $this->message));
+        $this->assertInstanceOf(Comment::class, $this->comment->createReply($this->id, $this->message, null));
     }
     
+    protected function executeRemove()
+    {
+        $this->comment->remove($this->teamMember);
+    }
     public function test_remove_setRemovedTrue()
     {
-        $this->comment->remove();
+        $this->executeRemove();
         $this->assertTrue($this->comment->removed);
     }
     public function test_remove_commentBelongsToConsultant_forbiddenError()
     {
         $this->comment->consultantComment = $this->consultantComment;
         $operation = function (){
-            $this->comment->remove();
+            $this->executeRemove();
         };
         $errorDetail = 'forbidden: unable to remove consultant comment';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_remove_logActivity()
+    {
+        $this->executeRemove();
+        $this->assertInstanceOf(CommentActivityLog::class, $this->comment->commentActivityLogs->first());
     }
     
     public function test_getWorksheetId_returnWorksheetsGetIdResult()
@@ -99,4 +126,5 @@ class TestableComment extends Comment
     public $submitTime;
     public $removed;
     public $consultantComment;
+    public $commentActivityLogs;
 }

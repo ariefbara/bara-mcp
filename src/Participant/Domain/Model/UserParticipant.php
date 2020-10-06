@@ -70,13 +70,13 @@ class UserParticipant extends ModelContainEvents
     public function createRootWorksheet(
             string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData): Worksheet
     {
-        return $this->participant->createRootWorksheet($worksheetId, $name, $mission, $formRecordData);
+        return $this->participant->createRootWorksheet($worksheetId, $name, $mission, $formRecordData, $teamMember = null);
     }
 
     public function replyComment(
             string $commentId, Comment $comment, string $message): Comment
     {
-        return $comment->createReply($commentId, $message);
+        return $comment->createReply($commentId, $message, $teamMember = null);
     }
 
 }

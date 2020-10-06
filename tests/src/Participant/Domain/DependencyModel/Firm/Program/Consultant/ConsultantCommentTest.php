@@ -24,7 +24,7 @@ class ConsultantCommentTest extends TestBase
     {
         $this->comment->expects($this->once())
                 ->method('createReply')
-                ->with($this->id, $this->message);
+                ->with($this->id, $this->message, null);
         
         $this->consultantComment->createReply($this->id, $this->message);
     }

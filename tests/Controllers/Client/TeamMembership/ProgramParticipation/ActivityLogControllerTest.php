@@ -9,6 +9,8 @@ use Tests\Controllers\ {
     RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest,
     RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession,
     RecordPreparation\Firm\Program\Participant\RecordOfWorksheet,
+    RecordPreparation\Firm\Program\Participant\Worksheet\Comment\RecordOfCommentActivityLog,
+    RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment,
     RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfWorksheetActivityLog,
     RecordPreparation\Firm\Program\RecordOfConsultant,
     RecordPreparation\Firm\Program\RecordOfConsultationSetup,
@@ -27,11 +29,13 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
     protected $activityLogUri;
     protected $activityLog;
     protected $consultationRequest;
-    protected $activityLogOne;
+    protected $activityLogOne_consultationSession;
     protected $consultationSession;
-    protected $activityLogTwo;
+    protected $activityLogTwo_worksheet;
     protected $worksheet;
-    
+    protected $activityLogThree_comment;
+    protected $comment;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -42,6 +46,7 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->connection->table("ConsultationRequestActivityLog")->truncate();
         $this->connection->table("ConsultationSessionActivityLog")->truncate();
         $this->connection->table("WorksheetActivityLog")->truncate();
+        $this->connection->table("CommentActivityLog")->truncate();
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
@@ -53,24 +58,29 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->connection->table("WorksheetForm")->truncate();
         $this->connection->table("Mission")->truncate();
         $this->connection->table("Worksheet")->truncate();
+        $this->connection->table("Comment")->truncate();
         
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
         $firm = $program->firm;
         
         $this->activityLog = new RecordOfActivityLog(0);
-        $this->activityLogOne = new RecordOfActivityLog(1);
-        $this->activityLogTwo = new RecordOfActivityLog(2);
+        $this->activityLogOne_consultationSession = new RecordOfActivityLog(1);
+        $this->activityLogTwo_worksheet = new RecordOfActivityLog(2);
+        $this->activityLogThree_comment = new RecordOfActivityLog(3);
         $this->connection->table("ActivityLog")->insert($this->activityLog->toArrayForDbEntry());
-        $this->connection->table("ActivityLog")->insert($this->activityLogOne->toArrayForDbEntry());
-        $this->connection->table("ActivityLog")->insert($this->activityLogTwo->toArrayForDbEntry());
+        $this->connection->table("ActivityLog")->insert($this->activityLogOne_consultationSession->toArrayForDbEntry());
+        $this->connection->table("ActivityLog")->insert($this->activityLogTwo_worksheet->toArrayForDbEntry());
+        $this->connection->table("ActivityLog")->insert($this->activityLogThree_comment->toArrayForDbEntry());
         
         $teamMemberActivityLog = new RecordOfTeamMemberActivityLog($this->teamMembership, $this->activityLog);
-        $teamMemberActivityLogOne = new RecordOfTeamMemberActivityLog($this->teamMembership, $this->activityLogOne);
-        $teamMemberActivityLogTwo = new RecordOfTeamMemberActivityLog($this->teamMembership, $this->activityLogTwo);
+        $teamMemberActivityLogOne = new RecordOfTeamMemberActivityLog($this->teamMembership, $this->activityLogOne_consultationSession);
+        $teamMemberActivityLogTwo = new RecordOfTeamMemberActivityLog($this->teamMembership, $this->activityLogTwo_worksheet);
+        $teamMemberActivityLogThree = new RecordOfTeamMemberActivityLog($this->teamMembership, $this->activityLogThree_comment);
         $this->connection->table("TeamMemberActivityLog")->insert($teamMemberActivityLog->toArrayForDbEntry());
         $this->connection->table("TeamMemberActivityLog")->insert($teamMemberActivityLogOne->toArrayForDbEntry());
         $this->connection->table("TeamMemberActivityLog")->insert($teamMemberActivityLogTwo->toArrayForDbEntry());
+        $this->connection->table("TeamMemberActivityLog")->insert($teamMemberActivityLogThree->toArrayForDbEntry());
         
         
         $personnel = new RecordOfPersonnel($firm, 0, 'personnel@email.org', 'password213');
@@ -98,7 +108,7 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->consultationSession = new RecordOfConsultationSession($consultationSetup, $participant, $consultant, 0);
         $this->connection->table("ConsultationSession")->insert($this->consultationSession->toArrayForDbEntry());
         
-        $consultationSessionActivityLogOne = new RecordOfConsultationSessionActivityLog($this->consultationSession, $this->activityLogOne);
+        $consultationSessionActivityLogOne = new RecordOfConsultationSessionActivityLog($this->consultationSession, $this->activityLogOne_consultationSession);
         $this->connection->table("ConsultationSessionActivityLog")->insert($consultationSessionActivityLogOne->toArrayForDbEntry());
         
         $formRecord = new RecordOfFormRecord($form, 0);
@@ -113,8 +123,14 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->worksheet = new RecordOfWorksheet($participant, $formRecord, $mission, 0);
         $this->connection->table("Worksheet")->insert($this->worksheet->toArrayForDbEntry());
         
-        $worksheetActivityLog = new RecordOfWorksheetActivityLog($this->worksheet, $this->activityLogTwo);
+        $worksheetActivityLog = new RecordOfWorksheetActivityLog($this->worksheet, $this->activityLogTwo_worksheet);
         $this->connection->table("WorksheetActivityLog")->insert($worksheetActivityLog->toArrayForDbEntry());
+        
+        $this->comment = new RecordOfComment($this->worksheet, 0);
+        $this->connection->table("Comment")->insert($this->comment->toArrayForDbEntry());
+        
+        $commentActivityLog = new RecordOfCommentActivityLog($this->comment, $this->activityLogThree_comment);
+        $this->connection->table("CommentActivityLog")->insert($commentActivityLog->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
@@ -125,6 +141,7 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->connection->table("ConsultationRequestActivityLog")->truncate();
         $this->connection->table("ConsultationSessionActivityLog")->truncate();
         $this->connection->table("WorksheetActivityLog")->truncate();
+        $this->connection->table("CommentActivityLog")->truncate();
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
@@ -132,16 +149,17 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("ConsultationRequest")->truncate();
         $this->connection->table("ConsultationSession")->truncate();
-        $this->connection->table("Worksheet")->truncate();
         $this->connection->table("FormRecord")->truncate();
         $this->connection->table("WorksheetForm")->truncate();
         $this->connection->table("Mission")->truncate();
+        $this->connection->table("Worksheet")->truncate();
+        $this->connection->table("Comment")->truncate();
     }
     
     public function test_showAll_200()
     {
         $response = [
-            "total" => 3,
+            "total" => 4,
             "list" => [
                 [
                     "id" => $this->activityLog->id,
@@ -159,11 +177,12 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                     ],
                     "consultationSession" => null,
                     "worksheet" => null,
+                    "comment" => null,
                 ],
                 [
-                    "id" => $this->activityLogOne->id,
-                    "message" => $this->activityLogOne->message,
-                    "occuredTime" => $this->activityLogOne->occuredTime,
+                    "id" => $this->activityLogOne_consultationSession->id,
+                    "message" => $this->activityLogOne_consultationSession->message,
+                    "occuredTime" => $this->activityLogOne_consultationSession->occuredTime,
                     "teamMember" => [
                         "id" => $this->teamMembership->id,
                         "client" => [
@@ -176,11 +195,12 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                         "id" => $this->consultationSession->id,
                     ],
                     "worksheet" => null,
+                    "comment" => null,
                 ],
                 [
-                    "id" => $this->activityLogTwo->id,
-                    "message" => $this->activityLogTwo->message,
-                    "occuredTime" => $this->activityLogTwo->occuredTime,
+                    "id" => $this->activityLogTwo_worksheet->id,
+                    "message" => $this->activityLogTwo_worksheet->message,
+                    "occuredTime" => $this->activityLogTwo_worksheet->occuredTime,
                     "teamMember" => [
                         "id" => $this->teamMembership->id,
                         "client" => [
@@ -192,6 +212,28 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                     "consultationSession" => null,
                     "worksheet" => [
                         "id" => $this->worksheet->id,
+                    ],
+                    "comment" => null,
+                ],
+                [
+                    "id" => $this->activityLogThree_comment->id,
+                    "message" => $this->activityLogThree_comment->message,
+                    "occuredTime" => $this->activityLogThree_comment->occuredTime,
+                    "teamMember" => [
+                        "id" => $this->teamMembership->id,
+                        "client" => [
+                            "id" => $this->teamMembership->client->id,
+                            "name" => $this->teamMembership->client->getFullName(),
+                        ],
+                    ],
+                    "consultationRequest" => null,
+                    "consultationSession" => null,
+                    "worksheet" => null,
+                    "comment" => [
+                        "id" => $this->comment->id,
+                        "worksheet" => [
+                            "id" => $this->comment->worksheet->id,
+                        ],
                     ],
                 ],
             ],

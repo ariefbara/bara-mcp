@@ -23,6 +23,10 @@
                     target-entity="Query\Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog"
                     mapped-by="activityLog"
         />
+        <one-to-one field="commentActivityLog" 
+                    target-entity="Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog"
+                    mapped-by="activityLog"
+        />
         
         <one-to-one field="teamMemberActivityLog" 
                     target-entity="Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog"

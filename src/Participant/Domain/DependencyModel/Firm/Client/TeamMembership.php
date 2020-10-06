@@ -181,13 +181,13 @@ class TeamMembership
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($worksheet);
-        return $worksheet->createComment($commentId, $message);
+        return $worksheet->createComment($commentId, $message, $this);
     }
     public function replyComment(Comment $comment, string $replyId, string $message): Comment
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($comment);
-        return $comment->createReply($replyId, $message);
+        return $comment->createReply($replyId, $message, $this);
     }
 
 }

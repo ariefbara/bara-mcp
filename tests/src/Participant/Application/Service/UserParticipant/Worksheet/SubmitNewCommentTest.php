@@ -46,7 +46,7 @@ class SubmitNewCommentTest extends TestBase
     {
         $this->worksheet->expects($this->once())
                 ->method('createComment')
-                ->with($this->nextId, $this->message)
+                ->with($this->nextId, $this->message, null)
                 ->willReturn($comment = $this->buildMockOfClass(Comment::class));
         
         $this->commentRepository->expects($this->once())

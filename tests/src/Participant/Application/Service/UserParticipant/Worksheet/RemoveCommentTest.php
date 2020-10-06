@@ -36,7 +36,8 @@ class RemoveCommentTest extends TestBase
     public function test_execute_removeComment()
     {
         $this->comment->expects($this->once())
-                ->method('remove');
+                ->method('remove')
+                ->with(null);
         $this->execute();
     }
     public function test_execute_updateRepository()

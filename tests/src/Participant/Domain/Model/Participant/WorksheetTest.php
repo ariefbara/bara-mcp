@@ -222,8 +222,7 @@ class WorksheetTest extends TestBase
     
     public function test_createComment_returnComment()
     {
-        $comment = new Comment($this->worksheet, $this->commentId, $this->commentMessage);
-        $this->assertEquals($comment, $this->worksheet->createComment($this->commentId, $this->commentMessage));
+        $this->assertInstanceOf(Comment::class, $this->worksheet->createComment($this->commentId, $this->commentMessage, $this->teamMember));
     }
     
     public function test_belongsToTeam_returnParticipantsIsATeamProgramParticipationOfTeamResult()

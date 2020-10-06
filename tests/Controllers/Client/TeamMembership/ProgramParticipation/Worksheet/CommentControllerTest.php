@@ -3,6 +3,7 @@
 namespace Tests\Controllers\Client\TeamMembership\ProgramParticipation\Worksheet;
 
 use DateTime;
+use DateTimeImmutable;
 use Tests\Controllers\ {
     Client\TeamMembership\ProgramParticipation\WorksheetTestCase,
     RecordPreparation\Firm\Program\Consultant\RecordOfConsultantComment,
@@ -27,6 +28,7 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('ConsultantComment')->truncate();
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
+        $this->connection->table('CommentActivityLog')->truncate();
         
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
@@ -59,6 +61,7 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('ConsultantComment')->truncate();
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
+        $this->connection->table('CommentActivityLog')->truncate();
     }
     
     public function test_submitNew_201()
@@ -89,6 +92,23 @@ class CommentControllerTest extends WorksheetTestCase
         $this->setTeamMembershipInactive();
         $this->post($this->commentUri, $this->commentInput, $this->teamMembership->client->token)
                 ->seeStatusCode(403);
+    }
+    public function test_submitNew_logActivity()
+    {
+        $this->post($this->commentUri, $this->commentInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $activityLogEntry = [
+            "message" => "team member submitted comment",
+            "occuredTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teamMemberActivityLogEntry = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teamMemberActivityLogEntry);
+//see CommentActivityLog table to check log persisted
     }
     
     public function test_submitReply_201()
@@ -135,6 +155,24 @@ class CommentControllerTest extends WorksheetTestCase
         $uri = $this->commentUri . "/{$this->consultantComment->comment->id}";
         $this->post($uri, $this->commentInput, $this->teamMembership->client->token)
                 ->seeStatusCode(403);
+    }
+    public function test_submitReply_logActivity()
+    {
+        $uri = $this->commentUri . "/{$this->consultantComment->comment->id}";
+        $this->post($uri, $this->commentInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $activityLogEntry = [
+            "message" => "team member submitted comment",
+            "occuredTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teamMemberActivityLogEntry = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teamMemberActivityLogEntry);
+//see CommentActivityLog table to check log persisted
     }
     
     public function test_show_200()

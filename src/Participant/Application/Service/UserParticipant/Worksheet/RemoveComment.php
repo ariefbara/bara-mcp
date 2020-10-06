@@ -21,7 +21,7 @@ class RemoveComment
     {
         $this->commentRepository
                 ->aCommentInUserParticipantWorksheet($userId, $userParticipantId, $worksheetId, $commentId)
-                ->remove();
+                ->remove($teamMember = null);
         $this->commentRepository->update();
     }
 }

@@ -91,7 +91,7 @@ class UserParticipantTest extends TestBase
     {
         $this->participant->expects($this->once())
                 ->method('createRootWorksheet')
-                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData)
+                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, null)
                 ->willReturn($worksheet = $this->buildMockOfClass(Worksheet::class));
 
         $this->assertEquals($worksheet,
@@ -108,7 +108,7 @@ class UserParticipantTest extends TestBase
     {
         $this->comment->expects($this->once())
                 ->method('createReply')
-                ->with($this->commentId, $this->message);
+                ->with($this->commentId, $this->message, null);
         $this->executeReplyComment();
     }
 

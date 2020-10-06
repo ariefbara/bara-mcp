@@ -2,11 +2,10 @@
 
 namespace Participant\Application\Service\ClientParticipant\Worksheet;
 
-use Participant\Application\Service\Participant\ {
+use Participant\Application\Service\Participant\{
     Worksheet\CommentRepository,
     WorksheetRepository
 };
-
 
 class SubmitNewComment
 {
@@ -23,19 +22,19 @@ class SubmitNewComment
      */
     protected $worksheetRepository;
 
-    public function __construct(CommentRepository $commentRepository,
-            WorksheetRepository $worksheetRepository)
+    public function __construct(CommentRepository $commentRepository, WorksheetRepository $worksheetRepository)
     {
         $this->commentRepository = $commentRepository;
         $this->worksheetRepository = $worksheetRepository;
     }
 
-    public function execute(string $firmId, string $clientId, string $programParticipationId, string $worksheetId, string $message): string
+    public function execute(
+            string $firmId, string $clientId, string $programParticipationId, string $worksheetId, string $message): string
     {
         $id = $this->commentRepository->nextIdentity();
         $comment = $this->worksheetRepository
                 ->aWorksheetBelongsToClientParticipant($firmId, $clientId, $programParticipationId, $worksheetId)
-                ->createComment($id, $message);
+                ->createComment($id, $message, $teamMember = null);
 
         $this->commentRepository->add($comment);
         return $id;

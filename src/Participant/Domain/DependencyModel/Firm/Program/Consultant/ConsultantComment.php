@@ -35,7 +35,7 @@ class ConsultantComment
 
     public function createReply(string $commentId, string $message): Comment
     {
-        return $this->comment->createReply($commentId, $message);
+        return $this->comment->createReply($commentId, $message, $teamMember = null);
     }
 
 }

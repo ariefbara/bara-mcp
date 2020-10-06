@@ -7,6 +7,7 @@ use Query\ {
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ActivityLogRepository,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
+    Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog,
     Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog,
     Domain\Model\Firm\Team\Member,
     Domain\Model\Firm\Team\TeamProgramParticipation
@@ -32,7 +33,8 @@ class DoctrineActivityLogRepository extends EntityRepository implements Activity
                 ->andWhere($qb->expr()->orX(
                         $qb->expr()->in("activityLog.id", $this->getConsultationRequestActivityDQL()),
                         $qb->expr()->in("activityLog.id", $this->getConsultationSessionActivityDQL()),
-                        $qb->expr()->in("activityLog.id", $this->getWorksheetActivityDQL())
+                        $qb->expr()->in("activityLog.id", $this->getWorksheetActivityDQL()),
+                        $qb->expr()->in("activityLog.id", $this->getCommentActivityDQL())
                 ))
                 ->orderBy("activityLog.occuredTime", "DESC")
                 ->setParameters($params);
@@ -134,6 +136,39 @@ class DoctrineActivityLogRepository extends EntityRepository implements Activity
                 ->andWhere($worksheetActivityLogQb->expr()->in("wr_participant.id", $participantQb->getDQL()));
         
         return $worksheetActivityLogQb->getDQL();
+    }
+    protected function getCommentActivityDQL()
+    {
+        $teamQb = $this->getEntityManager()->createQueryBuilder();
+        $teamQb->select("t_cm_team.id")
+                ->from(Member::class, "cm_teamMembership")
+                ->andWhere($teamQb->expr()->eq("cm_teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("cm_teamMembership.team", "t_cm_team")
+                ->leftJoin("cm_teamMembership.client", "cm_client")
+                ->andWhere($teamQb->expr()->eq("cm_client.id", ":clientId"))
+                ->leftJoin("cm_client.firm", "cm_firm")
+                ->andWhere($teamQb->expr()->eq("cm_firm.id", ":firmId"))
+                ->setMaxResults(1);
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("cm_programParticipation.id")
+                ->from(TeamProgramParticipation::class, "cm_teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("cm_teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("cm_teamProgramParticipation.programParticipation", "cm_programParticipation")
+                ->leftJoin("cm_teamProgramParticipation.team", "cm_team")
+                ->andWhere($participantQb->expr()->in("cm_team.id", $teamQb->getDQL()))
+                ->setMaxResults(1);
+
+        $commentActivityLogQb = $this->getEntityManager()->createQueryBuilder();
+        $commentActivityLogQb->select("cm_activityLog.id")
+                ->from(CommentActivityLog::class, "commentActivityLog")
+                ->leftJoin("commentActivityLog.activityLog", "cm_activityLog")
+                ->leftJoin("commentActivityLog.comment", "comment")
+                ->leftJoin("comment.worksheet", "cm_worksheet")
+                ->leftJoin("cm_worksheet.participant", "cm_participant")
+                ->andWhere($commentActivityLogQb->expr()->in("cm_participant.id", $participantQb->getDQL()));
+        
+        return $commentActivityLogQb->getDQL();
     }
 
 }

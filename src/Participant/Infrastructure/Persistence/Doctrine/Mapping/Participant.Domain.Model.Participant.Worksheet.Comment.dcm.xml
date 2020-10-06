@@ -21,5 +21,12 @@
         <field name="submitTime" type="datetime_immutable" nullable="false"/>
         <field name="removed" type="boolean" />
         
+        <one-to-many  field="commentActivityLogs" 
+                      target-entity="Participant\Domain\Model\Participant\Worksheet\Comment\CommentActivityLog"
+                      mapped-by="comment"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

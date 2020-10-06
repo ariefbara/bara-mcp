@@ -146,9 +146,9 @@ class Worksheet implements AssetBelongsToParticipantInterface, AssetBelongsToTea
         $this->addActivityLog("removed worksheet", $teamMember);
     }
 
-    public function createComment(string $commentId, string $message): Comment
+    public function createComment(string $commentId, string $message, ?TeamMembership $teamMember): Comment
     {
-        return new Comment($this, $commentId, $message);
+        return new Comment($this, $commentId, $message, $teamMember);
     }
 
     public function belongsToTeam(Team $team): bool

@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Query\Domain\Model\Firm\{
     Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
     Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
+    Program\Participant\Worksheet\Comment\CommentActivityLog,
     Program\Participant\Worksheet\WorksheetActivityLog,
     Team\Member\TeamMemberActivityLog
 };
@@ -51,6 +52,12 @@ class ActivityLog
 
     /**
      *
+     * @var CommentActivityLog|null
+     */
+    protected $commentActivityLog;
+
+    /**
+     *
      * @var TeamMemberActivityLog|null
      */
     protected $teamMemberActivityLog;
@@ -88,6 +95,11 @@ class ActivityLog
     public function getWorksheetActivityLog(): ?WorksheetActivityLog
     {
         return $this->worksheetActivityLog;
+    }
+
+    public function getCommentActivityLog(): ?CommentActivityLog
+    {
+        return $this->commentActivityLog;
     }
 
     public function getTeamMemberActivityLog(): ?TeamMemberActivityLog
