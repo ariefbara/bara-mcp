@@ -5,6 +5,7 @@ namespace Participant\Domain\Model;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
@@ -32,6 +33,7 @@ class ParticipantTest extends TestBase
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
     protected $parentWorksheet;
     protected $team;
+    protected $teamMember;
 
     protected function setUp(): void
     {
@@ -69,6 +71,7 @@ class ParticipantTest extends TestBase
         
         $this->team = $this->buildMockOfClass(Team::class);
         
+        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -118,11 +121,7 @@ class ParticipantTest extends TestBase
     }
     public function test_submitConsultationRequest_returnConsultationRequest()
     {
-        $consultationRequest = new ConsultationRequest(
-                $this->participant, $this->consultationRequestId, $this->consultationSetup, $this->consultant,
-                $this->startTime);
-
-        $this->assertEquals($consultationRequest, $this->executeSubmitConsultationRequest());
+        $this->assertInstanceOf(ConsultationRequest::class, $this->executeSubmitConsultationRequest());
     }
     public function test_submitConsultationRequest_consultationSetupFromDifferentProgram_forbiddenError()
     {
@@ -217,6 +216,13 @@ class ParticipantTest extends TestBase
         $errorDetail = "not found: consultation request not found";
         $this->assertRegularExceptionThrowed($operation, 'Not Found', $errorDetail);
     }
+    public function test_changeConsultationRequestTime_fromTeamParticipant_includeTeamMemberConsultationRequestArgument()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method('rePropose')
+                ->with($this->startTime, $this->teamMember);
+        $this->participant->changeConsultationRequestTime($this->consultationRequestId, $this->startTime, $this->teamMember);
+    }
 
     protected function executeAcceptOfferedConsultationRequest()
     {
@@ -230,6 +236,14 @@ class ParticipantTest extends TestBase
         $this->consultationRequest->expects($this->once())
                 ->method('accept');
         $this->executeAcceptOfferedConsultationRequest();
+    }
+    public function test_acceptOfferedConsultationRequest_fromTeamParticipant_includeTeamMemberInAcceptConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method('accept')
+                ->with($this->teamMember);
+        $this->participant->acceptOfferedConsultationRequest(
+                $this->consultationRequestId, $this->consultationSessionId, $this->teamMember);
     }
     public function test_acceptOfferedConsultationRequest_containOtherConsultationRequestConflictedWithThisSchedule_throwEx()
     {
@@ -275,6 +289,16 @@ class ParticipantTest extends TestBase
         $this->consultationRequest->expects($this->once())
                 ->method("cancel");
         $this->executeCancelConsultationRequest();
+    }
+    public function test_cancelConsultationRequest_fromTeamParticipant_includeTeamMemberInCancellingConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->any())
+                ->method("belongsTo")
+                ->willReturn(true);
+        $this->consultationRequest->expects($this->once())
+                ->method("cancel")
+                ->with($this->teamMember);
+        $this->participant->cancelConsultationRequest($this->consultationRequest, $this->teamMember);
     }
     public function test_cancelConsultationRequest_belongsToOtherParticipant_forbiddenError()
     {

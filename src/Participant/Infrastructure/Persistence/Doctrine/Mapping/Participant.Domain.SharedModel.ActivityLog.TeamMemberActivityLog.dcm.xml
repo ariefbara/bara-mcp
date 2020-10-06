@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\SharedModel\ActivityLog\TeamMemberActivityLog" 
+            table="TeamMemberActivityLog" 
+    >
+        
+        <one-to-one field="activityLog" 
+                    target-entity="Participant\Domain\SharedModel\ActivityLog"
+                    inversed-by="teamMemberActivityLog"
+        >
+            <join-column name="ActivityLog_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="teamMember" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Client\TeamMembership"
+        >
+            <join-column name="TeamMember_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

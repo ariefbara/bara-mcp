@@ -59,6 +59,11 @@ $router->group($clientAggregate, function () use ($router) {
         ];
         $router->group($teamProgramParticipationAggregate, function () use ($router) {
             
+            $router->group(['prefix' => '/activity-logs'], function () use($router) {
+                $controller = "ActivityLogController";
+                $router->get("", ["uses" => "$controller@showAll"]);
+            });
+            
             $router->group(['prefix' => '/worksheets'], function () use($router) {
                 $controller = "WorksheetController";
                 $router->post("", ["uses" => "$controller@submitRoot"]);

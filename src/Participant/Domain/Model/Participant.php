@@ -3,11 +3,12 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Participant\Domain\ {
+use Participant\Domain\{
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
@@ -69,10 +70,10 @@ class Participant
     {
         
     }
-    
+
     public function isATeamProgramParticipationOfTeam(Team $team): bool
     {
-        return isset($this->teamProgramParticipation)? $this->teamProgramParticipation->teamEquals($team): false;
+        return isset($this->teamProgramParticipation) ? $this->teamProgramParticipation->teamEquals($team) : false;
     }
 
     public function quit(): void
@@ -87,7 +88,7 @@ class Participant
 
     public function submitConsultationRequest(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime): ConsultationRequest
+            DateTimeImmutable $startTime, ?TeamMembership $teamMember = null): ConsultationRequest
     {
         if (!$consultationSetup->programEquals($this->program)) {
             $errorDetail = 'forbidden: consultation setup from different program';
@@ -98,9 +99,8 @@ class Participant
             $errorDetail = 'forbidden: consultant from different program';
             throw RegularException::forbidden($errorDetail);
         }
-
-        $consultationRequest = new ConsultationRequest($this, $consultationRequestId, $consultationSetup, $consultant,
-                $startTime);
+        $consultationRequest = new ConsultationRequest(
+                $this, $consultationRequestId, $consultationSetup, $consultant, $startTime, $teamMember);
 
         $this->assertNoProposedConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
@@ -109,35 +109,37 @@ class Participant
     }
 
     public function changeConsultationRequestTime(
-            string $consultationRequestId, DateTimeImmutable $startTime): void
+            string $consultationRequestId, DateTimeImmutable $startTime, ?TeamMembership $teamMember = null): void
     {
         $consultationRequest = $this->getConsultationRequestOrDie($consultationRequestId);
-        $consultationRequest->rePropose($startTime);
+        $consultationRequest->rePropose($startTime, $teamMember);
 
         $this->assertNoProposedConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
     }
 
-    public function acceptOfferedConsultationRequest(string $consultationRequestId, string $consultationSessionId): void
+    public function acceptOfferedConsultationRequest(
+            string $consultationRequestId, string $consultationSessionId, ?TeamMembership $teamMember = null): void
     {
         $consultationRequest = $this->getConsultationRequestOrDie($consultationRequestId);
 
         $this->assertNoProposedConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
 
-        $consultationRequest->accept();
+        $consultationRequest->accept($teamMember);
 
         $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
         $this->consultationSessions->add($consultationSession);
     }
 
-    public function cancelConsultationRequest(ConsultationRequest $consultationRequest): void
+    public function cancelConsultationRequest(ConsultationRequest $consultationRequest,
+            ?TeamMembership $teamMember = null): void
     {
         if (!$consultationRequest->belongsTo($this)) {
             $errorDetail = "forbidden: unable to manage consultation request of other participant";
             throw RegularException::forbidden($errorDetail);
         }
-        $consultationRequest->cancel();
+        $consultationRequest->cancel($teamMember);
     }
 
     public function createRootWorksheet(string $worksheetId, string $name, Mission $mission,

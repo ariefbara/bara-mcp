@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog" 
+            table="ConsultationRequestActivityLog" 
+    >
+        
+        <many-to-one  field="consultationRequest" 
+                      target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest"
+        >
+            <join-column name="ConsultationRequest_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="activityLog" 
+                    target-entity="Query\Domain\SharedModel\ActivityLog"
+                    inversed-by="consultationRequestActivityLog"
+        >
+            <join-column name="ActivityLog_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -4,6 +4,7 @@ namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
@@ -27,6 +28,7 @@ class TeamProgramParticipationTest extends TestBase
     protected $consultationRequest, $consultationRequestId = "consultationRequestId", $startTime;
     protected $consultationSetup, $consultant;
     protected $consultationSession;
+    protected $teamMember;
 
     protected function setUp(): void
     {
@@ -49,6 +51,8 @@ class TeamProgramParticipationTest extends TestBase
         $this->startTime = new DateTimeImmutable();
         
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
+        
+        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
 
     public function test_isActiveParticipantOfProgram_returnProgramParticipationsIsActiveParticipantOfProgramResult()
@@ -112,30 +116,30 @@ class TeamProgramParticipationTest extends TestBase
     {
         $this->programParticipation->expects($this->once())
                 ->method("submitConsultationRequest")
-                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
+                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime, $this->teamMember);
         $this->teamProgramParticipation->submitConsultationRequest(
-                $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
+                $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime, $this->teamMember);
     }
     public function test_changeConsultationRequestTime_executeProgramParticipationChangeConsultationRequestTime()
     {
         $this->programParticipation->expects($this->once())
                 ->method("changeConsultationRequestTime")
-                ->with($this->consultationRequestId, $this->startTime);
-        $this->teamProgramParticipation->changeConsultationRequestTime($this->consultationRequestId, $this->startTime);
+                ->with($this->consultationRequestId, $this->startTime, $this->teamMember);
+        $this->teamProgramParticipation->changeConsultationRequestTime($this->consultationRequestId, $this->startTime, $this->teamMember);
     }
     public function test_cancelConsultationRequest_executeProgramParticipationCancelConsultationRequestMethod()
     {
         $this->programParticipation->expects($this->once())
                 ->method("cancelConsultationRequest")
-                ->with($this->consultationRequest);
-        $this->teamProgramParticipation->cancelConsultationRequest($this->consultationRequest);
+                ->with($this->consultationRequest, $this->teamMember);
+        $this->teamProgramParticipation->cancelConsultationRequest($this->consultationRequest, $this->teamMember);
     }
     public function test_acceptOfferedConsultationRequest_executeProgramParticipationsAcceptOfferedConsultationRequestMethod()
     {
         $this->programParticipation->expects($this->once())
                 ->method("acceptOfferedConsultationRequest")
-                ->with($this->consultationRequestId, $this->anything());
-        $this->teamProgramParticipation->acceptOfferedConsultationRequest($this->consultationRequestId);
+                ->with($this->consultationRequestId, $this->anything(), $this->teamMember);
+        $this->teamProgramParticipation->acceptOfferedConsultationRequest($this->consultationRequestId, $this->teamMember);
     }
     public function test_submitConsultationSessionReport_executeProgramParticipationSubmitConsultationSessionReport()
     {

@@ -4,6 +4,7 @@ namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
 use Participant\Domain\{
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
@@ -78,26 +79,28 @@ class TeamProgramParticipation
 
     public function submitConsultationRequest(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime): ConsultationRequest
+            DateTimeImmutable $startTime, TeamMembership $teamMember): ConsultationRequest
     {
         return $this->programParticipation->submitConsultationRequest(
-                        $consultationRequestId, $consultationSetup, $consultant, $startTime);
+                        $consultationRequestId, $consultationSetup, $consultant, $startTime, $teamMember);
     }
 
-    public function changeConsultationRequestTime(string $consultationRequestId, DateTimeImmutable $startTime): void
+    public function changeConsultationRequestTime(
+            string $consultationRequestId, DateTimeImmutable $startTime, TeamMembership $teamMember): void
     {
-        $this->programParticipation->changeConsultationRequestTime($consultationRequestId, $startTime);
+        $this->programParticipation->changeConsultationRequestTime($consultationRequestId, $startTime, $teamMember);
     }
 
-    public function cancelConsultationRequest(ConsultationRequest $consultationRequest): void
+    public function cancelConsultationRequest(ConsultationRequest $consultationRequest, TeamMembership $teamMember): void
     {
-        $this->programParticipation->cancelConsultationRequest($consultationRequest);
+        $this->programParticipation->cancelConsultationRequest($consultationRequest, $teamMember);
     }
 
-    public function acceptOfferedConsultationRequest(string $consultationRequestId): void
+    public function acceptOfferedConsultationRequest(string $consultationRequestId, TeamMembership $teamMember): void
     {
         $consultationSessionId = Uuid::generateUuid4();
-        $this->programParticipation->acceptOfferedConsultationRequest($consultationRequestId, $consultationSessionId);
+        $this->programParticipation->acceptOfferedConsultationRequest(
+                $consultationRequestId, $consultationSessionId, $teamMember);
     }
 
     public function submitConsultationSessionReport(

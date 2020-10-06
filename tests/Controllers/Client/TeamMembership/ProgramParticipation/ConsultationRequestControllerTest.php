@@ -37,6 +37,9 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Notification')->truncate();
         $this->connection->table('PersonnelNotification')->truncate();
+        $this->connection->table('ConsultationRequestActivityLog')->truncate();
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('TeamMemberActivityLog')->truncate();
         
         $program = $this->programParticipation->participant->program;
         $firm = $program->firm;
@@ -92,9 +95,12 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Notification')->truncate();
         $this->connection->table('PersonnelNotification')->truncate();
+        $this->connection->table('ConsultationRequestActivityLog')->truncate();
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('TeamMemberActivityLog')->truncate();
     }
     
-    public function test_propose()
+    public function test_submit()
     {
         $this->connection->table('ConsultationRequest')->truncate();
         
@@ -153,7 +159,22 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->post($this->consultationRequestUri, $this->proposeInput, $this->teamMembership->client->token)
             ->seeStatusCode(409);
     }
-    
+    public function test_submit_logActivity()
+    {
+        $this->post($this->consultationRequestUri, $this->proposeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(201);
+        $activityLogEntry = [
+            "message" => "team member submitted consultation request",
+            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+//see database manually to confirm that consultation request activiy log is recorded
+    }
     public function test_changeTime_200()
     {
         $response = [
@@ -210,6 +231,28 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/change-time";
         $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
             ->seeStatusCode(403);
+    }
+    public function test_changeTime_logActivity()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/change-time";
+        $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $activityLogEntry = [
+            "message" => "team member changed consultation request time",
+            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+        
+        $consultationRequestActivityLogEntry = [
+            "ConsultationRequest_id" => $this->consultationRequest->id,
+        ];
+        $this->seeInDatabase("ConsultationRequestActivityLog", $consultationRequestActivityLogEntry);
     }
     
     public function test_accept()
@@ -282,6 +325,28 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
             ->seeStatusCode(403);
     }
+    public function test_accept_logActivity()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
+        $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $activityLogEntry = [
+            "message" => "team member accepted offered consultation request",
+            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+        
+        $consultationRequestActivityLogEntry = [
+            "ConsultationRequest_id" => $this->consultationRequest->id,
+        ];
+        $this->seeInDatabase("ConsultationRequestActivityLog", $consultationRequestActivityLogEntry);
+    }
     
     public function test_cancel_200()
     {
@@ -302,6 +367,28 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
         $this->patch($uri, [], $this->teamMembership->client->token)
             ->seeStatusCode(403);
+    }
+    public function test_cancel_logActivity()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
+        $this->patch($uri, [], $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $activityLogEntry = [
+            "message" => "team member cancelled consultation request",
+            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+        
+        $consultationRequestActivityLogEntry = [
+            "ConsultationRequest_id" => $this->consultationRequest->id,
+        ];
+        $this->seeInDatabase("ConsultationRequestActivityLog", $consultationRequestActivityLogEntry);
     }
     
     public function test_show()

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\SharedModel\ActivityLog" 
+            table="ActivityLog" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="message" type="string" length="256" nullable="true"/>
+        <field name="occuredTime" type="datetime_immutable" nullable="false"/>
+        
+        <one-to-one field="teamMemberActivityLog" 
+                    target-entity="Participant\Domain\SharedModel\ActivityLog\TeamMemberActivityLog"
+                    mapped-by="activityLog"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -15,7 +15,8 @@ use Participant\Domain\ {
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
-    Model\TeamProgramRegistration
+    Model\TeamProgramRegistration,
+    SharedModel\ContainActvityLog
 };
 use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -50,6 +51,11 @@ class TeamMembership
     protected function __construct()
     {
         
+    }
+    
+    public function setAsActivityOperator(ContainActvityLog $activityLog): void
+    {
+        $activityLog->setOperator($this);
     }
 
     protected function assertTeamProgramParticipationBelongsToSameTeam(TeamProgramParticipation $teamProgramParticipation): void
@@ -134,7 +140,7 @@ class TeamMembership
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
         return $teamProgramParticipation->submitConsultationRequest(
-                        $consultationRequestId, $consultationSetup, $consultant, $startTime);
+                        $consultationRequestId, $consultationSetup, $consultant, $startTime, $this);
     }
 
     public function changeConsultationRequestTime(
@@ -143,7 +149,7 @@ class TeamMembership
     {
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
-        $teamProgramParticipation->changeConsultationRequestTime($consultationRequestId, $startTime);
+        $teamProgramParticipation->changeConsultationRequestTime($consultationRequestId, $startTime, $this);
     }
 
     public function cancelConsultationRequest(
@@ -151,7 +157,7 @@ class TeamMembership
     {
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
-        $teamProgramParticipation->cancelConsultationRequest($consultationRequest);
+        $teamProgramParticipation->cancelConsultationRequest($consultationRequest, $this);
     }
 
     public function acceptOfferedConsultationRequest(TeamProgramParticipation $teamProgramParticipation,
@@ -159,7 +165,7 @@ class TeamMembership
     {
         $this->assertActive();
         $this->assertTeamProgramParticipationBelongsToSameTeam($teamProgramParticipation);
-        $teamProgramParticipation->acceptOfferedConsultationRequest($consultationRequestId);
+        $teamProgramParticipation->acceptOfferedConsultationRequest($consultationRequestId, $this);
     }
 
     public function submitConsultationSessionReport(

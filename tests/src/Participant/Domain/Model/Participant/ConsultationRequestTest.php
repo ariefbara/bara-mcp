@@ -4,9 +4,12 @@ namespace Participant\Domain\Model\Participant;
 
 use DateTimeImmutable;
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
-    Model\Participant
+    Model\Participant,
+    Model\Participant\ConsultationRequest\ConsultationRequestActivityLog,
+    SharedModel\ActivityLog
 };
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
@@ -20,6 +23,8 @@ class ConsultationRequestTest extends TestBase
     protected $id = 'negotiate-consultationSetupSchedule-id', $startTime;
     protected $startEndTime;
     protected $otherConsultationRequest;
+    
+    protected $teamMember;
 
     protected function setUp(): void
     {
@@ -35,8 +40,11 @@ class ConsultationRequestTest extends TestBase
         $this->consultationRequest = new TestableConsultationRequest(
                 $this->participant, 'id', $this->consultationSetup, $this->consultant, $this->startTime);
         $this->consultationRequest->startEndTime = $this->startEndTime;
+        $this->consultationRequest->consultationRequestActivityLogs->clear();
 
         $this->otherConsultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
+        
+        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
 
     protected function executeConstruct()
@@ -46,7 +54,7 @@ class ConsultationRequestTest extends TestBase
                 ->with($this->startTime)
                 ->willReturn($this->startEndTime);
         return new TestableConsultationRequest($this->participant, $this->id, $this->consultationSetup,
-                $this->consultant, $this->startTime);
+                $this->consultant, $this->startTime, $this->teamMember);
     }
 
     public function test_construct_setProperties()
@@ -73,6 +81,17 @@ class ConsultationRequestTest extends TestBase
         };
         $errorDetail = "conflict: consultant already has consultation session at this time";
         $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
+    }
+    public function test_construct_addConsultationRequestActivityLog()
+    {
+        $consultationRequest = $this->executeConstruct();
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $consultationRequest->consultationRequestActivityLogs->first());
+    }
+    public function test_construct_executeTeamMemberSetActivityLogOperationMethod()
+    {
+        $this->teamMember->expects($this->once())
+                ->method("setAsActivityOperator");
+        $this->executeConstruct();
     }
 
     protected function executeRePropose()
@@ -120,6 +139,11 @@ class ConsultationRequestTest extends TestBase
 
         $this->assertEquals(new ConsultationRequestStatusVO("proposed"), $this->consultationRequest->status);
     }
+    public function test_rePropose_addActivityLog()
+    {
+        $this->executeRePropose();
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
+    }
 
     protected function executeCancel()
     {
@@ -146,6 +170,11 @@ class ConsultationRequestTest extends TestBase
         };
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_cancel_addActivityLog()
+    {
+        $this->executeCancel();
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
     }
 
     protected function executeAccept()
@@ -183,6 +212,11 @@ class ConsultationRequestTest extends TestBase
         };
         $errorDetail = 'forbidden: request only valid for offered consultation request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    public function test_accept_addActivityLog()
+    {
+        $this->executeAccept();
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
     }
 
     public function test_createConsultationSetupSchedule_returnConsultationSetupSchedule()
@@ -244,5 +278,6 @@ class TestableConsultationRequest extends ConsultationRequest
 {
 
     public $consultationSetup, $id, $participant, $consultant, $startEndTime, $concluded, $status;
+    public $consultationRequestActivityLogs;
 
 }

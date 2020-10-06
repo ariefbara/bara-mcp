@@ -38,5 +38,12 @@
                   use-column-prefix="false" 
         />
         
+        <one-to-many  field="consultationRequestActivityLogs" 
+                      target-entity="Participant\Domain\Model\Participant\ConsultationRequest\ConsultationRequestActivityLog"
+                      mapped-by="consultationRequest"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

@@ -14,7 +14,8 @@ use Participant\Domain\ {
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
-    Model\TeamProgramRegistration
+    Model\TeamProgramRegistration,
+    SharedModel\ContainActvityLog
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -34,6 +35,7 @@ class TeamMembershipTest extends TestBase
     protected $startTIme;
     protected $consultationSession;
     protected $comment, $commentId = "commentId", $commentMessage = "comment message";
+    protected $activityLog;
 
     protected function setUp(): void
     {
@@ -59,13 +61,14 @@ class TeamMembershipTest extends TestBase
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
         
         $this->comment = $this->buildMockOfClass(Comment::class);
+        
+        $this->activityLog = $this->buildMockOfInterface(ContainActvityLog::class);
     }
     protected function assertAssetDoesntBelongsToTeamForbiddenError(callable $operation)
     {
         $errorDetail = "forbidden: you can only manage asset belongs to your team";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-
     protected function setOnceTeamProgramParticipationTeamEqualsMethodCallReturnFalse()
     {
         $this->teamProgramParticipation->expects($this->once())
@@ -73,24 +76,29 @@ class TeamMembershipTest extends TestBase
                 ->with($this->teamMembership->team)
                 ->willReturn(false);
     }
-
     protected function setAnyTeamProgramParticipationTeamEqualsMethodCallReturnTrue()
     {
         $this->teamProgramParticipation->expects($this->any())
                 ->method("teamEquals")
                 ->willReturn(true);
     }
-
     protected function assertOperationCauseManageOtherTeamAsserForbiddenError(callable $operation): void
     {
         $errorDetail = "forbbiden: not allowed to manage asset of other team";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-
     protected function assertOperationCauseInactiveTeamMembershipForbiddenError(callable $operation): void
     {
         $errorDetail = "forbidden: only active team member can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_setAsActivityOperator_setAsActivityLogOperator()
+    {
+        $this->activityLog->expects($this->once())
+                ->method("setOperator")
+                ->with($this->teamMembership);
+        $this->teamMembership->setAsActivityOperator($this->activityLog);
     }
 
     protected function executeRegisterTeamToProgram()
@@ -297,7 +305,7 @@ class TeamMembershipTest extends TestBase
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("submitConsultationRequest")
-                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTIme)
+                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTIme, $this->teamMembership)
                 ->willReturn($this->consultationRequest);
         $this->assertEquals($this->consultationRequest, $this->executeSubmitConsultationRequest());
     }
@@ -329,7 +337,7 @@ class TeamMembershipTest extends TestBase
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("changeConsultationRequestTime")
-                ->with($this->consultationRequestId, $this->startTIme);
+                ->with($this->consultationRequestId, $this->startTIme, $this->teamMembership);
         $this->executeChangeConsultationRequestTime();
     }
 
@@ -359,7 +367,7 @@ class TeamMembershipTest extends TestBase
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("cancelConsultationRequest")
-                ->with($this->consultationRequest);
+                ->with($this->consultationRequest, $this->teamMembership);
         $this->executeCancelConsultationRequest();
     }
 
@@ -390,7 +398,7 @@ class TeamMembershipTest extends TestBase
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("acceptOfferedConsultationRequest")
-                ->with($this->consultationRequestId);
+                ->with($this->consultationRequestId, $this->teamMembership);
         $this->executeAcceptOfferedConsultationRequest();
     }
 

@@ -5,8 +5,8 @@ namespace Tests\Controllers\Client\ProgramParticipation\Worksheet;
 use DateTime;
 use Tests\Controllers\ {
     Client\ProgramParticipation\WorksheetTestCase,
+    RecordPreparation\Firm\Program\Consultant\RecordOfConsultantComment,
     RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment,
-    RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfConsultantComment,
     RecordPreparation\Firm\Program\RecordOfConsultant,
     RecordPreparation\Firm\RecordOfPersonnel
 };
