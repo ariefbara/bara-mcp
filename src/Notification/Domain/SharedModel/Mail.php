@@ -79,7 +79,7 @@ class Mail
     }
 
     public function __construct(string $senderMailAddress, string $senderName, string $subject, string $message,
-            ?string $htmlMessage, Recipient $recipient)
+            ?string $htmlMessage, string $recipientMailAddress, string $recipientName)
     {
         $this->senderMailAddress = $senderMailAddress;
         $this->senderName = $senderName;
@@ -87,11 +87,13 @@ class Mail
         $this->message = $message;
         $this->htmlMessage = $htmlMessage;
         $this->recipients = new ArrayCollection();
+        $this->addRecipient($recipientMailAddress, $recipientName);
     }
 
-    public function addRecipient(Recipient $recipient): void
+    public function addRecipient(string $recipientMailAddress, string $recipientName): void
     {
-        
+        $recipient = new Recipient($recipientMailAddress, $recipientName);
+        $this->recipients->add($recipient);
     }
 
 }

@@ -1,8 +1,12 @@
 <?php
 
-namespace Notification\Domain\Model\Program;
+namespace Notification\Domain\Model\Firm\Program;
 
-use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\ {
+    Model\Firm\Personnel,
+    SharedModel\canSendPersonalizeMail,
+    SharedModel\MailMessage
+};
 
 class Consultant
 {
@@ -24,5 +28,15 @@ class Consultant
      * @var Personnel
      */
     protected $personnel;
+
+    public function getPersonnelFullName(): string
+    {
+        
+    }
+
+    public function registerMailRecipient(canSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
+    {
+        
+    }
 
 }

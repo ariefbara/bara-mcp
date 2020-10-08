@@ -2,8 +2,11 @@
 
 namespace Notification\Domain\SharedModel\Mail;
 
+use Notification\Domain\SharedModel\Mail;
+
 class Recipient
 {
+    protected $mail;
 
     /**
      *
@@ -39,10 +42,12 @@ class Recipient
         return $this->recipientName;
     }
 
-    public function __construct(string $recipientMailAddress, string $recipientName)
+    public function __construct(Mail $mail, string $recipientMailAddress, string $recipientName)
     {
         $this->recipientMailAddress = $recipientMailAddress;
         $this->recipientName = $recipientName;
+        $this->sent = false;
+        $this->attempt = 0;
     }
 
 }

@@ -4,12 +4,12 @@ namespace Notification\Domain\SharedModel\Notification;
 
 use DateTimeImmutable;
 use Notification\Domain\ {
-    Model\Firm\Client,
+    Model\Firm\Personnel,
     SharedModel\Notification
 };
 use Resources\DateTimeImmutableBuilder;
 
-class ClientNotificationRecipient
+class PersonnelNotificationRecipient
 {
 
     /**
@@ -26,30 +26,29 @@ class ClientNotificationRecipient
 
     /**
      *
-     * @var Client
+     * @var Personnel
      */
-    protected $client;
+    protected $personnel;
 
     /**
      *
      * @var bool
      */
     protected $read;
-    
+
     /**
      *
      * @var DateTimeImmutable
      */
     protected $notifiedTime;
 
-    public function __construct(Notification $notification, string $id, Client $client)
+    public function __construct(Notification $notification, string $id, Personnel $personnel)
     {
         $this->notification = $notification;
         $this->id = $id;
-        $this->client = $client;
+        $this->personnel = $personnel;
         $this->read = false;
         $this->notifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
     }
-
 
 }

@@ -11,6 +11,8 @@ use Query\ {
     Application\Service\Firm\Program\MissionRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Mission,
+    Domain\Model\Firm\Team\Member,
+    Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
 use Resources\ {
@@ -260,7 +262,6 @@ _STATEMENT;
 
     public function allMissionsInProgramWhereUserParticipate(string $userId, string $programParticipationId)
     {
-
         $statement = <<<_STATEMENT
 SELECT y.id, y.name, y.description, y.position, z.submittedWorksheet
 FROM (
@@ -285,12 +286,156 @@ LEFT JOIN (
     FROM Worksheet
     WHERE Worksheet.removed = false
     GROUP BY missionId, participantId
-)z ON z.missionId = y.id AND z.participantId = x.participantId                
+)z ON z.missionId = y.id AND z.participantId = x.participantId
 _STATEMENT;
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
         $params = [
             "userId" => $userId,
             "programParticipationId" => $programParticipationId,
+        ];
+        $query->execute($params);
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function aMissionByPositionInProgramWhereClientIsMemberOfParticipatingTeam(string $firmId, string $clientId,
+            string $teamMembershipId, string $teamProgramParticipationId, string $missionPosition): Mission
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            "teamMembershipId" => $teamMembershipId,
+            'teamProgramParticipationId' => $teamProgramParticipationId,
+            'missionPosition' => $missionPosition,
+        ];
+        
+        $teamQb = $this->getEntityManager()->createQueryBuilder();
+        $teamQb->select("t_team.id")
+                ->from(Member::class, "teamMembership")
+                ->andWhere($teamQb->expr()->eq("teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("teamMembership.team", "t_team")
+                ->leftJoin("teamMembership.client", "client")
+                ->andWhere($teamQb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($teamQb->expr()->eq("firm.id", ":firmId"))
+                ->setMaxResults(1);
+
+        $programQb = $this->getEntityManager()->createQueryBuilder();
+        $programQb->select("t_program.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($programQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($programQb->expr()->in("team.id", $teamQb->getDQL()))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("programParticipation.program", "t_program")
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('mission');
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.position", ":missionPosition"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->in("program.id", $programQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: mission not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aMissionInProgramWhereClientIsMemberOfParticipatingTeam(string $firmId, string $clientId,
+            string $teamMembershipId, string $teamProgramParticipationId, string $missionId): Mission
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            "teamMembershipId" => $teamMembershipId,
+            'teamProgramParticipationId' => $teamProgramParticipationId,
+            'missionId' => $missionId,
+        ];
+        
+        $teamQb = $this->getEntityManager()->createQueryBuilder();
+        $teamQb->select("t_team.id")
+                ->from(Member::class, "teamMembership")
+                ->andWhere($teamQb->expr()->eq("teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("teamMembership.team", "t_team")
+                ->leftJoin("teamMembership.client", "client")
+                ->andWhere($teamQb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($teamQb->expr()->eq("firm.id", ":firmId"))
+                ->setMaxResults(1);
+
+        $programQb = $this->getEntityManager()->createQueryBuilder();
+        $programQb->select("t_program.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($programQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($programQb->expr()->in("team.id", $teamQb->getDQL()))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("programParticipation.program", "t_program")
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('mission');
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.id", ":missionId"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->in("program.id", $programQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: mission not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allMissionsInProgramWhereClientIsMemberOfParticipatingTeam(string $firmId, string $clientId,
+            string $teamMembershipId, string $teamProgramParticipationId)
+    {
+        $statement = <<<_STATEMENT
+SELECT y.id, y.name, y.description, y.position, z.submittedWorksheet
+FROM (
+    SELECT T_Member.Team_id teamId
+    FROM T_Member
+        LEFT JOIN Client ON Client.id = T_Member.Client_id
+    WHERE T_Member.id = :teamMembershipId
+        AND Client.id = :clientId
+        AND Client.Firm_id = :firmId
+)w
+LEFT JOIN (
+    SELECT TeamParticipant.Team_id teamId, Participant.id participantId, Participant.Program_id programId
+    FROM TeamParticipant
+        LEFT JOIN Participant ON Participant.id = TeamParticipant.Participant_id
+    WHERE Participant.active = true
+        AND TeamParticipant.id = :teamProgramParticipationId
+)x ON x.teamId = w.teamId
+LEFT JOIN (
+    SELECT Mission.id, Mission.name, Mission.description, Mission.position, Mission.Program_id programId
+    FROM Mission
+    WHERE Mission.published = true
+    GROUP BY id
+)y ON y.programId = x.programId
+LEFT JOIN (
+    SELECT 
+        Worksheet.Participant_id participantId,
+        Worksheet.Mission_id missionId,
+        COUNT(Worksheet.id) AS submittedWorksheet
+    FROM Worksheet
+    WHERE Worksheet.removed = false
+    GROUP BY missionId, participantId
+)z ON z.missionId = y.id AND z.participantId = x.participantId                
+_STATEMENT;
+        $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "teamMembershipId" => $teamMembershipId,
+            "teamProgramParticipationId" => $teamProgramParticipationId,
         ];
         $query->execute($params);
 
