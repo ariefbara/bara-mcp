@@ -36,10 +36,20 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationRequest')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Notification')->truncate();
-        $this->connection->table('PersonnelNotification')->truncate();
         $this->connection->table('ConsultationRequestActivityLog')->truncate();
         $this->connection->table('ActivityLog')->truncate();
         $this->connection->table('TeamMemberActivityLog')->truncate();
+        
+        $this->connection->table('Mail')->truncate();
+        $this->connection->table('MailRecipient')->truncate();
+        $this->connection->table('ConsultationRequestMail')->truncate();
+        $this->connection->table('ConsultationSessionMail')->truncate();
+        
+        $this->connection->table('Notification')->truncate();
+        $this->connection->table('ConsultationRequestNotification')->truncate();
+        $this->connection->table('ConsultationSessionNotification')->truncate();
+        $this->connection->table('PersonnelNotificationRecipient')->truncate();
+        $this->connection->table('ClientNotificationRecipient')->truncate();
         
         $program = $this->programParticipation->participant->program;
         $firm = $program->firm;
@@ -57,7 +67,8 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->consultationSetup = new RecordOfConsultationSetup($program, $participantFeedbackForm, $consultantFeedbackForm, 0);
         $this->connection->table('ConsultationSetup')->insert($this->consultationSetup->toArrayForDbEntry());
         
-        $personnel = new RecordOfPersonnel($firm, 0, "purnama.adi@gmail.com", 'password123');
+        $personnel = new RecordOfPersonnel($firm, 0);
+        $personnel->email = "adi@barapraja.com";
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
         $this->consultant = new RecordOfConsultant($program, $personnel, 0);
@@ -94,13 +105,21 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationRequest')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Notification')->truncate();
-        $this->connection->table('PersonnelNotification')->truncate();
         $this->connection->table('ConsultationRequestActivityLog')->truncate();
         $this->connection->table('ActivityLog')->truncate();
         $this->connection->table('TeamMemberActivityLog')->truncate();
+        
+        $this->connection->table('Mail')->truncate();
+//        $this->connection->table('MailRecipient')->truncate();
+        $this->connection->table('ConsultationRequestMail')->truncate();
+        
+        $this->connection->table('Notification')->truncate();
+        $this->connection->table('ConsultationRequestNotification')->truncate();
+        $this->connection->table('PersonnelNotificationRecipient')->truncate();
+        $this->connection->table('ClientNotificationRecipient')->truncate();
     }
     
-    public function test_submit()
+    public function test_submit_201()
     {
         $this->connection->table('ConsultationRequest')->truncate();
         
@@ -135,6 +154,60 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         ];
         $this->seeInDatabase('ConsultationRequest', $consultationRequestEntry);
     }
+    public function test_submit_aggregateMailNotificaitonForOtherMemberAndConsultant()
+    {
+        $this->post($this->consultationRequestUri, $this->proposeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(201);
+        
+        $mailEntry = [
+            "subject" => "Konsulta: Permintaan Konsultasi",
+            "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
+            "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $otherTeamMemberMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembershipOne_otherMember->client->email,
+            "recipientName" => $this->teamMembershipOne_otherMember->client->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $otherTeamMemberMailRecipientEntry);
+        
+        $consultantMailRecipientEntry = [
+            "recipientMailAddress" => $this->consultant->personnel->email,
+            "recipientName" => $this->consultant->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $consultantMailRecipientEntry);
+        
+        $selfExcludedMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembership->client->email,
+        ];
+        $this->notSeeInDatabase("MailRecipient", $selfExcludedMailRecipientEntry);
+    }
+    public function test_submit_aggregateNotificationForOtherTeamMemberAndConsultant()
+    {
+        $this->post($this->consultationRequestUri, $this->proposeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(201);
+        
+        $personnelNotificationRecipientEntry = [
+            "readStatus" => false,
+            "Personnel_id" => $this->consultant->personnel->id,
+        ];
+        $this->seeInDatabase("PersonnelNotificationRecipient", $personnelNotificationRecipientEntry);
+        
+        $clientNotificationRecipient = [
+            "readStatus" => false,
+            "Client_id" => $this->teamMembershipOne_otherMember->client->id,
+        ];
+        $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipient);
+        $excludedSelfclientNotificationRecipient = [
+            "Client_id" => $this->teamMembership->client->id,
+        ];
+        $this->notSeeInDatabase("ClientNotificationRecipient", $excludedSelfclientNotificationRecipient);
+    }
     public function test_submit_inactiveMember_403()
     {
         $this->setTeamMembershipInactive();
@@ -165,7 +238,6 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(201);
         $activityLogEntry = [
             "message" => "team member submitted consultation request",
-            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);
         
@@ -175,6 +247,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
 //see database manually to confirm that consultation request activiy log is recorded
     }
+    
     public function test_changeTime_200()
     {
         $response = [
@@ -195,6 +268,62 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             "status" => 'proposed',
         ];
         $this->seeInDatabase('ConsultationRequest', $consultationRequestEntry);
+    }
+    public function test_changeTime_aggregateMailNotificaitonForOtherMemberAndConsultant()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/change-time";
+        $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $mailEntry = [
+            "subject" => "Konsulta: Permintaan Konsultasi",
+            "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
+            "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $otherTeamMemberMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembershipOne_otherMember->client->email,
+            "recipientName" => $this->teamMembershipOne_otherMember->client->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $otherTeamMemberMailRecipientEntry);
+        
+        $consultantMailRecipientEntry = [
+            "recipientMailAddress" => $this->consultant->personnel->email,
+            "recipientName" => $this->consultant->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $consultantMailRecipientEntry);
+        
+        $selfExcludedMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembership->client->email,
+        ];
+        $this->notSeeInDatabase("MailRecipient", $selfExcludedMailRecipientEntry);
+    }
+    public function test_changeTime_aggregateNotificationForOtherTeamMemberAndConsultant()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/change-time";
+        $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $personnelNotificationRecipientEntry = [
+            "readStatus" => false,
+            "Personnel_id" => $this->consultant->personnel->id,
+        ];
+        $this->seeInDatabase("PersonnelNotificationRecipient", $personnelNotificationRecipientEntry);
+        
+        $clientNotificationRecipient = [
+            "readStatus" => false,
+            "Client_id" => $this->teamMembershipOne_otherMember->client->id,
+        ];
+        $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipient);
+        $excludedSelfclientNotificationRecipient = [
+            "Client_id" => $this->teamMembership->client->id,
+        ];
+        $this->notSeeInDatabase("ClientNotificationRecipient", $excludedSelfclientNotificationRecipient);
     }
     public function test_changeTime_conflictWithExistingRequest_409()
     {
@@ -240,7 +369,104 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         
         $activityLogEntry = [
             "message" => "team member changed consultation request time",
-            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $teammMemberActivityLog = [
+            "TeamMember_id" => $this->teamMembership->id,
+        ];
+        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+        
+        $consultationRequestActivityLogEntry = [
+            "ConsultationRequest_id" => $this->consultationRequest->id,
+        ];
+        $this->seeInDatabase("ConsultationRequestActivityLog", $consultationRequestActivityLogEntry);
+    }
+    
+    public function test_cancel_200()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
+        $this->patch($uri, [], $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $consultationRequestEntry = [
+            "id" => $this->consultationRequest->id,
+            "concluded" => true,
+            "status" => 'cancelled',
+        ];
+        $this->seeInDatabase('ConsultationRequest', $consultationRequestEntry);
+    }
+    public function test_cancel_aggregateMailNotificaitonForOtherMemberAndConsultant()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
+        $this->patch($uri, [], $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $mailEntry = [
+            "subject" => "Konsulta: Permintaan Konsultasi",
+            "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
+            "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $otherTeamMemberMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembershipOne_otherMember->client->email,
+            "recipientName" => $this->teamMembershipOne_otherMember->client->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $otherTeamMemberMailRecipientEntry);
+        
+        $consultantMailRecipientEntry = [
+            "recipientMailAddress" => $this->consultant->personnel->email,
+            "recipientName" => $this->consultant->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $consultantMailRecipientEntry);
+        
+        $selfExcludedMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembership->client->email,
+        ];
+        $this->notSeeInDatabase("MailRecipient", $selfExcludedMailRecipientEntry);
+    }
+    public function test_cancel_aggregateNotificationForOtherTeamMemberAndConsultant()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
+        $this->patch($uri, [], $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $personnelNotificationRecipientEntry = [
+            "readStatus" => false,
+            "Personnel_id" => $this->consultant->personnel->id,
+        ];
+        $this->seeInDatabase("PersonnelNotificationRecipient", $personnelNotificationRecipientEntry);
+        
+        $clientNotificationRecipient = [
+            "readStatus" => false,
+            "Client_id" => $this->teamMembershipOne_otherMember->client->id,
+        ];
+        $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipient);
+        $excludedSelfclientNotificationRecipient = [
+            "Client_id" => $this->teamMembership->client->id,
+        ];
+        $this->notSeeInDatabase("ClientNotificationRecipient", $excludedSelfclientNotificationRecipient);
+    }
+    public function test_cancel_inactiveMember_403()
+    {
+        $this->setTeamMembershipInactive();
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
+        $this->patch($uri, [], $this->teamMembership->client->token)
+            ->seeStatusCode(403);
+    }
+    public function test_cancel_logActivity()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
+        $this->patch($uri, [], $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $activityLogEntry = [
+            "message" => "team member cancelled consultation request",
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);
         
@@ -282,6 +508,65 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             "endDateTime" => $this->consultationRequest->endDateTime,
         ];
         $this->seeInDatabase('ConsultationSession', $consultationSession);
+    }
+    public function test_accept_aggregateMailNotificaitonForAllMemberAndConsultant()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
+        $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $mailEntry = [
+            "subject" => "Konsulta: Jadwal Konsultasi",
+            "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
+            "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $otherTeamMemberMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembershipOne_otherMember->client->email,
+            "recipientName" => $this->teamMembershipOne_otherMember->client->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $otherTeamMemberMailRecipientEntry);
+        $selfExcludedMailRecipientEntry = [
+            "recipientMailAddress" => $this->teamMembership->client->email,
+            "recipientName" => $this->teamMembership->client->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $selfExcludedMailRecipientEntry);
+        
+        $consultantMailRecipientEntry = [
+            "recipientMailAddress" => $this->consultant->personnel->email,
+            "recipientName" => $this->consultant->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $consultantMailRecipientEntry);
+        
+    }
+    public function test_accept_aggregateNotificationForOtherTeamMemberAndConsultant()
+    {
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
+        $this->patch($uri, $this->changeTimeInput, $this->teamMembership->client->token)
+            ->seeStatusCode(200);
+        
+        $personnelNotificationRecipientEntry = [
+            "readStatus" => false,
+            "Personnel_id" => $this->consultant->personnel->id,
+        ];
+        $this->seeInDatabase("PersonnelNotificationRecipient", $personnelNotificationRecipientEntry);
+        
+        $clientNotificationRecipient = [
+            "readStatus" => false,
+            "Client_id" => $this->teamMembershipOne_otherMember->client->id,
+        ];
+        $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipient);
+        $excludedSelfclientNotificationRecipient = [
+            "Client_id" => $this->teamMembership->client->id,
+        ];
+        $this->notSeeInDatabase("ClientNotificationRecipient", $excludedSelfclientNotificationRecipient);
     }
     public function test_accept_conflictWithOtherProposedRequest_409()
     {
@@ -333,49 +618,6 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         
         $activityLogEntry = [
             "message" => "team member accepted offered consultation request",
-            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
-        ];
-        $this->seeInDatabase("ActivityLog", $activityLogEntry);
-        
-        $teammMemberActivityLog = [
-            "TeamMember_id" => $this->teamMembership->id,
-        ];
-        $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
-        
-        $consultationRequestActivityLogEntry = [
-            "ConsultationRequest_id" => $this->consultationRequest->id,
-        ];
-        $this->seeInDatabase("ConsultationRequestActivityLog", $consultationRequestActivityLogEntry);
-    }
-    
-    public function test_cancel_200()
-    {
-        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
-        $this->patch($uri, [], $this->teamMembership->client->token)
-            ->seeStatusCode(200);
-        
-        $consultationRequestEntry = [
-            "id" => $this->consultationRequest->id,
-            "concluded" => true,
-            "status" => 'cancelled',
-        ];
-        $this->seeInDatabase('ConsultationRequest', $consultationRequestEntry);
-    }
-    public function test_cancel_inactiveMember_403()
-    {
-        $this->setTeamMembershipInactive();
-        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
-        $this->patch($uri, [], $this->teamMembership->client->token)
-            ->seeStatusCode(403);
-    }
-    public function test_cancel_logActivity()
-    {
-        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/cancel";
-        $this->patch($uri, [], $this->teamMembership->client->token)
-            ->seeStatusCode(200);
-        
-        $activityLogEntry = [
-            "message" => "team member cancelled consultation request",
             "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);

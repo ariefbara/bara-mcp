@@ -3,7 +3,7 @@
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
 use DateTimeImmutable;
-use Participant\{
+use Participant\ {
     Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository,
     Application\Service\Firm\Client\TeamMembershipRepository,
     Application\Service\Firm\Program\ConsultantRepository,
@@ -14,17 +14,19 @@ use Participant\{
     Domain\DependencyModel\Firm\Program\ConsultationSetup,
     Domain\Model\TeamProgramParticipation
 };
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class SubmitConsultationRequestTest extends TestBase
 {
 
-    protected $service;
     protected $consultationRequestRepository, $nextId = 'nextId';
     protected $teamMembershipRepository, $teamMembership;
     protected $teamProgramParticipationRepository, $teamProgramParticipation;
     protected $consultationSetupRepository, $consultationSetup;
     protected $consultantRepository, $consultant;
+    protected $dispatcher;
+    protected $service;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
             $programParticipationId = "programParticipationId", $consultationSetupId = "consultationSetupid",
             $consultantId = "consultantId";
@@ -64,10 +66,12 @@ class SubmitConsultationRequestTest extends TestBase
                 ->with($this->consultationSetupId)
                 ->willReturn($this->consultationSetup);
 
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
         $this->service = new SubmitConsultationRequest(
                 $this->consultationRequestRepository, $this->teamMembershipRepository,
                 $this->teamProgramParticipationRepository, $this->consultationSetupRepository,
-                $this->consultantRepository);
+                $this->consultantRepository, $this->dispatcher);
 
         $this->startTime = new DateTimeImmutable();
     }
@@ -91,10 +95,16 @@ class SubmitConsultationRequestTest extends TestBase
                 ->method("add");
         $this->execute();
     }
-
     public function test_execute_returnNextId()
     {
         $this->assertEquals($this->nextId, $this->execute());
+    }
+    public function test_execute_dispatcheTeamMembership()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->teamMembership);
+        $this->execute();
     }
 
 }

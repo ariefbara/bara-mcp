@@ -19,9 +19,7 @@ class UpdateWorksheetTest extends TestBase
     protected $service;
     protected $worksheetRepository, $worksheet;
     protected $teamMembershipRepository, $teamMembership;
-    protected $teamProgramParticipationRepository, $teamProgramParticipation;
-    protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
-            $programParticipationId = "programParticipationId";
+    protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId";
     protected $worksheetId = "worksheetId", $name = "worksheet name", $formRecordData;
 
     protected function setUp(): void
@@ -41,15 +39,7 @@ class UpdateWorksheetTest extends TestBase
                 ->with($this->firmId, $this->clientId, $this->teamMembershipId)
                 ->willReturn($this->teamMembership);
 
-        $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
-        $this->teamProgramParticipationRepository = $this->buildMockOfInterface(TeamProgramParticipationRepository::class);
-        $this->teamProgramParticipationRepository->expects($this->any())
-                ->method("ofId")
-                ->with($this->programParticipationId)
-                ->willReturn($this->teamProgramParticipation);
-
-        $this->service = new UpdateWorksheet(
-                $this->worksheetRepository, $this->teamMembershipRepository, $this->teamProgramParticipationRepository);
+        $this->service = new UpdateWorksheet($this->worksheetRepository, $this->teamMembershipRepository);
 
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
     }
@@ -57,13 +47,13 @@ class UpdateWorksheetTest extends TestBase
     protected function execute()
     {
         $this->service->execute(
-                $this->firmId, $this->clientId, $this->teamMembershipId, $this->programParticipationId, $this->worksheetId, $this->name, $this->formRecordData);
+                $this->firmId, $this->clientId, $this->teamMembershipId, $this->worksheetId, $this->name, $this->formRecordData);
     }
     public function test_execute_udpateWorksheetByTeamMembership()
     {
         $this->teamMembership->expects($this->once())
                 ->method("updateWorksheet")
-                ->with($this->teamProgramParticipation, $this->worksheet, $this->name, $this->formRecordData);
+                ->with($this->worksheet, $this->name, $this->formRecordData);
         $this->execute();
     }
     public function test_execute_updateWorksheetRepository()

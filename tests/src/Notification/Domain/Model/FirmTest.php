@@ -18,28 +18,31 @@ class FirmTest extends TestBase
         $this->firm->firmWhitelableInfo = $this->firmWhitelableInfo;
     }
     
-    public function test_getFirwmgetWhitelableUrl_returnWhitelableUrl()
+    public function test_getDomain_returnWhitelableInfosGetUrlResult()
     {
         $this->firmWhitelableInfo->expects($this->once())
-                ->method('getUrl');
-        $this->firm->getWhitelableUrl();
+                ->method("getUrl");
+        $this->firm->getDomain();
     }
-    public function test_getMailSender_returnFirmMailSender()
+    public function test_getMailSenderAddress_returnWhitelableInfosGetMailSenderAddressResult()
     {
-        $this->firmWhitelableInfo->expects($this->once())->method('getMailSenderAddress')->willReturn('firm@email.org');
-        $this->firmWhitelableInfo->expects($this->once())->method('getMailSenderName')->willReturn('firm');
-        $firmMailSender = new Firm\FirmMailSender('firm@email.org', 'firm');
-        $this->assertEquals($firmMailSender, $this->firm->getMailSender());
-        
+        $this->firmWhitelableInfo->expects($this->once())
+                ->method("getMailSenderAddress");
+        $this->firm->getMailSenderAddress();
     }
+    public function test_getMailSenderName_returnWhitelableInfosGetMailSenderNameResult()
+    {
+        $this->firmWhitelableInfo->expects($this->once())
+                ->method("getMailSenderName");
+        $this->firm->getMailSenderName();
+    }
+    
 }
 
 class TestableFirm extends Firm
 {
     public $id;
-    public $name;
     public $firmWhitelableInfo;
-    public $suspended = false;
     
     function __construct()
     {

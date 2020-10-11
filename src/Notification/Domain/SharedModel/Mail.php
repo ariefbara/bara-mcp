@@ -4,9 +4,15 @@ namespace Notification\Domain\SharedModel;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Notification\Domain\SharedModel\Mail\Recipient;
+use Resources\Uuid;
 
 class Mail
 {
+    /**
+     *
+     * @var string
+     */
+    protected $id;
 
     /**
      *
@@ -78,9 +84,10 @@ class Mail
         return $this->recipients;
     }
 
-    public function __construct(string $senderMailAddress, string $senderName, string $subject, string $message,
+    public function __construct(string $id, string $senderMailAddress, string $senderName, string $subject, string $message,
             ?string $htmlMessage, string $recipientMailAddress, string $recipientName)
     {
+        $this->id = $id;
         $this->senderMailAddress = $senderMailAddress;
         $this->senderName = $senderName;
         $this->subject = $subject;
@@ -92,7 +99,8 @@ class Mail
 
     public function addRecipient(string $recipientMailAddress, string $recipientName): void
     {
-        $recipient = new Recipient($recipientMailAddress, $recipientName);
+        $id = Uuid::generateUuid4();
+        $recipient = new Recipient($this, $id, $recipientMailAddress, $recipientName);
         $this->recipients->add($recipient);
     }
 

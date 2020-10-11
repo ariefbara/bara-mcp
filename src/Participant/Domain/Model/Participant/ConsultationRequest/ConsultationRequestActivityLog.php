@@ -5,11 +5,10 @@ namespace Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\{
     DependencyModel\Firm\Client\TeamMembership,
     Model\Participant\ConsultationRequest,
-    SharedModel\ActivityLog,
-    SharedModel\ContainActvityLog
+    SharedModel\ActivityLog
 };
 
-class ConsultationRequestActivityLog implements ContainActvityLog
+class ConsultationRequestActivityLog
 {
 
     /**
@@ -30,16 +29,12 @@ class ConsultationRequestActivityLog implements ContainActvityLog
      */
     protected $activityLog;
 
-    public function __construct(ConsultationRequest $consultationRequest, string $id, string $message)
+    public function __construct(
+            ConsultationRequest $consultationRequest, string $id, string $message, ?TeamMembership $teamMember)
     {
         $this->consultationRequest = $consultationRequest;
         $this->id = $id;
-        $this->activityLog = new ActivityLog($id, $message);
-    }
-
-    public function setOperator(TeamMembership $teamMember): void
-    {
-        $this->activityLog->setOperator($teamMember);
+        $this->activityLog = new ActivityLog($id, $message, $teamMember);
     }
 
 }

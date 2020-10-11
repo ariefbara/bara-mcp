@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\{
     Criteria
 };
 use Participant\Domain\{
+    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
@@ -18,10 +19,13 @@ use Participant\Domain\{
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
-use Resources\Exception\RegularException;
+use Resources\{
+    Domain\Model\EntityContainEvents,
+    Exception\RegularException
+};
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
-class Participant
+class Participant extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
 
     /**
@@ -71,9 +75,9 @@ class Participant
         
     }
 
-    public function isATeamProgramParticipationOfTeam(Team $team): bool
+    public function belongsToTeam(Team $team): bool
     {
-        return isset($this->teamProgramParticipation) ? $this->teamProgramParticipation->teamEquals($team) : false;
+        return isset($this->teamProgramParticipation) ? $this->teamProgramParticipation->belongsToTeam($team) : false;
     }
 
     public function quit(): void
@@ -116,6 +120,8 @@ class Participant
 
         $this->assertNoProposedConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
+
+        $this->recordedEvents = $consultationRequest->pullRecordedEvents();
     }
 
     public function acceptOfferedConsultationRequest(
@@ -130,20 +136,12 @@ class Participant
 
         $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
         $this->consultationSessions->add($consultationSession);
-    }
-
-    public function cancelConsultationRequest(ConsultationRequest $consultationRequest,
-            ?TeamMembership $teamMember = null): void
-    {
-        if (!$consultationRequest->belongsTo($this)) {
-            $errorDetail = "forbidden: unable to manage consultation request of other participant";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $consultationRequest->cancel($teamMember);
+        
+        $this->recordedEvents = $consultationSession->pullRecordedEvents();
     }
 
     public function createRootWorksheet(string $worksheetId, string $name, Mission $mission,
-            FormRecordData $formRecordData, ?TeamMembership $teamMember): Worksheet
+            FormRecordData $formRecordData, ?TeamMembership $teamMember = null): Worksheet
     {
         $this->assertActive();
         if (!$mission->programEquals($this->program)) {
@@ -151,23 +149,6 @@ class Participant
             throw RegularException::forbidden($errorDetail);
         }
         return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecordData, $teamMember);
-    }
-
-    public function submitBranchWorksheet(
-            Worksheet $parentWorksheet, string $worksheetId, string $worksheetName, Mission $mission,
-            FormRecordData $formRecordData, ?TeamMembership $teamMember = null): Worksheet
-    {
-        $this->assertActive();
-        $this->assertOwnAsset($parentWorksheet);
-        return $parentWorksheet
-                        ->createBranchWorksheet($worksheetId, $worksheetName, $mission, $formRecordData, $teamMember);
-    }
-
-    public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
-    {
-        $this->assertActive();
-        $this->assertOwnAsset($worksheet);
-        $worksheet->update($name, $formRecordData, $teamMember);
     }
 
     public function isActiveParticipantOfProgram(Program $program): bool
@@ -225,14 +206,6 @@ class Participant
             $errorDetail = "forbidden: unable to manage asset of other participant";
             throw RegularException::forbidden($errorDetail);
         }
-    }
-
-    public function submitConsultationSessionReport(ConsultationSession $consultationSession,
-            FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
-    {
-        $this->assertActive();
-        $this->assertOwnAsset($consultationSession);
-        $consultationSession->setParticipantFeedback($formRecordData, $teamMember);
     }
 
 }

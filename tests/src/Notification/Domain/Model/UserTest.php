@@ -2,38 +2,76 @@
 
 namespace Notification\Domain\Model;
 
+use Notification\Domain\SharedModel\ {
+    CanSendPersonalizeMail,
+    MailMessage
+};
 use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
 
 class UserTest extends TestBase
 {
     protected $user;
-    protected $personName;
+    protected $name;
+    protected $mailGenerator;
+    protected $mailMessage, $modifiedGreetings, $modifiedUrl;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = new TestableUser();
-        $this->personName = $this->buildMockOfClass(PersonName::class);
-        $this->user->personName = $this->personName;
+        $this->name = $this->buildMockOfClass(PersonName::class);
+        $this->user->name = $this->name;
+        
+        $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
+        $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedMail = $this->buildMockOfClass(MailMessage::class);
     }
     
     public function test_getName_returnFullName()
     {
-        $this->personName->expects($this->once())
+        $this->name->expects($this->once())
                 ->method('getFullName');
-        $this->user->getName();
+        $this->user->getFullName();
+    }
+    
+    protected function executeRegisterAsMailRecipient()
+    {
+        $this->mailMessage->expects($this->any())
+                ->method("appendRecipientFirstNameInGreetings")
+                ->willReturn($this->modifiedMail);
+        
+        $this->user->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
+    }
+    public function test_registerAsMailRecipient_modifiedMailMessageGreetings()
+    {
+        $this->name->expects($this->once())
+                ->method("getFirstName")
+                ->willReturn($firstName = "first name");
+        
+        $this->mailMessage->expects($this->any())
+                ->method("appendRecipientFirstNameInGreetings")
+                ->with($firstName);
+        
+        $this->executeRegisterAsMailRecipient();
+    }
+    public function test_registerAsMailRecipient_addMailInMailGenerator()
+    {
+        $this->name->expects($this->once())
+                ->method("getFullName")
+                ->willReturn($fullName = "full name");
+        $this->mailGenerator->expects($this->once())
+                ->method("addMail")
+                ->with($this->modifiedMail, $this->user->email, $fullName);
+        $this->executeRegisterAsMailRecipient();
     }
 }
 
 class TestableUser extends User
 {
     public $id;
-    public $personName;
-    public $email;
-    public $activationCode = null;
-    public $resetPasswordCode = null;
-    public $activated = false;
+    public $name;
+    public $email = "user@email.org";
     
     function __construct()
     {

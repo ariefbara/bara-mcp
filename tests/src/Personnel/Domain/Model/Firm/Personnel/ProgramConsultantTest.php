@@ -116,7 +116,7 @@ class ProgramConsultantTest extends TestBase
         $this->programConsultant->clearRecordedEvents();
         $this->executeAcceptConsultationRequest();
         $this->assertInstanceOf(ConsultantAcceptedConsultationRequest::class,
-                $this->programConsultant->getRecordedEvents()[0]);
+                $this->programConsultant->pullRecordedEvents()[0]);
     }
 
     protected function executeOfferConsultationRequestTime()
@@ -164,7 +164,7 @@ class ProgramConsultantTest extends TestBase
     {
         $this->programConsultant->clearRecordedEvents();
         $this->executeOfferConsultationRequestTime();
-        $this->assertInstanceOf(ConsultantOfferedConsultationRequest::class, $this->programConsultant->getRecordedEvents()[0]);
+        $this->assertInstanceOf(ConsultantOfferedConsultationRequest::class, $this->programConsultant->pullRecordedEvents()[0]);
     }
     
     protected function executeSubmitNewCommentOnWorksheet()
@@ -182,7 +182,7 @@ class ProgramConsultantTest extends TestBase
     {
         $this->programConsultant->clearRecordedEvents();
         $this->executeSubmitNewCommentOnWorksheet();
-        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->getRecordedEvents()[0]);
+        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->pullRecordedEvents()[0]);
     }
     
     protected function executeSubmitReplyOnWorksheetComment()
@@ -206,7 +206,7 @@ class ProgramConsultantTest extends TestBase
     {
         $this->programConsultant->clearRecordedEvents();
         $this->executeSubmitReplyOnWorksheetComment();
-        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->getRecordedEvents()[0]);
+        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->pullRecordedEvents()[0]);
     }
 }
 

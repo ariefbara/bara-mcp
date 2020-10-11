@@ -2,17 +2,22 @@
 
 namespace Notification\Domain\Model\Firm;
 
-use Notification\Domain\Model\Firm\Personnel\PersonnelMailNotification;
-use Resources\Domain\ {
-    Model\Mail\Recipient,
-    ValueObject\PersonName
+use Notification\Domain\ {
+    Model\Firm,
+    SharedModel\CanSendPersonalizeMail,
+    SharedModel\MailMessage
 };
+use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
 
 class PersonnelTest extends TestBase
 {
     protected $personnel;
-    protected $personName;
+    protected $firm;
+    protected $name;
+    
+    protected $mailGenerator;
+    protected $mailMessage;
     
     protected function setUp(): void
     {
@@ -21,26 +26,53 @@ class PersonnelTest extends TestBase
         $this->personnel = new TestablePersonnel();
         $this->personnel->email = 'personnel@email.org';
         
-        $this->personName = $this->buildMockOfClass(PersonName::class);
-        $this->personnel->name = $this->personName;
+        $this->firm = $this->buildMockOfClass(Firm::class);
+        $this->personnel->firm = $this->firm;
+        
+        $this->name = $this->buildMockOfClass(PersonName::class);
+        $this->personnel->name = $this->name;
+        
+        $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
+        $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
     }
     
-    public function test_getMailRecipient_returnRecipient()
+    public function test_getFullName_returnNamesGetFullNameResult()
     {
-        $recipient = new Recipient($this->personnel->email, $this->personnel->name);
-        $this->assertEquals($recipient, $this->personnel->getMailRecipient());
-    }
-    public function test_getName_returnFullName()
-    {
-        $this->personName->expects($this->once())
-                ->method('getFullName');
-        $this->personnel->getName();
+        $this->name->expects($this->once())
+                ->method("getFullName");
+        $this->personnel->getFullName();
     }
     
-    public function test_createMailNotification_returnPersonnelMailNotification()
+    protected function executeRegisterAsMailRecipient()
     {
-        $personnelMailNotification = new PersonnelMailNotification($this->personnel);
-        $this->assertEquals($personnelMailNotification, $this->personnel->createMailNotification());
+        $this->personnel->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
+    }
+    public function test_registerAsMailRecipient_appendFirstNameInMailMessage()
+    {
+        $this->name->expects($this->once())
+                ->method("getFirstName")
+                ->willReturn($firstName = "first name");
+        $this->mailMessage->expects($this->once())
+                ->method("appendRecipientFirstNameInGreetings")
+                ->with($firstName);
+        $this->executeRegisterAsMailRecipient();
+    }
+    public function test_registerAsMailRecipient_addMailToMailGenerator()
+    {
+        $mailMessage = $this->buildMockOfClass(MailMessage::class);
+        $this->mailMessage->expects($this->once())
+                ->method("appendRecipientFirstNameInGreetings")
+                ->willReturn($mailMessage);
+        
+        $this->name->expects($this->once())
+                ->method("getFullName")
+                ->willReturn($fullName = "full name");
+        
+        $this->mailGenerator->expects($this->once())
+                ->method("addMail")
+                ->with($mailMessage, $this->personnel->email, $fullName);
+        
+        $this->executeRegisterAsMailRecipient();
     }
 }
 
@@ -50,7 +82,6 @@ class TestablePersonnel extends Personnel
     public $id;
     public $name;
     public $email;
-    public $removed;
     
     function __construct()
     {

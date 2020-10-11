@@ -11,18 +11,20 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="enrolledTime" type="datetime_immutable" nullable="true"/>
-        <field name="active" type="boolean" />
-        <field name="note" type="string" length="256" nullable="true"/>
+        
+        <one-to-one field="teamParticipant" 
+                    target-entity="Notification\Domain\Model\Firm\Team\TeamProgramParticipation"
+                    mapped-by="programParticipation"
+        />
         
         <one-to-one field="clientParticipant" 
-                    target-entity="Notification\Domain\Model\Firm\Client\ClientParticipant"
-                    mapped-by="participant"
+                    target-entity="Notification\Domain\Model\Firm\Client\ClientProgramParticipation"
+                    mapped-by="programParticipation"
         />
         
         <one-to-one field="userParticipant" 
-                    target-entity="Notification\Domain\Model\User\UserParticipant"
-                    mapped-by="participant"
+                    target-entity="Notification\Domain\Model\User\UserProgramParticipation"
+                    mapped-by="programParticipation"
         />
         
     </entity>

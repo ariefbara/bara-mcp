@@ -2,23 +2,30 @@
 
 namespace Participant\Domain\Model\Participant;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\ {
+    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
+    DependencyModel\Firm\Team,
+    Event\ConsultationRequestCancelled,
+    Event\ConsultationRequestTimeChanged,
     Model\Participant,
     Model\Participant\ConsultationRequest\ConsultationRequestActivityLog
 };
 use Resources\ {
+    Domain\Event\CommonEvent,
+    Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
     Exception\RegularException,
     Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 
-class ConsultationRequest
+class ConsultationRequest extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
 
     /**
@@ -62,6 +69,7 @@ class ConsultationRequest
      * @var ConsultationRequestStatusVO
      */
     protected $status;
+
     /**
      *
      * @var ArrayCollection
@@ -75,7 +83,7 @@ class ConsultationRequest
 
     function __construct(
             Participant $participant, $id, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime, ?TeamMembership $teamMemberOperator = null)
+            DateTimeImmutable $startTime, ?TeamMembership $teamMember)
     {
         $this->participant = $participant;
         $this->id = $id;
@@ -86,10 +94,23 @@ class ConsultationRequest
         $this->status = new ConsultationRequestStatusVO('proposed');
 
         $this->assertNotConflictedWithConsultantExistingConsultationSession();
-        
+
         $this->consultationRequestActivityLogs = new ArrayCollection();
         $message = "submitted consultation request";
-        $this->addConsultationRequestActivityLog($message, $teamMemberOperator);
+        $this->addConsultationRequestActivityLog($message, $teamMember);
+
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_SUBMITTED, $this->id);
+        $this->recordEvent($event);
+    }
+
+    function scheduleIntersectWith(DateTimeInterval $startEndTime): bool
+    {
+        return $this->startEndTime->intersectWith($startEndTime);
+    }
+
+    public function belongsToTeam(Team $team): bool
+    {
+        return $this->participant->belongsToTeam($team);
     }
 
     public function isProposedConsultationRequestConflictedWith(ConsultationRequest $other): bool
@@ -97,30 +118,37 @@ class ConsultationRequest
         if ($this->id == $other->id) {
             return false;
         }
-        return $this->status->sameValueAs(new ConsultationRequestStatusVO('proposed')) && $this->startEndTime->intersectWith($other->getStartEndTime());
+        return $this->status->sameValueAs(new ConsultationRequestStatusVO('proposed')) 
+                && $this->startEndTime->intersectWith($other->startEndTime);
     }
 
-    public function rePropose(DateTimeImmutable $startTime, ?TeamMembership $teamMemberOperator = null): void
+    public function rePropose(DateTimeImmutable $startTime, ?TeamMembership $teamMember): void
     {
         $this->assertNotConcluded();
         $this->startEndTime = $this->consultationSetup->getSessionStartEndTimeOf($startTime);
         $this->status = new ConsultationRequestStatusVO('proposed');
 
         $this->assertNotConflictedWithConsultantExistingConsultationSession();
-        
-        $this->addConsultationRequestActivityLog("changed consultation request time", $teamMemberOperator);
+
+        $this->addConsultationRequestActivityLog("changed consultation request time", $teamMember);
+
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_TIME_CHANGED, $this->id);
+        $this->recordEvent($event);
     }
 
-    public function cancel(?TeamMembership $teamMemberOperator = null): void
+    public function cancel(?TeamMembership $teamMember = null): void
     {
         $this->assertNotConcluded();
         $this->status = new ConsultationRequestStatusVO("cancelled");
         $this->concluded = true;
-        
-        $this->addConsultationRequestActivityLog("cancelled consultation request", $teamMemberOperator);
+
+        $this->addConsultationRequestActivityLog("cancelled consultation request", $teamMember);
+
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_CANCELLED, $this->id);
+        $this->recordEvent($event);
     }
 
-    public function accept(?TeamMembership $teamMemberOperator = null): void
+    public function accept(?TeamMembership $teamMember): void
     {
         $this->assertNotConcluded();
         if (!$this->status->sameValueAs(new ConsultationRequestStatusVO("offered"))) {
@@ -130,8 +158,8 @@ class ConsultationRequest
 
         $this->status = new ConsultationRequestStatusVO("scheduled");
         $this->concluded = true;
-        
-        $this->addConsultationRequestActivityLog("accepted offered consultation request", $teamMemberOperator);
+
+        $this->addConsultationRequestActivityLog("accepted offered consultation request", $teamMember);
     }
 
     public function createConsultationSession(string $consultationSessionId): ConsultationSession
@@ -139,11 +167,6 @@ class ConsultationRequest
         return new ConsultationSession(
                 $this->participant, $consultationSessionId, $this->consultationSetup, $this->consultant,
                 $this->startEndTime);
-    }
-
-    function getStartEndTime(): DateTimeInterval
-    {
-        return $this->startEndTime;
     }
 
     protected function assertNotConcluded(): void
@@ -162,22 +185,11 @@ class ConsultationRequest
         }
     }
 
-    public function belongsTo(Participant $participant): bool
+    protected function addConsultationRequestActivityLog(string $message, ?TeamMembership $teamMember): void
     {
-        return $this->participant === $participant;
-    }
-
-    protected function addConsultationRequestActivityLog(string $message, ?TeamMembership $teamMemberOperator): void
-    {
-        $message = isset($teamMemberOperator)? "team member " . $message: "participant " . $message;
+        $message = isset($teamMember) ? "team member " . $message : "participant " . $message;
         $id = Uuid::generateUuid4();
-        $occuredTime = new DateTimeImmutable();
-        $consultationRequestActivityLog = new ConsultationRequestActivityLog($this, $id, $message);
-        
-        if (isset($teamMemberOperator)) {
-            $teamMemberOperator->setAsActivityOperator($consultationRequestActivityLog);
-        }
-        
+        $consultationRequestActivityLog = new ConsultationRequestActivityLog($this, $id, $message, $teamMember);
         $this->consultationRequestActivityLogs->add($consultationRequestActivityLog);
     }
 

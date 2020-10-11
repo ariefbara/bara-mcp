@@ -2,14 +2,13 @@
 
 namespace Participant\Domain\Model\Participant\Worksheet\Comment;
 
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client\TeamMembership,
     Model\Participant\Worksheet\Comment,
-    SharedModel\ActivityLog,
-    SharedModel\ContainActvityLog
+    SharedModel\ActivityLog
 };
 
-class CommentActivityLog implements ContainActvityLog
+class CommentActivityLog
 {
 
     /**
@@ -30,16 +29,11 @@ class CommentActivityLog implements ContainActvityLog
      */
     protected $activityLog;
 
-    public function __construct(Comment $comment, string $id, string $message)
+    public function __construct(Comment $comment, string $id, string $message, ?TeamMembership $teamMember)
     {
         $this->comment = $comment;
         $this->id = $id;
-        $this->activityLog = new ActivityLog($id, $message);
-    }
-
-    public function setOperator(TeamMembership $teamMember): void
-    {
-        $this->activityLog->setOperator($teamMember);
+        $this->activityLog = new ActivityLog($id, $message, $teamMember);
     }
 
 }

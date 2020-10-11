@@ -7,6 +7,7 @@ use Participant\Application\Service\Firm\Client\{
     TeamMembership\TeamProgramParticipationRepository,
     TeamMembershipRepository
 };
+use Resources\Application\Event\Dispatcher;
 
 class ChangeConsultationRequestTime
 {
@@ -23,12 +24,19 @@ class ChangeConsultationRequestTime
      */
     protected $teamProgramParticipationRepository;
 
+    /**
+     *
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
     public function __construct(
             TeamMembershipRepository $teamMembershipRepository,
-            TeamProgramParticipationRepository $teamProgramParticipationRepository)
+            TeamProgramParticipationRepository $teamProgramParticipationRepository, Dispatcher $dispatcher)
     {
         $this->teamMembershipRepository = $teamMembershipRepository;
         $this->teamProgramParticipationRepository = $teamProgramParticipationRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
@@ -36,9 +44,11 @@ class ChangeConsultationRequestTime
             string $consultationRequestId, DateTimeImmutable $startTime): void
     {
         $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($programParticipationId);
-        $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
-                ->changeConsultationRequestTime($teamProgramParticipation, $consultationRequestId, $startTime);
+        $teamMembership = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $teamMembership->changeConsultationRequestTime($teamProgramParticipation, $consultationRequestId, $startTime);
         $this->teamProgramParticipationRepository->update();
+        
+        $this->dispatcher->dispatch($teamMembership);
     }
 
 }

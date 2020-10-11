@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\SharedModel\Mail\Recipient" 
+            table="MailRecipient" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineRecipientRepository" 
+    >
+        
+        <many-to-one  field="mail" 
+                      target-entity="Notification\Domain\SharedModel\Mail"
+                      inversed-by="recipients"
+        >
+            <join-column name="Mail_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="recipientMailAddress" type="string" length="256" nullable="false"/>
+        <field name="recipientName" type="string" length="256" nullable="false"/>
+        <field name="sent" type="boolean" />
+        <field name="attempt" type="smallint" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

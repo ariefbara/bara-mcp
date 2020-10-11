@@ -266,7 +266,7 @@ class ProgramTest extends TestBase
     {
         $this->program->clearRecordedEvents();
         $this->executeAcceptRegistrant();
-        $this->assertInstanceOf(RegistrantAccepted::class, $this->program->getRecordedEvents()[0]);
+        $this->assertInstanceOf(RegistrantAccepted::class, $this->program->pullRecordedEvents()[0]);
     }
     
 }

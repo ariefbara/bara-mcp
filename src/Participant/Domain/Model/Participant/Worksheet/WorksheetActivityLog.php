@@ -9,7 +9,7 @@ use Participant\Domain\ {
     SharedModel\ContainActvityLog
 };
 
-class WorksheetActivityLog implements ContainActvityLog
+class WorksheetActivityLog
 {
     /**
      *
@@ -27,17 +27,10 @@ class WorksheetActivityLog implements ContainActvityLog
      */
     protected $activityLog;
     
-    public function __construct(Worksheet $worksheet, string $id, string $message)
+    public function __construct(Worksheet $worksheet, string $id, string $message, ?TeamMembership $teamMember)
     {
         $this->worksheet = $worksheet;
         $this->id = $id;
-        $this->activityLog = new ActivityLog($id, $message);
+        $this->activityLog = new ActivityLog($id, $message, $teamMember);
     }
-
-    
-    public function setOperator(TeamMembership $teamMember): void
-    {
-        $this->activityLog->setOperator($teamMember);
-    }
-
 }

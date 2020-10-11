@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\SharedModel\Notification" 
+            table="Notification" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="message" type="string" length="1024" nullable="true"/>
+        
+        <one-to-many field="userNotificationRecipients" 
+                     target-entity="Notification\Domain\SharedModel\Notification\UserNotificationRecipient" 
+                     mapped-by="notification"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="clientNotificationRecipients" 
+                     target-entity="Notification\Domain\SharedModel\Notification\ClientNotificationRecipient" 
+                     mapped-by="notification"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="personnelNotificationRecipients" 
+                     target-entity="Notification\Domain\SharedModel\Notification\PersonnelNotificationRecipient" 
+                     mapped-by="notification"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

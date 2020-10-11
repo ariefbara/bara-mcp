@@ -3,9 +3,11 @@
 namespace Notification\Domain\Model\Firm\Program\Participant;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\{
+use Notification\Domain\ {
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Participant,
+    Model\Firm\Program\Participant\ConsultationRequest\ConsultationRequestMail,
+    Model\Firm\Program\Participant\ConsultationRequest\ConsultationRequestNotification,
     Model\Firm\Team\Member,
     SharedModel\MailMessage
 };
@@ -17,10 +19,12 @@ class ConsultationRequestTest extends TestBase
 
     protected $consultationRequest;
     protected $subject, $participantGreetings, $consultantGreetings, $urlPath;
-    protected $participant, $participantName = "participant name", $firmDomain = "firm@domain.com";
+    protected $participant, $participantName = "participant name", 
+            $firmDomain = "firm@domain.com", $firmMailSenderAddress = "firm@domain.org", $firmMailSenderName = "firm name";
     protected $consultant, $consultantName = "consultant name";
     protected $startEndTime, $timeDescription = 'time description';
-    protected $member;
+    protected $member, $memberName = "client full name";
+    protected $mailMessage, $recipientMailAddress = "recipient@email.org", $recipientName = "recipient name";
 
     protected function setUp(): void
     {
@@ -48,56 +52,161 @@ class ConsultationRequestTest extends TestBase
         $this->urlPath = "/consultation-requests/{$this->consultationRequest->id}";
 
         $this->member = $this->buildMockOfClass(Member::class);
-    }
-
-    public function test_sendParticipantSubmittedConsultationRequestMailToOtherMember_registerParticipantAsMailRecipient()
-    {
-        $mainMessage = <<<_MESSAGE
-Anggota tim kamu telah mengajukan permintaan konsultasi kepada konsultan {$this->consultantName} pada waktu:
-    {$this->timeDescription}
-
-Untuk mengatur waktu atau membatalkan, kunjungi:
-_MESSAGE;
-        $mailMessage = new MailMessage(
-                $this->subject, $this->participantGreetings, $mainMessage, $this->firmDomain, $this->urlPath);
-        $this->participant->expects($this->once())
-                ->method("registerMailRecipient")
-                ->with($this->consultationRequest, $mailMessage, $this->member);
-        $this->consultationRequest->sendParticipantSubmittedConsultationRequestMailToOtherMember($this->member);
+        $this->member->expects($this->any())->method("getClientFullName")->willReturn($this->memberName);
+        
+        $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
     }
     
-    public function test_sendParticipantChangedConsultationRequestMailToOtherMember_registerParticipantAsMailRecipient()
+    protected function executeCreateNotificationTriggeredByTeamMember(int $state)
     {
-        $mainMessage = <<<_MESSAGE
-Anggota tim kamu telah mengajukan perubahan waktu konsultasi kepada konsultan {$this->consultantName} menjadi:
-    {$this->timeDescription}
-
-Untuk mengatur waktu atau membatalkan, kunjungi:
-_MESSAGE;
-        $mailMessage = new MailMessage(
-                $this->subject, $this->participantGreetings, $mainMessage, $this->firmDomain, $this->urlPath);
+        $this->consultationRequest->createNotificationTriggeredByTeamMember($state, $this->member);
+    }
+    public function test_createNotificationTriggeredByTeamMember_registerParticipanAsMailRecepient()
+    {
         $this->participant->expects($this->once())
                 ->method("registerMailRecipient")
-                ->with($this->consultationRequest, $mailMessage, $this->member);
-        $this->consultationRequest->sendParticipantChangedConsultationRequestTimeMailToOtherMember($this->member);
+                ->with($this->consultationRequest, $this->anything(), $this->member);
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByTeamMember_registerConsultantAsMailRecepient()
+    {
+        $this->consultant->expects($this->once())
+                ->method("registerMailRecipient")
+                ->with($this->consultationRequest, $this->anything());
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByTeamMember_registerParticipantAsNotificationRecipient()
+    {
+        $this->participant->expects($this->once())
+                ->method("registerNotificationRecipient")
+                ->with($this->anything(), $this->member);
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByTeamMember_registerConsultantAsNotificationRecipient()
+    {
+        $this->consultant->expects($this->once())
+                ->method("registerNotificationRecipient")
+                ->with($this->anything());
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByTeamMember_addNotification()
+    {
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+        $this->assertInstanceOf(ConsultationRequestNotification::class, $this->consultationRequest->consultationRequestNotifications->first());
+    }
+    public function test_createNotificationTriggeredByTeamMember_invalidState_doNothing()
+    {
+        $this->participant->expects($this->never())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::REJECTED_BY_CONSULTANT);
+    }
+    public function test_createNotificationTriggeredByTeamMember_timeChangedByParticipantState_registerRecipient()
+    {
+        $this->participant->expects($this->once())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByTeamMember_cancelledParticipantState_registerRecipient()
+    {
+        $this->participant->expects($this->once())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByTeamMember(ConsultationRequest::CANCELLED_BY_PARTICIPANT);
     }
     
-    public function test_sendParticipantCancelledConsultationRequestMailToOtherMember_registerParticipantAsMailRecipient()
+    protected function executeCreateNotificationTriggeredByConsultant(int $state)
     {
-        $mainMessage = <<<_MESSAGE
-Anggota tim kamu telah membatalkan pengajuan konsultasi kepada konsultan {$this->consultantName} di waktu:
-    {$this->timeDescription}
-
-Untuk melihat detail, kunjungi:
-_MESSAGE;
-        $mailMessage = new MailMessage(
-                $this->subject, $this->participantGreetings, $mainMessage, $this->firmDomain, $this->urlPath);
+        $this->consultationRequest->createNotificationTriggeredByConsultant($state);
+    }
+    public function test_createNotificationTriggeredByConsultant_registerParticipanAsMailRecepient()
+    {
         $this->participant->expects($this->once())
                 ->method("registerMailRecipient")
-                ->with($this->consultationRequest, $mailMessage, $this->member);
-        $this->consultationRequest->sendParticipantCancelledConsultationRequestTimeMailToOtherMember($this->member);
+                ->with($this->consultationRequest, $this->anything(), null);
+        $this->executeCreateNotificationTriggeredByConsultant(ConsultationRequest::OFFERED_BY_CONSULTANT);
     }
-
+    public function test_createNotificationTriggeredByConsultant_registerParticipantAsNotificationRecipient()
+    {
+        $this->participant->expects($this->once())
+                ->method("registerNotificationRecipient")
+                ->with($this->anything(), null);
+        $this->executeCreateNotificationTriggeredByConsultant(ConsultationRequest::OFFERED_BY_CONSULTANT);
+    }
+    public function test_createNotificationTriggeredByConsultant_addNotification()
+    {
+        $this->executeCreateNotificationTriggeredByConsultant(ConsultationRequest::OFFERED_BY_CONSULTANT);
+        $this->assertInstanceOf(ConsultationRequestNotification::class, $this->consultationRequest->consultationRequestNotifications->first());
+    }
+    public function test_createNotificationTriggeredByConsultant_invalidState_doNothing()
+    {
+        $this->participant->expects($this->never())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByConsultant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByConsultant_rejectedByConsultantState_registerRecipient()
+    {
+        $this->participant->expects($this->once())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByConsultant(ConsultationRequest::REJECTED_BY_CONSULTANT);
+    }
+    
+    protected function executeCreateNotificationTriggeredByParticipant(int $state)
+    {
+        $this->consultationRequest->createNotificationTriggeredByParticipant($state);
+    }
+    public function test_createNotificationTriggeredByParticipant_registerParticipanAsMailRecepient()
+    {
+        $this->participant->expects($this->once())
+                ->method("registerMailRecipient")
+                ->with($this->consultationRequest, $this->anything(), null);
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByParticipant_registerConsultantAsMailRecepient()
+    {
+        $this->consultant->expects($this->once())
+                ->method("registerMailRecipient")
+                ->with($this->consultationRequest, $this->anything());
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByParticipant_registerParticipantAsNotificationRecipient()
+    {
+        $this->participant->expects($this->once())
+                ->method("registerNotificationRecipient")
+                ->with($this->anything(), null);
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByParticipant_registerConsultantAsNotificationRecipient()
+    {
+        $this->consultant->expects($this->once())
+                ->method("registerNotificationRecipient")
+                ->with($this->anything());
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByParticipant_addNotification()
+    {
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+        $this->assertInstanceOf(ConsultationRequestNotification::class, $this->consultationRequest->consultationRequestNotifications->first());
+    }
+    public function test_createNotificationTriggeredByParticipant_invalidState_doNothing()
+    {
+        $this->participant->expects($this->never())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::REJECTED_BY_CONSULTANT);
+    }
+    public function test_createNotificationTriggeredByParticipant_timeChangedByParticipantState_registerRecipient()
+    {
+        $this->participant->expects($this->once())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT);
+    }
+    public function test_createNotificationTriggeredByParticipant_cancelledParticipantState_registerRecipient()
+    {
+        $this->participant->expects($this->once())->method("registerMailRecipient");
+        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::CANCELLED_BY_PARTICIPANT);
+    }
+    
+    public function test_addMail_addConsultationRequestMailNotCollection()
+    {
+        $this->participant->expects($this->once())->method("getFirmMailSenderAddress");
+        $this->participant->expects($this->once())->method("getFirmMailSenderName");
+        $this->mailMessage->expects($this->once())->method("getSubject");
+        $this->mailMessage->expects($this->once())->method("getTextMessage");
+        $this->mailMessage->expects($this->once())->method("getHtmlMessage");
+        $this->consultationRequest->addMail($this->mailMessage, $this->recipientMailAddress, $this->recipientName);
+        $this->assertInstanceOf(ConsultationRequestMail::class, $this->consultationRequest->consultationRequestMails->first());
+    }
 }
 
 class TestableConsultationRequest extends ConsultationRequest

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\SharedModel\Mail" 
+            table="Mail" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="senderMailAddress" type="string" length="256" nullable="false"/>
+        <field name="senderName" type="string" length="256" nullable="false"/>
+        <field name="subject" type="string" length="256" nullable="false"/>
+        <field name="message" type="text" nullable="true"/>
+        <field name="htmlMessage" type="text" nullable="true"/>
+        
+        <one-to-many field="recipients" 
+                     target-entity="Notification\Domain\SharedModel\Mail\Recipient" 
+                     mapped-by="mail"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

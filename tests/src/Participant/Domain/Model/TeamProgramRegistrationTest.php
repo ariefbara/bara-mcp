@@ -67,16 +67,6 @@ class TeamProgramRegistrationTest extends TestBase
         $this->teamProgramRegistration->cancel();
     }
     
-    public function test_teamEquals_sameTeam_returnTrue()
-    {
-        $this->assertTrue($this->teamProgramRegistration->teamEquals($this->team));
-    }
-    public function test_teamEquals_differentTeam_returnFalse()
-    {
-        $team = $this->buildMockOfClass(Team::class);
-        $this->assertFalse($this->teamProgramRegistration->teamEquals($team));
-    }
-    
     public function test_isUnconcludedRegistrationToProgram_returnResultOfProgramRegistrationsIsUnconcludedRegistrationToProgramMethod()
     {
         $this->programRegistration->expects($this->once())
@@ -84,6 +74,16 @@ class TeamProgramRegistrationTest extends TestBase
                 ->with($this->program)
                 ->willReturn(true);
         $this->assertTrue($this->teamProgramRegistration->isUnconcludedRegistrationToProgram($this->program));
+    }
+    
+    public function test_belongsToTeam_sameTeam_returnTrue()
+    {
+        $this->assertTrue($this->teamProgramRegistration->belongsToTeam($this->teamProgramRegistration->team));
+    }
+    public function test_belongsToTeam_differentTeam_returnFalse()
+    {
+        $team = $this->buildMockOfClass(Team::class);
+        $this->assertFalse($this->teamProgramRegistration->belongsToTeam($team));
     }
 }
 

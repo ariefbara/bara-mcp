@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Client\TeamMembership\ProgramParticipation;
 
-use App\Http\Controllers\ {
+use App\Http\Controllers\{
     Client\TeamMembership\TeamProgramParticipationBaseController,
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter
 };
-use Participant\ {
+use Participant\{
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitBranchWorksheet,
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitRootWorksheet,
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\UpdateWorksheet,
@@ -19,7 +19,7 @@ use Participant\ {
     Domain\Model\TeamProgramParticipation,
     Domain\Service\TeamFileInfoFinder
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ViewWorksheet,
     Domain\Model\Firm\Program\Participant\Worksheet,
     Domain\Service\Firm\Program\Participant\WorksheetFinder
@@ -50,8 +50,8 @@ class WorksheetController extends TeamProgramParticipationBaseController
         $missionId = $this->stripTagsInputRequest("missionId");
         $name = $this->stripTagsInputRequest("name");
         $branchId = $service->execute(
-                $this->firmId(), $this->clientId(), $teamMembershipId, $teamProgramParticipationId, $worksheetId,
-                $missionId, $name, $this->getFormRecordData($teamMembershipId));
+                $this->firmId(), $this->clientId(), $teamMembershipId, $worksheetId, $missionId, $name,
+                $this->getFormRecordData($teamMembershipId));
 
         $viewService = $this->buildViewService();
         $branch = $viewService->showById(
@@ -64,7 +64,7 @@ class WorksheetController extends TeamProgramParticipationBaseController
         $service = $this->buildUpdateService();
         $name = $this->stripTagsInputRequest("name");
         $service->execute(
-                $this->firmId(), $this->clientId(), $teamMembershipId, $teamProgramParticipationId, $worksheetId, $name,
+                $this->firmId(), $this->clientId(), $teamMembershipId, $worksheetId, $name,
                 $this->getFormRecordData($teamMembershipId));
 
         return $this->show($teamMembershipId, $teamProgramParticipationId, $worksheetId);
@@ -202,20 +202,17 @@ class WorksheetController extends TeamProgramParticipationBaseController
     {
         $worksheetRepository = $this->em->getRepository(Worksheet2::class);
         $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
-        $teamProgramParticipationRepository = $this->em->getRepository(TeamProgramParticipation::class);
         $missionRepository = $this->em->getRepository(Mission::class);
 
-        return new SubmitBranchWorksheet(
-                $worksheetRepository, $teamMembershipRepository, $teamProgramParticipationRepository, $missionRepository);
+        return new SubmitBranchWorksheet($worksheetRepository, $teamMembershipRepository, $missionRepository);
     }
 
     protected function buildUpdateService()
     {
         $worksheetRepository = $this->em->getRepository(Worksheet2::class);
         $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
-        $teamProgramParticipationRepository = $this->em->getRepository(TeamProgramParticipation::class);
 
-        return new UpdateWorksheet($worksheetRepository, $teamMembershipRepository, $teamProgramParticipationRepository);
+        return new UpdateWorksheet($worksheetRepository, $teamMembershipRepository);
     }
 
 }

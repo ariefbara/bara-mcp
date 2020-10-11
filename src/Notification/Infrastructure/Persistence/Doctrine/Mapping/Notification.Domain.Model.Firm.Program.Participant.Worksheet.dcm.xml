@@ -11,8 +11,6 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="name" type="string" length="256" nullable="false"/>
-        <field name="removed" type="boolean" />
         
     </entity>
 </doctrine-mapping>

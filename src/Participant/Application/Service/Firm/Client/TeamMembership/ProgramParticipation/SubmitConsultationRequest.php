@@ -10,6 +10,7 @@ use Participant\Application\Service\{
     Firm\Program\ConsultationSetupRepository,
     Participant\ConsultationRequestRepository
 };
+use Resources\Application\Event\Dispatcher;
 
 class SubmitConsultationRequest
 {
@@ -44,17 +45,25 @@ class SubmitConsultationRequest
      */
     protected $consultantRepository;
 
+    /**
+     *
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
     public function __construct(
             ConsultationRequestRepository $consultationRequestRepository,
             TeamMembershipRepository $teamMembershipRepository,
             TeamProgramParticipationRepository $teamProgramParticipationRepository,
-            ConsultationSetupRepository $consultationSetupRepository, ConsultantRepository $consultantRepository)
+            ConsultationSetupRepository $consultationSetupRepository, ConsultantRepository $consultantRepository,
+            Dispatcher $dispatcher)
     {
         $this->consultationRequestRepository = $consultationRequestRepository;
         $this->teamMembershipRepository = $teamMembershipRepository;
         $this->teamProgramParticipationRepository = $teamProgramParticipationRepository;
         $this->consultationSetupRepository = $consultationSetupRepository;
         $this->consultantRepository = $consultantRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
@@ -66,9 +75,12 @@ class SubmitConsultationRequest
         $consultationSetup = $this->consultationSetupRepository->ofId($consultationSetupId);
         $consultant = $this->consultantRepository->ofId($consultantId);
 
-        $consultationRequest = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
-                ->submitConsultationRequest($teamProgramParticipation, $id, $consultationSetup, $consultant, $startTime);
+        $teamMemereship = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $consultationRequest = $teamMemereship->submitConsultationRequest(
+                $teamProgramParticipation, $id, $consultationSetup, $consultant, $startTime);
         $this->consultationRequestRepository->add($consultationRequest);
+
+        $this->dispatcher->dispatch($teamMemereship);
         return $id;
     }
 

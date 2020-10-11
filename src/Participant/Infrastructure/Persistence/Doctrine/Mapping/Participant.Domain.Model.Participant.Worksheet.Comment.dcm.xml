@@ -21,6 +21,11 @@
         <field name="submitTime" type="datetime_immutable" nullable="false"/>
         <field name="removed" type="boolean" />
         
+        <one-to-one field="consultantComment" 
+                    target-entity="Participant\Domain\DependencyModel\Firm\Program\Consultant\ConsultantComment"
+                    mapped-by="comment"
+        />
+        
         <one-to-many  field="commentActivityLogs" 
                       target-entity="Participant\Domain\Model\Participant\Worksheet\Comment\CommentActivityLog"
                       mapped-by="comment"

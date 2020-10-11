@@ -17,7 +17,6 @@
                   use-column-prefix="false" />
         
         <field name="email" type="string" length="256" nullable="false"/>
-        <field name="removed" type="boolean" />
         
     </entity>
 </doctrine-mapping>

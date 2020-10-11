@@ -36,17 +36,15 @@ class ActivityLog
      */
     protected $teamMemberActivityLog;
 
-    public function __construct(string $id, string $message)
+    public function __construct(string $id, string $message, ?TeamMembership $teamMember)
     {
         $this->id = $id;
         $this->message = $message;
         $this->occuredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
+        
+        if (isset($teamMember)) {
+            $this->teamMemberActivityLog = new TeamMemberActivityLog($this, $id, $teamMember);
+        }
     }
-    
-    public function setOperator(TeamMembership $teamMember): void
-    {
-        $this->teamMemberActivityLog = new TeamMemberActivityLog($this, $this->id, $teamMember);
-    }
-
 
 }

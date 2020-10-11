@@ -13,7 +13,6 @@ class ConsultationRequestActivityLogTest extends TestBase
 {
     protected $consultationRequest;
     protected $consultationRequestActivityLog;
-    protected $activityLog;
     
     protected $id = "newid", $message = "new activity log message";
 
@@ -23,29 +22,19 @@ class ConsultationRequestActivityLogTest extends TestBase
     {
         parent::setUp();
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
-        $this->consultationRequestActivityLog = new TestableConsultationRequestActivityLog($this->consultationRequest, 'id', 'message');
-        $this->activityLog = $this->buildMockOfClass(ActivityLog::class);
-        $this->consultationRequestActivityLog->activityLog = $this->activityLog;
+        $this->consultationRequestActivityLog = new TestableConsultationRequestActivityLog($this->consultationRequest, 'id', 'message', null);
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
     
     public function test_construct_setProperties()
     {
-        $consultationRequestActivityLog = new TestableConsultationRequestActivityLog($this->consultationRequest, $this->id, $this->message);
+        $consultationRequestActivityLog = new TestableConsultationRequestActivityLog($this->consultationRequest, $this->id, $this->message, $this->teamMember);
         $this->assertEquals($this->consultationRequest, $consultationRequestActivityLog->consultationRequest);
         $this->assertEquals($this->id, $consultationRequestActivityLog->id);
         
-        $activityLog = new ActivityLog($this->id, $this->message);
+        $activityLog = new ActivityLog($this->id, $this->message, $this->teamMember);
         $this->assertEquals($activityLog, $consultationRequestActivityLog->activityLog);
-    }
-    
-    public function test_setOperator_setActivityLogOperator()
-    {
-        $this->activityLog->expects($this->once())
-                ->method("setOperator")
-                ->with($this->teamMember);
-        $this->consultationRequestActivityLog->setOperator($this->teamMember);
     }
 }
 

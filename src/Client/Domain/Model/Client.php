@@ -14,7 +14,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\Firm;
 use Resources\ {
     DateTimeImmutableBuilder,
-    Domain\Model\ModelContainEvents,
+    Domain\Model\EntityContainEvents,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
     Exception\RegularException,
@@ -23,7 +23,7 @@ use Resources\ {
 };
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 
-class Client extends ModelContainEvents
+class Client extends EntityContainEvents
 {
 
     /**

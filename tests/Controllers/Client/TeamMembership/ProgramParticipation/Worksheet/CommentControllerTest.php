@@ -30,6 +30,15 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('CommentActivityLog')->truncate();
         
+        $this->connection->table('Mail')->truncate();
+        $this->connection->table('MailRecipient')->truncate();
+        $this->connection->table('CommentMail')->truncate();
+        
+        $this->connection->table('Notification')->truncate();
+        $this->connection->table('CommentNotification')->truncate();
+        $this->connection->table('PersonnelNotificationRecipient')->truncate();
+        $this->connection->table('ClientNotificationRecipient')->truncate();
+        
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
         $firm = $program->firm;
@@ -40,7 +49,8 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('Comment')->insert($this->comment->toArrayForDbEntry());
         $this->connection->table('Comment')->insert($this->commentOne->toArrayForDbEntry());
 
-        $personnel = new RecordOfPersonnel($firm, 0, 'purnama.adi@gmail.com', 'password123');
+        $personnel = new RecordOfPersonnel($firm, 0);
+        $personnel->email = "adi@barapraja.com";
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
         $consultant = new RecordOfConsultant($program, $personnel, 0);
@@ -62,6 +72,15 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('CommentActivityLog')->truncate();
+        
+//        $this->connection->table('Mail')->truncate();
+//        $this->connection->table('MailRecipient')->truncate();
+        $this->connection->table('CommentMail')->truncate();
+        
+        $this->connection->table('Notification')->truncate();
+        $this->connection->table('CommentNotification')->truncate();
+        $this->connection->table('PersonnelNotificationRecipient')->truncate();
+        $this->connection->table('ClientNotificationRecipient')->truncate();
     }
     
     public function test_submitNew_201()
@@ -115,7 +134,6 @@ class CommentControllerTest extends WorksheetTestCase
     {
         $response = [
             "message" => $this->commentInput['message'],
-            "submitTime" => (new DateTime())->format('Y-m-d H:i:s'),
             "consultantComment" => null,
             "parent" => [
                 "id" => $this->consultantComment->comment->id,
@@ -148,6 +166,39 @@ class CommentControllerTest extends WorksheetTestCase
             "parent_id" => $this->consultantComment->comment->id,
         ];
         $this->seeInDatabase("Comment", $commentEntry);
+    }
+    public function test_submitReply_aggregateMailNotificaitonForConsultant()
+    {
+        $uri = $this->commentUri . "/{$this->consultantComment->comment->id}";
+        $this->post($uri, $this->commentInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $mailEntry = [
+            "subject" => "Konsulta: Komentar Worksheet",
+            "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
+            "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $consultantMailRecipientEntry = [
+            "recipientMailAddress" => $this->consultantComment->consultant->personnel->email,
+            "recipientName" => $this->consultantComment->consultant->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $consultantMailRecipientEntry);
+    }
+    public function test_submitReply_aggregateNotificationForOtherTeamMemberAndConsultant()
+    {
+        $uri = $this->commentUri . "/{$this->consultantComment->comment->id}";
+        $this->post($uri, $this->commentInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $personnelNotificationRecipientEntry = [
+            "readStatus" => false,
+            "Personnel_id" => $this->consultantComment->consultant->personnel->id,
+        ];
+        $this->seeInDatabase("PersonnelNotificationRecipient", $personnelNotificationRecipientEntry);
     }
     public function test_submitReply_inactiveMember_403()
     {

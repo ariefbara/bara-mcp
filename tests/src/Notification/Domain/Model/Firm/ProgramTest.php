@@ -19,17 +19,23 @@ class ProgramTest extends TestBase
         $this->program->firm = $this->firm;
     }
     
-    public function test_getFirmWhitelableUrl_returnFirmsGetWhitelableUrlResult()
+    public function test_getFirmDomain_returnFirmGetDomainResult()
     {
         $this->firm->expects($this->once())
-                ->method('getWhitelableUrl');
-        $this->program->getFirmWhitelableUrl();
+                ->method("getDomain");
+        $this->program->getFirmDomain();
     }
-    public function test_getFirmMailSender_returnFirmsGetMailSenderResult()
+    public function test_getFirmMailSenderAddress_returnFirmsGetMailSenderAddressResult()
     {
         $this->firm->expects($this->once())
-                ->method('getMailSender');
-        $this->program->getFirmMailSender();
+                ->method("getMailSenderAddress");
+        $this->program->getFirmMailSenderAddress();
+    }
+    public function test_getFirmMailSenderName_returnFirmsGetMailSenderNameResult()
+    {
+        $this->firm->expects($this->once())
+                ->method("getMailSenderName");
+        $this->program->getFirmMailSenderName();
     }
 }
 
@@ -37,8 +43,6 @@ class TestableProgram extends Program
 {
     public $firm;
     public $id;
-    public $name;
-    public $removed = false;
     
     function __construct()
     {

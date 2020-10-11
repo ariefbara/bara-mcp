@@ -12,12 +12,12 @@ use Participant\Domain\ {
     Model\Participant\Worksheet\Comment
 };
 use Resources\ {
-    Domain\Model\ModelContainEvents,
+    Domain\Model\EntityContainEvents,
     Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
-class UserParticipant extends ModelContainEvents
+class UserParticipant extends EntityContainEvents
 {
 
     /**

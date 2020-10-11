@@ -14,6 +14,7 @@ use Participant\Domain\ {
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
+use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
@@ -54,6 +55,16 @@ class TeamProgramParticipationTest extends TestBase
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
+    
+    public function test_belongsToTeam_sameTeam_returnTrue()
+    {
+        $this->assertTrue($this->teamProgramParticipation->belongsToTeam($this->teamProgramParticipation->team));
+    }
+    public function test_belongsToTeam_differentTeam_returnFalse()
+    {
+        $team = $this->buildMockOfClass(Team::class);
+        $this->assertFalse($this->teamProgramParticipation->belongsToTeam($team));
+    }
 
     public function test_isActiveParticipantOfProgram_returnProgramParticipationsIsActiveParticipantOfProgramResult()
     {
@@ -64,17 +75,6 @@ class TeamProgramParticipationTest extends TestBase
         $this->assertTrue($this->teamProgramParticipation->isActiveParticipantOfProgram($this->program));
     }
 
-    public function test_teamEquals_sameTeam_returnTrue()
-    {
-        $this->assertTrue($this->teamProgramParticipation->teamEquals($this->teamProgramParticipation->team));
-    }
-
-    public function test_teamEquals_differentTeam_returnFalse()
-    {
-        $team = $this->buildMockOfClass(Team::class);
-        $this->assertFalse($this->teamProgramParticipation->teamEquals($team));
-    }
-
     public function test_submitRootWorksheet_returnProgramParticipationCreateRootWorksheetResult()
     {
         $this->programParticipation->expects($this->once())
@@ -82,27 +82,6 @@ class TeamProgramParticipationTest extends TestBase
                 ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
         $this->teamProgramParticipation->submitRootWorksheet(
                 $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
-    }
-
-    public function test_submitBranchWorksheet_returnProgramParticipationSubmitBranchWorksheetResult()
-    {
-        $branch = $this->buildMockOfClass(Worksheet::class);
-        $this->programParticipation->expects($this->once())
-                ->method("submitBranchWorksheet")
-                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember)
-                ->willReturn($branch);
-        $this->assertEquals(
-                $branch,
-                $this->teamProgramParticipation->submitBranchWorksheet($this->worksheet, $this->worksheetId,
-                        $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember));
-    }
-
-    public function test_updateWorksheet_executeProgramParticipationsUpdateWorksheet()
-    {
-        $this->programParticipation->expects($this->once())
-                ->method("updateWorksheet")
-                ->with($this->worksheet, $this->worksheetName, $this->formRecordData, $this->teamMember);
-        $this->teamProgramParticipation->updateWorksheet($this->worksheet, $this->worksheetName, $this->formRecordData, $this->teamMember);
     }
 
     public function test_quit_executeProgramParticipationQuitMethod()
@@ -120,6 +99,7 @@ class TeamProgramParticipationTest extends TestBase
         $this->teamProgramParticipation->submitConsultationRequest(
                 $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime, $this->teamMember);
     }
+    
     public function test_changeConsultationRequestTime_executeProgramParticipationChangeConsultationRequestTime()
     {
         $this->programParticipation->expects($this->once())
@@ -127,13 +107,7 @@ class TeamProgramParticipationTest extends TestBase
                 ->with($this->consultationRequestId, $this->startTime, $this->teamMember);
         $this->teamProgramParticipation->changeConsultationRequestTime($this->consultationRequestId, $this->startTime, $this->teamMember);
     }
-    public function test_cancelConsultationRequest_executeProgramParticipationCancelConsultationRequestMethod()
-    {
-        $this->programParticipation->expects($this->once())
-                ->method("cancelConsultationRequest")
-                ->with($this->consultationRequest, $this->teamMember);
-        $this->teamProgramParticipation->cancelConsultationRequest($this->consultationRequest, $this->teamMember);
-    }
+    
     public function test_acceptOfferedConsultationRequest_executeProgramParticipationsAcceptOfferedConsultationRequestMethod()
     {
         $this->programParticipation->expects($this->once())
@@ -141,14 +115,15 @@ class TeamProgramParticipationTest extends TestBase
                 ->with($this->consultationRequestId, $this->anything(), $this->teamMember);
         $this->teamProgramParticipation->acceptOfferedConsultationRequest($this->consultationRequestId, $this->teamMember);
     }
-    public function test_submitConsultationSessionReport_executeProgramParticipationSubmitConsultationSessionReport()
+    
+    public function test_pullRecordedEvents_returnParticipantPullRecordedEventsResult()
     {
         $this->programParticipation->expects($this->once())
-                ->method("submitConsultationSessionReport")
-                ->with($this->consultationSession, $this->formRecordData, $this->teamMember);
-        $this->teamProgramParticipation->submitConsultationSessionReport($this->consultationSession, $this->formRecordData, $this->teamMember);
+                ->method("pullRecordedEvents")
+                ->willReturn($events = [$this->buildMockOfClass(CommonEvent::class)]);
+        $this->assertEquals($events, $this->teamProgramParticipation->pullRecordedEvents());
     }
-
+    
 }
 
 class TestableTeamProgramParticipation extends TeamProgramParticipation

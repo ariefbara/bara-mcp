@@ -2,6 +2,7 @@
 
 namespace Participant\Domain\Model\Participant\Worksheet;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\ {
@@ -9,15 +10,18 @@ use Participant\Domain\ {
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant\ConsultantComment,
     DependencyModel\Firm\Team,
-    Model\Participant\Worksheet
+    Model\Participant\Worksheet,
+    Model\Participant\Worksheet\Comment\CommentActivityLog
 };
 use Resources\ {
     DateTimeImmutableBuilder,
+    Domain\Event\CommonEvent,
+    Domain\Model\EntityContainEvents,
     Exception\RegularException,
     Uuid
 };
 
-class Comment implements AssetBelongsToTeamInterface
+class Comment extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
 
     /**
@@ -85,6 +89,10 @@ class Comment implements AssetBelongsToTeamInterface
     {
         $reply = new static($this->worksheet, $id, $message, $teamMember);
         $reply->parent = $this;
+        if (isset($this->consultantComment)) {
+            $event = new CommonEvent(EventList::COMMENT_FROM_CONSULTANT_REPLIED, $id);
+            $reply->recordEvent($event);
+        }
         return $reply;
     }
 
@@ -115,12 +123,9 @@ class Comment implements AssetBelongsToTeamInterface
     
     protected function addActivityLog(string $message, ?TeamMembership $teamMember): void
     {
-        $messageWithActor = isset($teamMember)? "team member $message": "participant $message";
+        $message = isset($teamMember)? "team member $message": "participant $message";
         $id = Uuid::generateUuid4();
-        $commentActivityLog = new Comment\CommentActivityLog($this, $id, $messageWithActor);
-        if (isset($teamMember)) {
-            $teamMember->setAsActivityOperator($commentActivityLog);
-        }
+        $commentActivityLog = new CommentActivityLog($this, $id, $message, $teamMember);
         $this->commentActivityLogs->add($commentActivityLog);
     }
 

@@ -24,30 +24,20 @@ class SubmitReport
      */
     protected $teamMembershipRepository;
 
-    /**
-     *
-     * @var TeamProgramParticipationRepository
-     */
-    protected $teamProgramParticipationRepository;
-
     public function __construct(ConsultationSessionRepository $consultationSessionRepository,
-            TeamMembershipRepository $teamMembershipRepository,
-            TeamProgramParticipationRepository $teamProgramParticipationRepository)
+            TeamMembershipRepository $teamMembershipRepository)
     {
         $this->consultationSessionRepository = $consultationSessionRepository;
         $this->teamMembershipRepository = $teamMembershipRepository;
-        $this->teamProgramParticipationRepository = $teamProgramParticipationRepository;
     }
 
     public function execute(
-            string $firmId, string $clientId, string $teamMembershipId, string $teamProgramParticipationId,
-            string $consultationSessionId, FormRecordData $formRecordData): void
+            string $firmId, string $clientId, string $teamMembershipId, string $consultationSessionId,
+            FormRecordData $formRecordData): void
     {
-        $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($teamProgramParticipationId);
         $consultationSession = $this->consultationSessionRepository->ofId($consultationSessionId);
         $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
-                ->submitConsultationSessionReport($teamProgramParticipation, $consultationSession, $formRecordData);
-        
+                ->submitConsultationSessionReport($consultationSession, $formRecordData);
         $this->consultationSessionRepository->update();
     }
 

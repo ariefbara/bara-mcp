@@ -2,12 +2,13 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
-use Participant\{
+use Participant\ {
     Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository,
     Application\Service\Firm\Client\TeamMembershipRepository,
     Domain\DependencyModel\Firm\Client\TeamMembership,
     Domain\Model\TeamProgramParticipation
 };
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class AcceptOfferedConsultationRequestTest extends TestBase
@@ -16,6 +17,7 @@ class AcceptOfferedConsultationRequestTest extends TestBase
     protected $service;
     protected $teamMembershipRepository, $teamMembership;
     protected $teamProgramParticipationRepository, $teamProgramParticipation;
+    protected $dispatcher;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
             $programParticipationId = "programParticipationId", $consultationRequestId = "consultationRequestId";
 
@@ -35,9 +37,11 @@ class AcceptOfferedConsultationRequestTest extends TestBase
                 ->method("ofId")
                 ->with($this->programParticipationId)
                 ->willReturn($this->teamProgramParticipation);
+        
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
 
         $this->service = new AcceptOfferedConsultationRequest(
-                $this->teamMembershipRepository, $this->teamProgramParticipationRepository);
+                $this->teamMembershipRepository, $this->teamProgramParticipationRepository, $this->dispatcher);
     }
 
     protected function execute()
@@ -57,6 +61,13 @@ class AcceptOfferedConsultationRequestTest extends TestBase
     {
         $this->teamProgramParticipationRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchTeamMembership()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->teamMembership);
         $this->execute();
     }
 

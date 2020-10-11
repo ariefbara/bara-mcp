@@ -6,7 +6,7 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Resources\ {
     DateTimeImmutableBuilder,
-    Domain\Model\ModelContainEvents,
+    Domain\Model\EntityContainEvents,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
     Exception\RegularException,
@@ -22,7 +22,7 @@ use User\Domain\ {
     Model\User\UserFileInfo
 };
 
-class User extends ModelContainEvents
+class User extends EntityContainEvents
 {
 
     /**

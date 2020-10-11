@@ -24,10 +24,9 @@ class Dispatcher
     }
     
     public function dispatch(ContainEvents $containEvents): void {
-        foreach ($containEvents->getRecordedEvents() as $event) {
+        foreach ($containEvents->pullRecordedEvents() as $event) {
             $this->publish($event);
         }
-        $containEvents->clearRecordedEvents();
     }
     
     private function publish(Event $event): void{

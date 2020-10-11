@@ -99,7 +99,7 @@ class UserTest extends TestBase
     function test_construct_addTalentActivationCodeGeneratedEvent()
     {
         $user = $this->executeConstruct();
-        $this->assertInstanceOf(UserActivationCodeGenerated::class, $user->getRecordedEvents()[0]);
+        $this->assertInstanceOf(UserActivationCodeGenerated::class, $user->pullRecordedEvents()[0]);
     }
 
     private function executeChangeProfile()
@@ -132,7 +132,7 @@ class UserTest extends TestBase
         $this->assertEquals((new DateTime('+24 hours'))->format('Y-m-d H:i:s'),
             $this->user->activationCodeExpiredTime->format('Y-m-d H:i:s'));
         $this->assertInstanceOf(UserActivationCodeGenerated::class,
-            $this->user->getRecordedEvents()[0]);
+            $this->user->pullRecordedEvents()[0]);
     }
     function test_generateActivationCode_accountAlreadyActivated_forbiddenError()
     {
@@ -165,7 +165,7 @@ class UserTest extends TestBase
         $this->user->clearRecordedEvents();
         $this->executeGenerateResetPasswordCode();
         $this->assertInstanceOf(UserPasswordResetCodeGenerated::class,
-            $this->user->getRecordedEvents()[0]);
+            $this->user->pullRecordedEvents()[0]);
     }
     public function test_genearateResetPasswordCode_inactiveUser_forbiddenError()
     {

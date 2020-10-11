@@ -31,14 +31,9 @@ class DispatcherTest extends TestBase
     }
     
     function test_dispatch_executeListenerHandleMethod() {
-        $this->containEvents->expects($this->once())->method('getRecordedEvents')->willReturn([$this->event]);
+        $this->containEvents->expects($this->once())->method('pullRecordedEvents')->willReturn([$this->event]);
         $this->listener->expects($this->once())->method("handle")->with($this->event);
         
-        $this->dispatcher->dispatch($this->containEvents);
-    }
-    function test_dispatch_clearEntityRecordedEvent() {
-        $this->containEvents->expects($this->once())->method('getRecordedEvents')->willReturn([$this->event]);
-        $this->containEvents->expects($this->once())->method('clearRecordedEvents');
         $this->dispatcher->dispatch($this->containEvents);
     }
 }

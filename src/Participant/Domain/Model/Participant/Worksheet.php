@@ -24,7 +24,7 @@ use SharedContext\Domain\Model\SharedEntity\{
     FormRecordData
 };
 
-class Worksheet implements AssetBelongsToParticipantInterface, AssetBelongsToTeamInterface
+class Worksheet implements AssetBelongsToTeamInterface
 {
 
     /**
@@ -103,10 +103,10 @@ class Worksheet implements AssetBelongsToParticipantInterface, AssetBelongsToTea
         $this->worksheetActivityLogs = new ArrayCollection();
         $this->addActivityLog("submitted worksheet", $teamMember);
     }
-
-    public function belongsTo(Participant $participant): bool
+    
+    public function belongsToTeam(Team $team): bool
     {
-        return $this->participant === $participant;
+        return $this->participant->belongsToTeam($team);
     }
 
     public static function createRootWorksheet(
@@ -151,20 +151,11 @@ class Worksheet implements AssetBelongsToParticipantInterface, AssetBelongsToTea
         return new Comment($this, $commentId, $message, $teamMember);
     }
 
-    public function belongsToTeam(Team $team): bool
-    {
-        return $this->participant->isATeamProgramParticipationOfTeam($team);
-    }
-
     protected function addActivityLog(string $message, ?TeamMembership $teamMember): void
     {
-        $messageContainActor = isset($teamMember) ? "team member $message" : "participant $message";
+        $message = isset($teamMember) ? "team member $message" : "participant $message";
         $id = Uuid::generateUuid4();
-        $worksheetActivityLog = new WorksheetActivityLog($this, $id, $messageContainActor);
-
-        if (isset($teamMember)) {
-            $teamMember->setAsActivityOperator($worksheetActivityLog);
-        }
+        $worksheetActivityLog = new WorksheetActivityLog($this, $id, $message, $teamMember);
 
         $this->worksheetActivityLogs->add($worksheetActivityLog);
     }

@@ -2,55 +2,88 @@
 
 namespace Notification\Domain\Model\Firm\Program\Participant;
 
-use Notification\Domain\Model\Firm\Program\Participant;
-use Query\Domain\Model\FirmWhitelableInfo;
+use Notification\Domain\ {
+    Model\Firm\Program\Participant,
+    SharedModel\CanSendPersonalizeMail,
+    SharedModel\ContainNotification,
+    SharedModel\MailMessage
+};
 use Tests\TestBase;
 
 class WorksheetTest extends TestBase
 {
+    protected $participant;
     protected $worksheet;
-    protected $partipant;
+    protected $mailGenerator;
+    protected $mailMessage;
+    protected $notification;
     
     protected function setUp(): void
     {
         parent::setUp();
+        $this->participant = $this->buildMockOfClass(Participant::class);
+        
         $this->worksheet = new TestableWorksheet();
+        $this->worksheet->participant = $this->participant;
         
-        $this->partipant = $this->buildMockOfClass(Participant::class);
-        $this->worksheet->participant = $this->partipant;
-    }
-    
-    public function test_getFirmWhitelableInfo_returnParticipantsGetFirmWhitelableInfoResult()
-    {
-        $this->partipant->expects($this->once())
-                ->method('getFirmWhitelableInfo')
-                ->willReturn($firmWhitelableInfo = $this->buildMockOfClass(FirmWhitelableInfo::class));
-        $this->assertEquals($firmWhitelableInfo, $this->worksheet->getFirmWhitelableInfo());
-    }
-    
-    public function test_getParticipantName_returnParticipantsGetNameResult()
-    {
-        $this->partipant->expects($this->once())
-                ->method('getName')
-                ->willReturn($participantName = 'participant name');
-        $this->assertEquals($participantName, $this->worksheet->getParticipantName());
-    }
-    
-    public function test_getProgramId_returnParticipantsGetProgramIdResult()
-    {
-        $this->partipant->expects($this->once())
-                ->method('getProgramId')
-                ->willReturn($programId = 'programid');
-        $this->assertEquals($programId, $this->worksheet->getProgramId());
-    }
-    
-    public function test_getParticipantId_returnParticipantId()
-    {
-        $this->partipant->expects($this->once())
-                ->method('getId')
-                ->willReturn($participantId = 'participantId');
-        $this->assertEquals($participantId, $this->worksheet->getParticipantId());
+        $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
+        $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
         
+        $this->notification = $this->buildMockOfInterface(ContainNotification::class);
+    }
+    
+    public function test_getParticipanName_returnParticipantGetNameResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("getName");
+        $this->worksheet->getParticipantName();
+    }
+    public function test_getFirmDomain_returnParticipantsGetFirmDomainResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("getFirmDomain");
+        $this->worksheet->getFirmDomain();
+    }
+    public function test_getFirmMailSenderAddress_returnParticipantsGetFirmMailSenderAddressResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("getFirmMailSenderAddress");
+        $this->worksheet->getFirmMailSenderAddress();
+    }
+    public function test_getFirmMailSenderName_returnParticipantsGetFirmMailSenderNameResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("getFirmMailSenderName");
+        $this->worksheet->getFirmMailSenderName();
+    }
+    
+    protected function executeRegisterParticipantAsMailRecipient()
+    {
+        $this->worksheet->registerParticipantAsMailRecipient($this->mailGenerator, $this->mailMessage);
+    }
+    public function test_registerParticipantAsMailRecipient_modifyMailMessageUrl()
+    {
+        $this->mailMessage->expects($this->once())
+                ->method("prependUrlPath")
+                ->with("/worksheets/{$this->worksheet->id}");
+        $this->executeRegisterParticipantAsMailRecipient();
+    }
+    public function test_registerParticipantAsMailRecipient_executeParticipantsRegisterMailRecipient()
+    {
+        $this->mailMessage->expects($this->any())
+                ->method("prependUrlPath")
+                ->willReturn($mailMessage = $this->buildMockOfClass(MailMessage::class));
+        $this->participant->expects($this->once())
+                ->method("registerMailRecipient")
+                ->with($this->mailGenerator, $mailMessage);
+        $this->executeRegisterParticipantAsMailRecipient();
+    }
+    
+    public function test_registerParticipantAsNotificationRecipient_execugteParticipantsRegisterNotificationRecipient()
+    {
+        $this->participant->expects($this->once())
+                ->method("registerNotificationRecipient");
+        $this->worksheet->registerParticipantAsNotificationRecipient($this->notification);
     }
 }
 
@@ -58,8 +91,6 @@ class TestableWorksheet extends Worksheet
 {
     public $participant;
     public $id;
-    public $name;
-    public $removed = false;
     
     function __construct()
     {

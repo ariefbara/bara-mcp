@@ -46,6 +46,15 @@ class WorksheetTest extends TestBase
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
     
+    public function test_belongsToTeam_returnParticipantsIsATeamProgramParticipationOfTeamResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($team = $this->buildMockOfClass(Team::class))
+                ->willReturn(true);
+        $this->assertTrue($this->worksheet->belongsToTeam($team));
+    }
+    
     protected function executeCreateRootWorksheet()
     {
         $this->rootMission->expects($this->once())
@@ -95,27 +104,6 @@ class WorksheetTest extends TestBase
         $worksheet = $this->executeCreateRootWorksheet();
         $this->assertInstanceOf(WorksheetActivityLog::class, $worksheet->worksheetActivityLogs->first());
     }
-    public function test_createRootWorksheet_forParticipantTeam_executeTeamMemberSetAsActivityOperatorMethod()
-    {
-        $this->rootMission->expects($this->once())
-                ->method('isRootMission')
-                ->willReturn(true);
-        
-        $this->teamMember->expects($this->once())
-                ->method("setAsActivityOperator");
-        TestableWorksheet::createRootWorksheet(
-                $this->participant, $this->id, $this->name, $this->rootMission, $this->formRecordData, $this->teamMember);
-    }
-    
-    public function test_belongsTo_sameParticipant_returnTrue()
-    {
-        $this->assertTrue($this->worksheet->belongsTo($this->worksheet->participant));
-    }
-    public function test_belongsTo_differentParticipant_returnFalse()
-    {
-        $participant = $this->buildMockOfClass(Participant::class);
-        $this->assertFalse($this->worksheet->belongsTo($participant));
-    }
     
     protected function executeCreateBranchWorksheet()
     {
@@ -161,17 +149,6 @@ class WorksheetTest extends TestBase
         $branch = $this->executeCreateBranchWorksheet();
         $this->assertInstanceOf(WorksheetActivityLog::class, $branch->worksheetActivityLogs->first());
     }
-    public function test_createBranch_participantTeam_executeTeamMembersSetAsActivityOperator()
-    {
-        $this->rootMission->expects($this->once())
-                ->method('hasBranch')
-                ->willReturn(true);
-        
-        $this->teamMember->expects($this->once())
-                ->method("setAsActivityOperator");
-        
-        $this->worksheet->createBranchWorksheet($this->id, $this->name, $this->mission, $this->formRecordData, $this->teamMember);
-    }
     
     protected function executeUpdate()
     {
@@ -196,12 +173,6 @@ class WorksheetTest extends TestBase
         $this->executeUpdate();
         $this->assertInstanceOf(WorksheetActivityLog::class, $this->worksheet->worksheetActivityLogs->first());
     }
-    public function test_update_teamParticipant_executeTeamMemberSetAsActivityOperator()
-    {
-        $this->teamMember->expects($this->once())
-                ->method("setAsActivityOperator");
-        $this->worksheet->update($this->name, $this->formRecordData, $this->teamMember);
-    }
     
     public function test_remove_setRemovedFlagTrue()
     {
@@ -213,26 +184,12 @@ class WorksheetTest extends TestBase
         $this->worksheet->remove();
         $this->assertInstanceOf(WorksheetActivityLog::class, $this->worksheet->worksheetActivityLogs->first());
     }
-    public function test_remove_teamParticipant_executeTeamMemberSetAsActivityOperator()
-    {
-        $this->teamMember->expects($this->once())
-                ->method("setAsActivityOperator");
-        $this->worksheet->remove($this->teamMember);
-    }
     
     public function test_createComment_returnComment()
     {
         $this->assertInstanceOf(Comment::class, $this->worksheet->createComment($this->commentId, $this->commentMessage, $this->teamMember));
     }
     
-    public function test_belongsToTeam_returnParticipantsIsATeamProgramParticipationOfTeamResult()
-    {
-        $this->participant->expects($this->once())
-                ->method("isATeamProgramParticipationOfTeam")
-                ->with($team = $this->buildMockOfClass(Team::class))
-                ->willReturn(true);
-        $this->assertTrue($this->worksheet->belongsToTeam($team));
-    }
 }
 
 class TestableWorksheet extends Worksheet

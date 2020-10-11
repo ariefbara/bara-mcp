@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\SharedModel\Notification" 
+            table="Notification" 
+    >
+        
+        <id name="id" type="guid" />
+        <field name="message" type="string" length="1024" nullable="true"/>
+        
+        <one-to-one field="consultationRequestNotification" 
+                    target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification"
+                    mapped-by="Notification"
+        />
+        
+    </entity>
+</doctrine-mapping>

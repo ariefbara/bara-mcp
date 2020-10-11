@@ -2,102 +2,135 @@
 
 namespace Notification\Domain\Model\Firm\Program\Participant\Worksheet;
 
-use Notification\Domain\Model\Firm\Program\ {
-    Consultant\ConsultantComment,
-    Participant\Worksheet
-};
-use Resources\ {
-    Application\Service\Mailer,
-    Domain\Model\Mail\Recipient
+use Doctrine\Common\Collections\ArrayCollection;
+use Notification\Domain\ {
+    Model\Firm\Program\Consultant\ConsultantComment,
+    Model\Firm\Program\Participant\Worksheet,
+    Model\Firm\Program\Participant\Worksheet\Comment\CommentMail,
+    Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification,
+    SharedModel\CanSendPersonalizeMail,
+    SharedModel\ContainNotification,
+    SharedModel\MailMessage
 };
 use Tests\TestBase;
 
 class CommentTest extends TestBase
 {
-
-    protected $comment;
     protected $worksheet;
     protected $parent;
     protected $consultantComment;
+    protected $comment;
+    protected $mailMessage, $recipientMailAddress = "recipient@email.org", $recipientName = "recipient name";
     
-    protected $recipient;
-    
-    protected $mailer;
+    protected $mailGenerator;
+    protected $notification;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->comment = new TestableComment();
-        
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
-        $this->comment->worksheet = $this->worksheet;
-
         $this->parent = $this->buildMockOfClass(Comment::class);
-        $this->comment->parent = $this->parent;
-        
         $this->consultantComment = $this->buildMockOfClass(ConsultantComment::class);
+        
+        $this->comment = new TestableComment();
+        $this->comment->worksheet = $this->worksheet;
+        $this->comment->parent = $this->parent;
         $this->comment->consultantComment = $this->consultantComment;
+        $this->comment->commentMails = new ArrayCollection();
+        $this->comment->commentNotifications = new ArrayCollection();
         
-        $this->recipient = $this->buildMockOfClass(Recipient::class);
+        $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
+        $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         
-        $this->mailer = $this->buildMockOfInterface(Mailer::class);
+        $this->notification = $this->buildMockOfInterface(ContainNotification::class);
     }
     
-    protected function executeGetConsultantWriterMailRecipient()
+    protected function executeGenerateNotificationsForRepliedConsultantComment()
     {
-        return $this->comment->getConsultantWriterMailRecipient();
+        $this->comment->generateNotificationsForRepliedConsultantComment();
+    }
+    public function test_generateNotificationsForRepliedConsultantComment_executeParentsRegisterConsultantAsMailRecipient()
+    {
+        $this->parent->expects($this->once())
+                ->method("registerConsultantAsMailRecipient")
+                ->with($this->comment, $this->anything());
+        $this->executeGenerateNotificationsForRepliedConsultantComment();
+    }
+    public function test_generateNotificationsForRepliedConsultantComment_executeParentsRegisterConsultantAsNotificationRecipient()
+    {
+        $this->parent->expects($this->once())
+                ->method("registerConsultantAsNotificationRecipient");
+        $this->executeGenerateNotificationsForRepliedConsultantComment();
+    }
+    public function test_generateNotificationsForRepliedConsultantComment_addNotification()
+    {
+        $this->executeGenerateNotificationsForRepliedConsultantComment();
+        $this->assertInstanceOf(CommentNotification::class, $this->comment->commentNotifications->first());
     }
     
-    public function test_getConsultantWriterMailRecipient_return_expectedResult()
+    protected function executeGenerateNotificationTriggeredByConsultant()
+    {
+        $this->comment->generateNotificationsTriggeredByConsultant();
+    }
+    public function test_generateNotificationsTriggeredByConsultant_executeWorksheetsRegisterParticipantAsMailRecipient()
+    {
+        $this->worksheet->expects($this->once())
+                ->method("registerParticipantAsMailRecipient")
+                ->with($this->comment, $this->anything());
+        $this->executeGenerateNotificationTriggeredByConsultant();
+    }
+    public function test_generateNotificationsTriggeredByConsultant_executeWorksheetsRegisterParticipantAsNotificationRecipient()
+    {
+        $this->worksheet->expects($this->once())
+                ->method("registerParticipantAsNotificationRecipient");
+        $this->executeGenerateNotificationTriggeredByConsultant();
+    }
+    public function test_generateNotificationsTriggeredByConsultant_addNotification()
+    {
+        $this->executeGenerateNotificationTriggeredByConsultant();
+        $this->assertInstanceOf(CommentNotification::class, $this->comment->commentNotifications->first());
+    }
+    
+    public function test_addMail_addCommentMailToCollection()
+    {
+        $this->comment->addMail($this->mailMessage, $this->recipientMailAddress, $this->recipientName);
+        $this->assertInstanceOf(CommentMail::class, $this->comment->commentMails->first());
+    }
+    
+    public function test_registerConsultantAsMailRecipient_executeConsultantCommentsRegisterConsultantAsMailRecipient()
     {
         $this->consultantComment->expects($this->once())
-                ->method('getConsultantMailRecipient')
-                ->willReturn($this->recipient);
-        $this->assertEquals($this->recipient, $this->executeGetConsultantWriterMailRecipient());
-    }
-    public function test_getConsultantWriterMailRecipient_emptyConsultantComment_forbiddenError()
-    {
-        $this->comment->consultantComment = null;
-        $operation = function (){
-            $this->executeGetConsultantWriterMailRecipient();
-        };
-        $errorDetail = 'forbidden: unable to retrieve consultant mail info';
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+                ->method("registerConsultantAsMailRecipient")
+                ->with($this->mailGenerator, $this->mailMessage);
+        $this->comment->registerConsultantAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }
     
-    protected function executeSendMailToConsultantWhoseCommentBeingReplied()
+    public function test_registerConsultantAsNotificationRecipient_executeConsultantCommentRegisterConsultantAsNotificationRecipient()
     {
-        $this->comment->sendMailToConsultantWhoseCommentBeingReplied($this->mailer);
+        $this->consultantComment->expects($this->once())
+                ->method("registerConsultantAsNotificationRecipient")
+                ->with($this->notification);
+        $this->comment->registerConsultantAsNotificationRecipient($this->notification);
     }
-    public function test_sendMailToConsultantWhoseCommentBeingReplied_sendMailToMailer()
+    public function test_getConsultantName_returnConsultantCommentGetConsultantNameResult()
     {
-        $this->mailer->expects($this->once())
-                ->method('send');
-        $this->executeSendMailToConsultantWhoseCommentBeingReplied();
+        $this->consultantComment->expects($this->once())
+                ->method("getConsultantName");
+        $this->comment->getConsultantName();
     }
-    public function test_sendMailToConsultantWhoseCommentBeingReplied_notParentComment_forbiddenError()
-    {
-        $this->comment->parent = null;
-        $operation = function (){
-            $this->executeSendMailToConsultantWhoseCommentBeingReplied();
-        };
-        $errorDetail = 'forbidden: empty parent comment';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
-
 }
 
 class TestableComment extends Comment
 {
     public $worksheet;
     public $parent;
-    public $id;
-    public $removed = false;
+    public $id = "commentId";
     public $consultantComment = null;
-
+    public $commentMails;
+    public $commentNotifications;
+    
     function __construct()
     {
         parent::__construct();
     }
-
 }

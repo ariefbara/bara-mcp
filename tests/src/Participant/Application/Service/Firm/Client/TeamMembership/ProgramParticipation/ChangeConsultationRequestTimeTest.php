@@ -9,14 +9,16 @@ use Participant\ {
     Domain\DependencyModel\Firm\Client\TeamMembership,
     Domain\Model\TeamProgramParticipation
 };
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class ChangeConsultationRequestTimeTest extends TestBase
 {
 
-    protected $service;
     protected $teamMembershipRepository, $teamMembership;
     protected $teamProgramParticipationRepository, $teamProgramParticipation;
+    protected $dispatcher;
+    protected $service;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
             $programParticipationId = "programParticipationId", $consultationRequestId = "consultationRequestId";
     protected $startTime;
@@ -37,9 +39,11 @@ class ChangeConsultationRequestTimeTest extends TestBase
                 ->method("ofId")
                 ->with($this->programParticipationId)
                 ->willReturn($this->teamProgramParticipation);
+        
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
 
         $this->service = new ChangeConsultationRequestTime(
-                $this->teamMembershipRepository, $this->teamProgramParticipationRepository);
+                $this->teamMembershipRepository, $this->teamProgramParticipationRepository, $this->dispatcher);
 
         $this->startTime = new DateTimeImmutable();
     }
@@ -61,6 +65,13 @@ class ChangeConsultationRequestTimeTest extends TestBase
     {
         $this->teamProgramParticipationRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchTeamMembership()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->teamMembership);
         $this->execute();
     }
 

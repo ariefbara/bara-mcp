@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionMail" 
+            table="ConsultationSessionMail" 
+    >
+        
+        <many-to-one  field="consultationSession" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Participant\ConsultationSession"
+                      inversed-by="consultationSessionMails"
+        >
+            <join-column name="ConsultationSession_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="mail" 
+                    target-entity="Notification\Domain\SharedModel\Mail"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Mail_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

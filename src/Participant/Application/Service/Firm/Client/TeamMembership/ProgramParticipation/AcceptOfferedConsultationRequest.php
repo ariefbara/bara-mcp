@@ -2,10 +2,11 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
-use Participant\Application\Service\Firm\Client\ {
+use Participant\Application\Service\Firm\Client\{
     TeamMembership\TeamProgramParticipationRepository,
     TeamMembershipRepository
 };
+use Resources\Application\Event\Dispatcher;
 
 class AcceptOfferedConsultationRequest
 {
@@ -22,12 +23,19 @@ class AcceptOfferedConsultationRequest
      */
     protected $teamProgramParticipationRepository;
 
+    /**
+     *
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
     public function __construct(
             TeamMembershipRepository $teamMembershipRepository,
-            TeamProgramParticipationRepository $teamProgramParticipationRepository)
+            TeamProgramParticipationRepository $teamProgramParticipationRepository, Dispatcher $dispatcher)
     {
         $this->teamMembershipRepository = $teamMembershipRepository;
         $this->teamProgramParticipationRepository = $teamProgramParticipationRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
@@ -35,9 +43,11 @@ class AcceptOfferedConsultationRequest
             string $consultationRequestId): void
     {
         $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($programParticipationId);
-        $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
-                ->acceptOfferedConsultationRequest($teamProgramParticipation, $consultationRequestId);
+        $teamMembership = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $teamMembership->acceptOfferedConsultationRequest($teamProgramParticipation, $consultationRequestId);
         $this->teamProgramParticipationRepository->update();
+        
+        $this->dispatcher->dispatch($teamMembership);
     }
 
 }

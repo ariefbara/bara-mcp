@@ -37,8 +37,7 @@ class ConsultationSessionController extends TeamMembershipBaseController
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
 
         $service->execute(
-                $this->firmId(), $this->clientId(), $teamMembershipId, $teamProgramParticipationId,
-                $consultationSessionId, $formRecordData);
+                $this->firmId(), $this->clientId(), $teamMembershipId, $consultationSessionId, $formRecordData);
 
         return $this->show($teamMembershipId, $teamProgramParticipationId, $consultationSessionId);
     }
@@ -131,10 +130,8 @@ class ConsultationSessionController extends TeamMembershipBaseController
     {
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
         $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
-        $teamProgramParticipationRepository = $this->em->getRepository(TeamProgramParticipation::class);
-
-        return new SubmitReport($consultationSessionRepository, $teamMembershipRepository,
-                $teamProgramParticipationRepository);
+        
+        return new SubmitReport($consultationSessionRepository, $teamMembershipRepository);
     }
 
 }

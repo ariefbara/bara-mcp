@@ -16,4 +16,23 @@ class Program
      * @var string
      */
     protected $id;
+    
+    protected function __construct()
+    {
+    }
+    
+    public function getFirmDomain(): string
+    {
+        return $this->firm->getDomain();
+    }
+    
+    public function getFirmMailSenderAddress(): string
+    {
+        return $this->firm->getMailSenderAddress();
+    }
+    
+    public function getFirmMailSenderName(): string
+    {
+        return $this->firm->getMailSenderName();
+    }
 }

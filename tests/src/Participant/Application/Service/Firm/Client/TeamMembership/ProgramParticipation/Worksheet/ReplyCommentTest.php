@@ -8,14 +8,16 @@ use Participant\ {
     Domain\DependencyModel\Firm\Client\TeamMembership,
     Domain\Model\Participant\Worksheet\Comment
 };
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class ReplyCommentTest extends TestBase
 {
 
-    protected $service;
     protected $commentRepository, $comment, $nextId = "nextId";
     protected $teamMembershipRepository, $teamMembership;
+    protected $dispatcher;
+    protected $service;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId";
     protected $teamProgramParticipationId = "teamProgramParticipationId", $worksheetId = "worksheetId", $commentId = "commentId";
     protected $message = "message";
@@ -37,8 +39,10 @@ class ReplyCommentTest extends TestBase
                 ->method("ofId")
                 ->with($this->firmId, $this->clientId, $this->teamMembershipId)
                 ->willReturn($this->teamMembership);
+        
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
 
-        $this->service = new ReplyComment($this->commentRepository, $this->teamMembershipRepository);
+        $this->service = new ReplyComment($this->commentRepository, $this->teamMembershipRepository, $this->dispatcher);
     }
 
     protected function execute()
@@ -62,6 +66,19 @@ class ReplyCommentTest extends TestBase
     public function test_execute_returnNextId()
     {
         $this->assertEquals($this->nextId, $this->execute());
+    }
+    public function test_execute_dispatchReply()
+    {
+        $reply = $this->buildMockOfClass(Comment::class);
+        $this->teamMembership->expects($this->once())
+                ->method("replyComment")
+                ->willReturn($reply);
+        
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($reply);
+        
+        $this->execute();
     }
 
 }

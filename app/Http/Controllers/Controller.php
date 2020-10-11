@@ -7,6 +7,14 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
+use Notification\ {
+    Application\Service\SendImmediateMail,
+    Domain\SharedModel\Mail\Recipient,
+    Infrastructure\MailManager\SwiftMailSender
+};
+use Swift_Mailer;
+use Swift_SmtpTransport;
+use function env;
 use function response;
 
 class Controller extends BaseController
@@ -165,6 +173,18 @@ class Controller extends BaseController
         $pageSize = (int) $this->request->query('pageSize');
         $safeSize = $pageSize > 100 ? 100 : $pageSize;
         return empty($safeSize) ? 25 : $safeSize;
+    }
+    
+    protected function buildSendImmediateMail(): SendImmediateMail
+    {
+        $recipientRepository = $this->em->getRepository(Recipient::class);
+        $transport = new Swift_SmtpTransport(
+                env('MAIL_SERVER_HOST'), env('MAIL_SERVER_PORT'), env('MAIL_SERVER_ENCRYPTION'));
+        $transport->setUsername(env('MAIL_SERVER_USERNAME'));
+        $transport->setPassword(env('MAIL_SERVER_PASSWORD'));
+        $vendor = new Swift_Mailer($transport);
+        $mailSender = new SwiftMailSender($vendor);
+        return new SendImmediateMail($recipientRepository, $mailSender);
     }
 
 }

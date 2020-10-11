@@ -19,12 +19,12 @@ use Personnel\Domain\ {
     Model\Firm\Program\Participant\Worksheet\Comment
 };
 use Resources\ {
-    Domain\Model\ModelContainEvents,
+    Domain\Model\EntityContainEvents,
     Exception\RegularException,
     Uuid
 };
 
-class ProgramConsultant extends ModelContainEvents
+class ProgramConsultant extends EntityContainEvents
 {
 
     /**

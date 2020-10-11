@@ -2,6 +2,7 @@
 
 namespace Participant\Domain\Model\Participant\Worksheet;
 
+use Config\EventList;
 use Participant\Domain\ {
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant\ConsultantComment,
@@ -9,7 +10,10 @@ use Participant\Domain\ {
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment\CommentActivityLog
 };
-use Resources\DateTimeImmutableBuilder;
+use Resources\ {
+    DateTimeImmutableBuilder,
+    Domain\Event\CommonEvent
+};
 use Tests\TestBase;
 
 class CommentTest extends TestBase
@@ -53,16 +57,21 @@ class CommentTest extends TestBase
         $comment = $this->executeConstruct();
         $this->assertInstanceOf(CommentActivityLog::class, $comment->commentActivityLogs->first());
     }
-    public function test_construct_forTeamParticipant_executeTeamMembersSetAsActivityOperatorMethod()
-    {
-        $this->teamMember->expects($this->once())
-                ->method("setAsActivityOperator");
-        new TestableComment($this->worksheet, $this->id, $this->message, $this->teamMember);
-    }
     
+    protected function executeCreateReply()
+    {
+        return $this->comment->createReply($this->id, $this->message, null);
+    }
     public function test_createReply_returnRepliedComment()
     {
-        $this->assertInstanceOf(Comment::class, $this->comment->createReply($this->id, $this->message, null));
+        $this->assertInstanceOf(Comment::class, $this->executeCreateReply());
+    }
+    public function test_createReply_aConsultantComment_recordEventInReply()
+    {
+        $this->comment->consultantComment = $this->consultantComment;
+        $event = new CommonEvent(EventList::COMMENT_FROM_CONSULTANT_REPLIED, $this->id);
+        $reply = $this->executeCreateReply();
+        $this->assertEquals($event, $reply->pullRecordedEvents()[0]);
     }
     
     protected function executeRemove()

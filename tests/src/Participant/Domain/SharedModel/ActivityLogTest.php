@@ -18,25 +18,33 @@ class ActivityLogTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->activityLog = new TestableActivityLog("id", "message");
+        $this->activityLog = new TestableActivityLog("id", "message", null);
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
     
+    protected function executeConstruct()
+    {
+        return new TestableActivityLog($this->id, $this->message, $this->teamMember);
+    }
+    
     public function test_construct_setProperties()
     {
-        $activityLog = new TestableActivityLog($this->id, $this->message);
+        $activityLog = $this->executeConstruct();
         $this->assertEquals($this->id, $activityLog->id);
         $this->assertEquals($this->message, $activityLog->message);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $activityLog->occuredTime);
+        
+        $teamMemberActivityLog = new TeamMemberActivityLog($activityLog, $this->id, $this->teamMember);
+        $this->assertEquals($teamMemberActivityLog, $activityLog->teamMemberActivityLog);
+    }
+    public function test_construct_emptyTeamMember_setTeamMemberActivityLogNull()
+    {
+        $this->teamMember = null;
+        $activityLog = $this->executeConstruct();
+        $this->assertNull($activityLog->teamMemberActivityLog);
     }
     
-    public function test_setOperator_setTeamMemberActivityLog()
-    {
-        $teamMemberActivityLog = new TeamMemberActivityLog($this->activityLog, $this->activityLog->id, $this->teamMember);
-        $this->activityLog->setOperator($this->teamMember);
-        $this->assertEquals($teamMemberActivityLog, $this->activityLog->teamMemberActivityLog);
-    }
 }
 
 class TestableActivityLog extends ActivityLog

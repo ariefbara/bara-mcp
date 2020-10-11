@@ -32,10 +32,11 @@ class ConsultationRequestMail
             ConsultationRequest $consultationRequest, string $id, string $senderMailAddress, string $senderName,
             string $subject, string $message, ?string $htmlMessage, string $recipientMailAddress, string $recipientName)
     {
-//        $this->consultationRequest = $consultationRequest;
-//        $this->id = $id;
-//        $this->mail = new Mail($senderMailAddress, $senderName, $subject, $message, $htmlMessage, $recipientMailAddress,
-//                $recipientName);
+        $this->consultationRequest = $consultationRequest;
+        $this->id = $id;
+        $this->mail = new Mail(
+                $id, $senderMailAddress, $senderName, $subject, $message, $htmlMessage, $recipientMailAddress,
+                $recipientName);
     }
 
 }

@@ -2,15 +2,20 @@
 
 namespace Participant\Domain\Model\Participant;
 
+use Config\EventList;
 use Participant\Domain\ {
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
+    DependencyModel\Firm\Team,
     Model\Participant,
     Model\Participant\ConsultationSession\ConsultationSessionActivityLog,
     Model\Participant\ConsultationSession\ParticipantFeedback
 };
-use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\Domain\ {
+    Event\CommonEvent,
+    ValueObject\DateTimeInterval
+};
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
@@ -24,6 +29,7 @@ class ConsultationSessionTest extends TestBase
     protected $participantFeedback;
     protected $formRecordData;
     protected $teamMember;
+    protected $team;
 
     protected function setUp(): void
     {
@@ -36,35 +42,50 @@ class ConsultationSessionTest extends TestBase
         $this->consultationSession = new TestableConsultationSession(
                 $this->participant, 'consultationSession-id', $this->consultationSetup, $this->consultant,
                 $this->startEndTime);
+        
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
 
         $this->participantFeedback = $this->buildMockOfClass(ParticipantFeedback::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
+        $this->team = $this->buildMockOfClass(Team::class);
     }
 
+    protected function executeConstruct()
+    {
+        return new TestableConsultationSession(
+                $this->participant, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime);
+    }
     public function test_construct_setProperties()
     {
-        $consultationSession = new TestableConsultationSession(
-                $this->participant, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime);
+        $consultationSession = $this->executeConstruct();
         $this->assertEquals($this->consultationSetup, $consultationSession->consultationSetup);
         $this->assertEquals($this->id, $consultationSession->id);
         $this->assertEquals($this->participant, $consultationSession->participant);
         $this->assertEquals($this->consultant, $consultationSession->consultant);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
     }
-
-    public function test_conflictedWithConsultationRequest_returnStartEndTimeComparisonResultWithConsultationRequestStartEndTime()
+    public function test_construct_recordOfferedConsultationSessionAccepetedEvent()
     {
-        $startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
-        $this->consultationRequest->expects($this->once())
-                ->method('getStartEndTime')
-                ->willReturn($startEndTime);
+        $consultationSession = $this->executeConstruct();
+        $event = new CommonEvent(EventList::OFFERED_CONSULTATION_REQUEST_ACCEPTED, $this->id);
+        $this->assertEquals($event, $consultationSession->recordedEvents[0]);
+    }
+    
+    public function test_belongsToTeam_returnParticipantBelongsToTeamResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("belongsToTeam")
+                ->willReturn(true);
+        $this->assertTrue($this->consultationSession->belongsToTeam($this->team));
+    }
 
-        $this->startEndTime->expects($this->once())
-                ->method('intersectWith')
-                ->with($startEndTime)
+    public function test_conflictedWithConsultationRequest_returnConsultationRequestsScheduleIntersectWithResult()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("scheduleIntersectWith")
+                ->with($this->consultationSession->startEndTime)
                 ->willReturn(true);
 
         $this->assertTrue($this->consultationSession->conflictedWithConsultationRequest($this->consultationRequest));
@@ -92,28 +113,12 @@ class ConsultationSessionTest extends TestBase
         $this->executeSetParticipantFeedback();
         $this->assertInstanceOf(ConsultationSessionActivityLog::class, $this->consultationSession->consultationSessionActivityLogs->first());
     }
-    public function test_setParticipantFeedback_forTeamParticipant_setTeamMemberAsActivityLogOperator()
-    {
-        $this->teamMember->expects($this->once())
-                ->method("setAsActivityOperator");
-        $this->consultationSession->setParticipantFeedback($this->formRecordData, $this->teamMember);
-    }
     
-    public function test_belongsTo_sameParticipant_returnTrue()
-    {
-        $this->assertTrue($this->consultationSession->belongsTo($this->consultationSession->participant));
-    }
-    public function test_belongsTo_differentParticipant_returnFalse()
-    {
-        $participant = $this->buildMockOfClass(Participant::class);
-        $this->assertFalse($this->consultationSession->belongsTo($participant));
-    }
-
 }
 
 class TestableConsultationSession extends ConsultationSession
 {
-
+    public $recordedEvents;
     public $consultationSetup, $id, $participant, $consultant, $startEndTime;
     public $participantFeedback;
     public $consultationSessionActivityLogs;

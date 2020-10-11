@@ -3,10 +3,10 @@
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
 use Participant\Application\Service\{
-    Firm\Client\TeamMembership\TeamProgramParticipationRepository,
     Firm\Client\TeamMembershipRepository,
     Participant\ConsultationRequestRepository
 };
+use Resources\Application\Event\Dispatcher;
 
 class CancelConsultationRequest
 {
@@ -25,30 +25,28 @@ class CancelConsultationRequest
 
     /**
      *
-     * @var TeamProgramParticipationRepository
+     * @var Dispatcher
      */
-    protected $teamProgramParticipationRepository;
+    protected $dispatcher;
 
     public function __construct(
             ConsultationRequestRepository $consultationRequestRepository,
-            TeamMembershipRepository $teamMembershipRepository,
-            TeamProgramParticipationRepository $teamProgramParticipationRepository)
+            TeamMembershipRepository $teamMembershipRepository, Dispatcher $dispatcher)
     {
         $this->consultationRequestRepository = $consultationRequestRepository;
         $this->teamMembershipRepository = $teamMembershipRepository;
-        $this->teamProgramParticipationRepository = $teamProgramParticipationRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
-            string $firmId, string $clientId, string $teamMembershipId, string $programParticipationId,
-            string $consultationRequestId): void
+            string $firmId, string $clientId, string $teamMembershipId, string $consultationRequestId): void
     {
-        $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($programParticipationId);
         $consultationRequest = $this->consultationRequestRepository->ofId($consultationRequestId);
-        $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
-                ->cancelConsultationRequest($teamProgramParticipation, $consultationRequest);
-        
+        $teamMembership = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $teamMembership->cancelConsultationRequest($consultationRequest);
         $this->consultationRequestRepository->update();
+        
+        $this->dispatcher->dispatch($teamMembership);
     }
 
 }

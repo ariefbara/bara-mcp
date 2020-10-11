@@ -22,9 +22,8 @@ class SubmitReportTest extends TestBase
     protected $service;
     protected $consultationSessionRepository, $consultationSession;
     protected $teamMembershipRepository, $teamMembership;
-    protected $teamProgramParticipationRepository, $teamProgramParticipation;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
-            $teamProgramParticipationId = "teamProgramParticipationId", $consultationSessionId = "consultationSessionId";
+            $consultationSessionId = "consultationSessionId";
     protected $formRecordData;
 
     protected function setUp(): void
@@ -45,16 +44,7 @@ class SubmitReportTest extends TestBase
                 ->with($this->firmId, $this->clientId, $this->teamMembershipId)
                 ->willReturn($this->teamMembership);
 
-        $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
-        $this->teamProgramParticipationRepository = $this->buildMockOfInterface(TeamProgramParticipationRepository::class);
-        $this->teamProgramParticipationRepository->expects($this->any())
-                ->method("ofId")
-                ->with($this->teamProgramParticipationId)
-                ->willReturn($this->teamProgramParticipation);
-
-        $this->service = new SubmitReport(
-                $this->consultationSessionRepository, $this->teamMembershipRepository,
-                $this->teamProgramParticipationRepository);
+        $this->service = new SubmitReport($this->consultationSessionRepository, $this->teamMembershipRepository);
 
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
     }
@@ -62,16 +52,18 @@ class SubmitReportTest extends TestBase
     protected function execute()
     {
         $this->service->execute(
-                $this->firmId, $this->clientId, $this->teamMembershipId, $this->teamProgramParticipationId,
-                $this->consultationSessionId, $this->formRecordData);
+                $this->firmId, $this->clientId, $this->teamMembershipId, $this->consultationSessionId,
+                $this->formRecordData);
     }
+
     public function test_execute_executeTeamMembershipSubmitConsultationReportMethod()
     {
         $this->teamMembership->expects($this->once())
                 ->method("submitConsultationSessionReport")
-                ->with($this->teamProgramParticipation, $this->consultationSession, $this->formRecordData);
+                ->with($this->consultationSession, $this->formRecordData);
         $this->execute();
     }
+
     public function test_execute_updateConsultationSessionRepository()
     {
         $this->consultationSessionRepository->expects($this->once())

@@ -4,13 +4,14 @@
             table="User" 
     >
         <id name="id" type="guid" />
-        <embedded name="personName" 
+        
+        <embedded name="name" 
                   class="Resources\Domain\ValueObject\PersonName" 
                   use-column-prefix="false" />
+        
         <field name="email" type="string" length="256" nullable="false"/>
-        <field name="activationCode" type="string" length="64" nullable="true" />
-        <field name="resetPasswordCode" type="string" length="64" nullable="true" />
-        <field name="activated" type="boolean" />
+<!--        <field name="activationCode" type="string" length="64" nullable="true" />
+        <field name="resetPasswordCode" type="string" length="64" nullable="true" />-->
         
     </entity>
 </doctrine-mapping>

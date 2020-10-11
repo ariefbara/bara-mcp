@@ -3,9 +3,9 @@
 namespace Firm\Domain\Model;
 
 use Query\Domain\Model\FirmWhitelableInfo;
-use Resources\Domain\Model\ModelContainEvents;
+use Resources\Domain\Model\EntityContainEvents;
 
-class Firm extends ModelContainEvents
+class Firm extends EntityContainEvents
 {
 
     /**

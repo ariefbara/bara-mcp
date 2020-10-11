@@ -48,7 +48,7 @@ class NotificationTest extends TestBase
     public function test_addClientRecipient_addClientRecipientNotification()
     {
         $this->notification->addClientRecipient($this->client);
-        $this->assertInstanceOf(ClientNotificationRecipient::class, $this->notification->ClientNotificationRecipients->first());
+        $this->assertInstanceOf(ClientNotificationRecipient::class, $this->notification->clientNotificationRecipients->first());
     }
     
     public function test_addPersonnelRecipient_addPersonnelRecipientNotification()
@@ -63,6 +63,6 @@ class TestableNotification extends Notification
     public $id;
     public $message;
     public $userNotificationRecipients;
-    public $ClientNotificationRecipients;
+    public $clientNotificationRecipients;
     public $personnelNotificationRecipients;
 }

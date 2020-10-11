@@ -2,39 +2,70 @@
 
 namespace Notification\Domain\Model\Firm\Program\Consultant;
 
-use Notification\Domain\Model\Firm\Program\Consultant;
+use Notification\Domain\ {
+    Model\Firm\Program\Consultant,
+    SharedModel\CanSendPersonalizeMail,
+    SharedModel\ContainNotification,
+    SharedModel\MailMessage
+};
 use Tests\TestBase;
 
 class ConsultantCommentTest extends TestBase
 {
-    protected $consultantComment;
+
     protected $consultant;
-    
+    protected $consultantComment;
+    protected $mailGenerator;
+    protected $mailMessage;
+    protected $notification;
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->consultantComment = new TestableConsultantComment();
-        
         $this->consultant = $this->buildMockOfClass(Consultant::class);
+        
+        $this->consultantComment = new TestableConsultantComment();
         $this->consultantComment->consultant = $this->consultant;
+        
+        $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
+        $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
+        
+        $this->notification = $this->buildMockOfInterface(ContainNotification::class);
     }
     
-    public function test_getConsultantMailRecipient_returnConsultantsGetPersonnelMailRecipientResult()
+    public function test_registerConsultantAsMailRecipient_executeConsultantsRegisterMailRecipient()
     {
         $this->consultant->expects($this->once())
-                ->method('getPersonnelMailRecipient');
-        $this->consultantComment->getConsultantMailRecipient();
+                ->method("registerMailRecipient")
+                ->with($this->mailGenerator, $this->mailMessage);
+        $this->consultantComment->registerConsultantAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }
+    
+    public function test_registerConsultantAsNotificationRecipient_executeConsultantsRegisterNotificationRecipient()
+    {
+        $this->consultant->expects($this->once())
+                ->method("registerNotificationRecipient")
+                ->with($this->notification);
+        $this->consultantComment->registerConsultantAsNotificationRecipient($this->notification);
+    }
+    
+    public function test_register_getConsultantName_returnConsultantsGetPersonnelFullNameResult()
+    {
+        $this->consultant->expects($this->once())
+                ->method("getPersonnelFullName");
+        $this->consultantComment->getConsultantName();
+    }
+
 }
 
 class TestableConsultantComment extends ConsultantComment
 {
-    public $id;
     public $consultant;
+    public $id = "consultantCommentId";
     public $comment;
     
     function __construct()
     {
-        parent::__construct();
+        ;
     }
 }

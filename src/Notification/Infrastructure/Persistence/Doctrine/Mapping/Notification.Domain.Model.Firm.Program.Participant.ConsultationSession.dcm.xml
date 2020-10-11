@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Program\Participant\ConsultationSession" 
+            table="ConsultationSession" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultationSessionRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        
+        <many-to-one  field="consultant" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <embedded name="startEndTime" 
+                  class="Resources\Domain\ValueObject\DateTimeInterval" 
+                  use-column-prefix="false" 
+        />
+        
+        <one-to-many field="consultationSessionMails" 
+                     target-entity="Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionMail" 
+                     mapped-by="consultationSession"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="consultationSessionNotifications" 
+                     target-entity="Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionNotification" 
+                     mapped-by="consultationSession"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        
+    </entity>
+</doctrine-mapping>

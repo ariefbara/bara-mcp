@@ -2,6 +2,7 @@
 
 namespace Participant\Domain\Model;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\ {
@@ -15,6 +16,7 @@ use Participant\Domain\ {
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
+use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
@@ -78,10 +80,23 @@ class ParticipantTest extends TestBase
         $errorDetail = "forbidden: only active program participant can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    protected function assertOperationCauseAssetNotOwnedForbiddenError(callable $operation): void
+    
+    protected function executeBelongsToTeam()
     {
-        $errorDetail = "forbidden: unable to manage asset of other participant";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        return $this->participant->belongsToTeam($this->team);
+    }
+    public function test_belongsToTeam_returnTeamProgramParticipationsTeamEqualsResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($this->team)
+                ->willReturn(true);
+        $this->assertTrue($this->executeBelongsToTeam());
+    }
+    public function test_belongsToTeam_notATeamProgramParticipation_returnFalse()
+    {
+        $this->participant->teamProgramParticipation = null;
+        $this->assertFalse($this->executeBelongsToTeam());
     }
 
     protected function executeQuit()
@@ -223,6 +238,14 @@ class ParticipantTest extends TestBase
                 ->with($this->startTime, $this->teamMember);
         $this->participant->changeConsultationRequestTime($this->consultationRequestId, $this->startTime, $this->teamMember);
     }
+    public function test_changeConsultationRequestTime_pullConsultationRequestEventAndRecordIt()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn($events = [$this->buildMockOfClass(CommonEvent::class)]);
+        $this->executeChangeConsultationRequestTime();
+        $this->assertEquals($events, $this->participant->recordedEvents);
+    }
 
     protected function executeAcceptOfferedConsultationRequest()
     {
@@ -276,41 +299,16 @@ class ParticipantTest extends TestBase
 
         $this->assertEquals(2, $this->participant->consultationSessions->count());
     }
-    
-    protected function executeCancelConsultationRequest()
-    {
-        $this->consultationRequest->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        $this->participant->cancelConsultationRequest($this->consultationRequest);
-    }
-    public function test_cancelConsultationRequest_cancelConsultationRequest()
+    public function test_acceptOfferedConsultationRequest_pullAndRecordConsultationSessionRecordedEvents()
     {
         $this->consultationRequest->expects($this->once())
-                ->method("cancel");
-        $this->executeCancelConsultationRequest();
-    }
-    public function test_cancelConsultationRequest_fromTeamParticipant_includeTeamMemberInCancellingConsultationRequest()
-    {
-        $this->consultationRequest->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        $this->consultationRequest->expects($this->once())
-                ->method("cancel")
-                ->with($this->teamMember);
-        $this->participant->cancelConsultationRequest($this->consultationRequest, $this->teamMember);
-    }
-    public function test_cancelConsultationRequest_belongsToOtherParticipant_forbiddenError()
-    {
-        $this->consultationRequest->expects($this->once())
-                ->method("belongsTo")
-                ->with($this->participant)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeCancelConsultationRequest();
-        };
-        $errorDetail = "forbidden: unable to manage consultation request of other participant";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+                ->method('createConsultationSession')
+                ->willReturn($this->consultationSession);
+        $this->consultationSession->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn($events = [$this->buildMockOfClass(CommonEvent::class)]);
+        $this->executeAcceptOfferedConsultationRequest();
+        $this->assertEquals($events, $this->participant->recordedEvents);
     }
     
     protected function executeCreateRootWorksheet()
@@ -345,97 +343,6 @@ class ParticipantTest extends TestBase
         $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
     }
     
-    protected function executeSubmitBranchWorksheet()
-    {
-        $this->parentWorksheet->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        return $this->participant->submitBranchWorksheet(
-                $this->parentWorksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData);
-    }
-    public function test_submitBranchWorksheet_returnWorksheetsCreateBranchResult()
-    {
-        $branch = $this->buildMockOfClass(Worksheet::class);
-        $this->parentWorksheet->expects($this->once())
-                ->method("createBranchWorksheet")
-                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData)
-                ->willReturn($branch);
-        $this->assertEquals($branch, $this->executeSubmitBranchWorksheet());
-    }
-    public function test_submitBranchworksheet_WorksheetDoesntBelongsToParticipant_forbiddenError()
-    {
-        $this->parentWorksheet->expects($this->once())
-                ->method("belongsTo")
-                ->with($this->participant)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeSubmitBranchWorksheet();
-        };
-        $this->assertOperationCauseAssetNotOwnedForbiddenError($operation);
-    }
-    public function test_submitBranchWorksheet_inactiveProgramParticipant_forbiddenError()
-    {
-        $this->participant->active = false;
-        $operation = function (){
-            $this->executeSubmitBranchWorksheet();
-        };
-        $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
-    }
-    public function test_submitBranchWorksheet_teamParticipant_includeTeamMemberInBranchCreation()
-    {
-        $this->parentWorksheet->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        $this->parentWorksheet->expects($this->once())
-                ->method("createBranchWorksheet")
-                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
-        $this->participant->submitBranchWorksheet($this->parentWorksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
-    }
-    
-    protected function executeUpdateWorksheet()
-    {
-        $this->parentWorksheet->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        $this->participant->updateWorksheet($this->parentWorksheet, $this->worksheetName, $this->formRecordData);
-    }
-    public function test_updateWorksheet_executeWorksheetsUpdateMethod()
-    {
-        $this->parentWorksheet->expects($this->once())
-                ->method("update")
-                ->with($this->worksheetName, $this->formRecordData);
-        $this->executeUpdateWorksheet();
-    }
-    public function test_updateWorksheet_inactiveProgramParticipation_forbiddenError()
-    {
-        $this->participant->active = false;
-        $operation = function (){
-            $this->executeUpdateWorksheet();
-        };
-        $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
-    }
-    public function test_updateWorksheet_worksheetDoesntBelongsToParticipant_forbiddenError()
-    {
-        $this->parentWorksheet->expects($this->once())
-                ->method("belongsTo")
-                ->with($this->participant)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeUpdateWorksheet();
-        };
-        $this->assertOperationCauseAssetNotOwnedForbiddenError($operation);
-    }
-    public function test_updateWorksheet_teamParticipant_includeTeamMemberInBranchCreation()
-    {
-        $this->parentWorksheet->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        $this->parentWorksheet->expects($this->once())
-                ->method("update")
-                ->with($this->worksheetName, $this->formRecordData, $this->teamMember);
-        $this->participant->updateWorksheet($this->parentWorksheet, $this->worksheetName, $this->formRecordData, $this->teamMember);
-    }
-    
     protected function executeIsActiveParticipantOfProgram()
     {
         return $this->participant->isActiveParticipantOfProgram($this->program);
@@ -455,71 +362,11 @@ class ParticipantTest extends TestBase
         $this->assertFalse($this->participant->isActiveParticipantOfProgram($program));
     }
     
-    protected function executeSubmitConsultationSessionReport()
-    {
-        $this->consultationSession->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        $this->participant->submitConsultationSessionReport($this->consultationSession, $this->formRecordData);
-    }
-    public function test_submitConsultationSessionReport_setConsultationSessionParticipantFeedback()
-    {
-        $this->consultationSession->expects($this->once())
-                ->method("setParticipantFeedback")
-                ->with($this->formRecordData);
-        $this->executeSubmitConsultationSessionReport();
-    }
-    public function test_submitConsultationSessionReport_inactiveParticipant_forbiddenError()
-    {
-        $this->participant->active = false;
-        $this->assertOperationCauseInactiveParticipantForbiddenError(function (){
-            $this->executeSubmitConsultationSessionReport();
-        });
-    }
-    public function test_submitConsultationSessionReport_consultationSessionBelongsToOtherTeam_forbiddenError()
-    {
-        $this->consultationSession->expects($this->once())
-                ->method("belongsTo")
-                ->with($this->participant)
-                ->willReturn(false);
-        $this->assertOperationCauseAssetNotOwnedForbiddenError(function (){
-            $this->executeSubmitConsultationSessionReport();
-        });
-    }
-    public function test_submitConsultationSessionReport_teamParticipant_includeTeamMemberInSubmittance()
-    {
-        $this->consultationSession->expects($this->any())
-                ->method("belongsTo")
-                ->willReturn(true);
-        
-        $this->consultationSession->expects($this->once())
-                ->method("setParticipantFeedback")
-                ->with($this->formRecordData, $this->teamMember);
-        $this->participant->submitConsultationSessionReport($this->consultationSession, $this->formRecordData, $this->teamMember);
-    }
-    
-    protected function executeIsATeamProgramParticipationOfTeam()
-    {
-        return $this->participant->isATeamProgramParticipationOfTeam($this->team);
-    }
-    public function test_isATeamProgramParticipationOfTeam_returnTeamProgramParticipationsTeamEqualsResult()
-    {
-        $this->teamProgramParticipation->expects($this->once())
-                ->method("teamEquals")
-                ->with($this->team)
-                ->willReturn(true);
-        $this->assertTrue($this->executeIsATeamProgramParticipationOfTeam());
-    }
-    public function test_isATeamProgramParticipationOfTeam_notATeamProgramParticipation_returnFalse()
-    {
-        $this->participant->teamProgramParticipation = null;
-        $this->assertFalse($this->executeIsATeamProgramParticipationOfTeam());
-    }
 }
 
 class TestableParticipant extends Participant
 {
-
+    public $recordedEvents;
     public $program;
     public $id;
     public $active = true;

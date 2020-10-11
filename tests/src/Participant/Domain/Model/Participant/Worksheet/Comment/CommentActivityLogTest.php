@@ -13,7 +13,6 @@ class CommentActivityLogTest extends TestBase
 {
     protected $comment;
     protected $commentActivityLog;
-    protected $activityLog;
     protected $id = "newId", $message = "new message";
     protected $teamMember;
 
@@ -21,30 +20,19 @@ class CommentActivityLogTest extends TestBase
     {
         parent::setUp();
         $this->comment = $this->buildMockOfClass(Comment::class);
-        $this->commentActivityLog = new TestableCommentActivityLog($this->comment, "id", "message");
-        
-        $this->activityLog = $this->buildMockOfClass(ActivityLog::class);
-        $this->commentActivityLog->activityLog = $this->activityLog;
+        $this->commentActivityLog = new TestableCommentActivityLog($this->comment, "id", "message", null);
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
     }
     
     public function test_construct_setProperties()
     {
-        $commentActivityLog = new TestableCommentActivityLog($this->comment, $this->id, $this->message);
+        $commentActivityLog = new TestableCommentActivityLog($this->comment, $this->id, $this->message, $this->teamMember);
         $this->assertEquals($this->comment, $commentActivityLog->comment);
         $this->assertEquals($this->id, $commentActivityLog->id);
         
-        $activityLog = new ActivityLog($this->id, $this->message);
+        $activityLog = new ActivityLog($this->id, $this->message, $this->teamMember);
         $this->assertEquals($activityLog, $commentActivityLog->activityLog);
-    }
-    
-    public function test_setOperator_executeActivityLogsSetOperatorMethod()
-    {
-        $this->activityLog->expects($this->once())
-                ->method("setOperator")
-                ->with($this->teamMember);
-        $this->commentActivityLog->setOperator($this->teamMember);
     }
 }
 

@@ -38,7 +38,7 @@ class Notification
      *
      * @var ArrayCollection
      */
-    protected $ClientNotificationRecipients;
+    protected $clientNotificationRecipients;
 
     /**
      *
@@ -51,7 +51,7 @@ class Notification
         $this->id = $id;
         $this->message = $message;
         $this->userNotificationRecipients = new ArrayCollection();
-        $this->ClientNotificationRecipients = new ArrayCollection();
+        $this->clientNotificationRecipients = new ArrayCollection();
         $this->personnelNotificationRecipients = new ArrayCollection();
     }
 
@@ -66,7 +66,7 @@ class Notification
     {
         $id = Uuid::generateUuid4();
         $clientNotificationRecipient = new ClientNotificationRecipient($this, $id, $client);
-        $this->ClientNotificationRecipients->add($clientNotificationRecipient);
+        $this->clientNotificationRecipients->add($clientNotificationRecipient);
     }
 
     public function addPersonnelRecipient(Personnel $personnel): void

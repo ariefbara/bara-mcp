@@ -21,19 +21,20 @@ class RecordOfPersonnel implements Record
     public $rawPassword;
     public $token;
     
-    public function __construct(RecordOfFirm $firm, $index, $email, $rawPassword)
+    public function __construct(RecordOfFirm $firm, $index)
     {
+        $this->rawPassword = "Password12345";
+        
         $this->firm = $firm;
         $this->id = "personnel-$index-id";
         $this->firstName = "personnel $index firstname";
         $this->lastName = "personnel $index lastname";
-        $this->email = $email;
-        $this->password = (new TestablePassword($rawPassword))->getHashedPassword();
+        $this->email = "personnel_$index@barapraja.com";
+        $this->password = (new TestablePassword($this->rawPassword))->getHashedPassword();
         $this->phone = "";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
         $this->removed = false;
         
-        $this->rawPassword = $rawPassword;
         $data = [
             "firmId" => $this->firm->id,
             "personnelId" => $this->id,

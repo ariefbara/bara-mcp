@@ -2,9 +2,10 @@
 
 namespace Notification\Domain\Model\Firm\Program;
 
-use Notification\Domain\ {
+use Notification\Domain\{
     Model\Firm\Personnel,
     SharedModel\canSendPersonalizeMail,
+    SharedModel\ContainNotification,
     SharedModel\MailMessage
 };
 
@@ -13,9 +14,9 @@ class Consultant
 
     /**
      *
-     * @var string
+     * @var Program
      */
-    protected $programId;
+    protected $program;
 
     /**
      *
@@ -29,14 +30,25 @@ class Consultant
      */
     protected $personnel;
 
-    public function getPersonnelFullName(): string
+    protected function __construct()
     {
         
     }
 
+    public function getPersonnelFullName(): string
+    {
+        return $this->personnel->getFullName();
+    }
+
     public function registerMailRecipient(canSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        
+        $modifiedMailMessage = $mailMessage->prependUrlPath("/program-consultations/{$this->id}");
+        $this->personnel->registerAsMailRecipient($mailGenerator, $modifiedMailMessage);
+    }
+
+    public function registerNotificationRecipient(ContainNotification $notification): void
+    {
+        $notification->addPersonnelRecipient($this->personnel);
     }
 
 }

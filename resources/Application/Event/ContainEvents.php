@@ -8,7 +8,6 @@ interface ContainEvents
      * 
      * @return Event[]
      */
-    public function getRecordedEvents();
-    public function clearRecordedEvents(): void;
+    public function pullRecordedEvents(): array;
 }
 

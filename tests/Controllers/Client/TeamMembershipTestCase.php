@@ -16,6 +16,11 @@ class TeamMembershipTestCase extends ClientTestCase
      * @var RecordOfMember
      */
     protected $teamMembership;
+    /**
+     *
+     * @var RecordOfMember
+     */
+    protected $teamMembershipOne_otherMember;
 
     protected function setUp(): void
     {
@@ -29,9 +34,14 @@ class TeamMembershipTestCase extends ClientTestCase
         $team = new RecordOfTeam($firm, $this->client, 0);
         $this->connection->table("Team")->insert($team->toArrayForDbEntry());
         
+        $client = new RecordOfClient($firm, 1);
+        $client->email = "go.on.apur@gmail.com";
+        $this->connection->table("Client")->insert($client->toArrayForDbEntry());
         
         $this->teamMembership = new RecordOfMember($team, $this->client, 0);
+        $this->teamMembershipOne_otherMember = new RecordOfMember($team, $client, 1);
         $this->connection->table("T_Member")->insert($this->teamMembership->toArrayForDbEntry());
+        $this->connection->table("T_Member")->insert($this->teamMembershipOne_otherMember->toArrayForDbEntry());
         
         $this->teamMembershipUri = $this->clientUri . "/team-memberships/{$this->teamMembership->id}";
     }

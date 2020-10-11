@@ -3,13 +3,14 @@
 namespace Participant\Domain\Model;
 
 use Participant\Domain\DependencyModel\Firm\ {
+    Client\AssetBelongsToTeamInterface,
     Program,
     Team
 };
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Exception\RegularException;
 
-class TeamProgramRegistration
+class TeamProgramRegistration implements AssetBelongsToTeamInterface
 {
 
     /**
@@ -47,14 +48,14 @@ class TeamProgramRegistration
         $this->programRegistration->cancel();
     }
 
-    public function teamEquals(Team $team): bool
-    {
-        return $this->team === $team;
-    }
-
     public function isUnconcludedRegistrationToProgram(Program $program): bool
     {
         return $this->programRegistration->isUnconcludedRegistrationToProgram($program);
+    }
+
+    public function belongsToTeam(Team $team): bool
+    {
+        return $this->team === $team;
     }
 
 }

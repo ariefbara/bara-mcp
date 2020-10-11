@@ -16,14 +16,14 @@ use Firm\Domain\ {
 };
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\ {
-    Domain\Model\ModelContainEvents,
+    Domain\Model\EntityContainEvents,
     Exception\RegularException,
     Uuid,
     ValidationRule,
     ValidationService
 };
 
-class Program extends ModelContainEvents
+class Program extends EntityContainEvents
 {
 
     /**

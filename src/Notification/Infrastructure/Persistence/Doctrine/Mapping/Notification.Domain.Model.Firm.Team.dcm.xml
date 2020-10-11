@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Team" 
+            table="Team" 
+    >
+        
+        <many-to-one  field="firm" 
+                      target-entity="Notification\Domain\Model\Firm"
+        >
+            <join-column name="Firm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        
+        <one-to-many field="members" 
+                     target-entity="Notification\Domain\Model\Firm\Team\Member" 
+                     mapped-by="team"
+        />
+        
+    </entity>
+</doctrine-mapping>

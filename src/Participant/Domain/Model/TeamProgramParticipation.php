@@ -3,7 +3,8 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
+use Participant\Domain\{
+    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
@@ -11,13 +12,15 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
-    Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
-use Resources\Uuid;
+use Resources\{
+    Application\Event\ContainEvents,
+    Uuid
+};
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
-class TeamProgramParticipation
+class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEvents
 {
 
     /**
@@ -43,7 +46,7 @@ class TeamProgramParticipation
         
     }
 
-    public function teamEquals(Team $team): bool
+    public function belongsToTeam(Team $team): bool
     {
         return $this->team === $team;
     }
@@ -54,22 +57,11 @@ class TeamProgramParticipation
     }
 
     public function submitRootWorksheet(
-            string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData, TeamMembership $teamMember): Worksheet
+            string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData,
+            TeamMembership $teamMember): Worksheet
     {
-        return $this->programParticipation->createRootWorksheet($worksheetId, $name, $mission, $formRecordData, $teamMember);
-    }
-
-    public function submitBranchWorksheet(
-            Worksheet $parentWorksheet, string $worksheetId, string $name, Mission $mission,
-            FormRecordData $formRecordData, TeamMembership $teamMember): Worksheet
-    {
-        return $this->programParticipation
-                        ->submitBranchWorksheet($parentWorksheet, $worksheetId, $name, $mission, $formRecordData, $teamMember);
-    }
-
-    public function updateWorksheet(Worksheet $worksheet, string $name, FormRecordData $formRecordData, TeamMembership $teamMember): void
-    {
-        $this->programParticipation->updateWorksheet($worksheet, $name, $formRecordData, $teamMember);
+        return $this->programParticipation->createRootWorksheet($worksheetId, $name, $mission, $formRecordData,
+                        $teamMember);
     }
 
     public function quit(): void
@@ -91,11 +83,6 @@ class TeamProgramParticipation
         $this->programParticipation->changeConsultationRequestTime($consultationRequestId, $startTime, $teamMember);
     }
 
-    public function cancelConsultationRequest(ConsultationRequest $consultationRequest, TeamMembership $teamMember): void
-    {
-        $this->programParticipation->cancelConsultationRequest($consultationRequest, $teamMember);
-    }
-
     public function acceptOfferedConsultationRequest(string $consultationRequestId, TeamMembership $teamMember): void
     {
         $consultationSessionId = Uuid::generateUuid4();
@@ -103,10 +90,9 @@ class TeamProgramParticipation
                 $consultationRequestId, $consultationSessionId, $teamMember);
     }
 
-    public function submitConsultationSessionReport(
-            ConsultationSession $consultationSession, FormRecordData $formRecordData, TeamMembership $teamMember): void
+    public function pullRecordedEvents(): array
     {
-        $this->programParticipation->submitConsultationSessionReport($consultationSession, $formRecordData, $teamMember);
+        return $this->programParticipation->pullRecordedEvents();
     }
 
 }
