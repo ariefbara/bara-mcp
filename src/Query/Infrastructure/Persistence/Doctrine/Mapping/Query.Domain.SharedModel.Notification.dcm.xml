@@ -9,7 +9,17 @@
         
         <one-to-one field="consultationRequestNotification" 
                     target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification"
-                    mapped-by="Notification"
+                    mapped-by="notification"
+        />
+        
+        <one-to-one field="consultationSessionNotification" 
+                    target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionNotification"
+                    mapped-by="notification"
+        />
+        
+        <one-to-one field="commentNotification" 
+                    target-entity="Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification"
+                    mapped-by="notification"
         />
         
     </entity>

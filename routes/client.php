@@ -9,6 +9,7 @@ $router->group($clientAggregate, function () use ($router) {
     $router->patch("/update-profile", ["uses" => "AccountController@updateProfile"]);
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
+    $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     
     $router->group(['prefix' => '/create-team'], function () use($router) {
         $controller = "CreateTeamController";

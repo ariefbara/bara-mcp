@@ -2,7 +2,11 @@
 
 namespace Query\Domain\SharedModel;
 
-use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification;
+use Query\Domain\Model\Firm\Program\{
+    ConsultationSetup\ConsultationRequest\ConsultationRequestNotification,
+    ConsultationSetup\ConsultationSession\ConsultationSessionNotification,
+    Participant\Worksheet\Comment\CommentNotification
+};
 
 class Notification
 {
@@ -25,6 +29,18 @@ class Notification
      */
     protected $consultationRequestNotification;
 
+    /**
+     *
+     * @var ConsultationSessionNotification|null
+     */
+    protected $consultationSessionNotification;
+
+    /**
+     *
+     * @var CommentNotification|null
+     */
+    protected $commentNotification;
+
     public function getId(): string
     {
         return $this->id;
@@ -38,6 +54,16 @@ class Notification
     public function getConsultationRequestNotification(): ?ConsultationRequestNotification
     {
         return $this->consultationRequestNotification;
+    }
+
+    public function getConsultationSessionNotification(): ?ConsultationSessionNotification
+    {
+        return $this->consultationSessionNotification;
+    }
+
+    public function getCommentNotification(): ?CommentNotification
+    {
+        return $this->commentNotification;
     }
 
     protected function __construct()
