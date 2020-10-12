@@ -23,8 +23,9 @@ class AccountController extends PersonnelBaseController
         $firstName = $this->stripTagsInputRequest('firstName');
         $lastName = $this->stripTagsInputRequest('lastName');
         $phone = $this->stripTagsInputRequest('phone');
+        $bio = $this->stripTagsInputRequest('bio');
         
-        $personnelProfileData = new PersonnelProfileData($firstName, $lastName, $phone);
+        $personnelProfileData = new PersonnelProfileData($firstName, $lastName, $phone, $bio);
         $service->execute($this->firmId(), $this->personnelId(), $personnelProfileData);
         
         $viewService = $this->buildViewService();
@@ -47,6 +48,7 @@ class AccountController extends PersonnelBaseController
             "id" => $personnel->getId(),
             "name" => $personnel->getName(),
             "phone" => $personnel->getPhone(),
+            "bio" => $personnel->getBio(),
         ];
     }
     

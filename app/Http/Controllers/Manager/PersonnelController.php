@@ -53,8 +53,9 @@ class PersonnelController extends ManagerBaseController
         $email = $this->stripTagsInputRequest('email');
         $password = $this->stripTagsInputRequest('password');
         $phone = $this->stripTagsInputRequest('phone');
-
-        return new PersonnelData($firstName, $lastName, $email, $password, $phone);
+        $bio = $this->stripTagsInputRequest('bio');
+        
+        return new PersonnelData($firstName, $lastName, $email, $password, $phone, $bio);
     }
 
     protected function arrayDataOfPersonnel(Personnel2 $personnel)
@@ -64,6 +65,7 @@ class PersonnelController extends ManagerBaseController
             "name" => $personnel->getName(),
             "email" => $personnel->getEmail(),
             "phone" => $personnel->getPhone(),
+            "bio" => $personnel->getBio(),
             "joinTime" => $personnel->getJoinTimeString(),
         ];
     }

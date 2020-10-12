@@ -18,6 +18,7 @@ class PersonnelControllerTest extends ManagerTestCase
         "email" => 'new_personnel@email.org',
         "password" => 'password213',
         "phone" => '081231231231',
+        "bio" => 'new personnel bio',
     ];
 
 
@@ -45,6 +46,7 @@ class PersonnelControllerTest extends ManagerTestCase
             "name" => $this->personnelInput['firstName'] . " " . $this->personnelInput['lastName'],
             "email" => $this->personnelInput['email'],
             "phone" => $this->personnelInput['phone'],
+            "bio" => $this->personnelInput['bio'],
             "joinTime" => (new DateTime())->format('Y-m-d H:i:s'),
         ];
         $this->post($this->uri, $this->personnelInput, $this->manager->token)
@@ -57,6 +59,7 @@ class PersonnelControllerTest extends ManagerTestCase
             "lastName" => $this->personnelInput['lastName'],
             "email" => $this->personnelInput['email'],
             "phone" => $this->personnelInput['phone'],
+            "bio" => $this->personnelInput['bio'],
             "joinTime" => (new DateTime())->format('Y-m-d H:i:s'),
             "removed" => false,
         ];
@@ -93,6 +96,7 @@ class PersonnelControllerTest extends ManagerTestCase
             "name" => $this->personnel->getFullName(),
             "email" => $this->personnel->email,
             "phone" => $this->personnel->phone,
+            "bio" => $this->personnel->bio,
             "joinTime" => $this->personnel->joinTime,
         ];
         $uri = $this->uri . "/{$this->personnel->id}";

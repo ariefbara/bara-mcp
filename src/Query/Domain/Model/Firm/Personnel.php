@@ -3,16 +3,16 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Query\Domain\Model\ {
+use Query\Domain\Model\{
     Firm,
     Firm\Program\Consultant,
     Firm\Program\Coordinator
 };
-use Resources\Domain\ValueObject\ {
+use Resources\Domain\ValueObject\{
     Password,
     PersonName
 };
@@ -52,9 +52,15 @@ class Personnel
 
     /**
      *
-     * @var string||null
+     * @var string|null
      */
     protected $phone;
+
+    /**
+     *
+     * @var string|null
+     */
+    protected $bio;
 
     /**
      *
@@ -100,6 +106,11 @@ class Personnel
         return $this->phone;
     }
 
+    public function getBio(): ?string
+    {
+        return $this->bio;
+    }
+
     function getJoinTimeString(): string
     {
         return $this->joinTime->format('Y-m-d H:i:s');
@@ -143,7 +154,7 @@ class Personnel
         return Criteria::create()
                         ->andWhere(Criteria::expr()->eq('removed', false));
     }
-    
+
     public function getName(): string
     {
         return $this->name->getFullName();

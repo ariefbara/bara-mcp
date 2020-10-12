@@ -50,6 +50,12 @@ class Personnel
      * @var string
      */
     protected $phone;
+    
+    /**
+     *
+     * @var string
+     */
+    protected $bio;
 
     /**
      *
@@ -89,6 +95,7 @@ class Personnel
         $this->setEmail($personnelData->getEmail());
         $this->password = new Password($personnelData->getPassword());
         $this->setPhone($personnelData->getPhone());
+        $this->bio = $personnelData->getBio();
         $this->joinTime = new DateTimeImmutable();
         $this->removed = false;
         $this->assignedAdmin = null;

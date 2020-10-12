@@ -12,6 +12,7 @@ class PersonnelTest extends TestBase
 {
     protected $personnel;
     protected $firstName = 'firstname', $lastName = 'lastname', $phone = '0821323123';
+    protected $bio = "new bio";
     protected $previousPassword = 'password123', $newPassword = 'newPwd123';
 
 
@@ -24,15 +25,16 @@ class PersonnelTest extends TestBase
     
     protected function executeUpdate()
     {
-        $data = new PersonnelProfileData($this->firstName, $this->lastName, $this->phone);
+        $data = new PersonnelProfileData($this->firstName, $this->lastName, $this->phone, $this->bio);
         $this->personnel->updateProfile($data);
     }
-    public function test_update_changeNameAndPhone()
+    public function test_update_changeNamePhoneAndBio()
     {
         $this->executeUpdate();
         $name = new PersonName($this->firstName, $this->lastName);
         $this->assertEquals($name, $this->personnel->name);
         $this->assertEquals($this->phone, $this->personnel->phone);
+        $this->assertEquals($this->bio, $this->personnel->bio);
     }
     public function test_update_invalidPhoneFormat_throwEx()
     {
@@ -72,6 +74,7 @@ class PersonnelTest extends TestBase
 
 class TestablePersonnel extends Personnel{
     public $incubator, $id, $name, $email, $password, $phone, $joinTime, $removed;
+    public $bio;
     public $programMentorships, $personnelFileInfos;
     
     public function __construct()

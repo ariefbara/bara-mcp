@@ -10,6 +10,7 @@ class AccountControllerTest extends PersonnelTestCase
         'firstName' => 'firstname',
         'lastName' => 'lastname',
         "phone" => '08123123123',
+        "bio" => 'new personnel bio',
     ];
     protected $changePasswordInput;
     
@@ -35,6 +36,7 @@ class AccountControllerTest extends PersonnelTestCase
             "id" => $this->personnel->id,
             "name" => $this->updateProfileInput['firstName'] . " " . $this->updateProfileInput['lastName'],
             "phone" => $this->updateProfileInput['phone'],
+            "bio" => $this->updateProfileInput['bio'],
         ];
         $this->patch($this->updateProfileUri, $this->updateProfileInput, $this->personnel->token)
                 ->seeStatusCode(200)
@@ -45,6 +47,7 @@ class AccountControllerTest extends PersonnelTestCase
             'firstName' => 'firstname',
             'lastName' => 'lastname',
             "phone" => $this->updateProfileInput['phone'],
+            "bio" => $this->updateProfileInput['bio'],
         ];
         $this->seeInDatabase("Personnel", $personnelEntry);
     }

@@ -49,6 +49,12 @@ class Personnel
      * @var string
      */
     protected $phone;
+    
+    /**
+     *
+     * @var string|nulll
+     */
+    protected $bio;
 
     /**
      *
@@ -91,6 +97,7 @@ class Personnel
     {
         $this->name = new PersonName($data->getFirstName(), $data->getLastName());
         $this->setPhone($data->getPhone());
+        $this->bio = $data->getBio();
     }
 
     public function changePassword(string $previousPassword, string $newPassword): void

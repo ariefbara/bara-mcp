@@ -18,6 +18,7 @@ class RecordOfPersonnel implements Record
      */
     public $firm;
     public $id, $firstName, $lastName, $email, $password, $phone = "", $joinTime, $removed = false;
+    public $bio;
     public $rawPassword;
     public $token;
     
@@ -32,6 +33,7 @@ class RecordOfPersonnel implements Record
         $this->email = "personnel_$index@barapraja.com";
         $this->password = (new TestablePassword($this->rawPassword))->getHashedPassword();
         $this->phone = "";
+        $this->bio = "personnel $index bio";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
         $this->removed = false;
         
@@ -52,6 +54,7 @@ class RecordOfPersonnel implements Record
             "email" => $this->email,
             "password" => $this->password,
             "phone" => $this->phone,
+            "bio" => $this->bio,
             "joinTime" => $this->joinTime,
             "removed" => $this->removed,
         ];
