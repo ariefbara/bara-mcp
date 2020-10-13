@@ -157,9 +157,10 @@ class WorksheetController extends UserBaseController
     protected function buildAddBranchService()
     {
         $worksheetRepository = $this->em->getRepository(Worksheet2::class);
+        $userParticipantRepository = $this->em->getRepository(UserParticipant::class);
         $missionRepository = $this->em->getRepository(Mission::class);
         
-        return new SubmitBranchWorksheet($worksheetRepository, $missionRepository);
+        return new SubmitBranchWorksheet($worksheetRepository, $userParticipantRepository, $missionRepository);
     }
 
     protected function buildUpdateService()

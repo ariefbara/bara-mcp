@@ -9,4 +9,6 @@ interface MissionRepository
 
     public function aMissionInProgramWhereUserParticipate(
             string $userId, string $programParticipationId, string $missionId): Mission;
+
+    public function ofId(string $missionId): Mission;
 }

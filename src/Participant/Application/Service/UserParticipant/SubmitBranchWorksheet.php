@@ -2,11 +2,15 @@
 
 namespace Participant\Application\Service\UserParticipant;
 
-use Participant\Application\Service\Participant\WorksheetRepository;
+use Participant\Application\Service\{
+    Participant\WorksheetRepository,
+    UserParticipantRepository
+};
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class SubmitBranchWorksheet
 {
+
     /**
      *
      * @var WorksheetRepository
@@ -15,13 +19,21 @@ class SubmitBranchWorksheet
 
     /**
      *
+     * @var UserParticipantRepository
+     */
+    protected $userParticipantRepository;
+
+    /**
+     *
      * @var MissionRepository
      */
     protected $missionRepository;
 
-    function __construct(WorksheetRepository $worksheetRepository, MissionRepository $missionRepository)
+    public function __construct(WorksheetRepository $worksheetRepository,
+            UserParticipantRepository $userParticipantRepository, MissionRepository $missionRepository)
     {
         $this->worksheetRepository = $worksheetRepository;
+        $this->userParticipantRepository = $userParticipantRepository;
         $this->missionRepository = $missionRepository;
     }
 
@@ -30,15 +42,14 @@ class SubmitBranchWorksheet
             FormRecordData $formRecordData): string
     {
         $id = $this->worksheetRepository->nextIdentity();
+        $mission = $this->missionRepository->ofId($missionId);
+        $parentWorksheet = $this->worksheetRepository->ofId($worksheetId);
+        
+        $branch = $this->userParticipantRepository->ofId($userId, $userParticipantId)
+                ->submitBranchWorksheet($parentWorksheet, $id, $name, $mission, $formRecordData);
 
-        $mission = $this->missionRepository
-                ->aMissionInProgramWhereUserParticipate($userId, $userParticipantId, $missionId);
-        
-        $worksheet = $this->worksheetRepository
-                ->aWorksheetBelongsToUserParticipant($userId, $userParticipantId, $worksheetId)
-                ->createBranchWorksheet($id, $name, $mission, $formRecordData);
-        
-        $this->worksheetRepository->add($worksheet);
+        $this->worksheetRepository->add($branch);
         return $id;
     }
+
 }

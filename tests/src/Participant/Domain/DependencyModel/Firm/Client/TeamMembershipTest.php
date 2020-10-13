@@ -201,23 +201,23 @@ class TeamMembershipTest extends TestBase
 
     protected function executeSubmitBranchWorksheet()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->worksheet);
+        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramParticipation);
         return $this->teamMembership->submitBranchWorksheet(
-                        $this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission,
-                        $this->formRecordData);
+                        $this->teamProgramParticipation, $this->worksheet, $this->worksheetId, $this->worksheetName, 
+                        $this->mission, $this->formRecordData);
     }
     public function test_executeSubmitBranchWorksheet_returnTeamProgramParticipationSubmitBranchWorksheetResult()
     {
         $branch = $this->buildMockOfClass(Worksheet::class);
-        $this->worksheet->expects($this->once())
-                ->method("createBranchWorksheet")
-                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData)
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("submitBranchWorksheet")
+                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMembership)
                 ->willReturn($branch);
         $this->assertEquals($branch, $this->executeSubmitBranchWorksheet());
     }
     public function test_executeSubmitBranchWorksheet_teamProgramParticipationBelongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->worksheet);
+        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramParticipation);
         $operation = function () {
             $this->executeSubmitBranchWorksheet();
         };

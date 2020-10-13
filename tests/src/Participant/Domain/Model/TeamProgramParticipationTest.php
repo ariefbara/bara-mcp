@@ -83,6 +83,18 @@ class TeamProgramParticipationTest extends TestBase
         $this->teamProgramParticipation->submitRootWorksheet(
                 $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember);
     }
+    
+    public function test_submitBranchWorksheet_returnParticipantsSubmitBranchWorksheetResult()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method("submitBranchWorksheet")
+                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember)
+                ->willReturn($branch = $this->buildMockOfClass(Worksheet::class));
+        $this->assertEquals(
+                $branch, $this->teamProgramParticipation->submitBranchWorksheet(
+                        $this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, 
+                        $this->formRecordData, $this->teamMember));
+    }
 
     public function test_quit_executeProgramParticipationQuitMethod()
     {

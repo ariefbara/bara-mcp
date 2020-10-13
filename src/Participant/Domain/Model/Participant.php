@@ -3,11 +3,11 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
+use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
@@ -15,13 +15,15 @@ use Participant\Domain\{
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
+    Model\Participant\CompletedMission,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
 };
-use Resources\{
+use Resources\ {
     Domain\Model\EntityContainEvents,
-    Exception\RegularException
+    Exception\RegularException,
+    Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
@@ -69,6 +71,12 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      * @var TeamProgramParticipation|null
      */
     protected $teamProgramParticipation;
+
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $completedMissions;
 
     protected function __construct()
     {
@@ -136,7 +144,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
 
         $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
         $this->consultationSessions->add($consultationSession);
-        
+
         $this->recordedEvents = $consultationSession->pullRecordedEvents();
     }
 
@@ -148,7 +156,41 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             $errorDetail = "forbidden: can only access mission in same program";
             throw RegularException::forbidden($errorDetail);
         }
+        
+        $this->addCompletedMission($mission);
+        
         return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecordData, $teamMember);
+    }
+    
+    public function submitBranchWorksheet(
+            Worksheet $parentWorksheet, string $branchId, string $name, Mission $mission,
+            FormRecordData $formRecordData, ?TeamMembership $teamMember = null): Worksheet
+    {
+        if (!$parentWorksheet->belongsToParticipant($this)) {
+            $errorDetail = "forbidden: can manage asset belongs to other participant";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
+        $this->addCompletedMission($mission);
+        
+        return $parentWorksheet->createBranchWorksheet($branchId, $name, $mission, $formRecordData, $teamMember);
+    }
+    
+    protected function addCompletedMission(Mission $mission): void
+    {
+        
+        $p = function (CompletedMission $completedMission) use ($mission){
+            return $completedMission->correspondWithMission($mission);
+        };
+        if (empty($this->completedMissions->filter($p)->count())) {
+            $id = Uuid::generateUuid4();
+            $completedMission = new CompletedMission($this, $id, $mission);
+            $this->completedMissions->add($completedMission);
+        }
+    }
+    
+    protected function noCompletedMissionInCollectionCorrespondWithMission(Mission $mission): bool
+    {
     }
 
     public function isActiveParticipantOfProgram(Program $program): bool
@@ -196,14 +238,6 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
     {
         if (!$this->active) {
             $errorDetail = "forbidden: only active program participant can make this request";
-            throw RegularException::forbidden($errorDetail);
-        }
-    }
-
-    protected function assertOwnAsset(AssetBelongsToParticipantInterface $asset): void
-    {
-        if (!$asset->belongsTo($this)) {
-            $errorDetail = "forbidden: unable to manage asset of other participant";
             throw RegularException::forbidden($errorDetail);
         }
     }

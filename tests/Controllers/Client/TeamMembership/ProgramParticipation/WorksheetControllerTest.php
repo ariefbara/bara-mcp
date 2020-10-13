@@ -3,8 +3,10 @@
 namespace Tests\Controllers\Client\TeamMembership\ProgramParticipation;
 
 use DateTime;
+use DateTimeImmutable;
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\Participant\RecordOfWorksheet,
+    Firm\Program\Participant\Worksheet\RecordOfCompletedMission,
     Firm\Program\RecordOfMission,
     Shared\RecordOfFormRecord
 };
@@ -87,7 +89,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         
         $activityLogEntry = [
             "message" => "team member submitted worksheet",
-            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+            "occuredTime" => (new DateTimeImmutable)->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);
         
@@ -96,6 +98,33 @@ class WorksheetControllerTest extends WorksheetTestCase
         ];
         $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
 //see database manually to check WorksheetActivityLog recorded successfully
+    }
+    public function test_submitRoot_addMissionToCompletedMissionList()
+    {
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Participant_id" => $this->programParticipation->participant->id,
+            "Mission_id" => $this->mission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("CompletedMission", $completedMissionEntry);
+    }
+    public function test_submitMission_missionAlreadyCompleted_preventAddNewRecord()
+    {
+        $completedMission = new RecordOfCompletedMission($this->programParticipation->participant, $this->mission, 0);
+        $completedMission->completedTime = (new DateTimeImmutable("-1 days"))->format("Y-m-d H:i:s");
+        $this->connection->table("CompletedMission")->insert($completedMission->toArrayForDbEntry());
+        
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Mission_id" => $this->mission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->notSeeInDatabase("CompletedMission", $completedMissionEntry);
     }
     
     public function test_submitBranch()
@@ -170,7 +199,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         
         $activityLogEntry = [
             "message" => "team member submitted worksheet",
-            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+            "occuredTime" => (new DateTimeImmutable)->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);
         
@@ -179,6 +208,38 @@ class WorksheetControllerTest extends WorksheetTestCase
         ];
         $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
 //see WorksheetActivityLog column manually to check record persisted
+    }
+    public function test_submitBranch_addCompletedMission()
+    {
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Participant_id" => $this->programParticipation->participant->id,
+            "Mission_id" => $this->branchMission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("CompletedMission", $completedMissionEntry);
+    }
+    public function test_submitBranch_alreadyCompletedSameMission_dontAddNewCompletedMission()
+    {
+        $completedMission = new RecordOfCompletedMission($this->programParticipation->participant, $this->branchMission, 0);
+        $completedMission->completedTime = (new DateTimeImmutable())->format("Y-m-d H:i:s");
+        $this->connection->table("CompletedMission")->insert($completedMission->toArrayForDbEntry());
+        
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->teamMembership->client->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Mission_id" => $this->branchMission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->notSeeInDatabase("CompletedMission", $completedMissionEntry);
+        
     }
     
     public function test_update()
@@ -220,7 +281,7 @@ class WorksheetControllerTest extends WorksheetTestCase
                 
         $activityLogEntry = [
             "message" => "team member updated worksheet",
-            "occuredTime" => (new \DateTimeImmutable)->format("Y-m-d H:i:s"),
+            "occuredTime" => (new DateTimeImmutable)->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);
         

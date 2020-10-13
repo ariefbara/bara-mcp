@@ -64,6 +64,14 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
                         $teamMember);
     }
 
+    public function submitBranchWorksheet(
+            Worksheet $worksheet, string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData,
+            TeamMembership $teamMember): Worksheet
+    {
+        return $this->programParticipation->submitBranchWorksheet(
+                        $worksheet, $worksheetId, $name, $mission, $formRecordData, $teamMember);
+    }
+
     public function quit(): void
     {
         $this->programParticipation->quit();

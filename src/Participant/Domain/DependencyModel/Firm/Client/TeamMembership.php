@@ -3,7 +3,7 @@
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Client,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
@@ -18,7 +18,7 @@ use Participant\Domain\ {
     Model\TeamProgramParticipation,
     Model\TeamProgramRegistration
 };
-use Resources\ {
+use Resources\{
     Application\Event\ContainEvents,
     Domain\Model\EntityContainEvents,
     Exception\RegularException
@@ -103,13 +103,13 @@ class TeamMembership extends EntityContainEvents
     }
 
     public function submitBranchWorksheet(
-            Worksheet $parentWorksheet, string $branchWorksheetId, string $branchWorksheetName, Mission $mission,
-            FormRecordData $formRecordData): Worksheet
+            TeamProgramParticipation $teamProgramParticipation, Worksheet $parentWorksheet, string $branchWorksheetId,
+            string $branchWorksheetName, Mission $mission, FormRecordData $formRecordData): Worksheet
     {
         $this->assertActive();
-        $this->assertAssetBelongsToTeam($parentWorksheet);
-        return $parentWorksheet->createBranchWorksheet(
-                        $branchWorksheetId, $branchWorksheetName, $mission, $formRecordData, $this);
+        $this->assertAssetBelongsToTeam($teamProgramParticipation);
+        return $teamProgramParticipation->submitBranchWorksheet(
+                        $parentWorksheet, $branchWorksheetId, $branchWorksheetName, $mission, $formRecordData, $this);
     }
 
     public function updateWorksheet(
@@ -119,7 +119,7 @@ class TeamMembership extends EntityContainEvents
         $this->assertAssetBelongsToTeam($worksheet);
         $worksheet->update($worksheetName, $formRecordData, $this);
     }
-    
+
     protected function pullAndRecordEventFromEntity(ContainEvents $entity): void
     {
         foreach ($entity->pullRecordedEvents() as $event) {
@@ -135,9 +135,9 @@ class TeamMembership extends EntityContainEvents
         $this->assertAssetBelongsToTeam($teamProgramParticipation);
         $consultationRequest = $teamProgramParticipation->submitConsultationRequest(
                 $consultationRequestId, $consultationSetup, $consultant, $startTime, $this);
-        
+
         $this->pullAndRecordEventFromEntity($consultationRequest);
-        
+
         return $consultationRequest;
     }
 
@@ -148,7 +148,7 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($teamProgramParticipation);
         $teamProgramParticipation->changeConsultationRequestTime($consultationRequestId, $startTime, $this);
-        
+
         $this->pullAndRecordEventFromEntity($teamProgramParticipation);
     }
 
@@ -157,7 +157,7 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($consultationRequest);
         $consultationRequest->cancel($this);
-        
+
         $this->pullAndRecordEventFromEntity($consultationRequest);
     }
 

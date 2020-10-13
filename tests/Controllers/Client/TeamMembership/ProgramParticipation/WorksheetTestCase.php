@@ -52,6 +52,7 @@ class WorksheetTestCase extends ProgramParticipationTestCase
         $this->connection->table('ActivityLog')->truncate();
         $this->connection->table('TeamMemberActivityLog')->truncate();
         $this->connection->table('WorksheetActivityLog')->truncate();
+        $this->connection->table('CompletedMission')->truncate();
 
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
@@ -114,6 +115,7 @@ class WorksheetTestCase extends ProgramParticipationTestCase
         $this->connection->table('ActivityLog')->truncate();
         $this->connection->table('TeamMemberActivityLog')->truncate();
         $this->connection->table('WorksheetActivityLog')->truncate();
+        $this->connection->table('CompletedMission')->truncate();
     }
     
 

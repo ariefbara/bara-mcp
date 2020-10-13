@@ -31,5 +31,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many  field="completedMissions" 
+                      target-entity="Participant\Domain\Model\Participant\CompletedMission"
+                      mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

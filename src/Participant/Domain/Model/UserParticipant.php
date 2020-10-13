@@ -3,7 +3,7 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
@@ -11,7 +11,7 @@ use Participant\Domain\ {
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment
 };
-use Resources\ {
+use Resources\{
     Domain\Model\EntityContainEvents,
     Uuid
 };
@@ -70,7 +70,16 @@ class UserParticipant extends EntityContainEvents
     public function createRootWorksheet(
             string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData): Worksheet
     {
-        return $this->participant->createRootWorksheet($worksheetId, $name, $mission, $formRecordData, $teamMember = null);
+        return $this->participant
+                        ->createRootWorksheet($worksheetId, $name, $mission, $formRecordData, $teamMember = null);
+    }
+
+    public function submitBranchWorksheet(
+            Worksheet $parentWorksheet, string $worksheetId, string $name, Mission $mission,
+            FormRecordData $formRecordData): Worksheet
+    {
+        return $this->participant
+                        ->submitBranchWorksheet($parentWorksheet, $worksheetId, $name, $mission, $formRecordData);
     }
 
     public function replyComment(

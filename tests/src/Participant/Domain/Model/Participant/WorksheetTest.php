@@ -190,6 +190,16 @@ class WorksheetTest extends TestBase
         $this->assertInstanceOf(Comment::class, $this->worksheet->createComment($this->commentId, $this->commentMessage, $this->teamMember));
     }
     
+    public function test_belongsToParticipant_sameParticipant_returnTrue()
+    {
+        $this->assertTrue($this->worksheet->belongsToParticipant($this->worksheet->participant));
+    }
+    public function test_belongsToParticipant_differentParticipant_returnFalse()
+    {
+        $participant = $this->buildMockOfClass(Participant::class);
+        $this->assertFalse($this->worksheet->belongsToParticipant($participant));
+    }
+    
 }
 
 class TestableWorksheet extends Worksheet

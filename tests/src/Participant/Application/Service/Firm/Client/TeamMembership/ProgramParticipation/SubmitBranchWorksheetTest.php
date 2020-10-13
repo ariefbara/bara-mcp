@@ -21,9 +21,11 @@ class SubmitBranchWorksheetTest extends TestBase
     protected $service;
     protected $worksheetRepository, $parentWorksheet, $nextId = 'nextId';
     protected $teamMembershipRepository, $teamMembership;
+    protected $teamProgramParticipationRepository, $teamProgramParticipation;
     protected $missionRepository, $mission;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
-            $parentWorksheetId = "parentWorksheetId", $missionId = "missionId";
+            $teamProgramParticipationId = "teamProgramParticipationId", $parentWorksheetId = "parentWorksheetId", 
+            $missionId = "missionId";
     protected $name = "worksheet name", $formRecordData;
 
     protected function setUp(): void
@@ -43,6 +45,13 @@ class SubmitBranchWorksheetTest extends TestBase
                 ->method("ofId")
                 ->with($this->firmId, $this->clientId, $this->teamMembershipId)
                 ->willReturn($this->teamMembership);
+        
+        $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
+        $this->teamProgramParticipationRepository = $this->buildMockOfInterface(TeamProgramParticipationRepository::class);
+        $this->teamProgramParticipationRepository->expects($this->once())
+                ->method("ofId")
+                ->with($this->teamProgramParticipationId)
+                ->willReturn($this->teamProgramParticipation);
 
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->missionRepository = $this->buildMockOfInterface(MissionRepository::class);
@@ -52,7 +61,8 @@ class SubmitBranchWorksheetTest extends TestBase
                 ->willReturn($this->mission);
 
         $this->service = new SubmitBranchWorksheet(
-                $this->worksheetRepository, $this->teamMembershipRepository, $this->missionRepository);
+                $this->worksheetRepository, $this->teamMembershipRepository, $this->teamProgramParticipationRepository, 
+                $this->missionRepository);
 
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
     }
@@ -60,8 +70,8 @@ class SubmitBranchWorksheetTest extends TestBase
     protected function execute()
     {
         return $this->service->execute(
-                        $this->firmId, $this->clientId, $this->teamMembershipId, $this->parentWorksheetId,
-                        $this->missionId, $this->name, $this->formRecordData);
+                        $this->firmId, $this->clientId, $this->teamMembershipId, $this->teamProgramParticipationId,
+                        $this->parentWorksheetId, $this->missionId, $this->name, $this->formRecordData);
     }
 
     public function test_execute_addBranchWorksheetToRepository()
@@ -69,7 +79,7 @@ class SubmitBranchWorksheetTest extends TestBase
         $branchWorksheet = $this->buildMockOfClass(Worksheet::class);
         $this->teamMembership->expects($this->once())
                 ->method("submitBranchWorksheet")
-                ->with($this->parentWorksheet, $this->nextId, $this->name,  $this->mission, $this->formRecordData)
+                ->with($this->teamProgramParticipation, $this->parentWorksheet, $this->nextId, $this->name,  $this->mission, $this->formRecordData)
                 ->willReturn($branchWorksheet);
         $this->worksheetRepository->expects($this->once())
                 ->method("add")

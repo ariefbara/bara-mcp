@@ -20,6 +20,7 @@ class UserParticipantTest extends TestBase
     protected $userParticipant;
     protected $participant;
     protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $startTime;
+    protected $worksheet;
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
     protected $commentId = 'commentId', $message = 'message';
     protected $comment;
@@ -36,6 +37,7 @@ class UserParticipantTest extends TestBase
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->startTime = new DateTimeImmutable();
         
+        $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         
@@ -97,6 +99,16 @@ class UserParticipantTest extends TestBase
         $this->assertEquals($worksheet,
                 $this->userParticipant->createRootWorksheet($this->worksheetId, $this->worksheetName, $this->mission,
                         $this->formRecordData));
+    }
+    
+    public function test_submitBranchWorksheet_returnParticipantSubmitBranchWorksheetResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("submitBranchWorksheet")
+                ->with($this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData)
+                ->willReturn($branch = $this->buildMockOfClass(Worksheet::class));
+        $this->assertEquals($branch, $this->userParticipant->submitBranchWorksheet(
+                $this->worksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData));
     }
     
     protected function executeReplyComment()

@@ -3,7 +3,7 @@
 namespace Participant\Domain\Model\Participant;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Mission,
@@ -13,18 +13,18 @@ use Participant\Domain\{
     Model\Participant\Worksheet\Comment,
     Model\Participant\Worksheet\WorksheetActivityLog
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Uuid,
     ValidationRule,
     ValidationService
 };
-use SharedContext\Domain\Model\SharedEntity\{
+use SharedContext\Domain\Model\SharedEntity\ {
     FormRecord,
     FormRecordData
 };
 
-class Worksheet implements AssetBelongsToTeamInterface
+class Worksheet implements AssetBelongsToTeamInterface, AssetBelongsToParticipantInterface
 {
 
     /**
@@ -158,6 +158,11 @@ class Worksheet implements AssetBelongsToTeamInterface
         $worksheetActivityLog = new WorksheetActivityLog($this, $id, $message, $teamMember);
 
         $this->worksheetActivityLogs->add($worksheetActivityLog);
+    }
+
+    public function belongsToParticipant(Participant $participant): bool
+    {
+        return $this->participant === $participant;
     }
 
 }

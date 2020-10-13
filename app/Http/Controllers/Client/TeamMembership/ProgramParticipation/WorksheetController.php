@@ -50,8 +50,8 @@ class WorksheetController extends TeamProgramParticipationBaseController
         $missionId = $this->stripTagsInputRequest("missionId");
         $name = $this->stripTagsInputRequest("name");
         $branchId = $service->execute(
-                $this->firmId(), $this->clientId(), $teamMembershipId, $worksheetId, $missionId, $name,
-                $this->getFormRecordData($teamMembershipId));
+                $this->firmId(), $this->clientId(), $teamMembershipId, $teamProgramParticipationId, $worksheetId,
+                $missionId, $name, $this->getFormRecordData($teamMembershipId));
 
         $viewService = $this->buildViewService();
         $branch = $viewService->showById(
@@ -202,9 +202,11 @@ class WorksheetController extends TeamProgramParticipationBaseController
     {
         $worksheetRepository = $this->em->getRepository(Worksheet2::class);
         $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
+        $teamProgramParticipationRepository = $this->em->getRepository(TeamProgramParticipation::class);
         $missionRepository = $this->em->getRepository(Mission::class);
 
-        return new SubmitBranchWorksheet($worksheetRepository, $teamMembershipRepository, $missionRepository);
+        return new SubmitBranchWorksheet(
+                $worksheetRepository, $teamMembershipRepository, $teamProgramParticipationRepository, $missionRepository);
     }
 
     protected function buildUpdateService()

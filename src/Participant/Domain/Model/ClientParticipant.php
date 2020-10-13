@@ -8,9 +8,6 @@ use Participant\Domain\{
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
-    Event\ClientParticipantAcceptedConsultationRequest,
-    Event\ClientParticipantChangedConsultationRequestTime,
-    Event\ClientParticipantProposedConsultationRequest,
     Model\Participant\ConsultationRequest,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment
@@ -74,7 +71,14 @@ class ClientParticipant extends EntityContainEvents
     public function createRootWorksheet(
             string $worksheetId, string $name, Mission $mission, FormRecordData $formRecordData): Worksheet
     {
-        return $this->participant->createRootWorksheet($worksheetId, $name, $mission, $formRecordData, $teamMember = null);
+        return $this->participant->createRootWorksheet($worksheetId, $name, $mission, $formRecordData,
+                        $teamMember = null);
+    }
+
+    public function submitBranchWorksheet(
+            Worksheet $parentWorksheet, string $branchId, string $name, Mission $mission, FormRecordData $formRecordData): Worksheet
+    {
+        return $this->participant->submitBranchWorksheet($parentWorksheet, $branchId, $name, $mission, $formRecordData);
     }
 
     public function replyComment(

@@ -2,7 +2,6 @@
 
 namespace Participant\Domain\Model;
 
-use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\ {
@@ -12,6 +11,7 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
+    Model\Participant\CompletedMission,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet
@@ -34,6 +34,7 @@ class ParticipantTest extends TestBase
     protected $otherConsultationRequest;
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
     protected $parentWorksheet;
+    protected $completedMission;
     protected $team;
     protected $teamMember;
 
@@ -45,6 +46,7 @@ class ParticipantTest extends TestBase
         $this->participant->note = null;
         $this->participant->consultationRequests = new ArrayCollection();
         $this->participant->consultationSessions = new ArrayCollection();
+        $this->participant->completedMissions = new ArrayCollection();
         
         $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
         $this->participant->teamProgramParticipation = $this->teamProgramParticipation;
@@ -57,6 +59,9 @@ class ParticipantTest extends TestBase
         $this->otherConsultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $this->participant->consultationRequests->add($this->consultationRequest);
         $this->participant->consultationRequests->add($this->otherConsultationRequest);
+        
+        $this->completedMission = $this->buildMockOfClass(CompletedMission::class);
+        $this->participant->completedMissions->add($this->completedMission);
 
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
         $this->participant->consultationSessions->add($this->consultationSession);
@@ -342,6 +347,57 @@ class ParticipantTest extends TestBase
         };
         $this->assertOperationCauseInactiveParticipantForbiddenError($operation);
     }
+    public function test_createRootWorksheet_addCompletedMission()
+    {
+        $this->executeCreateRootWorksheet();
+        $this->assertEquals(2, $this->participant->completedMissions->count());
+        $this->assertInstanceOf(CompletedMission::class, $this->participant->completedMissions->last());
+    }
+    public function test_createWorksheet_aCompletedMissionCorrespondToSameMissionAlreadyExistInCollection_preventAddNewCompletedMission()
+    {
+        $this->completedMission->expects($this->once())
+                ->method("correspondWithMission")
+                ->with($this->mission)
+                ->willReturn(true);
+        $this->executeCreateRootWorksheet();
+        $this->assertEquals(1, $this->participant->completedMissions->count());
+    }
+    
+    protected function executeSubmitBranchWorksheet()
+    {
+        $this->parentWorksheet->expects($this->any())
+                ->method("belongsToParticipant")
+                ->willReturn(true);
+        return $this->participant->submitBranchWorksheet(
+                $this->parentWorksheet, $this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, 
+                $this->teamMember);
+    }
+    public function test_submitBranchWorksheet_returnBranchWorksheetCreatedByParentWorksheet()
+    {
+        $this->parentWorksheet->expects($this->once())
+                ->method("createBranchWorksheet")
+                ->with($this->worksheetId, $this->worksheetName, $this->mission, $this->formRecordData, $this->teamMember)
+                ->willReturn($branch = $this->buildMockOfClass(Worksheet::class));
+        $this->assertEquals($branch, $this->executeSubmitBranchWorksheet());
+    }
+    public function test_submitBranchWorksheet_parentWorkshseetsDoesntBelongsToParticipant_forbiddenError()
+    {
+        $this->parentWorksheet->expects($this->once())
+                ->method("belongsToParticipant")
+                ->with($this->participant)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeSubmitBranchWorksheet();
+        };
+        $errorDetail = "forbidden: can manage asset belongs to other participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_submitBranchWorksheet_addCompletedMissionToCollection()
+    {
+        $this->executeSubmitBranchWorksheet();
+        $this->assertEquals(2, $this->participant->completedMissions->count());
+        $this->assertInstanceOf(CompletedMission::class, $this->participant->completedMissions->last());
+    }
     
     protected function executeIsActiveParticipantOfProgram()
     {
@@ -374,6 +430,7 @@ class TestableParticipant extends Participant
     public $consultationRequests;
     public $consultationSessions;
     public $teamProgramParticipation;
+    public $completedMissions;
 
     function __construct()
     {
