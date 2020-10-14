@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog" 
+            table="ViewLearningMaterialActivityLog" 
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineViewLearningMaterialActivityLogRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Participant\Domain\Model\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="learningMaterialId" column="LearningMaterial_id" type="guid" nullable="false"/>
+        
+        <one-to-one field="activityLog" 
+                    target-entity="Participant\Domain\SharedModel\ActivityLog"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="ActivityLog_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

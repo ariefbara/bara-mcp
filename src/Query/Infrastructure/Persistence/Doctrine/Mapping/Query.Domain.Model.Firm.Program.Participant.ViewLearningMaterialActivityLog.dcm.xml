@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog" 
+            table="ViewLearningMaterialActivityLog" 
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="learningMaterial" 
+                      target-entity="Query\Domain\Model\Firm\Program\Mission\LearningMaterial"
+        >
+            <join-column name="LearningMaterial_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="activityLog" 
+                    target-entity="Query\Domain\SharedModel\ActivityLog"
+                    inversed-by="viewLearningMaterialActivityLog"
+        >
+            <join-column name="ActivityLog_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

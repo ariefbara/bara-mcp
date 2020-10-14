@@ -58,6 +58,12 @@ class ActivityLog
 
     /**
      *
+     * @var ViewLearningMaterialActivityLog|null
+     */
+    protected $viewLearningMaterialActivityLog;
+
+    /**
+     *
      * @var TeamMemberActivityLog|null
      */
     protected $teamMemberActivityLog;
@@ -100,6 +106,11 @@ class ActivityLog
     public function getCommentActivityLog(): ?CommentActivityLog
     {
         return $this->commentActivityLog;
+    }
+
+    public function getViewLearningMaterialActivityLog(): ?ViewLearningMaterialActivityLog
+    {
+        return $this->viewLearningMaterialActivityLog;
     }
 
     public function getTeamMemberActivityLog(): ?TeamMemberActivityLog

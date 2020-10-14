@@ -9,4 +9,6 @@ interface ParticipantRepository
             string $firmId, string $programId, string $clientId): bool;
 
     public function containRecordOfActiveParticipantCorrespondWithUser(string $firmId, string $programId, string $userId): bool;
+    
+    public function containRecordOfActiveParticipantCorrespondWithTeam(string $teamId, string $programId): bool;
 }

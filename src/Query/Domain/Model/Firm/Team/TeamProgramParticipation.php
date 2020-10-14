@@ -2,18 +2,18 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
-use Query\Domain\{
+use Query\Domain\ {
     Model\Firm\Program,
-    Model\Firm\Program\ConsultationSetup\ConsultationRequest,
+    Model\Firm\Program\Mission\LearningMaterial,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team,
-    Service\Firm\Program\ConsultationSetup\ConsultationRequestFilter,
-    Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder,
-    Service\Firm\Program\Participant\WorksheetFinder
+    Service\Firm\Program\Participant\WorksheetFinder,
+    Service\LearningMaterialFinder
 };
+use Resources\Application\Event\ContainEvents;
 
-class TeamProgramParticipation
+class TeamProgramParticipation implements ContainEvents
 {
 
     /**
@@ -88,6 +88,17 @@ class TeamProgramParticipation
             int $pageSize)
     {
         return $this->programParticipation->viewAllBranchWorksheets($worksheetFinder, $worksheetId, $page, $pageSize);
+    }
+
+    public function viewLearningMaterial(
+            LearningMaterialFinder $learningMaterialFinder, string $learningMaterialId): LearningMaterial
+    {
+        return $this->programParticipation->viewLearningMaterial($learningMaterialFinder, $learningMaterialId);
+    }
+
+    public function pullRecordedEvents(): array
+    {
+        return $this->programParticipation->pullRecordedEvents();
     }
 
 }

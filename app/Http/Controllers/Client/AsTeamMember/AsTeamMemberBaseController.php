@@ -10,7 +10,7 @@ use Query\ {
 
 class AsTeamMemberBaseController extends ClientBaseController
 {
-    protected function authorizeClientIsActiveTeamMemberWithAdminPriviledge(string $teamId): void
+    protected function authorizeClientIsActiveTeamMember(string $teamId): void
     {
         $memberRepository = $this->em->getRepository(Member::class);
         $authZ = new TeamMemberAuthorization($memberRepository);

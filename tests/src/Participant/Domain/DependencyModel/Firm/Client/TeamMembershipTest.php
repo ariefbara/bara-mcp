@@ -9,9 +9,8 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
-    Event\ConsultationRequestSubmitted,
-    Event\ConsultationRequestSubmittedByTeamMember,
     Event\EventTriggeredByTeamMember,
+    Model\Participant,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
     Model\Participant\Worksheet,
@@ -39,6 +38,7 @@ class TeamMembershipTest extends TestBase
     protected $consultationSession;
     protected $comment, $commentId = "commentId", $commentMessage = "comment message";
     protected $event;
+    protected $participant, $logId = "logId", $learningMaterialId = "learningMaterialId";
 
     protected function setUp(): void
     {
@@ -66,6 +66,8 @@ class TeamMembershipTest extends TestBase
         $this->comment = $this->buildMockOfClass(Comment::class);
         
         $this->event = $this->buildMockOfClass(CommonEvent::class);
+        
+        $this->participant = $this->buildMockOfClass(Participant::class);
     }
 
     protected function setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($asset)
@@ -509,7 +511,14 @@ class TeamMembershipTest extends TestBase
             $this->executeReplyComment();
         });
     }
-
+    
+    public function test_logViewLearningMaterialActivity_returnParticipantLogViewLearningMaterialActivityResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("logViewLearningMaterialActivity")
+                ->with($this->logId, $this->learningMaterialId, $this->teamMembership);
+        $this->teamMembership->logViewLearningMaterialActivity($this->logId, $this->participant, $this->learningMaterialId);
+    }
 }
 
 class TestableTeamMembership extends TeamMembership

@@ -7,11 +7,11 @@ class RecordOfFirm implements Record
     public $id, $name, $identifier, $suspended = false;
     public $url, $mailSenderAddress, $mailSenderName;
     
-    public function __construct($index, $identifier)
+    public function __construct($index)
     {
         $this->id = "firm-$index-id";
         $this->name = "firm $index name";
-        $this->identifier = $identifier;
+        $this->identifier = "firm-$index-identifier";
         $this->url = "http://firm-$index-url.com";
         $this->mailSenderAddress = "noreply@firm-$index.com";
         $this->mailSenderName = "firm $index name";

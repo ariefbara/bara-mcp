@@ -181,4 +181,28 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
         return !empty($qb->getQuery()->getResult());
     }
 
+    public function aTeamMembershipCorrespondWithTeam(string $clientId, string $teamId): Member
+    {
+        $params = [
+            "clientId" => $clientId,
+            "teamId" => $teamId,
+        ];
+        
+        $qb = $this->createQueryBuilder("teamMember");
+        $qb->select("teamMember")
+                ->leftJoin("teamMember.client", "client")
+                ->andWhere($qb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("teamMember.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: team member not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

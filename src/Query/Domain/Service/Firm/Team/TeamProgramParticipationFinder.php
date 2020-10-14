@@ -37,5 +37,11 @@ class TeamProgramParticipationFinder
     {
         return $this->teamProgramParticipationRepository->all($team->getId(), $page, $pageSize);
     }
+    
+    public function findTeamProgramParticipationCorrespondWithProgram(Team $team, string $programId): TeamProgramParticipation
+    {
+        return $this->teamProgramParticipationRepository
+                ->aTeamProgramParticipationCorrespondWithProgram($team->getId(), $programId);
+    }
 
 }

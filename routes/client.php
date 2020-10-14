@@ -243,4 +243,32 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
         });
     });
+    
+    $asTeamMemberAggregate = [
+        'prefix' => '/as-team-member/{teamId}',
+        'namespace' => 'AsTeamMember',
+    ];
+    $router->group($asTeamMemberAggregate, function () use ($router) {
+        
+        $asProgramParticipantAggregate = [
+            'prefix' => '/as-program-participant/{programId}',
+            'namespace' => 'AsProgramParticipant',
+        ];
+        
+        $router->group($asProgramParticipantAggregate, function () use ($router) {
+            $missionAggregate = [
+                'prefix' => '/missions/{missionId}',
+                'namespace' => 'Mission',
+            ];
+            $router->group($missionAggregate, function () use ($router) {
+                $router->group(['prefix' => '/learning-materials'], function () use($router) {
+                    $controller = "LearningMaterialController";
+                    $router->get("", ["uses" => "$controller@showAll"]);
+                    $router->get("/{learningMaterialId}", ["uses" => "$controller@show"]);
+                });
+            });
+            
+        });
+        
+    });
 });

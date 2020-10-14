@@ -14,6 +14,7 @@ use Participant\Domain\ {
     Model\Participant\CompletedMission,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
+    Model\Participant\ViewLearningMaterialActivityLog,
     Model\Participant\Worksheet
 };
 use Resources\Domain\Event\CommonEvent;
@@ -416,6 +417,13 @@ class ParticipantTest extends TestBase
     {
         $program = $this->buildMockOfClass(Program::class);
         $this->assertFalse($this->participant->isActiveParticipantOfProgram($program));
+    }
+    
+    public function test_logViewLearningMaterialActivity_returnViewLearningMaterialActivityLog()
+    {
+        $log = new ViewLearningMaterialActivityLog(
+                $this->participant, $logId = "logId", $learningMaterialId = "learningMaterialId", $this->teamMember);
+        $this->assertEquals($log, $this->participant->logViewLearningMaterialActivity($logId, $learningMaterialId, $this->teamMember));
     }
     
 }

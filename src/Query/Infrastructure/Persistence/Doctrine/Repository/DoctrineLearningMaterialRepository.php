@@ -8,15 +8,17 @@ use Doctrine\ORM\ {
 };
 use Query\ {
     Application\Service\Firm\Program\Mission\LearningMaterialRepository,
-    Domain\Model\Firm\Program\Mission\LearningMaterial
+    Domain\Model\Firm\Program\Mission\LearningMaterial,
+    Domain\Service\LearningMaterialRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineLearningMaterialRepository extends EntityRepository implements LearningMaterialRepository
+class DoctrineLearningMaterialRepository extends EntityRepository implements LearningMaterialRepository, InterfaceForDomainService
 {
+
     public function all(string $firmId, string $programId, string $missionId, int $page, int $pageSize)
     {
         $params = [
@@ -24,7 +26,7 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
             "programId" => $programId,
             "missionId" => $missionId,
         ];
-        
+
         $qb = $this->createQueryBuilder("learningMaterial");
         $qb->select("learningMaterial")
                 ->andWhere($qb->expr()->eq("learningMaterial.removed", "false"))
@@ -35,7 +37,7 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -47,7 +49,7 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
             "missionId" => $missionId,
             "learningMaterialId" => $learningMaterialId,
         ];
-        
+
         $qb = $this->createQueryBuilder("learningMaterial");
         $qb->select("learningMaterial")
                 ->andWhere($qb->expr()->eq("learningMaterial.id", ":learningMaterialId"))
@@ -58,6 +60,30 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: learning material not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aLearningMaterialBelongsToProgram(string $programId, string $learningMaterialId): LearningMaterial
+    {
+        $params = [
+            "programId" => $programId,
+            "learningMaterialId" => $learningMaterialId,
+        ];
+        
+        $qb = $this->createQueryBuilder("learningMaterial");
+        $qb->select("learningMaterial")
+                ->andWhere($qb->expr()->eq("learningMaterial.id", ":learningMaterialId"))
+                ->leftJoin("learningMaterial.mission", "mission")
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
         

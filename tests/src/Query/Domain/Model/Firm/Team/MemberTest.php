@@ -3,10 +3,14 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use Query\Domain\ {
+    Event\LearningMaterialViewedByParticipantEvent,
+    Event\LearningMaterialViewedByTeamMemberEvent,
     Model\Firm\Client,
     Model\Firm\Team,
     Service\Firm\ClientFinder,
-    Service\Firm\Team\TeamProgramParticipationFinder
+    Service\Firm\Team\TeamProgramParticipationFinder,
+    Service\LearningMaterialFinder,
+    Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2
 };
 use Tests\TestBase;
 
@@ -16,6 +20,10 @@ class MemberTest extends TestBase
 
     protected $clientFinder, $clientEmail = "client@email.org";
     protected $teamProgramParticipationFinder, $teamProgramParticipationId = "teamProgramParticipationid";
+    
+    protected $teamProgramParticipation;
+    protected $programParticipationFinder, $programId = "programId";
+    protected $learningMaterialFinder, $learningMaterialId = "learningMaterialId";
 
     protected function setUp(): void
     {
@@ -24,8 +32,17 @@ class MemberTest extends TestBase
         $this->member->client = $this->buildMockOfClass(Client::class);
         $this->member->team = $this->buildMockOfClass(Team::class);
         
-        $this->clientFinder = $this->buildMockOfClass(ClientFinder::class);
         $this->teamProgramParticipationFinder = $this->buildMockOfClass(TeamProgramParticipationFinder::class);
+        
+        $this->clientFinder = $this->buildMockOfClass(ClientFinder::class);
+        $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
+        $this->programParticipationFinder = $this->buildMockOfClass(TeamProgramParticipationFinder2::class);
+        $this->programParticipationFinder->expects($this->any())
+                ->method("execute")
+                ->with($this->member->team, $this->programId)
+                ->willReturn($this->teamProgramParticipation);
+        
+        $this->learningMaterialFinder = $this->buildMockOfClass(LearningMaterialFinder::class);
     }
     protected function assertNotAdminForbiddenError(callable $operation): void
     {
@@ -78,12 +95,41 @@ class MemberTest extends TestBase
             $this->member->viewTeamProgramParticipation($this->teamProgramParticipationFinder, $this->teamProgramParticipationId);
         });
     }
+    
+    protected function executeViewLearningMaterial()
+    {
+        $this->member->viewLearningMaterial($this->programParticipationFinder, $this->programId, $this->learningMaterialFinder, $this->learningMaterialId);
+    }
+    public function test_viewLearningMaterial_returnTeamProgramParticipationsViewLearningMaterialResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("viewLearningMaterial")
+                ->with($this->learningMaterialFinder, $this->learningMaterialId);
+        $this->executeViewLearningMaterial();
+    }
+    public function test_viewLearningMaterial_recordEvent()
+    {
+        $learningMaterialViewedByParticipantEvent = $this->buildMockOfClass(LearningMaterialViewedByParticipantEvent::class);
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn([$learningMaterialViewedByParticipantEvent]);
+        $event = new LearningMaterialViewedByTeamMemberEvent($this->member->id, $learningMaterialViewedByParticipantEvent);
+        $this->executeViewLearningMaterial();
+        $this->assertEquals($event, $this->member->pullRecordedEvents()[0]);
+    }
+    public function test_viewLearningMaterial_inactiveMember_forbiddenError()
+    {
+        $this->member->active = false;
+        $this->assertInactiveForbiddenError(function (){
+            $this->executeViewLearningMaterial();
+        });
+    }
 }
 
 class TestableMember extends Member
 {
     public $team;
-    public $id;
+    public $id = "memberId";
     public $client;
     public $position;
     public $anAdmin = true;

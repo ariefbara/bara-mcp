@@ -10,6 +10,7 @@ use Query\ {
     Application\Service\Firm\Program\ParticipantRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant,
+    Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant,
     Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService
 };
@@ -169,6 +170,33 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
         }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function containRecordOfActiveParticipantCorrespondWithTeam(string $teamId, string $programId): bool
+    {
+        $params = [
+            'teamId' => $teamId,
+            'programId' => $programId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select('tp_participant.id')
+                ->from(TeamProgramParticipation::class, 'teamParticipant')
+                ->leftJoin('teamParticipant.programParticipation', 'tp_participant')
+                ->leftJoin('teamParticipant.team', 'team')
+                ->andWhere($participantQb->expr()->eq('team.id', ':teamId'))
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder('participant');
+        $qb->select('1')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->andWhere($qb->expr()->in('participant.id', $participantQb->getDQL()))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        return !empty($qb->getQuery()->getResult());
     }
 
 }

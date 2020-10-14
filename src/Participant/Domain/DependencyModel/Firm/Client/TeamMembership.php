@@ -3,7 +3,7 @@
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
@@ -11,14 +11,16 @@ use Participant\Domain\{
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Event\EventTriggeredByTeamMember,
+    Model\Participant,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
+    Model\Participant\ViewLearningMaterialActivityLog,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
     Model\TeamProgramRegistration
 };
-use Resources\{
+use Resources\ {
     Application\Event\ContainEvents,
     Domain\Model\EntityContainEvents,
     Exception\RegularException
@@ -191,6 +193,12 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($comment);
         return $comment->createReply($replyId, $message, $this);
+    }
+
+    public function logViewLearningMaterialActivity(
+            string $logId, Participant $participant, string $learningMaterialId): ViewLearningMaterialActivityLog
+    {
+        return $participant->logViewLearningMaterialActivity($logId, $learningMaterialId, $this);
     }
 
 }

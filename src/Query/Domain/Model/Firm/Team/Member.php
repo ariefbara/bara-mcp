@@ -3,10 +3,12 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
-use Query\{
+use Query\ {
+    Domain\Event\LearningMaterialViewedByTeamMemberEvent,
     Domain\Model\Firm\Client,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
+    Domain\Model\Firm\Program\Mission\LearningMaterial,
     Domain\Model\Firm\Program\Participant\Worksheet,
     Domain\Model\Firm\Team,
     Domain\Service\Firm\ClientFinder,
@@ -17,12 +19,17 @@ use Query\{
     Domain\Service\Firm\Team\TeamFileInfoFinder,
     Domain\Service\Firm\Team\TeamProgramParticipationFinder,
     Domain\Service\Firm\Team\TeamProgramRegistrationFinder,
+    Domain\Service\LearningMaterialFinder,
+    Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2,
     Infrastructure\QueryFilter\ConsultationRequestFilter,
     Infrastructure\QueryFilter\ConsultationSessionFilter
 };
-use Resources\Exception\RegularException;
+use Resources\ {
+    Domain\Model\EntityContainEvents,
+    Exception\RegularException
+};
 
-class Member
+class Member extends EntityContainEvents
 {
 
     /**
@@ -253,6 +260,23 @@ class Member
         $this->assertActive();
         return $consultationSessionFinder->findAllConsultationSessionBelongsToTeam(
                         $this->team, $teamProgramParticipationId, $page, $pageSize, $consultationSessionFilter);
+    }
+
+    public function viewLearningMaterial(
+            TeamProgramParticipationFinder2 $teamProgramParticipationFinder, string $programId,
+            LearningMaterialFinder $learningMaterialFinder, string $learningMaterialId): LearningMaterial
+    {
+        $this->assertActive();
+        $teamProgramParticipation = $teamProgramParticipationFinder
+                ->execute($this->team, $programId);
+        $learningMaterial = $teamProgramParticipation->viewLearningMaterial($learningMaterialFinder, $learningMaterialId);
+        
+        foreach ($teamProgramParticipation->pullRecordedEvents() as $triggeredByParticipant) {
+            $event = new LearningMaterialViewedByTeamMemberEvent($this->id, $triggeredByParticipant);
+            $this->recordEvent($event);
+        }
+        
+        return $learningMaterial;
     }
 
 }

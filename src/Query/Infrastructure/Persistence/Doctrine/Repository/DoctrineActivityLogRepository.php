@@ -7,6 +7,7 @@ use Query\ {
     Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ActivityLogRepository,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
+    Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog,
     Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog,
     Domain\Model\Firm\Team\Member,
@@ -34,7 +35,8 @@ class DoctrineActivityLogRepository extends EntityRepository implements Activity
                         $qb->expr()->in("activityLog.id", $this->getConsultationRequestActivityDQL()),
                         $qb->expr()->in("activityLog.id", $this->getConsultationSessionActivityDQL()),
                         $qb->expr()->in("activityLog.id", $this->getWorksheetActivityDQL()),
-                        $qb->expr()->in("activityLog.id", $this->getCommentActivityDQL())
+                        $qb->expr()->in("activityLog.id", $this->getCommentActivityDQL()),
+                        $qb->expr()->in("activityLog.id", $this->getAccessingLearningMaterialActivtyDQL())
                 ))
                 ->orderBy("activityLog.occuredTime", "DESC")
                 ->setParameters($params);
@@ -169,6 +171,35 @@ class DoctrineActivityLogRepository extends EntityRepository implements Activity
                 ->andWhere($commentActivityLogQb->expr()->in("cm_participant.id", $participantQb->getDQL()));
         
         return $commentActivityLogQb->getDQL();
+    }
+    protected function getAccessingLearningMaterialActivtyDQL()
+    {
+        $teamQb = $this->getEntityManager()->createQueryBuilder();
+        $teamQb->select("t_lm_team.id")
+                ->from(Member::class, "lm_teamMembership")
+                ->andWhere($teamQb->expr()->eq("lm_teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("lm_teamMembership.team", "t_lm_team")
+                ->leftJoin("lm_teamMembership.client", "lm_client")
+                ->andWhere($teamQb->expr()->eq("lm_client.id", ":clientId"))
+                ->leftJoin("lm_client.firm", "lm_firm")
+                ->andWhere($teamQb->expr()->eq("lm_firm.id", ":firmId"))
+                ->setMaxResults(1);
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("lm_programParticipation.id")
+                ->from(TeamProgramParticipation::class, "lm_teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("lm_teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("lm_teamProgramParticipation.programParticipation", "lm_programParticipation")
+                ->leftJoin("lm_teamProgramParticipation.team", "lm_team")
+                ->andWhere($participantQb->expr()->in("lm_team.id", $teamQb->getDQL()))
+                ->setMaxResults(1);
+        
+        $viewLearningMaterialLogQb = $this->getEntityManager()->createQueryBuilder();
+        $viewLearningMaterialLogQb->select("lm_activityLog.id")
+                ->from(ViewLearningMaterialActivityLog::class, "viewLearningMaterialActivityLog")
+                ->leftJoin("viewLearningMaterialActivityLog.activityLog", "lm_activityLog")
+                ->leftJoin("viewLearningMaterialActivityLog.participant", "lm_participant")
+                ->andWhere($viewLearningMaterialLogQb->expr()->in("lm_participant.id", $participantQb->getDQL()));
     }
 
 }

@@ -8,14 +8,16 @@ use Doctrine\ORM\ {
 };
 use Query\Domain\ {
     Model\Firm\Team\TeamProgramParticipation,
-    Service\Firm\Team\TeamProgramParticipationRepository
+    Service\Firm\Team\TeamProgramParticipationRepository,
+    Service\TeamProgramParticipationRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository
+class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository,
+        InterfaceForDomainService
 {
 
     public function all(string $teamId, int $page, int $pageSize)
@@ -53,6 +55,31 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         } catch (NoResultException $ex) {
             $errorDetail = "not found: team program participation not found";
             throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aTeamProgramParticipationCorrespondWithProgram(string $teamId, string $programId): TeamProgramParticipation
+    {
+        $params = [
+            "teamId" => $teamId,
+            "programId" => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder("teamProgramParticipation");
+        $qb->select("teamProgramParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("programParticipation.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $programId = "not found: team program participation not found";
+            throw RegularException::notFound($programId);
         }
     }
 

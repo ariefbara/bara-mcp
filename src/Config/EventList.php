@@ -19,6 +19,8 @@ class EventList
     const CONSULTATION_REQUEST_ACCEPTED = "consultation-request-accepted";
     
     const COMMENT_FROM_CONSULTANT_REPLIED = "comment-from-consultant-replied"; 
-    const COMMENT_SUBMITTED_BY_CONSULTANT = "comment-submitted-by-consultant"; 
+    const COMMENT_SUBMITTED_BY_CONSULTANT = "comment-submitted-by-consultant";
+    
+    const LEARNING_MATERIAL_VIEWED_BY_PARTICIPANT = "learning-material-viewed-by-participant";
     
 }

@@ -10,4 +10,5 @@ interface TeamProgramParticipationRepository
     public function ofId(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation;
 
     public function all(string $teamId, int $page, int $pageSize);
+    
 }

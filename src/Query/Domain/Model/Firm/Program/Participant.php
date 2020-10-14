@@ -3,17 +3,23 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\{
+use Query\Domain\ {
+    Event\LearningMaterialViewedByParticipantEvent,
     Model\Firm\Client\ClientParticipant,
     Model\Firm\Program,
+    Model\Firm\Program\Mission\LearningMaterial,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team\TeamProgramParticipation,
     Model\User\UserParticipant,
-    Service\Firm\Program\Participant\WorksheetFinder
+    Service\Firm\Program\Participant\WorksheetFinder,
+    Service\LearningMaterialFinder
 };
-use Resources\Exception\RegularException;
+use Resources\ {
+    Domain\Model\EntityContainEvents,
+    Exception\RegularException
+};
 
-class Participant
+class Participant extends EntityContainEvents
 {
 
     /**
@@ -140,6 +146,18 @@ class Participant
             $errorDetail = "forbidden: only active participant can make this request";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+    
+    public function viewLearningMaterial(
+            LearningMaterialFinder $learningMaterialFinder, string $learningMaterialId): LearningMaterial
+    {
+        $this->assertActive();
+        $learningMaterial =  $learningMaterialFinder->execute($this->program, $learningMaterialId);
+        
+        $event = new LearningMaterialViewedByParticipantEvent($this->id, $learningMaterial->getId());
+        $this->recordEvent($event);
+        
+        return $learningMaterial;
     }
 
 }

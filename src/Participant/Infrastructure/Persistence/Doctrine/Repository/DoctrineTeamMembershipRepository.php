@@ -40,4 +40,9 @@ class DoctrineTeamMembershipRepository extends EntityRepository implements TeamM
         }
     }
 
+    public function aTeamMembershipById(string $teamMembershipId): TeamMembership
+    {
+        return $this->findOneBy(["id" => $teamMembershipId]);
+    }
+
 }

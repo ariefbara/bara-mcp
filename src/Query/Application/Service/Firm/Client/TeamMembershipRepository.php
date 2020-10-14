@@ -2,9 +2,12 @@
 
 namespace Query\Application\Service\Firm\Client;
 
-use Query\Domain\Model\Firm\Team\Member;
+use Query\ {
+    Application\Service\Firm\Client\AsTeamMember\TeamMemberRepository,
+    Domain\Model\Firm\Team\Member
+};
 
-interface TeamMembershipRepository
+interface TeamMembershipRepository extends TeamMemberRepository
 {
 
     public function aTeamMembershipOfClient(string $firmId, string $clientId, string $teamMembershipId): Member;

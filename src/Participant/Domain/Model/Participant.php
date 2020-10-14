@@ -18,6 +18,7 @@ use Participant\Domain\ {
     Model\Participant\CompletedMission,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
+    Model\Participant\ViewLearningMaterialActivityLog,
     Model\Participant\Worksheet
 };
 use Resources\ {
@@ -156,12 +157,12 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             $errorDetail = "forbidden: can only access mission in same program";
             throw RegularException::forbidden($errorDetail);
         }
-        
+
         $this->addCompletedMission($mission);
-        
+
         return Worksheet::createRootWorksheet($this, $worksheetId, $name, $mission, $formRecordData, $teamMember);
     }
-    
+
     public function submitBranchWorksheet(
             Worksheet $parentWorksheet, string $branchId, string $name, Mission $mission,
             FormRecordData $formRecordData, ?TeamMembership $teamMember = null): Worksheet
@@ -170,16 +171,16 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             $errorDetail = "forbidden: can manage asset belongs to other participant";
             throw RegularException::forbidden($errorDetail);
         }
-        
+
         $this->addCompletedMission($mission);
-        
+
         return $parentWorksheet->createBranchWorksheet($branchId, $name, $mission, $formRecordData, $teamMember);
     }
-    
+
     protected function addCompletedMission(Mission $mission): void
     {
-        
-        $p = function (CompletedMission $completedMission) use ($mission){
+
+        $p = function (CompletedMission $completedMission) use ($mission) {
             return $completedMission->correspondWithMission($mission);
         };
         if (empty($this->completedMissions->filter($p)->count())) {
@@ -188,14 +189,16 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             $this->completedMissions->add($completedMission);
         }
     }
-    
-    protected function noCompletedMissionInCollectionCorrespondWithMission(Mission $mission): bool
-    {
-    }
 
     public function isActiveParticipantOfProgram(Program $program): bool
     {
         return $this->active && $this->program === $program;
+    }
+
+    public function logViewLearningMaterialActivity(
+            string $LogId, string $learningMaterialId, ?TeamMembership $teamMember = null): ViewLearningMaterialActivityLog
+    {
+        return new ViewLearningMaterialActivityLog($this, $LogId, $learningMaterialId, $teamMember);
     }
 
     protected function getConsultationRequestOrDie(string $consultationRequestId): ConsultationRequest
