@@ -63,6 +63,7 @@ $router->group($personnelAggregate, function () use ($router) {
         'namespace' => 'ProgramConsultation',
     ];
     $router->group($programConsultationAggregate, function () use ($router) {
+        $router->get("/activity-logs", ["uses" => "ActivityLogController@showAll"]);
         
         $router->group(['prefix' => '/participants'], function () use($router) {
             $controller = "ParticipantController";

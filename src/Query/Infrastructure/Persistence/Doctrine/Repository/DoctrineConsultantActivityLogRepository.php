@@ -19,11 +19,13 @@ class DoctrineConsultantActivityLogRepository extends EntityRepository implement
         
         $qb = $this->createQueryBuilder("consultantActivityLog");
         $qb->select("consultantActivityLog")
+                ->leftJoin("consultantActivityLog.activityLog", "activityLog")
                 ->leftJoin("consultantActivityLog.consultant", "consultant")
                 ->andWhere($qb->expr()->eq("consultant.id", ":consultantId"))
                 ->leftJoin("consultant.personnel", "personnel")
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
-                ->setParameters($params);
+                ->setParameters($params)
+                ->orderBy("activityLog.occuredTime", "DESC");
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
