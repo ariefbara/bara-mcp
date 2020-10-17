@@ -3,8 +3,11 @@
 namespace Query\Domain\Model\Firm\Personnel;
 
 use DateTimeImmutable;
-use Query\Domain\{
+use Query\Domain\ {
     Model\Firm\Personnel,
+    Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification,
+    Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionNotification,
+    Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification,
     SharedModel\Notification
 };
 
@@ -74,6 +77,16 @@ class PersonnelNotificationRecipient
     public function getConsultationRequestNotification(): ?ConsultationRequestNotification
     {
         return $this->notification->getConsultationRequestNotification();
+    }
+    
+    public function getConsultationSessionNotification(): ?ConsultationSessionNotification
+    {
+        return $this->notification->getConsultationSessionNotification();
+    }
+
+    public function getCommentNotification(): ?CommentNotification
+    {
+        return $this->notification->getCommentNotification();
     }
 
 }

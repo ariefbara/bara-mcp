@@ -19,50 +19,25 @@ use Resources\{
 class DoctrinePersonnelNotificationRepository extends EntityRepository implements PersonnelNotificationRepository
 {
 
-    public function all(PersonnelCompositionId $personnelCompositionId, int $page, int $pageSize)
+    public function allNotificationBelongsToPersonnel(string $personnelId, int $page, int $pageSize, ?bool $readStatus)
     {
         $params = [
-            "personnelId" => $personnelCompositionId->getPersonnelId(),
-            "firmId" => $personnelCompositionId->getFirmId(),
+            "personnelId" => $personnelId,
         ];
 
         $qb = $this->createQueryBuilder('personnelNotification');
         $qb->select('personnelNotification')
                 ->leftJoin('personnelNotification.personnel', 'personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
-                ->leftJoin('personnel.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params);
+                ->setParameters($params)
+                ->orderBy("personnelNotification.notifiedTime", "DESC");
+        
+        if (isset($readStatus)) {
+            $qb->andWhere($qb->expr()->eq("personnelNotification.read", ":readStatus"))
+                    ->setParameter("readStatus", $readStatus);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function ofId(PersonnelCompositionId $personnelCompositionId, string $personnelNotificationId): PersonnelNotification
-    {
-        $params = [
-            "personnelNotificationId" => $personnelNotificationId,
-            "personnelId" => $personnelCompositionId->getPersonnelId(),
-            "firmId" => $personnelCompositionId->getFirmId(),
-        ];
-
-        $qb = $this->createQueryBuilder('personnelNotification');
-        $qb->select('personnelNotification')
-                ->andWhere($qb->expr()->eq('personnelNotification.id', ':personnelNotificationId'))
-                ->leftJoin('personnelNotification.personnel', 'personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
-                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
-                ->leftJoin('personnel.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params)
-                ->setMaxResults(1);
-
-        try {
-            return $qb->getQuery()->getSingleResult();
-        } catch (NoResultException $ex) {
-            $errorDetail = 'not found: personnel notification not found';
-            throw RegularException::notFound($errorDetail);
-        }
     }
 
 }

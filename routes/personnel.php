@@ -6,6 +6,7 @@ $personnelAggregate = [
     'middleware' => 'personnelJwtAuth',
 ];
 $router->group($personnelAggregate, function () use ($router) {
+    $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     $router->patch("/update-profile", ["uses" => "AccountController@updateProfile"]);
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
