@@ -2,9 +2,9 @@
 
 namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use Query\{
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
+use Query\ {
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
+    Infrastructure\QueryFilter\ConsultationRequestFilter as ConsultationRequestFilter2
 };
 
 class ConsultationRequestView
@@ -21,27 +21,18 @@ class ConsultationRequestView
         $this->consultationRequestRepository = $consultationRequestRepository;
     }
 
-    /**
-     * 
-     * @param string $firmId
-     * @param string $personnelId
-     * @param string $consultantId
-     * @param int $page
-     * @param int $pageSize
-     * @param ConsultationRequestFilter|null $consultationRequestFilter
-     * @return ConsultationRequest[]
-     */
-    public function showAll(string $firmId, string $personnelId, string $consultantId, int $page, int $pageSize,
-            ?ConsultationRequestFilter $consultationRequestFilter)
+    public function showAll(
+            string $personnelId, string $programConsultationId, int $page, int $pageSize,
+            ?ConsultationRequestFilter2 $consultationRequestFilter)
     {
-        return $this->consultationRequestRepository->allConsultationRequestsOfPersonnel($firmId, $personnelId,
-                        $consultantId, $page, $pageSize, $consultationRequestFilter);
+        return $this->consultationRequestRepository->allConsultationRequestBelongsToConsultant(
+                        $personnelId, $programConsultationId, $page, $pageSize, $consultationRequestFilter);
     }
 
-    public function showById(string $firmId, string $personnelId, string $consultantId, string $consultationRequestId): ConsultationRequest
+    public function showById(string $personnelId, string $programConsultationId, string $consultationRequestId): ConsultationRequest
     {
-        return $this->consultationRequestRepository->aConsultationRequestOfPersonnel($firmId, $personnelId,
-                        $consultantId, $consultationRequestId);
+        return $this->consultationRequestRepository->aConsultationRequestBelongsToConsultant(
+                $personnelId, $programConsultationId, $consultationRequestId);
     }
 
 }

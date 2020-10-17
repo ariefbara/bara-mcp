@@ -2,9 +2,12 @@
 
 namespace Personnel\Domain\Model\Firm\Program\Participant;
 
-use User\Domain\Model\User\Participant;
+use Personnel\Domain\Model\Firm\ {
+    Personnel\AssetBelongsToParticipantInProgram,
+    Program\Participant
+};
 
-class Worksheet
+class Worksheet implements AssetBelongsToParticipantInProgram
 {
 
     /**
@@ -32,7 +35,11 @@ class Worksheet
 
     protected function __construct()
     {
-        ;
+    }
+
+    public function belongsToParticipantInProgram(string $programId): bool
+    {
+        return $this->participant->programEquals($programId);
     }
 
 }

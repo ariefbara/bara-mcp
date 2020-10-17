@@ -58,7 +58,7 @@ class ConsultantCommentSubmitNew
         $consultantComment = $programConsultation->submitNewCommentOnWorksheet($id, $worksheet, $message);
         $this->consultantCommentRepository->add($consultantComment);
         
-        $this->dispatcher->dispatch($programConsultation);
+        $this->dispatcher->dispatch($consultantComment);
         
         return $id;
     }

@@ -2,13 +2,19 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
+use Config\EventList;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\Model\Firm\ {
     Personnel\ProgramConsultant,
+    Personnel\ProgramConsultant\ConsultationRequest\ConsultationRequestActivityLog,
     Program\ConsultationSetup,
     Program\Participant
 };
-use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\Domain\ {
+    Event\CommonEvent,
+    ValueObject\DateTimeInterval
+};
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 use Tests\TestBase;
 
@@ -37,29 +43,28 @@ class ConsultationRequestTest extends TestBase
         $this->consultationRequest->programConsultant = $this->programConsultant;
         $this->consultationRequest->startEndTime = $this->startEndTime;
         $this->consultationRequest->status = new ConsultationRequestStatusVO('proposed');
+        $this->consultationRequest->consultationRequestActivityLogs = new ArrayCollection();
 
         $this->startTime = new DateTimeImmutable('+1 days');
-        $this->otherConsultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
+        $this->otherConsultationRequest = new TestableConsultationRequest();
+        $this->otherConsultationRequest->startEndTime = $this->startEndTime;
     }
 
     protected function executeReject()
     {
         $this->consultationRequest->reject();
     }
-
     public function test_reject_setStatusRejected()
     {
         $this->executeReject();
         $status = new ConsultationRequestStatusVO("rejected");
         $this->assertEquals($status, $this->consultationRequest->status);
     }
-
     public function test_reject_setConcludedFlagTrue()
     {
         $this->executeReject();
         $this->assertTrue($this->consultationRequest->concluded);
     }
-
     public function test_reject_alreadyConcluded_throwEx()
     {
         $this->consultationRequest->concluded = true;
@@ -69,19 +74,30 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+    public function test_reject_logActivity()
+    {
+        $this->executeReject();
+        $this->assertEquals(1, $this->consultationRequest->consultationRequestActivityLogs->count());
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
+    }
+    public function test_reject_recordConsultationRequestRejectedEvent()
+    {
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_REJECTED, $this->consultationRequest->id);
+        $this->executeReject();
+        $this->assertEquals($event, $this->consultationRequest->recordedEvents[0]);
+    }
+    
 
     protected function executeOffer()
     {
         $this->consultationRequest->offer($this->startTime);
     }
-
     public function test_offer_setStatusOffered()
     {
         $this->executeOffer();
         $status = new ConsultationRequestStatusVO("offered");
         $this->assertEquals($status, $this->consultationRequest->status);
     }
-
     public function test_offer_alreadyConcluded_throwEx()
     {
         $this->consultationRequest->concluded = true;
@@ -91,7 +107,6 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
     public function test_offer_setStartEndTimeFromConsultationSetup()
     {
         $this->consultationSetup->expects($this->once())
@@ -101,7 +116,6 @@ class ConsultationRequestTest extends TestBase
         $this->executeOffer();
         $this->assertEquals($this->startEndTime, $this->consultationRequest->startEndTime);
     }
-
     public function test_offer_startEndTimeUnavailableInParticipantsSchedule_throwEx()
     {
         $this->participant->expects($this->once())
@@ -114,12 +128,23 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request time in conflict with participan existing consultation session';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+    public function test_offer_logActivity()
+    {
+        $this->executeOffer();
+        $this->assertEquals(1, $this->consultationRequest->consultationRequestActivityLogs->count());
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
+    }
+    public function test_offer_recordConsultationRequestOfferedEvent()
+    {
+        $this->executeOffer();
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_OFFERED, $this->consultationRequest->id);
+        $this->assertEquals($event, $this->consultationRequest->recordedEvents[0]);
+    }
 
     protected function executeAccept()
     {
         $this->consultationRequest->accept();
     }
-
     public function test_accept_alreadyConcluded_throwEx()
     {
         $this->consultationRequest->concluded = true;
@@ -129,20 +154,17 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
     public function test_accept_setStatusScheduled()
     {
         $this->executeAccept();
         $status = new ConsultationRequestStatusVO("scheduled");
         $this->assertEquals($status, $this->consultationRequest->status);
     }
-
     public function test_accept_setConcludedFlagTrue()
     {
         $this->executeAccept();
         $this->assertTrue($this->consultationRequest->concluded);
     }
-    
     public function test_accept_currentStatusNotProposed_error403()
     {
         $this->consultationRequest->status = new ConsultationRequestStatusVO('offered');
@@ -152,13 +174,11 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = "forbidden: can only accept proposed consultation request";
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
+    
     public function test_createConsultationSetupSchedule_returnConsultationSetupSchedule()
     {
         $id = 'id';
-        $consultationSession = new ConsultationSession(
-                $this->programConsultant, $id, $this->participant, $this->consultationSetup, $this->startEndTime);
-        $this->assertEquals($consultationSession, $this->consultationRequest->createConsultationSession($id));
+        $this->assertInstanceOf(ConsultationSession::class, $this->consultationRequest->createConsultationSession($id));
     }
 
     protected function executeIsOfferedConsultationRequestConflictedWith()
@@ -197,7 +217,9 @@ class ConsultationRequestTest extends TestBase
 class TestableConsultationRequest extends ConsultationRequest
 {
 
-    public $consultationSetup, $id, $participant, $programConsultant, $startEndTime, $concluded = false, $status;
+    public $consultationSetup, $id = "consultationRequestId", $participant, $programConsultant, $startEndTime, $concluded = false, $status;
+    public $consultationRequestActivityLogs;
+    public $recordedEvents;
 
     function __construct()
     {

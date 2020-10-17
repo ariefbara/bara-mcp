@@ -55,6 +55,10 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
         $this->connection->table('ParticipantFeedback')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ConsultationSessionActivityLog')->truncate();
+        $this->connection->table('ConsultantActivityLog')->truncate();
 
         $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
@@ -142,6 +146,11 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
         $this->connection->table('ParticipantFeedback')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ConsultationRequestActivityLog')->truncate();
+        $this->connection->table('ConsultationSessionActivityLog')->truncate();
+        $this->connection->table('ConsultantActivityLog')->truncate();
     }
 
     public function test_show()
@@ -192,7 +201,6 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-
     public function test_showAll()
     {
         $response = [
@@ -293,7 +301,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                 ->seeJsonContains($response);
     }
 
-    public function test_setConsultantFeedback()
+    public function test_submitReport()
     {
         $this->connection->table('ConsultantFeedback')->truncate();
         $this->connection->table('FormRecord')->truncate();
@@ -307,7 +315,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
             ],
             "value" => $this->consultantFeedbackInput['stringFieldRecords'][0]['value'],
         ];
-        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/consultant-feedback";
+        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/submit-report";
         $this->put($uri, $this->consultantFeedbackInput, $this->personnel->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
@@ -328,8 +336,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
         ];
         $this->seeInDatabase("StringFieldRecord", $stringFieldRecordEntry);
     }
-
-    public function test_setConsultantFeedback_consultationSessionAlreadyHasConsultantFeedback_updateExistingConsultantFeedback()
+    public function test_submitReport_consultationSessionAlreadyHasConsultantFeedback_updateExistingConsultantFeedback()
     {
         $response = [
             "id" => $this->consultationSessionOne->id,
@@ -391,7 +398,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
             ],
         ];
 
-        $uri = $this->consultationSessionUri . "/{$this->consultationSessionOne->id}/consultant-feedback";
+        $uri = $this->consultationSessionUri . "/{$this->consultationSessionOne->id}/submit-report";
         $this->put($uri, $this->consultantFeedbackInput, $this->personnel->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
@@ -401,6 +408,26 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
             "value" => $this->consultantFeedbackInput['stringFieldRecords'][0]['value'],
         ];
         $this->seeInDatabase("StringFieldRecord", $stringFieldRecordEntry);
+    }
+    public function test_submitReport_logActivity()
+    {
+        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/submit-report";
+        $this->put($uri, $this->consultantFeedbackInput, $this->personnel->token)
+                ->seeStatusCode(200);
+        $activityLogEntry = [
+            "message" => "consultant report submitted",
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $consultationSessionActivityLogEntry = [
+            "ConsultationSession_id" => $this->consultationSession->id,
+        ];
+        $this->seeInDatabase("ConsultationSessionActivityLog", $consultationSessionActivityLogEntry);
+        
+        $consultantActivityLog = [
+            "Consultant_id" => $this->programConsultation->id,
+        ];
+        $this->seeInDatabase("ConsultantActivityLog", $consultantActivityLog);
     }
 
 }

@@ -133,7 +133,7 @@ _MESSAGE;
         $this->consultant->registerMailRecipient($this, $this->buildMailMessageForConsultant());
 
         $id = Uuid::generateUuid4();
-        $message = "Konsultan {$this->consultant->getPersonnelFullName()} telah menyetujui permintaan konsultasi";
+        $message = "Jadwal Konsultasi Disepakati";
         $consultationSessionNotification = new ConsultationSessionNotification($this, $id, $message);
         $this->participant->registerNotificationRecipient($consultationSessionNotification);
 

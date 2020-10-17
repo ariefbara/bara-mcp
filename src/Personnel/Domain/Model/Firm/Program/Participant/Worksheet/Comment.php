@@ -3,16 +3,20 @@
 namespace Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\Model\Firm\ {
-    Personnel\ProgramConsultant\ConsultantComment,
-    Program\Participant\Worksheet
+    Personnel\AssetBelongsToParticipantInProgram,
+    Personnel\ProgramConsultant,
+    Program\Participant\Worksheet,
+    Program\Participant\Worksheet\Comment\CommentActivityLog
 };
 use Resources\ {
     DateTimeImmutableBuilder,
-    Exception\RegularException
+    Exception\RegularException,
+    Uuid
 };
 
-class Comment
+class Comment implements AssetBelongsToParticipantInProgram
 {
 
     /**
@@ -20,7 +24,7 @@ class Comment
      * @var Worksheet
      */
     protected $worksheet;
-    
+
     /**
      *
      * @var Comment
@@ -50,12 +54,12 @@ class Comment
      * @var bool
      */
     protected $removed;
-    
+
     /**
      *
-     * @var ConsultantComment||null
+     * @var ArrayCollection
      */
-    protected $consultantComment;
+    protected $commentActivityLogs;
 
     public function __construct(Worksheet $worksheet, string $id, string $message)
     {
@@ -65,8 +69,10 @@ class Comment
         $this->message = $message;
         $this->submitTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->removed = false;
+
+        $this->commentActivityLogs = new ArrayCollection();
     }
-    
+
     public function createReply(string $id, string $message): self
     {
         $reply = new static($this->worksheet, $id, $message);
@@ -82,15 +88,28 @@ class Comment
         }
         $this->removed = true;
     }
-    
+
     public function getWorksheetId(): string
     {
         return $this->worksheet->getId();
     }
-    
+
     public function isConsultantComment(): bool
     {
         return !empty($this->consultantComment);
+    }
+
+    public function logActivity(ProgramConsultant $consultant): void
+    {
+        $id = Uuid::generateUuid4();
+        $message = "comment submitted";
+        $commentActivityLog = new CommentActivityLog($this, $id, $message, $consultant);
+        $this->commentActivityLogs->add($commentActivityLog);
+    }
+
+    public function belongsToParticipantInProgram(string $programId): bool
+    {
+        return $this->worksheet->belongsToParticipantInProgram($programId);
     }
 
 }

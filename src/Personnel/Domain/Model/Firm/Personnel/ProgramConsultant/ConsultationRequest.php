@@ -2,19 +2,25 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
+use Config\EventList;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\Model\Firm\ {
     Personnel\ProgramConsultant,
+    Personnel\ProgramConsultant\ConsultationRequest\ConsultationRequestActivityLog,
     Program\ConsultationSetup,
     Program\Participant
 };
 use Resources\ {
+    Domain\Event\CommonEvent,
+    Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
-    Exception\RegularException
+    Exception\RegularException,
+    Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 
-class ConsultationRequest
+class ConsultationRequest extends EntityContainEvents
 {
 
     /**
@@ -59,6 +65,12 @@ class ConsultationRequest
      */
     protected $status;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $consultationRequestActivityLogs;
+
     function getId(): string
     {
         return $this->id;
@@ -68,11 +80,11 @@ class ConsultationRequest
     {
         return $this->concluded;
     }
-
-    function getStartEndTime(): DateTimeInterval
-    {
-        return $this->startEndTime;
-    }
+//
+//    function getStartEndTime(): DateTimeInterval
+//    {
+//        return $this->startEndTime;
+//    }
 
     protected function __construct()
     {
@@ -84,6 +96,11 @@ class ConsultationRequest
         $this->assertNotConcluded();
         $this->status = new ConsultationRequestStatusVO("rejected");
         $this->concluded = true;
+
+        $this->logActivity("consultation request rejected");
+        
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_REJECTED, $this->id);
+        $this->recordEvent($event);
     }
 
     public function offer(DateTimeImmutable $startTime): void
@@ -93,6 +110,11 @@ class ConsultationRequest
         $this->assertNotConcluded();
         $this->assertNotConflictWithParticipantMentoringSchedule();
         $this->status = new ConsultationRequestStatusVO('offered');
+        
+        $this->logActivity("consultation request new schedule offered");
+        
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_OFFERED, $this->id);
+        $this->recordEvent($event);
     }
 
     public function accept(): void
@@ -112,14 +134,13 @@ class ConsultationRequest
                 $this->programConsultant, $consultationSessionId, $this->participant, $this->consultationSetup,
                 $this->startEndTime);
     }
-    
+
     public function isOfferedConsultationRequestConflictedWith(ConsultationRequest $other): bool
     {
         if ($this->id === $other->id) {
             return false;
         }
-        return $this->status->sameValueAs(new ConsultationRequestStatusVO('offered'))
-            && $this->startEndTime->intersectWith($other->getStartEndTime());
+        return $this->status->sameValueAs(new ConsultationRequestStatusVO('offered')) && $this->startEndTime->intersectWith($other->startEndTime);
     }
 
     protected function assertNotConcluded(): void
@@ -136,6 +157,14 @@ class ConsultationRequest
             $errorDetail = 'forbidden: consultation request time in conflict with participan existing consultation session';
             throw RegularException::forbidden($errorDetail);
         }
+    }
+
+    protected function logActivity(string $message): void
+    {
+        $id = Uuid::generateUuid4();
+        $consultationRequestActivityLog = new ConsultationRequestActivityLog(
+                $this, $id, $message, $this->programConsultant);
+        $this->consultationRequestActivityLogs->add($consultationRequestActivityLog);
     }
 
 }

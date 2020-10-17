@@ -6,6 +6,7 @@ use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultantRepository,
     Application\Service\Firm\Program\Participant\Worksheet\CommentRepository,
     Domain\Model\Firm\Personnel\ProgramConsultant,
+    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
 };
 use Resources\Application\Event\Dispatcher;
@@ -71,9 +72,13 @@ class ConsultantCommentSubmitReplyTest extends TestBase
     }
     public function test_execute_dispatchConsultantCommentToDispatcher()
     {
+        $this->programConsultant->expects($this->once())
+                ->method('submitReplyOnWorksheetComment')
+                ->willReturn($consultantComment = $this->buildMockOfClass(ConsultantComment::class));
+        
         $this->dispatcher->expects($this->once())
                 ->method('dispatch')
-                ->with($this->programConsultant);
+                ->with($consultantComment);
         
         $this->execute();
     }

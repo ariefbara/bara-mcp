@@ -61,10 +61,17 @@ class ConsultationRequest implements CanSendPersonalizeMail
     const CANCELLED_BY_PARTICIPANT = 3;
     const OFFERED_BY_CONSULTANT = 4;
     const REJECTED_BY_CONSULTANT = 5;
+    
+    const NOTIFICATION_MESSAGE = [
+        self::SUBMITTED_BY_PARTICIPANT => "consultation request submitted",
+        self::TIME_CHANGED_BY_PARTICIPANT => "consultation request time changed",
+        self::CANCELLED_BY_PARTICIPANT => "consultation request cancelled",
+        self::OFFERED_BY_CONSULTANT => "consultation request offered",
+        self::REJECTED_BY_CONSULTANT => "consultation request rejected",
+    ];
 
     protected function __construct()
     {
-        ;
     }
 
     protected function buildNotificationMessageTriggeredByTeamMember(int $state, string $submitterName): string
@@ -223,7 +230,7 @@ _MESSAGE;
         $this->participant->registerMailRecipient($this, $mailMessage, null);
 
         $id = Uuid::generateUuid4();
-        $message = $this->buildNotificationMessageTriggeredByConsultant($state);
+        $message = self::NOTIFICATION_MESSAGE[$state];
         $consultationRequestNotification = new ConsultationRequestNotification($this, $id, $message);
         $this->participant->registerNotificationRecipient($consultationRequestNotification, null);
         $this->consultationRequestNotifications->add($consultationRequestNotification);

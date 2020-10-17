@@ -3,10 +3,11 @@
 namespace Notification\Domain\Model\Firm\Program\Participant\Worksheet;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\{
+use Notification\Domain\ {
     Model\Firm\Program\Consultant\ConsultantComment,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Program\Participant\Worksheet\Comment\CommentMail,
+    Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification,
     SharedModel\CanSendPersonalizeMail,
     SharedModel\ContainNotification,
     SharedModel\MailMessage
@@ -85,8 +86,9 @@ _MESSAGE;
     {
         $subject = "Konsulta: Komentar Worksheet";
         $greetings = "Hi Participan";
+        $consultantName = $this->consultantComment->getConsultantName();
         $mainMessage = <<<_MESSAGE
-Konsultant {$this->parent->getConsultantName()} telah memberi komentar di worksheet.
+Konsultant {$consultantName} telah memberi komentar di worksheet.
 
 Untuk melihat detail komentar, kunjungi:
 _MESSAGE;
@@ -97,9 +99,9 @@ _MESSAGE;
         $this->worksheet->registerParticipantAsMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();
-        $message = "konsultan {$this->parent->getConsultantName()} telah memberi komentar di worksheet";
+        $message = "comment submitted";
 
-        $commentNotification = new Comment\CommentNotification($this, $id, $message);
+        $commentNotification = new CommentNotification($this, $id, $message);
         $this->worksheet->registerParticipantAsNotificationRecipient($commentNotification);
 
         $this->commentNotifications->add($commentNotification);

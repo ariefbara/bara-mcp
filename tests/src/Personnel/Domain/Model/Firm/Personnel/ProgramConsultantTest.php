@@ -4,17 +4,15 @@ namespace Personnel\Domain\Model\Firm\Personnel;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Personnel\Domain\ {
-    Event\Consultant\ConsultantAcceptedConsultationRequest,
-    Event\Consultant\ConsultantOfferedConsultationRequest,
-    Event\Consultant\ConsultantSubmittedCommentOnWorksheet,
-    Model\Firm\Personnel,
-    Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
-    Model\Firm\Personnel\ProgramConsultant\ConsultationRequest,
-    Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
-    Model\Firm\Program\Participant\Worksheet,
-    Model\Firm\Program\Participant\Worksheet\Comment
+use Personnel\Domain\Model\Firm\ {
+    Personnel,
+    Personnel\ProgramConsultant\ConsultantComment,
+    Personnel\ProgramConsultant\ConsultationRequest,
+    Personnel\ProgramConsultant\ConsultationSession,
+    Program\Participant\Worksheet,
+    Program\Participant\Worksheet\Comment
 };
+use Resources\Application\Event\Event;
 use Tests\TestBase;
 
 class ProgramConsultantTest extends TestBase
@@ -58,14 +56,12 @@ class ProgramConsultantTest extends TestBase
     {
         $this->programConsultant->acceptConsultationRequest($this->consultationRequestId);
     }
-
     public function test_acceptConsultationRequest_acceptConsultationRequest()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('accept');
         $this->executeAcceptConsultationRequest();
     }
-
     public function test_acceptConsultationRequest_consultationRequestNotFound_throwEx()
     {
         $operation = function () {
@@ -74,7 +70,6 @@ class ProgramConsultantTest extends TestBase
         $errorDetail = 'not found: consultation request not found';
         $this->assertRegularExceptionThrowed($operation, "Not Found", $errorDetail);
     }
-
     public function test_acceptConsultationRequest_addConsultationSessionFromConsultationRequestsCreateConsultationSessionToCollection()
     {
         $this->consultationRequest->expects($this->once())
@@ -84,7 +79,6 @@ class ProgramConsultantTest extends TestBase
         $this->assertEquals(2, $this->programConsultant->consultationSessions->count());
         $this->assertEquals($consultationSession, $this->programConsultant->consultationSessions->last());
     }
-
     public function test_accept_containConsultationSessionInConflictWithNegotiateToBeAccepted_throwEx()
     {
         $this->consultationSession->expects($this->once())
@@ -97,7 +91,6 @@ class ProgramConsultantTest extends TestBase
         $errorDetail = "forbidden: you already have consultation session at designated time";
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
     public function test_accept_containOtherOfferedConsultationRequestInConflictWithConsultationRequestToBeAccepted_throwEx()
     {
         $this->otherConsultationRequest->expects($this->once())
@@ -110,13 +103,18 @@ class ProgramConsultantTest extends TestBase
         $errorDetail = 'forbidden: you already offer designated time in other consultation request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
-    public function test_accept_recordConsultantAcceptConsultationRequestEvent()
+    public function test_accept_aggregateEventFromConsultationSession()
     {
-        $this->programConsultant->clearRecordedEvents();
+        $consultationSession = $this->buildMockOfClass(ConsultationSession::class);
+        $this->consultationRequest->expects($this->once())
+                ->method('createConsultationSession')
+                ->willReturn($consultationSession = $this->buildMockOfClass(ConsultationSession::class));
+        
+        $event = $this->buildMockOfInterface(Event::class);
+        $consultationSession->expects($this->once())->method("pullRecordedEvents")->willReturn([$event]);
+        
         $this->executeAcceptConsultationRequest();
-        $this->assertInstanceOf(ConsultantAcceptedConsultationRequest::class,
-                $this->programConsultant->pullRecordedEvents()[0]);
+        $this->assertEquals([$event], $this->programConsultant->recordedEvents);
     }
 
     protected function executeOfferConsultationRequestTime()
@@ -125,7 +123,6 @@ class ProgramConsultantTest extends TestBase
                 ->method('offer');
         $this->programConsultant->offerConsultationRequestTime($this->consultationRequestId, $this->startTime);
     }
-
     public function test_offerConsultationRequestTime_offerTimeToConsultationRequest()
     {
         $this->consultationRequest->expects($this->once())
@@ -133,7 +130,6 @@ class ProgramConsultantTest extends TestBase
                 ->with($this->startTime);
         $this->executeOfferConsultationRequestTime();
     }
-
     public function test_offer_containConsultationSessionInConflictWithOfferedConsultationRequest_throwEx()
     {
         $this->consultationSession->expects($this->once())
@@ -146,7 +142,6 @@ class ProgramConsultantTest extends TestBase
         $errorDetail = "forbidden: you already have consultation session at designated time";
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
     public function test_offer_containOtherProposedConsultationRequestInConflictWithOfferedConsultationRequest_throwEx()
     {
         $this->otherConsultationRequest->expects($this->once())
@@ -159,37 +154,56 @@ class ProgramConsultantTest extends TestBase
         $errorDetail = 'forbidden: you already offer designated time in other consultation request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-
-    public function test_offer_recordConsultantOfferedConsultationRequstEvent()
+    public function test_offer_aggregateEventFromConsultationRequest()
     {
-        $this->programConsultant->clearRecordedEvents();
+        $event = $this->buildMockOfInterface(Event::class);
+        $this->consultationRequest->expects($this->once())->method("pullRecordedEvents")->willReturn([$event]);
+        
         $this->executeOfferConsultationRequestTime();
-        $this->assertInstanceOf(ConsultantOfferedConsultationRequest::class, $this->programConsultant->pullRecordedEvents()[0]);
+        $this->assertEquals([$event], $this->programConsultant->recordedEvents);
     }
     
     protected function executeSubmitNewCommentOnWorksheet()
     {
+        $this->worksheet->expects($this->any())
+                ->method("belongsToParticipantInProgram")
+                ->willReturn(true);
         return $this->programConsultant->submitNewCommentOnWorksheet($this->consultantCommentId, $this->worksheet, $this->message);
     }
     public function test_submitNewCommentOnWorksheet_returnConsultantComment()
     {
         $comment = new Comment($this->worksheet, $this->consultantCommentId, $this->message);
-        $consultantComment = new ConsultantComment($this->programConsultant, $this->consultantCommentId, $comment);
-        
-        $this->assertEquals($consultantComment, $this->executeSubmitNewCommentOnWorksheet());
+        $this->assertInstanceOf(ConsultantComment::class, $this->executeSubmitNewCommentOnWorksheet());
     }
-    public function test_submitNewCommentOnWorksheet_recordConsultantSubmittedCommentOnWorksheetEvent()
+    public function test_submitNewComment_removedConsultant_forbiddenError()
     {
-        $this->programConsultant->clearRecordedEvents();
-        $this->executeSubmitNewCommentOnWorksheet();
-        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->pullRecordedEvents()[0]);
+        $this->programConsultant->removed = true;
+        $operation = function (){
+            $this->executeSubmitNewCommentOnWorksheet();
+        };
+        $errorDetail = "forbidden: only active consultant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_submitNewComment_worksheeNotRelatedToConsultantProgram_forbiddenError()
+    {
+        $this->worksheet->expects($this->once())
+                ->method("belongsToParticipantInProgram")
+                ->with($this->programConsultant->programId)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeSubmitNewCommentOnWorksheet();
+        };
+        $errorDetail = "forbidden: can only manage asset related to your program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeSubmitReplyOnWorksheetComment()
     {
+        $this->comment->expects($this->any())
+                ->method("belongsToParticipantInProgram")
+                ->willReturn(true);
         return $this->programConsultant->submitReplyOnWorksheetComment($this->consultantCommentId, $this->comment, $this->message);
     }
-        
     public function test_submitReplyOnWorksheetComment_returnConsultantRepliedComment()
     {
         $reply = $this->buildMockOfClass(Comment::class);
@@ -201,12 +215,26 @@ class ProgramConsultantTest extends TestBase
         
         $this->assertEquals($consultantComment, $this->executeSubmitReplyOnWorksheetComment());
     }
-
-    public function test_submitReplyOnWorksheetComment_recordConsultantSubmittedCommentOnWorksheetEvent()
+    public function test_submitReplyOnWorksheetComment_inactiveConsultant_forbiddenError()
     {
-        $this->programConsultant->clearRecordedEvents();
-        $this->executeSubmitReplyOnWorksheetComment();
-        $this->assertInstanceOf(ConsultantSubmittedCommentOnWorksheet::class, $this->programConsultant->pullRecordedEvents()[0]);
+        $this->programConsultant->removed = true;
+        $operation = function (){
+            $this->executeSubmitReplyOnWorksheetComment();
+        };
+        $errorDetail = "forbidden: only active consultant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_submitReplyOnWorksheetComment_commentNotRelatedToProgram_forbiddenError()
+    {
+        $this->comment->expects($this->once())
+                ->method("belongsToParticipantInProgram")
+                ->with($this->programConsultant->programId)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeSubmitReplyOnWorksheetComment();
+        };
+        $errorDetail = "forbidden: can only manage asset related to your program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 }
 
@@ -214,7 +242,9 @@ class TestableProgramConsultant extends ProgramConsultant
 {
 
     public $personnel, $id = 'id', $removed;
+    public $programId = "programId";
     public $consultationRequests, $consultationSessions;
+    public $recordedEvents;
 
     public function __construct()
     {

@@ -60,7 +60,7 @@ class ConsultantCommentSubmitReply
         
         $this->consultantCommentRepository->add($consultantComment);
         
-        $this->dispatcher->dispatch($programConsultation);
+        $this->dispatcher->dispatch($consultantComment);
         
         return $id;
     }

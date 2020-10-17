@@ -36,6 +36,10 @@
                     target-entity="Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog"
                     mapped-by="activityLog"
         />
+        <one-to-one field="consultantActivityLog" 
+                    target-entity="Query\Domain\Model\Firm\Program\Consultant\ConsultantActivityLog"
+                    mapped-by="activityLog"
+        />
         
     </entity>
 </doctrine-mapping>

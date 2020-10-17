@@ -3,6 +3,12 @@
 namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
+use Config\EventList;
+use Notification\ {
+    Application\Listener\CommentSubmittedByConsultantListener,
+    Application\Service\GenerateNotificationWhenCommentSubmittedByConsultant,
+    Domain\Model\Firm\Program\Participant\Worksheet\Comment
+};
 use Personnel\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultantCommentRemove,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultantCommentSubmitNew,
@@ -20,6 +26,7 @@ use Resources\Application\Event\Dispatcher;
 
 class ConsultantCommentController extends PersonnelBaseController
 {
+
     public function submitNew($programConsultantId)
     {
         $service = $this->buildSubmitNewService();
@@ -45,7 +52,7 @@ class ConsultantCommentController extends PersonnelBaseController
         $worksheetId = $this->stripTagsInputRequest('worksheetId');
         $commentId = $this->stripTagsInputRequest('commentId');
         $message = $this->stripTagsInputRequest('message');
-        
+
         $consultantCommentId = $service->execute(
                 $this->firmId(), $this->personnelId(), $programConsultantId, $participantId, $worksheetId, $commentId,
                 $message);
@@ -68,8 +75,13 @@ class ConsultantCommentController extends PersonnelBaseController
         $consultantCommentRepository = $this->em->getRepository(ConsultantComment2::class);
         $programConsultantRepository = $this->em->getRepository(ProgramConsultant::class);
         $worksheetRepository = $this->em->getRepository(Worksheet::class);
+
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::COMMENT_SUBMITTED_BY_CONSULTANT, $this->buildCommentSubmittedByConsultantListener());
+
         return new ConsultantCommentSubmitNew(
-                $consultantCommentRepository, $programConsultantRepository, $worksheetRepository, $this->getDispatcher());
+                $consultantCommentRepository, $programConsultantRepository, $worksheetRepository, $dispatcher);
     }
 
     protected function buildSubmitReplyService()
@@ -77,8 +89,13 @@ class ConsultantCommentController extends PersonnelBaseController
         $consultantCommentRepository = $this->em->getRepository(ConsultantComment2::class);
         $programConsultantRepository = $this->em->getRepository(ProgramConsultant::class);
         $commentRepository = $this->em->getRepository(Comment2::class);
+
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::COMMENT_SUBMITTED_BY_CONSULTANT, $this->buildCommentSubmittedByConsultantListener());
+
         return new ConsultantCommentSubmitReply(
-                $consultantCommentRepository, $programConsultantRepository, $commentRepository, $this->getDispatcher());
+                $consultantCommentRepository, $programConsultantRepository, $commentRepository, $dispatcher);
     }
 
     protected function arrayDataOfConsultantComment(ConsultantComment $consultantComment): array
@@ -104,10 +121,13 @@ class ConsultantCommentController extends PersonnelBaseController
         return new ConsultantCommentView($consultantCommentRepository);
     }
 
-    protected function getDispatcher()
+    protected function buildCommentSubmittedByConsultantListener()
     {
-        $dispatcher = new Dispatcher();
-        return $dispatcher;
+        $commentRepository = $this->em->getRepository(Comment::class);
+        $generateNotificationWhenCommentSubmittedByConsultant = new GenerateNotificationWhenCommentSubmittedByConsultant($commentRepository);
+        $sendImmediateMail = $this->buildSendImmediateMail();
+        return new CommentSubmittedByConsultantListener(
+                $generateNotificationWhenCommentSubmittedByConsultant, $sendImmediateMail);
     }
 
 }

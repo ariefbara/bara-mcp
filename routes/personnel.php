@@ -93,7 +93,7 @@ $router->group($personnelAggregate, function () use ($router) {
         });
         $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
             $controller = "ConsultationSessionController";
-            $router->put("/{consultationSessionId}/consultant-feedback", ["uses" => "$controller@setConsultantFeedback"]);
+            $router->put("/{consultationSessionId}/submit-report", ["uses" => "$controller@setConsultantFeedback"]);
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });

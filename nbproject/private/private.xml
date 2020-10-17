@@ -3,14 +3,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Application/Service/Firm/Client/AsTeamMember/AsProgramParticipant/ViewLearningMaterial.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Application/Service/Firm/Program/Mission/LearningMaterialRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Service/Firm/Team/TeamProgramParticipationRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Program/Participant.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Team/Member.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Team/TeamProgramParticipation.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Application/Service/Firm/Client/TeamMembershipRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Service/Firm/Program/Mission/LearningMaterialRepository.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationRequest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/SharedModel/ActivityLog/ConsultantActivityLog.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationRequest/ConsultationRequestActivityLog.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/SharedModel/ActivityLog.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultantComment.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationSession.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationSession/ConsultationSessionActivityLog.php</file>
         </group>
     </open-files>
 </project-private>

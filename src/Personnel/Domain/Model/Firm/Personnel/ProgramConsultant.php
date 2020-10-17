@@ -83,8 +83,8 @@ class ProgramConsultant extends EntityContainEvents
         
         $firmId = $this->personnel->getFirmId();
         $personnelId = $this->personnel->getId();
-        $event = new ConsultantAcceptedConsultationRequest($firmId, $personnelId, $this->id, $consultationSessionId);
-        $this->recordEvent($event);
+        
+        $this->aggregateEventFrom($consultationSession);
     }
 
     public function offerConsultationRequestTime(string $consultationRequestId, DateTimeImmutable $startTime): void
@@ -98,17 +98,15 @@ class ProgramConsultant extends EntityContainEvents
 
         $firmId = $this->personnel->getFirmId();
         $personnelId = $this->personnel->getId();
-        $event = new ConsultantOfferedConsultationRequest($firmId, $personnelId, $this->id, $consultationRequestId);
-        $this->recordEvent($event);
+        
+        $this->aggregateEventFrom($consultationRequest);
     }
     
     public function submitNewCommentOnWorksheet(
             string $consultantCommentId, Worksheet $worksheet, string $message): ConsultantComment
     {
-        $firmId = $this->personnel->getFirmId();
-        $personnelId = $this->personnel->getId();
-        $event = new ConsultantSubmittedCommentOnWorksheet($firmId, $personnelId, $this->id, $consultantCommentId);
-        $this->recordEvent($event);
+        $this->assertActive();
+        $this->assertAssetBelongsToParticipantInSameProgram($worksheet);
         
         $comment = new Comment($worksheet, $consultantCommentId, $message);
         return new ConsultantComment($this, $consultantCommentId, $comment);
@@ -116,10 +114,8 @@ class ProgramConsultant extends EntityContainEvents
     
     public function submitReplyOnWorksheetComment(string $consultantCommentId, Comment $comment, string $message): ConsultantComment
     {
-        $firmId = $this->personnel->getFirmId();
-        $personnelId = $this->personnel->getId();
-        $event = new ConsultantSubmittedCommentOnWorksheet($firmId, $personnelId, $this->id, $consultantCommentId);
-        $this->recordEvent($event);
+        $this->assertActive();
+        $this->assertAssetBelongsToParticipantInSameProgram($comment);
         
         $reply = $comment->createReply($consultantCommentId, $message);
         return new ConsultantComment($this, $consultantCommentId, $reply);
@@ -161,6 +157,21 @@ class ProgramConsultant extends EntityContainEvents
             throw RegularException::notFound($errorDetail);
         }
         return $consultationRequest;
+    }
+    
+    protected function assertActive(): void
+    {
+        if ($this->removed) {
+            $errorDetail = "forbidden: only active consultant can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+    protected function assertAssetBelongsToParticipantInSameProgram(AssetBelongsToParticipantInProgram $asset): void
+    {
+        if (!$asset->belongsToParticipantInProgram($this->programId)) {
+            $errorDetail = "forbidden: can only manage asset related to your program";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
 }

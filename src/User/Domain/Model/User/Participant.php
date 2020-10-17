@@ -27,9 +27,8 @@ class Participant
 
     protected function __construct()
     {
-        ;
     }
-
+    
     public function isActiveParticipantInProgram(ProgramInterface $program): bool
     {
         return $this->active && $this->programId === $program->getId();

@@ -3,7 +3,7 @@
 namespace Personnel\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ {
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\{
     ConsultationRequest,
     ConsultationSession
 };
@@ -37,7 +37,12 @@ class Participant
 
     protected function __construct()
     {
-        ;
+        
+    }
+    
+    public function programEquals(string $programId): bool
+    {
+        return $this->programId === $programId;
     }
 
     public function hasConsultationSessionInConflictWithConsultationRequest(ConsultationRequest $consultationRequest): bool

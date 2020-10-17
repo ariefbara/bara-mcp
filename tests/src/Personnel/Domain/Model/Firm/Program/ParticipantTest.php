@@ -45,11 +45,20 @@ class ParticipantTest extends TestBase
             ->willReturn(true);
         $this->assertTrue($this->executeHasConsultationSessionInConflictWithConsultationRequest());
     }
+    
+    public function test_programEquals_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->participant->programEquals($this->participant->programId));
+    }
+    public function test_programEquals_differentProgram_returnFalse()
+    {
+        $this->assertFalse($this->participant->programEquals("differentProgramId"));
+    }
 }
 
 class TestableParticipant extends Participant
 {
-    public $programId, $id, $acceptedTime, $active, $note; 
+    public $programId = "programId", $id, $acceptedTime, $active, $note; 
     public $consultationSessions;
     
     public function __construct()

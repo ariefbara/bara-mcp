@@ -36,8 +36,9 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationRequest')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('Notification')->truncate();
-        $this->connection->table('ConsultationRequestActivityLog')->truncate();
+        
         $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ConsultationRequestActivityLog')->truncate();
         $this->connection->table('TeamMemberActivityLog')->truncate();
         
         $this->connection->table('Mail')->truncate();

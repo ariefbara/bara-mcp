@@ -3,13 +3,16 @@
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class ConsultationRequestRejectTest extends TestBase
 {
     protected $service;
     protected $consultationRequestRepository, $consultationRequest;
-    
+    protected $dispatcher;
+
+
     protected $firmId = 'firmId', $personnelId = 'personnelId', $programConsultationId = 'programConsultationId', 
             $consultationRequestId = 'consultationRequetId';
 
@@ -24,7 +27,9 @@ class ConsultationRequestRejectTest extends TestBase
             ->with($this->firmId, $this->personnelId, $this->programConsultationId, $this->consultationRequestId)
             ->willReturn($this->consultationRequest);
         
-        $this->service = new ConsultationRequestReject($this->consultationRequestRepository);
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
+        $this->service = new ConsultationRequestReject($this->consultationRequestRepository, $this->dispatcher);
     }
     
     protected function execute()
@@ -41,6 +46,13 @@ class ConsultationRequestRejectTest extends TestBase
     {
         $this->consultationRequestRepository->expects($this->once())
             ->method('update');
+        $this->execute();
+    }
+    public function test_execute_dispatchConsultationnRequest()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->consultationRequest);
         $this->execute();
     }
 }

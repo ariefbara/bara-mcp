@@ -119,6 +119,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSessionActivityLog')->truncate();
         $this->connection->table('TeamMemberActivityLog')->truncate();
     }
+    
     public function test_show()
     {
         $response = [
@@ -185,7 +186,6 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-
     public function test_showAll_maxEndTimeAndParticipantFeedbackSetFilter()
     {
         $response = [

@@ -2,19 +2,24 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
+use Config\EventList;
+use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\Model\Firm\ {
     Personnel\ProgramConsultant,
     Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback,
+    Personnel\ProgramConsultant\ConsultationSession\ConsultationSessionActivityLog,
     Program\ConsultationSetup,
     Program\Participant
 };
 use Resources\ {
+    Domain\Event\CommonEvent,
+    Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
     Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
-class ConsultationSession
+class ConsultationSession extends EntityContainEvents
 {
 
     /**
@@ -53,6 +58,12 @@ class ConsultationSession
      */
     protected $consultantFeedback = null;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $consultationSessionActivityLogs;
+
     function __construct(
             ProgramConsultant $programConsultant, string $id, Participant $participant,
             ConsultationSetup $consultationSetup, DateTimeInterval $startEndTime)
@@ -62,6 +73,12 @@ class ConsultationSession
         $this->participant = $participant;
         $this->consultationSetup = $consultationSetup;
         $this->startEndTime = $startEndTime;
+        
+        $this->consultationSessionActivityLogs = new ArrayCollection();
+        $this->logActivity("Jadwal Konsultasi Disepakati");
+        
+        $event = new CommonEvent(EventList::CONSULTATION_SESSION_SCHEDULED_BY_CONSULTANT, $this->id);
+        $this->recordEvent($event);
     }
 
     public function intersectWithConsultationRequest(ConsultationRequest $consultationRequest): bool
@@ -78,6 +95,16 @@ class ConsultationSession
             $formRecord = $this->consultationSetup->createFormRecordForConsultantFeedback($id, $formRecordData);
             $this->consultantFeedback = new ConsultantFeedback($this, $id, $formRecord);
         }
+        
+        $this->logActivity("consultant report submitted");
+    }
+    
+    protected function logActivity(string $message): void
+    {
+        $id = Uuid::generateUuid4();
+        $consultationSessionActivityLog = new ConsultationSessionActivityLog(
+                $this, $id, $message, $this->programConsultant);
+        $this->consultationSessionActivityLogs->add($consultationSessionActivityLog);
     }
 
 }

@@ -4,8 +4,10 @@ namespace Query\Domain\SharedModel;
 
 use DateTimeImmutable;
 use Query\Domain\Model\Firm\{
+    Program\Consultant\ConsultantActivityLog,
     Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
     Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
+    Program\Participant\ViewLearningMaterialActivityLog,
     Program\Participant\Worksheet\Comment\CommentActivityLog,
     Program\Participant\Worksheet\WorksheetActivityLog,
     Team\Member\TeamMemberActivityLog
@@ -68,6 +70,12 @@ class ActivityLog
      */
     protected $teamMemberActivityLog;
 
+    /**
+     *
+     * @var ConsultantActivityLog|null
+     */
+    protected $consultantActivityLog;
+
     public function getId(): string
     {
         return $this->id;
@@ -116,6 +124,11 @@ class ActivityLog
     public function getTeamMemberActivityLog(): ?TeamMemberActivityLog
     {
         return $this->teamMemberActivityLog;
+    }
+
+    public function getConsultantActivityLog(): ?ConsultantActivityLog
+    {
+        return $this->consultantActivityLog;
     }
 
 }

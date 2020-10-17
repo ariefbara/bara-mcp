@@ -23,5 +23,12 @@ abstract class EntityContainEvents implements ContainEvents
         $this->recordedEvents = [];
         return $recordedEvents;
     }
+    
+    protected function aggregateEventFrom(EntityContainEvents $other): void
+    {
+        foreach ($other->pullRecordedEvents() as $event) {
+            $this->recordEvent($event);
+        }
+    }
 
 }

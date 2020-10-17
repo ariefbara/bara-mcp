@@ -16,7 +16,7 @@ class EventList
     
     const CONSULTATION_REQUEST_OFFERED = "consultation-request-offered";
     const CONSULTATION_REQUEST_REJECTED = "consultation-request-rejected";
-    const CONSULTATION_REQUEST_ACCEPTED = "consultation-request-accepted";
+    const CONSULTATION_SESSION_SCHEDULED_BY_CONSULTANT = "consultation-session-scheduled-by-consultant";
     
     const COMMENT_FROM_CONSULTANT_REPLIED = "comment-from-consultant-replied"; 
     const COMMENT_SUBMITTED_BY_CONSULTANT = "comment-submitted-by-consultant";

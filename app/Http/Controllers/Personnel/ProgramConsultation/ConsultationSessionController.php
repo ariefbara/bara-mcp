@@ -27,7 +27,7 @@ use SharedContext\Domain\Model\SharedEntity\FileInfo;
 class ConsultationSessionController extends PersonnelBaseController
 {
 
-    public function setConsultantFeedback($programConsultantId, $consultationSessionId)
+    public function setConsultantFeedback($programConsultationId, $consultationSessionId)
     {
         $service = $this->buildSetConsultantFeedbackService();
         
@@ -36,22 +36,22 @@ class ConsultationSessionController extends PersonnelBaseController
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
         
         $service->execute(
-                $this->firmId(), $this->personnelId(), $programConsultantId, $consultationSessionId, $formRecordData);
+                $this->firmId(), $this->personnelId(), $programConsultationId, $consultationSessionId, $formRecordData);
 
-        return $this->show($programConsultantId, $consultationSessionId);
+        return $this->show($programConsultationId, $consultationSessionId);
     }
 
-    public function show($programConsultantId, $consultationSessionId)
+    public function show($programConsultationId, $consultationSessionId)
     {
         $service = $this->buildViewService();
 
         $consultationSession = $service->showById(
-                $this->firmId(), $this->personnelId(), $programConsultantId, $consultationSessionId);
+                $this->firmId(), $this->personnelId(), $programConsultationId, $consultationSessionId);
 
         return $this->singleQueryResponse($this->arrayDataOfConsultationSession($consultationSession));
     }
 
-    public function showAll($programConsultantId)
+    public function showAll($programConsultationId)
     {
         $service = $this->buildViewService();
         
@@ -67,7 +67,7 @@ class ConsultationSessionController extends PersonnelBaseController
                 ->setContainConsultantFeedback($containConsultantFeedback);
         
         $consultationSessions = $service->showAll(
-                $this->firmId(), $this->personnelId(), $programConsultantId, $this->getPage(), $this->getPageSize(),
+                $this->firmId(), $this->personnelId(), $programConsultationId, $this->getPage(), $this->getPageSize(),
                 $consultationSessionFilter);
 
         $result = [];

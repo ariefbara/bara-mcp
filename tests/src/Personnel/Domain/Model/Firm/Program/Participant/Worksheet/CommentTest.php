@@ -3,8 +3,10 @@
 namespace Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 
 use Personnel\Domain\Model\Firm\ {
+    Personnel\ProgramConsultant,
     Personnel\ProgramConsultant\ConsultantComment,
-    Program\Participant\Worksheet
+    Program\Participant\Worksheet,
+    Program\Participant\Worksheet\Comment\CommentActivityLog
 };
 use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
@@ -17,6 +19,8 @@ class CommentTest extends TestBase
     protected $consultantComment;
     
     protected $id = 'commentId', $message = 'new message';
+    
+    protected $consultant;
 
     protected function setUp(): void
     {
@@ -26,6 +30,8 @@ class CommentTest extends TestBase
         $this->comment = new TestableComment($this->worksheet, 'id', 'root');
         
         $this->consultantComment = $this->buildMockOfClass(ConsultantComment::class);
+        
+        $this->consultant = $this->buildMockOfClass(ProgramConsultant::class);
     }
     
     public function test_construct_setProperties()
@@ -79,6 +85,22 @@ class CommentTest extends TestBase
         $this->assertTrue($this->comment->isConsultantComment());
     }
     
+    public function test_logActivity_addCommentActivityLogToCollection()
+    {
+        $this->comment->logActivity($this->consultant);
+        $this->assertEquals(1, $this->comment->commentActivityLogs->count());
+        $this->assertInstanceOf(CommentActivityLog::class, $this->comment->commentActivityLogs->first());
+    }
+    
+    public function test_belongsToParticipantInProgram_returnWorksheetBelongsToParticipantInProgramResult()
+    {
+        $this->worksheet->expects($this->once())
+                ->method("belongsToParticipantInProgram")
+                ->with($programId = "programId")
+                ->willReturn(true);
+        $this->assertTrue($this->comment->belongsToParticipantInProgram($programId));
+    }
+    
 }
 
 class TestableComment extends Comment
@@ -90,4 +112,5 @@ class TestableComment extends Comment
     public $submitTime;
     public $removed;
     public $consultantComment;
+    public $commentActivityLogs;
 }
