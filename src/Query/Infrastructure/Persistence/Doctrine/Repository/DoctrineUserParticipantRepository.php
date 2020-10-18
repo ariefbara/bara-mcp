@@ -56,4 +56,29 @@ class DoctrineUserParticipantRepository extends EntityRepository implements Prog
         }
     }
 
+    public function aProgramParticipationOfUserCorrespondWithProgram(string $userId, string $programId): UserParticipant
+    {
+        $params = [
+            "userId" => $userId,
+            "programId" => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder("userProgramParticipation");
+        $qb->select("userProgramParticipation")
+                ->leftJoin("userProgramParticipation.user", "user")
+                ->andWhere($qb->expr()->eq("user.id", ":userId"))
+                ->leftJoin("userProgramParticipation.participant", "participant")
+                ->leftJoin("participant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: user program participation not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

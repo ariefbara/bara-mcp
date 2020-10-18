@@ -10,4 +10,6 @@ interface ProgramParticipationRepository
     public function ofId(string $userId, string $userParticipantId): UserParticipant;
 
     public function all(string $userId, int $page, int $pageSize);
+    
+    public function aProgramParticipationOfUserCorrespondWithProgram(string $userId, string $programId): UserParticipant;
 }
