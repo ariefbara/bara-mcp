@@ -91,8 +91,6 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
         $this->concluded = false;
         $this->status = new ConsultationRequestStatusVO('proposed');
 
-        $this->assertNotConflictedWithConsultantExistingConsultationSession();
-
         $this->consultationRequestActivityLogs = new ArrayCollection();
         $message = "submitted consultation request";
         $this->addConsultationRequestActivityLog($message, $teamMember);
@@ -124,8 +122,6 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
         $this->assertNotConcluded();
         $this->startEndTime = $this->consultationSetup->getSessionStartEndTimeOf($startTime);
         $this->status = new ConsultationRequestStatusVO('proposed');
-
-        $this->assertNotConflictedWithConsultantExistingConsultationSession();
 
         $this->addConsultationRequestActivityLog("changed consultation request time", $teamMember);
 
@@ -169,14 +165,6 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
         if ($this->concluded) {
             $errorDetail = 'forbidden: consultation request already concluded';
             throw RegularException::forbidden($errorDetail);
-        }
-    }
-
-    protected function assertNotConflictedWithConsultantExistingConsultationSession(): void
-    {
-        if ($this->consultant->hasConsultationSessionConflictedWith($this)) {
-            $errorDetail = "conflict: consultant already has consultation session at this time";
-            throw RegularException::conflict($errorDetail);
         }
     }
 

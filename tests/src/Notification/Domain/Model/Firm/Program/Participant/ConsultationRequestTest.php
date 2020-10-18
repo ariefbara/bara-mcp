@@ -148,25 +148,11 @@ class ConsultationRequestTest extends TestBase
     {
         $this->consultationRequest->createNotificationTriggeredByParticipant($state);
     }
-    public function test_createNotificationTriggeredByParticipant_registerParticipanAsMailRecepient()
-    {
-        $this->participant->expects($this->once())
-                ->method("registerMailRecipient")
-                ->with($this->consultationRequest, $this->anything(), null);
-        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
-    }
     public function test_createNotificationTriggeredByParticipant_registerConsultantAsMailRecepient()
     {
         $this->consultant->expects($this->once())
                 ->method("registerMailRecipient")
                 ->with($this->consultationRequest, $this->anything());
-        $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
-    }
-    public function test_createNotificationTriggeredByParticipant_registerParticipantAsNotificationRecipient()
-    {
-        $this->participant->expects($this->once())
-                ->method("registerNotificationRecipient")
-                ->with($this->anything(), null);
         $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
     }
     public function test_createNotificationTriggeredByParticipant_registerConsultantAsNotificationRecipient()
@@ -188,12 +174,12 @@ class ConsultationRequestTest extends TestBase
     }
     public function test_createNotificationTriggeredByParticipant_timeChangedByParticipantState_registerRecipient()
     {
-        $this->participant->expects($this->once())->method("registerMailRecipient");
+        $this->consultant->expects($this->once())->method("registerMailRecipient");
         $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT);
     }
     public function test_createNotificationTriggeredByParticipant_cancelledParticipantState_registerRecipient()
     {
-        $this->participant->expects($this->once())->method("registerMailRecipient");
+        $this->consultant->expects($this->once())->method("registerMailRecipient");
         $this->executeCreateNotificationTriggeredByParticipant(ConsultationRequest::CANCELLED_BY_PARTICIPANT);
     }
     

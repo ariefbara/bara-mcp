@@ -8,6 +8,7 @@ use Participant\ {
     Application\Service\UserParticipantRepository,
     Domain\DependencyModel\Firm\Program\Consultant,
     Domain\DependencyModel\Firm\Program\ConsultationSetup,
+    Domain\Model\Participant\ConsultationRequest,
     Domain\Model\UserParticipant
 };
 use Resources\Application\Event\Dispatcher;
@@ -85,9 +86,12 @@ class UserParticipantSubmitConsultationRequestTest extends TestBase
     }
     public function test_execute_dispatchUserParticipantToDispatcher()
     {
+        $this->userParticipant->expects($this->once())
+                ->method('proposeConsultation')
+                ->willReturn($consultationRequest = $this->buildMockOfClass(ConsultationRequest::class));
         $this->dispatcher->expects($this->once())
                 ->method('dispatch')
-                ->with($this->userParticipant);
+                ->with($consultationRequest);
         $this->execute();
     }
 }

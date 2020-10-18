@@ -8,24 +8,23 @@ use App\Http\Controllers\ {
     FormToArrayDataConverter,
     User\UserBaseController
 };
-use DateTimeImmutable;
 use Participant\ {
     Application\Service\UserParticipant\ConsultationSession\SubmitFeedback,
     Domain\Model\Participant\ConsultationSession as ConsultationSession2,
     Domain\Service\UserFileInfoFinder
 };
 use Query\ {
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
     Application\Service\User\ProgramParticipation\ViewConsultationSession,
     Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ConsultationSessionController extends UserBaseController
 {
 
-    public function submitFeedback($programParticipationId, $consultationSessionId)
+    public function submitReport($programParticipationId, $consultationSessionId)
     {
         $service = $this->buildSetParticipantFeedbackService();
         $formRecordData = $this->getFormRecordData();
@@ -46,14 +45,14 @@ class ConsultationSessionController extends UserBaseController
     {
         $service = $this->buildViewService();
 
-        $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new DateTimeImmutable($minTime);
-        $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new DateTimeImmutable($maxTime);
-        $containParticipantFeedback = $this->stripTagQueryRequest('containParticipantFeedback');
-        $containConsultantFeedback = $this->stripTagQueryRequest('containConsultantFeedback');
+        $minStartTime = $this->dateTimeImmutableOfQueryRequest("minStartTime");
+        $maxEndTime = $this->dateTimeImmutableOfQueryRequest("maxEndTime");
+        $containParticipantFeedback = $this->filterBooleanOfQueryRequest("containParticipantFeedback");
+        $containConsultantFeedback = $this->filterBooleanOfQueryRequest('containConsultantFeedback');
 
         $consultationSessionFilter = (new ConsultationSessionFilter())
                 ->setMinStartTime($minStartTime)
-                ->setMaxStartTime($maxStartTime)
+                ->setMaxEndTime($maxEndTime)
                 ->setContainParticipantFeedback($containParticipantFeedback)
                 ->setContainConsultantFeedback($containConsultantFeedback);
 

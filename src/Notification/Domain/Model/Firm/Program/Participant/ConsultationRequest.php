@@ -248,14 +248,14 @@ _MESSAGE;
         }
 
         $mailMessage = $this->buildMailMessageTriggeredByParticipant($state);
-        $this->participant->registerMailRecipient($this, $mailMessage, null);
+//        $this->participant->registerMailRecipient($this, $mailMessage, null);
         $this->consultant->registerMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();
         $message = $this->buildNotificationMessageTriggeredByParticipant($state);
 
         $consultationRequestNotification = new ConsultationRequestNotification($this, $id, $message);
-        $this->participant->registerNotificationRecipient($consultationRequestNotification, null);
+//        $this->participant->registerNotificationRecipient($consultationRequestNotification, null);
         $this->consultant->registerNotificationRecipient($consultationRequestNotification);
 
         $this->consultationRequestNotifications->add($consultationRequestNotification);

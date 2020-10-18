@@ -78,17 +78,6 @@ class ConsultationRequestTest extends TestBase
         $status = new ConsultationRequestStatusVO('proposed');
         $this->assertEquals($status, $consultationRequest->status);
     }
-    public function test_construct_consultantHasConsultationSessionConflictedWithStartEndTime_throwEx()
-    {
-        $this->consultant->expects($this->once())
-                ->method('hasConsultationSessionConflictedWith')
-                ->willReturn(true);
-        $operation = function () {
-            $this->executeConstruct();
-        };
-        $errorDetail = "conflict: consultant already has consultation session at this time";
-        $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
-    }
     public function test_construct_addConsultationRequestActivityLog()
     {
         $consultationRequest = $this->executeConstruct();
@@ -160,18 +149,6 @@ class ConsultationRequestTest extends TestBase
     {
         $this->executeRePropose();
         $this->assertEquals($this->startEndTime, $this->consultationRequest->startEndTime);
-    }
-    public function test_repropose_consultantHasConsultationSessionConflictedWithStartEndTime_throwEx()
-    {
-        $this->consultant->expects($this->once())
-                ->method('hasConsultationSessionConflictedWith')
-                ->with($this->consultationRequest)
-                ->willReturn(true);
-        $operation = function () {
-            $this->executeRePropose();
-        };
-        $errorDetail = "conflict: consultant already has consultation session at this time";
-        $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
     }
     public function test_rePropose_alreadyConcluded_throwEx()
     {

@@ -19,7 +19,8 @@ use Tests\Controllers\RecordPreparation\ {
 
 class ConsultationSessionControllerTest extends ConsultationSessionTestCase
 {
-
+    protected $consultationSessionUri;
+    protected $consultationSession;
     protected $consultationSessionOne;
     protected $participantFeedbackOne;
     protected $participantFeedbackInput;
@@ -28,37 +29,50 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->consultationSessionUri = $this->programParticipationUri . "/{$this->programParticipation->id}/consultation-sessions";
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
+        $this->connection->table('ConsultationSetup')->truncate();
+        $this->connection->table('Personnel')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('ParticipantFeedback')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
-        
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ConsultationSessionActivityLog')->truncate();
+
         $program = $this->programParticipation->participant->program;
         $firm = $program->firm;
 
-        $form = new RecordOfForm(1);
+        $form = new RecordOfForm(0);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
 
-        $feedbackForm = new RecordOfFeedbackForm($firm,$form);
+        $feedbackForm = new RecordOfFeedbackForm($firm, $form);
         $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
 
-        $consultationSetup = new RecordOfConsultationSetup($program,$feedbackForm, $feedbackForm, 1);
+        $consultationSetup = new RecordOfConsultationSetup($program, $feedbackForm, $feedbackForm, 0);
         $this->connection->table("ConsultationSetup")->insert($consultationSetup->toArrayForDbEntry());
 
-        $personnel = new RecordOfPersonnel($firm, 1, "personnel_1@email.org", 'password123');
+        $personnel = new RecordOfPersonnel($firm, 0, "personnel@email.org", 'password123');
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
 
-
-        $consultant = new RecordOfConsultant($program, $personnel, 1);
+        $consultant = new RecordOfConsultant($program, $personnel, 0);
         $this->connection->table("Consultant")->insert($consultant->toArrayForDbEntry());
 
-        $this->consultationSessionOne = new RecordOfConsultationSession($consultationSetup, $this->programParticipation->participant,
-                $consultant, 1);
+        $this->consultationSession = new RecordOfConsultationSession(
+                $consultationSetup, $this->programParticipation->participant, $consultant, 0);
+        $this->consultationSession->startDateTime = (new DateTimeImmutable('+48 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSession->endDateTime = (new DateTimeImmutable('+49 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSessionOne = new RecordOfConsultationSession(
+                $consultationSetup, $this->programParticipation->participant, $consultant, 1);
         $this->consultationSessionOne->startDateTime = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
         $this->consultationSessionOne->endDateTime = (new DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        $this->connection->table("ConsultationSession")->insert($this->consultationSession->toArrayForDbEntry());
         $this->connection->table("ConsultationSession")->insert($this->consultationSessionOne->toArrayForDbEntry());
 
-        $formRecord = new RecordOfFormRecord($feedbackForm->form, 1);
+        $formRecord = new RecordOfFormRecord($form, 1);
         $this->connection->table('FormRecord')->insert($formRecord->toArrayForDbEntry());
 
         $stringField = new RecordOfStringField($form, 1);
@@ -88,33 +102,26 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
+        $this->connection->table('ConsultationSetup')->truncate();
+        $this->connection->table('Personnel')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('ParticipantFeedback')->truncate();
         $this->connection->table('StringField')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ConsultationSessionActivityLog')->truncate();
     }
-
+    
     public function test_show()
     {
         $response = [
             "id" => $this->consultationSession->id,
             "startTime" => $this->consultationSession->startDateTime,
             "endTime" => $this->consultationSession->endDateTime,
-            "consultationSetup" => [
-                "id" => $this->consultationSession->consultationSetup->id,
-                "name" => $this->consultationSession->consultationSetup->name,
-                "participantFeedbackForm" => [
-                    "id" => $this->consultationSession->consultationSetup->consultantFeedbackForm->id,
-                    "name" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->name,
-                    "description" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->description,
-                    "stringFields" => [],
-                    "integerFields" => [],
-                    "textAreaFields" => [],
-                    "attachmentFields" => [],
-                    "singleSelectFields" => [],
-                    "multiSelectFields" => [],
-                ],
-            ],
             "consultant" => [
                 "id" => $this->consultationSession->consultant->id,
                 "personnel" => [
@@ -175,42 +182,31 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_showAll_hasMaxStartTimeAndContainParticipantFeedbackQueryParameters()
+    public function test_showAll_maxEndTimeAndParticipantFeedbackSetFilter()
     {
-        $response = [
+        $totalResponse = [
             "total" => 1,
-            "list" => [
-                [
-                    "id" => $this->consultationSessionOne->id,
-                    "startTime" => $this->consultationSessionOne->startDateTime,
-                    "endTime" => $this->consultationSessionOne->endDateTime,
-                    "hasParticipantFeedback" => true,
-                    "consultationSetup" => [
-                        "id" => $this->consultationSessionOne->consultationSetup->id,
-                        "name" => $this->consultationSessionOne->consultationSetup->name,
-                    ],
-                    "consultant" => [
-                        "id" => $this->consultationSessionOne->consultant->id,
-                        "personnel" => [
-                            "id" => $this->consultationSessionOne->consultant->personnel->id,
-                            "name" => $this->consultationSessionOne->consultant->personnel->getFullName(),
-                        ],
-                    ],
-                ],
-            ],
         ];
-        $maxStartTimeString = (new DateTime())->format('Y-m-d H:i:s');
+        $objectReponse = [
+            "id" => $this->consultationSessionOne->id,
+        ];
+        $maxEndTimeString = (new DateTime())->format('Y-m-d H:i:s');
         $uri = $this->consultationSessionUri
-                . "?maxStartTime=$maxStartTimeString"
+                . "?maxEndTime=$maxEndTimeString"
                 . "&containParticipantFeedback=true";
+
         $this->get($uri, $this->user->token)
                 ->seeStatusCode(200)
-                ->seeJsonContains($response);
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($objectReponse);
     }
-    
-    public function test_setParticipantFeedback()
+
+    public function test_submitReport_200()
     {
+        $this->connection->table("StringField")->truncate();
+        $this->connection->table("StringFieldRecord")->truncate();
         $this->participantFeedbackInput["stringFieldRecords"] = [];
+        
         $response = [
             "id" => $this->consultationSession->id,
             "startTime" => $this->consultationSession->startDateTime,
@@ -247,7 +243,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 "multiSelectFieldRecords" => [],
             ],
         ];
-        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/participant-feedback";
+        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/submit-report";
         $this->put($uri, $this->participantFeedbackInput, $this->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
@@ -262,7 +258,7 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
         ];
         $this->seeInDatabase("FormRecord", $formRecordEntry);
     }
-    public function test_setParticipantFeedback_consultationSessionAlreadyHasParticipantFeedback_updateExistingParticipantFeedback()
+    public function test_submitReport_consultationSessionAlreadyHasParticipantFeedback_updateExistingParticipantFeedback()
     {
         $response = [
             "id" => $this->consultationSessionOne->id,
@@ -322,18 +318,33 @@ class ConsultationSessionControllerTest extends ConsultationSessionTestCase
                 "multiSelectFieldRecords" => [],
             ],
         ];
-        
-        $uri = $this->consultationSessionUri . "/{$this->consultationSessionOne->id}/participant-feedback";
+
+        $uri = $this->consultationSessionUri . "/{$this->consultationSessionOne->id}/submit-report";
         $this->put($uri, $this->participantFeedbackInput, $this->user->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
-        
+
         $stringFieldRecordEntry = [
             "id" => $this->stringFieldRecord->id,
             "value" => $this->participantFeedbackInput['stringFieldRecords'][0]['value'],
         ];
         $this->seeInDatabase("StringFieldRecord", $stringFieldRecordEntry);
     }
-
-}
- 
+    public function test_submitReport_logActivity()
+    {
+        $uri = $this->consultationSessionUri . "/{$this->consultationSessionOne->id}/submit-report";
+        $this->put($uri, $this->participantFeedbackInput, $this->user->token)
+                ->seeStatusCode(200);
+        
+        $activityLogEntry = [
+            "message" => "participant submitted consultation report",
+            "occuredTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $consultationSessionActivityLogEntry = [
+            "ConsultationSession_id" => $this->consultationSessionOne->id,
+        ];
+        $this->seeInDatabase("ConsultationSessionActivityLog", $consultationSessionActivityLogEntry);
+    }
+} 

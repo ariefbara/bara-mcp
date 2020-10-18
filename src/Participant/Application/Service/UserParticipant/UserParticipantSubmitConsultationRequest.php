@@ -67,7 +67,7 @@ class UserParticipantSubmitConsultationRequest
         $consultationRequest = $userParticipant->proposeConsultation($id, $consultationSetup, $consultant, $startTime);
         $this->consultationRequestRepository->add($consultationRequest);
         
-        $this->dispatcher->dispatch($userParticipant);
+        $this->dispatcher->dispatch($consultationRequest);
         
         return $id;
     }

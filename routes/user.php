@@ -97,9 +97,9 @@ $router->group($userAggregate, function () use ($router) {
         
         $router->group(['prefix' => '/consultation-requests'], function () use($router) {
             $controller = "ConsultationRequestController";
-            $router->post("", ["uses" => "$controller@propose"]);
+            $router->post("", ["uses" => "$controller@submit"]);
             $router->patch("/{consultationRequestId}/cancel", ["uses" => "$controller@cancel"]);
-            $router->patch("/{consultationRequestId}/repropose", ["uses" => "$controller@rePropose"]);
+            $router->patch("/{consultationRequestId}/change-time", ["uses" => "$controller@changeTime"]);
             $router->patch("/{consultationRequestId}/accept", ["uses" => "$controller@accept"]);
             $router->get("/{consultationRequestId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
@@ -107,7 +107,7 @@ $router->group($userAggregate, function () use ($router) {
         
         $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
             $controller = "ConsultationSessionController";
-            $router->put("/{consultationSessionId}/participant-feedback", ["uses" => "$controller@submitFeedback"]);
+            $router->put("/{consultationSessionId}/submit-report", ["uses" => "$controller@submitReport"]);
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });

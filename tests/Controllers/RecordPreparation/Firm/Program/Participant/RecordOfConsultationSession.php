@@ -35,8 +35,8 @@ class RecordOfConsultationSession implements Record
         $this->participant = $participant;
         $this->consultant = $consultant;
         $this->id = "schedule-$index-id";
-        $this->startDateTime = (new DateTime("+24 hours"))->format('Y-m-d H:i:s');
-        $this->endDateTime = (new DateTime("+25 hours"))->format('Y-m-d H:i:s');
+        $this->startDateTime = (new DateTime("+96 hours"))->format('Y-m-d H:i:s');
+        $this->endDateTime = (new DateTime("+97 hours"))->format('Y-m-d H:i:s');
     }
 
     

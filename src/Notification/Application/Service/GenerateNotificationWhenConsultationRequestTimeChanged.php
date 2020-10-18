@@ -10,18 +10,18 @@ class GenerateNotificationWhenConsultationRequestTimeChanged
      *
      * @var ConsultationRequestRepository
      */
-    protected $consulationRequestRepository;
+    protected $consultationRequestRepository;
     
-    public function __construct(ConsultationRequestRepository $consulationRequestRepository)
+    public function __construct(ConsultationRequestRepository $consultationRequestRepository)
     {
-        $this->consulationRequestRepository = $consulationRequestRepository;
+        $this->consultationRequestRepository = $consultationRequestRepository;
     }
     
     public function execute(string $consultationRequestId): void
     {
-        $this->consulationRequestRepository->ofId($consultationRequestId)
+        $this->consultationRequestRepository->ofId($consultationRequestId)
                 ->createNotificationTriggeredByParticipant(ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT);
-        $this->consulationRequestRepository->update();
+        $this->consultationRequestRepository->update();
     }
 
 }
