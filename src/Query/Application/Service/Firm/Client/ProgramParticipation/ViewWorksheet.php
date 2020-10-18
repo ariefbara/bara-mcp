@@ -2,7 +2,10 @@
 
 namespace Query\Application\Service\Firm\Client\ProgramParticipation;
 
-use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\ {
+    Domain\Model\Firm\Program\Participant\Worksheet,
+    Infrastructure\QueryFilter\WorksheetFilter
+};
 
 class ViewWorksheet
 {
@@ -20,27 +23,24 @@ class ViewWorksheet
 
     /**
      * 
-     * @param string $firmId
      * @param string $clientId
-     * @param string $programParticipationId
+     * @param string $clientProgramParticipationId
      * @param int $page
      * @param int $pageSize
+     * @param WorksheetFilter|null $worksheetFilter
      * @return Worksheet[]
      */
     public function showAll(
-            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
-            ?string $missionId, ?string $parentWorksheetId)
+            string $clientId, string $clientProgramParticipationId, int $page, int $pageSize,
+            ?WorksheetFilter $worksheetFilter)
     {
-        return $this->worksheetRepository
-                        ->allWorksheetsBelongsToClient(
-                                $firmId, $clientId, $programParticipationId, $page, $pageSize, $missionId,
-                                $parentWorksheetId);
+        return $this->worksheetRepository->allWorksheetsInProgramParticipationBelongsToClient(
+                        $clientId, $clientProgramParticipationId, $page, $pageSize, $worksheetFilter);
     }
-
-    public function showById(string $firmId, string $clientId, string $programParticipationId, string $worksheetId): Worksheet
+    
+    public function showById(string $clientId, string $worksheetId): Worksheet
     {
-        return $this->worksheetRepository->aWorksheetBelongsToClient($firmId, $clientId, $programParticipationId,
-                        $worksheetId);
+        return $this->worksheetRepository->aWorksheetBelongsToClient($clientId, $worksheetId);
     }
 
 }

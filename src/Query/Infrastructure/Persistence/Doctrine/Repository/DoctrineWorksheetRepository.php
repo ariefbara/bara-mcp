@@ -2,272 +2,266 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
-    NoResultException
+    NoResultException,
+    QueryBuilder
 };
-use Query\{
+use Query\ {
     Application\Service\Firm\Program\Participant\WorksheetRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant\Worksheet,
+    Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant,
-    Domain\Service\Firm\Program\Participant\WorksheetRepository as WorksheetRepository2
+    Infrastructure\QueryFilter\WorksheetFilter
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository, WorksheetRepository2
+class DoctrineWorksheetRepository extends EntityRepository implements WorksheetRepository
 {
-
-    public function all(string $firmId, string $programId, string $participantId, int $page, int $pageSize)
+    public function aWorksheetBelongsToClient(string $clientId, string $worksheetId): Worksheet
     {
         $params = [
-            'firmId' => $firmId,
-            'programId' => $programId,
-            'participantId' => $participantId,
+            "clientId" => $clientId,
+            "worksheetId" => $worksheetId,
         ];
-
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function ofId(string $firmId, string $programId, string $participantId, string $worksheetId): Worksheet
-    {
-        $params = [
-            'firmId' => $firmId,
-            'programId' => $programId,
-            'participantId' => $participantId,
-            'worksheetId' => $worksheetId,
-        ];
-
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(ClientParticipant::class, "clientProgramParticipation")
+                ->leftJoin("clientProgramParticipation.participant", "programParticipation")
+                ->leftJoin("clientProgramParticipation.client", "client")
+                ->andWhere($participantQb->expr()->eq("client.id", ":clientId"));
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
-
+        
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = 'not found: worksheet not found';
+            $errorDetail = "not found: worksheet not found";
             throw RegularException::notFound($errorDetail);
         }
     }
 
-    public function aWorksheetBelongsToClient(
-            string $firmId, string $clientId, string $programParticipationId, string $worksheetId): Worksheet
+    public function aWorksheetBelongsToTeam(string $teamId, string $worksheetId): Worksheet
     {
         $params = [
-            'firmId' => $firmId,
-            'clientId' => $clientId,
-            'programParticipationId' => $programParticipationId,
-            'worksheetId' => $worksheetId,
+            "teamId" => $teamId,
+            "worksheetId" => $worksheetId,
         ];
-
-        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('t_participant.id')
-                ->from(ClientParticipant::class, 'clientParticipant')
-                ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
-                ->leftJoin('clientParticipant.participant', 't_participant')
-                ->leftJoin('clientParticipant.client', 'client')
-                ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
-                ->leftJoin('client.firm', 'firm')
-                ->andWhere($clientParticipantQb->expr()->eq('firm.id', ':firmId'))
-                ->setMaxResults(1);
-
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($participantQb->expr()->eq("team.id", ":teamId"));
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
-
+        
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = 'not found: worksheet not found';
+            $errorDetail = "not found: worksheet not found";
             throw RegularException::notFound($errorDetail);
         }
     }
 
-    public function allWorksheetsBelongsToClient(
-            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
-            ?string $missionId, ?string $parentWorksheetId)
-    {
-
-        $params = [
-            'firmId' => $firmId,
-            'clientId' => $clientId,
-            'programParticipationId' => $programParticipationId,
-        ];
-
-        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('t_participant.id')
-                ->from(ClientParticipant::class, 'clientParticipant')
-                ->andWhere($clientParticipantQb->expr()->eq('clientParticipant.id', ':programParticipationId'))
-                ->leftJoin('clientParticipant.participant', 't_participant')
-                ->leftJoin('clientParticipant.client', 'client')
-                ->andWhere($clientParticipantQb->expr()->eq('client.id', ':clientId'))
-                ->leftJoin('client.firm', 'firm')
-                ->andWhere($clientParticipantQb->expr()->eq('firm.id', ':firmId'))
-                ->setMaxResults(1);
-
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
-                ->setParameters($params);
-
-        if (!empty($missionId)) {
-            $qb->leftJoin('worksheet.mission', 'mission')
-                    ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
-                    ->setParameter('missionId', $missionId);
-        }
-
-        if (!empty($parentWorksheetId)) {
-            $qb->leftJoin('worksheet.parent', 'parent')
-                    ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
-                    ->setParameter('parentId', $parentWorksheetId);
-        }
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function aWorksheetBelongsToUserParticipant(string $userId, string $userParticipantId, string $worksheetId): Worksheet
+    public function aWorksheetBelongsToUser(string $userId, string $worksheetId): Worksheet
     {
         $params = [
-            'userId' => $userId,
-            'userParticipantId' => $userParticipantId,
-            'worksheetId' => $worksheetId,
+            "userId" => $userId,
+            "worksheetId" => $worksheetId,
         ];
-
-        $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $userParticipantQb->select('t_participant.id')
-                ->from(UserParticipant::class, 'userParticipant')
-                ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':userParticipantId'))
-                ->leftJoin('userParticipant.participant', 't_participant')
-                ->leftJoin('userParticipant.user', 'user')
-                ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
-                ->setMaxResults(1);
-
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->andWhere($qb->expr()->eq('worksheet.id', ':worksheetId'))
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(UserParticipant::class, "userProgramParticipation")
+                ->leftJoin("userProgramParticipation.participant", "programParticipation")
+                ->leftJoin("userProgramParticipation.user", "user")
+                ->andWhere($participantQb->expr()->eq("user.id", ":userId"));
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
-
+        
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $errorDetail = 'not found: worksheet not found';
+            $errorDetail = "not found: worksheet not found";
             throw RegularException::notFound($errorDetail);
         }
     }
 
-    public function allWorksheetBelongsToUserParticipant(string $userId, string $userParticipantId, int $page,
-            int $pageSize, ?string $missionId, ?string $parentWorksheetId)
+    public function aWorksheetInProgram(string $programId, string $worksheetId): Worksheet
     {
         $params = [
-            'userId' => $userId,
-            'userParticipantId' => $userParticipantId,
+            "programId" => $programId,
+            "worksheetId" => $worksheetId,
         ];
-
-        $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $userParticipantQb->select('t_participant.id')
-                ->from(UserParticipant::class, 'userParticipant')
-                ->andWhere($userParticipantQb->expr()->eq('userParticipant.id', ':userParticipantId'))
-                ->leftJoin('userParticipant.participant', 't_participant')
-                ->leftJoin('userParticipant.user', 'user')
-                ->andWhere($userParticipantQb->expr()->eq('user.id', ':userId'))
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
+                ->leftJoin("worksheet.participant", "participant")
+                ->leftJoin("participant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
                 ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: worksheet not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
 
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
+    public function allWorksheetBelongsToParticipantInProgram(string $programId, string $participantId, int $page,
+            int $pageSize, ?WorksheetFilter $worksheetFilter)
+    {
+        $params = [
+            "programId" => $programId,
+            "participantId" => $participantId,
+        ];
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+                ->leftJoin("participant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params);
-
-        if (!empty($missionId)) {
-            $qb->leftJoin('worksheet.mission', 'mission')
-                    ->andWhere($qb->expr()->eq('mission.id', ':missionId'))
-                    ->setParameter('missionId', $missionId);
-        }
-
-        if (!empty($parentWorksheetId)) {
-            $qb->leftJoin('worksheet.parent', 'parent')
-                    ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
-                    ->setParameter('parentId', $parentWorksheetId);
-        }
-
+        
+        $this->applyFilter($qb, $worksheetFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function allBranchesOfParentWorksheet(
-            string $firmId, string $programId, string $participantId, string $worksheetId, int $page, int $pageSize)
+    public function allWorksheetsInProgramParticipationBelongsToClient(string $clientId,
+            string $clientProgramParticipationId, int $page, int $pageSize,
+            ?WorksheetFilter $worksheetFilter)
     {
         $params = [
-            'firmId' => $firmId,
-            'programId' => $programId,
-            'participantId' => $participantId,
-            'parentId' => $worksheetId,
+            "clientId" => $clientId,
+            "clientProgramParticipationId" => $clientProgramParticipationId,
         ];
-
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->leftJoin('worksheet.parent', 'parent')
-                ->andWhere($qb->expr()->eq('parent.id', ':parentId'))
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(ClientParticipant::class, "clientProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("clientProgramParticipation.id", ":clientProgramParticipationId"))
+                ->leftJoin("clientProgramParticipation.participant", "programParticipation")
+                ->leftJoin("clientProgramParticipation.client", "client")
+                ->andWhere($participantQb->expr()->eq("client.id", ":clientId"))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
-
+        
+        $this->applyFilter($qb, $worksheetFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function allRootWorksheets(string $firmId, string $programId, string $participantId, int $page, int $pageSize)
+    public function allWorksheetsInProgramParticipationBelongsToTeam(string $teamId, string $teamProgramParticipationId,
+            int $page, int $pageSize, ?WorksheetFilter $worksheetFilter)
     {
         $params = [
-            'firmId' => $firmId,
-            'programId' => $programId,
-            'participantId' => $participantId,
+            "teamId" => $teamId,
+            "teamProgramParticipationId" => $teamProgramParticipationId,
         ];
-
-        $qb = $this->createQueryBuilder('worksheet');
-        $qb->select('worksheet')
-                ->leftJoin("worksheet.parent", "parent")
-                ->andWhere($qb->expr()->isNull('parent.id'))
-                ->leftJoin('worksheet.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(TeamProgramParticipation::class, "teamProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
+                ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
-
+        
+        $this->applyFilter($qb, $worksheetFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allWorksheetsInProgramParticipationBelongsToUser(string $userId, string $userProgramParticipationId,
+            int $page, int $pageSize, ?WorksheetFilter $worksheetFilter): Worksheet
+    {
+        $params = [
+            "userId" => $userId,
+            "userProgramParticipationId" => $userProgramParticipationId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(UserParticipant::class, "userProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("userProgramParticipation.id", ":userProgramParticipationId"))
+                ->leftJoin("userProgramParticipation.participant", "programParticipation")
+                ->leftJoin("userProgramParticipation.user", "user")
+                ->andWhere($participantQb->expr()->eq("user.id", ":userId"))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("worksheet");
+        $qb->select("worksheet")
+                ->leftJoin("worksheet.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params);
+        
+        $this->applyFilter($qb, $worksheetFilter);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+    
+    protected function applyFilter(QueryBuilder $qb, ?WorksheetFilter $worksheetFilter): void
+    {
+        if (!isset($worksheetFilter)) {
+            return;
+        }
+        
+        if (!is_null($missionId = $worksheetFilter->getMissionId())) {
+            $qb->leftJoin("worksheet.mission", "mission")
+                    ->andWhere($qb->expr()->eq("mission.id", ":missionId"))
+                    ->setParameter("missionId", $missionId);
+        }
+        if (!is_null($parentId = $worksheetFilter->getParentId())) {
+            $qb->leftJoin("worksheet.parent", "parent")
+                    ->andWhere($qb->expr()->eq("parent.id", ":parentId"))
+                    ->setParameter("parentId", $parentId);
+        }
+        if (!is_null($hasParent = $worksheetFilter->isHasParent())) {
+            $qb->leftJoin("worksheet.parent", "parent");
+            if ($hasParent) {
+                $qb->andWhere($qb->expr()->isNotNull("parent.id"));
+            } else {
+                $qb->andWhere($qb->expr()->isNull("parent.id"));
+            }
+        }
     }
 
 }

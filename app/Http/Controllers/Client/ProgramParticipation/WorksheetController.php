@@ -38,7 +38,7 @@ class WorksheetController extends ClientBaseController
                 $formRecordData);
 
         $viewService = $this->buildViewService();
-        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programParticipationId, $worksheetId);
+        $worksheet = $viewService->showById($this->clientId(), $worksheetId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
@@ -55,7 +55,7 @@ class WorksheetController extends ClientBaseController
                 $formRecordData);
 
         $viewService = $this->buildViewService();
-        $worksheet = $viewService->showById($this->firmId(), $this->clientId(), $programParticipationId, $branchId);
+        $worksheet = $viewService->showById($this->clientId(), $branchId);
         return $this->commandCreatedResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
@@ -82,20 +82,20 @@ class WorksheetController extends ClientBaseController
     public function show($programParticipationId, $worksheetId)
     {
         $service = $this->buildViewService();
-        $worksheet = $service->showById($this->firmId(), $this->clientId(), $programParticipationId, $worksheetId);
+        $worksheet = $service->showById($this->clientId(), $worksheetId);
         return $this->singleQueryResponse($this->arrayDataOfWorksheet($worksheet));
     }
 
     public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
-
-        $missionId = $this->stripTagQueryRequest('missionId');
-        $parentWorksheetId = $this->stripTagQueryRequest('parentWorksheetId');
+        $worksheetFilter = (new \Query\Infrastructure\QueryFilter\WorksheetFilter())
+                ->setMissionId($this->stripTagQueryRequest("missionId"))
+                ->setParentId($this->stripTagQueryRequest("parentId"))
+                ->setHasParent($this->filterBooleanOfQueryRequest("hasParent"));
 
         $worksheets = $service->showAll(
-                $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize(),
-                $missionId, $parentWorksheetId);
+                $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize(), $worksheetFilter);
 
         $result = [];
         $result['total'] = count($worksheets);

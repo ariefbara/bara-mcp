@@ -2,14 +2,17 @@
 
 namespace Query\Application\Service\Firm\Client\ProgramParticipation;
 
-use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\{
+    Domain\Model\Firm\Program\Participant\Worksheet,
+    Infrastructure\QueryFilter\WorksheetFilter
+};
 
 interface WorksheetRepository
 {
 
-    public function aWorksheetBelongsToClient(string $firmId, string $clientId, string $programParticipationId,
-            string $worksheetId): Worksheet;
+    public function aWorksheetBelongsToClient(string $clientId, string $worksheetId): Worksheet;
 
-    public function allWorksheetsBelongsToClient(string $firmId, string $clientId, string $programParticipationId,
-            int $page, int $pageSize, ?string $missionId, ?string $parentWorksheetId);
+    public function allWorksheetsInProgramParticipationBelongsToClient(
+            string $clientId, string $clientProgramParticipationId, int $page, int $pageSize,
+            ?WorksheetFilter $worksheetFilter);
 }
