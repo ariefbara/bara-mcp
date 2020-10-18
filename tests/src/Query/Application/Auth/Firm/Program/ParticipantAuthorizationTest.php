@@ -24,8 +24,8 @@ class ParticipantAuthorizationTest extends \Tests\TestBase
         $operation = function (){
             $this->execute();
         };
-        $errorDetail = 'unauthorized: only active program participant allow to make this request';
-        $this->assertRegularExceptionThrowed($operation, 'Unauthorized', $errorDetail);
+        $errorDetail = 'forbidden: only active program participant allow to make this request';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     public function test_execute_aCoordinatorRecordCorrespondWithPersonnelExist_void()
     {

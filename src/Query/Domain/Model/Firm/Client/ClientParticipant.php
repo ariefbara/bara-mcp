@@ -2,13 +2,16 @@
 
 namespace Query\Domain\Model\Firm\Client;
 
-use Query\Domain\Model\Firm\{
-    Client,
-    Program,
-    Program\Participant
+use Query\Domain\ {
+    Model\Firm\Client,
+    Model\Firm\Program,
+    Model\Firm\Program\Mission\LearningMaterial,
+    Model\Firm\Program\Participant,
+    Service\LearningMaterialFinder
 };
+use Resources\Application\Event\ContainEvents;
 
-class ClientParticipant
+class ClientParticipant implements ContainEvents
 {
 
     /**
@@ -62,6 +65,16 @@ class ClientParticipant
     public function getNote(): ?string
     {
         return $this->participant->getNote();
+    }
+
+    public function viewLearningMaterial(LearningMaterialFinder $learningMaterialFinder, string $learningMaterialId): LearningMaterial
+    {
+        return $this->participant->viewLearningMaterial($learningMaterialFinder, $learningMaterialId);
+    }
+
+    public function pullRecordedEvents(): array
+    {
+        return $this->participant->pullRecordedEvents();
     }
 
 }

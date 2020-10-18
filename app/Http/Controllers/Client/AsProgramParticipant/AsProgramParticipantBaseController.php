@@ -11,11 +11,11 @@ use Query\ {
 class AsProgramParticipantBaseController extends ClientBaseController
 {
 
-    protected function authorizedClientIsActiveProgramParticipant(string $firmId, string $programId): void
+    protected function authorizedClientIsActiveProgramParticipant(string $programId): void
     {
         $participantRepository = $this->em->getRepository(Participant::class);
         $authZ = new ParticipantAuthorization($participantRepository);
-        $authZ->execute($firmId, $programId, $this->clientId());
+        $authZ->execute($this->firmId(), $programId, $this->clientId());
     }
 
 }

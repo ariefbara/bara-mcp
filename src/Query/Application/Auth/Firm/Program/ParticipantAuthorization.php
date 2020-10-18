@@ -22,8 +22,8 @@ class ParticipantAuthorization
     {
         if (!$this->participantRepository->containRecordOfActiveParticipantCorrespondWithClient(
                         $firmId, $programId, $clientId)) {
-            $errorDetail = 'unauthorized: only active program participant allow to make this request';
-            throw RegularException::unauthorized($errorDetail);
+            $errorDetail = 'forbidden: only active program participant allow to make this request';
+            throw RegularException::forbidden($errorDetail);
         }
     }
 
