@@ -72,6 +72,8 @@ $router->group($userAggregate, function () use ($router) {
     ];
     $router->group($programParticipationAggregate, function () use ($router) {
         
+        $router->get('/activity-logs', ['uses' => "ActivityLogController@showAll"]);
+        
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
             $router->post("", ["uses" => "$controller@addRoot"]);
