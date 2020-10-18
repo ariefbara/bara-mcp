@@ -46,5 +46,12 @@ class ProgramParticipationTestCase extends ClientTestCase
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
     }
+    
+    protected function setParticipantInactive()
+    {
+        $this->connection->table("Participant")->truncate();
+        $this->programParticipation->participant->active = false;
+        $this->connection->table("Participant")->insert($this->programParticipation->participant->toArrayForDbEntry());
+    }
 
 }

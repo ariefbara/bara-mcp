@@ -237,7 +237,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         }
     }
 
-    protected function assertActive(): void
+    public function assertActive(): void
     {
         if (!$this->active) {
             $errorDetail = "forbidden: only active program participant can make this request";

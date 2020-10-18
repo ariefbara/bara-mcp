@@ -154,18 +154,22 @@ class WorksheetTest extends TestBase
     {
         $this->worksheet->update($this->name, $this->formRecordData);
     }
-    
     public function test_update_changeName()
     {
         $this->executeUpdate();
         $this->assertEquals($this->name, $this->worksheet->name);
     }
-    
     public function test_update_updateFormRecord()
     {
         $this->formRecord->expects($this->once())
                 ->method('update')
                 ->with($this->formRecordData);
+        $this->executeUpdate();
+    }
+    public function test_update_assertParticipantIsActive()
+    {
+        $this->participant->expects($this->once())
+                ->method("assertActive");
         $this->executeUpdate();
     }
     public function test_update_logActivity()

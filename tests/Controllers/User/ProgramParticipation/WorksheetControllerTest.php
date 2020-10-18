@@ -3,8 +3,10 @@
 namespace Tests\Controllers\User\ProgramParticipation;
 
 use DateTime;
+use DateTimeImmutable;
 use Tests\Controllers\RecordPreparation\ {
     Firm\Program\Participant\RecordOfWorksheet,
+    Firm\Program\Participant\Worksheet\RecordOfCompletedMission,
     Firm\Program\RecordOfMission,
     Shared\RecordOfFormRecord
 };
@@ -17,6 +19,8 @@ class WorksheetControllerTest extends WorksheetTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        
+        $this->connection->table("CompletedMission")->truncate();
         
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
@@ -35,9 +39,10 @@ class WorksheetControllerTest extends WorksheetTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table("CompletedMission")->truncate();
     }
     
-    public function test_addRoot()
+    public function test_submitRoot()
     {
         $this->connection->table('Worksheet')->truncate();
         $this->connection->table('FormRecord')->truncate();
@@ -60,22 +65,67 @@ class WorksheetControllerTest extends WorksheetTestCase
         ];
         $this->seeInDatabase('FormRecord', $formRecordEntry);
     }
-    public function test_addRoot_missionNotRootMission_403()
+    public function test_submitRoot_missionNotRootMission_403()
     {
         $this->worksheetInput['missionId'] = $this->branchMission->id;
         
         $this->post($this->worksheetUri, $this->worksheetInput, $this->user->token)
                 ->seeStatusCode(403);
     }
-    public function test_addRoot_emptyName_error400()
+    public function test_submitRoot_emptyName_error400()
     {
         $this->worksheetInput['name'] = "";
         
         $this->post($this->worksheetUri, $this->worksheetInput, $this->user->token)
                 ->seeStatusCode(400);
     }
+    public function test_submitRoot_logActivity()
+    {
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(201);
+        
+        $activityLogEntry = [
+            "message" => "participant submitted worksheet",
+            "occuredTime" => (new DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+//see database manually to check WorksheetActivityLog recorded successfully
+    }
+    public function test_submitRoot_addMissionToCompletedMissionList()
+    {
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Participant_id" => $this->programParticipation->participant->id,
+            "Mission_id" => $this->mission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("CompletedMission", $completedMissionEntry);
+    }
+    public function test_submitMission_missionAlreadyCompleted_preventAddNewRecord()
+    {
+        $completedMission = new RecordOfCompletedMission($this->programParticipation->participant, $this->mission, 0);
+        $completedMission->completedTime = (new DateTimeImmutable("-1 days"))->format("Y-m-d H:i:s");
+        $this->connection->table("CompletedMission")->insert($completedMission->toArrayForDbEntry());
+        
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Mission_id" => $this->mission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->notSeeInDatabase("CompletedMission", $completedMissionEntry);
+    }
+    public function test_submitRoot_inactiveParticipant_403()
+    {
+        $this->setParticipantInactive();
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(403);
+    }
     
-    public function test_addBranch()
+    public function test_submitBranch()
     {
         $this->worksheetInput['missionId'] = $this->branchMission->id;
         $this->worksheetResponse['parent'] = [
@@ -111,7 +161,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         ];
         $this->seeInDatabase('FormRecord', $formRecordEntry);
     }
-    public function test_addBranch_emptyName_error400()
+    public function test_submitBranch_emptyName_error400()
     {
         $this->worksheetInput['missionId'] = $this->branchMission->id;
         $this->worksheetInput['name'] = "";
@@ -119,12 +169,66 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->post($uri, $this->worksheetInput, $this->user->token)
                 ->seeStatusCode(400);
     }
-    public function test_addBranch_missionNotBranchOfParentWorksheetMission_error403()
+    public function test_submitBranch_missionNotBranchOfParentWorksheetMission_error403()
     {
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
         $mission = new RecordOfMission($this->programParticipation->participant->program, $this->worksheetForm, 2, null);
         $this->connection->table('Mission')->insert($mission->toArrayForDbEntry());
         
         $this->worksheetInput["missionId"] = $mission->id;
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(403);
+    }
+    public function test_submitBranch_logActivity()
+    {
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(201);
+        
+        $activityLogEntry = [
+            "message" => "participant submitted worksheet",
+            "occuredTime" => (new DateTimeImmutable)->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+//see WorksheetActivityLog column manually to check record persisted
+    }
+    public function test_submitBranch_addCompletedMission()
+    {
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Participant_id" => $this->programParticipation->participant->id,
+            "Mission_id" => $this->branchMission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("CompletedMission", $completedMissionEntry);
+    }
+    public function test_submitBranch_alreadyCompletedSameMission_dontAddNewCompletedMission()
+    {
+        $completedMission = new RecordOfCompletedMission($this->programParticipation->participant, $this->branchMission, 0);
+        $completedMission->completedTime = (new DateTimeImmutable("-2 days"))->format("Y-m-d H:i:s");
+        $this->connection->table("CompletedMission")->insert($completedMission->toArrayForDbEntry());
+        
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(201);
+        
+        $completedMissionEntry = [
+            "Mission_id" => $this->branchMission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->notSeeInDatabase("CompletedMission", $completedMissionEntry);
+        
+    }
+    public function test_submitBranch_inactiveParticipant_403()
+    {
+        $this->setParticipantInactive();
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->post($uri, $this->worksheetInput, $this->user->token)
                 ->seeStatusCode(403);
@@ -153,18 +257,29 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->patch($uri, $this->worksheetInput, $this->user->token)
                 ->seeStatusCode(400);
     }
-    
-    public function test_remove()
+    public function test_update_logActivity()
     {
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
-        $this->delete($uri, [], $this->user->token)
+        $this->patch($uri, $this->worksheetInput, $this->user->token)
                 ->seeStatusCode(200);
-        
-        $worksheetEntry = [
-            "id" => $this->worksheet->id,
-            "removed" => true,
+                
+        $activityLogEntry = [
+            "message" => "participant updated worksheet",
+            "occuredTime" => (new DateTimeImmutable)->format("Y-m-d H:i:s"),
         ];
-        $this->seeInDatabase('Worksheet', $worksheetEntry);
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $worksheetActivityLogEntry = [
+            "Worksheet_id" => $this->worksheet->id,
+        ];
+        $this->seeInDatabase("WorksheetActivityLog", $worksheetActivityLogEntry);
+    }
+    public function test_update_inactiveParticipant_403()
+    {
+        $this->setParticipantInactive();
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->patch($uri, $this->worksheetInput, $this->user->token)
+                ->seeStatusCode(403);
     }
     
     public function test_show()
@@ -192,6 +307,7 @@ class WorksheetControllerTest extends WorksheetTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($this->worksheetResponse);
     }
+    
     public function test_showAll()
     {
         $response = [
@@ -224,82 +340,46 @@ class WorksheetControllerTest extends WorksheetTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_showAll_containMissionFilter()
+    public function test_showAll_hasParentFilterSet()
     {
-        $response = [
-            "total" => 1, 
-            "list" => [
-                [
-                    "id" => $this->worksheet->id,
-                    "name" => $this->worksheet->name,
-                    "parent" => null,
-                    "mission" => [
-                        "id" => $this->worksheet->mission->id,
-                        "name" => $this->worksheet->mission->name,
-                    ],
-                ],
-            ],
+        $totalResponse = [
+            "total" => 1,
         ];
-        $uri = $this->worksheetUri . "?missionId={$this->worksheet->mission->id}";
+        $objectReponse = [
+            "id" => $this->worksheet->id,
+        ];
+        $uri = $this->worksheetUri . "?hasParent=false";
         $this->get($uri, $this->user->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($response);
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($objectReponse)
+                ->seeStatusCode(200);
     }
-    public function test_showAll_containParentWorksheetFilter()
+    public function test_showAll_missionIdFilterSet()
     {
-        $response = [
-            "total" => 1, 
-            "list" => [
-                [
-                    "id" => $this->worksheetOne->id,
-                    "name" => $this->worksheetOne->name,
-                    "parent" => [
-                        "id" => $this->worksheetOne->parent->id,
-                        "name" => $this->worksheetOne->parent->name,
-                    ],
-                    "mission" => [
-                        "id" => $this->worksheetOne->mission->id,
-                        "name" => $this->worksheetOne->mission->name,
-                    ],
-                ],
-            ],
+        $totalResponse = [
+            "total" => 1,
         ];
-        $uri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}";
+        $objectReponse = [
+            "id" => $this->worksheetOne->id,
+        ];
+        $uri = $this->worksheetUri . "?missionId={$this->worksheetOne->mission->id}";
         $this->get($uri, $this->user->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($response);
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($objectReponse)
+                ->seeStatusCode(200);
     }
-    public function test_showAll_containFilter()
+    public function test_showAll_parentIdFilterSet()
     {
-        $response = [
-            "total" => 1, 
-            "list" => [
-                [
-                    "id" => $this->worksheetOne->id,
-                    "name" => $this->worksheetOne->name,
-                    "parent" => [
-                        "id" => $this->worksheetOne->parent->id,
-                        "name" => $this->worksheetOne->parent->name,
-                    ],
-                    "mission" => [
-                        "id" => $this->worksheetOne->mission->id,
-                        "name" => $this->worksheetOne->mission->name,
-                    ],
-                ],
-            ],
+        $totalResponse = [
+            "total" => 1,
         ];
-        $uri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}&missionId={$this->worksheetOne->mission->id}";
+        $objectReponse = [
+            "id" => $this->worksheetOne->id,
+        ];
+        $uri = $this->worksheetUri . "?parentId={$this->worksheetOne->parent->id}";
         $this->get($uri, $this->user->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($response);
-        
-        $emptyResponse = [
-            'total' => 0,
-        ];
-        $emptyUri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}&missionId={$this->worksheet->mission->id}";
-        $uri = $this->worksheetUri . "?parentWorksheetId={$this->worksheetOne->parent->id}&missionId={$this->worksheetOne->mission->id}";
-        $this->get($emptyUri, $this->user->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($emptyResponse);
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($objectReponse)
+                ->seeStatusCode(200);
     }
 }

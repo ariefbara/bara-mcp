@@ -212,7 +212,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
     }
 
     public function allWorksheetsInProgramParticipationBelongsToUser(string $userId, string $userProgramParticipationId,
-            int $page, int $pageSize, ?WorksheetFilter $worksheetFilter): Worksheet
+            int $page, int $pageSize, ?WorksheetFilter $worksheetFilter)
     {
         $params = [
             "userId" => $userId,

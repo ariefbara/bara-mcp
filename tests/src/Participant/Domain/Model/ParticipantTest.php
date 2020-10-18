@@ -425,6 +425,21 @@ class ParticipantTest extends TestBase
         $this->assertEquals($log, $this->participant->logViewLearningMaterialActivity($logId, $learningMaterialId, $this->teamMember));
     }
     
+    public function test_assertActive_active_void()
+    {
+        $this->participant->assertActive();
+        $this->markAsSuccess();
+    }
+    public function test_assertActive_inactive_forbiddenError()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->participant->assertActive();
+        };
+        $errorDetail = "forbidden: only active program participant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
 }
 
 class TestableParticipant extends Participant

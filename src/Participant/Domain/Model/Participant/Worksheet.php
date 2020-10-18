@@ -135,6 +135,7 @@ class Worksheet implements AssetBelongsToTeamInterface, AssetBelongsToParticipan
 
     public function update(string $name, FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
     {
+        $this->participant->assertActive();
         $this->setName($name);
         $this->formRecord->update($formRecordData);
         $this->addActivityLog("updated worksheet", $teamMember);

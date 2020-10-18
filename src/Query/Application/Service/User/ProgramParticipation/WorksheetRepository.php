@@ -14,5 +14,5 @@ interface WorksheetRepository
 
     public function allWorksheetsInProgramParticipationBelongsToUser(
             string $userId, string $userProgramParticipationId, int $page, int $pageSize,
-            ?WorksheetFilter $worksheetFilter): Worksheet;
+            ?WorksheetFilter $worksheetFilter);
 }
