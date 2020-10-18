@@ -180,7 +180,7 @@ $router->group($clientAggregate, function () use ($router) {
         
         $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
             $controller = "ConsultationSessionController";
-            $router->put("/{consultationSessionId}/participant-feedback", ["uses" => "$controller@setParticipantFeedback"]);
+            $router->put("/{consultationSessionId}/submit-report", ["uses" => "$controller@submitReport"]);
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });

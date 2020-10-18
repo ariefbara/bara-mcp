@@ -2,6 +2,8 @@
 
 namespace Query\Infrastructure\QueryFilter;
 
+use DateTimeImmutable;
+
 class ConsultationSessionFilter
 {
 

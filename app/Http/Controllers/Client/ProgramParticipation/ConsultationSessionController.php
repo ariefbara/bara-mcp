@@ -16,16 +16,16 @@ use Participant\ {
 };
 use Query\ {
     Application\Service\Firm\Client\ProgramParticipation\ViewConsultationSession,
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
     Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ConsultationSessionController extends ClientBaseController
 {
 
-    public function setParticipantFeedback($programParticipationId, $consultationSessionId)
+    public function submitReport($programParticipationId, $consultationSessionId)
     {
         $service = $this->buildSetParticipantFeedbackService();
         $formRecordData = $this->getFormRecordData();
@@ -46,14 +46,14 @@ class ConsultationSessionController extends ClientBaseController
     {
         $service = $this->buildViewService();
         
-        $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new DateTimeImmutable($minTime);
-        $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new DateTimeImmutable($maxTime);
-        $containParticipantFeedback = $this->stripTagQueryRequest('containParticipantFeedback');
-        $containConsultantFeedback = $this->stripTagQueryRequest('containConsultantFeedback');
+        $minStartTime = $this->dateTimeImmutableOfQueryRequest("minStartTime");
+        $maxEndTime = $this->dateTimeImmutableOfQueryRequest("maxEndTime");
+        $containParticipantFeedback = $this->filterBooleanOfQueryRequest("containParticipantFeedback");
+        $containConsultantFeedback = $this->filterBooleanOfQueryRequest('containConsultantFeedback');
 
         $consultationSessionFilter = (new ConsultationSessionFilter())
                 ->setMinStartTime($minStartTime)
-                ->setMaxStartTime($maxStartTime)
+                ->setMaxEndTime($maxEndTime)
                 ->setContainParticipantFeedback($containParticipantFeedback)
                 ->setContainConsultantFeedback($containConsultantFeedback);
         

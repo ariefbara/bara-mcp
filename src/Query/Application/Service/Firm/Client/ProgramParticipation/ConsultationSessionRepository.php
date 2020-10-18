@@ -3,8 +3,8 @@
 namespace Query\Application\Service\Firm\Client\ProgramParticipation;
 
 use Query\ {
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 
 interface ConsultationSessionRepository

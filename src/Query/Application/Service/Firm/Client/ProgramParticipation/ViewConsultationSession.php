@@ -2,9 +2,9 @@
 
 namespace Query\Application\Service\Firm\Client\ProgramParticipation;
 
-use Query\{
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
+use Query\ {
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 
 class ViewConsultationSession

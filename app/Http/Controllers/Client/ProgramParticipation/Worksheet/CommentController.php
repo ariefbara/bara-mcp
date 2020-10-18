@@ -3,14 +3,20 @@
 namespace App\Http\Controllers\Client\ProgramParticipation\Worksheet;
 
 use App\Http\Controllers\Client\ClientBaseController;
-use Participant\ {
+use Config\EventList;
+use Notification\{
+    Application\Listener\ConsultantCommentRepliedByParticipantListener,
+    Application\Service\GenerateNotificationWhenConsultantCommentRepliedByParticipant,
+    Domain\Model\Firm\Program\Participant\Worksheet\Comment as Comment3
+};
+use Participant\{
     Application\Service\ClientParticipant\Worksheet\ReplyComment,
     Application\Service\ClientParticipant\Worksheet\SubmitNewComment,
     Domain\Model\ClientParticipant,
     Domain\Model\Participant\Worksheet,
     Domain\Model\Participant\Worksheet\Comment as Comment2
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Client\ProgramParticipation\Worksheet\ViewComment,
     Domain\Model\Firm\Program\Consultant\ConsultantComment,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment
@@ -35,7 +41,7 @@ class CommentController extends ClientBaseController
 
     public function reply($programParticipationId, $worksheetId, $commentId)
     {
-        
+
         $service = $this->buildReplyService();
         $message = $this->stripTagsInputRequest('message');
         $replyCommentId = $service->execute(
@@ -61,7 +67,7 @@ class CommentController extends ClientBaseController
         $comments = $viewService->showAll(
                 $this->firmId(), $this->clientId(), $programParticipationId, $worksheetId, $this->getPage(),
                 $this->getPageSize());
-        
+
         $result = [];
         $result['total'] = count($comments);
         foreach ($comments as $comment) {
@@ -121,8 +127,16 @@ class CommentController extends ClientBaseController
         $commentRepository = $this->em->getRepository(Comment2::class);
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
         $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::COMMENT_FROM_CONSULTANT_REPLIED, $this->buildConsultantCommentRepliedByParticipantListener());
 
         return new ReplyComment($commentRepository, $clientParticipantRepository, $dispatcher);
+    }
+    protected function buildConsultantCommentRepliedByParticipantListener()
+    {
+        $commentRepository = $this->em->getRepository(Comment3::class);
+        $service = new GenerateNotificationWhenConsultantCommentRepliedByParticipant($commentRepository);
+        return new ConsultantCommentRepliedByParticipantListener($service, $this->buildSendImmediateMail());
     }
 
     protected function buildViewService()

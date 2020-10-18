@@ -3,6 +3,7 @@
 namespace Participant\Application\Service\ClientParticipant\ConsultationSession;
 
 use Participant\Application\Service\Participant\ConsultationSessionRepository;
+use Resources\Application\Event\Dispatcher;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class ParticipantFeedbackSet

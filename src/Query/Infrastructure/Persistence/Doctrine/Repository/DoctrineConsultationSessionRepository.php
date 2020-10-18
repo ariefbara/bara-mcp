@@ -8,14 +8,13 @@ use Doctrine\ORM\ {
     QueryBuilder
 };
 use Query\ {
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
     Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant,
     Domain\Service\Firm\Program\Participant\ConsultationSessionRepository as InterfaceForDomainService,
-    Infrastructure\QueryFilter\ConsultationSessionFilter as ConsultationSessionFilter2
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 use Resources\ {
     Exception\RegularException,
@@ -24,40 +23,6 @@ use Resources\ {
 
 class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository, InterfaceForDomainService
 {
-
-    protected function applyFilter(QueryBuilder $qb, ?ConsultationSessionFilter $consultationSessionFilter): void
-    {
-        if (empty($consultationSessionFilter)) {
-            return;
-        }
-
-        if (!empty($minStartTime = $consultationSessionFilter->getMinStartTime())) {
-            $qb->andWhere($qb->expr()->gte('consultationSession.startEndTime.startDateTime', ':minStartTime'))
-                    ->setParameter('minStartTime', $minStartTime);
-        }
-        if (!empty($maxStartTime = $consultationSessionFilter->getMaxStartTime())) {
-            $qb->andWhere($qb->expr()->lt('consultationSession.startEndTime.startDateTime', ':maxStartTime'))
-                    ->setParameter('maxStartTime', $maxStartTime);
-        }
-        if (!is_null($containConsultantFeedback = $consultationSessionFilter->isContainConsultantFeedback())) {
-            if ($containConsultantFeedback) {
-                $qb->leftJoin('consultationSession.consultantFeedback', 'consultantFeedback')
-                        ->andWhere($qb->expr()->isNotNull('consultantFeedback.id'));
-            } else {
-                $qb->leftJoin('consultationSession.consultantFeedback', 'consultantFeedback')
-                        ->andWhere($qb->expr()->isNull('consultantFeedback.id'));
-            }
-        }
-        if (!is_null($containParticipantFeedback = $consultationSessionFilter->isContainParticipantFeedback())) {
-            if ($containParticipantFeedback) {
-                $qb->leftJoin('consultationSession.participantFeedback', 'participantFeedback')
-                        ->andWhere($qb->expr()->isNotNull('participantFeedback.id'));
-            } else {
-                $qb->leftJoin('consultationSession.participantFeedback', 'participantFeedback')
-                        ->andWhere($qb->expr()->isNull('participantFeedback.id'));
-            }
-        }
-    }
 
     public function aConsultationSessionOfClient(
             string $firmId, string $clientId, string $programParticipationId, string $consultationSessionId): ConsultationSession
@@ -327,7 +292,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
     }
 
     public function allConsultationSessionsBelongsToTeam(string $teamId, string $teamProgramParticipationId, int $page,
-            int $pageSize, ?ConsultationSessionFilter2 $consultationSessionFilter)
+            int $pageSize, ?ConsultationSessionFilter $consultationSessionFilter)
     {
         $params = [
             "teamId" => $teamId,
@@ -349,21 +314,21 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
         
-        $this->applyCompleteFilter($qb, $consultationSessionFilter);
+        $this->applyFilter($qb, $consultationSessionFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
     
-    protected function applyCompleteFilter(QueryBuilder $qb, ?ConsultationSessionFilter2 $consultationSessionFilter): void
+    protected function applyFilter(QueryBuilder $qb, ?ConsultationSessionFilter $consultationSessionFilter): void
     {
         if (!isset($consultationSessionFilter)) {
             return;
         }
         if (!empty($consultationSessionFilter->getMinStartTime())) {
-            $qb->andWhere($qb->expr()->eq("consultationSession.startEndTime.startDateTime", ":minStartTime"))
+            $qb->andWhere($qb->expr()->gte("consultationSession.startEndTime.startDateTime", ":minStartTime"))
                     ->setParameter("minStartTime", $consultationSessionFilter->getMinStartTime());
         }
         if (!empty($consultationSessionFilter->getMaxEndTime())) {
-            $qb->andWhere($qb->expr()->eq("consultationSession.startEndTime.endDateTime", ":maxEndTime"))
+            $qb->andWhere($qb->expr()->lte("consultationSession.startEndTime.endDateTime", ":maxEndTime"))
                     ->setParameter("maxEndTime", $consultationSessionFilter->getMaxEndTime());
         }
         if (!is_null($containConsultantFeedback = $consultationSessionFilter->isContainConsultantFeedback())) {

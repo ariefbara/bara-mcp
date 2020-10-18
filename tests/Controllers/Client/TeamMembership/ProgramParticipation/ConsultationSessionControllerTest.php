@@ -277,7 +277,6 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         ];
         $this->seeInDatabase("FormRecord", $formRecordEntry);
     }
-
     public function test_submitReport_consultationSessionAlreadyHasParticipantFeedback_updateExistingParticipantFeedback()
     {
         $response = [

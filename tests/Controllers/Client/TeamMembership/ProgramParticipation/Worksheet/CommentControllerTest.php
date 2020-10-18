@@ -73,8 +73,8 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('CommentActivityLog')->truncate();
         
-//        $this->connection->table('Mail')->truncate();
-//        $this->connection->table('MailRecipient')->truncate();
+        $this->connection->table('Mail')->truncate();
+        $this->connection->table('MailRecipient')->truncate();
         $this->connection->table('CommentMail')->truncate();
         
         $this->connection->table('Notification')->truncate();
