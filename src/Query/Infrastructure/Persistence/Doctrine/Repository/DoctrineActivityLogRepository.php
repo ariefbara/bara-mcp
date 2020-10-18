@@ -362,7 +362,7 @@ class DoctrineActivityLogRepository extends EntityRepository implements Activity
         $activityLogQb = $this->getEntityManager()->createQueryBuilder();
         $activityLogQb->select("cm_activityLog.id")
                 ->from(CommentActivityLog::class, "commentActivityLog")
-                ->leftJoin("commentActivityLog.activityLog", "cm_activitylog")
+                ->leftJoin("commentActivityLog.activityLog", "cm_activityLog")
                 ->leftJoin("commentActivityLog.comment", "comment")
                 ->leftJoin("comment.worksheet", "cm_worksheet")
                 ->leftJoin("cm_worksheet.participant", "cm_participant");
@@ -413,6 +413,12 @@ class DoctrineActivityLogRepository extends EntityRepository implements Activity
                 ->leftJoin("{$prefix}_teamProgramParticipation.programParticipation", "{$prefix}_programParticipation")
                 ->setMaxResults(1);
         return $participantQb->getDQL();
+    }
+
+    public function allActivityLogsBelongsToTeamParticipantWhereClientIsMember(string $firmId, string $clientId,
+            string $teamMembershipId, string $teamProgramParticipationId, int $page, int $pageSize)
+    {
+        
     }
 
 }

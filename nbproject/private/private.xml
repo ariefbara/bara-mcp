@@ -2,14 +2,6 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationRequest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/SharedModel/ActivityLog/ConsultantActivityLog.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationRequest/ConsultationRequestActivityLog.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/SharedModel/ActivityLog.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultantComment.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationSession.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Personnel/Domain/Model/Firm/Personnel/ProgramConsultant/ConsultationSession/ConsultationSessionActivityLog.php</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>
