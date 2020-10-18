@@ -8,7 +8,8 @@ use Participant\ {
     Application\Service\Participant\ConsultationRequestRepository,
     Domain\DependencyModel\Firm\Program\Consultant,
     Domain\DependencyModel\Firm\Program\ConsultationSetup,
-    Domain\Model\ClientParticipant
+    Domain\Model\ClientParticipant,
+    Domain\Model\Participant\ConsultationRequest
 };
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
@@ -84,11 +85,15 @@ class ClientSubmitConsultationRequestTest extends TestBase
     {
         $this->assertEquals($this->nextId, $this->execute());
     }
-    public function test_execute_dispatchClientParticipantToDispatcher()
+    public function test_execute_dispatchConsultationRequests()
     {
+        $this->clientParticipant->expects($this->once())
+                ->method('proposeConsultation')
+                ->willReturn($consultationRequest = $this->buildMockOfClass(ConsultationRequest::class));
+        
         $this->dispatcher->expects($this->once())
                 ->method('dispatch')
-                ->with($this->clientParticipant);
+                ->with($consultationRequest);
         $this->execute();
     }
 

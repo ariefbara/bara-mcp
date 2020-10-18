@@ -66,10 +66,10 @@ class ClientSubmitConsultationRequest
                 ->aConsultantInProgramWhereClientParticipate($firmId, $clientId, $programParticipationId, $consultantId);
 
         $clientParticipant = $this->clientParticipantRepository->ofId($firmId, $clientId, $programParticipationId);
-        $consulatationRequest = $clientParticipant->proposeConsultation($id, $consultationSetup, $consultant, $startTime);
-        $this->consultationRequestRepository->add($consulatationRequest);
+        $consultationRequest = $clientParticipant->proposeConsultation($id, $consultationSetup, $consultant, $startTime);
+        $this->consultationRequestRepository->add($consultationRequest);
 
-        $this->dispatcher->dispatch($clientParticipant);
+        $this->dispatcher->dispatch($consultationRequest);
 
         return $id;
     }

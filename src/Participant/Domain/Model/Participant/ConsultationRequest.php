@@ -5,18 +5,16 @@ namespace Participant\Domain\Model\Participant;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Team,
-    Event\ConsultationRequestCancelled,
-    Event\ConsultationRequestTimeChanged,
     Model\Participant,
     Model\Participant\ConsultationRequest\ConsultationRequestActivityLog
 };
-use Resources\ {
+use Resources\{
     Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
@@ -118,8 +116,7 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
         if ($this->id == $other->id) {
             return false;
         }
-        return $this->status->sameValueAs(new ConsultationRequestStatusVO('proposed')) 
-                && $this->startEndTime->intersectWith($other->startEndTime);
+        return $this->status->sameValueAs(new ConsultationRequestStatusVO('proposed')) && $this->startEndTime->intersectWith($other->startEndTime);
     }
 
     public function rePropose(DateTimeImmutable $startTime, ?TeamMembership $teamMember): void
@@ -148,7 +145,7 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
         $this->recordEvent($event);
     }
 
-    public function accept(?TeamMembership $teamMember): void
+    public function accept(): void
     {
         $this->assertNotConcluded();
         if (!$this->status->sameValueAs(new ConsultationRequestStatusVO("offered"))) {
@@ -158,15 +155,13 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
 
         $this->status = new ConsultationRequestStatusVO("scheduled");
         $this->concluded = true;
-
-        $this->addConsultationRequestActivityLog("accepted offered consultation request", $teamMember);
     }
 
-    public function createConsultationSession(string $consultationSessionId): ConsultationSession
+    public function createConsultationSession(string $consultationSessionId, ?TeamMembership $teamMember): ConsultationSession
     {
         return new ConsultationSession(
                 $this->participant, $consultationSessionId, $this->consultationSetup, $this->consultant,
-                $this->startEndTime);
+                $this->startEndTime, $teamMember);
     }
 
     protected function assertNotConcluded(): void

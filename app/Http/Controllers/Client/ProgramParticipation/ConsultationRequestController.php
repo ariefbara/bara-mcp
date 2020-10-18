@@ -3,7 +3,20 @@
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
 use App\Http\Controllers\Client\ClientBaseController;
+use Config\EventList;
 use DateTimeImmutable;
+use Notification\ {
+    Application\Listener\ConsultationRequestCancelledListener,
+    Application\Listener\ConsultationRequestSubmittedListener,
+    Application\Listener\ConsultationRequestTimeChangedListener,
+    Application\Listener\ConsultationSessionScheduledByParticipantListener,
+    Application\Service\GenerateNotificationWhenConsultationRequestCancelled,
+    Application\Service\GenerateNotificationWhenConsultationRequestSubmitted,
+    Application\Service\GenerateNotificationWhenConsultationRequestTimeChanged,
+    Application\Service\GenerateNotificationWhenConsultationSessionScheduledByParticipant,
+    Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3,
+    Domain\Model\Firm\Program\Participant\ConsultationSession
+};
 use Participant\ {
     Application\Service\ClientParticipant\ClientAcceptConsultationRequest,
     Application\Service\ClientParticipant\ClientCancelConcultationRequest,
@@ -16,15 +29,15 @@ use Participant\ {
 };
 use Query\ {
     Application\Service\Firm\Client\ProgramParticipation\ViewConsultationRequest,
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
+    Infrastructure\QueryFilter\ConsultationRequestFilter
 };
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestController extends ClientBaseController
 {
 
-    public function propose($programParticipationId)
+    public function submit($programParticipationId)
     {
         $service = $this->buildProposeService();
 
@@ -49,9 +62,9 @@ class ConsultationRequestController extends ClientBaseController
         return $this->commandOkResponse();
     }
 
-    public function rePropose($programParticipationId, $consultationRequestId)
+    public function changeTime($programParticipationId, $consultationRequestId)
     {
-        $service = $this->buildReproposeService();
+        $service = $this->buildChangeTimeService();
         $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId,
                 $startTime);
@@ -78,12 +91,14 @@ class ConsultationRequestController extends ClientBaseController
     public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
-
-        $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new DateTimeImmutable($minTime);
-        $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new DateTimeImmutable($maxTime);
+        
+        $status = $this->request->query("status") == null ?
+                null : filter_var_array($this->request->query("status"), FILTER_SANITIZE_STRING);
         $consultationRequestFilter = (new ConsultationRequestFilter())
-                ->setMinStartTime($minStartTime)
-                ->setMaxStartTime($maxStartTime);
+                ->setMinStartTime($this->dateTimeImmutableOfQueryRequest("minStartTime"))
+                ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("maxEndTime"))
+                ->setConcludedStatus($this->filterBooleanOfInputRequest("concludedStatus"))
+                ->setStatus($status);
 
         $consultationRequests = $service->showAll(
                 $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize(),
@@ -133,19 +148,36 @@ class ConsultationRequestController extends ClientBaseController
         $consultationSetupRepository = $this->em->getRepository(ConsultationSetup::class);
         $consultantRepository = $this->em->getRepository(Consultant::class);
         $dispatcher = new Dispatcher();
-
-//        $dispatcher->addListener(
-//                EventList::CLIENT_PARTICIPANT_PROPOSED_CONSULTATION_REQUEST, $this->buildClientUpdatedConsultationRequestListener());
+        $dispatcher->addListener(
+                EventList::CONSULTATION_REQUEST_SUBMITTED, $this->buildConsultationRequestSubmittedListener());
 
         return new ClientSubmitConsultationRequest(
                 $consultationRequestRepository, $clientParticipantRepository, $consultationSetupRepository,
                 $consultantRepository, $dispatcher);
     }
 
+    protected function buildConsultationRequestSubmittedListener()
+    {
+        $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
+        $service = new GenerateNotificationWhenConsultationRequestSubmitted($consultationRequestRepository);
+        return new ConsultationRequestSubmittedListener($service, $this->buildSendImmediateMail());
+    }
+
     protected function buildCancelService()
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest2::class);
-        return new ClientCancelConcultationRequest($consultationRequestRepository);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::CONSULTATION_REQUEST_CANCELLED, $this->buildConsultationRequestCancelledListener());
+
+        return new ClientCancelConcultationRequest($consultationRequestRepository, $dispatcher);
+    }
+
+    protected function buildConsultationRequestCancelledListener()
+    {
+        $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
+        $service = new GenerateNotificationWhenConsultationRequestCancelled($consultationRequestRepository);
+        return new ConsultationRequestCancelledListener($service, $this->buildSendImmediateMail());
     }
 
     protected function buildAcceptService()
@@ -153,23 +185,35 @@ class ConsultationRequestController extends ClientBaseController
 
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
         $dispatcher = new Dispatcher();
-
-//        $dispatcher->addListener(
-//                EventList::CLIENT_PARTICIPANT_ACCEPTED_CONSULTATION_REQUEST, $this->buildClientAcceptedConsultationRequestListener());
+        $dispatcher->addListener(
+                EventList::OFFERED_CONSULTATION_REQUEST_ACCEPTED,
+                $this->buildConsultationSessionScheduledByParticipantListener());
 
         return new ClientAcceptConsultationRequest($clientParticipantRepository, $dispatcher);
     }
 
-    protected function buildReproposeService()
+    protected function buildConsultationSessionScheduledByParticipantListener()
+    {
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
+        $service = new GenerateNotificationWhenConsultationSessionScheduledByParticipant($consultationSessionRepository);
+        return new ConsultationSessionScheduledByParticipantListener($service, $this->buildSendImmediateMail());
+    }
+
+    protected function buildChangeTimeService()
     {
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
         $dispatcher = new Dispatcher();
-
-//        $dispatcher->addListener(
-//                EventList::CLIENT_PARTICIPANT_CHANGED_CONSULTATION_REQUEST_TIME,
-//                $this->buildClientUpdatedConsultationRequestListener());
+        $dispatcher->addListener(
+                EventList::CONSULTATION_REQUEST_TIME_CHANGED, $this->buildConsultationRequestTimeChangedListener());
 
         return new ClientChangeConsultationRequestTime($clientParticipantRepository, $dispatcher);
+    }
+
+    protected function buildConsultationRequestTimeChangedListener()
+    {
+        $consulationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
+        $service = new GenerateNotificationWhenConsultationRequestTimeChanged($consulationRequestRepository);
+        return new ConsultationRequestTimeChangedListener($service, $this->buildSendImmediateMail());
     }
 
 }

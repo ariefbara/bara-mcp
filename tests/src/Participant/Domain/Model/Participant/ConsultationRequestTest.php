@@ -9,8 +9,6 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Team,
-    Event\ConsultationRequestCancelled,
-    Event\ConsultationRequestTimeChanged,
     Model\Participant,
     Model\Participant\ConsultationRequest\ConsultationRequestActivityLog
 };
@@ -270,22 +268,10 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: request only valid for offered consultation request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    public function test_accept_addActivityLog()
-    {
-        $this->executeAccept();
-        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
-    }
 
     public function test_createConsultationSetupSchedule_returnConsultationSetupSchedule()
     {
-        $this->consultationRequest->startEndTime = $this->startEndTime;
-        $consultationSession = new ConsultationSession(
-                $this->consultationRequest->participant, $id = 'consultationSetupSchedule-id',
-                $this->consultationRequest->consultationSetup, $this->consultationRequest->consultant,
-                $this->consultationRequest->startEndTime
-        );
-
-        $this->assertEquals($consultationSession, $this->consultationRequest->createConsultationSession($id));
+        $this->assertInstanceOf(ConsultationSession::class, $this->consultationRequest->createConsultationSession($id = "consultationSessionId", $this->teamMember));
     }
     
 }

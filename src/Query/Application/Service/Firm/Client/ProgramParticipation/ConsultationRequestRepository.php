@@ -2,9 +2,9 @@
 
 namespace Query\Application\Service\Firm\Client\ProgramParticipation;
 
-use Query\{
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
+use Query\ {
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
+    Infrastructure\QueryFilter\ConsultationRequestFilter
 };
 
 interface ConsultationRequestRepository

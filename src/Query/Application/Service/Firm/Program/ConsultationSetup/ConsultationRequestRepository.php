@@ -6,7 +6,8 @@ use Query\ {
     Application\Service\Firm\Client\ProgramParticipation\ConsultationRequestRepository as InterfaceForClient,
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestRepository as InterfaceForPersonnel,
     Application\Service\User\ProgramParticipation\ConsultationRequestRepository as InterfaceForUser,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest
+    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
+    Infrastructure\QueryFilter\ConsultationRequestFilter
 };
 
 interface ConsultationRequestRepository extends InterfaceForPersonnel, InterfaceForClient, InterfaceForUser

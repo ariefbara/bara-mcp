@@ -12,12 +12,12 @@ use Participant\Domain\{
     Model\Participant\Worksheet\Comment
 };
 use Resources\{
-    Domain\Model\EntityContainEvents,
+    Application\Event\ContainEvents,
     Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
-class UserParticipant extends EntityContainEvents
+class UserParticipant implements ContainEvents
 {
 
     /**
@@ -86,6 +86,11 @@ class UserParticipant extends EntityContainEvents
             string $commentId, Comment $comment, string $message): Comment
     {
         return $comment->createReply($commentId, $message, $teamMember = null);
+    }
+
+    public function pullRecordedEvents(): array
+    {
+        return $this->participant->pullRecordedEvents();
     }
 
 }

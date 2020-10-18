@@ -4,7 +4,7 @@ namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
 
 use Query\ {
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
-    Infrastructure\QueryFilter\ConsultationRequestFilter as ConsultationRequestFilter2
+    Infrastructure\QueryFilter\ConsultationRequestFilter as ConsultationRequestFilter
 };
 
 class ConsultationRequestView
@@ -23,7 +23,7 @@ class ConsultationRequestView
 
     public function showAll(
             string $personnelId, string $programConsultationId, int $page, int $pageSize,
-            ?ConsultationRequestFilter2 $consultationRequestFilter)
+            ?ConsultationRequestFilter $consultationRequestFilter)
     {
         return $this->consultationRequestRepository->allConsultationRequestBelongsToConsultant(
                         $personnelId, $programConsultationId, $page, $pageSize, $consultationRequestFilter);

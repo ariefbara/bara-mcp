@@ -8,14 +8,13 @@ use Doctrine\ORM\{
     QueryBuilder
 };
 use Query\{
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestFilter,
     Application\Service\Firm\Program\ConsulationSetup\ConsultationRequestRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant,
     Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestRepository as InterfaceForDomainService,
-    Infrastructure\QueryFilter\ConsultationRequestFilter as ConsultationRequestFilter2
+    Infrastructure\QueryFilter\ConsultationRequestFilter
 };
 use Resources\{
     Exception\RegularException,
@@ -82,6 +81,7 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
                 ->setParameters($params);
 
         $this->applyFilter($qb, $consultationRequestFilter);
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -141,22 +141,6 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: consultation request not found';
             throw RegularException::notFound($errorDetail);
-        }
-    }
-
-    protected function applyFilter(QueryBuilder $qb, ?ConsultationRequestFilter $consultationRequestFilter): void
-    {
-        if (empty($consultationRequestFilter)) {
-            return;
-        }
-
-        if (!empty($minStartTime = $consultationRequestFilter->getMinStartTime())) {
-            $qb->andWhere($qb->expr()->gte('consultationRequest.startEndTime.startDateTime', ':minStartTime'))
-                    ->setParameter('minStartTime', $minStartTime);
-        }
-        if (!empty($maxStartTime = $consultationRequestFilter->getMaxStartTime())) {
-            $qb->andWhere($qb->expr()->lt('consultationRequest.startEndTime.startDateTime', ':maxStartTime'))
-                    ->setParameter('maxStartTime', $maxStartTime);
         }
     }
 
@@ -255,7 +239,7 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
     }
 
     public function allConsultationRequestsBelongsToTeam(string $teamId, string $teamProgramParticipationId, int $page,
-            int $pageSize, ?ConsultationRequestFilter2 $consultationRequestFilter)
+            int $pageSize, ?ConsultationRequestFilter $consultationRequestFilter)
     {
         $params = [
             "teamId" => $teamId,
@@ -277,32 +261,8 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
 
-        $this->applyCompleteFilter($qb, $consultationRequestFilter);
+        $this->applyFilter($qb, $consultationRequestFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    protected function applyCompleteFilter(QueryBuilder $qb, ?ConsultationRequestFilter2 $consultationRequestFilter): void
-    {
-        if (!isset($consultationRequestFilter)) {
-            return;
-        }
-
-        if (!is_null($consultationRequestFilter->getMinStartTime())) {
-            $qb->andWhere($qb->expr()->gte("consultationRequest.startEndTime.startDateTime", ":minStartTime"))
-                    ->setParameter("minStartTime", $consultationRequestFilter->getMinStartTime());
-        }
-        if (!is_null($consultationRequestFilter->getMaxEndTime())) {
-            $qb->andWhere($qb->expr()->lte("consultationRequest.startEndTime.endDateTime", ":maxEndTime"))
-                    ->setParameter("maxEndTime", $consultationRequestFilter->getMaxEndTime());
-        }
-        if (!is_null($consultationRequestFilter->getConcludedStatus())) {
-            $qb->andWhere($qb->expr()->eq("consultationRequest.concluded", ":concludedStatus"))
-                    ->setParameter("concludedStatus", $consultationRequestFilter->getConcludedStatus());
-        }
-        if (!is_null($consultationRequestFilter->getStatus())) {
-            $qb->andWhere($qb->expr()->in("consultationRequest.status", ":status"))
-                    ->setParameter("status", $consultationRequestFilter->getStatus());
-        }
     }
 
     public function aConsultationRequestBelongsToConsultant(
@@ -334,7 +294,7 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
 
     public function allConsultationRequestBelongsToConsultant(
             string $personnelId, string $programConsultationId, int $page, int $pageSize,
-            ?ConsultationRequestFilter2 $consultationRequestFilter)
+            ?ConsultationRequestFilter $consultationRequestFilter)
     {
         $params = [
             "personnelId" => $personnelId,
@@ -349,9 +309,33 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
                 ->setParameters($params);
         
-        $this->applyCompleteFilter($qb, $consultationRequestFilter);
+        $this->applyFilter($qb, $consultationRequestFilter);
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+    
+    protected function applyFilter(QueryBuilder $qb, ?ConsultationRequestFilter $consultationRequestFilter): void
+    {
+        if (!isset($consultationRequestFilter)) {
+            return;
+        }
+
+        if (!is_null($consultationRequestFilter->getMinStartTime())) {
+            $qb->andWhere($qb->expr()->gte("consultationRequest.startEndTime.startDateTime", ":minStartTime"))
+                    ->setParameter("minStartTime", $consultationRequestFilter->getMinStartTime());
+        }
+        if (!is_null($consultationRequestFilter->getMaxEndTime())) {
+            $qb->andWhere($qb->expr()->lte("consultationRequest.startEndTime.endDateTime", ":maxEndTime"))
+                    ->setParameter("maxEndTime", $consultationRequestFilter->getMaxEndTime());
+        }
+        if (!is_null($consultationRequestFilter->getConcludedStatus())) {
+            $qb->andWhere($qb->expr()->eq("consultationRequest.concluded", ":concludedStatus"))
+                    ->setParameter("concludedStatus", $consultationRequestFilter->getConcludedStatus());
+        }
+        if (!is_null($consultationRequestFilter->getStatus())) {
+            $qb->andWhere($qb->expr()->in("consultationRequest.status", ":status"))
+                    ->setParameter("status", $consultationRequestFilter->getStatus());
+        }
     }
 
 }

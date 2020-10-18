@@ -141,9 +141,9 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $this->assertNoProposedConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
 
-        $consultationRequest->accept($teamMember);
+        $consultationRequest->accept();
 
-        $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
+        $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId, $teamMember);
         $this->consultationSessions->add($consultationSession);
 
         $this->recordedEvents = $consultationSession->pullRecordedEvents();

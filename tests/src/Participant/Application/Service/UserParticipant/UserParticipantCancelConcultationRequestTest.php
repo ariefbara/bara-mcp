@@ -6,12 +6,14 @@ use Participant\ {
     Application\Service\Participant\ConsultationRequestRepository,
     Domain\Model\Participant\ConsultationRequest
 };
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class UserParticipantCancelConcultationRequestTest extends TestBase
 {
-    protected $service;
     protected $consultationRequestRepository, $consultationRequest;
+    protected $dispatcher;
+    protected $service;
     
     protected $userId = 'userId', $userParticipantId = 'userParticipantId', $consultationRequestId = 'consultationRequestid';
 
@@ -25,8 +27,10 @@ class UserParticipantCancelConcultationRequestTest extends TestBase
             ->method('aConsultationRequestFromUserParticipant')
             ->with($this->userId, $this->userParticipantId, $this->consultationRequestId)
             ->willReturn($this->consultationRequest);
+        
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
 
-        $this->service = new UserParticipantCancelConcultationRequest($this->consultationRequestRepository);
+        $this->service = new UserParticipantCancelConcultationRequest($this->consultationRequestRepository, $this->dispatcher);
 
     }
 
@@ -35,17 +39,24 @@ class UserParticipantCancelConcultationRequestTest extends TestBase
         $this->service->execute($this->userId, $this->userParticipantId, $this->consultationRequestId);
     }
 
-    public function test_cancel_cancelConsultationRequest()
+    public function test_execute_cancelConsultationRequest()
     {
         $this->consultationRequest->expects($this->once())
             ->method('cancel');
         $this->execute();
     }
 
-    public function test_cancel_updateRepositorys()
+    public function test_execute_updateRepositorys()
     {
         $this->consultationRequestRepository->expects($this->once())
             ->method('update');
+        $this->execute();
+    }
+    public function test_execute_dispatcherConsultationRequest()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->consultationRequest);
         $this->execute();
     }
 }

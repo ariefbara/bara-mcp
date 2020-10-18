@@ -127,7 +127,6 @@ class ActivityLogControllerTest extends ProgramConsultationTestCase
     
     public function test_showAll_200()
     {
-$this->disableExceptionHandling();
         $response = [
             "total" => 3,
             "list" =>  [

@@ -133,6 +133,13 @@ class ClientParticipantTest extends TestBase
                 ->with($this->commentId, $this->message, null);
         $this->executeReplyComment();
     }
+    
+    public function test_pullRecordedEvents_returnParticipantPullRecordedEventResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("pullRecordedEvents");
+        $this->clientParticipant->pullRecordedEvents();
+    }
 
 }
 

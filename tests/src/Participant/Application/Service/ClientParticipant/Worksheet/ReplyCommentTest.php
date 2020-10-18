@@ -67,11 +67,15 @@ class ReplyCommentTest extends TestBase
                 ->with($reply);
         $this->execute();
     }
-    public function test_execute_dispatchClientParticipantToDispatcher()
+    public function test_execute_dispatchRepliedComment()
     {
+        $reply = $this->buildMockOfClass(Comment::class);
+        $this->clientParticipant->expects($this->once())
+                ->method('replyComment')
+                ->willReturn($reply);
         $this->dispatcher->expects($this->once())
                 ->method('dispatch')
-                ->with($this->clientParticipant);
+                ->with($reply);
         $this->execute();
     }
     public function test_execute_returnNextId()

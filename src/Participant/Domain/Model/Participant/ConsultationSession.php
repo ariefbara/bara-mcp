@@ -69,7 +69,7 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
 
     function __construct(
             Participant $participant, $id, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeInterval $startEndTime)
+            DateTimeInterval $startEndTime, ?TeamMembership $teamMember)
     {
         $this->participant = $participant;
         $this->id = $id;
@@ -78,6 +78,8 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
         $this->startEndTime = $startEndTime;
 
         $this->consultationSessionActivityLogs = new ArrayCollection();
+        
+        $this->addActivityLog("scheduled consultation session", $teamMember);
         
         $event = new CommonEvent(EventList::OFFERED_CONSULTATION_REQUEST_ACCEPTED, $this->id);
         $this->recordEvent($event);

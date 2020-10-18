@@ -38,24 +38,25 @@ class ConsultationSessionTest extends TestBase
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
 
         $this->consultationSession = new TestableConsultationSession(
                 $this->participant, 'consultationSession-id', $this->consultationSetup, $this->consultant,
-                $this->startEndTime);
+                $this->startEndTime, $this->teamMember);
+        $this->consultationSession->consultationSessionActivityLogs->clear();
         
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
 
         $this->participantFeedback = $this->buildMockOfClass(ParticipantFeedback::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         
-        $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
         $this->team = $this->buildMockOfClass(Team::class);
     }
 
     protected function executeConstruct()
     {
         return new TestableConsultationSession(
-                $this->participant, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime);
+                $this->participant, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime, $this->teamMember);
     }
     public function test_construct_setProperties()
     {
@@ -71,6 +72,12 @@ class ConsultationSessionTest extends TestBase
         $consultationSession = $this->executeConstruct();
         $event = new CommonEvent(EventList::OFFERED_CONSULTATION_REQUEST_ACCEPTED, $this->id);
         $this->assertEquals($event, $consultationSession->recordedEvents[0]);
+    }
+    public function test_construct_addActivityLog()
+    {
+        $consultationSession = $this->executeConstruct();
+        $this->assertEquals(1, $consultationSession->consultationSessionActivityLogs->count());
+        $this->assertInstanceOf(ConsultationSessionActivityLog::class, $consultationSession->consultationSessionActivityLogs->first());
     }
     
     public function test_belongsToTeam_returnParticipantBelongsToTeamResult()
@@ -111,6 +118,7 @@ class ConsultationSessionTest extends TestBase
     public function test_setParticipantFeedback_addActivityLog()
     {
         $this->executeSetParticipantFeedback();
+        $this->assertEquals(1, $this->consultationSession->consultationSessionActivityLogs->count());
         $this->assertInstanceOf(ConsultationSessionActivityLog::class, $this->consultationSession->consultationSessionActivityLogs->first());
     }
     

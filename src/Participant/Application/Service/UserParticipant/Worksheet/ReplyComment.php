@@ -47,7 +47,7 @@ class ReplyComment
         $comment = $userParticipat->replyComment($id, $toReply, $message);
         $this->commentRepository->add($comment);
         
-        $this->dispatcher->dispatch($userParticipat);
+        $this->dispatcher->dispatch($comment);
         return $id;
     }
 }
