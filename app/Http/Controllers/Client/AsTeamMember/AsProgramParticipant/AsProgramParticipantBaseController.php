@@ -10,7 +10,7 @@ use Query\ {
 
 class AsProgramParticipantBaseController extends AsTeamMemberBaseController
 {
-    protected function authorizedTeamIsActiveProgramParticipant($teamId, $programId): void
+    protected function authorizedTeamIsActiveParticipantOfProgram($teamId, $programId): void
     {
         $participantRepository = $this->em->getRepository(Participant::class);
         $authZ = new TeamParticipantAuthorization($participantRepository);

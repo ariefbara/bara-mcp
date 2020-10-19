@@ -16,6 +16,9 @@ $router->group($personnelAggregate, function () use ($router) {
         'namespace' => 'AsProgramCoordinator',
     ];
     $router->group($asProgramCoordinatorAggregate, function () use ($router) {
+        
+        $router->get('/participant-summary', ['uses' => "ParticipantSummaryController@showAll"]);
+        
         $router->group(['prefix' => '/registrants'], function () use($router) {
             $controller = "RegistrantController";
             $router->patch("/{registrantId}/accept", ["uses" => "$controller@accept"]);

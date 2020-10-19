@@ -22,8 +22,8 @@ class CoordinatorAuthorization
     {
         if (!$this->coordinatorRepository->containRecordOfUnremovedCoordinatorCorrespondWithPersonnel(
                         $firmId, $personnelId, $programId)) {
-            $errorDetail = "unauthorized: only program coordinator allow to make this request";
-            throw RegularException::unauthorized($errorDetail);
+            $errorDetail = "forbidden: only program coordinator allow to make this request";
+            throw RegularException::forbidden($errorDetail);
         }
     }
 

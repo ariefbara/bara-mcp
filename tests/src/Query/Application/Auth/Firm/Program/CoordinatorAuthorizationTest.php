@@ -28,8 +28,8 @@ class CoordinatorAuthorizationTest extends TestBase
         $operation = function (){
             $this->execute();
         };
-        $errorDetail = "unauthorized: only program coordinator allow to make this request";
-        $this->assertRegularExceptionThrowed($operation, 'Unauthorized', $errorDetail);
+        $errorDetail = "forbidden: only program coordinator allow to make this request";
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     public function test_execute_aCoordinatorRecordCorrespondWithPersonnelExist_void()
     {

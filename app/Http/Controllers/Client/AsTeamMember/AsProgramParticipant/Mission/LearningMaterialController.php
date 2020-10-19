@@ -28,7 +28,7 @@ class LearningMaterialController extends AsProgramParticipantBaseController
     public function showAll($teamId, $programId, $missionId)
     {
         $this->authorizeClientIsActiveTeamMember($teamId);
-        $this->authorizedTeamIsActiveProgramParticipant($teamId, $programId);
+        $this->authorizedTeamIsActiveParticipantOfProgram($teamId, $programId);
 
         $service = $this->buildViewAllService();
         $learningMaterials = $service->showAll($this->firmId(), $programId, $missionId, $this->getPage(),
