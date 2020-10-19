@@ -14,7 +14,7 @@ class MissionController extends AsProgramParticipantBaseController
 
     public function show($programId, $missionId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedClientIsActiveProgramParticipant($programId);
         
         $viewService = $this->buildViewService();
         $mission = $viewService->showById($this->firmId(), $programId, $missionId);
@@ -23,7 +23,7 @@ class MissionController extends AsProgramParticipantBaseController
     
     public function showAll($programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedClientIsActiveProgramParticipant($programId);
         
         $viewService = $this->buildViewService();
         $position = $this->stripTagQueryRequest("position");

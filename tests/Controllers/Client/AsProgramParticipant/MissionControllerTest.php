@@ -64,11 +64,11 @@ class MissionControllerTest extends MissionTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($resuls);
     }
-    public function test_show_clientNotActiveParticipant_error401()
+    public function test_show_clientNotActiveParticipant_403()
     {
         $uri = $this->missionUri . "/{$this->missionOne->id}";
         $this->get($uri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
     }
     
     public function test_showAll()
@@ -125,9 +125,9 @@ class MissionControllerTest extends MissionTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($result);
     }
-    public function test_showAll_clientNotActiveParticipant_error401()
+    public function test_showAll_clientNotActiveParticipant_403()
     {
         $this->get($this->missionUri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
     }
 }

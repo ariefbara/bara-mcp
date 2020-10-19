@@ -58,11 +58,11 @@ class ConsultationSetupControllerTest extends AsProgramParticipantTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_show_clientNotActiveParticipant_error401()
+    public function test_show_clientNotActiveParticipant_403()
     {
         $uri = $this->consultationSetupUri . "/{$this->consultationSetup->id}";
         $this->get($uri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
     }
     
     public function test_showAll()
@@ -86,9 +86,9 @@ class ConsultationSetupControllerTest extends AsProgramParticipantTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_showAll_clientNotActiveParticipant_error401()
+    public function test_showAll_clientNotActiveParticipant_403()
     {
         $this->get($this->consultationSetupUri, $this->inactiveProgramParticipation->client->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
     }
 }

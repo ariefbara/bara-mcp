@@ -11,7 +11,7 @@ class ConsultantController extends AsProgramParticipantBaseController
 {
     public function showAll($programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedClientIsActiveProgramParticipant($programId);
         
         $viewService = $this->buildViewService();
         $consultants = $viewService->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
@@ -26,7 +26,7 @@ class ConsultantController extends AsProgramParticipantBaseController
     }
     public function show($programId, $consultantId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedClientIsActiveProgramParticipant($programId);
         
         $viewService = $this->buildViewService();
         $consultant = $viewService->showById($this->firmId(), $programId, $consultantId);

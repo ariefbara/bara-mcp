@@ -12,7 +12,7 @@ class ConsultationSetupController extends AsProgramParticipantBaseController
 
     public function show($programId, $consultationSetupId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedClientIsActiveProgramParticipant($programId);
         
         $service = $this->buildViewService();
         $consultationSetup = $service->showById($this->firmId(), $programId, $consultationSetupId);
@@ -22,7 +22,7 @@ class ConsultationSetupController extends AsProgramParticipantBaseController
 
     public function showAll($programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($this->firmId(), $programId);
+        $this->authorizedClientIsActiveProgramParticipant($programId);
         
         $service = $this->buildViewService();
         $consultationSetups = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
