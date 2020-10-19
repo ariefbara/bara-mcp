@@ -10,6 +10,7 @@ $router->group($userAggregate, function () use ($router) {
     $router->patch("/change-profile", ["uses" => "AccountController@changeProfile"]);
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
+    $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     
     $router->group(['prefix' => '/programs'], function () use($router) {
         $controller = "ProgramController";

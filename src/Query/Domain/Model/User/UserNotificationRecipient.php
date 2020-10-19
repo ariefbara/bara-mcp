@@ -4,6 +4,9 @@ namespace Query\Domain\Model\User;
 
 use DateTimeImmutable;
 use Query\Domain\{
+    Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification,
+    Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionNotification,
+    Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification,
     Model\User,
     SharedModel\Notification
 };
@@ -74,6 +77,16 @@ class UserNotificationRecipient
     public function getConsultationRequestNotification(): ?ConsultationRequestNotification
     {
         return $this->notification->getConsultationRequestNotification();
+    }
+
+    public function getConsultationSessionNotification(): ?ConsultationSessionNotification
+    {
+        return $this->notification->getConsultationSessionNotification();
+    }
+
+    public function getCommentNotification(): ?CommentNotification
+    {
+        return $this->notification->getCommentNotification();
     }
 
 }
