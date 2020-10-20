@@ -4,12 +4,13 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityManager;
 use PDO;
-use Query\Application\Service\Firm\{
-    Client\AsProgramParticipant\MissionWithSubmittedWorksheetSummaryRepository as InterfaceForClient,
-    Team\AsProgramParticipant\MissionWithSubmittedWorksheetSummaryRepository as InterfaceForTeam
+use Query\Application\Service\ {
+    Firm\Client\AsProgramParticipant\MissionWithSubmittedWorksheetSummaryRepository as InterfaceForClient,
+    Firm\Team\AsProgramParticipant\MissionWithSubmittedWorksheetSummaryRepository as InterfaceForTeam,
+    User\AsProgramParticipant\MissionWithSubmittedWorksheetSummaryRepository as InterfaceForUser
 };
 
-class DoctrineMissionWithSubmittedWorksheetSummaryRepository implements InterfaceForTeam, InterfaceForClient
+class DoctrineMissionWithSubmittedWorksheetSummaryRepository implements InterfaceForTeam, InterfaceForClient, InterfaceForUser
 {
 
     /**
@@ -105,6 +106,41 @@ _STATEMENT;
         $params = [
             "programId" => $programId,
             "clientId" => $clientId,
+        ];
+        $query->execute($params);
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function allMissionInProgramIncludeSubmittedWorksheetFromUser(string $programId, string $userId, int $page,
+            int $pageSize): array
+    {
+        $offset = $pageSize * ($page - 1);
+        $statement = <<<_STATEMENT
+SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet
+FROM Mission M
+LEFT JOIN (
+    SELECT Participant.id participantId, Participant.Program_id
+    FROM UserParticipant
+        LEFT JOIN Participant ON Participant.id = UserParticipant.Participant_id
+    WHERE Participant.active = true
+        AND UserParticipant.User_id = :userId
+)_a ON _a.Program_id = M.Program_id
+LEFT OUTER JOIN (
+    SELECT W.Participant_id, W.Mission_id, COUNT(W.id) AS submittedWorksheet
+    FROM Worksheet W
+    WHERE W.removed = false
+    GROUP BY Mission_id, Participant_id
+)_b ON _b.Mission_id = M.id AND _b.Participant_id = _a.participantId
+WHERE M.Program_id = :programId
+ORDER BY M.position ASC
+LIMIT {$offset}, {$pageSize}
+_STATEMENT;
+
+        $query = $this->em->getConnection()->prepare($statement);
+        $params = [
+            "programId" => $programId,
+            "userId" => $userId,
         ];
         $query->execute($params);
 

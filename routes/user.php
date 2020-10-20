@@ -45,8 +45,9 @@ $router->group($userAggregate, function () use ($router) {
         });
         $router->group(['prefix' => '/missions'], function () use($router) {
             $controller = "MissionController";
-            $router->get("/{missionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/by-id/{missionId}", ["uses" => "$controller@show"]);
+            $router->get("/by-position/{position}", ["uses" => "$controller@showByPosition"]);
         });
         $missionAggregate = [
             'prefix' => '/missions/{missionId}',
