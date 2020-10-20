@@ -46,7 +46,7 @@ class ReplyComment
         $id = $this->commentRepository->nextIdentity();
 
         $reply = $this->teamMembershipRepository
-                ->ofId($firmId, $clientId, $teamMembershipId)
+                ->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->replyComment($comment, $id, $message);
         $this->commentRepository->add($reply);
         

@@ -46,7 +46,7 @@ class SubmitNewComment
         $id = $this->commentRepository->nextIdentity();
 
         $comment = $this->teamMembershipRepository
-                ->ofId($firmId, $clientId, $teamMembershipId)
+                ->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->submitNewCommentInWorksheet($worksheet, $id, $message);
         $this->commentRepository->add($comment);
 

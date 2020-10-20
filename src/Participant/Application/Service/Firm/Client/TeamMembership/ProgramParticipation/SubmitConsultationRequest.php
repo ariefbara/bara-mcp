@@ -75,7 +75,7 @@ class SubmitConsultationRequest
         $consultationSetup = $this->consultationSetupRepository->ofId($consultationSetupId);
         $consultant = $this->consultantRepository->ofId($consultantId);
 
-        $teamMemereship = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $teamMemereship = $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId);
         $consultationRequest = $teamMemereship->submitConsultationRequest(
                 $teamProgramParticipation, $id, $consultationSetup, $consultant, $startTime);
         $this->consultationRequestRepository->add($consultationRequest);

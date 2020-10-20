@@ -39,6 +39,7 @@ class AsTeamMemberTestCase extends ClientTestCase
         
         $client = new RecordOfClient($firm, "inactiveMember");
         $clientOne = new RecordOfClient($firm, "nonAdmin");
+        $clientOne->email = "go.on.apur@gmail.com";
         $this->connection->table("Client")->insert($client->toArrayForDbEntry());
         $this->connection->table("Client")->insert($clientOne->toArrayForDbEntry());
         
@@ -63,5 +64,12 @@ class AsTeamMemberTestCase extends ClientTestCase
         parent::tearDown();
         $this->connection->table("Team")->truncate();
         $this->connection->table("T_Member")->truncate();
+    }
+    
+    public function setTeamMembershipInactive()
+    {
+        $this->connection->table("T_Member")->truncate();
+        $this->teamMember->active = false;
+        $this->connection->table("T_Member")->insert($this->teamMember->toArrayForDbEntry());
     }
 }

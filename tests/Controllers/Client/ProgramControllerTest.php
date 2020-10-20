@@ -60,7 +60,7 @@ class ProgramControllerTest extends ClientTestCase
     public function test_showAll_200_returnProgramContainClientPartipantType()
     {
         $response = [
-            "total" => 3,
+            "total" => 2,
             "list" => [
                 [
                     "id" => $this->program->id,
@@ -76,6 +76,24 @@ class ProgramControllerTest extends ClientTestCase
                     "participantTypes" => explode(",", $this->programOne_forClientType->participantTypes),
                     "removed" => $this->programOne_forClientType->removed,
                 ],
+            ],
+        ];
+        $this->get($this->programUri, $this->client->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+    }
+    public function test_showAllProgramForTeam_200_returnAllProgramForTeamType()
+    {
+        $response = [
+            "total" => 2,
+            "list" => [
+                [
+                    "id" => $this->program->id,
+                    "name" => $this->program->name,
+                    "published" => $this->program->published,
+                    "participantTypes" => explode(",", $this->program->participantTypes),
+                    "removed" => $this->program->removed,
+                ],
                 [
                     "id" => $this->programThree_forTeamType->id,
                     "name" => $this->programThree_forTeamType->name,
@@ -85,8 +103,10 @@ class ProgramControllerTest extends ClientTestCase
                 ],
             ],
         ];
-        $this->get($this->programUri, $this->client->token)
+        $uri = $this->programUri . "/team-types";
+        $this->get($uri, $this->client->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
+        
     }
 }

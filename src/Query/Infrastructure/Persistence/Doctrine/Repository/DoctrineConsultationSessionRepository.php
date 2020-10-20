@@ -13,7 +13,6 @@ use Query\ {
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant,
-    Domain\Service\Firm\Program\Participant\ConsultationSessionRepository as InterfaceForDomainService,
     Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 use Resources\ {
@@ -21,7 +20,7 @@ use Resources\ {
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository, InterfaceForDomainService
+class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository
 {
 
     public function aConsultationSessionOfClient(
@@ -257,19 +256,16 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function aConsultationSessionBelongsToTeam(string $teamId, string $teamProgramParticipationId,
-            string $consultationSessionId): ConsultationSession
+    public function aConsultationSessionBelongsToTeam(string $teamId, string $consultationSessionId): ConsultationSession
     {
         $params = [
             "teamId" => $teamId,
-            "teamProgramParticipationId" => $teamProgramParticipationId,
             "consultationSessionId" => $consultationSessionId,
         ];
 
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("programParticipation.id")
                 ->from(TeamProgramParticipation::class, "teamProgramParticipation")
-                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
                 ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
                 ->leftJoin("teamProgramParticipation.team", "team")
                 ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
@@ -290,9 +286,10 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
             throw RegularException::notFound($errorDetail);
         }
     }
-
-    public function allConsultationSessionsBelongsToTeam(string $teamId, string $teamProgramParticipationId, int $page,
-            int $pageSize, ?ConsultationSessionFilter $consultationSessionFilter)
+    
+    public function allConsultationSessionsInProgramParticipationOfTeam(string $teamId,
+            string $teamProgramParticipationId, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
     {
         $params = [
             "teamId" => $teamId,
@@ -317,7 +314,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
         $this->applyFilter($qb, $consultationSessionFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
-    
+
     protected function applyFilter(QueryBuilder $qb, ?ConsultationSessionFilter $consultationSessionFilter): void
     {
         if (!isset($consultationSessionFilter)) {

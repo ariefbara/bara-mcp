@@ -33,7 +33,7 @@ class CancelTeamProgramRegistration
             string $firmId, string $clientId, string $teamMembershipId, string $teamProgramRegistrationId): void
     {
         $teamProgramRegistration = $this->teamProgramRegistrationRepository->ofId($teamProgramRegistrationId);
-        $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
+        $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->cancelTeamprogramRegistration($teamProgramRegistration);
         $this->teamProgramRegistrationRepository->update();
     }

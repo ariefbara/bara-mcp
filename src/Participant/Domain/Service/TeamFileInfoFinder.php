@@ -20,33 +20,17 @@ class TeamFileInfoFinder implements IFileInfoFinder
      *
      * @var string
      */
-    protected $firmId;
+    protected $teamId;
 
-    /**
-     *
-     * @var string
-     */
-    protected $clientId;
-
-    /**
-     *
-     * @var string
-     */
-    protected $teamMembershipId;
-
-    public function __construct(FileInfoRepository $fileInfoRepository, string $firmId, string $clientId,
-            string $teamMembershipId)
+    public function __construct(FileInfoRepository $fileInfoRepository, string $teamId)
     {
         $this->fileInfoRepository = $fileInfoRepository;
-        $this->firmId = $firmId;
-        $this->clientId = $clientId;
-        $this->teamMembershipId = $teamMembershipId;
+        $this->teamId = $teamId;
     }
 
     public function ofId(string $fileInfoId): FileInfo
     {
-        return $this->fileInfoRepository->fileInfoOfTeamWhereClientIsMember(
-                        $this->firmId, $this->clientId, $this->teamMembershipId, $fileInfoId);
+        return $this->fileInfoRepository->fileInfoOfTeam($this->teamId, $fileInfoId);
     }
 
 }

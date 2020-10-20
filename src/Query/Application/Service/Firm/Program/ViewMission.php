@@ -27,14 +27,19 @@ class ViewMission
      * @param string|null $position
      * @return Mission[]
      */
-    public function showAll(string $firmId, string $programId, int $page, int $pageSize, ?string $position)
+    public function showAll(string $firmId, string $programId, int $page, int $pageSize)
     {
-        return $this->missionRepository->all($firmId, $programId, $page, $pageSize, $position);
+        return $this->missionRepository->all($firmId, $programId, $page, $pageSize);
     }
 
     public function showById(string $firmId, string $programId, string $missionId): Mission
     {
         return $this->missionRepository->ofId($firmId, $programId, $missionId);
+    }
+    
+    public function showByPosition(string $programId, string $position): Mission
+    {
+        return $this->missionRepository->aMissionByPositionBelongsToProgram($programId, $position);
     }
 
 }

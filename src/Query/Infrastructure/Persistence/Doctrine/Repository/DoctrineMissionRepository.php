@@ -49,7 +49,7 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
         }
     }
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize, ?string $position)
+    public function all(string $firmId, string $programId, int $page, int $pageSize)
     {
         $params = [
             "firmId" => $firmId,
@@ -63,11 +63,6 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
-
-        if (isset($position)) {
-            $qb->andWhere($qb->expr()->eq("mission.position", ":position"))
-                    ->setParameter("position", $position);
-        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
@@ -440,6 +435,29 @@ _STATEMENT;
         $query->execute($params);
 
         return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function aMissionByPositionBelongsToProgram(string $programId, string $position): Mission
+    {
+        $params = [
+            "programId" => $programId,
+            "position" => $position,
+        ];
+        
+        $qb = $this->createQueryBuilder("mission");
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.position", ":position"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: mission not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

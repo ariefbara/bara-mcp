@@ -5,7 +5,7 @@ namespace Team\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityRepository;
 use Resources\Uuid;
 use Team\ {
-    Application\Service\Firm\Client\TeamMembership\TeamFileInfoRepository,
+    Application\Service\Team\TeamFileInfoRepository,
     Domain\Model\Team\TeamFileInfo
 };
 

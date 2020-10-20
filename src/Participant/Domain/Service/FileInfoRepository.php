@@ -11,6 +11,5 @@ interface FileInfoRepository
 
     public function fileInfoOfClient(string $firmId, string $clientId, string $fileInfoId): FileInfo;
 
-    public function fileInfoOfTeamWhereClientIsMember(
-            string $firmId, string $clientId, string $teamMembershipId, string $fileInfoId): FileInfo;
+    public function fileInfoOfTeam(string $teamId, string $fileInfoId): FileInfo;
 }

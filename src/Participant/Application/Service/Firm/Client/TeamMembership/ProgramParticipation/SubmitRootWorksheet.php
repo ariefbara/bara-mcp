@@ -55,7 +55,7 @@ class SubmitRootWorksheet
         $id = $this->worksheetRepository->nextIdentity();
         $mission = $this->missionRepository->ofId($missionId);
         
-        $worksheet = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
+        $worksheet = $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->submitRootWorksheet($teamProgramParticipation, $id, $name, $mission, $formRecordData);
         $this->worksheetRepository->add($worksheet);
         return $id;

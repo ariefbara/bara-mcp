@@ -6,9 +6,9 @@ use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Query\Domain\ {
-    Model\Firm\Team\TeamFileInfo,
-    Service\Firm\Team\TeamFileInfoRepository
+use Query\ {
+    Application\Service\Firm\Team\TeamFileInfoRepository,
+    Domain\Model\Firm\Team\TeamFileInfo
 };
 use Resources\Exception\RegularException;
 

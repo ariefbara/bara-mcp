@@ -2,12 +2,9 @@
 
 namespace Team\Application\Service\Team;
 
-use Team\ {
-    Application\Service\Firm\Client\TeamMembershipRepository,
-    Domain\Model\Team\Member
-};
+use Team\Domain\Model\Team\Member;
 
-interface MemberRepository extends TeamMembershipRepository
+interface MemberRepository
 {
 
     public function aMemberCorrespondWithClient(string $firmId, string $teamId, string $clientId): Member;

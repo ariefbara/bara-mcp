@@ -30,6 +30,6 @@ class ParticipantFileInfoFinderTest extends TestBase
             ->with($this->programParticipationCompositionId, $fileInfoId = 'file-info-id')
             ->willReturn($fileInfo);
         
-        $this->assertEquals($fileInfo, $this->service->ofId($fileInfoId));
+        $this->assertEquals($fileInfo, $this->service->aTeamMembershipCorrespondWithTeam($fileInfoId));
     }
 }

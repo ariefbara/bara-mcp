@@ -36,7 +36,7 @@ class UpdateWorksheet
             FormRecordData $formRecordData): void
     {
         $worksheet = $this->worksheetRepository->ofId($worksheetId);
-        $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
+        $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->updateWorksheet($worksheet, $name, $formRecordData);
         $this->worksheetRepository->update();
     }

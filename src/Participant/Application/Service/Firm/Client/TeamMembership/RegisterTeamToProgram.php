@@ -43,7 +43,7 @@ class RegisterTeamToProgram
         $id = $this->teamProgramRegistrationRepository->nextIdentity();
         $program = $this->programRepository->ofId($firmId, $programId);
         
-        $teamProgramRegistration = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
+        $teamProgramRegistration = $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->registerTeamToProgram($id, $program);
         
         $this->teamProgramRegistrationRepository->add($teamProgramRegistration);

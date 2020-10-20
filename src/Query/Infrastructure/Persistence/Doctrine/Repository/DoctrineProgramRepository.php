@@ -10,14 +10,13 @@ use Query\ {
     Application\Service\Firm\ProgramRepository,
     Domain\Model\Firm\ParticipantTypes,
     Domain\Model\Firm\Program,
-    Domain\Service\Firm\ProgramRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineProgramRepository extends EntityRepository implements ProgramRepository, InterfaceForDomainService
+class DoctrineProgramRepository extends EntityRepository implements ProgramRepository
 {
 
     public function ofId(string $firmId, string $programId): Program
@@ -64,25 +63,6 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
                 ->andWhere($qb->expr()->like('program.participantTypes.values', ":participantType"))
                 ->setParameter("participantType", "%".ParticipantTypes::USER_TYPE."%")
                 ->andWhere($qb->expr()->eq('program.removed', 'false'));
-        
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function allProgramViewableByClient(string $firmId, int $page, int $pageSize)
-    {
-        $clientType = "%" . ParticipantTypes::CLIENT_TYPE . "%";
-        $teamType = "%". ParticipantTypes::TEAM_TYPE . "%";
-        
-        $qb = $this->createQueryBuilder('program');
-        $qb->select('program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
-                ->andWhere($qb->expr()->orX(
-                        $qb->expr()->like('program.participantTypes.values', "'$clientType'"),
-                        $qb->expr()->like('program.participantTypes.values', "'$teamType'")
-                ))
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameter('firmId', $firmId);
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

@@ -28,7 +28,7 @@ class QuitProgramParticipation
     public function execute(string $firmId, string $clientId, string $teamMembershipId, string $teamProgramParticipationId): void
     {
         $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($teamProgramParticipationId);
-        $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
+        $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->quitTeamProgramParticipation($teamProgramParticipation);
         
         $this->teamProgramParticipationRepository->update();

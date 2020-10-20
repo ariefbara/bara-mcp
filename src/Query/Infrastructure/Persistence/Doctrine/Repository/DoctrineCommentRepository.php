@@ -218,44 +218,25 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function aCommentBelongsToTeamWhereClientIsMember(
-            string $firmId, string $clientId, string $teamMembershipId, string $teamProgramParticipationId,
-            string $worksheetId, string $commentId): Comment
+    public function aCommentBelongsToTeam(string $teamId, string $commentId): Comment
     {
         $params = [
-            "firmId" => $firmId,
-            "clientId" => $clientId,
-            "teamMembershipId" => $teamMembershipId,
-            "teamProgramParticipationId" => $teamProgramParticipationId,
-            "worksheetId" => $worksheetId,
+            "teamId" => $teamId,
             "commentId" => $commentId,
         ];
         
-        $teamQb = $this->getEntityManager()->createQueryBuilder();
-        $teamQb->select("t_team.id")
-                ->from(Member::class, "teamMembership")
-                ->andWhere($teamQb->expr()->eq("teamMembership.id", ":teamMembershipId"))
-                ->leftJoin("teamMembership.client", "client")
-                ->andWhere($teamQb->expr()->eq("client.id", ":clientId"))
-                ->leftJoin("client.firm", "firm")
-                ->andWhere($teamQb->expr()->eq("firm.id", ":firmId"))
-                ->leftJoin("teamMembership.team", "t_team")
-                ->setMaxResults(1);
-
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("programParticipation.id")
                 ->from(TeamProgramParticipation::class, "teamProgramParticipation")
-                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
                 ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
                 ->leftJoin("teamProgramParticipation.team", "team")
-                ->andWhere($participantQb->expr()->in("team.id", $teamQb->getDQL()))
+                ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
                 ->setMaxResults(1);
         
         $qb = $this->createQueryBuilder("comment");
         $qb->select("comment")
                 ->andWhere($qb->expr()->eq("comment.id", ":commentId"))
                 ->leftJoin("comment.worksheet", "worksheet")
-                ->andWhere($qb->expr()->eq("worksheet.id", ":worksheetId"))
                 ->leftJoin("worksheet.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
@@ -269,36 +250,19 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
         }
     }
 
-    public function allCommentsBelongsToTeamWhereClientIsMember(
-            string $firmId, string $clientId, string $teamMembershipId, string $teamProgramParticipationId,
-            string $worksheetId, int $page, int $pageSize)
+    public function allCommentsInWorksheetBelongsToTeam(string $teamId, string $worksheetId, int $page, int $pageSize)
     {
         $params = [
-            "firmId" => $firmId,
-            "clientId" => $clientId,
-            "teamMembershipId" => $teamMembershipId,
-            "teamProgramParticipationId" => $teamProgramParticipationId,
+            "teamId" => $teamId,
             "worksheetId" => $worksheetId,
         ];
         
-        $teamQb = $this->getEntityManager()->createQueryBuilder();
-        $teamQb->select("t_team.id")
-                ->from(Member::class, "teamMembership")
-                ->andWhere($teamQb->expr()->eq("teamMembership.id", ":teamMembershipId"))
-                ->leftJoin("teamMembership.client", "client")
-                ->andWhere($teamQb->expr()->eq("client.id", ":clientId"))
-                ->leftJoin("client.firm", "firm")
-                ->andWhere($teamQb->expr()->eq("firm.id", ":firmId"))
-                ->leftJoin("teamMembership.team", "t_team")
-                ->setMaxResults(1);
-
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("programParticipation.id")
                 ->from(TeamProgramParticipation::class, "teamProgramParticipation")
-                ->andWhere($participantQb->expr()->eq("teamProgramParticipation.id", ":teamProgramParticipationId"))
                 ->leftJoin("teamProgramParticipation.programParticipation", "programParticipation")
                 ->leftJoin("teamProgramParticipation.team", "team")
-                ->andWhere($participantQb->expr()->in("team.id", $teamQb->getDQL()))
+                ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
                 ->setMaxResults(1);
         
         $qb = $this->createQueryBuilder("comment");

@@ -19,7 +19,27 @@ class ProgramController extends ClientBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $programs = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize());
+        $programs = $service->showAll(
+                $this->firmId(), $this->getPage(), $this->getPageSize(), ParticipantTypes::CLIENT_TYPE);
+        
+        $result = [];
+        $result["total"] = count($programs);
+        foreach ($programs as $program) {
+            $result["list"][] = [
+                "id" => $program->getId(),
+                "name" => $program->getName(),
+                "published" => $program->isPublished(),
+                "participantTypes" => $program->getParticipantTypeValues(),
+                "removed" => $program->isRemoved(),
+            ];
+        }
+        return $this->listQueryResponse($result);
+    }
+    public function showAllProgramForTeam()
+    {
+        $service = $this->buildViewService();
+        $programs = $service->showAll(
+                $this->firmId(), $this->getPage(), $this->getPageSize(), ParticipantTypes::TEAM_TYPE);
         
         $result = [];
         $result["total"] = count($programs);

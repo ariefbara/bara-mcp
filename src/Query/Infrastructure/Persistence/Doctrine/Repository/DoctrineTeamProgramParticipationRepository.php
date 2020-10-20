@@ -2,16 +2,16 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Query\Domain\ {
-    Model\Firm\Team\TeamProgramParticipation,
-    Service\Firm\Team\TeamProgramParticipationRepository,
-    Service\TeamProgramParticipationRepository as InterfaceForDomainService
+use Query\{
+    Application\Service\Firm\Team\TeamProgramParticipationRepository,
+    Domain\Model\Firm\Team\TeamProgramParticipation,
+    Domain\Service\TeamProgramParticipationRepository as InterfaceForDomainService
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
@@ -20,22 +20,7 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         InterfaceForDomainService
 {
 
-    public function all(string $teamId, int $page, int $pageSize)
-    {
-        $params = [
-            "teamId" => $teamId,
-        ];
-
-        $qb = $this->createQueryBuilder("teamProgramParticipation");
-        $qb->select("teamProgramParticipation")
-                ->leftJoin("teamProgramParticipation.team", "team")
-                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
-                ->setParameters($params);
-
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-    }
-
-    public function ofId(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation
+    public function aTeamProgramParticipationBelongsToTeam(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation
     {
         $params = [
             "teamId" => $teamId,
@@ -58,12 +43,27 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         }
     }
 
+    public function allTeamProgramParticipationsBelongsToTeam(string $teamId, int $page, int $pageSize)
+    {
+        $params = [
+            "teamId" => $teamId,
+        ];
+
+        $qb = $this->createQueryBuilder("teamProgramParticipation");
+        $qb->select("teamProgramParticipation")
+                ->leftJoin("teamProgramParticipation.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
     public function aTeamProgramParticipationCorrespondWithProgram(string $teamId, string $programId): TeamProgramParticipation
     {
         $params = [
             "teamId" => $teamId,
             "programId" => $programId,
-        ];
+        ]; 
         
         $qb = $this->createQueryBuilder("teamProgramParticipation");
         $qb->select("teamProgramParticipation")
@@ -78,8 +78,8 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
-            $programId = "not found: team program participation not found";
-            throw RegularException::notFound($programId);
+            $errorDetail = "not found: team program participation not found";
+            throw RegularException::notFound($errorDetail);
         }
     }
 

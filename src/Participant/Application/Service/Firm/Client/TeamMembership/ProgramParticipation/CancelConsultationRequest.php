@@ -42,7 +42,7 @@ class CancelConsultationRequest
             string $firmId, string $clientId, string $teamMembershipId, string $consultationRequestId): void
     {
         $consultationRequest = $this->consultationRequestRepository->ofId($consultationRequestId);
-        $teamMembership = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $teamMembership = $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId);
         $teamMembership->cancelConsultationRequest($consultationRequest);
         $this->consultationRequestRepository->update();
         

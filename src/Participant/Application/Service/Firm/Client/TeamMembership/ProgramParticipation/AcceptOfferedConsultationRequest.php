@@ -43,7 +43,7 @@ class AcceptOfferedConsultationRequest
             string $consultationRequestId): void
     {
         $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($programParticipationId);
-        $teamMembership = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $teamMembership = $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId);
         $teamMembership->acceptOfferedConsultationRequest($teamProgramParticipation, $consultationRequestId);
         $this->teamProgramParticipationRepository->update();
         

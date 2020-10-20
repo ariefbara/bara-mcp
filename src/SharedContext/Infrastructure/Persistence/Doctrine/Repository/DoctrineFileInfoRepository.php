@@ -118,40 +118,25 @@ class DoctrineFileInfoRepository extends EntityRepository implements FileInfoRep
         }
     }
 
-    public function fileInfoOfTeamWhereClientIsMember(string $firmId, string $clientId, string $teamMembershipId,
-            string $fileInfoId): FileInfo
+    public function fileInfoOfTeam(string $teamId, string $fileInfoId): FileInfo
     {
         $params = [
-            'firmId' => $firmId,
-            'clientId' => $clientId,
-            'teamMembershipId' => $teamMembershipId,
-            'fileInfoId' => $fileInfoId,
+            "teamId" => $teamId,
+            "fileInfoId" => $fileInfoId,
         ];
-        
-        
-        $teamQb = $this->getEntityManager()->createQueryBuilder();
-        $teamQb->select("t_team.id")
-                ->from(Member::class, "teamMembership")
-                ->andWhere($teamQb->expr()->eq("teamMembership.id", ":teamMembershipId"))
-                ->leftJoin("teamMembership.team", "t_team")
-                ->leftJoin("teamMembership.client", "client")
-                ->andWhere($teamQb->expr()->eq("client.id", ":clientId"))
-                ->leftJoin("client.firm", "firm")
-                ->andWhere($teamQb->expr()->eq("firm.id", ":firmId"))
-                ->setMaxResults(1);
         
         $fileInfoQb = $this->getEntityManager()->createQueryBuilder();
         $fileInfoQb->select("t_fileInfo.id")
                 ->from(TeamFileInfo::class, "teamFileInfo")
                 ->leftJoin("teamFileInfo.fileInfo", "t_fileInfo")
-                ->andWhere($teamQb->expr()->eq("t_fileInfo.id", ":fileInfoId"))
+                ->andWhere($fileInfoQb->expr()->in("t_fileInfo.id", ":fileInfoId"))
                 ->leftJoin("teamFileInfo.team", "team")
-                ->andWhere($fileInfoQb->expr()->in("team.id", $teamQb->getDQL()))
+                ->andWhere($fileInfoQb->expr()->in("team.id", ":teamId"))
                 ->setMaxResults(1);
         
-        $qb  = $this->createQueryBuilder('fileInfo');
-        $qb->select('fileInfo')
-                ->andWhere($qb->expr()->in('fileInfo.id', $fileInfoQb->getDQL()))
+        $qb = $this->createQueryBuilder("fileInfo");
+        $qb->select("fileInfo")
+                ->andWhere($qb->expr()->in("fileInfo.id", $fileInfoQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
         

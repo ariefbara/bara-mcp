@@ -2,18 +2,14 @@
 
 namespace Query\Application\Service\Firm\Program;
 
-use Query\ {
-    Application\Service\Firm\Client\ProgramParticipation\MissionRepository as InterfaceForClient,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\MissionRepository as InterfaceForTeamMember,
-    Application\Service\User\ProgramParticipation\MissionRepository as InterfaceForUser,
-    Domain\Model\Firm\Program\Mission
-};
+use Query\Domain\Model\Firm\Program\Mission;
 
-interface MissionRepository extends InterfaceForClient, InterfaceForUser, InterfaceForTeamMember
+interface MissionRepository
 {
 
     public function ofId(string $firmId, string $programId, string $missionId): Mission;
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize, ?string $position);
-    
+    public function all(string $firmId, string $programId, int $page, int $pageSize);
+
+    public function aMissionByPositionBelongsToProgram(string $programId, string $position): Mission;
 }

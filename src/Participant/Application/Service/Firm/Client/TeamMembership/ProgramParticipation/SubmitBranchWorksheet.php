@@ -57,7 +57,7 @@ class SubmitBranchWorksheet
         $id = $this->worksheetRepository->nextIdentity();
 
         $branchWorksheet = $this->teamMembershipRepository
-                ->ofId($firmId, $clientId, $teamMembershipId)
+                ->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->submitBranchWorksheet(
                 $teamProgramParticipation, $parentWorksheet, $id, $name, $mission, $formRecordData);
         $this->worksheetRepository->add($branchWorksheet);

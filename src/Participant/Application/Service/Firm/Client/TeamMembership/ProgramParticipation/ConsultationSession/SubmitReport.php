@@ -36,7 +36,7 @@ class SubmitReport
             FormRecordData $formRecordData): void
     {
         $consultationSession = $this->consultationSessionRepository->ofId($consultationSessionId);
-        $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId)
+        $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->submitConsultationSessionReport($consultationSession, $formRecordData);
         $this->consultationSessionRepository->update();
     }

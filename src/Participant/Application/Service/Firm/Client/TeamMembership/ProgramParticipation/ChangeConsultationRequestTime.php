@@ -44,7 +44,7 @@ class ChangeConsultationRequestTime
             string $consultationRequestId, DateTimeImmutable $startTime): void
     {
         $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($programParticipationId);
-        $teamMembership = $this->teamMembershipRepository->ofId($firmId, $clientId, $teamMembershipId);
+        $teamMembership = $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId);
         $teamMembership->changeConsultationRequestTime($teamProgramParticipation, $consultationRequestId, $startTime);
         $this->teamProgramParticipationRepository->update();
         

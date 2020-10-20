@@ -15,17 +15,18 @@ use Resources\Exception\RegularException;
 class DoctrineTeamMembershipRepository extends EntityRepository implements TeamMembershipRepository
 {
 
-    public function ofId(string $firmId, string $clientId, string $teamMembershipId): TeamMembership
+    public function aTeamMembershipCorrespondWithTeam(string $firmId, string $clientId, string $teamId): TeamMembership
     {
         $params = [
             "firmId" => $firmId,
             "clientId" => $clientId,
-            "teamMembershipId" => $teamMembershipId,
+            "teamId" => $teamId,
         ];
 
         $qb = $this->createQueryBuilder("teamMembership");
         $qb->select("teamMembership")
-                ->andWhere($qb->expr()->eq("teamMembership.id", ":teamMembershipId"))
+                ->leftJoin("teamMembership.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
                 ->leftJoin("teamMembership.client", "client")
                 ->andWhere($qb->expr()->eq("client.id", ":clientId"))
                 ->andWhere($qb->expr()->eq("client.firmId", ":firmId"))

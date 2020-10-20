@@ -35,7 +35,8 @@ class MissionTestCase extends AsProgramParticipantTestCase
         $worksheetForm = new RecordOfWorksheetForm($firm, $form);
         $this->connection->table("WorksheetForm")->insert($worksheetForm->toArrayForDbEntry());
         
-        $this->mission = new RecordOfMission($program, $worksheetForm, 0, null);
+        $this->mission = new RecordOfMission($program, $worksheetForm, 999, null);
+        $this->mission->published = true;
         $this->connection->table("Mission")->insert($this->mission->toArrayForDbEntry());
     }
     

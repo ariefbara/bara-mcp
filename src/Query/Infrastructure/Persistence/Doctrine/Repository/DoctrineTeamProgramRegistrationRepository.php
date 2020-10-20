@@ -20,7 +20,7 @@ use Resources\ {
 class DoctrineTeamProgramRegistrationRepository extends EntityRepository implements TeamProgramRegistrationRepository, InterfaceForDomainService
 {
 
-    public function all(string $firmId, string $teamId, int $page, int $pageSize)
+    public function all(string $firmId, string $teamId, int $page, int $pageSize, ?bool $concludedStatus)
     {
         $params = [
             "firmId" => $firmId,
@@ -35,6 +35,10 @@ class DoctrineTeamProgramRegistrationRepository extends EntityRepository impleme
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
 
+        if (isset($concludedStatus)) {
+            $qb->andWhere($qb->expr()->eq("teamProgramRegistration.concluded", ":concludedStatus"))
+                    ->setParameter("concludedStatus", $concludedStatus);
+        }
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
