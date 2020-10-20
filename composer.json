@@ -13,7 +13,8 @@
         "nordsoftware/lumen-cors": "^3.3",
         "ramsey/uuid": "^4.0",
         "respect/validation": "^2.0",
-        "swiftmailer/swiftmailer": "^6.2"
+        "swiftmailer/swiftmailer": "^6.2",
+        "symfony/http-kernel": "5.1.5"
     },
     "require-dev": {
         "fzaninotto/faker": "^1.9.1",

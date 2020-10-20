@@ -38,7 +38,7 @@ class RecordOfClient implements Record
         $this->activated = true;
         $this->signupTime = (new DateTimeImmutable())->format('Y-m-d H:i:s');
         
-        $this->rawPassword = "password123$index";
+        $this->rawPassword = "Password123$index";
         $this->password = (new TestablePassword($this->rawPassword))->getHashedPassword();
         
         $data = [

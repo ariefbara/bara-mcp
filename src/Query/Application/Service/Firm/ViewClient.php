@@ -33,5 +33,10 @@ class ViewClient
     {
         return $this->clientRepository->ofId($firmId, $clientId);
     }
+    
+    public function showByEmail(string $firmId, string $email): Client
+    {
+        return $this->clientRepository->aClientByEmail($firmId, $email);
+    }
 
 }

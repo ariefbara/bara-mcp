@@ -29,10 +29,10 @@ $router->group($clientAggregate, function () use ($router) {
         
         $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
         
-        $router->group(['prefix' => '/find-client-by-email'], function () use($router) {
-            $controller = "FindClientByEmailController";
-            $router->get("", ["uses" => "$controller@show"]);
-        });
+//        $router->group(['prefix' => '/find-client-by-email'], function () use($router) {
+//            $controller = "FindClientByEmailController";
+//            $router->get("", ["uses" => "$controller@show"]);
+//        });
         
         $router->group(['prefix' => '/programs'], function () use($router) {
             $controller = "ProgramController";
@@ -232,11 +232,31 @@ $router->group($clientAggregate, function () use ($router) {
         });
     });
     
-    $asTeamAdminAggregate = [
-        'prefix' => '/as-team-admin/{teamId}',
-        'namespace' => 'AsTeamAdmin',
+//    $asTeamAdminAggregate = [
+//        'prefix' => '/as-team-admin/{teamId}',
+//        'namespace' => 'AsTeamAdmin',
+//    ];
+//    $router->group($asTeamAdminAggregate, function () use ($router) {
+//        $router->group(['prefix' => '/members'], function () use($router) {
+//            $controller = "MemberController";
+//            $router->post("", ["uses" => "$controller@add"]);
+//            $router->delete("/{memberId}", ["uses" => "$controller@remove"]);
+//            $router->get("/{memberId}", ["uses" => "$controller@show"]);
+//            $router->get("", ["uses" => "$controller@showAll"]);
+//        });
+//    });
+    
+    $asTeamMemberAggregate = [
+        'prefix' => '/as-team-member/{teamId}',
+        'namespace' => 'AsTeamMember',
     ];
-    $router->group($asTeamAdminAggregate, function () use ($router) {
+    $router->group($asTeamMemberAggregate, function () use ($router) {
+        
+        $router->group(['prefix' => '/find-client-by-email'], function () use($router) {
+            $controller = "FindClientByEmailController";
+            $router->get("", ["uses" => "$controller@show"]);
+        });
+        
         $router->group(['prefix' => '/members'], function () use($router) {
             $controller = "MemberController";
             $router->post("", ["uses" => "$controller@add"]);
@@ -244,13 +264,6 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("/{memberId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
-    });
-    
-    $asTeamMemberAggregate = [
-        'prefix' => '/as-team-member/{teamId}',
-        'namespace' => 'AsTeamMember',
-    ];
-    $router->group($asTeamMemberAggregate, function () use ($router) {
         
         $asProgramParticipantAggregate = [
             'prefix' => '/as-program-participant/{programId}',

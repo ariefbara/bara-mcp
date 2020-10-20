@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsTeamAdmin;
+namespace App\Http\Controllers\Client\AsTeamMember;
 
 use Query\{
     Application\Service\Firm\Team\ViewMember,
@@ -13,7 +13,7 @@ use Team\{
     Domain\Model\Team\Member as Member2
 };
 
-class MemberController extends AsTeamAdminBaseController
+class MemberController extends AsTeamMemberBaseController
 {
 
     public function add($teamId)
@@ -38,7 +38,7 @@ class MemberController extends AsTeamAdminBaseController
 
     public function show($teamId, $memberId)
     {
-        $this->authorizeClientIsActiveTeamMemberWithAdminPriviledge($teamId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
         
         $service = $this->buildViewService();
         $member = $service->showById($this->firmId(), $teamId, $memberId);
@@ -47,7 +47,7 @@ class MemberController extends AsTeamAdminBaseController
 
     public function showAll($teamId)
     {
-        $this->authorizeClientIsActiveTeamMemberWithAdminPriviledge($teamId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
         $service = $this->buildViewService();
         $members = $service->showAll($this->firmId(), $teamId, $this->getPage(), $this->getPageSize());
         

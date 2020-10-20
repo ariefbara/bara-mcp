@@ -1,14 +1,13 @@
 <?php
 
-namespace Tests\Controllers\Client\TeamMembership;
+namespace Tests\Controllers\Client\AsTeamMember;
 
-use Tests\Controllers\ {
-    Client\TeamMembershipTestCase,
-    RecordPreparation\Firm\RecordOfClient,
-    RecordPreparation\RecordOfFirm
+use Tests\Controllers\RecordPreparation\ {
+    Firm\RecordOfClient,
+    RecordOfFirm
 };
 
-class FindClientByEmailControllerTest extends TeamMembershipTestCase
+class FindClientByEmailControllerTest extends AsTeamMemberTestCase
 {
     protected $findClientByEmailUri;
     protected $client;
@@ -17,9 +16,9 @@ class FindClientByEmailControllerTest extends TeamMembershipTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->findClientByEmailUri = $this->teamMembershipUri . "/find-client-by-email";
+        $this->findClientByEmailUri = $this->asTeamMemberUri . "/find-client-by-email";
         
-        $firm = $this->teamMembership->client->firm;
+        $firm = $this->teamMember->team->firm;
         $otherFirm = new RecordOfFirm("otherFirm", "other-firm");
         $this->connection->table("Firm")->insert($otherFirm->toArrayForDbEntry());
         
@@ -42,28 +41,26 @@ class FindClientByEmailControllerTest extends TeamMembershipTestCase
             "isActive" => $this->client->activated,
         ];
         $uri = $this->findClientByEmailUri . "/?clientEmail={$this->client->email}";
-        $this->get($uri, $this->teamMembership->client->token)
+        $this->get($uri, $this->teamMember->client->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     public function test_show_clientFromOtherFirm_404()
     {
         $uri = $this->findClientByEmailUri . "/?clientEmail={$this->clientOne_fromOtherFirm->email}";
-        $this->get($uri, $this->teamMembership->client->token)
+        $this->get($uri, $this->teamMember->client->token)
                 ->seeStatusCode(404);
     }
     public function test_show_notTeamAdmin_403()
     {
-        $this->setTeamMembershipNotAnAdmin();
         $uri = $this->findClientByEmailUri . "/?clientEmail={$this->client->email}";
-        $this->get($uri, $this->teamMembership->client->token)
+        $this->get($uri, $this->teamMemberTwo_notAdmin->client->token)
                 ->seeStatusCode(403);
     }
-    public function test_show_inactiveMembership_403()
+    public function test_show_inactiveMember_403()
     {
-        $this->setTeamMembershipInactive();
         $uri = $this->findClientByEmailUri . "/?clientEmail={$this->client->email}";
-        $this->get($uri, $this->teamMembership->client->token)
+        $this->get($uri, $this->teamMemberOne_inactive->client->token)
                 ->seeStatusCode(403);
     }
     

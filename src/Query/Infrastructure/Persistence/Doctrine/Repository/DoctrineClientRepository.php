@@ -105,4 +105,26 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
         }
     }
 
+    public function aClientByEmail(string $firmId, string $email): Client
+    {
+        $params = [
+            "firmId" => $firmId,
+            "email" => $email,
+        ];
+        $qb = $this->createQueryBuilder("client");
+        $qb->select("client")
+                ->andWhere($qb->expr()->eq("client.email", ":email"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: client not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }
