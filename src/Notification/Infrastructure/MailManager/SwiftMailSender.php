@@ -28,8 +28,11 @@ class SwiftMailSender implements MailSender
             ->setSubject($recipient->getSubject())
             ->setFrom($recipient->getSenderMailAddress(), $recipient->getSenderName())
             ->setBody($recipient->getMessage())
-            ->addPart($recipient->getHtmlMessage(), "text/html")
             ->setTo($recipient->getRecipientMailAddress(), $recipient->getRecipientName());
+        
+        if (!empty($recipient->getHtmlMessage())) {
+            $message->addPart($recipient->getHtmlMessage(), "text/html");
+        }
         
         
         if (1 == $this->vendor->send($message)) {

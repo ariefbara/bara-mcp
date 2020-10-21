@@ -30,6 +30,9 @@ class ClientAccountControllerTest extends ControllerTestCase
         parent::setUp();
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Client')->truncate();
+        $this->connection->table('ClientMail')->truncate();
+        $this->connection->table('Mail')->truncate();
+        $this->connection->table('MailRecipient')->truncate();
 
         $this->firm = new RecordOfFirm(0, 'firm-0-identifier');
         $this->connection->table('Firm')->insert($this->firm->toArrayForDbEntry());
@@ -68,6 +71,9 @@ class ClientAccountControllerTest extends ControllerTestCase
         parent::tearDown();
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Client')->truncate();
+        $this->connection->table('ClientMail')->truncate();
+        $this->connection->table('Mail')->truncate();
+        $this->connection->table('MailRecipient')->truncate();
     }
     
     public function test_activate()
@@ -194,6 +200,27 @@ class ClientAccountControllerTest extends ControllerTestCase
         $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
                 ->seeStatusCode(403);
     }
+    public function test_generateActivationCode_sendMailNotificationToClient()
+    {
+        $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
+                ->seeStatusCode(200);
+        $mailEntry = [
+            "subject" => "Konsulta: Aktivasi Akun",
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $clientMailEntry = [
+            "Client_id" => $this->inactiveClient->id,
+        ];
+        $this->seeInDatabase("ClientMail", $clientMailEntry);
+        
+        $mailRecipientEntry = [
+            "recipientMailAddress" => $this->inactiveClient->email,
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $mailRecipientEntry);
+    }
     
     public function test_generateResetPasswordCode()
     {
@@ -217,6 +244,27 @@ class ClientAccountControllerTest extends ControllerTestCase
         $this->generateResetPasswordCodeInput['email'] = $this->inactiveClient->email;
         $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
                 ->seeStatusCode(403);
+    }
+    public function test_generateResetPasswordCode_sendMailNotificationToClient()
+    {
+        $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
+                ->seeStatusCode(200);
+        $mailEntry = [
+            "subject" => "Konsulta: Reset Password",
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $clientMailEntry = [
+            "Client_id" => $this->activeClient->id,
+        ];
+        $this->seeInDatabase("ClientMail", $clientMailEntry);
+        
+        $mailRecipientEntry = [
+            "recipientMailAddress" => $this->activeClient->email,
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $mailRecipientEntry);
     }
 
 }

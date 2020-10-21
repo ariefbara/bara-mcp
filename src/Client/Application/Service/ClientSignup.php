@@ -30,13 +30,13 @@ class ClientSignup
      *
      * @var Dispatcher
      */
-    protected $dipatcher;
+    protected $dispatcher;
 
-    function __construct(ClientRepository $clientRepository, FirmRepository $firmRepository, Dispatcher $dipatcher)
+    function __construct(ClientRepository $clientRepository, FirmRepository $firmRepository, Dispatcher $dispatcher)
     {
         $this->clientRepository = $clientRepository;
         $this->firmRepository = $firmRepository;
-        $this->dipatcher = $dipatcher;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(string $firmIdentifier, ClientData $clientData)
@@ -48,7 +48,7 @@ class ClientSignup
         $client = new Client($firm, $id, $clientData);
         $this->clientRepository->add($client);
         
-        $this->dipatcher->dispatch($client);
+        $this->dispatcher->dispatch($client);
     }
     
     protected function assertEmailAvailable(string $firmIdentifier, string $email): void

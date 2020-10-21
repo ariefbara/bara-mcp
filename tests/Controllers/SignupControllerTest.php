@@ -33,6 +33,9 @@ class SignupControllerTest extends ControllerTestCase
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Client')->truncate();
         $this->connection->table('User')->truncate();
+        $this->connection->table('Mail')->truncate();
+        $this->connection->table('ClientMail')->truncate();
+        $this->connection->table('MailRecipient')->truncate();
         
         $this->firm = new RecordOfFirm(0, 'firm_identifier');
         $this->connection->table('Firm')->insert($this->firm->toArrayForDbEntry());
@@ -58,10 +61,12 @@ class SignupControllerTest extends ControllerTestCase
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Client')->truncate();
         $this->connection->table('User')->truncate();
+        $this->connection->table('ClientMail')->truncate();
+        $this->connection->table('Mail')->truncate();
+        $this->connection->table('MailRecipient')->truncate();
     }
     public function test_clientSignup()
     {
-//use valid mail to check if activation mail sent
         $response = [
             "meta" => [
                 "code" => 201,
@@ -78,7 +83,6 @@ class SignupControllerTest extends ControllerTestCase
             "lastName" => $this->clientSignupInput['lastName'],
             "email" => $this->clientSignupInput['email'],
             "activated" => false,
-            'activationCodeExpiredTime' => (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s'),
             'resetPasswordCode' => null,
             'resetPasswordCodeExpiredTime' => null,
         ];
@@ -90,7 +94,27 @@ class SignupControllerTest extends ControllerTestCase
         $this->post($this->clientSignupUri, $this->clientSignupInput)
             ->seeStatusCode(409);
     }
+    public function test_clientSignup_scenario_expectedResult()
+    {
+//use valid mail to check if activation mail sent
+        $this->post($this->clientSignupUri, $this->clientSignupInput)
+            ->seeStatusCode(201);
+        
+        $mailEntry = [
+            "subject" => "Konsulta: Aktivasi Akun",
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $recipientEntry = [
+            "recipientMailAddress" => $this->clientSignupInput["email"],
+            "recipientName" => $this->clientSignupInput["firstName"] . " " . $this->clientSignupInput["lastName"],
+            "sent" => true, 
+            "attempt" => 1, 
+        ];
+        $this->seeInDatabase("MailRecipient", $recipientEntry);
+    }
     
+/*
     public function test_userSignup()
     {
         $response = [
@@ -120,5 +144,7 @@ class SignupControllerTest extends ControllerTestCase
         $this->post($this->userSignupUri, $this->userSignupInput)
             ->seeStatusCode(409);
     }
+ * 
+ */
 }
  

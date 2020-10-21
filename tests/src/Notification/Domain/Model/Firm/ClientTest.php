@@ -2,24 +2,30 @@
 
 namespace Notification\Domain\Model\Firm;
 
-use Notification\Domain\SharedModel\ {
-    CanSendPersonalizeMail,
-    MailMessage
+use Notification\Domain\ {
+    Model\Firm,
+    Model\Firm\Client\ClientMail,
+    SharedModel\CanSendPersonalizeMail,
+    SharedModel\MailMessage
 };
 use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
 
 class ClientTest extends TestBase
 {
+    protected $firm;
     protected $client;
     protected $name;
     protected $mailGenerator;
     protected $mailMessage, $modifiedGreetings, $modifiedUrl;
-    
+    protected $clientMailId = "clientMailId";
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->client = new TestableClient();
+        $this->firm = $this->buildMockOfClass(Firm::class);
+        $this->client->firm = $this->firm;
         $this->name = $this->buildMockOfClass(PersonName::class);
         $this->client->name = $this->name;
         
@@ -64,6 +70,15 @@ class ClientTest extends TestBase
                 ->method("addMail")
                 ->with($this->modifiedGreetings, $this->client->email, $fullName);
         $this->executeRegisterAsMailRecipient();
+    }
+    
+    public function test_createActivationMail_returnClientMail()
+    {
+        $this->assertInstanceOf(ClientMail::class, $this->client->createActivationMail($this->clientMailId));
+    }
+    public function test_createResetPasswordMail_returnClientMail()
+    {
+        $this->assertInstanceOf(ClientMail::class, $this->client->createResetPasswordMail($this->clientMailId));
     }
 }
 

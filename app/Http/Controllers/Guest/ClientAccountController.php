@@ -2,25 +2,22 @@
 
 namespace App\Http\Controllers\Guest;
 
-use App\Http\Controllers\ {
-    Controller,
-    SwiftMailerBuilder
-};
-use Client\ {
+use App\Http\Controllers\Controller;
+use Client\{
     Application\Service\ActivateAccount,
     Application\Service\GenerateActivationCode,
     Application\Service\GenerateResetPasswordCode,
     Application\Service\ResetPassword,
-    Domain\Event\ClientActivationCodeGenerated,
-    Domain\Event\ClientResetPasswordCodeGenerated,
     Domain\Model\Client
 };
-use Firm\ {
-    Application\Listener\SendMailOnClientActivationCodeGeneratedListener,
-    Application\Listener\SendMailOnClientResetPasswordCodeGeneratedListener,
-    Application\Service\Firm\SendClientActivationCodeMail,
-    Application\Service\Firm\SendClientResetPasswordCodeMail,
-    Domain\Model\Firm\Client as Client2
+use Config\EventList;
+use Notification\{
+    Application\Listener\Client\ActivationCodeGeneratedListener,
+    Application\Listener\Client\ResetPasswordCodeGeneratedListener,
+    Application\Service\Client\CreateActivationMail,
+    Application\Service\Client\CreateClientResetPasswordMail,
+    Domain\Model\Firm\Client as Client2,
+    Domain\Model\Firm\Client\ClientMail
 };
 use Resources\Application\Event\Dispatcher;
 
@@ -31,11 +28,11 @@ class ClientAccountController extends Controller
     {
         $clientRepository = $this->em->getRepository(Client::class);
         $service = new ActivateAccount($clientRepository);
-        
+
         $firmIdentifier = $this->stripTagsInputRequest('firmIdentifier');
         $email = $this->stripTagsInputRequest('email');
         $activationCode = $this->stripTagsInputRequest('activationCode');
-        
+
         $service->execute($firmIdentifier, $email, $activationCode);
         return $this->commandOkResponse();
     }
@@ -44,68 +41,72 @@ class ClientAccountController extends Controller
     {
         $clientRepository = $this->em->getRepository(Client::class);
         $service = new ResetPassword($clientRepository);
-        
+
         $firmIdentifier = $this->stripTagsInputRequest('firmIdentifier');
         $email = $this->stripTagsInputRequest('email');
         $resetPasswordCode = $this->stripTagsInputRequest('resetPasswordCode');
         $password = $this->stripTagsInputRequest('password');
-        
+
         $service->execute($firmIdentifier, $email, $resetPasswordCode, $password);
         return $this->commandOkResponse();
     }
 
     public function generateActivationCode()
     {
-        $clientRepository = $this->em->getRepository(Client::class);
-        $dispatcher = new Dispatcher();
-        
-//        $listener = $this->buildSendMailOnClientActivationCodeGeneratedListener();
-//        $dispatcher->addListener(ClientActivationCodeGenerated::EVENT_NAME, $listener);
-        
-        $service = new GenerateActivationCode($clientRepository, $dispatcher);
-        
+        $service = $this->buildGenerateActivationCodeService();
+
         $firmIdentifier = $this->stripTagsInputRequest('firmIdentifier');
         $email = $this->stripTagsInputRequest('email');
-        
+
         $service->execute($firmIdentifier, $email);
-        
+
         return $this->commandOkResponse();
     }
 
     public function generateResetPasswordCode()
     {
-        $clientRepository = $this->em->getRepository(Client::class);
-        $dispatcher = new Dispatcher();
-        
-//        $listener = $this->buildSendMainOnClientResetPasswordCodeGeneratedListener();
-//        $dispatcher->addListener(ClientResetPasswordCodeGenerated::EVENT_NAME, $listener);
-        
-        $service = new GenerateResetPasswordCode($clientRepository, $dispatcher);
+        $service = $this->buildGenerateResetPasswordCodeService();
         
         $firmIdentifier = $this->stripTagsInputRequest('firmIdentifier');
         $email = $this->stripTagsInputRequest('email');
         
         $service->execute($firmIdentifier, $email);
-        
+
         return $this->commandOkResponse();
     }
-    
-    protected function buildSendMailOnClientActivationCodeGeneratedListener()
+
+    protected function buildGenerateActivationCodeService()
     {
-        $clientRepository = $this->em->getRepository(Client2::class);
-        $mailer = SwiftMailerBuilder::build();
-        
-        $sendClientActivationCodeMail = new SendClientActivationCodeMail($clientRepository, $mailer);
-        return new SendMailOnClientActivationCodeGeneratedListener($sendClientActivationCodeMail);
+        $clientRepository = $this->em->getRepository(Client::class);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::CLIENT_ACTIVATION_CODE_GENERATED, $this->buildActivationCodeGeneratedListener());
+
+        return new GenerateActivationCode($clientRepository, $dispatcher);
     }
-    
-    protected function buildSendMainOnClientResetPasswordCodeGeneratedListener()
+    protected function buildActivationCodeGeneratedListener()
     {
+        $clientMailRepository = $this->em->getRepository(ClientMail::class);
         $clientRepository = $this->em->getRepository(Client2::class);
-        $mailer = SwiftMailerBuilder::build();
-        
-        $sendClientResetPasswordCodeMail = new SendClientResetPasswordCodeMail($clientRepository, $mailer);
-        return new SendMailOnClientResetPasswordCodeGeneratedListener($sendClientResetPasswordCodeMail);
+        $createActivationMail = new CreateActivationMail($clientMailRepository, $clientRepository);
+        return new ActivationCodeGeneratedListener($createActivationMail, $this->buildSendImmediateMail());
+    }
+
+    protected function buildGenerateResetPasswordCodeService()
+    {
+        $clientRepository = $this->em->getRepository(Client::class);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::CLIENT_RESET_PASSWORD_CODE_GENERATED, $this->buildResetPasswordCodeGeneratedListener());
+
+        return new GenerateResetPasswordCode($clientRepository, $dispatcher);
+    }
+    protected function buildResetPasswordCodeGeneratedListener()
+    {
+        $clientMailRepository = $this->em->getRepository(ClientMail::class);
+        $clientRepository = $this->em->getRepository(Client2::class);
+        $createClientResetPasswordMail = new CreateClientResetPasswordMail($clientMailRepository, $clientRepository);
+        return new ResetPasswordCodeGeneratedListener($createClientResetPasswordMail, $this->buildSendImmediateMail());
     }
 
 }

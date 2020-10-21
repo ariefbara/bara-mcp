@@ -3,17 +3,18 @@
 namespace Client\Domain\Model;
 
 use Client\Domain\ {
-    Event\ClientActivationCodeGenerated,
     Event\ClientResetPasswordCodeGenerated,
     Model\Client\ClientFileInfo,
     Model\Client\ProgramParticipation,
     Model\Client\ProgramRegistration
 };
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\Firm;
 use Resources\ {
     DateTimeImmutableBuilder,
+    Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
@@ -185,7 +186,7 @@ class Client extends EntityContainEvents
         $this->activationCode = bin2hex(random_bytes(32));
         $this->activationCodeExpiredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy('+24 hours');
 
-        $event = new ClientActivationCodeGenerated($this->firmId, $this->id);
+        $event = new CommonEvent(EventList::CLIENT_ACTIVATION_CODE_GENERATED, $this->id);
         $this->recordEvent($event);
     }
 
@@ -196,7 +197,7 @@ class Client extends EntityContainEvents
         $this->resetPasswordCode = bin2hex(random_bytes(32));
         $this->resetPasswordCodeExpiredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy('+24 hours');
 
-        $event = new ClientResetPasswordCodeGenerated($this->firmId, $this->id);
+        $event = new CommonEvent(EventList::CLIENT_RESET_PASSWORD_CODE_GENERATED, $this->id);
         $this->recordEvent($event);
     }
     

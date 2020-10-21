@@ -12,11 +12,13 @@ use Client\Domain\ {
     Model\ClientData,
     Model\ProgramInterface
 };
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\Firm;
 use Resources\ {
     DateTimeImmutableBuilder,
+    Domain\Event\CommonEvent,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName
 };
@@ -294,8 +296,8 @@ class ClientTest extends TestBase
     }
     public function test_generateActivationCode_recordClientActivationCodeGeneratedEvent()
     {
-        $this->client->clearRecordedEvents();
-        $event = new ClientActivationCodeGenerated($this->client->firmId, $this->client->id);
+        $this->client->recordedEvents = [];
+        $event = new CommonEvent(EventList::CLIENT_ACTIVATION_CODE_GENERATED, $this->client->id);
         $this->executeGenerateActivationCode();
         $this->assertEquals($event, $this->client->recordedEvents[0]);
     }
@@ -324,8 +326,8 @@ class ClientTest extends TestBase
     }
     public function test_generateResetPasswordCode_storeClientResetPasswordCodeGeneratedEvent()
     {
-        $this->client->clearRecordedEvents();
-        $event = new ClientResetPasswordCodeGenerated($this->client->firmId, $this->client->id);
+        $this->client->recordedEvents = [];
+        $event = new CommonEvent(EventList::CLIENT_RESET_PASSWORD_CODE_GENERATED, $this->client->id);
         $this->executeGenerateResetPasswordCode();
         $this->assertEquals($event, $this->client->recordedEvents[0]);
     }

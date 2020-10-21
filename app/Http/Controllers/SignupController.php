@@ -11,6 +11,13 @@ use Client\ {
     Domain\Model\Client,
     Domain\Model\ClientData
 };
+use Config\EventList;
+use Notification\ {
+    Application\Listener\Client\ActivationCodeGeneratedListener,
+    Application\Service\Client\CreateActivationMail,
+    Domain\Model\Firm\Client as Client2,
+    Domain\Model\Firm\Client\ClientMail
+};
 use Query\Domain\Model\Firm;
 use Resources\Application\Event\Dispatcher;
 use User\ {
@@ -25,17 +32,8 @@ class SignupController extends Controller
 
     public function clientSignup()
     {
-        $clientRepository = $this->em->getRepository(Client::class);
-        $firmRepository = $this->em->getRepository(Firm::class);
-        $dipatcher = new Dispatcher();
-        
-//        $mailer = SwiftMailerBuilder::build();
-//        $sendClientActivationCodeMail = new SendClientActivationCodeMail($clientRepository, $mailer);
-//        $listener = new SendMailOnClientActivationCodeGeneratedListener($sendClientActivationCodeMail);
-//        $dipatcher->addListener(ClientSignupAcceptedEvent::EVENT_NAME, $listener);
-        
-        $service = new ClientSignup($clientRepository, $firmRepository, $dipatcher);
-        
+        $service = $this->buildClientSignup();
+
         $firmIdentifier = $this->stripTagsInputRequest('firmIdentifier');
         $firstName = $this->stripTagsInputRequest('firstName');
         $lastName = $this->stripTagsInputRequest('lastName');
@@ -44,7 +42,7 @@ class SignupController extends Controller
         $clientData = new ClientData($firstName, $lastName, $email, $password);
         
         $service->execute($firmIdentifier, $clientData);
-        
+
         $content = [
             "meta" => [
                 "code" => 201,
@@ -53,24 +51,24 @@ class SignupController extends Controller
         ];
         return response()->json($content, 201);
     }
-    
+
     public function userSignup()
     {
         $userRepository = $this->em->getRepository(User::class);
         $dispatcher = new Dispatcher();
-        
+
 //        $listener = new SendMailWhenUserActivationCodeGeneratedListener($this->buildSendUserActivationCodeMail());
 //        $dispatcher->addListener(UserActivationCodeGenerated::EVENT_NAME, $listener);
-        
+
         $firstName = $this->stripTagsInputRequest('firstName');
         $lastName = $this->stripTagsInputRequest('lastName');
         $email = $this->stripTagsInputRequest('email');
         $password = $this->stripTagsInputRequest('password');
-        
+
         $userData = new UserData($firstName, $lastName, $email, $password);
         $service = new UserSignup($userRepository, $dispatcher);
         $service->execute($userData);
-        
+
         $content = [
             "meta" => [
                 "code" => 201,
@@ -79,7 +77,26 @@ class SignupController extends Controller
         ];
         return response()->json($content, 201);
     }
-    
+
+    protected function buildClientSignup()
+    {
+        $clientRepository = $this->em->getRepository(Client::class);
+        $firmRepository = $this->em->getRepository(Firm::class);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::CLIENT_ACTIVATION_CODE_GENERATED, $this->buildActivationCodeGeneratedListener());
+        
+        return new ClientSignup($clientRepository, $firmRepository, $dispatcher);
+    }
+
+    protected function buildActivationCodeGeneratedListener()
+    {
+        $clientMailRepository = $this->em->getRepository(ClientMail::class);
+        $clientRepository = $this->em->getRepository(Client2::class);
+        $createActivationMail = new CreateActivationMail($clientMailRepository, $clientRepository);
+        return new ActivationCodeGeneratedListener($createActivationMail, $this->buildSendImmediateMail());
+    }
+
     protected function buildSendUserActivationCodeMail()
     {
         $userRepository = $this->em->getRepository(User2::class);

@@ -4,6 +4,12 @@ namespace Config;
 
 class EventList
 {
+    const CLIENT_ACTIVATION_CODE_GENERATED = "client-activation-code-generated";
+    const CLIENT_RESET_PASSWORD_CODE_GENERATED = "client-reset-password-code-generated";
+    
+    const USER_ACTIVATION_CODE_GENERATED = "user-activation-code-generated";
+    const USER_RESET_PASSWORD_CODE_GENERATED = "user-reset-password-code-generated";
+
     const CLIENT_REGISTERED = "client-registered";
     
     const USER_REGISTERED = "user-registered";
