@@ -3,15 +3,17 @@
 namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
-    Event\Firm\Program\RegistrantAccepted,
-    Model\Firm,
-    Model\Firm\Program\Consultant,
-    Model\Firm\Program\Coordinator,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Registrant
+use Firm\Domain\Model\ {
+    Firm,
+    Firm\Program\Consultant,
+    Firm\Program\Coordinator,
+    Firm\Program\Metric,
+    Firm\Program\MetricData,
+    Firm\Program\Participant,
+    Firm\Program\Registrant
 };
 use Query\Domain\Model\Firm\ParticipantTypes;
+use Resources\Domain\Event\CommonEvent;
 use Tests\TestBase;
 
 class ProgramTest extends TestBase
@@ -27,6 +29,8 @@ class ProgramTest extends TestBase
     protected $participant;
 
     protected $personnel;
+    
+    protected $metricId = "metricId", $metricData;
 
     protected function setUp(): void
     {
@@ -54,6 +58,9 @@ class ProgramTest extends TestBase
         $this->program->participants->add($this->participant);
         
         $this->personnel = $this->buildMockOfClass(Personnel::class);
+        
+        $this->metricData = $this->buildMockOfClass(MetricData::class);
+        $this->metricData->expects($this->any())->method("getName")->willReturn("metric name");
     }
 
     protected function getProgramData()
@@ -264,9 +271,15 @@ class ProgramTest extends TestBase
     }
     public function test_acceptRegistrant_recordRegistrantAcceptedEvent()
     {
-        $this->program->clearRecordedEvents();
+        $this->program->recordedEvents = [];
         $this->executeAcceptRegistrant();
-        $this->assertInstanceOf(RegistrantAccepted::class, $this->program->pullRecordedEvents()[0]);
+        $this->assertInstanceOf(CommonEvent::class, $this->program->recordedEvents[0]);
+    }
+    
+    public function test_addMetric_returnMetric()
+    {
+        $metric = new Metric($this->program, $this->metricId, $this->metricData);
+        $this->assertEquals($metric, $this->program->addMetric($this->metricId, $this->metricData));
     }
     
 }
@@ -277,4 +290,5 @@ class TestableProgram extends Program
     public $firm, $id, $name, $description, $participantTypes, $published, $removed;
     public $consultants, $coordinators;
     public $participants, $registrants;
+    public $recordedEvents;
 }

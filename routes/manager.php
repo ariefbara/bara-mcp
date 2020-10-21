@@ -49,6 +49,7 @@ $router->group($managerAggregate, function () use ($router) {
         'namespace' => 'Program',
     ];
     $router->group($programAggregate, function () use ($router) {
+        
         $router->group(['prefix' => '/coordinators'], function () use($router) {
             $controller = "CoordinatorController";
             $router->put("", ["uses" => "$controller@assign"]);
@@ -56,6 +57,7 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("/{coordinatorId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
         $router->group(['prefix' => '/consultants'], function () use($router) {
             $controller = "ConsultantController";
             $router->put("", ["uses" => "$controller@assign"]);
@@ -63,6 +65,7 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("/{consultantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
         $router->group(['prefix' => '/registration-phases'], function () use($router) {
             $controller = "RegistrationPhaseController";
             $router->post("", ["uses" => "$controller@add"]);
@@ -71,6 +74,7 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("/{registrationPhaseId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
         $router->group(['prefix' => '/consultation-setups'], function () use($router) {
             $controller = "ConsultationSetupController";
             $router->post("", ["uses" => "$controller@add"]);
@@ -79,6 +83,15 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("/{consultationSetupId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
+        $router->group(['prefix' => '/metrics'], function () use($router) {
+            $controller = "MetricController";
+            $router->post("", ["uses" => "$controller@add"]);
+            $router->patch("/{metricId}", ["uses" => "$controller@update"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{metricId}", ["uses" => "$controller@show"]);
+        });
+        
         $router->group(['prefix' => '/missions'], function () use($router) {
             $controller = "MissionController";
             $router->post("", ["uses" => "$controller@addRoot"]);

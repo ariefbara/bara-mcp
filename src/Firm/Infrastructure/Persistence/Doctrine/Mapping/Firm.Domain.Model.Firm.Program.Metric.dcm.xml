@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Metric" 
+            table="Metric" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineMetricRepository" 
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Firm\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="description" type="string" length="1024" nullable="true"/>
+        
+        <embedded name="minMaxValue" 
+                  class="Resources\Domain\ValueObject\IntegerRange" 
+                  use-column-prefix="false" />
+        
+        <field name="higherIsBetter" type="boolean" nullable="true" />
+        
+    </entity>
+</doctrine-mapping>

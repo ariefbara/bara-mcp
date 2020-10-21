@@ -10,10 +10,8 @@ class EventList
     const USER_ACTIVATION_CODE_GENERATED = "user-activation-code-generated";
     const USER_RESET_PASSWORD_CODE_GENERATED = "user-reset-password-code-generated";
 
-    const CLIENT_REGISTERED = "client-registered";
-    
-    const USER_REGISTERED = "user-registered";
-    const REGISTRANT_ACCEPTED = "user-registration-accepted";
+    const PROGRAM_REGISTRATION_SUBMITTED = "program-registration-submitted";
+    const REGISTRANT_ACCEPTED = "registrant-accepted";
     
     const CONSULTATION_REQUEST_SUBMITTED = "consultation-request-submitted";
     const CONSULTATION_REQUEST_TIME_CHANGED = "consultation-request-time-changed";
