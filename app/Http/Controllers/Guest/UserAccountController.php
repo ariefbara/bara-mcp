@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Guest;
 
-use App\Http\Controllers\{
-    Controller,
-    SwiftMailerBuilder
-};
-use Bara\{
-    Application\Listener\SendMailWhenUserActivationCodeGeneratedListener,
-    Application\Listener\SendMailWhenUserResetPasswordCodeGeneratedListener,
-    Application\Service\SendUserActivationCodeMail,
-    Application\Service\SendUserResetPasswordCodeMail,
-    Domain\Model\User as User2
+use App\Http\Controllers\Controller;
+use Config\EventList;
+use Notification\{
+    Application\Listener\User\ActivationCodeGeneratedListener,
+    Application\Listener\User\ResetPasswordCodeGeneratedListener,
+    Application\Service\User\CreateActivationMail,
+    Application\Service\User\CreateResetPasswordMail,
+    Domain\Model\User as User2,
+    Domain\Model\User\UserMail
 };
 use Resources\Application\Event\Dispatcher;
 use User\{
@@ -19,8 +18,6 @@ use User\{
     Application\Service\GenerateUserActivationCode,
     Application\Service\GenerateUserResetPasswordCode,
     Application\Service\ResetUserPassword,
-    Domain\Event\UserActivationCodeGenerated,
-    Domain\Event\UserPasswordResetCodeGenerated,
     Domain\Model\User
 };
 
@@ -55,13 +52,7 @@ class UserAccountController extends Controller
 
     public function generateActivationCode()
     {
-        $userRepository = $this->em->getRepository(User::class);
-        $dispatcher = new Dispatcher();
-
-//        $listener = $this->buildSendMailWhenUserActivationCodeGeneratedListener();
-//        $dispatcher->addListener(UserActivationCodeGenerated::EVENT_NAME, $listener);
-
-        $service = new GenerateUserActivationCode($userRepository, $dispatcher);
+        $service = $this->buildGenerateActivationCodeService();
         $email = $this->stripTagsInputRequest('email');
         $service->execute($email);
 
@@ -70,35 +61,46 @@ class UserAccountController extends Controller
 
     public function generateResetPasswordCode()
     {
-        $userRepository = $this->em->getRepository(User::class);
-        $dispatcher = new Dispatcher();
-
-//        $listener = $this->buildSendMailWhenUserResetPasswordCodeGeneratedListener();
-//        $dispatcher->addListener(UserPasswordResetCodeGenerated::EVENT_NAME, $listener);
-
-        $service = new GenerateUserResetPasswordCode($userRepository, $dispatcher);
+        $service = $this->buildGenerateResetPasswordCodeService();
         $email = $this->stripTagsInputRequest('email');
         $service->execute($email);
 
         return $this->commandOkResponse();
     }
 
-    protected function buildSendMailWhenUserActivationCodeGeneratedListener()
+    protected function buildGenerateActivationCodeService()
     {
-        $userRepository = $this->em->getRepository(User2::class);
-        $mailer = SwiftMailerBuilder::build();
+        $userRepository = $this->em->getRepository(User::class);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::USER_ACTIVATION_CODE_GENERATED, $this->buildActivationCodeGeneratedListener());
 
-        $sendUserActivationCodeMail = new SendUserActivationCodeMail($userRepository, $mailer);
-        return new SendMailWhenUserActivationCodeGeneratedListener($sendUserActivationCodeMail);
+        return new GenerateUserActivationCode($userRepository, $dispatcher);
+    }
+    protected function buildActivationCodeGeneratedListener()
+    {
+        $userMailRepository = $this->em->getRepository(UserMail::class);
+        $userRepository = $this->em->getRepository(User2::class);
+        $createActivationMail = new CreateActivationMail($userMailRepository, $userRepository);
+
+        return new ActivationCodeGeneratedListener($createActivationMail, $this->buildSendImmediateMail());
     }
 
-    protected function buildSendMailWhenUserResetPasswordCodeGeneratedListener()
+    protected function buildGenerateResetPasswordCodeService()
     {
+        $userRepository = $this->em->getRepository(User::class);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(
+                EventList::USER_RESET_PASSWORD_CODE_GENERATED, $this->buildResetPasswordCodeGeneratedListener());
+        
+        return new GenerateUserResetPasswordCode($userRepository, $dispatcher);
+    }
+    protected function buildResetPasswordCodeGeneratedListener()
+    {
+        $userMailRepository = $this->em->getRepository(UserMail::class);
         $userRepository = $this->em->getRepository(User2::class);
-        $mailer = SwiftMailerBuilder::build();
-
-        $sendUserResetPasswordCodeMail = new SendUserResetPasswordCodeMail($userRepository, $mailer);
-        return new SendMailWhenUserResetPasswordCodeGeneratedListener($sendUserResetPasswordCodeMail);
+        $createResetPasswordMail = new CreateResetPasswordMail($userMailRepository, $userRepository);
+        return new ResetPasswordCodeGeneratedListener($createResetPasswordMail, $this->buildSendImmediateMail());
     }
 
 }

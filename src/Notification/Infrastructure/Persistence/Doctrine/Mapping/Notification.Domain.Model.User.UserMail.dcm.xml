@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\User\UserMail" 
+            table="UserMail" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserMailRepository"
+    >
+        
+        <many-to-one  field="user" 
+                      target-entity="Notification\Domain\Model\User"
+        >
+            <join-column name="User_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="mail" 
+                    target-entity="Notification\Domain\SharedModel\Mail"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Mail_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -2,9 +2,10 @@
 
 namespace Notification\Domain\Model;
 
-use Notification\Domain\SharedModel\ {
-    CanSendPersonalizeMail,
-    MailMessage
+use Notification\Domain\ {
+    Model\User\UserMail,
+    SharedModel\CanSendPersonalizeMail,
+    SharedModel\MailMessage
 };
 use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
@@ -15,7 +16,8 @@ class UserTest extends TestBase
     protected $name;
     protected $mailGenerator;
     protected $mailMessage, $modifiedGreetings, $modifiedUrl;
-    
+    protected $userMailId = "userMailId";
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -64,6 +66,15 @@ class UserTest extends TestBase
                 ->method("addMail")
                 ->with($this->modifiedMail, $this->user->email, $fullName);
         $this->executeRegisterAsMailRecipient();
+    }
+    
+    public function test_createActivationMail_returnUserMail()
+    {
+        $this->assertInstanceOf(UserMail::class, $this->user->createActivationMail($this->userMailId));
+    }
+    public function test_createResetPasswordMail_returnUserMail()
+    {
+        $this->assertInstanceOf(UserMail::class, $this->user->createResetPasswordMail($this->userMailId));
     }
 }
 

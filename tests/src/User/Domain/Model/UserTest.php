@@ -2,11 +2,13 @@
 
 namespace User\Domain\Model;
 
+use Config\EventList;
 use DateTime;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Resources\ {
     DateTimeImmutableBuilder,
+    Domain\Event\CommonEvent,
     Domain\ValueObject\PersonName
 };
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
@@ -99,7 +101,8 @@ class UserTest extends TestBase
     function test_construct_addTalentActivationCodeGeneratedEvent()
     {
         $user = $this->executeConstruct();
-        $this->assertInstanceOf(UserActivationCodeGenerated::class, $user->pullRecordedEvents()[0]);
+        $event = new CommonEvent(EventList::USER_ACTIVATION_CODE_GENERATED, $this->id);
+        $this->assertEquals($event, $user->recordedEvents[0]);
     }
 
     private function executeChangeProfile()
@@ -124,15 +127,17 @@ class UserTest extends TestBase
 
     function test_generateActivationCode_setActivationCodeAndExpiredDateAlsoRecordTalentActivationCodeGeneratedEvent()
     {
+        $this->user->recordedEvents = [];
+        
         $this->user->activationCode = null;
         $this->user->activationCodeExpiredTime = null;
-        $this->user->clearRecordedEvents();
         $this->user->generateActivationCode();
         $this->assertNotEmpty($this->user->activationCode);
         $this->assertEquals((new DateTime('+24 hours'))->format('Y-m-d H:i:s'),
             $this->user->activationCodeExpiredTime->format('Y-m-d H:i:s'));
-        $this->assertInstanceOf(UserActivationCodeGenerated::class,
-            $this->user->pullRecordedEvents()[0]);
+        
+        $event = new CommonEvent(EventList::USER_ACTIVATION_CODE_GENERATED, $this->user->id);
+        $this->assertEquals($event, $this->user->recordedEvents[0]);
     }
     function test_generateActivationCode_accountAlreadyActivated_forbiddenError()
     {
@@ -162,10 +167,12 @@ class UserTest extends TestBase
     }
     function test_generateResetPasswordCode_recordTalentResetPasswordCodeGeneratedEvent()
     {
-        $this->user->clearRecordedEvents();
+        $this->user->recordedEvents = [];
+        
         $this->executeGenerateResetPasswordCode();
-        $this->assertInstanceOf(UserPasswordResetCodeGenerated::class,
-            $this->user->pullRecordedEvents()[0]);
+        
+        $event = new CommonEvent(EventList::USER_RESET_PASSWORD_CODE_GENERATED, $this->user->id);
+        $this->assertEquals($event, $this->user->recordedEvents[0]);
     }
     public function test_genearateResetPasswordCode_inactiveUser_forbiddenError()
     {
@@ -368,4 +375,5 @@ class TestableUser extends User
     public $activationCode, $activationCodeExpiredTime, $resetPasswordCode, $resetPasswordCodeExpiredTime, $activated;
     public $programRegistrations;
     public $programParticipations;
+    public $recordedEvents;
 }

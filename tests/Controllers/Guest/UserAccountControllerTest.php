@@ -171,6 +171,7 @@ class UserAccountControllerTest extends ControllerTestCase
     
     public function test_generateActivationCode()
     {
+$this->disableExceptionHandling();
         $this->inactiveUser->activationCode = null;
         $this->inactiveUser->activationCodeExpiredTime = null;
         $this->connection->table('User')->truncate();
@@ -193,6 +194,27 @@ class UserAccountControllerTest extends ControllerTestCase
         ];
         $this->patch($this->generateActivationCodeUri, $generateActivationCodeInput)
                 ->seeStatusCode(403);
+    }
+    public function test_generateActivationCode_sendMailNotificationToClient()
+    {
+        $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
+                ->seeStatusCode(200);
+        $mailEntry = [
+            "subject" => "Konsulta: Aktivasi Akun",
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $userMailEntry = [
+            "User_id" => $this->inactiveUser->id,
+        ];
+        $this->seeInDatabase("UserMail", $userMailEntry);
+        
+        $mailRecipientEntry = [
+            "recipientMailAddress" => $this->inactiveUser->email,
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $mailRecipientEntry);
     }
     
     public function test_generateResetPasswordCode()
@@ -220,5 +242,27 @@ class UserAccountControllerTest extends ControllerTestCase
         $this->patch($this->generateResetPasswordCodeUri, $generateResetPasswordCodeInput)
                 ->seeStatusCode(403);
     }
+    public function test_generateResetPasswordCode_sendMailNotificationToUser()
+    {
+        $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
+                ->seeStatusCode(200);
+        $mailEntry = [
+            "subject" => "Konsulta: Reset Password",
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $userMailEntry = [
+            "User_id" => $this->activeUser->id,
+        ];
+        $this->seeInDatabase("UserMail", $userMailEntry);
+        
+        $mailRecipientEntry = [
+            "recipientMailAddress" => $this->activeUser->email,
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $mailRecipientEntry);
+    }
+
 
 }

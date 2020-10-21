@@ -2,10 +2,12 @@
 
 namespace User\Domain\Model;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Resources\ {
     DateTimeImmutableBuilder,
+    Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
@@ -16,7 +18,6 @@ use Resources\ {
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use User\Domain\ {
     Event\UserActivationCodeGenerated,
-    Event\UserPasswordResetCodeGenerated,
     Model\User\ProgramParticipation,
     Model\User\ProgramRegistration,
     Model\User\UserFileInfo
@@ -124,7 +125,8 @@ class User extends EntityContainEvents
 
         $this->resetPasswordCode = bin2hex(random_bytes(32));
         $this->resetPasswordCodeExpiredTime = new DateTimeImmutable("+24 hours");
-        $event = new UserPasswordResetCodeGenerated($this->id);
+        
+        $event = new CommonEvent(EventList::USER_RESET_PASSWORD_CODE_GENERATED, $this->id);
         $this->recordEvent($event);
     }
 
@@ -137,7 +139,7 @@ class User extends EntityContainEvents
         $this->activationCode = bin2hex(random_bytes(32));
         $this->activationCodeExpiredTime = new DateTimeImmutable('+24 hours');
 
-        $event = new UserActivationCodeGenerated($this->id);
+        $event = new CommonEvent(EventList::USER_ACTIVATION_CODE_GENERATED, $this->id);
         $this->recordEvent($event);
     }
 

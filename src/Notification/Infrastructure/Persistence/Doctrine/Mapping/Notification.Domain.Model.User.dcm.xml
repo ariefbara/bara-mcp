@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Notification\Domain\Model\User" 
             table="User" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserRepository"
     >
         <id name="id" type="guid" />
         
@@ -10,8 +11,10 @@
                   use-column-prefix="false" />
         
         <field name="email" type="string" length="256" nullable="false"/>
-<!--        <field name="activationCode" type="string" length="64" nullable="true" />
-        <field name="resetPasswordCode" type="string" length="64" nullable="true" />-->
+        <field name="activationCode" type="string" length="64" nullable="true" />
+        <field name="activationCodeExpiredTime" type="datetime_immutable" nullable="true" />
+        <field name="resetPasswordCode" type="string" length="64" nullable="true" />
+        <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true" />
         
     </entity>
 </doctrine-mapping>

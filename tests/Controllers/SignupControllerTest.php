@@ -35,6 +35,7 @@ class SignupControllerTest extends ControllerTestCase
         $this->connection->table('User')->truncate();
         $this->connection->table('Mail')->truncate();
         $this->connection->table('ClientMail')->truncate();
+        $this->connection->table('UserMail')->truncate();
         $this->connection->table('MailRecipient')->truncate();
         
         $this->firm = new RecordOfFirm(0, 'firm_identifier');
@@ -62,9 +63,11 @@ class SignupControllerTest extends ControllerTestCase
         $this->connection->table('Client')->truncate();
         $this->connection->table('User')->truncate();
         $this->connection->table('ClientMail')->truncate();
+        $this->connection->table('UserMail')->truncate();
         $this->connection->table('Mail')->truncate();
         $this->connection->table('MailRecipient')->truncate();
     }
+    
     public function test_clientSignup()
     {
         $response = [
@@ -114,7 +117,6 @@ class SignupControllerTest extends ControllerTestCase
         $this->seeInDatabase("MailRecipient", $recipientEntry);
     }
     
-/*
     public function test_userSignup()
     {
         $response = [
@@ -144,7 +146,22 @@ class SignupControllerTest extends ControllerTestCase
         $this->post($this->userSignupUri, $this->userSignupInput)
             ->seeStatusCode(409);
     }
- * 
- */
+    public function test_userSignup_sendActivationMail()
+    {
+        $this->post($this->userSignupUri, $this->userSignupInput)
+            ->seeStatusCode(201);
+        
+        $mailEntry = [
+            "subject" => "Konsulta: Aktivasi Akun",
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $recipientEntry = [
+            "recipientMailAddress" => $this->userSignupInput["email"],
+            "sent" => true, 
+            "attempt" => 1, 
+        ];
+        $this->seeInDatabase("MailRecipient", $recipientEntry);
+    }
 }
  
