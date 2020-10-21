@@ -29,14 +29,14 @@ class AsProgramCoordinatorTestCase extends PersonnelTestCase
         $this->connection->table('Coordinator')->truncate();
         $this->connection->table('Program')->truncate();
         
-        $program = new RecordOfProgram($this->personnel->firm, 0);
+        $program = new RecordOfProgram($this->personnel->firm, 999);
         $this->connection->table("Program")->insert($program->toArrayForDbEntry());
         
         $personnel = new RecordOfPersonnel($program->firm, 'removed_coordinator', 'removed_coordinantor', 'password123');
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
         
-        $this->coordinator = new RecordOfCoordinator($program, $this->personnel, 0);
-        $this->removedCoordinator = new RecordOfCoordinator($program, $personnel, 1);
+        $this->coordinator = new RecordOfCoordinator($program, $this->personnel, 999);
+        $this->removedCoordinator = new RecordOfCoordinator($program, $personnel, 998);
         $this->removedCoordinator->removed = true;
         $this->connection->table("Coordinator")->insert($this->coordinator->toArrayForDbEntry());
         $this->connection->table("Coordinator")->insert($this->removedCoordinator->toArrayForDbEntry());

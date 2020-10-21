@@ -20,6 +20,18 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get('/participant-summary', ['uses' => "ParticipantSummaryController@showAll"]);
         $router->get('/consultant-summary', ['uses' => "ConsultantSummaryController@showAll"]);
         
+        $router->group(['prefix' => '/consultation-requests'], function () use($router) {
+            $controller = "ConsultationRequestController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{consultationRequestId}", ["uses" => "$controller@show"]);
+        });
+        
+        $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
+            $controller = "ConsultationSessionController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
+        });
+        
         $router->group(['prefix' => '/participants'], function () use($router) {
             $controller = "ParticipantController";
             $router->get("/{participantId}", ["uses" => "$controller@show"]);
