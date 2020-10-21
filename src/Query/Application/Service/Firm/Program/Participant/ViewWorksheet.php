@@ -2,7 +2,10 @@
 
 namespace Query\Application\Service\Firm\Program\Participant;
 
-use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\ {
+    Domain\Model\Firm\Program\Participant\Worksheet,
+    Infrastructure\QueryFilter\WorksheetFilter
+};
 
 class ViewWorksheet
 {
@@ -27,14 +30,15 @@ class ViewWorksheet
      * @param int $pageSize
      * @return Worksheet
      */
-    public function showAll(string $firmId, string $programId, string $participantId, int $page, int $pageSize)
+    public function showAll(string $programId, string $participantId, int $page, int $pageSize, ?WorksheetFilter $worksheetFilter)
     {
-        return $this->worksheetRepository->all($firmId, $programId, $participantId, $page, $pageSize);
+        return $this->worksheetRepository->allWorksheetBelongsToParticipantInProgram(
+                $programId, $participantId, $page, $pageSize, $worksheetFilter);
     }
 
-    public function showById(string $firmId, string $programId, string $participantId, string $worksheetId): Worksheet
+    public function showById(string $programId, string $worksheetId): Worksheet
     {
-        return $this->worksheetRepository->ofId($firmId, $programId, $participantId, $worksheetId);
+        return $this->worksheetRepository->aWorksheetInProgram($programId, $worksheetId);
     }
 
 }
