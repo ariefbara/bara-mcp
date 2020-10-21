@@ -20,6 +20,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get('/participant-summary', ['uses' => "ParticipantSummaryController@showAll"]);
         $router->get('/consultant-summary', ['uses' => "ConsultantSummaryController@showAll"]);
         
+        $router->group(['prefix' => '/participants'], function () use($router) {
+            $controller = "ParticipantController";
+            $router->get("/{participantId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+        
         $router->group(['prefix' => '/registrants'], function () use($router) {
             $controller = "RegistrantController";
             $router->patch("/{registrantId}/accept", ["uses" => "$controller@accept"]);

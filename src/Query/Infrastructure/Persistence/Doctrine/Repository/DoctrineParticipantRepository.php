@@ -22,7 +22,7 @@ use Resources\ {
 class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, InterfaceForDomainService
 {
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize)
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $activeStatus)
     {
         $params = [
             "firmId" => $firmId,
@@ -36,6 +36,11 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($params);
+        
+        if (isset($activeStatus)) {
+            $qb->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

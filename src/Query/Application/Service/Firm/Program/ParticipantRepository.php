@@ -12,5 +12,5 @@ interface ParticipantRepository extends InterfaceForAuth
 
     public function ofId(string $firmId, string $programId, string $participantId): Participant;
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize);
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $activeStatus);
 }
