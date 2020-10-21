@@ -15,23 +15,19 @@ $router->group($clientAggregate, function () use ($router) {
         $controller = "CreateTeamController";
         $router->post("", ["uses" => "$controller@create"]);
     });
+    
     $router->group(['prefix' => '/team-memberships'], function () use($router) {
         $controller = "TeamMembershipController";
         $router->delete("/{teamMembershipId}", ["uses" => "$controller@quit"]);
         $router->get("", ["uses" => "$controller@showAll"]);
         $router->get("/{teamMembershipId}", ["uses" => "$controller@show"]);
     });
-    $teamMembershipAggregate = [
-        'prefix' => '/team-memberships/{teamMembershipId}',
-        'namespace' => 'TeamMembership',
-    ];
-    $router->group($teamMembershipAggregate, function () use ($router) {
-        
-//        $router->group(['prefix' => '/find-client-by-email'], function () use($router) {
-//            $controller = "FindClientByEmailController";
-//            $router->get("", ["uses" => "$controller@show"]);
-//        });
-        
+    
+    $router->group(['prefix' => '/programs'], function () use($router) {
+        $controller = "ProgramController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/team-types", ["uses" => "$controller@showAllProgramForTeam"]);
+        $router->get("/{programId}", ["uses" => "$controller@show"]);
     });
     
     $router->group(['prefix' => '/program-registrations'], function () use($router) {
@@ -168,7 +164,6 @@ $router->group($clientAggregate, function () use ($router) {
         $router->group(['prefix' => '/programs'], function () use($router) {
             $controller = "ProgramController";
             $router->get("", ["uses" => "$controller@showAll"]);
-            $router->get("/team-types", ["uses" => "$controller@showAllProgramForTeam"]);
             $router->get("/{programId}", ["uses" => "$controller@show"]);
         });
         
