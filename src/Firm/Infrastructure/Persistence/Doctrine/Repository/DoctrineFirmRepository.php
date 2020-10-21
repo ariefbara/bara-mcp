@@ -53,4 +53,9 @@ class DoctrineFirmRepository extends EntityRepository implements FirmRepository
         }
     }
 
+    public function update(): void
+    {
+        $this->getEntityManager()->flush();
+    }
+
 }

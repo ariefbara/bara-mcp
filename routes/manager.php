@@ -6,6 +6,11 @@ $managerAggregate = [
     'middleware' => 'managerJwtAuth',
 ];
 $router->group($managerAggregate, function () use ($router) {
+    
+    $router->post('/upload-file', ['uses' => "UploadFileController@upload"]);
+    
+    $router->patch('/update-firm-profile', ['uses' => "FirmController@update"]);
+    
     $router->group(['prefix' => '/feedback-forms'], function () use($router) {
         $controller = "FeedbackFormController";
         $router->post("", ["uses" => "$controller@add"]);

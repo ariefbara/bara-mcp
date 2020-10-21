@@ -2,12 +2,13 @@
 
 namespace SharedContext\Domain\Model\SharedEntity;
 
-use Resources\{
+use Resources\ {
     ValidationRule,
     ValidationService
 };
+use SharedContext\Domain\Service\CanBeSavedInStorage;
 
-class FileInfo
+class FileInfo implements CanBeSavedInStorage
 {
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Firm\Personnel\Manager;
+namespace Tests\Controllers\Manager;
 
 use DateTime;
 use Tests\Controllers\ {

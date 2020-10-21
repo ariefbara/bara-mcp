@@ -2,6 +2,8 @@
 
 namespace Query\Domain\Model;
 
+use Query\Domain\Model\Firm\FirmFileInfo;
+
 class Firm
 {
 
@@ -31,6 +33,18 @@ class Firm
 
     /**
      *
+     * @var FirmFileInfo|null
+     */
+    protected $logo;
+
+    /**
+     *
+     * @var string|null
+     */
+    protected $displaySetting;
+
+    /**
+     *
      * @var bool
      */
     protected $suspended = false;
@@ -50,6 +64,11 @@ class Firm
         return $this->identifier;
     }
 
+    public function getDisplaySetting(): ?string
+    {
+        return $this->displaySetting;
+    }
+
     function isSuspended(): bool
     {
         return $this->suspended;
@@ -57,7 +76,12 @@ class Firm
 
     protected function __construct()
     {
-        ;
+        
+    }
+
+    public function getLogoPath(): ?string
+    {
+        return empty($this->logo) ? null : $this->logo->getFullyQualifiedFileName();
     }
 
     public function getWhitelableUrl(): string

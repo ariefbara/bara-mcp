@@ -2,10 +2,11 @@
 
 namespace Firm\Domain\Model;
 
+use Firm\Domain\Model\Firm\FirmFileInfo;
 use Query\Domain\Model\FirmWhitelableInfo;
-use Resources\Domain\Model\EntityContainEvents;
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 
-class Firm extends EntityContainEvents
+class Firm
 {
 
     /**
@@ -34,6 +35,18 @@ class Firm extends EntityContainEvents
 
     /**
      *
+     * @var FirmFileInfo|null
+     */
+    protected $logo;
+
+    /**
+     *
+     * @var string|null
+     */
+    protected $displaySetting;
+
+    /**
+     *
      * @var bool
      */
     protected $suspended = false;
@@ -46,6 +59,17 @@ class Firm extends EntityContainEvents
     protected function __construct()
     {
         
+    }
+
+    public function createFileInfo(string $firmFileInfoId, FileInfoData $fileInfoData): FirmFileInfo
+    {
+       return new FirmFileInfo($this, $firmFileInfoId, $fileInfoData); 
+    }
+
+    public function updateProfile(?FirmFileInfo $logo, ?string $displaySetting): void
+    {
+        $this->logo = $logo;
+        $this->displaySetting = $displaySetting;
     }
 
 }

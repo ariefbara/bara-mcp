@@ -13,5 +13,13 @@
                   use-column-prefix="false" />
         <field name="suspended" type="boolean" />
         
+        <one-to-one field="logo" 
+                    target-entity="Firm\Domain\Model\Firm\FirmFileInfo"
+        >
+            <join-column name="FirmFileInfo_idOfLogo" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="displaySetting" type="string" length="256" nullable="true"/>
+        
     </entity>
 </doctrine-mapping>
