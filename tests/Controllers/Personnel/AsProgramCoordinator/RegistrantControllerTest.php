@@ -128,7 +128,7 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         ];
         $this->seeInDatabase("UserParticipant", $userParticipantEntry);
     }
-    public function test_accept_registrationFromClient_persistClientParticipant()
+    public function test_accept_registrationFromClient_persistTeamParticipant()
     {
         $uri = $this->registrantUri . "/{$this->registrantTwo_team->id}/accept";
         $this->patch($uri, [], $this->coordinator->personnel->token)
@@ -147,7 +147,7 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         ];
         $this->seeInDatabase("TeamParticipant", $teamParticipantEntry);
     }
-    public function test_accept_registrationFromTeam_persistClientParticipant()
+    public function test_accept_registrationFromClient_persistClientParticipant()
     {
         $uri = $this->registrantUri . "/{$this->registrantOne_client->id}/accept";
         $this->patch($uri, [], $this->coordinator->personnel->token)
@@ -166,11 +166,11 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         ];
         $this->seeInDatabase("ClientParticipant", $clientParticipantEntry);
     }
-    public function test_accept_requestFromNonActiveCoordinator_401()
+    public function test_accept_requestFromNonActiveCoordinator_403()
     {
         $uri = $this->registrantUri . "/{$this->registrantOne_client->id}/accept";
         $this->patch($uri, [], $this->removedCoordinator->personnel->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
     }
     
     public function test_reject_200()
@@ -186,11 +186,11 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         ];
         $this->seeInDatabase("Registrant", $registrantEntry);
     }
-    public function test_reject_reqeustByNonActiveCoordinator_401()
+    public function test_reject_reqeustByNonActiveCoordinator_403()
     {
         $uri = $this->registrantUri . "/{$this->registrant_user->id}/reject";
         $this->patch($uri, [], $this->removedCoordinator->personnel->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
     }
     
     public function test_show_201()
@@ -212,11 +212,11 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
-    public function test_show_requestByNonActiveCoordinator_401()
+    public function test_show_requestByNonActiveCoordinator_403()
     {
         $uri = $this->registrantUri . "/{$this->registrant_user->id}";
         $this->get($uri, $this->removedCoordinator->personnel->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
     }
     
     public function test_showAll_200()
@@ -266,9 +266,41 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
-    public function test_showAll_requestByNonActiveCoordinator_401()
+    public function test_showAll_requestByNonActiveCoordinator_403()
     {
         $this->get($this->registrantUri, $this->removedCoordinator->personnel->token)
-                ->seeStatusCode(401);
+                ->seeStatusCode(403);
+    }
+    public function test_showAll_concludedStatusFilterSet_200()
+    {
+        $this->connection->table("Registrant")->truncate();
+        $this->registrant_user->concluded = true;
+        $this->registrantTwo_team->concluded = true;
+        $this->connection->table("Registrant")->insert($this->registrant_user->toArrayForDbEntry());
+        $this->connection->table("Registrant")->insert($this->registrantOne_client->toArrayForDbEntry());
+        $this->connection->table("Registrant")->insert($this->registrantTwo_team->toArrayForDbEntry());
+        
+        $response = [
+            'total' => 1,
+            'list' => [
+                [
+                    "id" => $this->registrantOne_client->id,
+                    "registeredTime" => $this->registrantOne_client->registeredTime,
+                    "note" => $this->registrantOne_client->note,
+                    "concluded" => $this->registrantOne_client->concluded,
+                    "client" => [
+                        "id" => $this->client->id,
+                        "name" => $this->client->getFullName(),
+                    ],
+                    "user" => null,
+                    "team" => null,
+                ],
+            ],
+        ];
+        
+        $uri = $this->registrantUri . "?concludedStatus=false";
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
     }
 }

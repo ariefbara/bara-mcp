@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
-use Firm\ {
+use Firm\{
     Application\Service\Firm\Program\AcceptRegistrant,
     Application\Service\Firm\Program\RejectRegistrant,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\Registrant as Registrant2
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Program\ViewRegistrant,
     Domain\Model\Firm\Client\ClientRegistrant,
     Domain\Model\Firm\Program\Registrant,
@@ -19,50 +19,54 @@ use Resources\Application\Event\Dispatcher;
 
 class RegistrantController extends AsProgramCoordinatorBaseController
 {
+
     public function accept($programId, $registrantId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
-        
+
         $service = $this->buildAcceptService();
         $service->execute($this->firmId(), $programId, $registrantId);
-        
+
         return $this->show($programId, $registrantId);
     }
+
     public function reject($programId, $registrantId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
-        
+
         $service = $this->buildRejectService();
         $service->execute($this->firmId(), $programId, $registrantId);
-        
+
         return $this->commandOkResponse();
     }
-    
+
     public function show($programId, $registrantId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
-        
+
         $service = $this->buildViewService();
         $registrant = $service->showById($this->firmId(), $programId, $registrantId);
         return $this->singleQueryResponse($this->arrayDataOfRegistrant($registrant));
     }
-    
+
     public function showAll($programId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
-        
+
         $service = $this->buildViewService();
-        $registrants = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
-        
+        $concludedStatus = $this->filterBooleanOfQueryRequest("concludedStatus");
+        $registrants = $service->showAll(
+                $this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $concludedStatus);
+
         $result = [];
         $result['total'] = count($registrants);
-        
+
         foreach ($registrants as $registrant) {
             $result['list'][] = $this->arrayDataOfRegistrant($registrant);
         }
         return $this->listQueryResponse($result);
     }
-    
+
     public function arrayDataOfRegistrant(Registrant $registrant): array
     {
         return [
@@ -75,44 +79,48 @@ class RegistrantController extends AsProgramCoordinatorBaseController
             "team" => $this->arrayDataOfTeam($registrant->getTeamRegistrant()),
         ];
     }
-    
+
     protected function arrayDataOfUser(?UserRegistrant $userRegistrant): ?array
     {
-        return empty($userRegistrant)? null: [
+        return empty($userRegistrant) ? null : [
             "id" => $userRegistrant->getUser()->getId(),
             "name" => $userRegistrant->getUser()->getFullName(),
         ];
     }
-    
+
     protected function arrayDataOfClient(?ClientRegistrant $clientRegistrant): ?array
     {
-        return empty($clientRegistrant)? null: [
+        return empty($clientRegistrant) ? null : [
             "id" => $clientRegistrant->getClient()->getId(),
             "name" => $clientRegistrant->getClient()->getFullName(),
         ];
     }
+
     protected function arrayDataOfTeam(?TeamProgramRegistration $teamRegistrant): ?array
     {
-        return empty($teamRegistrant)? null: [
+        return empty($teamRegistrant) ? null : [
             "id" => $teamRegistrant->getTeam()->getId(),
             "name" => $teamRegistrant->getTeam()->getName(),
         ];
     }
-    
+
     public function buildViewService()
     {
         $registrantRepository = $this->em->getRepository(Registrant::class);
         return new ViewRegistrant($registrantRepository);
     }
+
     protected function buildRejectService()
     {
         $registrantRepository = $this->em->getRepository(Registrant2::class);
-        return  new RejectRegistrant($registrantRepository);
+        return new RejectRegistrant($registrantRepository);
     }
+
     protected function buildAcceptService()
     {
         $programRepository = $this->em->getRepository(Program::class);
         $dispatcher = new Dispatcher();
         return new AcceptRegistrant($programRepository, $dispatcher);
     }
+
 }

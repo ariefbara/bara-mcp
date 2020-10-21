@@ -9,5 +9,5 @@ interface RegistrantRepository
 
     public function ofId(string $firmId, string $programId, string $registrantId): Registrant;
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize);
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $concludedStatus);
 }

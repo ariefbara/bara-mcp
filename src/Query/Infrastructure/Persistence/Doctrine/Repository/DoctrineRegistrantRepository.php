@@ -18,7 +18,7 @@ use Resources\ {
 class DoctrineRegistrantRepository extends EntityRepository implements RegistrantRepository
 {
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize)
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $concludedStatus)
     {
         $parameters = [
             "firmId" => $firmId,
@@ -33,6 +33,10 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($parameters);
         
+        if (isset($concludedStatus)) {
+            $qb->andWhere($qb->expr()->eq("registrant.concluded", ":concludedStatus"))
+                    ->setParameter("concludedStatus", $concludedStatus);
+        }
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

@@ -26,9 +26,9 @@ class ViewRegistrant
      * @param int $pageSize
      * @return Registrant[]
      */
-    public function showAll(string $firmId, string $programId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $programId, int $page, int $pageSize, ?bool $concludedStatus)
     {
-        return $this->registrantRepository->all($firmId, $programId, $page, $pageSize);
+        return $this->registrantRepository->all($firmId, $programId, $page, $pageSize, $concludedStatus);
     }
 
     public function showById(string $firmId, string $programId, string $registrantId): Registrant
