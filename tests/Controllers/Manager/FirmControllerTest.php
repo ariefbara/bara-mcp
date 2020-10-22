@@ -9,12 +9,15 @@ use Tests\Controllers\RecordPreparation\ {
 
 class FirmControllerTest extends ManagerTestCase
 {
+    protected $firmUri;
     protected $firmFileInfoLogo;
     protected $updateProfileInput;
     
     protected function setUp(): void
     {
         parent::setUp();
+        $this->firmUri = $this->managerUri . "/firm-profile";
+        
         $this->connection->table("FileInfo")->truncate();
         $this->connection->table("FirmFileInfo")->truncate();
         
@@ -49,15 +52,35 @@ class FirmControllerTest extends ManagerTestCase
             "displaySetting" => $this->updateProfileInput["displaySetting"],
         ];
         
-        $uri = $this->managerUri . "/update-firm-profile";
+        $uri = $this->firmUri . "/update";
         $this->patch($uri, $this->updateProfileInput, $this->manager->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     public function test_update_inactiveManager_401()
     {
-        $uri = $this->managerUri . "/update-firm-profile";
+        $uri = $this->firmUri . "/update";
         $this->patch($uri, $this->updateProfileInput, $this->removedManager->token)
+                ->seeStatusCode(401);
+    }
+    
+    public function test_show_200()
+    {
+        $response = [
+            "name" => $this->firm->name,
+            "domain" => $this->firm->url,
+            "mailSenderAddress" => $this->firm->mailSenderAddress,
+            "mailSenderName" => $this->firm->mailSenderName,
+            "logoPath" => null,
+            "displaySetting" => $this->firm->displaySetting,
+        ];
+        $this->get($this->firmUri, $this->manager->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+    }
+    public function test_show_inactiveManager_403()
+    {
+        $this->get($this->firmUri, $this->removedManager->token)
                 ->seeStatusCode(401);
     }
 }

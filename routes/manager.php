@@ -9,7 +9,11 @@ $router->group($managerAggregate, function () use ($router) {
     
     $router->post('/upload-file', ['uses' => "UploadFileController@upload"]);
     
-    $router->patch('/update-firm-profile', ['uses' => "FirmController@update"]);
+    $router->group(['prefix' => '/firm-profile'], function () use($router) {
+        $controller = "FirmController";
+        $router->patch("/update", ["uses" => "$controller@update"]);
+        $router->get("", ["uses" => "$controller@show"]);
+    });
     
     $router->group(['prefix' => '/feedback-forms'], function () use($router) {
         $controller = "FeedbackFormController";

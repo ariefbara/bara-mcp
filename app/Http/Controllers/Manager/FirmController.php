@@ -28,6 +28,15 @@ class FirmController extends ManagerBaseController
         return $this->singleQueryResponse($this->arrayDataOfFirm($firm));
     }
     
+    public function show()
+    {
+        $this->authorizedUserIsFirmManager();
+        
+        $service = $this->buildViewService();
+        $firm = $service->showById($this->firmId());
+        return $this->singleQueryResponse($this->arrayDataOfFirm($firm));
+    }
+    
     protected function arrayDataOfFirm(Firm $firm): array
     {
         return [
