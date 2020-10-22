@@ -16,11 +16,11 @@ use Personnel\ {
 };
 use Query\ {
     Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView,
-    Application\Service\Firm\Program\ConsulationSetup\ConsultationSessionFilter,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\FeedbackForm,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession as ConsultationSession2,
-    Domain\Model\User\UserParticipant
+    Domain\Model\User\UserParticipant,
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
@@ -55,16 +55,10 @@ class ConsultationSessionController extends PersonnelBaseController
     {
         $service = $this->buildViewService();
         
-        $minStartTime = empty($minTime = $this->stripTagQueryRequest('minStartTime')) ? null : new DateTimeImmutable($minTime);
-        $maxStartTime = empty($maxTime = $this->stripTagQueryRequest('maxStartTime')) ? null : new DateTimeImmutable($maxTime);
-        $containParticipantFeedback = $this->filterBooleanOfInputRequest('containParticipantFeedback');
-        $containConsultantFeedback = $this->filterBooleanOfInputRequest('containConsultantFeedback');
-        
         $consultationSessionFilter = (new ConsultationSessionFilter())
-                ->setMinStartTime($minStartTime)
-                ->setMaxStartTime($maxStartTime)
-                ->setContainParticipantFeedback($containParticipantFeedback)
-                ->setContainConsultantFeedback($containConsultantFeedback);
+                ->setMinStartTime($this->dateTimeImmutableOfQueryRequest("minStartTime"))
+                ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("maxEndTime"))
+                ->setContainParticipantFeedback($this->filterBooleanOfQueryRequest("containParticipantFeedback"));
         
         $consultationSessions = $service->showAll(
                 $this->firmId(), $this->personnelId(), $programConsultationId, $this->getPage(), $this->getPageSize(),

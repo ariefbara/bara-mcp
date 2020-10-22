@@ -291,9 +291,9 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                 ],
             ],
         ];
-        $maxStartTimeString = (new DateTime())->format('Y-m-d H:i:s');
+        $maxEndTimeString = (new DateTime())->format('Y-m-d H:i:s');
         $uri = $this->consultationSessionUri
-                . "?maxStartTime=$maxStartTimeString"
+                . "?maxEndTime=$maxEndTimeString"
                 . "&containConsultantFeedback=true";
 
         $this->get($uri, $this->personnel->token)
