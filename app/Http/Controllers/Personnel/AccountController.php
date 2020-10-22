@@ -42,6 +42,13 @@ class AccountController extends PersonnelBaseController
         $service->execute($this->firmId(), $this->personnelId(), $previousPassword, $newPassword);
     }
     
+    public function show()
+    {
+        $service = $this->buildViewService();
+        $personnel = $service->showById($this->firmId(), $this->personnelId());
+        return $this->singleQueryResponse($this->arrayDataOfPersonnel($personnel));
+    }
+    
     protected function arrayDataOfPersonnel(Personnel2 $personnel)
     {
         return [

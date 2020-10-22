@@ -7,9 +7,14 @@ $personnelAggregate = [
 ];
 $router->group($personnelAggregate, function () use ($router) {
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
-    $router->patch("/update-profile", ["uses" => "AccountController@updateProfile"]);
-    $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
+    
+    $router->group(['prefix' => '/profile'], function () use($router) {
+        $controller = "AccountController";
+        $router->patch("/update", ["uses" => "AccountController@updateProfile"]);
+        $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
+        $router->get("", ["uses" => "$controller@show"]);
+    });
     
     $asProgramCoordinatorAggregate = [
         'prefix' => '/as-program-coordinator/{programId}',
