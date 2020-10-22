@@ -160,4 +160,14 @@ class Personnel
         return $this->name->getFullName();
     }
 
+    public function getFirstName(): string
+    {
+        return $this->name->getFirstName();
+    }
+
+    public function getLastName(): string
+    {
+        return $this->name->getLastName();
+    }
+
 }

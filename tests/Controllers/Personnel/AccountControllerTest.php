@@ -34,7 +34,8 @@ class AccountControllerTest extends PersonnelTestCase
     {
         $response = [
             "id" => $this->personnel->id,
-            "name" => $this->updateProfileInput['firstName'] . " " . $this->updateProfileInput['lastName'],
+            "firstName" => $this->updateProfileInput['firstName'],
+            "lastName" => $this->updateProfileInput['lastName'],
             "phone" => $this->updateProfileInput['phone'],
             "bio" => $this->updateProfileInput['bio'],
         ];
@@ -106,7 +107,8 @@ class AccountControllerTest extends PersonnelTestCase
     {
         $response = [
             "id" => $this->personnel->id,
-            "name" => $this->personnel->getFullName(),
+            "firstName" => $this->personnel->firstName,
+            "lastName" => $this->personnel->lastName,
             "phone" => $this->personnel->phone,
             "bio" => $this->personnel->bio,
         ];

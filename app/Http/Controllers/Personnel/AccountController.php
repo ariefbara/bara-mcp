@@ -53,7 +53,8 @@ class AccountController extends PersonnelBaseController
     {
         return [
             "id" => $personnel->getId(),
-            "name" => $personnel->getName(),
+            "firstName" => $personnel->getFirstName(),
+            "lastName" => $personnel->getLastName(),
             "phone" => $personnel->getPhone(),
             "bio" => $personnel->getBio(),
         ];
