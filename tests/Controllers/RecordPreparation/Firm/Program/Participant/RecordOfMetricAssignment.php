@@ -23,8 +23,8 @@ class RecordOfMetricAssignment implements Record
     {
         $this->participant = $participant;
         $this->id = "metricAssignment-$index-id";
-        $this->startDate = (new DateTimeImmutable("+1 months"))->format("Y-m-d H:i:s");
-        $this->endDate = (new DateTimeImmutable("+12 months"))->format("Y-m-d H:i:s");
+        $this->startDate = (new DateTimeImmutable("-12 months"))->format("Y-m-d");
+        $this->endDate = (new DateTimeImmutable("+12 months"))->format("Y-m-d");
     }
     
     public function toArrayForDbEntry()

@@ -9,6 +9,8 @@ use Participant\ {
 };
 use Query\ {
     Application\Service\Firm\Team\ViewTeamProgramParticipation,
+    Domain\Model\Firm\Program\Participant\MetricAssignment,
+    Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField,
     Domain\Model\Firm\Team\TeamProgramParticipation
 };
 
@@ -42,7 +44,17 @@ class ProgramParticipationController extends AsTeamMemberBaseController
         $result = [];
         $result["total"] = count($teamProgramParticipations);
         foreach ($teamProgramParticipations as $teamProgramParticipation) {
-            $result["list"][] = $this->arrayDataOfTeamProgramParticipation($teamProgramParticipation);
+            $result["list"][] = [
+                "id" => $teamProgramParticipation->getId(),
+                "enrolledTime" => $teamProgramParticipation->getEnrolledTimeString(),
+                "note" => $teamProgramParticipation->getNote(),
+                "active" => $teamProgramParticipation->isActive(),
+                "program" => [
+                    "id" => $teamProgramParticipation->getProgram()->getId(),
+                    "name" => $teamProgramParticipation->getProgram()->getName(),
+                    "removed" => $teamProgramParticipation->getProgram()->isRemoved(),
+                ],
+            ];
         }
         return $this->listQueryResponse($result);
     }
@@ -59,8 +71,39 @@ class ProgramParticipationController extends AsTeamMemberBaseController
                 "name" => $teamProgramParticipation->getProgram()->getName(),
                 "removed" => $teamProgramParticipation->getProgram()->isRemoved(),
             ],
+            "metricAssignment" => $this->arrayDataOfMetricAssignment($teamProgramParticipation->getMetricAssignment()),
         ];
     }
+    protected function arrayDataOfMetricAssignment(?MetricAssignment $metricAssignment): ?array
+    {
+        if (empty($metricAssignment)) {
+            return null;
+        }
+        $assignmentFields = [];
+        foreach ($metricAssignment->iterateNonRemovedAssignmentFields() as $assignmentField) {
+            $assignmentFields[] = $this->arrayDataOfAssignmentField($assignmentField);
+        }
+        return [
+            "id" => $metricAssignment->getId(),
+            "startDate" => $metricAssignment->getStartDateString(),
+            "endDate" => $metricAssignment->getEndDateString(),
+            "assignmentFields" => $assignmentFields,
+        ];
+    }
+    protected function arrayDataOfAssignmentField(AssignmentField $assignmentField): array
+    {
+        return [
+            "id" => $assignmentField->getId(),
+            "target" => $assignmentField->getTarget(),
+            "metric" => [
+                "id" => $assignmentField->getMetric()->getId(),
+                "name" => $assignmentField->getMetric()->getName(),
+                "minValue" => $assignmentField->getMetric()->getMinValue(),
+                "maxValue" => $assignmentField->getMetric()->getMaxValue(),
+            ],
+        ];
+    }
+    
     protected function buildViewService()
     {
         $teamProgramParticipationRepository = $this->em->getRepository(TeamProgramParticipation::class);

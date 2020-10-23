@@ -270,6 +270,14 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
             });
             
+            $router->group(['prefix' => '/metric-assignment-reports'], function () use($router) {
+                $controller = "MetricAssignmentReportController";
+                $router->post("", ["uses" => "$controller@submit"]);
+                $router->patch("/{metricAssignmentReportId}", ["uses" => "$controller@update"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{metricAssignmentReportId}", ["uses" => "$controller@show"]);
+            });
+            
         });
         
     });

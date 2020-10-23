@@ -6,6 +6,7 @@ use Query\Domain\ {
     Model\Firm\Program,
     Model\Firm\Program\Mission\LearningMaterial,
     Model\Firm\Program\Participant,
+    Model\Firm\Program\Participant\MetricAssignment,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team,
     Service\Firm\Program\Participant\WorksheetFinder,
@@ -67,6 +68,11 @@ class TeamProgramParticipation implements ContainEvents
     public function getNote(): ?string
     {
         return $this->programParticipation->getNote();
+    }
+    
+    public function getMetricAssignment(): ?MetricAssignment
+    {
+        return $this->programParticipation->getMetricAssignment();
     }
 
     public function viewWorksheet(WorksheetFinder $worksheetFinder, string $worksheetId): Worksheet

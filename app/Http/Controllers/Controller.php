@@ -104,6 +104,10 @@ class Controller extends BaseController
     {
         return isset($var) ? (int) $var : null;
     }
+    protected function floatOfVariable($var): ?float
+    {
+        return isset($var) ? (float) $var : null;
+    }
     protected function filterBooleanOfVariable($var): ?bool
     {
         return isset($var) ? filter_var($var, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;

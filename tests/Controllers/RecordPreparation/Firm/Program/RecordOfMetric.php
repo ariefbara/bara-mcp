@@ -27,8 +27,8 @@ class RecordOfMetric implements Record
         $this->id = "metric-$index-id";
         $this->name = "metric $index name";
         $this->description = "metric $index description";
-        $this->minValue = null;
-        $this->maxValue = null;
+        $this->minValue = 1;
+        $this->maxValue = 999999;
         $this->higherIsBetter = null;
     }
     

@@ -14,6 +14,9 @@ use Participant\Domain\ {
     Model\Participant,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
+    Model\Participant\MetricAssignment,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
+    Model\Participant\MetricAssignment\MetricAssignmentReportData,
     Model\Participant\ViewLearningMaterialActivityLog,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
@@ -199,6 +202,23 @@ class TeamMembership extends EntityContainEvents
             string $logId, Participant $participant, string $learningMaterialId): ViewLearningMaterialActivityLog
     {
         return $participant->logViewLearningMaterialActivity($logId, $learningMaterialId, $this);
+    }
+
+    public function submitReportInMetricAssignment(
+            MetricAssignment $metricAssignment, string $metricAssignmentReportId, DateTimeImmutable $observeTime, 
+            MetricAssignmentReportData $metricAssignmentReportData): MetricAssignmentReport
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($metricAssignment);
+        return $metricAssignment->submitReport($metricAssignmentReportId, $observeTime, $metricAssignmentReportData);
+    }
+
+    public function updateMetricAssignmentReport(
+            MetricAssignmentReport $metricAssignmentReport, MetricAssignmentReportData $metricAssignmentReportData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($metricAssignmentReport);
+        $metricAssignmentReport->update($metricAssignmentReportData);
     }
 
 }

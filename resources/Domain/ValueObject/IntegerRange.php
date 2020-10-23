@@ -42,7 +42,7 @@ class IntegerRange
             && $this->maxValue = $other->maxValue;
     }
     
-    public function contain(int $value): bool {
+    public function contain(float $value): bool {
         return $this->actualMinValue() <= $value
             && $this->actualMaxValue() >= $value;
     }

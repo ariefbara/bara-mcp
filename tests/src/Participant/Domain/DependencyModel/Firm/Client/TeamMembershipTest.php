@@ -13,6 +13,9 @@ use Participant\Domain\ {
     Model\Participant,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
+    Model\Participant\MetricAssignment,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
+    Model\Participant\MetricAssignment\MetricAssignmentReportData,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
@@ -39,6 +42,8 @@ class TeamMembershipTest extends TestBase
     protected $comment, $commentId = "commentId", $commentMessage = "comment message";
     protected $event;
     protected $participant, $logId = "logId", $learningMaterialId = "learningMaterialId";
+    protected $metricAssignment, $observeTime;
+    protected $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReport, $metricAssignmentReportData;
 
     protected function setUp(): void
     {
@@ -68,16 +73,21 @@ class TeamMembershipTest extends TestBase
         $this->event = $this->buildMockOfClass(CommonEvent::class);
         
         $this->participant = $this->buildMockOfClass(Participant::class);
+        
+        $this->metricAssignment = $this->buildMockOfClass(MetricAssignment::class);
+        $this->observeTime = new \DateTimeImmutable();
+        $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
+        $this->metricAssignmentReportData = $this->buildMockOfClass(MetricAssignmentReportData::class);
     }
 
-    protected function setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($asset)
+    protected function setAssetsNotBelongsToTeam($asset)
     {
         $asset->expects($this->once())
                 ->method("belongsToTeam")
                 ->with($this->teamMembership->team)
                 ->willReturn(false);
     }
-    protected function setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($asset)
+    protected function setAssetsBelongsToTeam($asset)
     {
         $asset->expects($this->any())
                 ->method("belongsToTeam")
@@ -88,7 +98,7 @@ class TeamMembershipTest extends TestBase
         $errorDetail = "forbidden: you can only manage asset belongs to your team";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    protected function assertOperationCauseInactiveTeamMembershipForbiddenError(callable $operation): void
+    protected function assertInactiveTeamMembershipForbiddenError(callable $operation): void
     {
         $errorDetail = "forbidden: only active team member can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
@@ -112,12 +122,12 @@ class TeamMembershipTest extends TestBase
         $operation = function () {
             $this->executeRegisterTeamToProgram();
         };
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError($operation);
+        $this->assertInactiveTeamMembershipForbiddenError($operation);
     }
 
     protected function executeCancelTeamProgramRegistration()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramRegistration);
+        $this->setAssetsBelongsToTeam($this->teamProgramRegistration);
         $this->teamMembership->cancelTeamprogramRegistration($this->teamProgramRegistration);
     }
     public function test_cancelTeamProgramRegistration_executeTeamProgramRegistrationsCancelMethod()
@@ -132,11 +142,11 @@ class TeamMembershipTest extends TestBase
         $operation = function () {
             $this->executeCancelTeamProgramRegistration();
         };
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError($operation);
+        $this->assertInactiveTeamMembershipForbiddenError($operation);
     }
     public function test_cancelTeamProgramRegistration_teamProgramRegistrationOfDifferentTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramRegistration);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramRegistration);
         $operation = function () {
             $this->executeCancelTeamProgramRegistration();
         };
@@ -145,7 +155,7 @@ class TeamMembershipTest extends TestBase
 
     protected function executeQuitTeamProgramParticipation()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramParticipation);
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         $this->teamMembership->quitTeamProgramParticipation($this->teamProgramParticipation);
     }
     public function test_quitTeamProgramParticipation_quitTeamProgramParticipation()
@@ -157,13 +167,13 @@ class TeamMembershipTest extends TestBase
     public function test_quitTeamProgramParticipation_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeQuitTeamProgramParticipation();
         });
     }
     public function test_quitTeamProgramParticipation_belongToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramParticipation);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function () {
             $this->executeQuitTeamProgramParticipation();
         });
@@ -171,7 +181,7 @@ class TeamMembershipTest extends TestBase
 
     protected function executeSubmitRootWorksheet()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramParticipation);
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         return $this->teamMembership->submitRootWorksheet(
                         $this->teamProgramParticipation, $this->worksheetId, $this->worksheetName, $this->mission,
                         $this->formRecordData, $this->teamMembership);
@@ -186,7 +196,7 @@ class TeamMembershipTest extends TestBase
     }
     public function test_submitRootWorksheet_teamProgramParticipationDoesntBelongsToTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramParticipation);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
         $operation = function () {
             $this->executeSubmitRootWorksheet();
         };
@@ -198,12 +208,12 @@ class TeamMembershipTest extends TestBase
         $operation = function () {
             $this->executeSubmitRootWorksheet();
         };
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError($operation);
+        $this->assertInactiveTeamMembershipForbiddenError($operation);
     }
 
     protected function executeSubmitBranchWorksheet()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramParticipation);
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         return $this->teamMembership->submitBranchWorksheet(
                         $this->teamProgramParticipation, $this->worksheet, $this->worksheetId, $this->worksheetName, 
                         $this->mission, $this->formRecordData);
@@ -219,7 +229,7 @@ class TeamMembershipTest extends TestBase
     }
     public function test_executeSubmitBranchWorksheet_teamProgramParticipationBelongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramParticipation);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
         $operation = function () {
             $this->executeSubmitBranchWorksheet();
         };
@@ -231,12 +241,12 @@ class TeamMembershipTest extends TestBase
         $operation = function () {
             $this->executeSubmitBranchWorksheet();
         };
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError($operation);
+        $this->assertInactiveTeamMembershipForbiddenError($operation);
     }
 
     protected function executeUpdateWorksheet()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->worksheet);
+        $this->setAssetsBelongsToTeam($this->worksheet);
         $this->teamMembership->updateWorksheet($this->worksheet, $this->worksheetName, $this->formRecordData);
     }
     public function test_updateWorksheet_executeTeamProgramParticipationsUpdateWorksheet()
@@ -252,11 +262,11 @@ class TeamMembershipTest extends TestBase
         $operation = function () {
             $this->executeUpdateWorksheet();
         };
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError($operation);
+        $this->assertInactiveTeamMembershipForbiddenError($operation);
     }
     public function test_updateWorksheet_teamProgramParticipationBelongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->worksheet);
+        $this->setAssetsNotBelongsToTeam($this->worksheet);
         $operation = function () {
             $this->executeUpdateWorksheet();
         };
@@ -265,7 +275,7 @@ class TeamMembershipTest extends TestBase
 
     protected function executeSubmitConsultationRequest()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramParticipation);
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         return $this->teamMembership->submitConsultationRequest(
                         $this->teamProgramParticipation, $this->consultationRequestId, $this->consultationSetup,
                         $this->consultant, $this->startTIme);
@@ -282,13 +292,13 @@ class TeamMembershipTest extends TestBase
     public function test_submitConsultationRequest_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeSubmitConsultationRequest();
         });
     }
     public function test_submitConsultationRequest_teamProgramParticipationBelongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramParticipation);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function () {
             $this->executeSubmitConsultationRequest();
         });
@@ -310,7 +320,7 @@ class TeamMembershipTest extends TestBase
 
     protected function executeChangeConsultationRequestTime()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramParticipation);
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         $this->teamMembership->changeConsultationRequestTime(
                 $this->teamProgramParticipation, $this->consultationRequestId, $this->startTIme);
     }
@@ -324,13 +334,13 @@ class TeamMembershipTest extends TestBase
     public function test_changeConsultationRequestTime_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeChangeConsultationRequestTime();
         });
     }
     public function test_changeConsultationRequestTime_belongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramParticipation);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function () {
             $this->executeChangeConsultationRequestTime();
         });
@@ -348,7 +358,7 @@ class TeamMembershipTest extends TestBase
 
     protected function executeCancelConsultationRequest()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->consultationRequest);
+        $this->setAssetsBelongsToTeam($this->consultationRequest);
         $this->teamMembership->cancelConsultationRequest($this->consultationRequest);
     }
     public function test_cancelConsulationRequest_executeTeamProgramParticipationCancelConsultationRequestMethod()
@@ -361,13 +371,13 @@ class TeamMembershipTest extends TestBase
     public function test_cancelConsulationRequest_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeCancelConsultationRequest();
         });
     }
     public function test_cancelConsulationRequest_belongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->consultationRequest);
+        $this->setAssetsNotBelongsToTeam($this->consultationRequest);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function () {
             $this->executeCancelConsultationRequest();
         });
@@ -385,7 +395,7 @@ class TeamMembershipTest extends TestBase
 
     protected function executeAcceptOfferedConsultationRequest()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->teamProgramParticipation);
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         $this->teamMembership->acceptOfferedConsultationRequest($this->teamProgramParticipation,
                 $this->consultationRequestId);
     }
@@ -399,13 +409,13 @@ class TeamMembershipTest extends TestBase
     public function test_acceptOfferedConsultationRequest_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeAcceptOfferedConsultationRequest();
         });
     }
     public function test_acceptOfferedConsultationRequest_belongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->teamProgramParticipation);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function () {
             $this->executeAcceptOfferedConsultationRequest();
         });
@@ -423,7 +433,7 @@ class TeamMembershipTest extends TestBase
 
     protected function executeSubmitConsultationSessionReport()
     {
-        $this->setAssetsBelongsToTeamMethodCalledAnyTimeReturnTrue($this->consultationSession);
+        $this->setAssetsBelongsToTeam($this->consultationSession);
         $this->teamMembership->submitConsultationSessionReport($this->consultationSession, $this->formRecordData);
     }
     public function test_submitConsultationSessionReport_executeTeamProgramParticipationSubmitConsultationReportMethod()
@@ -436,13 +446,13 @@ class TeamMembershipTest extends TestBase
     public function test_submitConsultationSessionReport_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeSubmitConsultationSessionReport();
         });
     }
     public function test_submitConsultationSessionReport_programParticipationBelongsToOtherTeam_forbiddenError()
     {
-        $this->setAssetsBelongsToTeamMethodCalledOnceTimeReturnFalse($this->consultationSession);
+        $this->setAssetsNotBelongsToTeam($this->consultationSession);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function () {
             $this->executeSubmitConsultationSessionReport();
         });
@@ -474,7 +484,7 @@ class TeamMembershipTest extends TestBase
     public function test_submitNewCommentInWorksheet_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeSubmitNewCommentInWorksheet();
         });
     }
@@ -507,7 +517,7 @@ class TeamMembershipTest extends TestBase
     public function test_replyComment_inactiveMember_forbiddenError()
     {
         $this->teamMembership->active = false;
-        $this->assertOperationCauseInactiveTeamMembershipForbiddenError(function () {
+        $this->assertInactiveTeamMembershipForbiddenError(function () {
             $this->executeReplyComment();
         });
     }
@@ -518,6 +528,61 @@ class TeamMembershipTest extends TestBase
                 ->method("logViewLearningMaterialActivity")
                 ->with($this->logId, $this->learningMaterialId, $this->teamMembership);
         $this->teamMembership->logViewLearningMaterialActivity($this->logId, $this->participant, $this->learningMaterialId);
+    }
+    
+    protected function executeSubmitReportInMetricAssignment()
+    {
+        $this->setAssetsBelongsToTeam($this->metricAssignment);
+        return $this->teamMembership->submitReportInMetricAssignment(
+                $this->metricAssignment, $this->metricAssignmentReportId, $this->observeTime, $this->metricAssignmentReportData);
+    }
+    public function test_submitReportInMetricAssignment_returnMetricAssignmentSubmitReportResult()
+    {
+        $this->metricAssignment->expects($this->once())
+                ->method("submitReport")
+                ->with($this->metricAssignmentReportId, $this->observeTime, $this->metricAssignmentReportData);
+        $this->executeSubmitReportInMetricAssignment();
+    }
+    public function test_submitReportInMetricAssignment_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertInactiveTeamMembershipForbiddenError(function (){
+            $this->executeSubmitReportInMetricAssignment();
+        });
+    }
+    public function test_submitReportInMetricAssignment_metricAssignmentDoesntBelongsToTeam_forbidden()
+    {
+        $this->setAssetsNotBelongsToTeam($this->metricAssignment);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeSubmitReportInMetricAssignment();
+        });
+    }
+    
+    protected function executeUpdateMetricAssignmentReport()
+    {
+        $this->setAssetsBelongsToTeam($this->metricAssignmentReport);
+        $this->teamMembership->updateMetricAssignmentReport($this->metricAssignmentReport, $this->metricAssignmentReportData);
+    }
+    public function test_updateMetricAssignmentReport_updateMetricAssignmentReport()
+    {
+        $this->metricAssignmentReport->expects($this->once())
+                ->method("update")
+                ->with($this->metricAssignmentReportData);
+        $this->executeUpdateMetricAssignmentReport();
+    }
+    public function test_updateMetricAssignmentReport_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertInactiveTeamMembershipForbiddenError(function (){
+            $this->executeUpdateMetricAssignmentReport();
+        });
+    }
+    public function test_updateMetricAssignmentReport_metricAssignmentReportDoesntBelongsToTeam_forbidden()
+    {
+        $this->setAssetsNotBelongsToTeam($this->metricAssignmentReport);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeUpdateMetricAssignmentReport();
+        });
     }
 }
 

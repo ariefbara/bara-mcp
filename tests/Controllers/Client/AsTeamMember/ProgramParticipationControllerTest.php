@@ -3,6 +3,9 @@
 namespace Tests\Controllers\Client\AsTeamMember;
 
 use Tests\Controllers\RecordPreparation\Firm\ {
+    Program\Participant\MetricAssignment\RecordOfAssignmentField,
+    Program\Participant\RecordOfMetricAssignment,
+    Program\RecordOfMetric,
     Program\RecordOfParticipant,
     RecordOfProgram,
     Team\RecordOfTeamProgramParticipation
@@ -11,10 +14,17 @@ use Tests\Controllers\RecordPreparation\Firm\ {
 class ProgramParticipationControllerTest extends ProgramParticipationTestCase
 {
     protected $inactiveProgramParticipation;
-    
+    protected $metricAssignment;
+    protected $assignmentField;
+    protected $assignmentFieldOne;
+
     protected function setUp(): void
     {
         parent::setUp();
+        
+        $this->connection->table("MetricAssignment")->truncate();
+        $this->connection->table("Metric")->truncate();
+        $this->connection->table("AssignmentField")->truncate();
         
         $team = $this->teamMember->team;
         $firm = $team->firm;
@@ -30,10 +40,26 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         
         $this->inactiveProgramParticipation = new RecordOfTeamProgramParticipation($team, $participant);
         $this->connection->table('TeamParticipant')->insert($this->inactiveProgramParticipation->toArrayForDbEntry());
+        
+        $this->metricAssignment = new RecordOfMetricAssignment($this->programParticipation->participant, 0);
+        $this->connection->table("MetricAssignment")->insert($this->metricAssignment->toArrayForDbEntry());
+        
+        $metric = new RecordOfMetric($program, 0);
+        $metricOne = new RecordOfMetric($program, 1);
+        $this->connection->table("Metric")->insert($metric->toArrayForDbEntry());
+        $this->connection->table("Metric")->insert($metricOne->toArrayForDbEntry());
+        
+        $this->assignmentField = new RecordOfAssignmentField($this->metricAssignment, $metric, 0);
+        $this->assignmentFieldOne = new RecordOfAssignmentField($this->metricAssignment, $metricOne, 1);
+        $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
+        $this->connection->table("AssignmentField")->insert($this->assignmentFieldOne->toArrayForDbEntry());
     }
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table("MetricAssignment")->truncate();
+        $this->connection->table("Metric")->truncate();
+        $this->connection->table("AssignmentField")->truncate();
     }
     
     public function test_quit_200()
@@ -76,6 +102,33 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
             "enrolledTime" => $this->programParticipation->participant->enrolledTime,
             "active" => $this->programParticipation->participant->active,
             "note" => $this->programParticipation->participant->note,
+            "metricAssignment" => [
+                "id" => $this->metricAssignment->id,
+                "startDate" => $this->metricAssignment->startDate,
+                "endDate" => $this->metricAssignment->endDate,
+                "assignmentFields" => [
+                    [
+                        "id" => $this->assignmentField->id,
+                        "target" => $this->assignmentField->target,
+                        "metric" => [
+                            "id" => $this->assignmentField->metric->id,
+                            "name" => $this->assignmentField->metric->name,
+                            "minValue" => $this->assignmentField->metric->minValue,
+                            "maxValue" => $this->assignmentField->metric->maxValue,
+                        ],
+                    ],
+                    [
+                        "id" => $this->assignmentFieldOne->id,
+                        "target" => $this->assignmentFieldOne->target,
+                        "metric" => [
+                            "id" => $this->assignmentFieldOne->metric->id,
+                            "name" => $this->assignmentFieldOne->metric->name,
+                            "minValue" => $this->assignmentFieldOne->metric->minValue,
+                            "maxValue" => $this->assignmentFieldOne->metric->maxValue,
+                        ],
+                    ],
+                ],
+            ],
         ];
         $uri = $this->programParticipationUri . "/{$this->programParticipation->id}";
         $this->get($uri, $this->teamMember->client->token)

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue" 
+            table="AssignmentFieldValue" 
+    >
+        
+        <many-to-one  field="metricAssignmentReport" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport"
+                      inversed-by="assignmentFieldValues"
+        >
+            <join-column name="MetricAssignmentReport_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="assignmentField" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField"
+        >
+            <join-column name="AssignmentField_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="value" column="inputValue" type="float" nullable="true"/>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

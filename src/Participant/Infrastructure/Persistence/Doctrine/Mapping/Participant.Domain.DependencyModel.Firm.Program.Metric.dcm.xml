@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\DependencyModel\Firm\Program\Metric" 
+            table="Metric" 
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineMetricRepository" 
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <embedded name="minMaxValue" 
+                  class="Resources\Domain\ValueObject\IntegerRange" 
+                  use-column-prefix="false" />
+        
+    </entity>
+</doctrine-mapping>
