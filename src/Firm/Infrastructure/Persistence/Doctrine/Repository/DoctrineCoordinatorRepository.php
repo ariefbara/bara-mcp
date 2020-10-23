@@ -2,11 +2,11 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Firm\{
+use Firm\ {
     Application\Service\Firm\Program\CoordinatorRepository,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Program\Coordinator
@@ -43,6 +43,30 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aCoordinatorCorrespondWithPersonnel(string $programId, string $personnelId): Coordinator
+    {
+        $params = [
+            "programId" => $programId,
+            "personnelId" => $personnelId,
+        ];
+        
+        $qb = $this->createQueryBuilder("coordinator");
+        $qb->select("coordinator")
+                ->leftJoin("coordinator.personnel", "personnel")
+                ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
+                ->leftJoin("coordinator.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: coordinator not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

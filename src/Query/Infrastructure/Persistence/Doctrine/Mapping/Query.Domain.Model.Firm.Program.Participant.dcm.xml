@@ -30,5 +30,10 @@
                      mapped-by="programParticipation"
         />
         
+        <one-to-one  field="metricAssignment" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\MetricAssignment"
+                      mapped-by="participant"
+        />
+        
     </entity>
 </doctrine-mapping>

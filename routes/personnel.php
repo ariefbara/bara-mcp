@@ -37,10 +37,17 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
         });
         
+        $router->group(['prefix' => '/metrics'], function () use($router) {
+            $controller = "MetricController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{metricId}", ["uses" => "$controller@show"]);
+        });
+        
         $router->group(['prefix' => '/participants'], function () use($router) {
             $controller = "ParticipantController";
-            $router->get("/{participantId}", ["uses" => "$controller@show"]);
+            $router->put("/{participantId}/assign-metric", ["uses" => "$controller@assignMetric"]);
             $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{participantId}", ["uses" => "$controller@show"]);
         });
         $participantAggregate = [
             'prefix' => '/participants/{participantId}',

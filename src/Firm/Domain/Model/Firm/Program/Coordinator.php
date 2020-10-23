@@ -2,10 +2,12 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\{
-    Personnel,
-    Program
+use Firm\Domain\{
+    Model\Firm\Personnel,
+    Model\Firm\Program,
+    Service\MetricAssignmentDataProvider
 };
+use Resources\Exception\RegularException;
 
 class Coordinator
 {
@@ -65,6 +67,30 @@ class Coordinator
     public function reassign(): void
     {
         $this->removed = false;
+    }
+
+    public function assignMetricsToParticipant(
+            Participant $participant, MetricAssignmentDataProvider $metricAssignmentDataCollector): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsProgram($participant);
+        $participant->assignMetrics($metricAssignmentDataCollector);
+    }
+
+    protected function assertActive()
+    {
+        if ($this->removed) {
+            $errorDetail = "forbidden: only active coordinator can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+    
+    protected function assertAssetBelongsProgram(AssetInProgram $asset): void
+    {
+        if (!$asset->belongsToProgram($this->program)) {
+            $errorDetail = "forbidden: unable to manage asset of other program";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
 }

@@ -8,14 +8,15 @@ use Doctrine\ORM\ {
 };
 use Firm\ {
     Application\Service\Firm\Program\MetricRepository,
-    Domain\Model\Firm\Program\Metric
+    Domain\Model\Firm\Program\Metric,
+    Domain\Service\MetricRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Uuid
 };
 
-class DoctrineMetricRepository extends EntityRepository implements MetricRepository
+class DoctrineMetricRepository extends EntityRepository implements MetricRepository, InterfaceForDomainService
 {
     
     public function aMetricInProgram(string $programId, string $metricId): Metric
@@ -56,6 +57,26 @@ class DoctrineMetricRepository extends EntityRepository implements MetricReposit
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function ofId(string $metricId): Metric
+    {
+        $params = [
+            "metricId" => $metricId,
+        ];
+        
+        $qb = $this->createQueryBuilder("metric");
+        $qb->select("metric")
+                ->andWhere($qb->expr()->eq("metric.id", ":metricId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: metric not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

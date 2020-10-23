@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Firm\Domain\Model\Firm\Program\Participant" 
             table="Participant" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantRepository" 
     >
         
         <many-to-one field="program" 
@@ -32,6 +33,13 @@
         <one-to-one field="teamParticipant" 
                     target-entity="Firm\Domain\Model\Firm\Program\TeamParticipant"
                     mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+        <one-to-one  field="metricAssignment" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant\MetricAssignment"
+                      mapped-by="participant"
         >
             <cascade><cascade-persist /></cascade>
         </one-to-one>

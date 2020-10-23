@@ -3,18 +3,19 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\ {
+use Query\Domain\{
     Event\LearningMaterialViewedByParticipantEvent,
     Model\Firm\Client\ClientParticipant,
     Model\Firm\Program,
     Model\Firm\Program\Mission\LearningMaterial,
+    Model\Firm\Program\Participant\MetricAssignment,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team\TeamProgramParticipation,
     Model\User\UserParticipant,
     Service\Firm\Program\Participant\WorksheetFinder,
     Service\LearningMaterialFinder
 };
-use Resources\ {
+use Resources\{
     Domain\Model\EntityContainEvents,
     Exception\RegularException
 };
@@ -70,6 +71,12 @@ class Participant extends EntityContainEvents
      */
     protected $teamParticipant;
 
+    /**
+     *
+     * @var MetricAssignment|null
+     */
+    protected $metricAssignment;
+
     public function getProgram(): Program
     {
         return $this->program;
@@ -110,9 +117,14 @@ class Participant extends EntityContainEvents
         return $this->teamParticipant;
     }
 
+    public function getMetricAssignment(): ?MetricAssignment
+    {
+        return $this->metricAssignment;
+    }
+
     protected function __construct()
     {
-        ;
+        
     }
 
     public function viewWorksheet(WorksheetFinder $worksheetFinder, string $worksheetId): Worksheet
@@ -147,16 +159,16 @@ class Participant extends EntityContainEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
-    
+
     public function viewLearningMaterial(
             LearningMaterialFinder $learningMaterialFinder, string $learningMaterialId): LearningMaterial
     {
         $this->assertActive();
-        $learningMaterial =  $learningMaterialFinder->execute($this->program, $learningMaterialId);
-        
+        $learningMaterial = $learningMaterialFinder->execute($this->program, $learningMaterialId);
+
         $event = new LearningMaterialViewedByParticipantEvent($this->id, $learningMaterial->getId());
         $this->recordEvent($event);
-        
+
         return $learningMaterial;
     }
 

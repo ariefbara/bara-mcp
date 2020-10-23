@@ -59,6 +59,13 @@ class Controller extends BaseController
         }
         return filter_var($this->request->input($label), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
+    protected function dateTimeImmutableOfInputRequest($label): ?DateTimeImmutable
+    {
+        if ($this->request->input($label) === null) {
+            return null;
+        }
+        return new DateTimeImmutable($this->request->input($label));
+    }
     
     protected function stripTagQueryRequest($label): ?string
     {

@@ -11,6 +11,15 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Service/MetricAssignmentDataProvider.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/Participant/MetricAssignment.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/Participant.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/routes/personnel.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/AsProgramCoordinator/ParticipantControllerTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/tests/src/Firm/Domain/Model/Firm/Program/ParticipantTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/Participant/MetricAssignment/AssignmentField.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ParticipantController.php</file>
+        </group>
     </open-files>
 </project-private>

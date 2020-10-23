@@ -3,13 +3,19 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\Firm\Program;
+use Doctrine\Common\Collections\Criteria;
+use Firm\Domain\ {
+    Model\Firm\Program,
+    Model\Firm\Program\Participant\MetricAssignment,
+    Service\MetricAssignmentDataProvider
+};
 use Resources\ {
     DateTimeImmutableBuilder,
-    Exception\RegularException
+    Exception\RegularException,
+    Uuid
 };
 
-class Participant
+class Participant implements AssetInProgram
 {
 
     /**
@@ -59,6 +65,12 @@ class Participant
      * @var TeamParticipant|null
      */
     protected $teamParticipant;
+    
+    /**
+     *
+     * @var MetricAssignment|null
+     */
+    protected $metricAssignment;
 
     public function getId(): string
     {
@@ -72,6 +84,11 @@ class Participant
         $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->active = true;
         $this->note = null;
+    }
+    
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->program === $program;
     }
 
     public static function participantForUser(Program $program, string $id, string $userId): self
@@ -126,6 +143,21 @@ class Participant
         if (isset($this->teamParticipant)) {
             return $this->teamParticipant->correspondWithRegistrant($registrant);
         }
+    }
+    
+    public function assignMetrics(MetricAssignmentDataProvider $metricAssignmentDataProvider): void
+    {
+        if (!empty($this->metricAssignment)) {
+            $this->metricAssignment->update($metricAssignmentDataProvider);
+        } else {
+            $id = Uuid::generateUuid4();
+            $this->metricAssignment = new MetricAssignment($this, $id, $metricAssignmentDataProvider);
+        }
+    }
+    
+    public function belongsInTheSameProgramAs(Metric $metric): bool
+    {
+        return $metric->belongsToProgram($this->program);
     }
 
 }

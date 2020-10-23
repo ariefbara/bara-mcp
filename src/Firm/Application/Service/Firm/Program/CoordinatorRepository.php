@@ -10,4 +10,6 @@ interface CoordinatorRepository
     public function update(): void;
 
     public function ofId(ProgramCompositionId $programCompositionId, string $coordinatorId): Coordinator;
+
+    public function aCoordinatorCorrespondWithPersonnel(string $programId, string $personnelId): Coordinator;
 }

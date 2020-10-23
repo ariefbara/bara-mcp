@@ -66,6 +66,16 @@ class MetricTest extends TestBase
         $minMaxValue = new IntegerRange($this->minValue, $this->maxValue);
         $this->assertEquals($minMaxValue, $this->metric->minMaxValue);
     }
+    
+    public function test_belongsToProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->metric->belongsToProgram($this->metric->program));
+    }
+    public function test_belongsToProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->metric->belongsToProgram($program));
+    }
 }
 
 class TestableMetric extends Metric

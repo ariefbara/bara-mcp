@@ -9,7 +9,7 @@ use Resources\ {
     ValidationService
 };
 
-class Metric
+class Metric implements AssetInProgram
 {
 
     /**
@@ -73,6 +73,11 @@ class Metric
         $this->description = $metricData->getDescription();
         $this->minMaxValue = new IntegerRange($metricData->getMinValue(), $metricData->getMaxValue());
         $this->higherIsBetter = $metricData->getHigherIsBetter();
+    }
+
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->program === $program;
     }
 
 }
