@@ -61,6 +61,12 @@ $router->group($personnelAggregate, function () use ($router) {
                 $router->get("/{worksheetId}", ["uses" => "$controller@show"]);
             });
             
+            $router->group(['prefix' => '/metric-assignment-reports'], function () use($router) {
+                $controller = "MetricAssignmentReportController";
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{metricAssignmentReportId}", ["uses" => "$controller@show"]);
+            });
+            
         });
         
         $router->group(['prefix' => '/registrants'], function () use($router) {
@@ -70,6 +76,7 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{registrantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
     });
     $asProgramConsultantAggregate = [
         'prefix' => '/as-program-consultant/{programId}',

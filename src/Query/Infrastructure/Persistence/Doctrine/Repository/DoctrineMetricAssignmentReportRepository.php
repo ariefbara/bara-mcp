@@ -48,8 +48,8 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
             string $programId, string $participantId, int $page, int $pageSize)
     {
         $params = [
+            "programId" => $programId,
             "participantId" => $participantId,
-            "metricAssignmentReportId" => $metricAssignmentReportId,
         ];
 
         $qb = $this->createQueryBuilder("metricAssignmentReport");
