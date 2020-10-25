@@ -109,6 +109,7 @@ class AccountControllerTest extends PersonnelTestCase
             "id" => $this->personnel->id,
             "firstName" => $this->personnel->firstName,
             "lastName" => $this->personnel->lastName,
+            "email" => $this->personnel->email,
             "phone" => $this->personnel->phone,
             "bio" => $this->personnel->bio,
         ];

@@ -33,14 +33,14 @@ class FileUploadControllerTest extends ManagerTestCase
     
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('FileInfo')->truncate();
-        $this->connection->table('FirmFileInfo')->truncate();
-        
-        $root = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
-        $adapter = new Local($root);
-        $filessystem = new Filesystem($adapter);
-        $filessystem->deleteDir("firm_{$this->firm->id}");
+//        parent::tearDown();
+//        $this->connection->table('FileInfo')->truncate();
+//        $this->connection->table('FirmFileInfo')->truncate();
+//        
+//        $root = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
+//        $adapter = new Local($root);
+//        $filessystem = new Filesystem($adapter);
+//        $filessystem->deleteDir("firm_{$this->firm->id}");
     }
     
     public function test_upload()
@@ -61,6 +61,7 @@ class FileUploadControllerTest extends ManagerTestCase
         ];
         $this->seeInDatabase('FileInfo', $fileInfoEntry);
     }
+/*
     public function test_upload_removedManager_401()
     {
         $header = $this->removedManager->token;
@@ -68,4 +69,6 @@ class FileUploadControllerTest extends ManagerTestCase
         $this->post($this->fileUploadUri, $this->fileUploadInput, $header)
             ->seeStatusCode(401);
     }
+ * 
+ */
 }

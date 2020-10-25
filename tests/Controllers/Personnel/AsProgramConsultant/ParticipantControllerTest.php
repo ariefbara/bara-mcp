@@ -3,33 +3,59 @@
 namespace Tests\Controllers\Personnel\AsProgramConsultant;
 
 use Tests\Controllers\RecordPreparation\ {
+    Firm\Client\RecordOfClientParticipant,
     Firm\Program\RecordOfParticipant,
-    RecordOfUser,
-    User\RecordOfUserParticipant
+    Firm\RecordOfClient,
+    Firm\RecordOfTeam,
+    Firm\Team\RecordOfTeamProgramParticipation,
+    RecordOfUser
 };
 
 class ParticipantControllerTest extends ParticipantTestCase
 {
-    protected $participantOne;
-    protected $userParticipantOne;
+    protected $participantOne_client;
+    protected $participantTwo_team;
     
+    protected $clientParticipant;
+    protected $teamParticipant;
+
     protected function setUp(): void
     {
         parent::setUp();
         
-        $user = new RecordOfUser(1);
-        $this->connection->table('User')->insert($user->toArrayForDbEntry());
+        $this->connection->table("Client")->truncate();
+        $this->connection->table("Team")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
+        $this->connection->table("TeamParticipant")->truncate();
         
-        $this->participantOne = new RecordOfParticipant($this->consultant->program, 1);
-        $this->connection->table('Participant')->insert($this->participantOne->toArrayForDbEntry());
+        $program = $this->consultant->program;
+        $firm = $program->firm;
         
-        $this->userParticipantOne = new RecordOfUserParticipant($user, $this->participantOne);
-        $this->connection->table('UserParticipant')->insert($this->userParticipantOne->toArrayForDbEntry());
+        $client = new RecordOfClient($firm, 0);
+        $this->connection->table("Client")->insert($client->toArrayForDbEntry());
         
+        $team = new RecordOfTeam($firm, $client, 0);
+        $this->connection->table("Team")->insert($team->toArrayForDbEntry());
+        
+        $this->participantOne_client = new RecordOfParticipant($program, 1);
+        $this->participantTwo_team = new RecordOfParticipant($program, 2);
+        $this->connection->table('Participant')->insert($this->participantOne_client->toArrayForDbEntry());
+        $this->connection->table('Participant')->insert($this->participantTwo_team->toArrayForDbEntry());
+        
+        
+        $this->clientParticipant = new RecordOfClientParticipant($client, $this->participantOne_client);
+        $this->connection->table("ClientParticipant")->insert($this->clientParticipant->toArrayForDbEntry());
+        
+        $this->teamParticipant = new RecordOfTeamProgramParticipation($team, $this->participantTwo_team);
+        $this->connection->table("TeamParticipant")->insert($this->teamParticipant->toArrayForDbEntry());
     }
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table("Client")->truncate();
+        $this->connection->table("Team")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
+        $this->connection->table("TeamParticipant")->truncate();
     }
     
     public function test_show()
@@ -44,6 +70,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                 "name" => $this->userParticipant->user->getFullName(),
             ],
             "client" => null,
+            "team" => null,
         ];
         
         $uri = $this->participantUri . "/{$this->participant->id}";
@@ -62,7 +89,7 @@ class ParticipantControllerTest extends ParticipantTestCase
     public function test_showAll()
     {
         $response = [
-            "total" => 2, 
+            "total" => 3, 
             "list" => [
                 [
                     "id" => $this->participant->id,
@@ -74,17 +101,31 @@ class ParticipantControllerTest extends ParticipantTestCase
                         "name" => $this->userParticipant->user->getFullName(),
                     ],
                     "client" => null,
+                    "team" => null,
                 ],
                 [
-                    "id" => $this->participantOne->id,
-                    "enrolledTime" => $this->participantOne->enrolledTime,
-                    "active" => $this->participantOne->active,
-                    "note" => $this->participantOne->note,
-                    "user" => [
-                        "id" => $this->userParticipantOne->user->id,
-                        "name" => $this->userParticipantOne->user->getFullName(),
+                    "id" => $this->participantOne_client->id,
+                    "enrolledTime" => $this->participantOne_client->enrolledTime,
+                    "active" => $this->participantOne_client->active,
+                    "note" => $this->participantOne_client->note,
+                    "user" => null,
+                    "client" => [
+                        "id" => $this->clientParticipant->client->id,
+                        "name" => $this->clientParticipant->client->getFullName(),
                     ],
+                    "team" => null,
+                ],
+                [
+                    "id" => $this->participantTwo_team->id,
+                    "enrolledTime" => $this->participantTwo_team->enrolledTime,
+                    "active" => $this->participantTwo_team->active,
+                    "note" => $this->participantTwo_team->note,
+                    "user" => null,
                     "client" => null,
+                    "team" => [
+                        "id" => $this->teamParticipant->team->id,
+                        "name" => $this->teamParticipant->team->name,
+                    ],
                 ],
             ],
         ];

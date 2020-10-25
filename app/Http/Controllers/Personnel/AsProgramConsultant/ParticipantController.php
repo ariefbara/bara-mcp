@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramConsultant;
 
-use Query\{
+use Query\ {
     Application\Service\Firm\Program\ViewParticipant,
-    Domain\Model\Firm\Program\Participant
+    Domain\Model\Firm\Client\ClientParticipant,
+    Domain\Model\Firm\Program\Participant,
+    Domain\Model\Firm\Team\TeamProgramParticipation,
+    Domain\Model\User\UserParticipant
 };
 
 class ParticipantController extends AsProgramConsultantBaseController
@@ -46,10 +49,11 @@ class ParticipantController extends AsProgramConsultantBaseController
             "note" => $participant->getNote(),
             "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
             "client" => $this->arrayDataOfClient($participant->getClientParticipant()),
+            "team" => $this->arrayDataOfTeam($participant->getTeamParticipant()),
         ];
     }
 
-    protected function arrayDataOfUser(?\Query\Domain\Model\User\UserParticipant $userParticipant): ?array
+    protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
     {
         return empty($userParticipant) ? null : [
             "id" => $userParticipant->getUser()->getId(),
@@ -57,11 +61,19 @@ class ParticipantController extends AsProgramConsultantBaseController
         ];
     }
 
-    protected function arrayDataOfClient(?\Query\Domain\Model\Firm\Client\ClientParticipant $clientParticipant): ?array
+    protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
     {
         return empty($clientParticipant) ? null : [
             "id" => $clientParticipant->getClient()->getId(),
             "name" => $clientParticipant->getClient()->getFullName(),
+        ];
+    }
+    
+    protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
+    {
+        return empty($teamParticipant) ? null : [
+            "id" => $teamParticipant->getTeam()->getId(),
+            "name" => $teamParticipant->getTeam()->getName(),
         ];
     }
 

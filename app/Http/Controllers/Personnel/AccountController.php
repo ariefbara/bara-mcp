@@ -55,6 +55,7 @@ class AccountController extends PersonnelBaseController
             "id" => $personnel->getId(),
             "firstName" => $personnel->getFirstName(),
             "lastName" => $personnel->getLastName(),
+            "email" => $personnel->getEmail(),
             "phone" => $personnel->getPhone(),
             "bio" => $personnel->getBio(),
         ];
