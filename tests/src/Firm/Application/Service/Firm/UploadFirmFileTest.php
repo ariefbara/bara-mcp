@@ -18,7 +18,7 @@ class UploadFirmFileTest extends TestBase
     protected $firmRepository, $firm;
     protected $uploadFile;
     protected $service;
-    protected $firmId = "firmId", $fileInfoData;
+    protected $firmId = "firmId", $fileInfoData, $contents = "string represent file";
     
     protected function setUp(): void
     {
@@ -44,7 +44,7 @@ class UploadFirmFileTest extends TestBase
     
     protected function execute()
     {
-        return $this->service->execute($this->firmId, $this->fileInfoData);
+        return $this->service->execute($this->firmId, $this->fileInfoData, $this->contents);
     }
     public function test_execute_addFirmFileInfoToRepository()
     {
@@ -58,5 +58,13 @@ class UploadFirmFileTest extends TestBase
     public function test_execute_returnNextId()
     {
         $this->assertEquals($this->nextId, $this->execute());
+    }
+    
+    public function test_execute_udloadFile()
+    {
+        $this->uploadFile->expects($this->once())
+                ->method("execute")
+                ->with($this->anything(), $this->contents);
+        $this->execute();
     }
 }

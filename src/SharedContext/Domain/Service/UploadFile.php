@@ -3,7 +3,6 @@
 namespace SharedContext\Domain\Service;
 
 use Resources\Exception\RegularException;
-use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class UploadFile
 {
@@ -15,7 +14,7 @@ class UploadFile
         $this->fileRepository = $fileRepository;
     }
 
-    public function execute(FileInfo $fileInfo, $contents): void
+    public function execute(CanBeSavedInStorage $fileInfo, $contents): void
     {
         $fullyQualifiedFileName = $fileInfo->getFullyQualifiedFileName();
         $this->assertFileNameAvailable($fullyQualifiedFileName);

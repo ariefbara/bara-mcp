@@ -29,7 +29,7 @@ class UploadFileController extends ManagerBaseController
 
         $contents = fopen('php://input', 'r');
         
-        $firmFileInfoId = $service->execute($this->firmId(), $fileInfoData);
+        $firmFileInfoId = $service->execute($this->firmId(), $fileInfoData, $contents);
         
         if (is_resource($contents)) {
             fclose($contents);

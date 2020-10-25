@@ -37,11 +37,13 @@ class UploadFirmFile
         $this->uploadFile = $uploadFile;
     }
     
-    public function execute(string $firmId, FileInfoData $fileInfoData): string
+    public function execute(string $firmId, FileInfoData $fileInfoData, $contents): string
     {
         $id = $this->firmFileInfoRepository->nextIdentity();
         $firmFileInfo = $this->firmRepository->ofId($firmId)->createFileInfo($id, $fileInfoData);
         $this->firmFileInfoRepository->add($firmFileInfo);
+        
+        $this->uploadFile->execute($firmFileInfo, $contents);
         return $id;
     }
 
