@@ -10,7 +10,8 @@ use Query\ {
     Application\Service\Firm\Program\Participant\MetricAssignmentReportRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Domain\Model\Firm\Team\TeamProgramParticipation
+    Domain\Model\Firm\Team\TeamProgramParticipation,
+    Domain\Model\User\UserParticipant
 };
 use Resources\ {
     Exception\RegularException,
@@ -177,7 +178,65 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
                 ->leftJoin("metricAssignment.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
-        
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aMetricAssignmentReportBelongsToUser(string $userId, string $metricAssignmentReportId): MetricAssignmentReport
+    {
+        $params = [
+            "userId" => $userId,
+            "metricAssignmentReportId" => $metricAssignmentReportId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(UserParticipant::class, "userProgramParticipation")
+                ->leftJoin("userProgramParticipation.participant", "programParticipation")
+                ->leftJoin("userProgramParticipation.user", "user")
+                ->andWhere($participantQb->expr()->eq("user.id", ":userId"));
+
+        $qb = $this->createQueryBuilder("metricAssignmentReport");
+        $qb->select("metricAssignmentReport")
+                ->andWhere($qb->expr()->eq("metricAssignmentReport.id", ":metricAssignmentReportId"))
+                ->leftJoin("metricAssignmentReport.metricAssignment", "metricAssignment")
+                ->leftJoin("metricAssignment.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: metric assignment report not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allMetricAssignmentReportsInProgramParticipationBelongsToUser(
+            string $userId, string $programParticipationId, int $page, int $pageSize)
+    {
+        $params = [
+            "userId" => $userId,
+            "programParticipationId" => $programParticipationId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("programParticipation.id")
+                ->from(UserParticipant::class, "userProgramParticipation")
+                ->andWhere($participantQb->expr()->eq("userProgramParticipation.id", ":programParticipationId"))
+                ->leftJoin("userProgramParticipation.participant", "programParticipation")
+                ->leftJoin("userProgramParticipation.user", "user")
+                ->andWhere($participantQb->expr()->eq("user.id", ":userId"))
+                ->setMaxResults(1);
+
+        $qb = $this->createQueryBuilder("metricAssignmentReport");
+        $qb->select("metricAssignmentReport")
+                ->leftJoin("metricAssignmentReport.metricAssignment", "metricAssignment")
+                ->leftJoin("metricAssignment.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params);
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

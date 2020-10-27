@@ -8,7 +8,9 @@ use Doctrine\ORM\ {
 };
 use Participant\ {
     Application\Service\Participant\MetricAssignment\MetricAssignmentReportRepository,
-    Domain\Model\Participant\MetricAssignment\MetricAssignmentReport
+    Domain\Model\ClientParticipant,
+    Domain\Model\Participant\MetricAssignment\MetricAssignmentReport,
+    Domain\Model\UserParticipant
 };
 use Resources\ {
     Exception\RegularException,
@@ -55,10 +57,40 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
         
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("t_participant.id")
-                ->from(\Participant\Domain\Model\ClientParticipant::class, "clientParticipant")
+                ->from(ClientParticipant::class, "clientParticipant")
                 ->leftJoin("clientParticipant.participant", "t_participant")
                 ->leftJoin("clientParticipant.client", "client")
                 ->andWhere($participantQb->expr()->eq("client.id", ":clientId"));
+        
+        $qb = $this->createQueryBuilder("metricAssignmentReport");
+        $qb->select("metricAssignmentReport")
+                ->andWhere($qb->expr()->eq("metricAssignmentReport.id", ":metricAssignmentReportId"))
+                ->leftJoin("metricAssignmentReport.metricAssignment", "metricAssignment")
+                ->leftJoin("metricAssignment.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: metric assignment report not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aMetricAssignmentReportBelongsToUser(string $userId, string $metricAssignmentReportId): MetricAssignmentReport
+    {
+        $params = [
+            "userId" => $userId,
+            "metricAssignmentReportId" => $metricAssignmentReportId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("t_participant.id")
+                ->from(UserParticipant::class, "userParticipant")
+                ->leftJoin("userParticipant.participant", "t_participant")
+                ->andWhere($participantQb->expr()->eq("userParticipant.userId", ":userId"));
         
         $qb = $this->createQueryBuilder("metricAssignmentReport");
         $qb->select("metricAssignmentReport")
