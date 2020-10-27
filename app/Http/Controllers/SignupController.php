@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Client\{
+use App\Jobs\DispatcherJob;
+use Client\ {
     Application\Service\ClientSignup,
     Domain\Model\Client,
     Domain\Model\ClientData
 };
 use Config\EventList;
-use Notification\{
+use Notification\ {
     Application\Listener\Client\ActivationCodeGeneratedListener,
     Application\Listener\User\ActivationCodeGeneratedListener as ActivationCodeGeneratedListener2,
     Application\Service\Client\CreateActivationMail,
@@ -20,11 +21,12 @@ use Notification\{
 };
 use Query\Domain\Model\Firm;
 use Resources\Application\Event\Dispatcher;
-use User\{
+use User\ {
     Application\Service\UserSignup,
     Domain\Model\User,
     Domain\Model\UserData
 };
+use function dispatch;
 use function response;
 
 class SignupController extends Controller
@@ -55,7 +57,7 @@ class SignupController extends Controller
     public function userSignup()
     {
         $service = $this->buildUserSignup();
-        
+
         $firstName = $this->stripTagsInputRequest('firstName');
         $lastName = $this->stripTagsInputRequest('lastName');
         $email = $this->stripTagsInputRequest('email');

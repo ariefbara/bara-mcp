@@ -68,7 +68,6 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
             "personnelId" => $personnelId,
             "firmId" => $firmId,
         ];
-
         $qb = $this->createQueryBuilder('coordinator');
         $qb->select('1')
                 ->andWhere($qb->expr()->eq('coordinator.removed', 'false'))

@@ -85,7 +85,6 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
         parent::setUp();
         $this->consultantSummaryUri = $this->asProgramCoordinatorUri . "/consultant-summary";
         
-        $this->connection->table("Personnel")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
@@ -342,7 +341,6 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table("Personnel")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
@@ -360,7 +358,6 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
     }
     public function test_showAll_200()
     {
-$this->disableExceptionHandling();
         $totalResponse = [
             "total" => 3,
         ];

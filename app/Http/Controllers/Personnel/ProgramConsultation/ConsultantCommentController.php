@@ -27,7 +27,7 @@ use Resources\Application\Event\Dispatcher;
 class ConsultantCommentController extends PersonnelBaseController
 {
 
-    public function submitNew($programConsultantId)
+    public function submitNew($programConsultationId)
     {
         $service = $this->buildSubmitNewService();
 
@@ -35,16 +35,16 @@ class ConsultantCommentController extends PersonnelBaseController
         $worksheetId = $this->stripTagsInputRequest('worksheetId');
         $message = $this->stripTagsInputRequest('message');
 
-        $consultantCommentId = $service->execute($this->firmId(), $this->personnelId(), $programConsultantId,
+        $consultantCommentId = $service->execute($this->firmId(), $this->personnelId(), $programConsultationId,
                 $participantId, $worksheetId, $message);
 
         $viewService = $this->buildViewService();
         $consultantComment = $viewService->showById(
-                $this->firmId(), $this->personnelId(), $programConsultantId, $consultantCommentId);
+                $this->firmId(), $this->personnelId(), $programConsultationId, $consultantCommentId);
         return $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
     }
 
-    public function submitReply($programConsultantId)
+    public function submitReply($programConsultationId)
     {
         $service = $this->buildSubmitReplyService();
 
@@ -54,19 +54,19 @@ class ConsultantCommentController extends PersonnelBaseController
         $message = $this->stripTagsInputRequest('message');
 
         $consultantCommentId = $service->execute(
-                $this->firmId(), $this->personnelId(), $programConsultantId, $participantId, $worksheetId, $commentId,
+                $this->firmId(), $this->personnelId(), $programConsultationId, $participantId, $worksheetId, $commentId,
                 $message);
 
         $viewService = $this->buildViewService();
         $consultantComment = $viewService->showById(
-                $this->firmId(), $this->personnelId(), $programConsultantId, $consultantCommentId);
+                $this->firmId(), $this->personnelId(), $programConsultationId, $consultantCommentId);
         return $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
     }
 
-    public function remove($programConsultantId, $consultantCommentId)
+    public function remove($programConsultationId, $consultantCommentId)
     {
         $service = $this->buildRemoveService();
-        $service->execute($this->firmId(), $this->personnelId(), $programConsultantId, $consultantCommentId);
+        $service->execute($this->firmId(), $this->personnelId(), $programConsultationId, $consultantCommentId);
         return $this->commandOkResponse();
     }
 

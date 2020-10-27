@@ -82,10 +82,10 @@ class AttachmentFieldRecord
                 $this->attachedFiles->add(new AttachedFile($this, $id, $fileInfo));
             }
         }
-        $obosleteCriteria = Criteria::create()
+        $obsoleteCriteria = Criteria::create()
                 ->andWhere(Criteria::expr()->notIn('fileInfo', $fileInfoList))
                 ->andWhere(Criteria::expr()->eq('removed', false));
-        foreach ($this->attachedFiles->matching($obosleteCriteria)->getIterator() as $obsoleteAttachedFile) {
+        foreach ($this->attachedFiles->matching($obsoleteCriteria)->getIterator() as $obsoleteAttachedFile) {
             $obsoleteAttachedFile->remove();
         }
     }

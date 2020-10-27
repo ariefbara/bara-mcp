@@ -2,7 +2,10 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\ {
+    EntityRepository,
+    NoResultException
+};
 use Participant\ {
     Application\Service\Participant\MetricAssignment\MetricAssignmentReportRepository,
     Domain\Model\Participant\MetricAssignment\MetricAssignmentReport
@@ -40,6 +43,38 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aMetricAssignmentReportBelongsToClient(
+            string $clientId, string $metricAssignmentReportId): MetricAssignmentReport
+    {
+        $params = [
+            "clientId" => $clientId,
+            "metricAssignmentReportId" => $metricAssignmentReportId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("t_participant.id")
+                ->from(\Participant\Domain\Model\ClientParticipant::class, "clientParticipant")
+                ->leftJoin("clientParticipant.participant", "t_participant")
+                ->leftJoin("clientParticipant.client", "client")
+                ->andWhere($participantQb->expr()->eq("client.id", ":clientId"));
+        
+        $qb = $this->createQueryBuilder("metricAssignmentReport");
+        $qb->select("metricAssignmentReport")
+                ->andWhere($qb->expr()->eq("metricAssignmentReport.id", ":metricAssignmentReportId"))
+                ->leftJoin("metricAssignmentReport.metricAssignment", "metricAssignment")
+                ->leftJoin("metricAssignment.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: metric assignment report not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

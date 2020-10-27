@@ -2,9 +2,12 @@
 
 namespace Participant\Application\Service\Participant;
 
-use Participant\Domain\Model\Participant\MetricAssignment;
+use Participant\ {
+    Application\Service\ClientParticipant\MetricAssignmentRepository as InterfaceForClient,
+    Domain\Model\Participant\MetricAssignment
+};
 
-interface MetricAssignmentRepository
+interface MetricAssignmentRepository extends InterfaceForClient
 {
     public function ofId(string $metricAssignmentId): MetricAssignment;
 }

@@ -78,11 +78,6 @@ class PersonnelTest extends TestBase
         $this->markAsSuccess();
     }
 
-    public function test_getMailRecipient_returnRecipient()
-    {
-        $recipient = new Recipient($this->personnel->email, $this->personnel->name);
-        $this->assertEquals($recipient, $this->personnel->getMailRecipient());
-    }
     public function test_getName_returnFullName()
     {
         $this->assertEquals($this->personnel->name->getFullName(), $this->personnel->getName());

@@ -2,9 +2,12 @@
 
 namespace Participant\Application\Service\Participant\MetricAssignment;
 
-use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\ {
+    Application\Service\ClientParticipant\MetricAssignment\MetricAssignmentReportRepository as InterfaceForClient,
+    Domain\Model\Participant\MetricAssignment\MetricAssignmentReport
+};
 
-interface MetricAssignmentReportRepository
+interface MetricAssignmentReportRepository extends InterfaceForClient
 {
 
     public function nextIdentity(): string;

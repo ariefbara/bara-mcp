@@ -94,13 +94,12 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
         });
         
-        $router->delete('/participant-comments/{participantCommentId}', ['uses' => "ParticipantCommentController@remove"]);
-        
-        $router->group(['prefix' => '/missions'], function () use($router) {
-            $controller = "MissionController";
-            $router->get("/by-position/{position}", ["uses" => "$controller@showByPosition"]);
-            $router->get("/by-id/{missionId}", ["uses" => "$controller@show"]);
+        $router->group(['prefix' => '/metric-assignment-reports'], function () use($router) {
+            $controller = "MetricAssignmentReportController";
+            $router->post("", ["uses" => "$controller@submit"]);
+            $router->patch("/{metricAssignmentReportId}", ["uses" => "$controller@update"]);
             $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{metricAssignmentReportId}", ["uses" => "$controller@show"]);
         });
         
     });

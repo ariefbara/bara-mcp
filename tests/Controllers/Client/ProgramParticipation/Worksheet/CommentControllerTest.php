@@ -142,6 +142,7 @@ class CommentControllerTest extends WorksheetTestCase
                 ],
             ],
         ];
+        $submitTime = (new DateTime())->format("Y-m-d H:i:s");
         $uri = $this->commentUri . "/{$this->consultantComment->comment->id}";
         $this->post($uri, $this->commentInput, $this->client->token)
                 ->seeStatusCode(201)
@@ -151,7 +152,7 @@ class CommentControllerTest extends WorksheetTestCase
             "Worksheet_id" => $this->worksheet->id,
             "message" => $this->commentInput['message'],
             "removed" => false,
-            "submitTime" => (new DateTime())->format('Y-m-d H:i:s'),
+            "submitTime" => $submitTime,
             "parent_id" => $this->consultantComment->comment->id,
         ];
         $this->seeInDatabase("Comment", $commentEntry);

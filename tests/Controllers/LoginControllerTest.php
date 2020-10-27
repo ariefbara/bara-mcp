@@ -221,7 +221,7 @@ class LoginControllerTest extends ControllerTestCase
     {
         $response = [
             "id" => $this->personnel->id,
-            "name" => $this->personnel->name,
+            "name" => $this->personnel->getFullName(),
             "programConsultants" => [
                 [
                     "id" => $this->consultant->id,

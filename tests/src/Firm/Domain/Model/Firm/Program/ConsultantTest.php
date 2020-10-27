@@ -47,14 +47,6 @@ class ConsultantTest extends TestBase
         $this->assertFalse($this->consultant->removed);
     }
     
-    public function test_getMailRecipient_returnPersonnelsGetMailRecipientResult()
-    {
-        $this->personnel->expects($this->once())
-                ->method('getMailRecipient')
-                ->willReturn($recipient = $this->buildMockOfClass(Recipient::class));
-        $this->assertEquals($recipient, $this->consultant->getMailRecipient());
-    }
-    
     public function test_getPersonnelName_returnPersonnelsGetNameResult()
     {
         $this->personnel->expects($this->once())

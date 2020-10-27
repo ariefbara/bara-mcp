@@ -2,7 +2,7 @@
 
 namespace Client\Application\Service;
 
-use Client\Dommain\Model\Client;
+use Client\Domain\Model\Client;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 

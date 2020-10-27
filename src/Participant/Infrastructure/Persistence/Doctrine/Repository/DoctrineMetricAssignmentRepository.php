@@ -2,9 +2,13 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\ {
+    EntityRepository,
+    NoResultException
+};
 use Participant\ {
     Application\Service\Participant\MetricAssignmentRepository,
+    Domain\Model\ClientParticipant,
     Domain\Model\Participant\MetricAssignment
 };
 use Resources\Exception\RegularException;
@@ -20,6 +24,36 @@ class DoctrineMetricAssignmentRepository extends EntityRepository implements Met
             throw RegularException::notFound($errorDetail);
         }
         return $metricAssignment;
+    }
+
+    public function aMetricAssignmentBelongsToClient(string $clientId, string $metricAssignmentId): MetricAssignment
+    {
+        $params = [
+            "clientId" => $clientId,
+            "metricAssignmentId" => $metricAssignmentId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("t_participant.id")
+                ->from(ClientParticipant::class, "clientParticipant")
+                ->leftJoin("clientParticipant.participant", "t_participant")
+                ->leftJoin("clientParticipant.client", "client")
+                ->andWhere($participantQb->expr()->eq("client.id", ":clientId"));
+        
+        $qb = $this->createQueryBuilder("metricAssignment");
+        $qb->select("metricAssignment")
+                ->andWhere($qb->expr()->eq("metricAssignment.id", ":metricAssignmentId"))
+                ->leftJoin("metricAssignment.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: metric assignment not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

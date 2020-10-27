@@ -49,6 +49,15 @@ class ConsultationRequestTest extends TestBase
         $this->otherConsultationRequest = new TestableConsultationRequest();
         $this->otherConsultationRequest->startEndTime = $this->startEndTime;
     }
+    
+    public function test_returnSchedulesIntersectWithResult()
+    {
+        $otherSchedule = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->startEndTime->expects($this->once())
+                ->method("intersectWith")
+                ->with($otherSchedule);
+        $this->consultationRequest->scheduleIntersectWith($otherSchedule);
+    }
 
     protected function executeReject()
     {

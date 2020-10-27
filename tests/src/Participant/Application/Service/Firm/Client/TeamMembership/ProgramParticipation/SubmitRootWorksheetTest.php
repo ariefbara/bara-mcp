@@ -35,7 +35,7 @@ class SubmitRootWorksheetTest extends TestBase
         $this->teamMembership = $this->buildMockOfClass(TeamMembership::class);
         $this->teamMembershipRepository = $this->buildMockOfInterface(TeamMembershipRepository::class);
         $this->teamMembershipRepository->expects($this->any())
-                ->method("ofId")
+                ->method("aTeamMembershipCorrespondWithTeam")
                 ->with($this->firmId, $this->clientId, $this->teamMembershipId)
                 ->willReturn($this->teamMembership);
 

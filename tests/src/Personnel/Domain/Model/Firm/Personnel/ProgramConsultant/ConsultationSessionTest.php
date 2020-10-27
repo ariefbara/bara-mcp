@@ -72,14 +72,11 @@ class ConsultationSessionTest extends TestBase
     
     public function test_intersectWithConsultationRequest_returnResultOfStartEndTimeIntersectComparison()
     {
-        $this->startEndTime->expects($this->once())
-                ->method('intersectWith')
-                ->with($startEndTime = $this->buildMockOfClass(DateTimeInterval::class))
-                ->willReturn(true);
         $consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $consultationRequest->expects($this->once())
-                ->method('getStartEndTime')
-                ->willReturn($startEndTime);
+                ->method('scheduleIntersectWith')
+                ->with($this->consultationSession->startEndTime)
+                ->willReturn(true);
         $this->assertTrue($this->consultationSession->intersectWithConsultationRequest($consultationRequest));
     }
     

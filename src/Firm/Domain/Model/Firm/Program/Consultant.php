@@ -68,11 +68,6 @@ class Consultant
         $this->removed = true;
     }
     
-    public function getMailRecipient(): Recipient
-    {
-        return $this->personnel->getMailRecipient();
-    }
-    
     public function getPersonnelName(): string
     {
         return $this->personnel->getName();

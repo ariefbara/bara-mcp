@@ -5,13 +5,13 @@ namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Personnel\Domain\Model\Firm\ {
+use Personnel\Domain\Model\Firm\{
     Personnel\ProgramConsultant,
     Personnel\ProgramConsultant\ConsultationRequest\ConsultationRequestActivityLog,
     Program\ConsultationSetup,
     Program\Participant
 };
-use Resources\ {
+use Resources\{
     Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
@@ -80,15 +80,15 @@ class ConsultationRequest extends EntityContainEvents
     {
         return $this->concluded;
     }
-//
-//    function getStartEndTime(): DateTimeInterval
-//    {
-//        return $this->startEndTime;
-//    }
 
     protected function __construct()
     {
-        ;
+        
+    }
+
+    public function scheduleIntersectWith(DateTimeInterval $otherSchedule): bool
+    {
+        return $this->startEndTime->intersectWith($otherSchedule);
     }
 
     public function reject(): void
@@ -98,7 +98,7 @@ class ConsultationRequest extends EntityContainEvents
         $this->concluded = true;
 
         $this->logActivity("consultation request rejected");
-        
+
         $event = new CommonEvent(EventList::CONSULTATION_REQUEST_REJECTED, $this->id);
         $this->recordEvent($event);
     }
@@ -110,9 +110,9 @@ class ConsultationRequest extends EntityContainEvents
         $this->assertNotConcluded();
         $this->assertNotConflictWithParticipantMentoringSchedule();
         $this->status = new ConsultationRequestStatusVO('offered');
-        
+
         $this->logActivity("consultation request new schedule offered");
-        
+
         $event = new CommonEvent(EventList::CONSULTATION_REQUEST_OFFERED, $this->id);
         $this->recordEvent($event);
     }

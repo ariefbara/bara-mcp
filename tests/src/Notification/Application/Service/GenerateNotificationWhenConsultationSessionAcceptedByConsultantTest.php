@@ -38,6 +38,6 @@ class GenerateNotificationWhenConsultationSessionAcceptedByConsultantTest extend
     {
         $this->consultationSessionRepository->expects($this->once())
                 ->method("update");
-        $this->execute();$
+        $this->execute();
     }
 }

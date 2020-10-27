@@ -34,7 +34,6 @@ class ConsultationSetupTest extends TestBase
         return new TestableConsultationSetup($this->program, $this->id, $this->name, $this->sessionDuration,
             $this->participantFeedbackForm, $this->consultantFeedbackForm);
     }
-
     public function test_construct_setProperties()
     {
         $consultanting = $this->executeConstruct();
@@ -45,7 +44,6 @@ class ConsultationSetupTest extends TestBase
         $this->assertEquals($this->participantFeedbackForm, $consultanting->participantFeedbackForm);
         $this->assertEquals($this->consultantFeedbackForm, $consultanting->consultantFeedbackForm);
     }
-
     public function test_construct_emtpyName_throwEx()
     {
         $this->name = '';
@@ -55,7 +53,6 @@ class ConsultationSetupTest extends TestBase
         $errorDetail = 'bad request: consultation setup name is required';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
-
     public function test_construct_emptySessionDuration_throwEx()
     {
         $this->sessionDuration = 0;
@@ -65,7 +62,6 @@ class ConsultationSetupTest extends TestBase
         $errorDetail = 'bad request: consultation setup session duration is required';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
-
     public function test_construct_nonIntegerSessionDuration_throwEx()
     {
         $this->sessionDuration = 'non integer value';
@@ -79,22 +75,6 @@ class ConsultationSetupTest extends TestBase
         $this->assertTrue($this->consultationSetup->removed);
     }
     
-    public function test_getFirmWhitelableInfo_returnProgramsGetFirmWhitelableInfoResult()
-    {
-        $this->program->expects($this->once())
-                ->method('getFirmWhitelableInfo')
-                ->willReturn($whitelableInfo = $this->buildMockOfClass(FirmWhitelableInfo::class));
-        $this->assertEquals($whitelableInfo, $this->consultationSetup->getFirmWhitelableInfo());
-    }
-    
-    public function test_getProgramId_returnProgramsGetIdResult()
-    {
-        $this->program->expects($this->once())
-                ->method('getId')
-                ->willReturn($programId = 'programId');
-        $this->assertEquals($programId, $this->consultationSetup->getProgramId());
-    }
-
 }
 
 class TestableConsultationSetup extends ConsultationSetup

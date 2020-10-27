@@ -101,11 +101,6 @@ class Personnel
         $this->assignedAdmin = null;
     }
     
-    public function getMailRecipient(): Recipient
-    {
-        return new Recipient($this->email, $this->name);
-    }
-    
     public function getName(): string
     {
         return $this->name->getFullName();

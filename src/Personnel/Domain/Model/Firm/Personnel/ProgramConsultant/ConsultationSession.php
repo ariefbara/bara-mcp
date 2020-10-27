@@ -83,7 +83,7 @@ class ConsultationSession extends EntityContainEvents
 
     public function intersectWithConsultationRequest(ConsultationRequest $consultationRequest): bool
     {
-        return $this->startEndTime->intersectWith($consultationRequest->getStartEndTime());
+        return $consultationRequest->scheduleIntersectWith($this->startEndTime);
     }
 
     public function setConsultantFeedback(FormRecordData $formRecordData): void

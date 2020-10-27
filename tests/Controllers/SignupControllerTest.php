@@ -77,8 +77,8 @@ class SignupControllerTest extends ControllerTestCase
             ],
         ];
         $this->post($this->clientSignupUri, $this->clientSignupInput)
-            ->seeStatusCode(201)
-            ->seeJsonContains($response);
+            ->seeJsonContains($response)
+            ->seeStatusCode(201);
         
         $clientRecord = [
             "Firm_id" => $this->firm->id,

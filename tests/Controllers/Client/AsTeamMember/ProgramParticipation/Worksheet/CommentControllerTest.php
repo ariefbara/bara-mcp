@@ -215,7 +215,7 @@ class CommentControllerTest extends WorksheetTestCase
         
         $activityLogEntry = [
             "message" => "team member submitted comment",
-            "occuredTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+//            "occuredTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);
         
