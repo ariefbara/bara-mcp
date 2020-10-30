@@ -17,6 +17,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     protected $inactiveProgramParticipation;
     protected $metricAssignment;
     protected $assignmentField;
+    protected $assignmentFieldOne;
 
     protected function setUp(): void
     {
@@ -41,10 +42,14 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("MetricAssignment")->insert($this->metricAssignment->toArrayForDbEntry());
         
         $metric = new RecordOfMetric($program, 0);
+        $metricOne = new RecordOfMetric($program, 1);
         $this->connection->table("Metric")->insert($metric->toArrayForDbEntry());
+        $this->connection->table("Metric")->insert($metricOne->toArrayForDbEntry());
         
         $this->assignmentField = new RecordOfAssignmentField($this->metricAssignment, $metric, 0);
+        $this->assignmentFieldOne = new RecordOfAssignmentField($this->metricAssignment, $metricOne, 1);
         $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
+        $this->connection->table("AssignmentField")->insert($this->assignmentFieldOne->toArrayForDbEntry());
     }
     protected function tearDown(): void
     {
@@ -99,6 +104,17 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                             "minValue" => $this->assignmentField->metric->minValue,
                             "maxValue" => $this->assignmentField->metric->maxValue,
                             "higherIsBetter" => $this->assignmentField->metric->higherIsBetter,
+                        ],
+                    ],
+                    [
+                        "id" => $this->assignmentFieldOne->id,
+                        "target" => $this->assignmentFieldOne->target,
+                        "metric" => [
+                            "id" => $this->assignmentFieldOne->metric->id,
+                            "name" => $this->assignmentFieldOne->metric->name,
+                            "minValue" => $this->assignmentFieldOne->metric->minValue,
+                            "maxValue" => $this->assignmentFieldOne->metric->maxValue,
+                            "higherIsBetter" => $this->assignmentFieldOne->metric->higherIsBetter,
                         ],
                     ],
                 ],

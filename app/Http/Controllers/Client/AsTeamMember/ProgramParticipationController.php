@@ -100,6 +100,7 @@ class ProgramParticipationController extends AsTeamMemberBaseController
                 "name" => $assignmentField->getMetric()->getName(),
                 "minValue" => $assignmentField->getMetric()->getMinValue(),
                 "maxValue" => $assignmentField->getMetric()->getMaxValue(),
+                "higherIsBetter" => $assignmentField->getMetric()->getHigherIsBetter(),
             ],
         ];
     }

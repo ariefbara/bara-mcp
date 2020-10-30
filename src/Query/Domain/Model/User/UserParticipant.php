@@ -2,10 +2,11 @@
 
 namespace Query\Domain\Model\User;
 
-use Query\Domain\{
+use Query\Domain\ {
     Model\Firm\Program,
     Model\Firm\Program\Mission\LearningMaterial,
     Model\Firm\Program\Participant,
+    Model\Firm\Program\Participant\MetricAssignment,
     Model\User,
     Service\LearningMaterialFinder
 };
@@ -65,6 +66,11 @@ class UserParticipant implements ContainEvents
     public function getNote(): ?string
     {
         return $this->participant->getNote();
+    }
+    
+    public function getMetricAssignment(): ?MetricAssignment
+    {
+        return $this->participant->getMetricAssignment();
     }
 
     public function viewLearningMaterial(LearningMaterialFinder $learningMaterialFinder, string $learningMaterialId): LearningMaterial

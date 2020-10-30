@@ -115,6 +115,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                             "name" => $this->assignmentField->metric->name,
                             "minValue" => $this->assignmentField->metric->minValue,
                             "maxValue" => $this->assignmentField->metric->maxValue,
+                            "higherIsBetter" => $this->assignmentField->metric->higherIsBetter,
                         ],
                     ],
                     [
@@ -125,6 +126,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                             "name" => $this->assignmentFieldOne->metric->name,
                             "minValue" => $this->assignmentFieldOne->metric->minValue,
                             "maxValue" => $this->assignmentFieldOne->metric->maxValue,
+                            "higherIsBetter" => $this->assignmentFieldOne->metric->higherIsBetter,
                         ],
                     ],
                 ],

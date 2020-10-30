@@ -9,7 +9,8 @@ use Participant\ {
 use Query\ {
     Application\Service\Firm\Client\ViewProgramParticipation,
     Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant\MetricAssignment
+    Domain\Model\Firm\Program\Participant\MetricAssignment,
+    Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField
 };
 
 class ProgramParticipationController extends ClientBaseController
@@ -71,26 +72,29 @@ class ProgramParticipationController extends ClientBaseController
         if (empty($metricAssignment)) {
             return null;
         }
-        
         $assignmentFields = [];
         foreach ($metricAssignment->iterateNonRemovedAssignmentFields() as $assignmentField) {
-            $assignmentFields[] = [
-                "id" => $assignmentField->getId(),
-                "target" => $assignmentField->getTarget(),
-                "metric" => [
-                    "id" => $assignmentField->getMetric()->getId(),
-                    "name" => $assignmentField->getMetric()->getName(),
-                    "minValue" => $assignmentField->getMetric()->getMinValue(),
-                    "maxValue" => $assignmentField->getMetric()->getMaxValue(),
-                    "higherIsBetter" => $assignmentField->getMetric()->getHigherIsBetter(),
-                ],
-            ];
+            $assignmentFields[] = $this->arrayDataOfAssignmentField($assignmentField);
         }
         return [
             "id" => $metricAssignment->getId(),
             "startDate" => $metricAssignment->getStartDateString(),
             "endDate" => $metricAssignment->getEndDateString(),
             "assignmentFields" => $assignmentFields,
+        ];
+    }
+    protected function arrayDataOfAssignmentField(AssignmentField $assignmentField): array
+    {
+        return [
+            "id" => $assignmentField->getId(),
+            "target" => $assignmentField->getTarget(),
+            "metric" => [
+                "id" => $assignmentField->getMetric()->getId(),
+                "name" => $assignmentField->getMetric()->getName(),
+                "minValue" => $assignmentField->getMetric()->getMinValue(),
+                "maxValue" => $assignmentField->getMetric()->getMaxValue(),
+                "higherIsBetter" => $assignmentField->getMetric()->getHigherIsBetter(),
+            ],
         ];
     }
 
