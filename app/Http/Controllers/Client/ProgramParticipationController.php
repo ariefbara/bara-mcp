@@ -8,7 +8,8 @@ use Participant\ {
 };
 use Query\ {
     Application\Service\Firm\Client\ViewProgramParticipation,
-    Domain\Model\Firm\Client\ClientParticipant
+    Domain\Model\Firm\Client\ClientParticipant,
+    Domain\Model\Firm\Program\Participant\MetricAssignment
 };
 
 class ProgramParticipationController extends ClientBaseController
@@ -35,7 +36,17 @@ class ProgramParticipationController extends ClientBaseController
         $result = [];
         $result['total'] = count($programParticipations);
         foreach ($programParticipations as $programParticipation) {
-            $result['list'][] = $this->arrayDataOfProgramParticipation($programParticipation);
+            $result['list'][] = [
+                "id" => $programParticipation->getId(),
+                "program" => [
+                    "id" => $programParticipation->getProgram()->getId(),
+                    "name" => $programParticipation->getProgram()->getName(),
+                    "removed" => $programParticipation->getProgram()->isRemoved(),
+                ],
+                "enrolledTime" => $programParticipation->getEnrolledTimeString(),
+                "active" => $programParticipation->isActive(),
+                "note" => $programParticipation->getNote(),
+            ];
         }
         return $this->listQueryResponse($result);
     }
@@ -52,6 +63,34 @@ class ProgramParticipationController extends ClientBaseController
             "enrolledTime" => $programParticipation->getEnrolledTimeString(),
             "active" => $programParticipation->isActive(),
             "note" => $programParticipation->getNote(),
+            "metricAssignment" => $this->arrayDataOfMetricAssignment($programParticipation->getMetricAssignment()),
+        ];
+    }
+    protected function arrayDataOfMetricAssignment(?MetricAssignment $metricAssignment): ?array
+    {
+        if (empty($metricAssignment)) {
+            return null;
+        }
+        
+        $assignmentFields = [];
+        foreach ($metricAssignment->iterateNonRemovedAssignmentFields() as $assignmentField) {
+            $assignmentFields[] = [
+                "id" => $assignmentField->getId(),
+                "target" => $assignmentField->getTarget(),
+                "metric" => [
+                    "id" => $assignmentField->getMetric()->getId(),
+                    "name" => $assignmentField->getMetric()->getName(),
+                    "minValue" => $assignmentField->getMetric()->getMinValue(),
+                    "maxValue" => $assignmentField->getMetric()->getMaxValue(),
+                    "higherIsBetter" => $assignmentField->getMetric()->getHigherIsBetter(),
+                ],
+            ];
+        }
+        return [
+            "id" => $metricAssignment->getId(),
+            "startDate" => $metricAssignment->getStartDateString(),
+            "endDate" => $metricAssignment->getEndDateString(),
+            "assignmentFields" => $assignmentFields,
         ];
     }
 

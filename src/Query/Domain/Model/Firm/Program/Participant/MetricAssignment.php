@@ -2,11 +2,11 @@
 
 namespace Query\Domain\Model\Firm\Program\Participant;
 
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Query\Domain\Model\Firm\Program\ {
+use Query\Domain\Model\Firm\Program\{
     Participant,
     Participant\MetricAssignment\AssignmentField
 };
@@ -51,17 +51,19 @@ class MetricAssignment
 
     protected function __construct()
     {
+        
     }
-    
+
     public function getStartDateString(): string
     {
         return $this->startEndDate->getStartDateString();
     }
+
     public function getEndDateString(): string
     {
         return $this->startEndDate->getEndDateString();
     }
-    
+
     /**
      * 
      * @return AssignmentField[]

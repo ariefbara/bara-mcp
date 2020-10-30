@@ -4,6 +4,9 @@ namespace Tests\Controllers\Client;
 
 use Tests\Controllers\RecordPreparation\Firm\ {
     Client\RecordOfClientParticipant,
+    Program\Participant\MetricAssignment\RecordOfAssignmentField,
+    Program\Participant\RecordOfMetricAssignment,
+    Program\RecordOfMetric,
     Program\RecordOfParticipant,
     RecordOfProgram
 };
@@ -12,10 +15,16 @@ use Tests\Controllers\RecordPreparation\Firm\ {
 class ProgramParticipationControllerTest extends ProgramParticipationTestCase
 {
     protected $inactiveProgramParticipation;
-    
+    protected $metricAssignment;
+    protected $assignmentField;
+
     protected function setUp(): void
     {
         parent::setUp();
+        
+        $this->connection->table("MetricAssignment")->truncate();
+        $this->connection->table("Metric")->truncate();
+        $this->connection->table("AssignmentField")->truncate();
         
         $program = new RecordOfProgram($this->client->firm, 1);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
@@ -27,10 +36,22 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         
         $this->inactiveProgramParticipation = new RecordOfClientParticipant($this->client, $participant);
         $this->connection->table('ClientParticipant')->insert($this->inactiveProgramParticipation->toArrayForDbEntry());
+        
+        $this->metricAssignment = new RecordOfMetricAssignment($this->programParticipation->participant, 0);
+        $this->connection->table("MetricAssignment")->insert($this->metricAssignment->toArrayForDbEntry());
+        
+        $metric = new RecordOfMetric($program, 0);
+        $this->connection->table("Metric")->insert($metric->toArrayForDbEntry());
+        
+        $this->assignmentField = new RecordOfAssignmentField($this->metricAssignment, $metric, 0);
+        $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
     }
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table("MetricAssignment")->truncate();
+        $this->connection->table("Metric")->truncate();
+        $this->connection->table("AssignmentField")->truncate();
     }
     
     public function test_quit_200()
@@ -64,6 +85,24 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
             "enrolledTime" => $this->programParticipation->participant->enrolledTime,
             "active" => $this->programParticipation->participant->active,
             "note" => $this->programParticipation->participant->note,
+            "metricAssignment" => [
+                "id" => $this->metricAssignment->id,
+                "startDate" => $this->metricAssignment->startDate,
+                "endDate" => $this->metricAssignment->endDate,
+                "assignmentFields" => [
+                    [
+                        "id" => $this->assignmentField->id,
+                        "target" => $this->assignmentField->target,
+                        "metric" => [
+                            "id" => $this->assignmentField->metric->id,
+                            "name" => $this->assignmentField->metric->name,
+                            "minValue" => $this->assignmentField->metric->minValue,
+                            "maxValue" => $this->assignmentField->metric->maxValue,
+                            "higherIsBetter" => $this->assignmentField->metric->higherIsBetter,
+                        ],
+                    ],
+                ],
+            ],
         ];
         $uri = $this->programParticipationUri . "/{$this->programParticipation->id}";
         $this->get($uri, $this->client->token)
