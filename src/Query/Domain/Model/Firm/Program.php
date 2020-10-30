@@ -81,7 +81,6 @@ class Program
 
     protected function __construct()
     {
-        ;
     }
     
     public function getParticipantTypeValues(): array

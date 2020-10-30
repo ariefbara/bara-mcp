@@ -4,6 +4,7 @@ namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\ {
     Firm,
+    Firm\Program\ActivityType,
     Shared\Form,
     Shared\FormData
 };
@@ -49,6 +50,15 @@ class FeedbackFormTest extends TestBase
     {
         $this->feedbackForm->remove();
         $this->assertTrue($this->feedbackForm->removed);
+    }
+    
+    public function test_belongsToSameFirmAs_returnActivityTypeBelongsToFirmResult()
+    {
+        $activityType = $this->buildMockOfClass(ActivityType::class);
+        $activityType->expects($this->once())
+                ->method("belongsToFirm")
+                ->with($this->firm);
+        $this->feedbackForm->belongsToSameFirmAs($activityType);
     }
     
 }

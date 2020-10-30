@@ -3,14 +3,15 @@
 namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\ {
-    Firm,
-    Firm\Program\Consultant,
-    Firm\Program\Coordinator,
-    Firm\Program\Metric,
-    Firm\Program\MetricData,
-    Firm\Program\Participant,
-    Firm\Program\Registrant
+use Firm\Domain\ {
+    Model\Firm,
+    Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
+    Model\Firm\Program\Metric,
+    Model\Firm\Program\MetricData,
+    Model\Firm\Program\Participant,
+    Model\Firm\Program\Registrant,
+    Service\ActivityTypeDataProvider
 };
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Domain\Event\CommonEvent;
@@ -31,6 +32,8 @@ class ProgramTest extends TestBase
     protected $personnel;
     
     protected $metricId = "metricId", $metricData;
+    
+    protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
 
     protected function setUp(): void
     {
@@ -61,6 +64,9 @@ class ProgramTest extends TestBase
         
         $this->metricData = $this->buildMockOfClass(MetricData::class);
         $this->metricData->expects($this->any())->method("getName")->willReturn("metric name");
+        
+        $this->activityTypeDataProvider = $this->buildMockOfClass(ActivityTypeDataProvider::class);
+        $this->activityTypeDataProvider->expects($this->any())->method("getName")->willReturn("name");
     }
 
     protected function getProgramData()
@@ -97,6 +103,16 @@ class ProgramTest extends TestBase
         };
         $errorDetail = 'bad request: program name is required';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
+    }
+    
+    public function test_belongsToFirm_sameFirm_returnTrue()
+    {
+        $this->assertTrue($this->program->belongsToFirm($this->program->firm));
+    }
+    public function test_belongsToFirm_differentFirm_returnFalse()
+    {
+        $firm = $this->buildMockOfClass(Firm::class);
+        $this->assertFalse($this->program->belongsToFirm($firm));
     }
 
     protected function executeUpdate()
@@ -280,6 +296,12 @@ class ProgramTest extends TestBase
     {
         $metric = new Metric($this->program, $this->metricId, $this->metricData);
         $this->assertEquals($metric, $this->program->addMetric($this->metricId, $this->metricData));
+    }
+    
+    public function test_createActivityType_returnActivityType()
+    {
+        $activityType = new Program\ActivityType($this->program, $this->activityTypeId, $this->activityTypeDataProvider);
+        $this->assertEquals($activityType, $this->program->createActivityType($this->activityTypeId, $this->activityTypeDataProvider));
     }
     
 }

@@ -3,9 +3,14 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\Firm;
+use Firm\Domain\ {
+    Model\Firm,
+    Model\Firm\Program\ActivityType,
+    Service\ActivityTypeDataProvider
+};
 use Resources\ {
     Domain\ValueObject\Password,
+    Exception\RegularException,
     ValidationRule,
     ValidationService
 };
@@ -98,6 +103,20 @@ class Manager
         $this->setPhone($managerData->getPhone());
         $this->joinTime = new DateTimeImmutable();
         $this->removed = false;
+    }
+
+    public function createActivityTypeInProgram(
+            Program $program, string $activityTypeId, ActivityTypeDataProvider $activityTypeDataProvider): ActivityType
+    {
+        if ($this->removed) {
+            $errorDetail = "forbidden: only active manager can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        if (!$program->belongsToFirm($this->firm)) {
+            $errorDetail = "forbidden: can only manage asset of same firm";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $program->createActivityType($activityTypeId, $activityTypeDataProvider);
     }
 
 }

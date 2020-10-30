@@ -119,6 +119,13 @@ $router->group($managerAggregate, function () use ($router) {
                 $router->get("", ["uses" => "$controller@showAll"]);
             });
         });
+        
+        $router->group(['prefix' => '/activity-types'], function () use($router) {
+            $controller = "ActivityTypeController";
+            $router->post("", ["uses" => "$controller@create"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{activityTypeId}", ["uses" => "$controller@show"]);
+        });
     });
 });
 

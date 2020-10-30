@@ -55,4 +55,14 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
         $this->getEntityManager()->flush();
     }
 
+    public function aProgramOfId(string $programId): Program
+    {
+        $program = $this->findOneBy(["id" => $programId]);
+        if (empty($program)) {
+            $errorDetail = "not found: program not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $program;
+    }
+
 }

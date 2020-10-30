@@ -8,14 +8,15 @@ use Doctrine\ORM\ {
 };
 use Firm\ {
     Application\Service\Firm\FeedbackFormRepository,
-    Domain\Model\Firm\FeedbackForm
+    Domain\Model\Firm\FeedbackForm,
+    Domain\Service\FeedbackFormRepository as InterfaceForDomainService
 };
 use Resources\ {
     Exception\RegularException,
     Uuid
 };
 
-class DoctrineFeedbackFormRepository extends EntityRepository implements FeedbackFormRepository
+class DoctrineFeedbackFormRepository extends EntityRepository implements FeedbackFormRepository, InterfaceForDomainService
 {
 
     public function add(FeedbackForm $feedbackForm): void
@@ -56,6 +57,16 @@ class DoctrineFeedbackFormRepository extends EntityRepository implements Feedbac
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aFeedbackFormOfId(string $feedbackFormId): FeedbackForm
+    {
+        $feedbackForm = $this->findOneBy(["id" => $feedbackFormId]);
+        if (empty($feedbackForm)) {
+            $errorDetail = "not found: feedback form not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $feedbackForm;
     }
 
 }

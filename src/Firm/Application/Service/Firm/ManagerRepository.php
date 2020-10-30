@@ -2,9 +2,12 @@
 
 namespace Firm\Application\Service\Firm;
 
-use Firm\Domain\Model\Firm\Manager;
+use Firm\ {
+    Application\Service\Manager\ManagerRepository as InterfaceForManager,
+    Domain\Model\Firm\Manager
+};
 
-interface ManagerRepository
+interface ManagerRepository extends InterfaceForManager
 {
 
     public function nextIdentity(): string;

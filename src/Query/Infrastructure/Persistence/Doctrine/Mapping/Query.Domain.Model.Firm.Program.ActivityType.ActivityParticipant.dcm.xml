@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\ActivityType\ActivityParticipant" 
+            table="ActivityParticipant" 
+    >
+        
+        <many-to-one  field="activityType" 
+                      target-entity="Query\Domain\Model\Firm\Program\ActivityType"
+                      inversed-by="participants"
+        >
+            <join-column name="ActivityType_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="participantType" 
+                  class="SharedContext\Domain\ValueObject\ActivityParticipantType" 
+                  use-column-prefix="false" />
+        <embedded name="participantPriviledge" 
+                  class="SharedContext\Domain\ValueObject\ActivityParticipantPriviledge" 
+                  use-column-prefix="false" />
+        
+        
+        <many-to-one  field="reportForm" 
+                      target-entity="Query\Domain\Model\Firm\FeedbackForm"
+        >
+            <join-column name="FeedbackForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

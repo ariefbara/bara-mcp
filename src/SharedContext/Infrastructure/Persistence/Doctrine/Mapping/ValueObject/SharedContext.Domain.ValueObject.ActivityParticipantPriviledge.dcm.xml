@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\ActivityParticipantPriviledge">
+        
+        <field name="canInitiate" type="boolean" />
+        <field name="canAttend" type="boolean" />
+        
+    </embeddable>
+</doctrine-mapping>

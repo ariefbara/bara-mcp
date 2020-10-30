@@ -12,6 +12,7 @@ $isDevMode = true;//generate proxy manually if entity not found
 $paths = array(
     BASE_PATH . "/resources/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Query/Infrastructure/Persistence/Doctrine/Mapping",
+    BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
 );
 
 $doctrineConfig = Setup::createXMLMetadataConfiguration($paths, $isDevMode);

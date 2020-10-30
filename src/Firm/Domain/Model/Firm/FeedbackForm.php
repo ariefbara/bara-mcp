@@ -4,6 +4,7 @@ namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\ {
     Firm,
+    Firm\Program\ActivityType,
     Shared\Form,
     Shared\FormData
 };
@@ -51,6 +52,11 @@ class FeedbackForm
     public function remove(): void
     {
         $this->removed = true;
+    }
+    
+    public function belongsToSameFirmAs(ActivityType $activityType): bool
+    {
+        return $activityType->belongsToFirm($this->firm);
     }
 
 }

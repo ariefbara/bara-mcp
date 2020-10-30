@@ -3,6 +3,7 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
+use Firm\Domain\Model\Firm\Program\ActivityType;
 use Query\Domain\Model\Firm;
 use Resources\Domain\ValueObject\Password;
 
@@ -96,7 +97,7 @@ class Manager
     {
         ;
     }
-    
+
     public function passwordMatches(string $password): bool
     {
         return $this->password->match($password);

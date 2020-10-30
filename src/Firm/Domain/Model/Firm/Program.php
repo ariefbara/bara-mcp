@@ -7,14 +7,17 @@ use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
-use Firm\Domain\Model\ {
-    Firm,
-    Firm\Program\Consultant,
-    Firm\Program\Coordinator,
-    Firm\Program\Metric,
-    Firm\Program\MetricData,
-    Firm\Program\Participant,
-    Firm\Program\Registrant
+use Firm\Domain\ {
+    Model\AssetBelongsToFirm,
+    Model\Firm,
+    Model\Firm\Program\ActivityType,
+    Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
+    Model\Firm\Program\Metric,
+    Model\Firm\Program\MetricData,
+    Model\Firm\Program\Participant,
+    Model\Firm\Program\Registrant,
+    Service\ActivityTypeDataProvider
 };
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\ {
@@ -26,7 +29,7 @@ use Resources\ {
     ValidationService
 };
 
-class Program extends EntityContainEvents
+class Program extends EntityContainEvents implements AssetBelongsToFirm
 {
 
     /**
@@ -118,6 +121,11 @@ class Program extends EntityContainEvents
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
         $this->published = false;
         $this->removed = false;
+    }
+    
+    public function belongsToFirm(Firm $firm): bool
+    {
+        return $this->firm === $firm;
     }
 
     public function update(ProgramData $programData): void
@@ -220,6 +228,11 @@ class Program extends EntityContainEvents
         };
         $participant = $this->participants->filter($p)->first();
         return empty($participant) ? null : $participant;
+    }
+    
+    public function createActivityType(string $activityTypeId, ActivityTypeDataProvider $activityTypeDataProvider): ActivityType
+    {
+        return new ActivityType($this, $activityTypeId, $activityTypeDataProvider);
     }
 
 }

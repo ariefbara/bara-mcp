@@ -2,9 +2,12 @@
 
 namespace Firm\Application\Service\Firm;
 
-use Firm\Domain\Model\Firm\Program;
+use Firm\ {
+    Application\Service\Manager\ProgramRepository as InterfaceForManager,
+    Domain\Model\Firm\Program
+};
 
-interface ProgramRepository
+interface ProgramRepository extends InterfaceForManager
 {
 
     public function nextIdentity(): string;
