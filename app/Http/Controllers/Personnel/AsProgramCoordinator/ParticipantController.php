@@ -64,7 +64,7 @@ class ParticipantController extends AsProgramCoordinatorBaseController
                 "note" => $participant->getNote(),
                 "client" => $this->arrayDataOfClient($participant->getClientParticipant()),
                 "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
-                "team" => $this->arrayDataOfUser($participant->getTeamParticipant()),
+                "team" => $this->arrayDataOfTeam($participant->getTeamParticipant()),
                 "hasMetricAssignment" => empty($participant->getMetricAssignment())? false: true,
             ];
         }
@@ -89,7 +89,7 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "note" => $participant->getNote(),
             "client" => $this->arrayDataOfClient($participant->getClientParticipant()),
             "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
-            "team" => $this->arrayDataOfUser($participant->getTeamParticipant()),
+            "team" => $this->arrayDataOfTeam($participant->getTeamParticipant()),
             "metricAssignment" => $this->arrayDataOfMetricAssignment($participant->getMetricAssignment()),
         ];
     }
