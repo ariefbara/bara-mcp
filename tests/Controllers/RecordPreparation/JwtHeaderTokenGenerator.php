@@ -14,7 +14,7 @@ class JwtHeaderTokenGenerator
             'iat' => time(),
             'data' => $data
         ];
-        $key = base64_decode(env('JWT_KEY'));
+        $key = env('JWT_KEY');
 
         $token = JWT::encode($payload, $key);
         return ["HTTP_Authorization" => 'Bearer ' . $token];

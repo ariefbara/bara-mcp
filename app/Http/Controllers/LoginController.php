@@ -135,7 +135,7 @@ class LoginController extends Controller
             'nbf' => time() + env('JWT_ACTIVE_AFTER'),
             'data' => $identifier
         ];
-        $key = base64_decode(env('JWT_KEY'));
+        $key = env('JWT_KEY');
         return JWT::encode($payload, $key);
     }
 

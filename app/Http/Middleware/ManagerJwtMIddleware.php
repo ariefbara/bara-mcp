@@ -7,8 +7,8 @@ use Firebase\JWT\ {
     ExpiredException,
     JWT
 };
-use function env;
-use function response;
+//use function env;
+//use function response;
 
 class ManagerJwtMIddleware
 {
@@ -25,7 +25,7 @@ class ManagerJwtMIddleware
             ], 401);
         }
         try {
-            $key = base64_decode(env('JWT_KEY'));
+            $key = env('JWT_KEY');
             $credentials = JWT::decode($token, $key, ['HS256']);
         } catch(ExpiredException $e) {
             return response()->json([

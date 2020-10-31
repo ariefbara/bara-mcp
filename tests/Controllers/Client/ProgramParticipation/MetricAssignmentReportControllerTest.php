@@ -101,16 +101,18 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
     
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table("Metric")->truncate();
-        $this->connection->table("MetricAssignment")->truncate();
-        $this->connection->table("AssignmentField")->truncate();
-        $this->connection->table("MetricAssignmentReport")->truncate();
-        $this->connection->table("AssignmentFieldValue")->truncate();
+//        parent::tearDown();
+//        $this->connection->table("Metric")->truncate();
+//        $this->connection->table("MetricAssignment")->truncate();
+//        $this->connection->table("AssignmentField")->truncate();
+//        $this->connection->table("MetricAssignmentReport")->truncate();
+//        $this->connection->table("AssignmentFieldValue")->truncate();
     }
     
     public function test_submit_201()
     {
+$this->connection->table("MetricAssignmentReport")->truncate();
+$this->connection->table("AssignmentFieldValue")->truncate();
         $reportResponse = [
             "observeTime" => $this->submitInput["observeTime"],
             "submitTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),

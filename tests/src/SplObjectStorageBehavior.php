@@ -34,4 +34,23 @@ class SplObjectStorageBehaviorTest extends TestBase
         $this->storage->detach($this->objectOne);
         $this->assertEmpty($this->storage->count());
     }
+    
+    public function test_json()
+    {
+        $data = [
+            "assignmentFieldValues" => [
+                [
+                    "assignmentFieldId" => "id",
+                    "value" => 123.123,
+                ],
+                [
+                    "assignmentFieldId" => "otherId",
+                    "value" => 987.987,
+                ],
+            ],
+        ];
+print_r(json_encode($data));
+var_dump(base64_decode("barapraja_mcp_2020"));
+var_dump(base64_decode("barapraja_mcp_2020"));
+    }
 }

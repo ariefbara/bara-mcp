@@ -12,12 +12,10 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/ActivityType/ActivityParticipant.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/src/Firm/Domain/Model/Firm/Program/ActivityType/ActivityParticipantTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Manager.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/ActivityType.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/FeedbackForm.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/routes/client.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/AsProgramCoordinator/ParticipantControllerTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Program/Participant.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ParticipantController.php</file>
         </group>
     </open-files>
 </project-private>
