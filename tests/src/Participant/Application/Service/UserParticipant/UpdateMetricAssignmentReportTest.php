@@ -1,18 +1,20 @@
 <?php
 
-namespace Participant\Application\Service\UserParticipant\MetricAssignment;
+namespace Participant\Application\Service\UserParticipant;
 
-use Participant\Domain\Model\Participant\MetricAssignment\ {
-    MetricAssignmentReport,
-    MetricAssignmentReportData
+use Participant\Domain\ {
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
+    Service\MetricAssignmentReportDataProvider
 };
 use Tests\TestBase;
+
+
 
 class UpdateMetricAssignmentReportTest extends TestBase
 {
     protected $metricAssignmentReportRepository, $metricAssignmentReport;
     protected $service;
-    protected $userId = "userId", $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReportData;
+    protected $userId = "userId", $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReportDataProvider;
 
     protected function setUp(): void
     {
@@ -26,18 +28,18 @@ class UpdateMetricAssignmentReportTest extends TestBase
 
         $this->service = new UpdateMetricAssignmentReport($this->metricAssignmentReportRepository);
 
-        $this->metricAssignmentReportData = $this->buildMockOfClass(MetricAssignmentReportData::class);
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
     }
     
     protected function execute()
     {
-        $this->service->execute($this->userId, $this->metricAssignmentReportId, $this->metricAssignmentReportData);
+        $this->service->execute($this->userId, $this->metricAssignmentReportId, $this->metricAssignmentReportDataProvider);
     }
     public function test_execute_updateReport()
     {
         $this->metricAssignmentReport->expects($this->once())
                 ->method('update')
-                ->with($this->metricAssignmentReportData);
+                ->with($this->metricAssignmentReportDataProvider);
         $this->execute();
     }
     public function test_execute_updateRepository()

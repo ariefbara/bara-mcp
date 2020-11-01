@@ -9,6 +9,8 @@ use Tests\Controllers\ {
     RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport,
     RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment,
     RecordPreparation\Firm\Program\RecordOfMetric,
+    RecordPreparation\Shared\RecordOfFileInfo,
+    RecordPreparation\User\RecordOfUserFileInfo,
     User\ProgramParticipationTestCase
 };
 
@@ -17,6 +19,9 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
     protected  $metricAssignmentReportUri;
     protected  $metricAssignmentReport;
     protected  $metricAssignmentReportOne;
+    
+    protected $fileInfo;
+    protected $fileInfoOne;
     
     protected $assignmentFieldValue_00;
     protected $assignmentFieldValue_01;
@@ -29,6 +34,7 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
     protected $assignmentField;
     protected $assignmentFieldOne_removed;
     protected $assignmentFieldTwo;
+    
 
     protected  $submitInput;
     
@@ -39,6 +45,8 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         parent::setUp();
         $this->metricAssignmentReportUri = $this->programParticipationUri . "/{$this->programParticipation->id}/metric-assignment-reports";
         
+        $this->connection->table("FileInfo")->truncate();
+        $this->connection->table("UserFileInfo")->truncate();
         $this->connection->table("Metric")->truncate();
         $this->connection->table("MetricAssignment")->truncate();
         $this->connection->table("AssignmentField")->truncate();
@@ -47,6 +55,17 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
+        $user = $this->programParticipation->user;
+        
+        $this->fileInfo = new RecordOfFileInfo(0);
+        $this->fileInfoOne = new RecordOfFileInfo(1);
+        $this->connection->table("FileInfo")->insert($this->fileInfo->toArrayForDbEntry());
+        $this->connection->table("FileInfo")->insert($this->fileInfoOne->toArrayForDbEntry());
+        
+        $userFileInfo = new RecordOfUserFileInfo($user, $this->fileInfo);
+        $userFileInfoOne = new RecordOfUserFileInfo($user, $this->fileInfoOne);
+        $this->connection->table("UserFileInfo")->insert($userFileInfo->toArrayForDbEntry());
+        $this->connection->table("UserFileInfo")->insert($userFileInfoOne->toArrayForDbEntry());
         
         $metric = new RecordOfMetric($program, 0);
         $metricOne = new RecordOfMetric($program, 1);
@@ -71,7 +90,7 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReport->toArrayForDbEntry());
         $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne->toArrayForDbEntry());
         
-        $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReport, $this->assignmentField, "00");
+        $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReport, $this->assignmentField, "00", $this->fileInfoOne);
         $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReport, $this->assignmentFieldOne_removed, "01");
         $this->assignmentFieldValue_10 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne, $this->assignmentField, "10");
         $this->assignmentFieldValue_11 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne, $this->assignmentFieldOne_removed, "11");
@@ -87,21 +106,27 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
                 [
                     "assignmentFieldId" => $this->assignmentField->id,
                     "value" => 123.123,
+                    "note" => "new assignment field note",
+                    "fileInfoId" => $this->fileInfo->id,
                 ],
                 [
                     "assignmentFieldId" => $this->assignmentFieldTwo->id,
                     "value" => 987.987,
+                    "note" => "new assignment field two note",
+                    "fileInfoId" => $this->fileInfoOne->id,
                 ],
             ],
         ];
         $this->submitInput = $this->updateInput;
-        $this->submitInput["observeTime"] = (new DateTimeImmutable("-2 days"))->format("Y-m-d H:i:s");
+        $this->submitInput["observationTime"] = (new DateTimeImmutable("-2 days"))->format("Y-m-d H:i:s");
         $this->submitInput["metricAssignmentId"] = $this->metricAssignment->id;
     }
     
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table("FileInfo")->truncate();
+        $this->connection->table("UserFileInfo")->truncate();
         $this->connection->table("Metric")->truncate();
         $this->connection->table("MetricAssignment")->truncate();
         $this->connection->table("AssignmentField")->truncate();
@@ -111,13 +136,20 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
     
     public function test_submit_201()
     {
+$this->connection->table("MetricAssignmentReport")->truncate();
+$this->connection->table("AssignmentFieldValue")->truncate();
         $reportResponse = [
-            "observeTime" => $this->submitInput["observeTime"],
+            "observationTime" => $this->submitInput["observationTime"],
             "submitTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
             "removed" => false,
         ];
         $assignedFieldValueResponse = [
             "value" => $this->submitInput["assignmentFieldValues"][0]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][0]['note'],
+            "fileInfo" => [
+                "id" => $this->fileInfo->id,
+                "path" => DIRECTORY_SEPARATOR . $this->fileInfo->name,
+            ],
             "assignmentField" => [
                 "id" => $this->submitInput["assignmentFieldValues"][0]["assignmentFieldId"],
                 "target" => $this->assignmentField->target,
@@ -131,6 +163,11 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         ];
         $assignedFieldValueOneResponse = [
             "value" => $this->submitInput["assignmentFieldValues"][1]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][1]['note'],
+            "fileInfo" => [
+                "id" => $this->fileInfoOne->id,
+                "path" => DIRECTORY_SEPARATOR . $this->fileInfoOne->name,
+            ],
             "assignmentField" => [
                 "id" => $this->submitInput["assignmentFieldValues"][1]["assignmentFieldId"],
                 "target" => $this->assignmentFieldTwo->target,
@@ -149,7 +186,7 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
                 ->seeJsonContains($assignedFieldValueOneResponse)
                 ->seeStatusCode(201);
         $metricAssignmentReportEntry = [
-            "observeTime" => $this->submitInput["observeTime"],
+            "observationTime" => $this->submitInput["observationTime"],
             "submitTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
             "removed" => false,
         ];
@@ -157,15 +194,18 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         
         $assignedFieldValueEntry = [
             "inputValue" => $this->submitInput["assignmentFieldValues"][0]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][0]['note'],
+            "FileInfo_idOfAttachment" => $this->submitInput["assignmentFieldValues"][0]['fileInfoId'],
             "AssignmentField_id" => $this->submitInput["assignmentFieldValues"][0]["assignmentFieldId"],
         ];
         $this->seeInDatabase("AssignmentFieldValue", $assignedFieldValueEntry);
         $assignedFieldValueOneEntry = [
             "inputValue" => $this->submitInput["assignmentFieldValues"][1]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][1]['note'],
+            "FileInfo_idOfAttachment" => $this->submitInput["assignmentFieldValues"][1]['fileInfoId'],
             "AssignmentField_id" => $this->submitInput["assignmentFieldValues"][1]["assignmentFieldId"],
         ];
         $this->seeInDatabase("AssignmentFieldValue", $assignedFieldValueOneEntry);
-        
     }
     
     public function test_update_200()
@@ -173,6 +213,11 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         $assignedFieldValueResponse = [
             "id" => $this->assignmentFieldValue_00->id,
             "value" => $this->submitInput["assignmentFieldValues"][0]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][0]['note'],
+            "fileInfo" => [
+                "id" => $this->fileInfo->id,
+                "path" => DIRECTORY_SEPARATOR . $this->fileInfo->name,
+            ],
             "assignmentField" => [
                 "id" => $this->assignmentFieldValue_00->assignmentField->id,
                 "target" => $this->assignmentFieldValue_00->assignmentField->target,
@@ -186,6 +231,11 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         ];
         $assignedFieldValueTwoResponse = [
             "value" => $this->submitInput["assignmentFieldValues"][1]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][1]['note'],
+            "fileInfo" => [
+                "id" => $this->fileInfoOne->id,
+                "path" => DIRECTORY_SEPARATOR . $this->fileInfoOne->name,
+            ],
             "assignmentField" => [
                 "id" => $this->submitInput["assignmentFieldValues"][1]["assignmentFieldId"],
                 "target" => $this->assignmentFieldTwo->target,
@@ -206,6 +256,8 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         $assignedFieldValueEntry = [
             "id" => $this->assignmentFieldValue_00->id,
             "inputValue" => $this->submitInput["assignmentFieldValues"][0]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][0]['note'],
+            "FileInfo_idOfAttachment" => $this->submitInput["assignmentFieldValues"][0]['fileInfoId'],
             "AssignmentField_id" => $this->submitInput["assignmentFieldValues"][0]["assignmentFieldId"],
             "removed" => false,
         ];
@@ -217,6 +269,8 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         $this->seeInDatabase("AssignmentFieldValue", $assignedFieldValueEntry);
         $assignedFieldValueTwoEntry = [
             "inputValue" => $this->submitInput["assignmentFieldValues"][1]['value'],
+            "note" => $this->submitInput["assignmentFieldValues"][1]['note'],
+            "FileInfo_idOfAttachment" => $this->submitInput["assignmentFieldValues"][1]['fileInfoId'],
             "AssignmentField_id" => $this->submitInput["assignmentFieldValues"][1]["assignmentFieldId"],
             "removed" => false,
         ];
@@ -227,13 +281,18 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
     {
         $response = [
             "id" => $this->metricAssignmentReport->id,
-            "observeTime" => $this->metricAssignmentReport->observationTime,
+            "observationTime" => $this->metricAssignmentReport->observationTime,
             "submitTime" => $this->metricAssignmentReport->submitTime,
             "removed" => $this->metricAssignmentReport->removed,
             "assignmentFieldValues" => [
                 [
                     "id" => $this->assignmentFieldValue_00->id,
                     "value" => $this->assignmentFieldValue_00->inputValue,
+                    "note" => $this->assignmentFieldValue_00->note,
+                    "fileInfo" => [
+                        "id" => $this->assignmentFieldValue_00->attachedFileInfo->id,
+                        "path" => DIRECTORY_SEPARATOR . $this->assignmentFieldValue_00->attachedFileInfo->name,
+                    ],
                     "assignmentField" => [
                         "id" => $this->assignmentFieldValue_00->assignmentField->id,
                         "target" => $this->assignmentFieldValue_00->assignmentField->target,
@@ -248,6 +307,8 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
                 [
                     "id" => $this->assignmentFieldValue_01->id,
                     "value" => $this->assignmentFieldValue_01->inputValue,
+                    "note" => $this->assignmentFieldValue_01->note,
+                    "fileInfo" => null,
                     "assignmentField" => [
                         "id" => $this->assignmentFieldValue_01->assignmentField->id,
                         "target" => $this->assignmentFieldValue_01->assignmentField->target,
@@ -274,13 +335,13 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
             "list" => [
                 [
                     "id" => $this->metricAssignmentReport->id,
-                    "observeTime" => $this->metricAssignmentReport->observationTime,
+                    "observationTime" => $this->metricAssignmentReport->observationTime,
                     "submitTime" => $this->metricAssignmentReport->submitTime,
                     "removed" => $this->metricAssignmentReport->removed,
                 ],
                 [
                     "id" => $this->metricAssignmentReportOne->id,
-                    "observeTime" => $this->metricAssignmentReportOne->observationTime,
+                    "observationTime" => $this->metricAssignmentReportOne->observationTime,
                     "submitTime" => $this->metricAssignmentReportOne->submitTime,
                     "removed" => $this->metricAssignmentReportOne->removed,
                 ],

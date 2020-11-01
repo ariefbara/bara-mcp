@@ -29,12 +29,14 @@ class MetricAssignmentReportTest extends TestBase
     {
         parent::setUp();
         $this->metricAssignment = $this->buildMockOfClass(MetricAssignment::class);
-        $this->metricAssignmentReport = new TestableMetricAssignmentReport($this->metricAssignment, "id", new DateTimeImmutable());
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
+        
+        $this->metricAssignmentReport = new TestableMetricAssignmentReport($this->metricAssignment, "id", new DateTimeImmutable(), $this->metricAssignmentReportDataProvider);
+        
         $this->observationTime = new DateTimeImmutable("-1 days");
         $this->assignmentFieldValue = $this->buildMockOfClass(AssignmentFieldValue::class);
         $this->metricAssignmentReport->assignmentFieldValues->add($this->assignmentFieldValue);
         
-        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         
         $this->assignmentField = $this->buildMockOfClass(AssignmentField::class);
         $this->assignmentFieldValueData = $this->buildMockOfClass(AssignmentFieldValueData::class);
@@ -44,7 +46,7 @@ class MetricAssignmentReportTest extends TestBase
     
     protected function executeConstruct()
     {
-        return new TestableMetricAssignmentReport($this->metricAssignment, $this->id, $this->observationTime);
+        return new TestableMetricAssignmentReport($this->metricAssignment, $this->id, $this->observationTime, $this->metricAssignmentReportDataProvider);
     }
     public function test_construct_setProperties()
     {
@@ -56,12 +58,16 @@ class MetricAssignmentReportTest extends TestBase
         $this->assertFalse($metricAssignmentReport->removed);
         $this->assertInstanceOf(ArrayCollection::class, $metricAssignmentReport->assignmentFieldValues);
     }
+    public function test_construct_executeMetricAssignmentsSetActiveAssignmentFieldValuesToMethod()
+    {
+        $this->metricAssignment->expects($this->once())
+                ->method("setActiveAssignmentFieldValuesTo")
+                ->with($this->anything(), $this->metricAssignmentReportDataProvider);
+        $this->executeConstruct();
+    }
     
     protected function executeUpdate()
     {
-        $this->metricAssignment->expects($this->any())
-                ->method("isParticipantOwnAllAttachedFileInfo")
-                ->willReturn(true);
         $this->metricAssignmentReport->update($this->metricAssignmentReportDataProvider);
     }
     public function test_update_executeMetricAssignmentsSetActiveAssignmentFieldValuesToMethod()
@@ -79,18 +85,6 @@ class MetricAssignmentReportTest extends TestBase
         $this->assignmentFieldValue->expects($this->once())
                 ->method("remove");
         $this->executeUpdate();
-    }
-    public function test_update_metricAssignmentReportDataProviderContainUnmanageableFileInfo_forbidden()
-    {
-        $this->metricAssignment->expects($this->once())
-                ->method("isParticipantOwnAllAttachedFileInfo")
-                ->with($this->metricAssignmentReportDataProvider)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeUpdate();
-        };
-        $errorDetail = "forbidden: attached file info is unmanageable";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeSetAssignmentFieldValue()

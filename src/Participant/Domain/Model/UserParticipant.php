@@ -3,16 +3,17 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     Model\Participant\ConsultationRequest,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
     Service\MetricAssignmentReportDataProvider
 };
-use Resources\ {
+use Resources\{
     Application\Event\ContainEvents,
     Uuid
 };
@@ -93,7 +94,7 @@ class UserParticipant implements ContainEvents
     {
         return $this->participant->pullRecordedEvents();
     }
-    
+
     public function ownAllAttachedFileInfo(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
     {
         $ownedAllFileInfo = true;
@@ -101,6 +102,14 @@ class UserParticipant implements ContainEvents
             $ownedAllFileInfo = $ownedAllFileInfo && $fileInfo->belongsToUser($this->userId);
         }
         return $ownedAllFileInfo;
+    }
+
+    public function submitMetricAssignmentReport(
+            string $metricAssignmentReportId, DateTimeImmutable $observationTime,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
+    {
+        return $this->participant->submitMetricAssignmentReport(
+                        $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
     }
 
 }

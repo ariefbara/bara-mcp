@@ -60,6 +60,9 @@ class MetricAssignmentTest extends TestBase
 
     protected function executeSubmitReport()
     {
+        $this->participant->expects($this->any())
+                ->method("ownAllAttachedFileInfo")
+                ->willReturn(true);
         $this->startEndDate->expects($this->any())
                 ->method("contain")
                 ->willReturn(true);
@@ -70,22 +73,6 @@ class MetricAssignmentTest extends TestBase
     {
         $this->assertInstanceOf(MetricAssignmentReport::class, $this->executeSubmitReport());
     }
-    public function test_submitReport_askAllAssignmentFieldsToSetValueInMetricAssignmentReport()
-    {
-        $this->assignmentField->expects($this->once())
-                ->method("setValueIn")
-                ->with($this->anything(), $this->metricAssignmentReportDataProvider);
-        $this->executeSubmitReport();
-    }
-    public function test_submitReport_containRemovedAssignmentField_preventRemovedAssignmentFieldFromSettingValue()
-    {
-        $this->assignmentField->expects($this->once())
-                ->method("isRemoved")
-                ->willReturn(true);
-        $this->assignmentField->expects($this->never())
-                ->method("setValueIn");
-        $this->executeSubmitReport();
-    }
     public function test_submitReport_observeTimeOutsideStarEndDate_forbidden()
     {
         $this->startEndDate->expects($this->once())
@@ -95,12 +82,15 @@ class MetricAssignmentTest extends TestBase
         $operation = function (){
             $this->executeSubmitReport();
         };
-        $errorDetail = "forbidden: observe time out of bound";
+        $errorDetail = "forbidden: observation time out of bound";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeSetActiveAssignmentFieldValuesTo()
     {
+        $this->participant->expects($this->any())
+                ->method("ownAllAttachedFileInfo")
+                ->willReturn(true);
         $this->metricAssignment->setActiveAssignmentFieldValuesTo($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
     }
     public function test_setActiveAssignmentFieldValuesTo_executeAllAssignmentFieldSetValueInMethod()
@@ -110,13 +100,17 @@ class MetricAssignmentTest extends TestBase
                 ->with($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
         $this->executeSetActiveAssignmentFieldValuesTo();
     }
-    
-    public function test_isAllAttachedFileInfoInDataProviderManageable_returnParticipantOwnAllAttachedFileInfoResult()
+    public function test_setActiveAssignmentFieldValuesTo_participantDoesntOwnAllAttachedFileInfo_forbidden()
     {
         $this->participant->expects($this->once())
                 ->method("ownAllAttachedFileInfo")
-                ->with($this->metricAssignmentReportDataProvider);
-        $this->metricAssignment->isParticipantOwnAllAttachedFileInfo($this->metricAssignmentReportDataProvider);
+                ->with($this->metricAssignmentReportDataProvider)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeSetActiveAssignmentFieldValuesTo();
+        };
+        $errorDetail = "forbidden: can only attached owned file";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
 }

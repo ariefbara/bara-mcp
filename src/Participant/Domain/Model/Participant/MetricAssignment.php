@@ -62,28 +62,25 @@ class MetricAssignment implements AssetBelongsToTeamInterface
             MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
     {
         if (!$this->startEndDate->contain($observationTime)) {
-            $errorDetail = "forbidden: observe time out of bound";
+            $errorDetail = "forbidden: observation time out of bound";
             throw RegularException::forbidden($errorDetail);
         }
 
-        $metricAssignmentReport = new MetricAssignmentReport($this, $metricAssignmentReportId, $observationTime);
-        $this->setActiveAssignmentFieldValuesTo($metricAssignmentReport, $metricAssignmentReportDataProvider);
-        return $metricAssignmentReport;
+        return new MetricAssignmentReport(
+                $this, $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
     }
 
     public function setActiveAssignmentFieldValuesTo(
             MetricAssignmentReport $metricAssignmentReport,
             MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
+        if (!$this->participant->ownAllAttachedFileInfo($metricAssignmentReportDataProvider)) {
+            $errorDetail = "forbidden: can only attached owned file";
+            throw RegularException::forbidden($errorDetail);
+        }
         foreach ($this->iterateActiveAssignmentFields() as $assignmentField) {
             $assignmentField->setValueIn($metricAssignmentReport, $metricAssignmentReportDataProvider);
         }
-    }
-
-    public function isParticipantOwnAllAttachedFileInfo(
-            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
-    {
-        return $this->participant->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
     }
 
     /**

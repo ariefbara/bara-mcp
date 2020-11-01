@@ -1,8 +1,8 @@
 <?php
 
-namespace Participant\Application\Service\UserParticipant\MetricAssignment;
+namespace Participant\Application\Service\UserParticipant;
 
-use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReportData;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 
 class UpdateMetricAssignmentReport
 {
@@ -19,11 +19,12 @@ class UpdateMetricAssignmentReport
     }
 
     public function execute(
-            string $userId, string $metricAssignmentReportId, MetricAssignmentReportData $metricAssignmentReportData): void
+            string $userId, string $metricAssignmentReportId,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
         $this->metricAssignmentReportRepository
                 ->aMetricAssignmentReportBelongsToUser($userId, $metricAssignmentReportId)
-                ->update($metricAssignmentReportData);
+                ->update($metricAssignmentReportDataProvider);
         $this->metricAssignmentReportRepository->update();
     }
 

@@ -27,6 +27,7 @@ class UserParticipantTest extends TestBase
     protected $commentId = 'commentId', $message = 'message';
     protected $comment;
     protected $metricAssignmentReportDataProvider, $fileInfo;
+    protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime;
 
     protected function setUp(): void
     {
@@ -48,6 +49,7 @@ class UserParticipantTest extends TestBase
         
         $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
+        $this->observationTime = new DateTimeImmutable();
     }
 
     public function test_quit_quitParticipant()
@@ -166,6 +168,15 @@ class UserParticipantTest extends TestBase
                 ->with($this->userParticipant->userId)
                 ->willReturn(false);
         $this->assertFalse($this->executeOwnAllAttachedFileInfo());
+    }
+    
+    public function test_submitMetricAssignmentReport_returnParticipantSubmitMetricAssignmentReportResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("submitMetricAssignmentReport")
+                ->with($this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
+        $this->userParticipant->submitMetricAssignmentReport(
+                $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
     }
 
 }

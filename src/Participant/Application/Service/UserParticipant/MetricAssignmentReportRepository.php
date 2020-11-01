@@ -1,6 +1,6 @@
 <?php
 
-namespace Participant\Application\Service\UserParticipant\MetricAssignment;
+namespace Participant\Application\Service\UserParticipant;
 
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
 

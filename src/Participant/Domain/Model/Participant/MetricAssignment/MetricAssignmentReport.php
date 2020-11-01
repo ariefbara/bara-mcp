@@ -7,7 +7,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\{
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Team,
-    Model\Participant,
     Model\Participant\MetricAssignment,
     Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
     Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValueData,
@@ -59,22 +58,21 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
     protected $assignmentFieldValues;
 
     public function __construct(
-            MetricAssignment $metricAssignment, string $id, DateTimeImmutable $observationTime)
+            MetricAssignment $metricAssignment, string $id, DateTimeImmutable $observationTime,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider)
     {
         $this->metricAssignment = $metricAssignment;
         $this->id = $id;
         $this->observationTime = $observationTime;
         $this->submitTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->removed = false;
+
         $this->assignmentFieldValues = new ArrayCollection();
+        $this->metricAssignment->setActiveAssignmentFieldValuesTo($this, $metricAssignmentReportDataProvider);
     }
 
     public function update(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
-        if (!$this->metricAssignment->isParticipantOwnAllAttachedFileInfo($metricAssignmentReportDataProvider)) {
-            $errorDetail = "forbidden: attached file info is unmanageable";
-            throw RegularException::forbidden($errorDetail);
-        }
         $this->metricAssignment->setActiveAssignmentFieldValuesTo($this, $metricAssignmentReportDataProvider);
 
         $p = function (AssignmentFieldValue $assignmentFieldValue) {
