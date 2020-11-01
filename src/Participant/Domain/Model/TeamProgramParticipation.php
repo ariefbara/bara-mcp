@@ -3,7 +3,7 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
@@ -12,10 +12,11 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
     Model\Participant\Worksheet,
     Service\MetricAssignmentReportDataProvider
 };
-use Resources\ {
+use Resources\{
     Application\Event\ContainEvents,
     Uuid
 };
@@ -103,7 +104,7 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
     {
         return $this->programParticipation->pullRecordedEvents();
     }
-    
+
     public function ownAllAttachedFileInfo(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
     {
         $ownedAllFileInfo = true;
@@ -111,6 +112,14 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
             $ownedAllFileInfo = $ownedAllFileInfo && $fileInfo->belongsToTeam($this->team);
         }
         return $ownedAllFileInfo;
+    }
+
+    public function submitMetricAssignmentReport(
+            string $metricAssignmentReportId, DateTimeImmutable $observationTime,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
+    {
+        return $this->programParticipation->submitMetricAssignmentReport(
+                        $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
     }
 
 }

@@ -33,6 +33,7 @@ class TeamProgramParticipationTest extends TestBase
     protected $consultationSession;
     protected $teamMember;
     protected $metricAssignmentReportDataProvider, $fileInfo;
+    protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime;
 
     protected function setUp(): void
     {
@@ -60,6 +61,7 @@ class TeamProgramParticipationTest extends TestBase
         
         $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
+        $this->observationTime = new DateTimeImmutable();
     }
     
     public function test_belongsToTeam_sameTeam_returnTrue()
@@ -171,6 +173,15 @@ class TeamProgramParticipationTest extends TestBase
                 ->with($this->teamProgramParticipation->team)
                 ->willReturn(false);
         $this->assertFalse($this->executeOwnAllAttachedFileInfo());
+    }
+    
+    public function test_submitMetricAssignmentReport_returnParticipantsSubmitMetricAssignmentReportResult()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method("submitMetricAssignmentReport")
+                ->with($this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
+        $this->teamProgramParticipation->submitMetricAssignmentReport(
+                $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
     }
     
 }

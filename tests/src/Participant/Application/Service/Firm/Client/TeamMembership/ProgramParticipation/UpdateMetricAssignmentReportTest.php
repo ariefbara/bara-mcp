@@ -2,12 +2,12 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
-use Participant\{
+use Participant\ {
     Application\Service\Firm\Client\TeamMembershipRepository,
     Application\Service\Participant\MetricAssignment\MetricAssignmentReportRepository,
     Domain\DependencyModel\Firm\Client\TeamMembership,
     Domain\Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Domain\Model\Participant\MetricAssignment\MetricAssignmentReportData
+    Domain\Service\MetricAssignmentReportDataProvider
 };
 use Tests\TestBase;
 
@@ -18,7 +18,7 @@ class UpdateMetricAssignmentReportTest extends TestBase
     protected $teamMembershipRepository, $teamMembership;
     protected $service;
     protected $firmId = "firmId", $teamId = "teamId", $clientId = "clientId",
-            $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReportData;
+            $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReportDataProvider;
 
     protected function setUp(): void
     {
@@ -41,20 +41,20 @@ class UpdateMetricAssignmentReportTest extends TestBase
         $this->service = new UpdateMetricAssignmentReport(
                 $this->metricAssignmentReportRepository, $this->teamMembershipRepository);
 
-        $this->metricAssignmentReportData = $this->buildMockOfClass(MetricAssignmentReportData::class);
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
     }
 
     protected function execute()
     {
         $this->service->execute(
                 $this->firmId, $this->teamId, $this->clientId, $this->metricAssignmentReportId,
-                $this->metricAssignmentReportData);
+                $this->metricAssignmentReportDataProvider);
     }
     public function test_execute_executeTeamMembershipUpdateMetricAssignmentReport()
     {
         $this->teamMembership->expects($this->once())
                 ->method("updateMetricAssignmentReport")
-                ->with($this->metricAssignmentReport, $this->metricAssignmentReportData);
+                ->with($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
         $this->execute();
     }
     public function test_execute_updateMetricAssignmentReportRepository()

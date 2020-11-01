@@ -3,7 +3,7 @@
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Client,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\Consultant,
@@ -14,16 +14,15 @@ use Participant\Domain\ {
     Model\Participant,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
-    Model\Participant\MetricAssignment,
     Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\MetricAssignment\MetricAssignmentReportData,
     Model\Participant\ViewLearningMaterialActivityLog,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
-    Model\TeamProgramRegistration
+    Model\TeamProgramRegistration,
+    Service\MetricAssignmentReportDataProvider
 };
-use Resources\ {
+use Resources\{
     Application\Event\ContainEvents,
     Domain\Model\EntityContainEvents,
     Exception\RegularException
@@ -204,21 +203,23 @@ class TeamMembership extends EntityContainEvents
         return $participant->logViewLearningMaterialActivity($logId, $learningMaterialId, $this);
     }
 
-    public function submitReportInMetricAssignment(
-            MetricAssignment $metricAssignment, string $metricAssignmentReportId, DateTimeImmutable $observeTime, 
-            MetricAssignmentReportData $metricAssignmentReportData): MetricAssignmentReport
+    public function submitMetricAssignmentReport(
+            TeamProgramParticipation $teamProgramParticipation, string $metricAssignmentReportId,
+            DateTimeImmutable $observationTime, MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
     {
         $this->assertActive();
-        $this->assertAssetBelongsToTeam($metricAssignment);
-        return $metricAssignment->submitReport($metricAssignmentReportId, $observeTime, $metricAssignmentReportData);
+        $this->assertAssetBelongsToTeam($teamProgramParticipation);
+        return $teamProgramParticipation->submitMetricAssignmentReport(
+                        $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
     }
 
     public function updateMetricAssignmentReport(
-            MetricAssignmentReport $metricAssignmentReport, MetricAssignmentReportData $metricAssignmentReportData): void
+            MetricAssignmentReport $metricAssignmentReport,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($metricAssignmentReport);
-        $metricAssignmentReport->update($metricAssignmentReportData);
+        $metricAssignmentReport->update($metricAssignmentReportDataProvider);
     }
 
 }

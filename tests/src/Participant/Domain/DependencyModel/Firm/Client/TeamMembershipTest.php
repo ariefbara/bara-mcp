@@ -15,11 +15,11 @@ use Participant\Domain\ {
     Model\Participant\ConsultationSession,
     Model\Participant\MetricAssignment,
     Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\MetricAssignment\MetricAssignmentReportData,
     Model\Participant\Worksheet,
     Model\Participant\Worksheet\Comment,
     Model\TeamProgramParticipation,
-    Model\TeamProgramRegistration
+    Model\TeamProgramRegistration,
+    Service\MetricAssignmentReportDataProvider
 };
 use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -42,8 +42,8 @@ class TeamMembershipTest extends TestBase
     protected $comment, $commentId = "commentId", $commentMessage = "comment message";
     protected $event;
     protected $participant, $logId = "logId", $learningMaterialId = "learningMaterialId";
-    protected $metricAssignment, $observeTime;
-    protected $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReport, $metricAssignmentReportData;
+    protected $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReport, $metricAssignmentReportDataProvider;
+    protected $observationTime;
 
     protected function setUp(): void
     {
@@ -74,10 +74,9 @@ class TeamMembershipTest extends TestBase
         
         $this->participant = $this->buildMockOfClass(Participant::class);
         
-        $this->metricAssignment = $this->buildMockOfClass(MetricAssignment::class);
-        $this->observeTime = new \DateTimeImmutable();
+        $this->observationTime = new \DateTimeImmutable();
         $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
-        $this->metricAssignmentReportData = $this->buildMockOfClass(MetricAssignmentReportData::class);
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
     }
 
     protected function setAssetsNotBelongsToTeam($asset)
@@ -532,15 +531,15 @@ class TeamMembershipTest extends TestBase
     
     protected function executeSubmitReportInMetricAssignment()
     {
-        $this->setAssetsBelongsToTeam($this->metricAssignment);
-        return $this->teamMembership->submitReportInMetricAssignment(
-                $this->metricAssignment, $this->metricAssignmentReportId, $this->observeTime, $this->metricAssignmentReportData);
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
+        return $this->teamMembership->submitMetricAssignmentReport(
+                $this->teamProgramParticipation, $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
     }
     public function test_submitReportInMetricAssignment_returnMetricAssignmentSubmitReportResult()
     {
-        $this->metricAssignment->expects($this->once())
-                ->method("submitReport")
-                ->with($this->metricAssignmentReportId, $this->observeTime, $this->metricAssignmentReportData);
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("submitMetricAssignmentReport")
+                ->with($this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
         $this->executeSubmitReportInMetricAssignment();
     }
     public function test_submitReportInMetricAssignment_inactiveMember_forbidden()
@@ -552,7 +551,7 @@ class TeamMembershipTest extends TestBase
     }
     public function test_submitReportInMetricAssignment_metricAssignmentDoesntBelongsToTeam_forbidden()
     {
-        $this->setAssetsNotBelongsToTeam($this->metricAssignment);
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
             $this->executeSubmitReportInMetricAssignment();
         });
@@ -561,13 +560,13 @@ class TeamMembershipTest extends TestBase
     protected function executeUpdateMetricAssignmentReport()
     {
         $this->setAssetsBelongsToTeam($this->metricAssignmentReport);
-        $this->teamMembership->updateMetricAssignmentReport($this->metricAssignmentReport, $this->metricAssignmentReportData);
+        $this->teamMembership->updateMetricAssignmentReport($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
     }
     public function test_updateMetricAssignmentReport_updateMetricAssignmentReport()
     {
         $this->metricAssignmentReport->expects($this->once())
                 ->method("update")
-                ->with($this->metricAssignmentReportData);
+                ->with($this->metricAssignmentReportDataProvider);
         $this->executeUpdateMetricAssignmentReport();
     }
     public function test_updateMetricAssignmentReport_inactiveMember_forbidden()

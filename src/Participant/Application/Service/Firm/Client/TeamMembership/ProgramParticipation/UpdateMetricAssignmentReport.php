@@ -2,10 +2,10 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
-use Participant\{
+use Participant\ {
     Application\Service\Firm\Client\TeamMembershipRepository,
     Application\Service\Participant\MetricAssignment\MetricAssignmentReportRepository,
-    Domain\Model\Participant\MetricAssignment\MetricAssignmentReportData
+    Domain\Service\MetricAssignmentReportDataProvider
 };
 
 class UpdateMetricAssignmentReport
@@ -32,11 +32,11 @@ class UpdateMetricAssignmentReport
 
     public function execute(
             string $firmId, string $teamId, string $clientId, string $metricAssignmentReportId,
-            MetricAssignmentReportData $metricAssignmentReportData): void
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
         $metricAssignmentReport = $this->metricAssignmentReportRepository->ofId($metricAssignmentReportId);
         $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamId)
-                ->updateMetricAssignmentReport($metricAssignmentReport, $metricAssignmentReportData);
+                ->updateMetricAssignmentReport($metricAssignmentReport, $metricAssignmentReportDataProvider);
         $this->metricAssignmentReportRepository->update();
     }
 

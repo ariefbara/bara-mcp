@@ -4,10 +4,10 @@ namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramPart
 
 use DateTimeImmutable;
 use Participant\{
+    Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository,
     Application\Service\Firm\Client\TeamMembershipRepository,
     Application\Service\Participant\MetricAssignment\MetricAssignmentReportRepository,
-    Application\Service\Participant\MetricAssignmentRepository,
-    Domain\Model\Participant\MetricAssignment\MetricAssignmentReportData
+    Domain\Service\MetricAssignmentReportDataProvider
 };
 
 class SubmitMetricAssignmentReport
@@ -27,27 +27,29 @@ class SubmitMetricAssignmentReport
 
     /**
      *
-     * @var MetricAssignmentRepository
+     * @var TeamProgramParticipationRepository
      */
-    protected $metricAssignmentRepository;
+    protected $teamPrograParticipationRepository;
 
-    public function __construct(MetricAssignmentReportRepository $metricAssignmentReportRepository,
-            TeamMembershipRepository $teamMembershipRepository, MetricAssignmentRepository $metricAssignmentRepository)
+    function __construct(MetricAssignmentReportRepository $metricAssignmentReportRepository,
+            TeamMembershipRepository $teamMembershipRepository,
+            TeamProgramParticipationRepository $teamPrograParticipationRepository)
     {
         $this->metricAssignmentReportRepository = $metricAssignmentReportRepository;
         $this->teamMembershipRepository = $teamMembershipRepository;
-        $this->metricAssignmentRepository = $metricAssignmentRepository;
+        $this->teamPrograParticipationRepository = $teamPrograParticipationRepository;
     }
 
     public function execute(
-            string $firmId, string $teamId, string $clientId, string $metricAssignmentId,
-            DateTimeImmutable $observeTime, MetricAssignmentReportData $metricAssignmentReportData): string
+            string $firmId, string $teamId, string $clientId, string $teamProgramParticipationId,
+            DateTimeImmutable $observationTime, MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): string
     {
-        $metricAssignment = $this->metricAssignmentRepository->ofId($metricAssignmentId);
+        $teamProgramParticipation = $this->teamPrograParticipationRepository->ofId($teamProgramParticipationId);
         $id = $this->metricAssignmentReportRepository->nextIdentity();
         $metricAssignmentReport = $this->teamMembershipRepository
                 ->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamId)
-                ->submitReportInMetricAssignment($metricAssignment, $id, $observeTime, $metricAssignmentReportData);
+                ->submitMetricAssignmentReport(
+                        $teamProgramParticipation, $id, $observationTime, $metricAssignmentReportDataProvider);
         $this->metricAssignmentReportRepository->add($metricAssignmentReport);
         return $id;
     }
