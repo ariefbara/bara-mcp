@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\SharedModel\FileInfo" 
+            table="FileInfo" 
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineFileInfoRepository"
+    >
+        <id name="id" type="guid" />
+        
+        <one-to-one field="clientFileInfo" 
+                    target-entity="Participant\Domain\DependencyModel\Firm\Client\ClientFileInfo"
+                    mapped-by="fileInfo"
+        />
+        
+        <one-to-one field="teamFileInfo" 
+                    target-entity="Participant\Domain\DependencyModel\Firm\Team\TeamFileInfo"
+                    mapped-by="fileInfo"
+        />
+        
+        <one-to-one field="userFileInfo" 
+                    target-entity="Participant\Domain\DependencyModel\User\UserFileInfo"
+                    mapped-by="fileInfo"
+        />
+        
+    </entity>
+</doctrine-mapping>

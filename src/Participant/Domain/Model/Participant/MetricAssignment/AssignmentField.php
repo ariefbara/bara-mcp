@@ -4,7 +4,8 @@ namespace Participant\Domain\Model\Participant\MetricAssignment;
 
 use Participant\Domain\ {
     DependencyModel\Firm\Program\Metric,
-    Model\Participant\MetricAssignment
+    Model\Participant\MetricAssignment,
+    Service\MetricAssignmentReportDataProvider
 };
 use Resources\Exception\RegularException;
 
@@ -51,16 +52,18 @@ class AssignmentField
         
     }
 
-    public function setValueIn(MetricAssignmentReport $metricAssignmentReport,
-            MetricAssignmentReportData $metricAssignmentReportData): void
+    public function setValueIn(
+            MetricAssignmentReport $metricAssignmentReport,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
-        $value = $metricAssignmentReportData->getValueCorrespondWithAssignmentField($this->id);
-        if (!$this->metric->isValueAcceptable($value)) {
+        $assignmentFieldValueData = $metricAssignmentReportDataProvider
+                ->getAssignmentFieldValueDataCorrespondWithAssignmentField($this->id);
+        if (!$this->metric->isValueAcceptable($assignmentFieldValueData->getValue())) {
             $errorDetail = "forbidden: value is out of bound";
             throw RegularException::forbidden($errorDetail);
         }
-        
-        $metricAssignmentReport->setAssignmentFieldValue($this, $value);
+
+        $metricAssignmentReport->setAssignmentFieldValue($this, $assignmentFieldValueData);
     }
 
 }

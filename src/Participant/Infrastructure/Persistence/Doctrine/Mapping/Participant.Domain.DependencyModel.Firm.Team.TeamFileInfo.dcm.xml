@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\DependencyModel\Firm\Team\TeamFileInfo" 
+            table="TeamFileInfo" 
+    >
+        
+        <many-to-one  field="team" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Team"
+        >
+            <join-column name="Team_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="fileInfo" 
+                    target-entity="Participant\Domain\SharedModel\FileInfo"
+                    inversed-by="teamFileInfo"
+        >
+            <join-column name="FileInfo_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

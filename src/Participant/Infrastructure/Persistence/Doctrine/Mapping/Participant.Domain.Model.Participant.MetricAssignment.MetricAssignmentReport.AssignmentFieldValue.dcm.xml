@@ -20,6 +20,14 @@
         </many-to-one>
         
         <field name="value" column="inputValue" type="float" nullable="true"/>
+        <field name="note" type="string" length="1024" nullable="true"/>
+        
+        <many-to-one  field="attachedFileInfo" 
+                      target-entity="Participant\Domain\SharedModel\FileInfo"
+        >
+            <join-column name="FileInfo_idOfAttachment" referenced-column-name="id" />
+        </many-to-one>
+        
         <field name="removed" type="boolean" />
         
     </entity>

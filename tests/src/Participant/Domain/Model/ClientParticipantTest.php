@@ -8,12 +8,12 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
-    Event\ClientParticipantAcceptedConsultationRequest,
-    Event\ClientParticipantChangedConsultationRequestTime,
-    Event\ClientParticipantProposedConsultationRequest,
     Model\Participant\ConsultationRequest,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
     Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment
+    Model\Participant\Worksheet\Comment,
+    Service\MetricAssignmentReportDataProvider,
+    SharedModel\FileInfo
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -29,6 +29,8 @@ class ClientParticipantTest extends TestBase
     protected $worksheet;
     protected $commentId = 'commentId', $message = 'message';
     protected $comment;
+    protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime, $metricAssignmentReportDataProvider;
+    protected $fileInfo;
 
     protected function setUp(): void
     {
@@ -52,6 +54,10 @@ class ClientParticipantTest extends TestBase
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
 
         $this->comment = $this->buildMockOfClass(Comment::class);
+        
+        $this->observationTime = new \DateTimeImmutable();
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
+        $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
     }
 
     public function test_quit_quitParticipant()
@@ -139,6 +145,66 @@ class ClientParticipantTest extends TestBase
         $this->participant->expects($this->once())
                 ->method("pullRecordedEvents");
         $this->clientParticipant->pullRecordedEvents();
+    }
+    
+    protected function executeSubmitMetricAssignmentReport()
+    {
+        $this->clientParticipant->submitMetricAssignmentReport(
+                $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
+    }
+    public function test_submitMetricAssignmentReport_returnParticipantsSubmitMetricAssignmentReportResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("submitMetricAssignmentReport")
+                ->with($this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
+        $this->executeSubmitMetricAssignmentReport();
+    }
+    public function test_submitMetricAssignmentReport_dataProviderContainAttachedFileInfoNotBelongsToClient_forbidden()
+    {
+        $fileInfo = $this->buildMockOfClass(FileInfo::class);
+        $fileInfo->expects($this->once())
+                ->method("belongsToClient")
+                ->with($this->client)
+                ->willReturn(false);
+        $this->metricAssignmentReportDataProvider->expects($this->once())
+                ->method("iterateAllAttachedFileInfo")
+                ->willReturn([$fileInfo]);
+        $operation = function (){
+            $this->executeSubmitMetricAssignmentReport();
+        };
+        $errorDetail = "forbidden: unable to attach file not owned";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_ownAllAttachedFileInfo_returnTrue()
+    {
+        $this->assertTrue($this->clientParticipant->ownAllAttachedFileInfo($this->metricAssignmentReportDataProvider));
+    }
+    public function test_ownAllAttachedFileInfo_dataProviderContainFileInfoDoesntBelongsToClient_returnFalse()
+    {
+        $this->fileInfo->expects($this->once())
+                ->method("belongsToClient")
+                ->with($this->client)
+                ->willReturn(false);
+        $this->metricAssignmentReportDataProvider->expects($this->once())
+                ->method("iterateAllAttachedFileInfo")
+                ->willReturn([$this->fileInfo]);
+        $this->assertFalse($this->clientParticipant->ownAllAttachedFileInfo($this->metricAssignmentReportDataProvider));
+    }
+    public function test_ownAllAttachedFileInfo_dataProviderContainFileInfoBelongsToClientAndNotBelongsToClient_returnFalse()
+    {
+        $this->fileInfo->expects($this->at(0))
+                ->method("belongsToClient")
+                ->with($this->client)
+                ->willReturn(false);
+        $this->fileInfo->expects($this->any())
+                ->method("belongsToClient")
+                ->with($this->client)
+                ->willReturn(true);
+        $this->metricAssignmentReportDataProvider->expects($this->once())
+                ->method("iterateAllAttachedFileInfo")
+                ->willReturn([$this->fileInfo, $this->fileInfo]);
+        $this->assertFalse($this->clientParticipant->ownAllAttachedFileInfo($this->metricAssignmentReportDataProvider));
     }
 
 }

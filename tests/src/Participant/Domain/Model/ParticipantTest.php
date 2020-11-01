@@ -14,8 +14,10 @@ use Participant\Domain\ {
     Model\Participant\CompletedMission,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
+    Model\Participant\MetricAssignment,
     Model\Participant\ViewLearningMaterialActivityLog,
-    Model\Participant\Worksheet
+    Model\Participant\Worksheet,
+    Service\MetricAssignmentReportDataProvider
 };
 use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -29,6 +31,9 @@ class ParticipantTest extends TestBase
     protected $consultationRequest;
     protected $consultationSession;
     protected $teamProgramParticipation;
+    protected $clientParticipant;
+    protected $userParticipant;
+    protected $metricAssignment;
 
     protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $startTime;
     protected $consultationSessionId = 'consultationSessionId';
@@ -38,6 +43,7 @@ class ParticipantTest extends TestBase
     protected $completedMission;
     protected $team;
     protected $teamMember;
+    protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime, $metricAssignmentReportDataProvider;
 
     protected function setUp(): void
     {
@@ -51,6 +57,11 @@ class ParticipantTest extends TestBase
         
         $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
         $this->participant->teamProgramParticipation = $this->teamProgramParticipation;
+        $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
+        $this->userParticipant = $this->buildMockOfClass(UserParticipant::class);
+        
+        $this->metricAssignment = $this->buildMockOfClass(MetricAssignment::class);
+        $this->participant->metricAssignment = $this->metricAssignment;
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->participant->program = $this->program;
@@ -80,6 +91,9 @@ class ParticipantTest extends TestBase
         $this->team = $this->buildMockOfClass(Team::class);
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
+        
+        $this->observationTime = new \DateTimeImmutable();
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -440,6 +454,67 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
+    protected function executeSubmitMetricAssignmentReport()
+    {
+        return $this->participant->submitMetricAssignmentReport(
+                $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
+    }
+    public function test_submitMetricAssignmentReport_returnMetricAssignmentsSubmitReportResult()
+    {
+        $this->metricAssignment->expects($this->once())
+                ->method("submitReport")
+                ->with($this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
+        $this->executeSubmitMetricAssignmentReport();
+    }
+    public function test_submitMetricAssignmentReport_noMetricAssignment_forbidden()
+    {
+        $this->participant->metricAssignment = null;
+        $operation = function (){
+            $this->executeSubmitMetricAssignmentReport();
+        };
+        $errorDetail = "forbidden: no assignment available for report";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_submitMetricAssignmentReport_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertOperationCauseInactiveParticipantForbiddenError(function (){
+            $this->executeSubmitMetricAssignmentReport();
+        });
+    }
+    
+    protected function executeOwnAllAttachedFileInfo()
+    {
+        return $this->participant->ownAllAttachedFileInfo($this->metricAssignmentReportDataProvider);
+    }
+    public function test_ownAllAttachedFileInfo_returnTeamProgramParticipationOwnAllAttachedFileInfoResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("ownAllAttachedFileInfo")
+                ->with($this->metricAssignmentReportDataProvider);
+        $this->executeOwnAllAttachedFileInfo();
+    }
+    public function test_ownAllAttachedFileInfo_aClientParticipant_returnClientParticipantsOwnAllAttachedFileInfoResult()
+    {
+        $this->participant->clientParticipant = $this->clientParticipant;
+        $this->participant->teamProgramParticipation = null;
+        
+        $this->clientParticipant->expects($this->once())
+                ->method("ownAllAttachedFileInfo")
+                ->with($this->metricAssignmentReportDataProvider);
+        $this->executeOwnAllAttachedFileInfo();
+    }
+    public function test_ownAllAttachedFileInfo_aUserParticipant_returnUserParticipantsOwnAllAttachedFileInfoResult()
+    {
+        $this->participant->userParticipant = $this->userParticipant;
+        $this->participant->teamProgramParticipation = null;
+        
+        $this->userParticipant->expects($this->once())
+                ->method("ownAllAttachedFileInfo")
+                ->with($this->metricAssignmentReportDataProvider);
+        $this->executeOwnAllAttachedFileInfo();
+    }
+    
 }
 
 class TestableParticipant extends Participant
@@ -452,6 +527,9 @@ class TestableParticipant extends Participant
     public $consultationRequests;
     public $consultationSessions;
     public $teamProgramParticipation;
+    public $clientParticipant;
+    public $userParticipant;
+    public $metricAssignment;
     public $completedMissions;
 
     function __construct()

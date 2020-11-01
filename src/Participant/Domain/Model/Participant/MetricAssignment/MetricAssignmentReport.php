@@ -7,11 +7,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\{
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Team,
+    Model\Participant,
     Model\Participant\MetricAssignment,
-    Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue
+    Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
+    Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValueData,
+    Service\MetricAssignmentReportDataProvider
 };
 use Resources\{
     DateTimeImmutableBuilder,
+    Exception\RegularException,
     Uuid
 };
 
@@ -34,7 +38,7 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
      *
      * @var DateTimeImmutable
      */
-    protected $observeTime;
+    protected $observationTime;
 
     /**
      *
@@ -54,19 +58,24 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
      */
     protected $assignmentFieldValues;
 
-    public function __construct(MetricAssignment $metricAssignment, string $id, DateTimeImmutable $observeTime)
+    public function __construct(
+            MetricAssignment $metricAssignment, string $id, DateTimeImmutable $observationTime)
     {
         $this->metricAssignment = $metricAssignment;
         $this->id = $id;
-        $this->observeTime = $observeTime;
+        $this->observationTime = $observationTime;
         $this->submitTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->removed = false;
         $this->assignmentFieldValues = new ArrayCollection();
     }
 
-    public function update(MetricAssignmentReportData $metricAssignmentReportData): void
+    public function update(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
-        $this->metricAssignment->setActiveAssignmentFieldValuesTo($this, $metricAssignmentReportData);
+        if (!$this->metricAssignment->isParticipantOwnAllAttachedFileInfo($metricAssignmentReportDataProvider)) {
+            $errorDetail = "forbidden: attached file info is unmanageable";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $this->metricAssignment->setActiveAssignmentFieldValuesTo($this, $metricAssignmentReportDataProvider);
 
         $p = function (AssignmentFieldValue $assignmentFieldValue) {
             return $assignmentFieldValue->isNonRemovedAssignmentFieldValueCorrespondWithObsoleteAssignmentField();
@@ -76,17 +85,18 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
         }
     }
 
-    public function setAssignmentFieldValue(AssignmentField $assignmentField, ?float $value): void
+    public function setAssignmentFieldValue(
+            AssignmentField $assignmentField, AssignmentFieldValueData $assignmentFieldValueData): void
     {
         $p = function (AssignmentFieldValue $assignmentFieldValue) use ($assignmentField) {
             return $assignmentFieldValue->isNonRemovedAssignmentFieldValueCorrespondWithAssignmentField($assignmentField);
         };
         $existingValue = $this->assignmentFieldValues->filter($p)->first();
         if (!empty($existingValue)) {
-            $existingValue->update($value);
+            $existingValue->update($assignmentFieldValueData);
         } else {
             $id = Uuid::generateUuid4();
-            $assignmentFieldValue = new AssignmentFieldValue($this, $id, $assignmentField, $value);
+            $assignmentFieldValue = new AssignmentFieldValue($this, $id, $assignmentField, $assignmentFieldValueData);
             $this->assignmentFieldValues->add($assignmentFieldValue);
         }
     }

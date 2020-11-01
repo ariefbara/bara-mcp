@@ -2,7 +2,10 @@
 
 namespace Participant\Domain\Model\Participant\MetricAssignment;
 
-use Participant\Domain\DependencyModel\Firm\Program\Metric;
+use Participant\Domain\ {
+    DependencyModel\Firm\Program\Metric,
+    Service\MetricAssignmentReportDataProvider
+};
 use Tests\TestBase;
 
 class AssignmentFieldTest extends TestBase
@@ -11,8 +14,8 @@ class AssignmentFieldTest extends TestBase
     protected $metric;
 
     protected $metricAssignmentReport;
-    protected $metricAssignmentReportData;
-    protected $value = 999.0;
+    protected $metricAssignmentReportDataProvider;
+    protected $assignmentFieldValueData, $value = 99.99;
 
     protected function setUp(): void
     {
@@ -22,26 +25,28 @@ class AssignmentFieldTest extends TestBase
         $this->metric = $this->buildMockOfClass(Metric::class);
         $this->assignmentField->metric = $this->metric;
         
+        $this->assignmentFieldValueData = new MetricAssignmentReport\AssignmentFieldValueData($this->value, "", null);
+        
         $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
-        $this->metricAssignmentReportData = $this->buildMockOfClass(MetricAssignmentReportData::class);
-        $this->metricAssignmentReportData->expects($this->any())
-                ->method("getValueCorrespondWithAssignmentField")
-                ->with($this->assignmentField->id)
-                ->willReturn($this->value);
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
     }
     
     protected function executeSetValueIn()
     {
+        $this->metricAssignmentReportDataProvider->expects($this->any())
+                ->method("getAssignmentFieldValueDataCorrespondWithAssignmentField")
+                ->with($this->assignmentField->id)
+                ->willReturn($this->assignmentFieldValueData);
         $this->metric->expects($this->any())
                 ->method("isValueAcceptable")
                 ->willReturn(true);
-        $this->assignmentField->setValueIn($this->metricAssignmentReport, $this->metricAssignmentReportData);
+        $this->assignmentField->setValueIn($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
     }
     public function test_setValueIn_setMetricAssignmentReportsAssignmentFieldValue()
     {
         $this->metricAssignmentReport->expects($this->once())
                 ->method("setAssignmentFieldValue")
-                ->with($this->assignmentField, $this->value);
+                ->with($this->assignmentField, $this->assignmentFieldValueData);
         $this->executeSetValueIn();
     }
     public function test_setValueId_valueOutOfMetricAllowedValue_forbidden()

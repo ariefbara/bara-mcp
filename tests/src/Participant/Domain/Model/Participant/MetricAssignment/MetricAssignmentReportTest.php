@@ -7,7 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\ {
     DependencyModel\Firm\Team,
     Model\Participant\MetricAssignment,
-    Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue
+    Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
+    Model\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValueData,
+    Service\MetricAssignmentReportDataProvider
 };
 use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
@@ -17,10 +19,10 @@ class MetricAssignmentReportTest extends TestBase
     protected $metricAssignment;
     protected $metricAssignmentReport;
     protected $id = "newId";
-    protected $observeTime;
+    protected $observationTime;
     protected $assignmentFieldValue;
-    protected $metricAssignmentReportData;
-    protected $assignmentField, $value = 999.99;
+    protected $metricAssignmentReportDataProvider;
+    protected $assignmentField, $assignmentFieldValueData;
     protected $team;
 
     protected function setUp(): void
@@ -28,27 +30,28 @@ class MetricAssignmentReportTest extends TestBase
         parent::setUp();
         $this->metricAssignment = $this->buildMockOfClass(MetricAssignment::class);
         $this->metricAssignmentReport = new TestableMetricAssignmentReport($this->metricAssignment, "id", new DateTimeImmutable());
-        $this->observeTime = new DateTimeImmutable("-1 days");
+        $this->observationTime = new DateTimeImmutable("-1 days");
         $this->assignmentFieldValue = $this->buildMockOfClass(AssignmentFieldValue::class);
         $this->metricAssignmentReport->assignmentFieldValues->add($this->assignmentFieldValue);
         
-        $this->metricAssignmentReportData = $this->buildMockOfClass(MetricAssignmentReportData::class);
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         
         $this->assignmentField = $this->buildMockOfClass(AssignmentField::class);
+        $this->assignmentFieldValueData = $this->buildMockOfClass(AssignmentFieldValueData::class);
         
         $this->team = $this->buildMockOfClass(Team::class);
     }
     
     protected function executeConstruct()
     {
-        return new TestableMetricAssignmentReport($this->metricAssignment, $this->id, $this->observeTime);
+        return new TestableMetricAssignmentReport($this->metricAssignment, $this->id, $this->observationTime);
     }
     public function test_construct_setProperties()
     {
         $metricAssignmentReport = $this->executeConstruct();
         $this->assertEquals($this->metricAssignment, $metricAssignmentReport->metricAssignment);
         $this->assertEquals($this->id, $metricAssignmentReport->id);
-        $this->assertEquals($this->observeTime, $metricAssignmentReport->observeTime);
+        $this->assertEquals($this->observationTime, $metricAssignmentReport->observationTime);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $metricAssignmentReport->submitTime);
         $this->assertFalse($metricAssignmentReport->removed);
         $this->assertInstanceOf(ArrayCollection::class, $metricAssignmentReport->assignmentFieldValues);
@@ -56,13 +59,16 @@ class MetricAssignmentReportTest extends TestBase
     
     protected function executeUpdate()
     {
-        $this->metricAssignmentReport->update($this->metricAssignmentReportData);
+        $this->metricAssignment->expects($this->any())
+                ->method("isParticipantOwnAllAttachedFileInfo")
+                ->willReturn(true);
+        $this->metricAssignmentReport->update($this->metricAssignmentReportDataProvider);
     }
     public function test_update_executeMetricAssignmentsSetActiveAssignmentFieldValuesToMethod()
     {
         $this->metricAssignment->expects($this->once())
                 ->method("setActiveAssignmentFieldValuesTo")
-                ->with($this->metricAssignmentReport, $this->metricAssignmentReportData);
+                ->with($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
         $this->executeUpdate();
     }
     public function test_update_removeAssignmentFieldValueCorrespondToObsoleteAssignmentField()
@@ -74,10 +80,22 @@ class MetricAssignmentReportTest extends TestBase
                 ->method("remove");
         $this->executeUpdate();
     }
+    public function test_update_metricAssignmentReportDataProviderContainUnmanageableFileInfo_forbidden()
+    {
+        $this->metricAssignment->expects($this->once())
+                ->method("isParticipantOwnAllAttachedFileInfo")
+                ->with($this->metricAssignmentReportDataProvider)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeUpdate();
+        };
+        $errorDetail = "forbidden: attached file info is unmanageable";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
     
     protected function executeSetAssignmentFieldValue()
     {
-        $this->metricAssignmentReport->setAssignmentFieldValue($this->assignmentField, $this->value);
+        $this->metricAssignmentReport->setAssignmentFieldValue($this->assignmentField, $this->assignmentFieldValueData);
     }
     public function test_setAssignmentFieldValue_addAssignmentFieldValueToCollection()
     {
@@ -93,7 +111,7 @@ class MetricAssignmentReportTest extends TestBase
                 ->willReturn(true);
         $this->assignmentFieldValue->expects($this->once())
                 ->method("update")
-                ->with($this->value);
+                ->with($this->assignmentFieldValueData);
         $this->executeSetAssignmentFieldValue();
     }
     public function test_setAssignmentFieldValue_hasNonRemovedAssignmentFieldValueCorrespondToSameAssignmentField_preventAddNewFieldValue()
@@ -120,7 +138,7 @@ class TestableMetricAssignmentReport extends MetricAssignmentReport
 {
     public $metricAssignment;
     public $id;
-    public $observeTime;
+    public $observationTime;
     public $submitTime;
     public $removed;
     public $assignmentFieldValues;

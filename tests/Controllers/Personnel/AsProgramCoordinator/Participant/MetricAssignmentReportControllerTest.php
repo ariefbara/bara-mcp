@@ -113,7 +113,7 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
     {
         $response = [
             "id" => $this->metricAssignmentReport->id,
-            "observeTime" => $this->metricAssignmentReport->observeTime,
+            "observeTime" => $this->metricAssignmentReport->observationTime,
             "submitTime" => $this->metricAssignmentReport->submitTime,
             "removed" => $this->metricAssignmentReport->removed,
             "assignmentFieldValues" => [
@@ -160,13 +160,13 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
             "list" => [
                 [
                     "id" => $this->metricAssignmentReport->id,
-                    "observeTime" => $this->metricAssignmentReport->observeTime,
+                    "observeTime" => $this->metricAssignmentReport->observationTime,
                     "submitTime" => $this->metricAssignmentReport->submitTime,
                     "removed" => $this->metricAssignmentReport->removed,
                 ],
                 [
                     "id" => $this->metricAssignmentReportOne->id,
-                    "observeTime" => $this->metricAssignmentReportOne->observeTime,
+                    "observeTime" => $this->metricAssignmentReportOne->observationTime,
                     "submitTime" => $this->metricAssignmentReportOne->submitTime,
                     "removed" => $this->metricAssignmentReportOne->removed,
                 ],

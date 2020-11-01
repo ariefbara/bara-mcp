@@ -15,7 +15,7 @@ class RecordOfMetricAssignmentReport implements Record
      */
     public $metricAssignment;
     public $id;
-    public $observeTime;
+    public $observationTime;
     public $submitTime;
     public $removed;
     
@@ -23,7 +23,7 @@ class RecordOfMetricAssignmentReport implements Record
     {
         $this->metricAssignment = $metricAssignment;
         $this->id = "metricAssignmentReport-$index-id";
-        $this->observeTime = (new \DateTimeImmutable("-1 days"))->format("Y-m-d H:i:s");
+        $this->observationTime = (new \DateTimeImmutable("-1 days"))->format("Y-m-d H:i:s");
         $this->submitTime = (new \DateTimeImmutable())->format("Y-m-d H:i:s");
         $this->removed = false;
     }
@@ -33,7 +33,7 @@ class RecordOfMetricAssignmentReport implements Record
         return [
             "MetricAssignment_id" => $this->metricAssignment->id,
             "id" => $this->id,
-            "observeTime" => $this->observeTime,
+            "observationTime" => $this->observationTime,
             "submitTime" => $this->submitTime,
             "removed" => $this->removed,
         ];

@@ -3,7 +3,7 @@
 namespace Participant\Application\Service\Participant\MetricAssignment;
 
 use Participant\ {
-    Application\Service\ClientParticipant\MetricAssignment\MetricAssignmentReportRepository as InterfaceForClient,
+    Application\Service\ClientParticipant\MetricAssignmentReportRepository as InterfaceForClient,
     Application\Service\UserParticipant\MetricAssignment\MetricAssignmentReportRepository as InterfaceForUser,
     Domain\Model\Participant\MetricAssignment\MetricAssignmentReport
 };

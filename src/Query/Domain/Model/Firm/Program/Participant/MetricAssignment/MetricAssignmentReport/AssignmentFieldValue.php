@@ -4,7 +4,8 @@ namespace Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAss
 
 use Query\Domain\Model\{
     Firm\Program\Participant\MetricAssignment\AssignmentField,
-    Participant\MetricAssignment\MetricAssignmentReport
+    Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
+    Shared\FileInfo
 };
 
 class AssignmentFieldValue
@@ -36,6 +37,18 @@ class AssignmentFieldValue
 
     /**
      *
+     * @var string|null
+     */
+    protected $note;
+
+    /**
+     *
+     * @var FileInfo|null
+     */
+    protected $attachedFileInfo;
+
+    /**
+     *
      * @var bool
      */
     protected $removed;
@@ -58,6 +71,16 @@ class AssignmentFieldValue
     public function getValue(): ?float
     {
         return $this->value;
+    }
+
+    function getNote(): ?string
+    {
+        return $this->note;
+    }
+
+    function getAttachedFileInfo(): ?FileInfo
+    {
+        return $this->attachedFileInfo;
     }
 
     public function isRemoved(): bool

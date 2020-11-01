@@ -13,7 +13,7 @@ use Participant\Domain\{
     Model\Participant,
     Model\Participant\MetricAssignment\AssignmentField,
     Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\MetricAssignment\MetricAssignmentReportData
+    Service\MetricAssignmentReportDataProvider
 };
 use Resources\{
     Domain\ValueObject\DateInterval,
@@ -58,25 +58,32 @@ class MetricAssignment implements AssetBelongsToTeamInterface
     }
 
     public function submitReport(
-            string $metricAssignmentReportId, DateTimeImmutable $observeTime,
-            MetricAssignmentReportData $metricAssignmentReportData): MetricAssignmentReport
+            string $metricAssignmentReportId, DateTimeImmutable $observationTime,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
     {
-        if (!$this->startEndDate->contain($observeTime)) {
+        if (!$this->startEndDate->contain($observationTime)) {
             $errorDetail = "forbidden: observe time out of bound";
             throw RegularException::forbidden($errorDetail);
         }
 
-        $metricAssignmentReport = new MetricAssignmentReport($this, $metricAssignmentReportId, $observeTime);
-        $this->setActiveAssignmentFieldValuesTo($metricAssignmentReport, $metricAssignmentReportData);
+        $metricAssignmentReport = new MetricAssignmentReport($this, $metricAssignmentReportId, $observationTime);
+        $this->setActiveAssignmentFieldValuesTo($metricAssignmentReport, $metricAssignmentReportDataProvider);
         return $metricAssignmentReport;
     }
 
     public function setActiveAssignmentFieldValuesTo(
-            MetricAssignmentReport $metricAssignmentReport, MetricAssignmentReportData $metricAssignmentReportData): void
+            MetricAssignmentReport $metricAssignmentReport,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
         foreach ($this->iterateActiveAssignmentFields() as $assignmentField) {
-            $assignmentField->setValueIn($metricAssignmentReport, $metricAssignmentReportData);
+            $assignmentField->setValueIn($metricAssignmentReport, $metricAssignmentReportDataProvider);
         }
+    }
+
+    public function isParticipantOwnAllAttachedFileInfo(
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
+    {
+        return $this->participant->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
     }
 
     /**

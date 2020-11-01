@@ -31,7 +31,7 @@ class MetricAssignmentReport
      *
      * @var DateTimeImmutable
      */
-    protected $observeTime;
+    protected $observationTime;
 
     /**
      *
@@ -61,9 +61,9 @@ class MetricAssignmentReport
         return $this->id;
     }
 
-    public function getObserveTimeString(): string
+    public function getObservationTimeString(): string
     {
-        return $this->observeTime->format("Y-m-d H:i:s");
+        return $this->observationTime->format("Y-m-d H:i:s");
     }
 
     public function getSubmitTimeString(): string

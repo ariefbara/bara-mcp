@@ -3,15 +3,16 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     Model\Participant\ConsultationRequest,
     Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment
+    Model\Participant\Worksheet\Comment,
+    Service\MetricAssignmentReportDataProvider
 };
-use Resources\{
+use Resources\ {
     Application\Event\ContainEvents,
     Uuid
 };
@@ -91,6 +92,15 @@ class UserParticipant implements ContainEvents
     public function pullRecordedEvents(): array
     {
         return $this->participant->pullRecordedEvents();
+    }
+    
+    public function ownAllAttachedFileInfo(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
+    {
+        $ownedAllFileInfo = true;
+        foreach ($metricAssignmentReportDataProvider->iterateAllAttachedFileInfo() as $fileInfo) {
+            $ownedAllFileInfo = $ownedAllFileInfo && $fileInfo->belongsToUser($this->userId);
+        }
+        return $ownedAllFileInfo;
     }
 
 }

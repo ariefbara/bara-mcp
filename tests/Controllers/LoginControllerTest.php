@@ -132,7 +132,7 @@ class LoginControllerTest extends ControllerTestCase
     {
         $response = [
             "id" => $this->admin->id,
-            "name" => $this->admin->name,
+            "name" => $this->admin->name
         ];
         $this->post($this->adminLoginUri, $this->adminLoginRequest)
                 ->seeStatusCode(200)

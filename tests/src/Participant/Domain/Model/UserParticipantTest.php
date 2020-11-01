@@ -9,7 +9,9 @@ use Participant\Domain\ {
     DependencyModel\Firm\Program\Mission,
     Model\Participant\ConsultationRequest,
     Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment
+    Model\Participant\Worksheet\Comment,
+    Service\MetricAssignmentReportDataProvider,
+    SharedModel\FileInfo
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -24,6 +26,7 @@ class UserParticipantTest extends TestBase
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
     protected $commentId = 'commentId', $message = 'message';
     protected $comment;
+    protected $metricAssignmentReportDataProvider, $fileInfo;
 
     protected function setUp(): void
     {
@@ -42,6 +45,9 @@ class UserParticipantTest extends TestBase
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         
         $this->comment = $this->buildMockOfClass(Comment::class);
+        
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
+        $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
     }
 
     public function test_quit_quitParticipant()
@@ -129,6 +135,37 @@ class UserParticipantTest extends TestBase
         $this->participant->expects($this->once())
                 ->method("pullRecordedEvents");
         $this->userParticipant->pullRecordedEvents();
+    }
+    
+    protected function executeOwnAllAttachedFileInfo()
+    {
+        $this->fileInfo->expects($this->any())
+                ->method("belongsToUser")
+                ->willReturn(true);
+        $this->metricAssignmentReportDataProvider->expects($this->any())
+                ->method("iterateAllAttachedFileInfo")
+                ->willReturn([$this->fileInfo, $this->fileInfo]);
+        return $this->userParticipant->ownAllAttachedFileInfo($this->metricAssignmentReportDataProvider);
+    }
+    public function test_ownAllAttachedFileInfo_returnTrue()
+    {
+        $this->assertTrue($this->executeOwnAllAttachedFileInfo());
+    }
+    public function test_ownAllAttachedFileInfo_FileInfoNotBelongsToUser_returnFalse()
+    {
+        $this->fileInfo->expects($this->once())
+                ->method("belongsToUser")
+                ->with($this->userParticipant->userId)
+                ->willReturn(false);
+        $this->assertFalse($this->executeOwnAllAttachedFileInfo());
+    }
+    public function test_ownAllAttachedFileInfo_containFileInfoNotBelongsToUser_returnFalse()
+    {
+        $this->fileInfo->expects($this->at(1))
+                ->method("belongsToUser")
+                ->with($this->userParticipant->userId)
+                ->willReturn(false);
+        $this->assertFalse($this->executeOwnAllAttachedFileInfo());
     }
 
 }

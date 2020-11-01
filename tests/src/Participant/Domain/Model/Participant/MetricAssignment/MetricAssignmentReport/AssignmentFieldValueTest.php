@@ -2,9 +2,10 @@
 
 namespace Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
 
-use Participant\Domain\Model\Participant\MetricAssignment\ {
-    AssignmentField,
-    MetricAssignmentReport
+use Participant\Domain\ {
+    Model\Participant\MetricAssignment\AssignmentField,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
+    SharedModel\FileInfo
 };
 use Tests\TestBase;
 
@@ -13,30 +14,44 @@ class AssignmentFieldValueTest extends TestBase
     protected $metricAssignmentReport;
     protected $assignmentField;
     protected $assignmentFieldValue;
-    protected $id = "newId", $value = 999.99;
+    protected $id = "newId", $value = 999.99, $note = "new note", $attachedFileInfo;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
         $this->assignmentField = $this->buildMockOfClass(AssignmentField::class);
-        $this->assignmentFieldValue = new TestableAssignmentFieldValue($this->metricAssignmentReport, "id", $this->assignmentField, 111.11);
+        $assignmentFieldValueData = new AssignmentFieldValueData("11.11", "note", null);
+        $this->assignmentFieldValue = new TestableAssignmentFieldValue(
+                $this->metricAssignmentReport, "id", $this->assignmentField, $assignmentFieldValueData);
+        
+        $this->attachedFileInfo = $this->buildMockOfClass(FileInfo::class);
+    }
+    
+    protected function getAssignmentFieldValueData()
+    {
+        return new AssignmentFieldValueData($this->value, $this->note, $this->attachedFileInfo);
     }
     
     public function test_construct_setProperties()
     {
-        $assignmentFieldValue = new TestableAssignmentFieldValue($this->metricAssignmentReport, $this->id, $this->assignmentField, $this->value);
+        $assignmentFieldValue = new TestableAssignmentFieldValue(
+                $this->metricAssignmentReport, $this->id, $this->assignmentField, $this->getAssignmentFieldValueData());
         $this->assertEquals($this->metricAssignmentReport, $assignmentFieldValue->metricAssignmentReport);
         $this->assertEquals($this->id, $assignmentFieldValue->id);
         $this->assertEquals($this->assignmentField, $assignmentFieldValue->assignmentField);
         $this->assertEquals($this->value, $assignmentFieldValue->value);
+        $this->assertEquals($this->note, $assignmentFieldValue->note);
+        $this->assertEquals($this->attachedFileInfo, $assignmentFieldValue->attachedFileInfo);
         $this->assertFalse($assignmentFieldValue->removed);
     }
     
-    public function test_update_changeValue()
+    public function test_update_updateProperties()
     {
-        $this->assignmentFieldValue->update($this->value);
+        $this->assignmentFieldValue->update($this->getAssignmentFieldValueData());
         $this->assertEquals($this->value, $this->assignmentFieldValue->value);
+        $this->assertEquals($this->note, $this->assignmentFieldValue->note);
+        $this->assertEquals($this->attachedFileInfo, $this->assignmentFieldValue->attachedFileInfo);
     }
     
     public function test_remove_setRemovedStatusTrue()
@@ -94,5 +109,7 @@ class TestableAssignmentFieldValue extends AssignmentFieldValue
     public $id;
     public $assignmentField;
     public $value;
+    public $note;
+    public $attachedFileInfo;
     public $removed;
 }

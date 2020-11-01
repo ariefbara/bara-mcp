@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\DependencyModel\User\UserFileInfo" 
+            table="UserFileInfo" 
+    >
+        
+        <field name="userId" column="User_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        
+        <one-to-one field="fileInfo" 
+                    target-entity="Participant\Domain\SharedModel\FileInfo"
+                    inversed-by="userFileInfo"
+        >
+            <join-column name="FileInfo_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

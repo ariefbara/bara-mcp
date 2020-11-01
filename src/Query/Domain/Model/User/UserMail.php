@@ -18,7 +18,7 @@ class UserMail
 
     /**
      *
-     * @var id
+     * @var string
      */
     protected $id;
 
@@ -33,7 +33,7 @@ class UserMail
         return $this->user;
     }
 
-    public function getId(): id
+    public function getId(): string
     {
         return $this->id;
     }

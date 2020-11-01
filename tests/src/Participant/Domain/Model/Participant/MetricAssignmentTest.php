@@ -9,7 +9,7 @@ use Participant\Domain\ {
     Model\Participant,
     Model\Participant\MetricAssignment\AssignmentField,
     Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\MetricAssignment\MetricAssignmentReportData
+    Service\MetricAssignmentReportDataProvider
 };
 use Resources\Domain\ValueObject\DateInterval;
 use Tests\TestBase;
@@ -23,8 +23,8 @@ class MetricAssignmentTest extends TestBase
     protected $assignmentField;
     protected $team;
     protected $metricAssignmentReportId = "metricAssignmentReportId";
-    protected $observeTime;
-    protected $metricAssignmentReportData;
+    protected $observationTime;
+    protected $metricAssignmentReportDataProvider;
     protected $metricAssignmentReport;
 
     protected function setUp(): void
@@ -44,8 +44,8 @@ class MetricAssignmentTest extends TestBase
 
         $this->team = $this->buildMockOfClass(Team::class);
 
-        $this->observeTime = new DateTimeImmutable();
-        $this->metricAssignmentReportData = $this->buildMockOfClass(MetricAssignmentReportData::class);
+        $this->observationTime = new DateTimeImmutable();
+        $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         
         $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
     }
@@ -64,7 +64,7 @@ class MetricAssignmentTest extends TestBase
                 ->method("contain")
                 ->willReturn(true);
         return $this->metricAssignment->submitReport(
-                        $this->metricAssignmentReportId, $this->observeTime, $this->metricAssignmentReportData);
+                        $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
     }
     public function test_submitReport_returnMetricAssignmentReport()
     {
@@ -74,7 +74,7 @@ class MetricAssignmentTest extends TestBase
     {
         $this->assignmentField->expects($this->once())
                 ->method("setValueIn")
-                ->with($this->anything(), $this->metricAssignmentReportData);
+                ->with($this->anything(), $this->metricAssignmentReportDataProvider);
         $this->executeSubmitReport();
     }
     public function test_submitReport_containRemovedAssignmentField_preventRemovedAssignmentFieldFromSettingValue()
@@ -90,7 +90,7 @@ class MetricAssignmentTest extends TestBase
     {
         $this->startEndDate->expects($this->once())
                 ->method("contain")
-                ->with($this->observeTime)
+                ->with($this->observationTime)
                 ->willReturn(false);
         $operation = function (){
             $this->executeSubmitReport();
@@ -101,14 +101,22 @@ class MetricAssignmentTest extends TestBase
     
     protected function executeSetActiveAssignmentFieldValuesTo()
     {
-        $this->metricAssignment->setActiveAssignmentFieldValuesTo($this->metricAssignmentReport, $this->metricAssignmentReportData);
+        $this->metricAssignment->setActiveAssignmentFieldValuesTo($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
     }
     public function test_setActiveAssignmentFieldValuesTo_executeAllAssignmentFieldSetValueInMethod()
     {
         $this->assignmentField->expects($this->once())
                 ->method("setValueIn")
-                ->with($this->metricAssignmentReport, $this->metricAssignmentReportData);
+                ->with($this->metricAssignmentReport, $this->metricAssignmentReportDataProvider);
         $this->executeSetActiveAssignmentFieldValuesTo();
+    }
+    
+    public function test_isAllAttachedFileInfoInDataProviderManageable_returnParticipantOwnAllAttachedFileInfoResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("ownAllAttachedFileInfo")
+                ->with($this->metricAssignmentReportDataProvider);
+        $this->metricAssignment->isParticipantOwnAllAttachedFileInfo($this->metricAssignmentReportDataProvider);
     }
 
 }

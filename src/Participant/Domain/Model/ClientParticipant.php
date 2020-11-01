@@ -3,17 +3,20 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client,
     DependencyModel\Firm\Program\Consultant,
     DependencyModel\Firm\Program\ConsultationSetup,
     DependencyModel\Firm\Program\Mission,
     Model\Participant\ConsultationRequest,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
     Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment
+    Model\Participant\Worksheet\Comment,
+    Service\MetricAssignmentReportDataProvider
 };
-use Resources\{
+use Resources\ {
     Application\Event\ContainEvents,
+    Exception\RegularException,
     Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -41,7 +44,7 @@ class ClientParticipant implements ContainEvents
 
     protected function __construct()
     {
-        ;
+        
     }
 
     public function quit(): void
@@ -90,6 +93,35 @@ class ClientParticipant implements ContainEvents
     public function pullRecordedEvents(): array
     {
         return $this->participant->pullRecordedEvents();
+    }
+
+    public function submitMetricAssignmentReport(
+            string $metricAssignmentReportId, ?DateTimeImmutable $observationTime,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
+    {
+        $this->assertAllAttachedFileBelongsToClient($metricAssignmentReportDataProvider);
+        return $this->participant->submitMetricAssignmentReport(
+                        $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
+    }
+    
+    public function ownAllAttachedFileInfo(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
+    {
+        $allFileInfoBelongsToClient = true;
+        foreach ($metricAssignmentReportDataProvider->iterateAllAttachedFileInfo() as $fileInfo) {
+            $allFileInfoBelongsToClient = $allFileInfoBelongsToClient && $fileInfo->belongsToClient($this->client);
+        }
+        return $allFileInfoBelongsToClient;
+    }
+
+    protected function assertAllAttachedFileBelongsToClient(
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
+    {
+        foreach ($metricAssignmentReportDataProvider->iterateAllAttachedFileInfo() as $fileInfo) {
+            if (!$fileInfo->belongsToClient($this->client)) {
+                $errorDetail = "forbidden: unable to attach file not owned";
+                throw RegularException::forbidden($errorDetail);
+            }
+        }
     }
 
 }

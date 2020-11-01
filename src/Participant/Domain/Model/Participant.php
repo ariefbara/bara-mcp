@@ -3,11 +3,11 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
@@ -18,10 +18,13 @@ use Participant\Domain\ {
     Model\Participant\CompletedMission,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession,
+    Model\Participant\MetricAssignment,
+    Model\Participant\MetricAssignment\MetricAssignmentReport,
     Model\Participant\ViewLearningMaterialActivityLog,
-    Model\Participant\Worksheet
+    Model\Participant\Worksheet,
+    Service\MetricAssignmentReportDataProvider
 };
-use Resources\ {
+use Resources\{
     Domain\Model\EntityContainEvents,
     Exception\RegularException,
     Uuid
@@ -57,6 +60,12 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
 
     /**
      *
+     * @var MetricAssignment|null
+     */
+    protected $metricAssignment;
+
+    /**
+     *
      * @var ArrayCollection
      */
     protected $consultationRequests;
@@ -72,6 +81,18 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      * @var TeamProgramParticipation|null
      */
     protected $teamProgramParticipation;
+
+    /**
+     *
+     * @var ClientParticipant|null
+     */
+    protected $clientParticipant;
+
+    /**
+     *
+     * @var UserParticipant|null
+     */
+    protected $userParticipant;
 
     /**
      *
@@ -199,6 +220,30 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             string $LogId, string $learningMaterialId, ?TeamMembership $teamMember = null): ViewLearningMaterialActivityLog
     {
         return new ViewLearningMaterialActivityLog($this, $LogId, $learningMaterialId, $teamMember);
+    }
+
+    public function submitMetricAssignmentReport(
+            string $metricAssignmentReportId, ?\DateTimeImmutable $observationTime,
+            MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
+    {
+        $this->assertActive();
+        if (!isset($this->metricAssignment)) {
+            $errorDetail = "forbidden: no assignment available for report";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $this->metricAssignment
+                        ->submitReport($metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
+    }
+
+    public function ownAllAttachedFileInfo(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
+    {
+        if (isset($this->teamProgramParticipation)) {
+            return $this->teamProgramParticipation->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
+        } elseif (isset ($this->clientParticipant)) {
+            return $this->clientParticipant->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
+        } elseif (isset ($this->userParticipant)) {
+            return $this->userParticipant->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
+        }
     }
 
     protected function getConsultationRequestOrDie(string $consultationRequestId): ConsultationRequest

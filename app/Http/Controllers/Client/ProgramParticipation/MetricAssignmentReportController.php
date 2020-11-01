@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
 use App\Http\Controllers\Client\ClientBaseController;
-use Participant\{
-    Application\Service\ClientParticipant\MetricAssignment\SubmitMetricAssignmentReport,
-    Application\Service\ClientParticipant\MetricAssignment\UpdateMetricAssignmentReport,
-    Domain\Model\Participant\MetricAssignment,
+use Participant\ {
+    Application\Service\ClientParticipant\SubmitMetricAssignmentReport,
+    Application\Service\ClientParticipant\UpdateMetricAssignmentReport,
+    Domain\Model\ClientParticipant,
     Domain\Model\Participant\MetricAssignment\MetricAssignmentReport as MetricAssignmentReport2,
-    Domain\Model\Participant\MetricAssignment\MetricAssignmentReportData
+    Domain\Service\MetricAssignmentReportDataProvider,
+    Domain\SharedModel\FileInfo
 };
-use Query\{
+use Query\ {
     Application\Service\Firm\Client\ProgramParticipation\ViewMetricAssignmentReport,
     Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue
+    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
+    Domain\Model\Shared\FileInfo as FileInfo2
 };
 
 class MetricAssignmentReportController extends ClientBaseController
@@ -22,11 +24,11 @@ class MetricAssignmentReportController extends ClientBaseController
     public function submit($programParticipationId)
     {
         $service = $this->buildSubmitService();
-        $metricAssignmentId = $this->stripTagsInputRequest("metricAssignmentId");
-        $observeTime = $this->dateTimeImmutableOfInputRequest("observeTime");
+        $observationTime = $this->dateTimeImmutableOfInputRequest("observationTime");
 
         $metricAssignmentReportId = $service->execute(
-                $this->clientId(), $metricAssignmentId, $observeTime, $this->getMetricAssignmentReportData());
+                $this->firmId(), $this->clientId(), $programParticipationId, $observationTime,
+                $this->getMetricAssignmentReportDataProvider());
 
         $viewService = $this->buildViewService();
         $metricAssignmentReport = $viewService->showById($this->clientId(), $metricAssignmentReportId);
@@ -36,20 +38,26 @@ class MetricAssignmentReportController extends ClientBaseController
     public function update($programParticipationId, $metricAssignmentReportId)
     {
         $service = $this->buildUpdateService();
-        $service->execute($this->clientId(), $metricAssignmentReportId, $this->getMetricAssignmentReportData());
+        $service->execute(
+                $this->firmId(), $this->clientId(), $metricAssignmentReportId,
+                $this->getMetricAssignmentReportDataProvider());
 
         return $this->show($programParticipationId, $metricAssignmentReportId);
     }
 
-    protected function getMetricAssignmentReportData()
+    protected function getMetricAssignmentReportDataProvider()
     {
-        $metricAssignmentReportData = new MetricAssignmentReportData();
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        $metricAssignmentReportDataProvider = new MetricAssignmentReportDataProvider($fileInfoRepository);
         foreach ($this->request->input("assignmentFieldValues") as $assignmentFieldValue) {
             $assignmentFieldId = $this->stripTagsVariable($assignmentFieldValue["assignmentFieldId"]);
             $value = $this->floatOfVariable($assignmentFieldValue["value"]);
-            $metricAssignmentReportData->addValueCorrespondWithAssignmentField($assignmentFieldId, $value);
+            $note = $this->stripTagsVariable($assignmentFieldValue["note"]);
+            $fileInfoId = $this->stripTagsVariable($assignmentFieldValue["fileInfoId"]);
+            $metricAssignmentReportDataProvider->addAssignmentFieldValueData($assignmentFieldId, $value, $note,
+                    $fileInfoId);
         }
-        return $metricAssignmentReportData;
+        return $metricAssignmentReportDataProvider;
     }
 
     public function show($programParticipationId, $metricAssignmentReportId)
@@ -70,7 +78,7 @@ class MetricAssignmentReportController extends ClientBaseController
         foreach ($metricAssignmentReports as $metricAssignmentReport) {
             $result["list"][] = [
                 "id" => $metricAssignmentReport->getId(),
-                "observeTime" => $metricAssignmentReport->getObserveTimeString(),
+                "observationTime" => $metricAssignmentReport->getObservationTimeString(),
                 "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
                 "removed" => $metricAssignmentReport->isRemoved(),
             ];
@@ -86,7 +94,7 @@ class MetricAssignmentReportController extends ClientBaseController
         }
         return [
             "id" => $metricAssignmentReport->getId(),
-            "observeTime" => $metricAssignmentReport->getObserveTimeString(),
+            "observationTime" => $metricAssignmentReport->getObservationTimeString(),
             "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
             "removed" => $metricAssignmentReport->isRemoved(),
             "assignmentFieldValues" => $assignmentFieldValues,
@@ -98,6 +106,8 @@ class MetricAssignmentReportController extends ClientBaseController
         return [
             "id" => $assignmentFieldValue->getId(),
             "value" => $assignmentFieldValue->getValue(),
+            "note" => $assignmentFieldValue->getNote(),
+            "fileInfo" => $this->arrayDataOfFileInfo($assignmentFieldValue->getAttachedFileInfo()),
             "assignmentField" => [
                 "id" => $assignmentFieldValue->getAssignmentField()->getId(),
                 "target" => $assignmentFieldValue->getAssignmentField()->getTarget(),
@@ -110,6 +120,13 @@ class MetricAssignmentReportController extends ClientBaseController
             ],
         ];
     }
+    protected function arrayDataOfFileInfo(?FileInfo2 $attachedFileInfo): ?array
+    {
+        return empty($attachedFileInfo)? null:[
+            "id" => $attachedFileInfo->getId(),
+            "path" => $attachedFileInfo->getFullyQualifiedFileName(),
+        ];
+    }
 
     protected function buildViewService()
     {
@@ -120,8 +137,8 @@ class MetricAssignmentReportController extends ClientBaseController
     protected function buildSubmitService()
     {
         $metricAssignmentReportRepository = $this->em->getRepository(MetricAssignmentReport2::class);
-        $metricAssignmentRepository = $this->em->getRepository(MetricAssignment::class);
-        return new SubmitMetricAssignmentReport($metricAssignmentReportRepository, $metricAssignmentRepository);
+        $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
+        return new SubmitMetricAssignmentReport($metricAssignmentReportRepository, $clientParticipantRepository);
     }
 
     protected function buildUpdateService()

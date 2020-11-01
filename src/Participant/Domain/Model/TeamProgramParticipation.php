@@ -3,7 +3,7 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\{
+use Participant\Domain\ {
     DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
     DependencyModel\Firm\Client\TeamMembership,
     DependencyModel\Firm\Program,
@@ -12,9 +12,10 @@ use Participant\Domain\{
     DependencyModel\Firm\Program\Mission,
     DependencyModel\Firm\Team,
     Model\Participant\ConsultationRequest,
-    Model\Participant\Worksheet
+    Model\Participant\Worksheet,
+    Service\MetricAssignmentReportDataProvider
 };
-use Resources\{
+use Resources\ {
     Application\Event\ContainEvents,
     Uuid
 };
@@ -101,6 +102,15 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
     public function pullRecordedEvents(): array
     {
         return $this->programParticipation->pullRecordedEvents();
+    }
+    
+    public function ownAllAttachedFileInfo(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
+    {
+        $ownedAllFileInfo = true;
+        foreach ($metricAssignmentReportDataProvider->iterateAllAttachedFileInfo() as $fileInfo) {
+            $ownedAllFileInfo = $ownedAllFileInfo && $fileInfo->belongsToTeam($this->team);
+        }
+        return $ownedAllFileInfo;
     }
 
 }

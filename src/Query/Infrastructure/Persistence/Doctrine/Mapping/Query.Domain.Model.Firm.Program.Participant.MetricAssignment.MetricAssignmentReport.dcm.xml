@@ -12,7 +12,7 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="observeTime" type="datetime_immutable" nullable="false"/>
+        <field name="observationTime" type="datetime_immutable" nullable="false"/>
         <field name="submitTime" type="datetime_immutable" nullable="false"/>
         <field name="removed" type="boolean" />
         
