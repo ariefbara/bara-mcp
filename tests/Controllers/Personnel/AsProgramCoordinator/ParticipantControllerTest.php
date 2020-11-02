@@ -5,7 +5,9 @@ namespace Tests\Controllers\Personnel\AsProgramCoordinator;
 use DateTime;
 use Tests\Controllers\RecordPreparation\ {
     Firm\Client\RecordOfClientParticipant,
+    Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue,
     Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField,
+    Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport,
     Firm\Program\Participant\RecordOfMetricAssignment,
     Firm\Program\RecordOfMetric,
     Firm\Program\RecordOfParticipant,
@@ -28,6 +30,11 @@ class ParticipantControllerTest extends ParticipantTestCase
     protected $assignmentField;
     protected $assignmentFieldOne;
     protected $assignMetricInput;
+    protected $metricAssignmentReport;
+    protected $metricAssignmentReportOne_last;
+    protected $metricAssignmentReportTwo;
+    protected $assignmentFieldValue_00;
+    protected $assignmentFieldValue_01;
 
     protected function setUp(): void
     {
@@ -39,6 +46,8 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->connection->table("Metric")->truncate();
         $this->connection->table("MetricAssignment")->truncate();
         $this->connection->table("AssignmentField")->truncate();
+        $this->connection->table("MetricAssignmentReport")->truncate();
+        $this->connection->table("AssignmentFieldValue")->truncate();
         
         $program = $this->coordinator->program;
         $firm = $program->firm;
@@ -79,6 +88,21 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
         $this->connection->table("AssignmentField")->insert($this->assignmentFieldOne->toArrayForDbEntry());
         
+        $this->metricAssignmentReport = new RecordOfMetricAssignmentReport($this->metricAssignment, 0);
+        $this->metricAssignmentReport->observationTime = (new DateTime("-2 months"))->format("Y-m-d H:i:s");
+        $this->metricAssignmentReportOne_last = new RecordOfMetricAssignmentReport($this->metricAssignment, 1);
+        $this->metricAssignmentReportOne_last->observationTime = (new DateTime("-2 days"))->format("Y-m-d H:i:s");
+        $this->metricAssignmentReportTwo = new RecordOfMetricAssignmentReport($this->metricAssignment, 2);
+        $this->metricAssignmentReportTwo->observationTime = (new DateTime("-2 weeks"))->format("Y-m-d H:i:s");
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReport->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne_last->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportTwo->toArrayForDbEntry());
+        
+        $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_last, $this->assignmentField, "00");
+        $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_last, $this->assignmentFieldOne, "01");
+        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
+        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
+        
         $this->assignMetricInput = [
             "startDate" => (new DateTime("+4 months"))->format("Y-m-d H:i:s"),
             "endDate" => (new DateTime("+6 months"))->format("Y-m-d H:i:s"),
@@ -105,6 +129,8 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Team')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table("MetricAssignmentReport")->truncate();
+        $this->connection->table("AssignmentFieldValue")->truncate();
     }
     
     public function test_show()
@@ -141,6 +167,24 @@ class ParticipantControllerTest extends ParticipantTestCase
                         ],
                     ],
                 ],
+                "lastMetricAssignmentReport" => [
+                    "id" => $this->metricAssignmentReportOne_last->id,
+                    "observationTime" => $this->metricAssignmentReportOne_last->observationTime,
+                    "submitTime" => $this->metricAssignmentReportOne_last->submitTime,
+                    "removed" => $this->metricAssignmentReportOne_last->removed,
+                    "assignmentFieldValues" => [
+                        [
+                            "id" => $this->assignmentFieldValue_00->id,
+                            "value" => $this->assignmentFieldValue_00->inputValue,
+                            "assignmentFieldId" => $this->assignmentFieldValue_00->assignmentField->id,
+                        ],
+                        [
+                            "id" => $this->assignmentFieldValue_01->id,
+                            "value" => $this->assignmentFieldValue_01->inputValue,
+                            "assignmentFieldId" => $this->assignmentFieldValue_01->assignmentField->id,
+                        ],
+                    ],
+                ],
             ],
         ];
         
@@ -173,7 +217,46 @@ class ParticipantControllerTest extends ParticipantTestCase
                     ],
                     "client" => null,
                     "team" => null,
-                    "hasMetricAssignment" => true,
+                    "metricAssignment" => [
+                        "startDate" => (new \DateTime($this->metricAssignment->startDate))->format("Y-m-d"),
+                        "endDate" => (new \DateTime($this->metricAssignment->endDate))->format("Y-m-d"),
+                        "assignmentFields" => [
+                            [
+                                "id" => $this->assignmentField->id,
+                                "target" => $this->assignmentField->target,
+                                "metric" => [
+                                    "id" => $this->assignmentField->metric->id,
+                                    "name" => $this->assignmentField->metric->name,
+                                ],
+                            ],
+                            [
+                                "id" => $this->assignmentFieldOne->id,
+                                "target" => $this->assignmentFieldOne->target,
+                                "metric" => [
+                                    "id" => $this->assignmentFieldOne->metric->id,
+                                    "name" => $this->assignmentFieldOne->metric->name,
+                                ],
+                            ],
+                        ],
+                        "lastMetricAssignmentReport" => [
+                            "id" => $this->metricAssignmentReportOne_last->id,
+                            "observationTime" => $this->metricAssignmentReportOne_last->observationTime,
+                            "submitTime" => $this->metricAssignmentReportOne_last->submitTime,
+                            "removed" => $this->metricAssignmentReportOne_last->removed,
+                            "assignmentFieldValues" => [
+                                [
+                                    "id" => $this->assignmentFieldValue_00->id,
+                                    "value" => $this->assignmentFieldValue_00->inputValue,
+                                    "assignmentFieldId" => $this->assignmentFieldValue_00->assignmentField->id,
+                                ],
+                                [
+                                    "id" => $this->assignmentFieldValue_01->id,
+                                    "value" => $this->assignmentFieldValue_01->inputValue,
+                                    "assignmentFieldId" => $this->assignmentFieldValue_01->assignmentField->id,
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 [
                     "id" => $this->participantOne_client->id,
@@ -186,7 +269,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                         "name" => $this->clientParticipant->client->getFullName(),
                     ],
                     "team" => null,
-                    "hasMetricAssignment" => false,
+                    "metricAssignment" => null,
                 ],
                 [
                     "id" => $this->participantTwo_team->id,
@@ -199,7 +282,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                         "id" => $this->teamParticipant->team->id,
                         "name" => $this->teamParticipant->team->name,
                     ],
-                    "hasMetricAssignment" => false,
+                    "metricAssignment" => null,
                 ],
             ],
         ];
@@ -223,7 +306,46 @@ class ParticipantControllerTest extends ParticipantTestCase
                     ],
                     "client" => null,
                     "team" => null,
-                    "hasMetricAssignment" => true,
+                    "metricAssignment" => [
+                        "startDate" => (new \DateTime($this->metricAssignment->startDate))->format("Y-m-d"),
+                        "endDate" => (new \DateTime($this->metricAssignment->endDate))->format("Y-m-d"),
+                        "assignmentFields" => [
+                            [
+                                "id" => $this->assignmentField->id,
+                                "target" => $this->assignmentField->target,
+                                "metric" => [
+                                    "id" => $this->assignmentField->metric->id,
+                                    "name" => $this->assignmentField->metric->name,
+                                ],
+                            ],
+                            [
+                                "id" => $this->assignmentFieldOne->id,
+                                "target" => $this->assignmentFieldOne->target,
+                                "metric" => [
+                                    "id" => $this->assignmentFieldOne->metric->id,
+                                    "name" => $this->assignmentFieldOne->metric->name,
+                                ],
+                            ],
+                        ],
+                        "lastMetricAssignmentReport" => [
+                            "id" => $this->metricAssignmentReportOne_last->id,
+                            "observationTime" => $this->metricAssignmentReportOne_last->observationTime,
+                            "submitTime" => $this->metricAssignmentReportOne_last->submitTime,
+                            "removed" => $this->metricAssignmentReportOne_last->removed,
+                            "assignmentFieldValues" => [
+                                [
+                                    "id" => $this->assignmentFieldValue_00->id,
+                                    "value" => $this->assignmentFieldValue_00->inputValue,
+                                    "assignmentFieldId" => $this->assignmentFieldValue_00->assignmentField->id,
+                                ],
+                                [
+                                    "id" => $this->assignmentFieldValue_01->id,
+                                    "value" => $this->assignmentFieldValue_01->inputValue,
+                                    "assignmentFieldId" => $this->assignmentFieldValue_01->assignmentField->id,
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 [
                     "id" => $this->participantTwo_team->id,
@@ -236,7 +358,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                         "id" => $this->teamParticipant->team->id,
                         "name" => $this->teamParticipant->team->name,
                     ],
-                    "hasMetricAssignment" => false,
+                    "metricAssignment" => null,
                 ],
             ],
         ];

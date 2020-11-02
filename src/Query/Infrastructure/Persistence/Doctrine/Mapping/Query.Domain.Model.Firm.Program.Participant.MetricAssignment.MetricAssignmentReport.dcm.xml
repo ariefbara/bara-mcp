@@ -7,6 +7,7 @@
         
         <many-to-one  field="metricAssignment" 
                       target-entity="Query\Domain\Model\Firm\Program\Participant\MetricAssignment"
+                      inversed-by="metricAssignmentReports"
         >
             <join-column name="MetricAssignment_id" referenced-column-name="id" />
         </many-to-one>

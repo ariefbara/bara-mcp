@@ -15,6 +15,8 @@ use Query\ {
     Domain\Model\Firm\Program\Participant,
     Domain\Model\Firm\Program\Participant\MetricAssignment,
     Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField,
+    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
+    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
@@ -57,16 +59,7 @@ class ParticipantController extends AsProgramCoordinatorBaseController
         $result = [];
         $result["total"] = count($participants);
         foreach ($participants as $participant) {
-            $result["list"][] = [
-                "id" => $participant->getId(),
-                "enrolledTime" => $participant->getEnrolledTimeString(),
-                "active" => $participant->isActive(),
-                "note" => $participant->getNote(),
-                "client" => $this->arrayDataOfClient($participant->getClientParticipant()),
-                "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
-                "team" => $this->arrayDataOfTeam($participant->getTeamParticipant()),
-                "hasMetricAssignment" => empty($participant->getMetricAssignment())? false: true,
-            ];
+            $result["list"][] = $this->arrayDataOfParticipant($participant);
         }
         return $this->listQueryResponse($result);
     }
@@ -130,6 +123,8 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "startDate" => $metricAssignment->getStartDateString(),
             "endDate" => $metricAssignment->getEndDateString(),
             "assignmentFields" => $assignmentFields,
+            "lastMetricAssignmentReport" => $this->arrayDataOfMetricAssignmentReport(
+                    $metricAssignment->getLastNonRemovedMetricAssignmentReports()),
         ];
     }
     protected function arrayDataOfAssignmentField(?AssignmentField $assignmentField): array
@@ -141,6 +136,32 @@ class ParticipantController extends AsProgramCoordinatorBaseController
                 "id" => $assignmentField->getMetric()->getId(),
                 "name" => $assignmentField->getMetric()->getName(),
             ],
+        ];
+    }
+    protected function arrayDataOfMetricAssignmentReport(?MetricAssignmentReport $metricAssignmentReport): ?array
+    {
+        if (empty($metricAssignmentReport)) {
+            return null;
+        }
+        $assignmentFieldValues = [];
+        foreach ($metricAssignmentReport->iterateNonremovedAssignmentFieldValues() as $assignmentFieldValue) {
+            $assignmentFieldValues[] = $this->arrayDataOfAssignmentFieldValue($assignmentFieldValue);
+        }
+        return [
+            "id" => $metricAssignmentReport->getId(),
+            "observationTime" => $metricAssignmentReport->getObservationTimeString(),
+            "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
+            "removed" => $metricAssignmentReport->isRemoved(),
+            "assignmentFieldValues" => $assignmentFieldValues,
+        ];
+    }
+
+    protected function arrayDataOfAssignmentFieldValue(AssignmentFieldValue $assignmentFieldValue): array
+    {
+        return [
+            "id" => $assignmentFieldValue->getId(),
+            "value" => $assignmentFieldValue->getValue(),
+            "assignmentFieldId" => $assignmentFieldValue->getAssignmentField()->getId(),
         ];
     }
 

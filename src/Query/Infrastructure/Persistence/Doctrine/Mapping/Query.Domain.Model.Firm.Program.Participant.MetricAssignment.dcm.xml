@@ -22,5 +22,10 @@
                      mapped-by="metricAssignment"
         />
         
+        <one-to-many field="metricAssignmentReports" 
+                     target-entity="Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport" 
+                     mapped-by="metricAssignment"
+        />
+        
     </entity>
 </doctrine-mapping>

@@ -6,7 +6,8 @@ use App\Http\Controllers\Personnel\AsProgramCoordinator\AsProgramCoordinatorBase
 use Query\ {
     Application\Service\Firm\Program\Participant\ViewMetricAssignmentReport,
     Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue
+    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
+    Domain\Model\Shared\FileInfo
 };
 
 class MetricAssignmentReportController extends AsProgramCoordinatorBaseController
@@ -30,12 +31,7 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
         $result = [];
         $result["total"] = count($metricAssignmentReports);
         foreach ($metricAssignmentReports as $metricAssignmentReport) {
-            $result["list"][] = [
-                "id" => $metricAssignmentReport->getId(),
-                "observationTime" => $metricAssignmentReport->getObservationTimeString(),
-                "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
-                "removed" => $metricAssignmentReport->isRemoved(),
-            ];
+            $result["list"][] = $this->arrayDataOfMetricAssignmentReport($metricAssignmentReport);
         }
         return $this->listQueryResponse($result);
     }
@@ -60,6 +56,8 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
         return [
             "id" => $assignmentFieldValue->getId(),
             "value" => $assignmentFieldValue->getValue(),
+            "note" => $assignmentFieldValue->getNote(),
+            "fileInfo" => $this->arrayDataOfFileInfo($assignmentFieldValue->getAttachedFileInfo()),
             "assignmentField" => [
                 "id" => $assignmentFieldValue->getAssignmentField()->getId(),
                 "target" => $assignmentFieldValue->getAssignmentField()->getTarget(),
@@ -70,6 +68,14 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
                     "maxValue" => $assignmentFieldValue->getAssignmentField()->getMetric()->getMaxValue(),
                 ],
             ],
+        ];
+    }
+
+    protected function arrayDataOfFileInfo(?FileInfo $attachedFileInfo): ?array
+    {
+        return empty($attachedFileInfo) ? null : [
+            "id" => $attachedFileInfo->getId(),
+            "path" => $attachedFileInfo->getFullyQualifiedFileName(),
         ];
     }
 
