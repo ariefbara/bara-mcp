@@ -338,12 +338,99 @@ $this->connection->table("AssignmentFieldValue")->truncate();
                     "observationTime" => $this->metricAssignmentReport->observationTime,
                     "submitTime" => $this->metricAssignmentReport->submitTime,
                     "removed" => $this->metricAssignmentReport->removed,
+                    "assignmentFieldValues" => [
+                        [
+                            "id" => $this->assignmentFieldValue_00->id,
+                            "value" => $this->assignmentFieldValue_00->inputValue,
+                            "note" => $this->assignmentFieldValue_00->note,
+                            "fileInfo" => [
+                                "id" => $this->assignmentFieldValue_00->attachedFileInfo->id,
+                                "path" => DIRECTORY_SEPARATOR . $this->assignmentFieldValue_00->attachedFileInfo->name,
+                            ],
+                            "assignmentField" => [
+                                "id" => $this->assignmentFieldValue_00->assignmentField->id,
+                                "target" => $this->assignmentFieldValue_00->assignmentField->target,
+                                "metric" => [
+                                    "id" => $this->assignmentFieldValue_00->assignmentField->metric->id,
+                                    "name" => $this->assignmentFieldValue_00->assignmentField->metric->name,
+                                    "minValue" => $this->assignmentFieldValue_00->assignmentField->metric->minValue,
+                                    "maxValue" => $this->assignmentFieldValue_00->assignmentField->metric->maxValue,
+                                ],
+                            ],
+                        ],
+                        [
+                            "id" => $this->assignmentFieldValue_01->id,
+                            "value" => $this->assignmentFieldValue_01->inputValue,
+                            "note" => $this->assignmentFieldValue_01->note,
+                            "fileInfo" => null,
+                            "assignmentField" => [
+                                "id" => $this->assignmentFieldValue_01->assignmentField->id,
+                                "target" => $this->assignmentFieldValue_01->assignmentField->target,
+                                "metric" => [
+                                    "id" => $this->assignmentFieldValue_01->assignmentField->metric->id,
+                                    "name" => $this->assignmentFieldValue_01->assignmentField->metric->name,
+                                    "minValue" => $this->assignmentFieldValue_01->assignmentField->metric->minValue,
+                                    "maxValue" => $this->assignmentFieldValue_01->assignmentField->metric->maxValue,
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
                 [
                     "id" => $this->metricAssignmentReportOne->id,
                     "observationTime" => $this->metricAssignmentReportOne->observationTime,
                     "submitTime" => $this->metricAssignmentReportOne->submitTime,
                     "removed" => $this->metricAssignmentReportOne->removed,
+                    "assignmentFieldValues" => [
+                        [
+                            "id" => $this->assignmentFieldValue_10->id,
+                            "value" => $this->assignmentFieldValue_10->inputValue,
+                            "note" => $this->assignmentFieldValue_10->note,
+                            "fileInfo" => null,
+                            "assignmentField" => [
+                                "id" => $this->assignmentFieldValue_10->assignmentField->id,
+                                "target" => $this->assignmentFieldValue_10->assignmentField->target,
+                                "metric" => [
+                                    "id" => $this->assignmentFieldValue_10->assignmentField->metric->id,
+                                    "name" => $this->assignmentFieldValue_10->assignmentField->metric->name,
+                                    "minValue" => $this->assignmentFieldValue_10->assignmentField->metric->minValue,
+                                    "maxValue" => $this->assignmentFieldValue_10->assignmentField->metric->maxValue,
+                                ],
+                            ],
+                        ],
+                        [
+                            "id" => $this->assignmentFieldValue_11->id,
+                            "value" => $this->assignmentFieldValue_11->inputValue,
+                            "note" => $this->assignmentFieldValue_11->note,
+                            "fileInfo" => null,
+                            "assignmentField" => [
+                                "id" => $this->assignmentFieldValue_11->assignmentField->id,
+                                "target" => $this->assignmentFieldValue_11->assignmentField->target,
+                                "metric" => [
+                                    "id" => $this->assignmentFieldValue_11->assignmentField->metric->id,
+                                    "name" => $this->assignmentFieldValue_11->assignmentField->metric->name,
+                                    "minValue" => $this->assignmentFieldValue_11->assignmentField->metric->minValue,
+                                    "maxValue" => $this->assignmentFieldValue_11->assignmentField->metric->maxValue,
+                                ],
+                            ],
+                        ],
+                        [
+                            "id" => $this->assignmentFieldValue_12->id,
+                            "value" => $this->assignmentFieldValue_12->inputValue,
+                            "note" => $this->assignmentFieldValue_12->note,
+                            "fileInfo" => null,
+                            "assignmentField" => [
+                                "id" => $this->assignmentFieldValue_12->assignmentField->id,
+                                "target" => $this->assignmentFieldValue_12->assignmentField->target,
+                                "metric" => [
+                                    "id" => $this->assignmentFieldValue_12->assignmentField->metric->id,
+                                    "name" => $this->assignmentFieldValue_12->assignmentField->metric->name,
+                                    "minValue" => $this->assignmentFieldValue_12->assignmentField->metric->minValue,
+                                    "maxValue" => $this->assignmentFieldValue_12->assignmentField->metric->maxValue,
+                                ],
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ];

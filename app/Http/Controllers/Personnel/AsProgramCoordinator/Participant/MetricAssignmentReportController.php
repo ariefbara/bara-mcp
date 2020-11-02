@@ -32,7 +32,7 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
         foreach ($metricAssignmentReports as $metricAssignmentReport) {
             $result["list"][] = [
                 "id" => $metricAssignmentReport->getId(),
-                "observeTime" => $metricAssignmentReport->getObserveTimeString(),
+                "observationTime" => $metricAssignmentReport->getObservationTimeString(),
                 "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
                 "removed" => $metricAssignmentReport->isRemoved(),
             ];
@@ -48,7 +48,7 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
         }
         return [
             "id" => $metricAssignmentReport->getId(),
-            "observeTime" => $metricAssignmentReport->getObserveTimeString(),
+            "observationTime" => $metricAssignmentReport->getObservationTimeString(),
             "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
             "removed" => $metricAssignmentReport->isRemoved(),
             "assignmentFieldValues" => $assignmentFieldValues,

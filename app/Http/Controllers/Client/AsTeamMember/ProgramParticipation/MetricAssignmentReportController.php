@@ -79,12 +79,7 @@ class MetricAssignmentReportController extends AsTeamMemberBaseController
         $result = [];
         $result["total"] = count($metricAssignmentReports);
         foreach ($metricAssignmentReports as $metricAssignmentReport) {
-            $result["list"][] = [
-                "id" => $metricAssignmentReport->getId(),
-                "observationTime" => $metricAssignmentReport->getObservationTimeString(),
-                "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
-                "removed" => $metricAssignmentReport->isRemoved(),
-            ];
+            $result["list"][] = $this->arrayDataOfMetricAssignmentReport($metricAssignmentReport);
         }
         return $this->listQueryResponse($result);
     }
