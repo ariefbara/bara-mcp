@@ -1,36 +1,36 @@
 <?php
 
-namespace App\Http\Controllers\Personnel\ProgramConsultation;
+namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\Personnel\PersonnelBaseController;
-use Query\ {
-    Application\Service\Firm\Personnel\ProgramConsultant\ViewInvitationForConsultant,
+use App\Http\Controllers\Client\ClientBaseController;
+use Query\{
+    Application\Service\Firm\Client\ProgramParticipation\ViewInvitationForClientParticipant,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerActivity,
     Domain\Model\Firm\Program\Consultant\ConsultantActivity,
-    Domain\Model\Firm\Program\Consultant\ConsultantInvitation,
     Domain\Model\Firm\Program\Coordinator\CoordinatorActivity,
     Domain\Model\Firm\Program\Participant\ParticipantActivity,
+    Domain\Model\Firm\Program\Participant\ParticipantInvitation,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
 
-class InvitationController extends PersonnelBaseController
+class InvitationController extends ClientBaseController
 {
 
-    public function show($programConsultationId, $invitationId)
+    public function show($programParticipationId, $invitationId)
     {
         $service = $this->buildViewService();
-        $invitation = $service->showById($this->firmId(), $this->personnelId(), $invitationId);
+        $invitation = $service->showById($this->firmId(), $this->clientId(), $invitationId);
 
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
 
-    public function showAll($programConsultationId)
+    public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
         $invitations = $service->showAll(
-                $this->firmId(), $this->personnelId(), $programConsultationId, $this->getPage(), $this->getPageSize());
+                $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result["total"] = count($invitations);
@@ -40,33 +40,33 @@ class InvitationController extends PersonnelBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfInvitation(ConsultantInvitation $consultantInvitation): array
+    protected function arrayDataOfInvitation(ParticipantInvitation $participantInvitation): array
     {
         return [
-            "id" => $consultantInvitation->getId(),
-            "willAttend" => $consultantInvitation->willAttend(),
-            "attended" => $consultantInvitation->isAttended(),
+            "id" => $participantInvitation->getId(),
+            "willAttend" => $participantInvitation->willAttend(),
+            "attended" => $participantInvitation->isAttended(),
             "activity" => [
-                "id" => $consultantInvitation->getActivity()->getId(),
-                "name" => $consultantInvitation->getActivity()->getName(),
-                "description" => $consultantInvitation->getActivity()->getDescription(),
-                "location" => $consultantInvitation->getActivity()->getLocation(),
-                "note" => $consultantInvitation->getActivity()->getNote(),
-                "startTime" => $consultantInvitation->getActivity()->getStartTimeString(),
-                "endTime" => $consultantInvitation->getActivity()->getEndTimeString(),
-                "cancelled" => $consultantInvitation->getActivity()->isCancelled(),
+                "id" => $participantInvitation->getActivity()->getId(),
+                "name" => $participantInvitation->getActivity()->getName(),
+                "description" => $participantInvitation->getActivity()->getDescription(),
+                "location" => $participantInvitation->getActivity()->getLocation(),
+                "note" => $participantInvitation->getActivity()->getNote(),
+                "startTime" => $participantInvitation->getActivity()->getStartTimeString(),
+                "endTime" => $participantInvitation->getActivity()->getEndTimeString(),
+                "cancelled" => $participantInvitation->getActivity()->isCancelled(),
                 "program" => [
-                    "id" => $consultantInvitation->getActivity()->getProgram()->getId(),
-                    "name" => $consultantInvitation->getActivity()->getProgram()->getName(),
+                    "id" => $participantInvitation->getActivity()->getProgram()->getId(),
+                    "name" => $participantInvitation->getActivity()->getProgram()->getName(),
                 ],
                 "activityType" => [
-                    "id" => $consultantInvitation->getActivity()->getActivityType()->getId(),
-                    "name" => $consultantInvitation->getActivity()->getActivityType()->getName(),
+                    "id" => $participantInvitation->getActivity()->getActivityType()->getId(),
+                    "name" => $participantInvitation->getActivity()->getActivityType()->getName(),
                 ],
-                "manager" => $this->arrayDataOfManager($consultantInvitation->getActivity()->getManagerActivity()),
-                "coordinator" => $this->arrayDataOfCoordinator($consultantInvitation->getActivity()->getCoordinatorActivity()),
-                "consultant" => $this->arrayDataOfConsultant($consultantInvitation->getActivity()->getConsultantActivity()),
-                "participant" => $this->arrayDataOfParticipant($consultantInvitation->getActivity()->getParticipantActivity()),
+                "manager" => $this->arrayDataOfManager($participantInvitation->getActivity()->getManagerActivity()),
+                "coordinator" => $this->arrayDataOfCoordinator($participantInvitation->getActivity()->getCoordinatorActivity()),
+                "consultant" => $this->arrayDataOfConsultant($participantInvitation->getActivity()->getConsultantActivity()),
+                "participant" => $this->arrayDataOfParticipant($participantInvitation->getActivity()->getParticipantActivity()),
             ],
         ];
     }
@@ -137,9 +137,8 @@ class InvitationController extends PersonnelBaseController
 
     protected function buildViewService()
     {
-        $consultantInvitataionRepository = $this->em->getRepository(ConsultantInvitation::class);
-        
-        return new ViewInvitationForConsultant($consultantInvitataionRepository);
+        $participantInvitationRepository = $this->em->getRepository(ParticipantInvitation::class);
+        return new ViewInvitationForClientParticipant($participantInvitationRepository);
     }
 
 }
