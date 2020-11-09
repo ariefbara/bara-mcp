@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Personnel\Coordinator\Activity;
+namespace App\Http\Controllers\Personnel\ProgramConsultation\Activity;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
-use Query\{
-    Application\Service\Firm\Personnel\ProgramCoordinator\Activity\ViewInvitation,
+use Query\ {
+    Application\Service\Firm\Personnel\ProgramConsultant\Activity\ViewInvitation,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerInvitation,
     Domain\Model\Firm\Program\Activity\Invitation,
