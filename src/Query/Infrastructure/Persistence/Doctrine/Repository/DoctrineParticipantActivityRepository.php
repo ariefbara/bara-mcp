@@ -44,7 +44,7 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         $qb = $this->createQueryBuilder("participantActivity");
         $qb->select("participantActivity")
                 ->leftJoin("participantActivity.participant", "participant")
-                ->andWhere($qb->expr()->in("participant.id", ":participantId"))
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -71,7 +71,7 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         $qb->select("participantActivity")
                 ->andWhere($qb->expr()->eq("participantActivity.id", ":activityId"))
                 ->leftJoin("participantActivity.participant", "participant")
-                ->andWhere($qb->expr()->in("participant.id", ":participantId"))
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 
@@ -103,7 +103,7 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         $qb = $this->createQueryBuilder("participantActivity");
         $qb->select("participantActivity")
                 ->leftJoin("participantActivity.participant", "participant")
-                ->andWhere($qb->expr()->in("participant.id", ":participantId"))
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -127,7 +127,7 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         $qb->select("participantActivity")
                 ->andWhere($qb->expr()->eq("participantActivity.id", ":activityId"))
                 ->leftJoin("participantActivity.participant", "participant")
-                ->andWhere($qb->expr()->in("participant.id", ":participantId"))
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 
@@ -162,7 +162,7 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         $qb = $this->createQueryBuilder("participantActivity");
         $qb->select("participantActivity")
                 ->leftJoin("participantActivity.participant", "participant")
-                ->andWhere($qb->expr()->in("participant.id", ":participantId"))
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -189,7 +189,7 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         $qb->select("participantActivity")
                 ->andWhere($qb->expr()->eq("participantActivity.id", ":activityId"))
                 ->leftJoin("participantActivity.participant", "participant")
-                ->andWhere($qb->expr()->in("participant.id", ":participantId"))
+                ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
 

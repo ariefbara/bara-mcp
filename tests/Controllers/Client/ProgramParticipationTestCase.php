@@ -29,10 +29,10 @@ class ProgramParticipationTestCase extends ClientTestCase
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
 
-        $program = new RecordOfProgram($this->client->firm, 0);
+        $program = new RecordOfProgram($this->client->firm, 999);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
 
-        $participant = new RecordOfParticipant($program, 0);
+        $participant = new RecordOfParticipant($program, 999);
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
 
         $this->programParticipation = new RecordOfClientParticipant($this->client, $participant);

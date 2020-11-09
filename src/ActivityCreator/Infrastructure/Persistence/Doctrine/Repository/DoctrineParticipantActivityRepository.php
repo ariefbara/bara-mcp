@@ -46,9 +46,9 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         ];
         
         $participantQb = $this->getEntityManager()->createQueryBuilder();
-        $participantQb->select("participant.id")
+        $participantQb->select("t_participant.id")
                 ->from(ClientParticipant::class, "programParticipation")
-                ->leftJoin("programParticipation.participant", "participant")
+                ->leftJoin("programParticipation.participant", "t_participant")
                 ->leftJoin("programParticipation.client", "client")
                 ->andWhere($participantQb->expr()->eq("client.id", ":clientId"))
                 ->andWhere($participantQb->expr()->eq("client.firmId", ":firmId"));
@@ -77,9 +77,9 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         ];
         
         $participantQb = $this->getEntityManager()->createQueryBuilder();
-        $participantQb->select("participant.id")
+        $participantQb->select("t_participant.id")
                 ->from(UserParticipant::class, "programParticipation")
-                ->leftJoin("programParticipation.participant", "participant")
+                ->leftJoin("programParticipation.participant", "t_participant")
                 ->andWhere($participantQb->expr()->eq("programParticipation.userId", ":userId"));
         
         $qb = $this->createQueryBuilder("participantActivity");
