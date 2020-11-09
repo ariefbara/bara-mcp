@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Client\ProgramParticipation\Activity;
+namespace App\Http\Controllers\User\ProgramParticipation\Activity;
 
-use App\Http\Controllers\Client\ClientBaseController;
+use App\Http\Controllers\User\UserBaseController;
 use Query\ {
-    Application\Service\Firm\Client\ProgramParticipation\Activity\ViewInvitation,
+    Application\Service\User\ProgramParticipation\Activity\ViewInvitation,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerInvitation,
     Domain\Model\Firm\Program\Activity\Invitation,
@@ -15,21 +15,20 @@ use Query\ {
     Domain\Model\User\UserParticipant
 };
 
-class InviteeController extends ClientBaseController
+class InviteeController extends UserBaseController
 {
 
     public function show($inviteeId)
     {
         $service = $this->buildViewService();
-        $invitation = $service->showById($this->firmId(), $this->clientId(), $inviteeId);
+        $invitation = $service->showById($this->userId(), $inviteeId);
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
 
     public function showAll($activityId)
     {
         $service = $this->buildViewService();
-        $invitations = $service->showAll(
-                $this->firmId(), $this->clientId(), $activityId, $this->getPage(), $this->getPageSize());
+        $invitations = $service->showAll($this->userId(), $activityId, $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result["total"] = count($invitations);

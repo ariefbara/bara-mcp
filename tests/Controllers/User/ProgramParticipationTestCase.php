@@ -29,13 +29,13 @@ class ProgramParticipationTestCase extends UserTestCase
         $this->connection->table('UserParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
         
-        $firm = new RecordOfFirm(0, 'firm-0-identifier');
+        $firm = new RecordOfFirm(999, 'firm-999-identifier');
         $this->connection->table('Firm')->insert($firm->toArrayForDbEntry());
         
-        $program = new RecordOfProgram($firm, 0);
+        $program = new RecordOfProgram($firm, 999);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
         
-        $participant = new RecordOfParticipant($program, 0);
+        $participant = new RecordOfParticipant($program, 999);
         $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
         
         $this->programParticipation = new RecordOfUserParticipant($this->user, $participant);
