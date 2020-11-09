@@ -140,6 +140,18 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{activityId}", ["uses" => "$controller@show"]);
     });
     
+    $activityAggregate = [
+        'prefix' => '/activities/{activityId}',
+        'namespace' => 'Activity',
+    ];
+    $router->group($activityAggregate, function () use ($router) {
+        $router->group(['prefix' => '/invitees'], function () use($router) {
+            $controller = "InviteeController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{inviteeId}", ["uses" => "$controller@show"]);
+        });
+    });
+    
     $router->group(['prefix' => '/invitations'], function () use($router) {
         $controller = "InvitationController";
         $router->post("", ["uses" => "$controller@initiate"]);
@@ -147,5 +159,6 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
         $router->get("/{invitationId}", ["uses" => "$controller@show"]);
     });
+    
 });
 

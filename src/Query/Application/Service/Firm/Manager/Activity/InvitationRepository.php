@@ -1,6 +1,6 @@
 <?php
 
-namespace Query\Domain\Model\Firm\Manager\Activity;
+namespace Query\Application\Service\Firm\Manager\Activity;
 
 use Query\Domain\Model\Firm\Program\Activity\Invitation;
 

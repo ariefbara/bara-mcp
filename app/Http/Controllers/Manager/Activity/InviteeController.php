@@ -3,24 +3,24 @@
 namespace App\Http\Controllers\Manager\Activity;
 
 use App\Http\Controllers\Manager\ManagerBaseController;
-use Query\Domain\Model\ {
-    Firm\Client\ClientParticipant,
-    Firm\Manager\Activity\ViewInvitation,
-    Firm\Manager\ManagerInvitation,
-    Firm\Program\Activity\Invitation,
-    Firm\Program\Consultant\ConsultantInvitation,
-    Firm\Program\Coordinator\CoordinatorInvitation,
-    Firm\Program\Participant\ParticipantInvitation,
-    Firm\Team\TeamProgramParticipation,
-    User\UserParticipant
+use Query\ {
+    Application\Service\Firm\Manager\Activity\ViewInvitation,
+    Domain\Model\Firm\Client\ClientParticipant,
+    Domain\Model\Firm\Manager\ManagerInvitation,
+    Domain\Model\Firm\Program\Activity\Invitation,
+    Domain\Model\Firm\Program\Consultant\ConsultantInvitation,
+    Domain\Model\Firm\Program\Coordinator\CoordinatorInvitation,
+    Domain\Model\Firm\Program\Participant\ParticipantInvitation,
+    Domain\Model\Firm\Team\TeamProgramParticipation,
+    Domain\Model\User\UserParticipant
 };
 
 class InviteeController extends ManagerBaseController
 {
-    public function show($invitationId)
+    public function show($inviteeId)
     {
         $service = $this->buildViewService();
-        $invitation = $service->showById($this->firmId(), $this->managerId(), $invitationId);
+        $invitation = $service->showById($this->firmId(), $this->managerId(), $inviteeId);
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
     public function showAll($activityId)
