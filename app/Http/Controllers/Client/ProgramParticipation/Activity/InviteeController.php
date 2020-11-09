@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Personnel\ProgramConsultation\Activity;
+namespace App\Http\Controllers\Client\ProgramParticipation\Activity;
 
-use App\Http\Controllers\Personnel\PersonnelBaseController;
+use App\Http\Controllers\Client\ClientBaseController;
 use Query\ {
-    Application\Service\Firm\Personnel\ProgramConsultant\Activity\ViewInvitation,
+    Application\Service\Firm\Client\ProgramParticipation\Activity\ViewInvitation,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerInvitation,
     Domain\Model\Firm\Program\Activity\Invitation,
@@ -15,13 +15,13 @@ use Query\ {
     Domain\Model\User\UserParticipant
 };
 
-class InviteeController extends PersonnelBaseController
+class InviteeController extends ClientBaseController
 {
 
     public function show($inviteeId)
     {
         $service = $this->buildViewService();
-        $invitation = $service->showById($this->firmId(), $this->personnelId(), $inviteeId);
+        $invitation = $service->showById($this->firmId(), $this->clientId(), $inviteeId);
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
 
@@ -29,7 +29,7 @@ class InviteeController extends PersonnelBaseController
     {
         $service = $this->buildViewService();
         $invitations = $service->showAll(
-                $this->firmId(), $this->personnelId(), $activityId, $this->getPage(), $this->getPageSize());
+                $this->firmId(), $this->clientId(), $activityId, $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result["total"] = count($invitations);
