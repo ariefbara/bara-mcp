@@ -147,18 +147,49 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{consultationRequestId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
         $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
             $controller = "ConsultationSessionController";
             $router->put("/{consultationSessionId}/submit-report", ["uses" => "$controller@setConsultantFeedback"]);
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
         $router->group(['prefix' => '/consultant-comments'], function () use($router) {
             $controller = "ConsultantCommentController";
             $router->post("/new", ["uses" => "$controller@submitNew"]);
             $router->post("/reply", ["uses" => "$controller@submitReply"]);
             $router->delete("/{consultantCommentId}", ["uses" => "$controller@remove"]);
         });
+        
+        $router->group(['prefix' => '/activities'], function () use($router) {
+            $controller = "ActivityController";
+            $router->post("", ["uses" => "$controller@initiate"]);
+            $router->patch("/{activityId}", ["uses" => "$controller@update"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{activityId}", ["uses" => "$controller@show"]);
+        });
+
+        $activityAggregate = [
+            'prefix' => '/activities/{activityId}',
+            'namespace' => 'Activity',
+        ];
+        $router->group($activityAggregate, function () use ($router) {
+            $router->group(['prefix' => '/invitees'], function () use($router) {
+                $controller = "InviteeController";
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{inviteeId}", ["uses" => "$controller@show"]);
+            });
+        });
+
+        $router->group(['prefix' => '/invitations'], function () use($router) {
+            $controller = "InvitationController";
+            $router->post("", ["uses" => "$controller@initiate"]);
+            $router->patch("/{invitationId}", ["uses" => "$controller@update"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{invitationId}", ["uses" => "$controller@show"]);
+        });
+        
     });
     
     $coordinatorAggregate = [

@@ -18,9 +18,9 @@ class UpdateActivity
      */
     protected $dispatcher;
 
-    function __construct(ConsultantActivityRepository $activityRepository, Dispatcher $dispatcher)
+    function __construct(ConsultantActivityRepository $consultantActivityRepository, Dispatcher $dispatcher)
     {
-        $this->consultantActivityRepository = $activityRepository;
+        $this->consultantActivityRepository = $consultantActivityRepository;
         $this->dispatcher = $dispatcher;
     }
 

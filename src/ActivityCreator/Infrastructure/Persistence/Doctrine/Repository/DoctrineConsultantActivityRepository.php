@@ -29,11 +29,11 @@ class DoctrineConsultantActivityRepository extends EntityRepository implements C
 
         $qb = $this->createQueryBuilder("consultantActivity");
         $qb->select("consultantActivity")
-                ->andHaving($qb->expr()->eq("consultantActivity.id", ":consultantActivityId"))
+                ->andWhere($qb->expr()->eq("consultantActivity.id", ":consultantActivityId"))
                 ->leftJoin("consultantActivity.consultant", "consultant")
                 ->leftJoin("consultant.personnel", "personnel")
-                ->andHaving($qb->expr()->eq("personnel.id", ":personnelId"))
-                ->andHaving($qb->expr()->eq("personnel.firmId", ":firmId"))
+                ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
+                ->andWhere($qb->expr()->eq("personnel.firmId", ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
 
