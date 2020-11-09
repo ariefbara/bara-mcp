@@ -24,7 +24,7 @@ class ViewProgramParticipation
      * @param string $clientId
      * @param int $page
      * @param int $pageSize
-     * @return ClientParticipant[]
+     * @return UserParticipant[]
      */
     public function showAll(string $firmId, string $clientId, int $page, int $pageSize)
     {

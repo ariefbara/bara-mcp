@@ -40,4 +40,14 @@ class ActivityParticipant
         
     }
 
+    public function canInitiateAndTypeEquals(ActivityParticipantType $activityParticipantType): bool
+    {
+        return $this->participantPriviledge->canInitiate() && $this->participantType->sameValueAs($activityParticipantType);
+    }
+    
+    public function canAttendAndTypeEquals(ActivityParticipantType $activityParticipantType): bool
+    {
+        return $this->participantPriviledge->canAttend() && $this->participantType->sameValueAs($activityParticipantType);
+    }
+
 }

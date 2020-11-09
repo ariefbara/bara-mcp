@@ -6,25 +6,29 @@ use Tests\TestBase;
 
 class ActivityParticipantTypeTest extends TestBase
 {
-    protected $participantTYpe = "coordinator";
-    
+    protected $participantType;
+    protected $activityParticipantType;
+
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->participantType = ActivityParticipantType::COORDINATOR;
+        $this->activityParticipantType = new TestableActivityParticipantType(ActivityParticipantType::COORDINATOR);
     }
     
     protected function executeConstruct()
     {
-        return new TestableActivityParticipantType($this->participantTYpe);
+        return new TestableActivityParticipantType($this->participantType);
     }
     public function test_construct_setProperties()
     {
         $activityParticipantType = $this->executeConstruct();
-        $this->assertEquals($this->participantTYpe, $activityParticipantType->participantType);
+        $this->assertEquals($this->participantType, $activityParticipantType->participantType);
     }
     public function test_construct_invalidType_badRequest()
     {
-        $this->participantTYpe = "invalid";
+        $this->participantType = "invalid";
         $operation = function (){
             $this->executeConstruct();
         };
@@ -33,13 +37,23 @@ class ActivityParticipantTypeTest extends TestBase
     }
     public function test_construct_otherValidType()
     {
-        $this->participantTYpe = "manager";
+        $this->participantType = ActivityParticipantType::MANAGER;
         $this->executeConstruct();
-        $this->participantTYpe = "consultant";
+        $this->participantType = ActivityParticipantType::CONSULTANT;
         $this->executeConstruct();
-        $this->participantTYpe = "participant";
+        $this->participantType = ActivityParticipantType::PARTICIPANT;
         $this->executeConstruct();
         $this->markAsSuccess();
+    }
+    
+    public function test_sameValueAs_sameType_returnTrue()
+    {
+        $this->assertTrue($this->activityParticipantType->sameValueAs($this->activityParticipantType));
+    }
+    public function test_sameValueAs_differentType_returnFalse()
+    {
+        $other = new ActivityParticipantType(ActivityParticipantType::CONSULTANT);
+        $this->assertFalse($this->activityParticipantType->sameValueAs($other));
     }
 }
 

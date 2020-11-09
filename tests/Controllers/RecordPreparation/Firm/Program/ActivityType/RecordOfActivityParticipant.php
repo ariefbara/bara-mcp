@@ -25,7 +25,7 @@ class RecordOfActivityParticipant implements Record
     public $canInitiate;
     public $canAttend;
     
-    function __construct(RecordOfActivityType $activityType, RecordOfFeedbackForm $feedbackForm, $index)
+    function __construct(RecordOfActivityType $activityType, ?RecordOfFeedbackForm $feedbackForm, $index)
     {
         $this->activityType = $activityType;
         $this->feedbackForm = $feedbackForm;
@@ -40,7 +40,7 @@ class RecordOfActivityParticipant implements Record
     {
         return [
             "ActivityType_id" => $this->activityType->id,
-            "FeedbackForm_id" => $this->feedbackForm->id,
+            "FeedbackForm_id" => isset($this->feedbackForm)? $this->feedbackForm->id: null,
             "id" => $this->id,
             "participantType" => $this->participantType,
             "canInitiate" => $this->canInitiate,

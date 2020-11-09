@@ -55,7 +55,7 @@ class Participant extends EntityContainEvents
 
     /**
      *
-     * @var ClientParticipant||null
+     * @var UserParticipant||null
      */
     protected $clientParticipant;
 

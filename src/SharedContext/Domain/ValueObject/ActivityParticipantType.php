@@ -10,6 +10,10 @@ use Resources\ {
 class ActivityParticipantType
 {
     
+    public const COORDINATOR = "coordinator";
+    public const MANAGER = "manager";
+    public const CONSULTANT = "consultant";
+    public const PARTICIPANT = "participant";
     private const VALID_PARTICIPANT_TYPE = [
         "coordinator",
         "manager",
@@ -35,6 +39,11 @@ class ActivityParticipantType
                 ->addRule(ValidationRule::in(self::VALID_PARTICIPANT_TYPE))
                 ->execute($participantType, $errorDetail);
         $this->participantType = $participantType;
+    }
+    
+    public function sameValueAs(ActivityParticipantType $other): bool
+    {
+        return $this->participantType === $other->participantType;
     }
 
 }

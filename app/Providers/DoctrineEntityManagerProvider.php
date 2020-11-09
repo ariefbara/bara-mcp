@@ -11,6 +11,7 @@ class DoctrineEntityManagerProvider extends ServiceProvider
     const PATH = [ 
         BASE_PATH . "/resources/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/Query/Infrastructure/Persistence/Doctrine/Mapping",
+        BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
         BASE_PATH . "/src/Bara/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/Firm/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/Client/Infrastructure/Persistence/Doctrine/Mapping",
@@ -19,8 +20,8 @@ class DoctrineEntityManagerProvider extends ServiceProvider
         BASE_PATH . "/src/Participant/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/Notification/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping",
-        BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
         BASE_PATH . "/src/Team/Infrastructure/Persistence/Doctrine/Mapping",
+        BASE_PATH . "/src/ActivityCreator/Infrastructure/Persistence/Doctrine/Mapping",
     ];
 
     public function register()

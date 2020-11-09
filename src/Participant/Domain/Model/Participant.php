@@ -84,7 +84,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
 
     /**
      *
-     * @var ClientParticipant|null
+     * @var UserParticipant|null
      */
     protected $clientParticipant;
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityCreator\Domain\DependencyModel\Firm\Program\ActivityType" 
+            table="ActivityType"
+            repository-class="ActivityCreator\Infrastructure\Persistence\Doctrine\Repository\DoctrineActivityTypeRepository"  
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="ActivityCreator\Domain\DependencyModel\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-many field="participants"
+                     target-entity="ActivityCreator\Domain\DependencyModel\Firm\Program\ActivityType\ActivityParticipant"
+                     mapped-by="activityType"
+        />
+        
+    </entity>
+</doctrine-mapping>

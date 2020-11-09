@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Consultant\ConsultantActivity" 
+            table="ConsultantActivity" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultantActivityRepository" 
+    >
+        
+        <many-to-one  field="consultant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one  field="activity" 
+                     target-entity="Query\Domain\Model\Firm\Program\Activity"
+        >
+            <join-column name="Activity_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

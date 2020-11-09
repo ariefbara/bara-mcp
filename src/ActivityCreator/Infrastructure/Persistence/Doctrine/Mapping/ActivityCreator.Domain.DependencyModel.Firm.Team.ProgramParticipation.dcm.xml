@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityCreator\Domain\DependencyModel\Firm\Team\ProgramParticipation" 
+            table="TeamParticipant" 
+            repository-class="ActivityCreator\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamParticipantRepository"
+    >
+        
+        <field name="teamId" column="Team_id" type="guid" />
+        <id name="id" type="guid" />
+        
+        <one-to-one field="participant" 
+                    target-entity="ActivityCreator\Domain\DependencyModel\Firm\Program\Participant"
+                    inversed-by="teamParticipant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

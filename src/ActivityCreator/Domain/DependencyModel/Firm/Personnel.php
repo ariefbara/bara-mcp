@@ -2,6 +2,8 @@
 
 namespace ActivityCreator\Domain\DependencyModel\Firm;
 
+use ActivityCreator\Domain\Model\Activity;
+
 class Personnel
 {
 

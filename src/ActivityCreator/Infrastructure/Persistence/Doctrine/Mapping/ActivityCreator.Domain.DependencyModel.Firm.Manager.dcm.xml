@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityCreator\Domain\DependencyModel\Firm\Manager" 
+            table="Manager"
+            repository-class="ActivityCreator\Infrastructure\Persistence\Doctrine\Repository\DoctrineManagerRepository"
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" />
+        
+        <id name="id" type="guid" />
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

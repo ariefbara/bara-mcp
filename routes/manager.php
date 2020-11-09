@@ -23,6 +23,7 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{feedbackFormId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $router->group(['prefix' => '/worksheet-forms'], function () use($router) {
         $controller = "WorksheetFormController";
         $router->post("", ["uses" => "$controller@add"]);
@@ -31,6 +32,7 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{worksheetFormId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $router->group(['prefix' => '/personnels'], function () use($router) {
         $controller = "PersonnelController";
         $router->post("", ["uses" => "$controller@add"]);
@@ -39,6 +41,7 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{personnelId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $router->group(['prefix' => '/programs'], function () use($router) {
         $controller = "ProgramController";
         $router->post("", ["uses" => "$controller@add"]);
@@ -48,6 +51,7 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{programId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    
     $programAggregate = [
         'prefix' => '/programs/{programId}',
         'namespace' => 'Program',
@@ -126,6 +130,14 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{activityTypeId}", ["uses" => "$controller@show"]);
         });
+    });
+    
+    $router->group(['prefix' => '/activities'], function () use($router) {
+        $controller = "ActivityController";
+        $router->post("", ["uses" => "$controller@initiate"]);
+        $router->patch("/{activityId}", ["uses" => "$controller@update"]);
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{activityId}", ["uses" => "$controller@show"]);
     });
 });
 

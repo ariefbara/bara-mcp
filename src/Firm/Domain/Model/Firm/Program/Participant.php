@@ -50,7 +50,7 @@ class Participant implements AssetInProgram
 
     /**
      *
-     * @var ClientParticipant|null
+     * @var UserParticipant|null
      */
     protected $clientParticipant;
 
