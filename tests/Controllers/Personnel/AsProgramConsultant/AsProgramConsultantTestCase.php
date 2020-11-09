@@ -29,14 +29,14 @@ class AsProgramConsultantTestCase extends PersonnelTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('Consultant')->truncate();
         
-        $program = new RecordOfProgram($this->personnel->firm, 0);
+        $program = new RecordOfProgram($this->personnel->firm, 999);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
         
-        $personnel = new RecordOfPersonnel($this->personnel->firm, 1, 'removedPersonnel@email.org', 'password123');
+        $personnel = new RecordOfPersonnel($this->personnel->firm, 99, 'removedPersonnel@email.org', 'password123');
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
-        $this->consultant = new RecordOfConsultant($program, $this->personnel, 0);
-        $this->removedConsultant = new RecordOfConsultant($program, $personnel, 1);
+        $this->consultant = new RecordOfConsultant($program, $this->personnel, 999);
+        $this->removedConsultant = new RecordOfConsultant($program, $personnel, 998);
         $this->removedConsultant->removed = true;
         $this->connection->table('Consultant')->insert($this->consultant->toArrayForDbEntry());
         $this->connection->table('Consultant')->insert($this->removedConsultant->toArrayForDbEntry());
