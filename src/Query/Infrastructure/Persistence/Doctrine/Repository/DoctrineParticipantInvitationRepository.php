@@ -2,11 +2,11 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Program\Participant\ParticipantInvitationRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant\ParticipantActivity,
@@ -14,7 +14,7 @@ use Query\ {
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
@@ -140,15 +140,15 @@ class DoctrineParticipantInvitationRepository extends EntityRepository implement
         }
     }
 
-    public function allActivitiesInTeamProgramParticipation(string $firmId, string $teamId,
-            string $programParticipationId, int $page, int $pageSize)
+    public function allInvitationsForTeamParticipant(
+            string $firmId, string $teamId, string $programParticipationId, int $page, int $pageSize)
     {
         $params = [
             "firmId" => $firmId,
             "teamId" => $teamId,
             "programParticipationId" => $programParticipationId,
         ];
-
+        
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("t_participant.id")
                 ->from(TeamProgramParticipation::class, "programParticipation")
@@ -169,14 +169,14 @@ class DoctrineParticipantInvitationRepository extends EntityRepository implement
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function anActivityBelongsToTeam(string $firmId, string $teamId, string $activityId): ParticipantActivity
+    public function anInvitationForTeam(string $firmId, string $teamId, string $invitationId): ParticipantInvitation
     {
         $params = [
             "firmId" => $firmId,
             "teamId" => $teamId,
             "invitationId" => $invitationId,
         ];
-
+        
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("t_participant.id")
                 ->from(TeamProgramParticipation::class, "programParticipation")

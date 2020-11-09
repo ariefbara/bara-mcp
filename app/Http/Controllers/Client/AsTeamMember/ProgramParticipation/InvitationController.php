@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Client\ProgramParticipation;
+namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation;
 
-use App\Http\Controllers\Client\ClientBaseController;
-use Query\{
-    Application\Service\Firm\Client\ProgramParticipation\ViewInvitationForClientParticipant,
+use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
+use Query\ {
+    Application\Service\Firm\Team\ProgramParticipation\ViewInvitationForTeamParticipant,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerActivity,
     Domain\Model\Firm\Program\Consultant\ConsultantActivity,
@@ -15,22 +15,24 @@ use Query\{
     Domain\Model\User\UserParticipant
 };
 
-class InvitationController extends ClientBaseController
+class InvitationController extends AsTeamMemberBaseController
 {
 
-    public function show($programParticipationId, $invitationId)
+    public function show($teamId, $teamProgramParticipationId, $invitationId)
     {
+        $this->authorizeClientIsActiveTeamMember($teamId);
         $service = $this->buildViewService();
-        $invitation = $service->showById($this->firmId(), $this->clientId(), $invitationId);
+        $invitation = $service->showById($this->firmId(), $teamId, $invitationId);
 
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
 
-    public function showAll($programParticipationId)
+    public function showAll($teamId, $teamProgramParticipationId)
     {
+        $this->authorizeClientIsActiveTeamMember($teamId);
         $service = $this->buildViewService();
         $invitations = $service->showAll(
-                $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize());
+                $this->firmId(), $teamId, $teamProgramParticipationId, $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result["total"] = count($invitations);
@@ -138,7 +140,7 @@ class InvitationController extends ClientBaseController
     protected function buildViewService()
     {
         $participantInvitationRepository = $this->em->getRepository(ParticipantInvitation::class);
-        return new ViewInvitationForClientParticipant($participantInvitationRepository);
+        return new ViewInvitationForTeamParticipant($participantInvitationRepository);
     }
 
 }
