@@ -33,7 +33,7 @@ class DoctrineCoordinatorActivityRepository extends EntityRepository implements 
                 ->andWhere($qb->expr()->eq("coordinator.id", ":coordinatorId"))
                 ->leftJoin("coordinator.personnel", "personnel")
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
-                ->leftJoin("coordinator.firm", "firm")
+                ->leftJoin("personnel.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
         
@@ -54,7 +54,7 @@ class DoctrineCoordinatorActivityRepository extends EntityRepository implements 
                 ->leftJoin("coordinatorActivity.coordinator", "coordinator")
                 ->leftJoin("coordinator.personnel", "personnel")
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
-                ->leftJoin("coordinator.firm", "firm")
+                ->leftJoin("personnel.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
