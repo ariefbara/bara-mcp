@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Client\ProgramParticipation;
+namespace App\Http\Controllers\User\ProgramParticipation;
 
-use App\Http\Controllers\Client\ClientBaseController;
+use App\Http\Controllers\User\UserBaseController;
 use Query\{
-    Application\Service\Firm\Client\ProgramParticipation\ViewInvitationForClientParticipant,
+    Application\Service\User\ProgramParticipation\ViewInvitationForUserParticipant,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerActivity,
     Domain\Model\Firm\Program\Consultant\ConsultantActivity,
@@ -15,13 +15,13 @@ use Query\{
     Domain\Model\User\UserParticipant
 };
 
-class InvitationController extends ClientBaseController
+class InvitationController extends UserBaseController
 {
 
     public function show($programParticipationId, $invitationId)
     {
         $service = $this->buildViewService();
-        $invitation = $service->showById($this->firmId(), $this->clientId(), $invitationId);
+        $invitation = $service->showById($this->userId(), $invitationId);
 
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
@@ -30,7 +30,7 @@ class InvitationController extends ClientBaseController
     {
         $service = $this->buildViewService();
         $invitations = $service->showAll(
-                $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize());
+                $this->userId(), $programParticipationId, $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result["total"] = count($invitations);
@@ -138,7 +138,7 @@ class InvitationController extends ClientBaseController
     protected function buildViewService()
     {
         $participantInvitationRepository = $this->em->getRepository(ParticipantInvitation::class);
-        return new ViewInvitationForClientParticipant($participantInvitationRepository);
+        return new ViewInvitationForUserParticipant($participantInvitationRepository);
     }
 
 }

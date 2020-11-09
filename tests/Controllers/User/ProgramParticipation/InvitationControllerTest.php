@@ -1,9 +1,8 @@
 <?php
 
-namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
+namespace Tests\Controllers\User\ProgramParticipation;
 
 use Tests\Controllers\ {
-    Client\AsTeamMember\ProgramParticipationTestCase,
     RecordPreparation\Firm\Client\RecordOfClientParticipant,
     RecordPreparation\Firm\Manager\RecordOfManagerActivity,
     RecordPreparation\Firm\Program\Activity\RecordOfInvitation,
@@ -18,7 +17,8 @@ use Tests\Controllers\ {
     RecordPreparation\Firm\Program\RecordOfParticipant,
     RecordPreparation\Firm\RecordOfClient,
     RecordPreparation\Firm\RecordOfManager,
-    RecordPreparation\Firm\RecordOfPersonnel
+    RecordPreparation\Firm\RecordOfPersonnel,
+    User\ProgramParticipationTestCase
 };
 
 class InvitationControllerTest extends ProgramParticipationTestCase
@@ -46,6 +46,7 @@ class InvitationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Coordinator")->truncate();
         $this->connection->table("Consultant")->truncate();
+        $this->connection->table("Client")->truncate();
         $this->connection->table("ClientParticipant")->truncate();
         $this->connection->table("ParticipantActivity")->truncate();
         $this->connection->table("ManagerActivity")->truncate();
@@ -132,6 +133,7 @@ class InvitationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Coordinator")->truncate();
         $this->connection->table("Consultant")->truncate();
+        $this->connection->table("Client")->truncate();
         $this->connection->table("ClientParticipant")->truncate();
         $this->connection->table("ParticipantActivity")->truncate();
         $this->connection->table("ManagerActivity")->truncate();
@@ -180,7 +182,7 @@ class InvitationControllerTest extends ProgramParticipationTestCase
         ];
 
         $uri = $this->invitationUri . "/{$this->participantInvitation_fromParticipant->id}";
-        $this->get($uri, $this->teamMember->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
@@ -323,7 +325,7 @@ class InvitationControllerTest extends ProgramParticipationTestCase
             ],
         ];
 
-        $this->get($this->invitationUri, $this->teamMember->client->token)
+        $this->get($this->invitationUri, $this->programParticipation->user->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
