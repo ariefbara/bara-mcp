@@ -112,7 +112,7 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
     public function anActivityBelongsToUser(string $userId, string $activityId): ParticipantActivity
     {
         $params = [
-            "UserId" => $UserId,
+            "userId" => $userId,
             "activityId" => $activityId,
         ];
 
@@ -120,8 +120,8 @@ class DoctrineParticipantActivityRepository extends EntityRepository implements 
         $participantQb->select("t_participant.id")
                 ->from(UserParticipant::class, "programParticipation")
                 ->leftJoin("programParticipation.participant", "t_participant")
-                ->leftJoin("programParticipation.User", "User")
-                ->andWhere($participantQb->expr()->eq("User.id", ":UserId"));
+                ->leftJoin("programParticipation.user", "user")
+                ->andWhere($participantQb->expr()->eq("user.id", ":userId"));
 
         $qb = $this->createQueryBuilder("participantActivity");
         $qb->select("participantActivity")

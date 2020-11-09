@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
-    <entity name="ActivityCreator\Domain\DependencyModel\User" 
+    <entity name="ActivityCreator\Domain\DependencyModel\User\ProgramParticipation" 
             table="UserParticipant" 
             repository-class="ActivityCreator\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserParticipantRepository" 
     >
