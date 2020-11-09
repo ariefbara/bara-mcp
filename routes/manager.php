@@ -74,6 +74,12 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
         });
         
+        $router->group(['prefix' => '/participants'], function () use($router) {
+            $controller = "ParticipantController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{participantId}", ["uses" => "$controller@show"]);
+        });
+        
         $router->group(['prefix' => '/registration-phases'], function () use($router) {
             $controller = "RegistrationPhaseController";
             $router->post("", ["uses" => "$controller@add"]);
