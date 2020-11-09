@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Personnel\Coordinator;
+namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
 use Query\ {
-    Application\Service\Firm\Personnel\ProgramCoordinator\ViewInvitationForCoordinator,
+    Application\Service\Firm\Personnel\ProgramConsultant\ViewInvitationForConsultant,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerActivity,
     Domain\Model\Firm\Program\Consultant\ConsultantActivity,
+    Domain\Model\Firm\Program\Consultant\ConsultantInvitation,
     Domain\Model\Firm\Program\Coordinator\CoordinatorActivity,
-    Domain\Model\Firm\Program\Coordinator\CoordinatorInvitation,
     Domain\Model\Firm\Program\Participant\ParticipantActivity,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
@@ -18,7 +18,7 @@ use Query\ {
 class InvitationController extends PersonnelBaseController
 {
 
-    public function show($coordinatorId, $invitationId)
+    public function show($programConsultationId, $invitationId)
     {
         $service = $this->buildViewService();
         $invitation = $service->showById($this->firmId(), $this->personnelId(), $invitationId);
@@ -26,11 +26,11 @@ class InvitationController extends PersonnelBaseController
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
 
-    public function showAll($coordinatorId)
+    public function showAll($programConsultationId)
     {
         $service = $this->buildViewService();
         $invitations = $service->showAll(
-                $this->firmId(), $this->personnelId(), $coordinatorId, $this->getPage(), $this->getPageSize());
+                $this->firmId(), $this->personnelId(), $programConsultationId, $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result["total"] = count($invitations);
@@ -40,33 +40,33 @@ class InvitationController extends PersonnelBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfInvitation(CoordinatorInvitation $coordinatorInvitation): array
+    protected function arrayDataOfInvitation(ConsultantInvitation $consultantInvitation): array
     {
         return [
-            "id" => $coordinatorInvitation->getId(),
-            "willAttend" => $coordinatorInvitation->willAttend(),
-            "attended" => $coordinatorInvitation->isAttended(),
+            "id" => $consultantInvitation->getId(),
+            "willAttend" => $consultantInvitation->willAttend(),
+            "attended" => $consultantInvitation->isAttended(),
             "activity" => [
-                "id" => $coordinatorInvitation->getActivity()->getId(),
-                "name" => $coordinatorInvitation->getActivity()->getName(),
-                "description" => $coordinatorInvitation->getActivity()->getDescription(),
-                "location" => $coordinatorInvitation->getActivity()->getLocation(),
-                "note" => $coordinatorInvitation->getActivity()->getNote(),
-                "startTime" => $coordinatorInvitation->getActivity()->getStartTimeString(),
-                "endTime" => $coordinatorInvitation->getActivity()->getEndTimeString(),
-                "cancelled" => $coordinatorInvitation->getActivity()->isCancelled(),
+                "id" => $consultantInvitation->getActivity()->getId(),
+                "name" => $consultantInvitation->getActivity()->getName(),
+                "description" => $consultantInvitation->getActivity()->getDescription(),
+                "location" => $consultantInvitation->getActivity()->getLocation(),
+                "note" => $consultantInvitation->getActivity()->getNote(),
+                "startTime" => $consultantInvitation->getActivity()->getStartTimeString(),
+                "endTime" => $consultantInvitation->getActivity()->getEndTimeString(),
+                "cancelled" => $consultantInvitation->getActivity()->isCancelled(),
                 "program" => [
-                    "id" => $coordinatorInvitation->getActivity()->getProgram()->getId(),
-                    "name" => $coordinatorInvitation->getActivity()->getProgram()->getName(),
+                    "id" => $consultantInvitation->getActivity()->getProgram()->getId(),
+                    "name" => $consultantInvitation->getActivity()->getProgram()->getName(),
                 ],
                 "activityType" => [
-                    "id" => $coordinatorInvitation->getActivity()->getActivityType()->getId(),
-                    "name" => $coordinatorInvitation->getActivity()->getActivityType()->getName(),
+                    "id" => $consultantInvitation->getActivity()->getActivityType()->getId(),
+                    "name" => $consultantInvitation->getActivity()->getActivityType()->getName(),
                 ],
-                "manager" => $this->arrayDataOfManager($coordinatorInvitation->getActivity()->getManagerActivity()),
-                "coordinator" => $this->arrayDataOfCoordinator($coordinatorInvitation->getActivity()->getCoordinatorActivity()),
-                "consultant" => $this->arrayDataOfConsultant($coordinatorInvitation->getActivity()->getConsultantActivity()),
-                "participant" => $this->arrayDataOfParticipant($coordinatorInvitation->getActivity()->getParticipantActivity()),
+                "manager" => $this->arrayDataOfManager($consultantInvitation->getActivity()->getManagerActivity()),
+                "coordinator" => $this->arrayDataOfCoordinator($consultantInvitation->getActivity()->getCoordinatorActivity()),
+                "consultant" => $this->arrayDataOfConsultant($consultantInvitation->getActivity()->getConsultantActivity()),
+                "participant" => $this->arrayDataOfParticipant($consultantInvitation->getActivity()->getParticipantActivity()),
             ],
         ];
     }
@@ -137,8 +137,9 @@ class InvitationController extends PersonnelBaseController
 
     protected function buildViewService()
     {
-        $coordinatorInvitationRepository = $this->em->getRepository(CoordinatorInvitation::class);
-        return new ViewInvitationForCoordinator($coordinatorInvitationRepository);
+        $consultantInvitataionRepository = $this->em->getRepository(ConsultantInvitation::class);
+        
+        return new ViewInvitationForConsultant($consultantInvitataionRepository);
     }
 
 }

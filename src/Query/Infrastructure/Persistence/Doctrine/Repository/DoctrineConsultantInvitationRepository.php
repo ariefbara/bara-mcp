@@ -51,7 +51,7 @@ class DoctrineConsultantInvitationRepository extends EntityRepository implements
         
         $qb = $this->createQueryBuilder("consultantInvitation");
         $qb->select("consultantInvitation")
-                ->andWhere($qb->expr()->eq("consultantInvitation.id", ":invitataionId"))
+                ->andWhere($qb->expr()->eq("consultantInvitation.id", ":invitationId"))
                 ->leftJoin("consultantInvitation.consultant", "consultant")
                 ->leftJoin("consultant.personnel", "personnel")
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
