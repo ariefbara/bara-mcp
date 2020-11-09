@@ -88,6 +88,7 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{participantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
         $participantAggregate = [
             'prefix' => '/participants/{participantId}',
             'namespace' => 'Participant',
@@ -110,6 +111,13 @@ $router->group($personnelAggregate, function () use ($router) {
                 });
             });
         });
+        
+        $router->group(['prefix' => '/activity-types'], function () use($router) {
+            $controller = "ActivityTypeController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{activityTypeId}", ["uses" => "$controller@show"]);
+        });
+        
     });
     
     $programConsultationAggregate = [
