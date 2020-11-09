@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Client\ProgramParticipation\Activity;
+namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation\Activity;
 
-use App\Http\Controllers\Client\ClientBaseController;
+use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
 use Query\ {
-    Application\Service\Firm\Client\ProgramParticipation\Activity\ViewInvitation,
+    Application\Service\Firm\Team\ProgramParticipation\Activity\ViewInvitation,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerInvitation,
     Domain\Model\Firm\Program\Activity\Invitation,
@@ -15,21 +15,22 @@ use Query\ {
     Domain\Model\User\UserParticipant
 };
 
-class InviteeController extends ClientBaseController
+class InviteeController extends AsTeamMemberBaseController
 {
 
-    public function show($inviteeId)
+    public function show($teamId, $inviteeId)
     {
+        $this->authorizeClientIsActiveTeamMember($teamId);
         $service = $this->buildViewService();
-        $invitation = $service->showById($this->firmId(), $this->clientId(), $inviteeId);
+        $invitation = $service->showById($this->firmId(), $teamId, $inviteeId);
         return $this->singleQueryResponse($this->arrayDataOfInvitation($invitation));
     }
 
-    public function showAll($activityId)
+    public function showAll($teamId, $activityId)
     {
+        $this->authorizeClientIsActiveTeamMember($teamId);
         $service = $this->buildViewService();
-        $invitations = $service->showAll(
-                $this->firmId(), $this->clientId(), $activityId, $this->getPage(), $this->getPageSize());
+        $invitations = $service->showAll($this->firmId(), $teamId, $activityId, $this->getPage(), $this->getPageSize());
 
         $result = [];
         $result["total"] = count($invitations);

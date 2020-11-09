@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Controllers\Client\ProgramParticipation\Activity;
+namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation\Activity;
 
 use Tests\Controllers\ {
-    Client\ProgramParticipation\ActivityTestCase,
+    Client\AsTeamMember\ProgramParticipation\ActivityTestCase,
     RecordPreparation\Firm\Client\RecordOfClientParticipant,
     RecordPreparation\Firm\Manager\RecordOfManagerInvitation,
     RecordPreparation\Firm\Program\Activity\RecordOfInvitation,
@@ -41,6 +41,7 @@ class InviteeControllerTest extends ActivityTestCase
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Coordinator")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
         $this->connection->table("Invitation")->truncate();
         $this->connection->table("ConsultantInvitation")->truncate();
         $this->connection->table("ManagerInvitation")->truncate();
@@ -98,6 +99,7 @@ class InviteeControllerTest extends ActivityTestCase
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Coordinator")->truncate();
         $this->connection->table("Consultant")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
         $this->connection->table("Invitation")->truncate();
         $this->connection->table("ConsultantInvitation")->truncate();
         $this->connection->table("ManagerInvitation")->truncate();
@@ -124,7 +126,7 @@ class InviteeControllerTest extends ActivityTestCase
         ];
         
         $uri = $this->inviteeUri . "/{$this->consultantInvitation->invitation->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->teamMember->client->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
@@ -196,7 +198,7 @@ class InviteeControllerTest extends ActivityTestCase
             ],
         ];
         
-        $this->get($this->inviteeUri, $this->programParticipation->client->token)
+        $this->get($this->inviteeUri, $this->teamMember->client->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
