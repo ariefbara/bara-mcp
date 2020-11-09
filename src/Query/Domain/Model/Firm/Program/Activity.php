@@ -3,13 +3,17 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Query\Domain\Model\Firm\ {
+use Query\Domain\Model\Firm\{
+    Manager\ManagerActivity,
     Program,
-    Program\Activity\Invitation
+    Program\Activity\Invitation,
+    Program\Consultant\ConsultantActivity,
+    Program\Coordinator\CoordinatorActivity,
+    Program\Participant\ParticipantActivity
 };
 use Resources\Domain\ValueObject\DateTimeInterval;
 
@@ -75,12 +79,36 @@ class Activity
      * @var DateTimeImmutable
      */
     protected $createdTime;
-    
+
     /**
      *
      * @var ArrayCollection
      */
     protected $invitations;
+
+    /**
+     *
+     * @var ManagerActivity|null
+     */
+    protected $managerActivity;
+
+    /**
+     *
+     * @var CoordinatorActivity|null
+     */
+    protected $coordinatorActivity;
+
+    /**
+     *
+     * @var ConsultantActivity|null
+     */
+    protected $consultantActivity;
+
+    /**
+     *
+     * @var ParticipantActivity|null
+     */
+    protected $participantActivity;
 
     function getProgram(): Program
     {
@@ -141,7 +169,7 @@ class Activity
     {
         return $this->startEndTime->getEndTime()->format("Y-m-d H:i:s");
     }
-    
+
     /**
      * 
      * @return Invitation[]
@@ -151,6 +179,26 @@ class Activity
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("removed", false));
         return $this->invitations->matching($criteria)->getIterator();
+    }
+
+    function getManagerActivity(): ?ManagerActivity
+    {
+        return $this->managerActivity;
+    }
+
+    function getCoordinatorActivity(): ?CoordinatorActivity
+    {
+        return $this->coordinatorActivity;
+    }
+
+    function getConsultantActivity(): ?ConsultantActivity
+    {
+        return $this->consultantActivity;
+    }
+
+    function getParticipantActivity(): ?ParticipantActivity
+    {
+        return $this->participantActivity;
     }
 
 }

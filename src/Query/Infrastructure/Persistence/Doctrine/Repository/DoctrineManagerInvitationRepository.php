@@ -41,7 +41,7 @@ class DoctrineManagerInvitationRepository extends EntityRepository implements Ma
         $params = [
             "firmId" => $firmId,
             "managerId" => $managerId,
-            "invitationId" => $invitationId,
+            "managerInvitationId" => $invitationId,
         ];
 
         $qb = $this->createQueryBuilder("managerInvitation");

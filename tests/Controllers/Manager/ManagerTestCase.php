@@ -33,11 +33,11 @@ class ManagerTestCase extends ControllerTestCase
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Manager')->truncate();
         
-        $this->firm = new RecordOfFirm(0, 'firm_0');
+        $this->firm = new RecordOfFirm(999, 'firm_0');
         $this->connection->table('Firm')->insert($this->firm->toArrayForDbEntry());
         
-        $this->manager = new RecordOfManager($this->firm, 0, 'manager@email.org', 'password123');
-        $this->removedManager = new RecordOfManager($this->firm, 1, 'removed_manager@email.org', 'password123');
+        $this->manager = new RecordOfManager($this->firm, 999, 'manager999@email.org', 'password123');
+        $this->removedManager = new RecordOfManager($this->firm, 998, 'removed_manager998@email.org', 'password123');
         $this->removedManager->removed = true;
         $this->connection->table('Manager')->insert($this->manager->toArrayForDbEntry());
         $this->connection->table('Manager')->insert($this->removedManager->toArrayForDbEntry());

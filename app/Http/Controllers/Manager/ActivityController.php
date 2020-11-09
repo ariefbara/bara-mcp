@@ -80,7 +80,6 @@ class ActivityController extends ManagerBaseController
 
     public function show($activityId)
     {
-        $this->authorizedUserIsFirmManager();
         $service = $this->buildViewService();
         $managerActivity = $service->showById($this->firmId(), $this->managerId(), $activityId);
         return $this->singleQueryResponse($this->arrayDataOfManagerActivity($managerActivity));
@@ -88,7 +87,6 @@ class ActivityController extends ManagerBaseController
 
     public function showAll()
     {
-        $this->authorizedUserIsFirmManager();
         $service = $this->buildViewService();
         $managerActivities = $service->showAll($this->firmId(), $this->managerId(), $this->getPage(),
                 $this->getPageSize());

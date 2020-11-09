@@ -35,5 +35,22 @@
                      mapped-by="activity"
         />
         
+        <one-to-one field="managerActivity" 
+                     target-entity="Query\Domain\Model\Firm\Manager\ManagerActivity" 
+                     mapped-by="activity"
+        />
+        <one-to-one field="coordinatorActivity" 
+                     target-entity="Query\Domain\Model\Firm\Program\Coordinator\CoordinatorActivity" 
+                     mapped-by="activity"
+        />
+        <one-to-one field="consultantActivity" 
+                     target-entity="Query\Domain\Model\Firm\Program\Consultant\ConsultantActivity" 
+                     mapped-by="activity"
+        />
+        <one-to-one field="participantActivity" 
+                     target-entity="Query\Domain\Model\Firm\Program\Participant\ParticipantActivity" 
+                     mapped-by="activity"
+        />
+        
     </entity>
 </doctrine-mapping>
