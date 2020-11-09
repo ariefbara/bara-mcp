@@ -104,7 +104,7 @@ class DoctrineInvitationRepository extends EntityRepository implements Invitatio
                 ->leftJoin("coordinatorActivity.coordinator", "coordinator")
                 ->leftJoin("coordinator.personnel", "personnel")
                 ->andWhere($activityQb->expr()->eq("personnel.id", ":personnelId"))
-                ->leftJoin("manager.firm", "firm")
+                ->leftJoin("personnel.firm", "firm")
                 ->andWhere($activityQb->expr()->eq("firm.id", ":firmId"))
                 ->setMaxResults(1);
 
@@ -132,7 +132,7 @@ class DoctrineInvitationRepository extends EntityRepository implements Invitatio
                 ->leftJoin("coordinatorActivity.coordinator", "coordinator")
                 ->leftJoin("coordinator.personnel", "personnel")
                 ->andWhere($activityQb->expr()->eq("personnel.id", ":personnelId"))
-                ->leftJoin("manager.firm", "firm")
+                ->leftJoin("personnel.firm", "firm")
                 ->andWhere($activityQb->expr()->eq("firm.id", ":firmId"));
 
         $qb = $this->createQueryBuilder("invitation");
@@ -168,7 +168,7 @@ class DoctrineInvitationRepository extends EntityRepository implements Invitatio
                 ->leftJoin("consultantActivity.consultant", "consultant")
                 ->leftJoin("consultant.personnel", "personnel")
                 ->andWhere($activityQb->expr()->eq("personnel.id", ":personnelId"))
-                ->leftJoin("manager.firm", "firm")
+                ->leftJoin("personnel.firm", "firm")
                 ->andWhere($activityQb->expr()->eq("firm.id", ":firmId"))
                 ->setMaxResults(1);
 
@@ -196,7 +196,7 @@ class DoctrineInvitationRepository extends EntityRepository implements Invitatio
                 ->leftJoin("consultantActivity.consultant", "consultant")
                 ->leftJoin("consultant.personnel", "personnel")
                 ->andWhere($activityQb->expr()->eq("personnel.id", ":personnelId"))
-                ->leftJoin("manager.firm", "firm")
+                ->leftJoin("personnel.firm", "firm")
                 ->andWhere($activityQb->expr()->eq("firm.id", ":firmId"));
 
         $qb = $this->createQueryBuilder("invitation");

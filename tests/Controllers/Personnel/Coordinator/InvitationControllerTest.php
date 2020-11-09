@@ -128,7 +128,6 @@ class InvitationControllerTest extends CoordinatorTestCase
         $this->connection->table("Program")->truncate();
         $this->connection->table("ActivityType")->truncate();
         $this->connection->table("Activity")->truncate();
-        $this->connection->table("Personnel")->truncate();
         $this->connection->table("Client")->truncate();
         $this->connection->table("Manager")->truncate();
         $this->connection->table("Consultant")->truncate();
