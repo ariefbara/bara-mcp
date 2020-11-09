@@ -305,6 +305,34 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{metricAssignmentReportId}", ["uses" => "$controller@show"]);
             });
             
+            $router->group(['prefix' => '/activities'], function () use($router) {
+                $controller = "ActivityController";
+                $router->post("", ["uses" => "$controller@initiate"]);
+                $router->patch("/{activityId}", ["uses" => "$controller@update"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{activityId}", ["uses" => "$controller@show"]);
+            });
+
+            $activityAggregate = [
+                'prefix' => '/activities/{activityId}',
+                'namespace' => 'Activity',
+            ];
+            $router->group($activityAggregate, function () use ($router) {
+                $router->group(['prefix' => '/invitees'], function () use($router) {
+                    $controller = "InviteeController";
+                    $router->get("", ["uses" => "$controller@showAll"]);
+                    $router->get("/{inviteeId}", ["uses" => "$controller@show"]);
+                });
+            });
+
+            $router->group(['prefix' => '/invitations'], function () use($router) {
+                $controller = "InvitationController";
+                $router->post("", ["uses" => "$controller@initiate"]);
+                $router->patch("/{invitationId}", ["uses" => "$controller@update"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{invitationId}", ["uses" => "$controller@show"]);
+            });
+            
         });
         
     });
