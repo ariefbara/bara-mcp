@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant;
+namespace App\Http\Controllers\Client\AsTeamMember\AsProgramParticipant;
 
 use Firm\Application\Service\Firm\Program\ProgramCompositionId;
 use Query\ {
@@ -10,9 +10,10 @@ use Query\ {
 
 class CoordinatorController extends AsProgramParticipantBaseController
 {
-    public function show($programId, $coordinatorId)
+    public function show($teamId, $programId, $coordinatorId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
+        $this->authorizedTeamIsActiveParticipantOfProgram($teamId, $programId);
         
         $service = $this->buildViewService();
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
@@ -20,9 +21,10 @@ class CoordinatorController extends AsProgramParticipantBaseController
         
         return $this->singleQueryResponse($this->arrayDataOfCoordinator($coordinator));
     }
-    public function showAll($programId)
+    public function showAll($teamId, $programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
+        $this->authorizedTeamIsActiveParticipantOfProgram($teamId, $programId);
         
         $service = $this->buildViewService();
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
