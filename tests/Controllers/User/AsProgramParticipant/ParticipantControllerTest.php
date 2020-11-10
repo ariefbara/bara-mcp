@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant;
+namespace Tests\Controllers\User\AsProgramParticipant;
 
 use Tests\Controllers\RecordPreparation\ {
     Firm\Client\RecordOfClientParticipant,
@@ -24,9 +24,9 @@ class ParticipantControllerTest extends AsProgramParticipantTestCase
         parent::setUp();
         $this->participantUri = $this->asProgramparticipantUri . "/participants";
         
-        $this->connection->table("User")->truncate();
+        $this->connection->table("Client")->truncate();
         $this->connection->table("Team")->truncate();
-        $this->connection->table("UserParticipant")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
         $this->connection->table("TeamParticipant")->truncate();
         
         $program = $this->programParticipation->participant->program;
@@ -63,9 +63,9 @@ class ParticipantControllerTest extends AsProgramParticipantTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table("User")->truncate();
+        $this->connection->table("Client")->truncate();
         $this->connection->table("Team")->truncate();
-        $this->connection->table("UserParticipant")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
         $this->connection->table("TeamParticipant")->truncate();
     }
     
@@ -85,14 +85,14 @@ class ParticipantControllerTest extends AsProgramParticipantTestCase
         ];
         
         $uri = $this->participantUri . "/{$this->userParticipant->participant->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     public function test_show_inactiveParticipant_403()
     {
         $uri = $this->participantUri . "/{$this->userParticipant->participant->id}";
-        $this->get($uri, $this->inactiveProgramParticipation->client->token)
+        $this->get($uri, $this->inactiveProgramParticipation->user->token)
                 ->seeStatusCode(403);
     }
     
@@ -118,11 +118,11 @@ class ParticipantControllerTest extends AsProgramParticipantTestCase
                     "enrolledTime" => $this->programParticipation->participant->enrolledTime,
                     "active" => $this->programParticipation->participant->active,
                     "note" => $this->programParticipation->participant->note,
-                    "client" => [
-                        "id" => $this->programParticipation->client->id,
-                        "name" => $this->programParticipation->client->getFullName(),
+                    "user" => [
+                        "id" => $this->programParticipation->user->id,
+                        "name" => $this->programParticipation->user->getFullName(),
                     ],
-                    "user" => null,
+                    "client" => null,
                     "team" => null,
                 ],
                 [
@@ -130,11 +130,11 @@ class ParticipantControllerTest extends AsProgramParticipantTestCase
                     "enrolledTime" => $this->inactiveProgramParticipation->participant->enrolledTime,
                     "active" => $this->inactiveProgramParticipation->participant->active,
                     "note" => $this->inactiveProgramParticipation->participant->note,
-                    "client" => [
-                        "id" => $this->inactiveProgramParticipation->client->id,
-                        "name" => $this->inactiveProgramParticipation->client->getFullName(),
+                    "user" => [
+                        "id" => $this->inactiveProgramParticipation->user->id,
+                        "name" => $this->inactiveProgramParticipation->user->getFullName(),
                     ],
-                    "user" => null,
+                    "client" => null,
                     "team" => null,
                 ],
                 [
@@ -164,13 +164,13 @@ class ParticipantControllerTest extends AsProgramParticipantTestCase
             ],
         ];
         
-        $this->get($this->participantUri, $this->programParticipation->client->token)
+        $this->get($this->participantUri, $this->programParticipation->user->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     public function test_showAll_inactiveParticipant_403()
     {
-        $this->get($this->participantUri, $this->inactiveProgramParticipation->client->token)
+        $this->get($this->participantUri, $this->inactiveProgramParticipation->user->token)
                 ->seeStatusCode(403);
     }
 }

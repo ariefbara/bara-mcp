@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant;
+namespace App\Http\Controllers\User\AsProgramParticipant;
 
 use Query\ {
     Application\Service\Firm\Program\ViewParticipant,
@@ -13,24 +13,24 @@ use Query\ {
 class ParticipantController extends AsProgramParticipantBaseController
 {
 
-    public function show($programId, $participantId)
+    public function show($firmId, $programId, $participantId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
 
         $service = $this->buildViewService();
-        $participant = $service->showById($this->firmId(), $programId, $participantId);
+        $participant = $service->showById($firmId, $programId, $participantId);
 
         return $this->singleQueryResponse($this->arrayDataOfParticipant($participant));
     }
 
-    public function showAll($programId)
+    public function showAll($firmId, $programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
 
         $service = $this->buildViewService();
         $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
         $participants = $service->showAll(
-                $this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activeStatus);
+                $firmId, $programId, $this->getPage(), $this->getPageSize(), $activeStatus);
 
         $result = [];
         $result['total'] = count($participants);

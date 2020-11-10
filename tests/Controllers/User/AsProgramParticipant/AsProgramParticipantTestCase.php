@@ -36,13 +36,13 @@ class AsProgramParticipantTestCase extends UserTestCase
         $userOne = new RecordOfUser(1);
         $this->connection->table("User")->insert($userOne->toArrayForDbEntry());
         
-        $firm = new RecordOfFirm(0, "firm_0_identifier");
+        $firm = new RecordOfFirm(999, "firm_0_identifier");
         $this->connection->table("Firm")->insert($firm->toArrayForDbEntry());
         
-        $program = new RecordOfProgram($firm, 0);
+        $program = new RecordOfProgram($firm, 999);
         $this->connection->table("Program")->insert($program->toArrayForDbEntry());
         
-        $participant = new RecordOfParticipant($program, 0);
+        $participant = new RecordOfParticipant($program, 999);
         $inactiveParticipant = new RecordOfParticipant($program, 'inactive');
         $inactiveParticipant->active = false;
         $this->connection->table("Participant")->insert($participant->toArrayForDbEntry());

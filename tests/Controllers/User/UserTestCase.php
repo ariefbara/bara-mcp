@@ -26,7 +26,7 @@ class UserTestCase extends ControllerTestCase
         parent::setUp();
         $this->connection->table('User')->truncate();
         
-        $this->user = new RecordOfUser(0);
+        $this->user = new RecordOfUser(999);
         $this->user->email = 'purnama.adi@gmail.com';
         $this->inactiveUser = new RecordOfUser('inactive');
         $this->inactiveUser->activated = false;
