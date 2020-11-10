@@ -246,4 +246,10 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{invitationId}", ["uses" => "$controller@show"]);
         });
     });
+    
+    $router->group(['prefix' => '/managers'], function () use($router) {
+        $controller = "ManagerController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{managerId}", ["uses" => "$controller@show"]);
+    });
 });

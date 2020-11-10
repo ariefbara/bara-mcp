@@ -7,6 +7,7 @@ use Doctrine\ORM\ {
     NoResultException
 };
 use Query\ {
+    Application\Auth\Firm\PersonnelRepository as InterfaceForAuthorization,
     Application\Service\Firm\PersonnelRepository,
     Domain\Model\Firm\Personnel
 };
@@ -15,7 +16,7 @@ use Resources\ {
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrinePersonnelRepository extends EntityRepository implements PersonnelRepository
+class DoctrinePersonnelRepository extends EntityRepository implements PersonnelRepository, InterfaceForAuthorization
 {
 
     public function ofId(string $firmId, string $personnelId): Personnel
@@ -70,6 +71,25 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
             $errorDetail = "not found: personnel not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function containRecordOfActivePersonnelInFirm(string $firmId, string $personnelId): bool
+    {
+        $params = [
+            "firmId" => $firmId,
+            "personnelId" => $personnelId,
+        ];
+        
+        $qb = $this->createQueryBuilder("personnel");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
+                ->andWhere($qb->expr()->eq("personnel.removed", "false"))
+                ->leftJoin("personnel.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        return !empty($qb->getQuery()->getResult());
     }
 
 }
