@@ -17,11 +17,6 @@ class AsProgramParticipantTestCase extends AsTeamMemberTestCase
      * @var RecordOfTeamProgramParticipation
      */
     protected $programParticipant;
-    /**
-     *
-     * @var RecordOfTeamProgramParticipation
-     */
-    protected $programParticipantOne_inactive;
     
     protected function setUp(): void
     {
@@ -34,10 +29,10 @@ class AsProgramParticipantTestCase extends AsTeamMemberTestCase
         $team = $this->teamMember->team;
         $firm = $team->firm;
         
-        $program = new RecordOfProgram($firm, 0);
+        $program = new RecordOfProgram($firm, 999);
         $this->connection->table("Program")->insert($program->toArrayForDbEntry());
         
-        $participant = new RecordOfParticipant($program, 0);
+        $participant = new RecordOfParticipant($program, 999);
         $this->connection->table("Participant")->insert($participant->toArrayForDbEntry());
         
         $this->programParticipant = new RecordOfTeamProgramParticipation($team, $participant);

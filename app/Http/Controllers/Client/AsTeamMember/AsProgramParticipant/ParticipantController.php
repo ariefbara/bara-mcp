@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant;
+namespace App\Http\Controllers\Client\AsTeamMember\AsProgramParticipant;
 
 use Query\ {
     Application\Service\Firm\Program\ViewParticipant,
@@ -13,9 +13,10 @@ use Query\ {
 class ParticipantController extends AsProgramParticipantBaseController
 {
 
-    public function show($programId, $participantId)
+    public function show($teamId, $programId, $participantId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
+        $this->authorizedTeamIsActiveParticipantOfProgram($teamId, $programId);
 
         $service = $this->buildViewService();
         $participant = $service->showById($this->firmId(), $programId, $participantId);
@@ -23,9 +24,10 @@ class ParticipantController extends AsProgramParticipantBaseController
         return $this->singleQueryResponse($this->arrayDataOfParticipant($participant));
     }
 
-    public function showAll($programId)
+    public function showAll($teamId, $programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
+        $this->authorizedTeamIsActiveParticipantOfProgram($teamId, $programId);
 
         $service = $this->buildViewService();
         $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
