@@ -90,6 +90,12 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{consultantId}", ["uses" => "$controller@show"]);
         });
         
+        $router->group(['prefix' => '/coordinators'], function () use($router) {
+            $controller = "CoordinatorController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{coordinatorId}", ["uses" => "$controller@show"]);
+        });
+        
     });
     
     $asProgramConsultantAggregate = [
