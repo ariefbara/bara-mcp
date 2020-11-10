@@ -2,7 +2,9 @@
 
 namespace Query\Application\Auth\Firm\Program;
 
-interface ParticipantRepository
+use Query\Application\Auth\Firm\ParticipantRepository as InterfaceForFirm;
+
+interface ParticipantRepository extends InterfaceForFirm
 {
 
     public function containRecordOfActiveParticipantCorrespondWithClient(

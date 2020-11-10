@@ -33,6 +33,20 @@ $router->group($userAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
     });
     
+    $asFirmParticipantAggregate = [
+        'prefix' => '/as-firm-participant/{firmId}',
+        'namespace' => 'AsFirmParticipant',
+    ];
+    $router->group($asFirmParticipantAggregate, function () use ($router) {
+        
+        $router->group(['prefix' => '/managers'], function () use($router) {
+            $controller = "ManagerController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{managerId}", ["uses" => "$controller@show"]);
+        });
+        
+    });
+    
     $asProgramParticipantAggregate = [
         'prefix' => '/as-program-participant/{firmId}/{programId}',
         'namespace' => 'AsProgramParticipant',
