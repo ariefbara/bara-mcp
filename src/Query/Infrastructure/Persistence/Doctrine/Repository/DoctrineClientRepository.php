@@ -7,6 +7,7 @@ use Doctrine\ORM\ {
     NoResultException
 };
 use Query\ {
+    Application\Auth\Firm\ClientRepository as InterfaceForAuthorization,
     Application\Service\Firm\ClientRepository,
     Domain\Model\Firm\Client,
     Domain\Service\Firm\ClientRepository as InterfaceForDomainService
@@ -16,7 +17,7 @@ use Resources\ {
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineClientRepository extends EntityRepository implements ClientRepository, InterfaceForDomainService
+class DoctrineClientRepository extends EntityRepository implements ClientRepository, InterfaceForDomainService, InterfaceForAuthorization
 {
     
     public function all(string $firmId, int $page, int $pageSize)
@@ -125,6 +126,25 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
             $errorDetail = "not found: client not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function containRecordOfActiveClientInFirm(string $firmId, string $clientId): bool
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+        ];
+        
+        $qb = $this->createQueryBuilder("client");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("client.id", ":clientId"))
+                ->andWhere($qb->expr()->eq("client.activated", "true"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        return !empty($qb->getQuery()->getResult());
     }
 
 }

@@ -16,6 +16,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/managers'], function () use($router) {
+        $controller = "ManagerController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{managerId}", ["uses" => "$controller@show"]);
+    });
+    
     $asProgramCoordinatorAggregate = [
         'prefix' => '/as-program-coordinator/{programId}',
         'namespace' => 'AsProgramCoordinator',
@@ -267,9 +273,4 @@ $router->group($personnelAggregate, function () use ($router) {
         });
     });
     
-    $router->group(['prefix' => '/managers'], function () use($router) {
-        $controller = "ManagerController";
-        $router->get("", ["uses" => "$controller@showAll"]);
-        $router->get("/{managerId}", ["uses" => "$controller@show"]);
-    });
 });

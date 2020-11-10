@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use Query\ {
+    Application\Auth\Firm\AuthorizeRequestFromActiveClient,
+    Domain\Model\Firm\Client
+};
 
 class ClientBaseController extends Controller
 {
@@ -13,5 +17,12 @@ class ClientBaseController extends Controller
     protected function firmId()
     {
         return $this->request->firmId;
+    }
+    
+    protected function authorizeRequestFromActiveClient()
+    {
+        $clientRepository = $this->em->getRepository(Client::class);
+        $authZ = new AuthorizeRequestFromActiveClient($clientRepository);
+        $authZ->execute($this->firmId(), $this->clientId());
     }
 }
