@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant;
+namespace App\Http\Controllers\Client\AsTeamMember\AsProgramParticipant;
 
 use Query\ {
     Application\Service\Firm\Program\ViewConsultant,
@@ -9,9 +9,10 @@ use Query\ {
 
 class ConsultantController extends AsProgramParticipantBaseController
 {
-    public function showAll($programId)
+    public function showAll($teamId, $programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
+        $this->authorizedTeamIsActiveParticipantOfProgram($teamId, $programId);
         
         $viewService = $this->buildViewService();
         $consultants = $viewService->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
@@ -24,9 +25,10 @@ class ConsultantController extends AsProgramParticipantBaseController
         return $this->listQueryResponse($result);
         
     }
-    public function show($programId, $consultantId)
+    public function show($teamId, $programId, $consultantId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
+        $this->authorizeClientIsActiveTeamMember($teamId);
+        $this->authorizedTeamIsActiveParticipantOfProgram($teamId, $programId);
         
         $viewService = $this->buildViewService();
         $consultant = $viewService->showById($this->firmId(), $programId, $consultantId);
