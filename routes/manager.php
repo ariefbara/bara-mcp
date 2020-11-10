@@ -52,6 +52,12 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
     });
     
+    $router->group(['prefix' => '/managers'], function () use($router) {
+        $controller = "ManagerController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{managerId}", ["uses" => "$controller@show"]);
+    });
+    
     $programAggregate = [
         'prefix' => '/programs/{programId}',
         'namespace' => 'Program',
