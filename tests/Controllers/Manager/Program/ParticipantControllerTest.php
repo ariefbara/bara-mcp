@@ -145,6 +145,7 @@ class ParticipantControllerTest extends ProgramTestCase
         ];
         
         $this->get($this->participantUri, $this->manager->token)
+                ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     public function test_showAll_inactiveManager_401()
