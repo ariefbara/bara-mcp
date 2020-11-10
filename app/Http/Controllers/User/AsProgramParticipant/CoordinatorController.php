@@ -1,33 +1,35 @@
 <?php
 
-namespace App\Http\Controllers\Client\AsProgramParticipant;
+namespace App\Http\Controllers\User\AsProgramParticipant;
 
 use Firm\Application\Service\Firm\Program\ProgramCompositionId;
-use Query\ {
+use Query\{
     Application\Service\Firm\Program\CoordinatorView,
     Domain\Model\Firm\Program\Coordinator
 };
 
 class CoordinatorController extends AsProgramParticipantBaseController
 {
-    public function show($programId, $coordinatorId)
+
+    public function show($firmId, $programId, $coordinatorId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
-        
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
+
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
+        $programCompositionId = new ProgramCompositionId($firmId, $programId);
         $coordinator = $service->showById($programCompositionId, $coordinatorId);
-        
+
         return $this->singleQueryResponse($this->arrayDataOfCoordinator($coordinator));
     }
-    public function showAll($programId)
+
+    public function showAll($firmId, $programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
-        
+        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
+
         $service = $this->buildViewService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
+        $programCompositionId = new ProgramCompositionId($firmId, $programId);
         $coordinators = $service->showAll($programCompositionId, $this->getPage(), $this->getPageSize());
-        
+
         $result = [];
         $result["total"] = count($coordinators);
         foreach ($coordinators as $coordinator) {
@@ -35,7 +37,7 @@ class CoordinatorController extends AsProgramParticipantBaseController
         }
         return $this->listQueryResponse($result);
     }
-    
+
     protected function arrayDataOfCoordinator(Coordinator $coordinator): array
     {
         return [
@@ -46,9 +48,11 @@ class CoordinatorController extends AsProgramParticipantBaseController
             ],
         ];
     }
+
     protected function buildViewService()
     {
         $coordinatorRepository = $this->em->getRepository(Coordinator::class);
         return new CoordinatorView($coordinatorRepository);
     }
+
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant;
+namespace Tests\Controllers\User\AsProgramParticipant;
 
 use Tests\Controllers\RecordPreparation\Firm\ {
     Program\RecordOfCoordinator,
@@ -24,13 +24,13 @@ class CoordinatorControllerTest extends AsProgramParticipantTestCase
         $program = $this->programParticipation->participant->program;
         $firm = $program->firm;
         
-        $client = new RecordOfPersonnel($firm, 0);
-        $clientOne = new RecordOfPersonnel($firm, 1);
-        $this->connection->table("Personnel")->insert($client->toArrayForDbEntry());
-        $this->connection->table("Personnel")->insert($clientOne->toArrayForDbEntry());
+        $user = new RecordOfPersonnel($firm, 0);
+        $userOne = new RecordOfPersonnel($firm, 1);
+        $this->connection->table("Personnel")->insert($user->toArrayForDbEntry());
+        $this->connection->table("Personnel")->insert($userOne->toArrayForDbEntry());
         
-        $this->coordinator = new RecordOfCoordinator($program, $client, 0);
-        $this->coordinatorOne = new RecordOfCoordinator($program, $clientOne, 1);
+        $this->coordinator = new RecordOfCoordinator($program, $user, 0);
+        $this->coordinatorOne = new RecordOfCoordinator($program, $userOne, 1);
         $this->connection->table("Coordinator")->insert($this->coordinator->toArrayForDbEntry());
         $this->connection->table("Coordinator")->insert($this->coordinatorOne->toArrayForDbEntry());
     }
@@ -53,14 +53,14 @@ class CoordinatorControllerTest extends AsProgramParticipantTestCase
         ];
         
         $uri = $this->coordinatorUri . "/{$this->coordinator->id}";
-        $this->get($uri, $this->programParticipation->client->token)
+        $this->get($uri, $this->programParticipation->user->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     public function test_show_inactiveParticipant_403()
     {
         $uri = $this->coordinatorUri . "/{$this->coordinator->id}";
-        $this->get($uri, $this->inactiveProgramParticipation->client->token)
+        $this->get($uri, $this->inactiveProgramParticipation->user->token)
                 ->seeStatusCode(403);
     }
     
@@ -86,13 +86,13 @@ class CoordinatorControllerTest extends AsProgramParticipantTestCase
             ],
         ];
         
-        $this->get($this->coordinatorUri, $this->programParticipation->client->token)
+        $this->get($this->coordinatorUri, $this->programParticipation->user->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     public function test_showAll_inactiveParticipant_403()
     {
-        $this->get($this->coordinatorUri, $this->inactiveProgramParticipation->client->token)
+        $this->get($this->coordinatorUri, $this->inactiveProgramParticipation->user->token)
                 ->seeStatusCode(403);
     }
 }
