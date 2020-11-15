@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityInvitee\Domain\DependencyModel\Firm\Client" 
+            table="Client" 
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        <field name="activated" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

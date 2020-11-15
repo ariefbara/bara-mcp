@@ -11,11 +11,6 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Manager/InvitationControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Manager/InvitationController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/Coordinator/InvitationControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/Coordinator/InvitationController.php</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

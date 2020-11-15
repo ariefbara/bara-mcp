@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityInvitee\Domain\DependencyModel\User\ProgramParticipation" 
+            table="UserParticipant" 
+    >
+        
+        <field name="userId" column="User_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        
+        <one-to-one field="participant" 
+                    target-entity="ActivityInvitee\Domain\DependencyModel\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

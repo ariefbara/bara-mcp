@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityInvitee\Domain\Model\ParticipantInvitee" 
+            table="ParticipantInvitee"
+            repository-class="ActivityInvitee\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantInviteeRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="ActivityInvitee\Domain\DependencyModel\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="invitee" 
+                    target-entity="ActivityInvitee\Domain\Model\Invitee"
+        >
+            <join-column name="Invitee_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -29,5 +29,10 @@ class ProgramParticipation
     {
         
     }
+    
+    public function teamIdEquals(string $teamId): bool
+    {
+        return $this->teamId === $teamId;
+    }
 
 }

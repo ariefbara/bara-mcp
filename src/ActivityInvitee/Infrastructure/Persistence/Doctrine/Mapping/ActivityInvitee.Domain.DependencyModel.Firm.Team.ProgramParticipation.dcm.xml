@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityInvitee\Domain\DependencyModel\Firm\Team\ProgramParticipation" 
+            table="TeamParticipant" 
+    >
+        
+        <field name="teamId" column="Team_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        
+        <one-to-one field="participant" 
+                    target-entity="ActivityInvitee\Domain\DependencyModel\Firm\Program\Participant"
+                    inversed-by="teamParticipant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>
