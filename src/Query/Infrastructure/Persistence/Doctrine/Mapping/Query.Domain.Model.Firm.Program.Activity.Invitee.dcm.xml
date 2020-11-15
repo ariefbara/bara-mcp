@@ -23,6 +23,11 @@
         <field name="attended" type="boolean"  nullable="true" />
         <field name="invitationCancelled" type="boolean"  nullable="false" />
         
+        <one-to-one field="report" 
+                    target-entity="Query\Domain\Model\Firm\Program\Activity\Invitee\InviteeReport"
+                    mapped-by="invitee"
+        />
+        
         <one-to-one field="managerInvitee" 
                     target-entity="Query\Domain\Model\Firm\Manager\ManagerInvitee"
                     mapped-by="invitee"

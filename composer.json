@@ -27,6 +27,7 @@
             "database/factories"
         ],
         "psr-4": {
+            "ActivityInvitee\\": "src/ActivityInvitee",
             "ActivityCreator\\": "src/ActivityCreator",
             "Team\\": "src/Team",
             "SharedContext\\": "src/SharedContext",

@@ -266,8 +266,7 @@ $router->group($personnelAggregate, function () use ($router) {
 
         $router->group(['prefix' => '/invitations'], function () use($router) {
             $controller = "InvitationController";
-            $router->post("", ["uses" => "$controller@initiate"]);
-            $router->patch("/{invitationId}", ["uses" => "$controller@update"]);
+            $router->put("/{invitationId}", ["uses" => "$controller@submitReport"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{invitationId}", ["uses" => "$controller@show"]);
         });

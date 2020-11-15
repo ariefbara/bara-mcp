@@ -9,12 +9,6 @@ class Participant
      *
      * @var string
      */
-    protected $programId;
-
-    /**
-     *
-     * @var string
-     */
     protected $id;
 
     /**

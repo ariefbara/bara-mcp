@@ -3,12 +3,15 @@
 namespace SharedContext\Domain\Model\SharedEntity;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
+use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
-use Resources\Uuid;
-use SharedContext\Domain\Model\SharedEntity\{
+use Resources\ {
+    DateTimeImmutableBuilder,
+    Uuid
+};
+use SharedContext\Domain\Model\SharedEntity\ {
     Form\AttachmentField,
     Form\IntegerField,
     Form\MultiSelectField,
@@ -85,7 +88,7 @@ class FormRecord
     {
         $this->form = $form;
         $this->id = $id;
-        $this->submitTime = \Resources\DateTimeImmutableBuilder::buildYmdHisAccuracy();
+        $this->submitTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
 
         $this->integerFieldRecords = new ArrayCollection();
         $this->stringFieldRecords = new ArrayCollection();

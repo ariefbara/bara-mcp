@@ -3,6 +3,7 @@
 namespace ActivityInvitee\Domain\Model;
 
 use ActivityInvitee\Domain\DependencyModel\Firm\Personnel\Coordinator;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class CoordinatorInvitee
 {
@@ -30,9 +31,9 @@ class CoordinatorInvitee
         
     }
     
-    public function submitReport(): void
+    public function submitReport(FormRecordData $formRecordData): void
     {
-        
+        $this->invitee->submitReport($formRecordData);
     }
 
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityInvitee\Domain\DependencyModel\Firm\Program\ActivityType\ActivityParticipant" 
+            table="ActivityParticipant" 
+    >
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="reportForm" 
+                      target-entity="ActivityInvitee\Domain\DependencyModel\Firm\FeedbackForm"
+        >
+            <join-column name="FeedbackForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -9,17 +9,17 @@ use Doctrine\ORM\ {
 use Query\Domain\Model\ {
     Firm\Client\ClientFileInfo,
     Firm\Personnel\PersonnelFileInfo,
-    Firm\Team\Member,
     Firm\Team\TeamFileInfo,
     User\UserFileInfo
 };
 use Resources\Exception\RegularException;
 use SharedContext\ {
     Application\Service\FileInfoRepository,
-    Domain\Model\SharedEntity\FileInfo
+    Domain\Model\SharedEntity\FileInfo,
+    Domain\Service\FileInfoRepository as InterfaceForDomainService
 };
 
-class DoctrineFileInfoRepository extends EntityRepository implements FileInfoRepository
+class DoctrineFileInfoRepository extends EntityRepository implements FileInfoRepository, InterfaceForDomainService
 {
     
     public function fileInfoOfClient(string $firmId, string $clientId, string $fileInfoId): FileInfo
@@ -146,6 +146,54 @@ class DoctrineFileInfoRepository extends EntityRepository implements FileInfoRep
             $errorDetail = 'not found: file info not found';
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function aFileInfoBelongsToClient(string $firmId, string $clientId, string $fileInfoId): FileInfo
+    {
+        return $this->fileInfoOfClient($firmId, $clientId, $fileInfoId);
+    }
+
+    public function aFileInfoBelongsToPersonnel(string $firmId, string $personnelId, string $fileInfoId): FileInfo
+    {
+        return $this->aFileInfoOfPersonnel($firmId, $personnelId, $fileInfoId);
+    }
+
+    public function aFileInfoBelongsToTeam(string $firmId, string $teamId, string $fileInfoId): FileInfo
+    {
+        $params = [
+            "firmId" => $firmId,
+            "teamId" => $teamId,
+            "fileInfoId" => $fileInfoId,
+        ];
+        
+        $fileInfoQb = $this->getEntityManager()->createQueryBuilder();
+        $fileInfoQb->select("t_fileInfo.id")
+                ->from(TeamFileInfo::class, "teamFileInfo")
+                ->leftJoin("teamFileInfo.fileInfo", "t_fileInfo")
+                ->andWhere($fileInfoQb->expr()->in("t_fileInfo.id", ":fileInfoId"))
+                ->leftJoin("teamFileInfo.team", "team")
+                ->andWhere($fileInfoQb->expr()->in("team.id", ":teamId"))
+                ->leftJoin("team.firm", "firm")
+                ->andWhere($fileInfoQb->expr()->in("firm.id", ":firmId"))
+                ->setMaxResults(1);
+        
+        $qb = $this->createQueryBuilder("fileInfo");
+        $qb->select("fileInfo")
+                ->andWhere($qb->expr()->in("fileInfo.id", $fileInfoQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: file info not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aFileInfoBelongsToUser(string $userId, string $fileInfoId): FileInfo
+    {
+        return $this->fileInfoOfUser($userId, $fileInfoId);
     }
 
 }

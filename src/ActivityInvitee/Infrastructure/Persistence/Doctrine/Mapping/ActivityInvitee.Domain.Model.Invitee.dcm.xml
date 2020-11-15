@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityInvitee\Domain\Model\Invitee" 
+            table="Invitee"
+    >
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="activityParticipant" 
+                      target-entity="ActivityInvitee\Domain\DependencyModel\Firm\Program\ActivityType\ActivityParticipant"
+        >
+            <join-column name="ActivityParticipant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="willAttend" type="boolean" nullable="true" />
+        <field name="attended" type="boolean"  nullable="true" />
+        <field name="invitationCancelled" type="boolean"  nullable="false" />
+        
+        <one-to-one field="report" 
+                    target-entity="ActivityInvitee\Domain\Model\Invitee\InviteeReport"
+                    mapped-by="invitee"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

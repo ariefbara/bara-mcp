@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Activity\Invitee\InviteeReport" 
+            table="InviteeReport"
+    >
+        
+        <one-to-one field="invitee" 
+                    target-entity="Query\Domain\Model\Firm\Program\Activity\Invitee"
+                    inversed-by="report"
+        >
+            <join-column name="Invitee_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="formRecord" 
+                    target-entity="Query\Domain\Model\Shared\FormRecord"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

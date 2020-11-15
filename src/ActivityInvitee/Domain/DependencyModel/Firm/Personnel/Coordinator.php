@@ -17,12 +17,6 @@ class Coordinator
      *
      * @var string
      */
-    protected $programId;
-
-    /**
-     *
-     * @var string
-     */
     protected $id;
 
     /**

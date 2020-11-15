@@ -92,5 +92,10 @@ class Form
             $attachmentField->setAttachmentFieldRecordOf($formRecord, $formRecordData);
         }
     }
+    
+    public function createFormRecord(string $formRecordId, FormRecordData $formRecordData): FormRecord
+    {
+        return new FormRecord($this, $formRecordId, $formRecordData);
+    }
 
 }

@@ -5,6 +5,7 @@ namespace Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\{
     Activity,
     Activity\Invitee,
+    Activity\Invitee\InviteeReport,
     ActivityType\ActivityParticipant,
     Participant
 };
@@ -68,6 +69,11 @@ class ParticipantInvitee
     function isInvitationCancelled(): bool
     {
         return $this->invitee->isInviteeCancelled();
+    }
+
+    function getReport(): ?InviteeReport
+    {
+        return $this->invitee->getReport();
     }
 
 }

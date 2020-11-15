@@ -20,7 +20,7 @@ class FormTest extends TestBase
     protected $id = 'new-form-id', $name = 'new name', $description = 'new description';
     protected $stringField, $integerField, $textAreaField, $singleSelectField, $multiSelectField, $attachmentField;
     
-    protected $formRecord, $formRecordData;
+    protected $formRecordId = "formRecordId", $formRecord, $formRecordData;
 
     protected function setUp(): void
     {
@@ -158,6 +158,11 @@ class FormTest extends TestBase
         $this->attachmentField->expects($this->never())
             ->method('setAttachmentFieldRecordOf');
         $this->executeSetFieldRecordsOf();
+    }
+    
+    public function test_createFormRecord_returnFormRecord()
+    {
+        $this->assertInstanceOf(FormRecord::class, $this->form->createFormRecord($this->formRecordId, $this->formRecordData));
     }
     
 }

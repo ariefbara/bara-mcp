@@ -5,6 +5,7 @@ namespace Query\Domain\Model\Firm\Program\Activity;
 use Query\Domain\Model\Firm\ {
     Manager\ManagerInvitee,
     Program\Activity,
+    Program\Activity\Invitee\InviteeReport,
     Program\ActivityType\ActivityParticipant,
     Program\Consultant\ConsultantInvitee,
     Program\Coordinator\CoordinatorInvitee,
@@ -49,6 +50,12 @@ class Invitee
      * @var bool
      */
     protected $invitationCancelled;
+
+    /**
+     *
+     * @var InviteeReport|null
+     */
+    protected $report;
 
     /**
      *
@@ -102,6 +109,11 @@ class Invitee
     function isInviteeCancelled(): bool
     {
         return $this->invitationCancelled;
+    }
+
+    function getReport(): ?InviteeReport
+    {
+        return $this->report;
     }
 
     protected function __construct()

@@ -35,7 +35,8 @@ class InvitationControllerTest extends CoordinatorTestCase
     protected $invitationOne_fromCoordinator;
     protected $invitationTwo_fromConsultant;
     protected $invitationThree_fromParticipant;
-    
+    protected $submitReportInput;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -59,6 +60,7 @@ class InvitationControllerTest extends CoordinatorTestCase
         $this->connection->table("ConsultantActivity")->truncate();
         $this->connection->table("ParticipantActivity")->truncate();
         $this->connection->table("Invitee")->truncate();
+        $this->connection->table("InviteeReport")->truncate();
         $this->connection->table("CoordinatorInvitee")->truncate();
         
         
@@ -140,6 +142,15 @@ class InvitationControllerTest extends CoordinatorTestCase
         $this->connection->table("CoordinatorInvitee")->insert($this->invitationOne_fromCoordinator->toArrayForDbEntry());
         $this->connection->table("CoordinatorInvitee")->insert($this->invitationTwo_fromConsultant->toArrayForDbEntry());
         $this->connection->table("CoordinatorInvitee")->insert($this->invitationThree_fromParticipant->toArrayForDbEntry());
+        
+        $this->submitReportInput = [
+            "stringFieldRecords" => [],
+            "integerFieldRecords" => [],
+            "textAreaFieldRecords" => [],
+            "attachmentFieldRecords" => [],
+            "singleSelectFieldRecords" => [],
+            "multiSelectFieldRecords" => [],
+        ];
     }
     
     protected function tearDown(): void
@@ -161,7 +172,70 @@ class InvitationControllerTest extends CoordinatorTestCase
         $this->connection->table("ConsultantActivity")->truncate();
         $this->connection->table("ParticipantActivity")->truncate();
         $this->connection->table("Invitee")->truncate();
+        $this->connection->table("InviteeReport")->truncate();
         $this->connection->table("CoordinatorInvitee")->truncate();
+    }
+    
+    public function test_put_200()
+    {
+        $response = [
+            "id" => $this->invitation_fromManager->id,
+            "willAttend" => $this->invitation_fromManager->invitee->willAttend,
+            "attended" => $this->invitation_fromManager->invitee->attended,
+            "activityParticipant" => [
+                "id" => $this->invitation_fromManager->invitee->activityParticipant->id,
+                "reportForm" => [
+                    "id" => $this->invitation_fromManager->invitee->activityParticipant->feedbackForm->id,
+                    "name" => $this->invitation_fromManager->invitee->activityParticipant->feedbackForm->form->name,
+                    "description" => $this->invitation_fromManager->invitee->activityParticipant->feedbackForm->form->description,
+                    "stringFields" => [],
+                    "integerFields" => [],
+                    "textAreaFields" => [],
+                    "attachmentFields" => [],
+                    "singleSelectFields" => [],
+                    "multiSelectFields" => [],
+                ],
+            ],
+            "report" => [
+                "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+                "stringFieldRecords" => [],
+                "integerFieldRecords" => [],
+                "textAreaFieldRecords" => [],
+                "attachmentFieldRecords" => [],
+                "singleSelectFieldRecords" => [],
+                "multiSelectFieldRecords" => [],
+            ],
+            "activity" => [
+                "id" => $this->invitation_fromManager->invitee->activity->id,
+                "name" => $this->invitation_fromManager->invitee->activity->name,
+                "description" => $this->invitation_fromManager->invitee->activity->description,
+                "location" => $this->invitation_fromManager->invitee->activity->location,
+                "note" => $this->invitation_fromManager->invitee->activity->note,
+                "startTime" => $this->invitation_fromManager->invitee->activity->startDateTime,
+                "endTime" => $this->invitation_fromManager->invitee->activity->endDateTime,
+                "cancelled" => $this->invitation_fromManager->invitee->activity->cancelled,
+                "program" => [
+                    "id" => $this->invitation_fromManager->invitee->activity->program->id,
+                    "name" => $this->invitation_fromManager->invitee->activity->program->name,
+                ],
+                "activityType" => [
+                    "id" => $this->invitation_fromManager->invitee->activity->activityType->id,
+                    "name" => $this->invitation_fromManager->invitee->activity->activityType->name,
+                ],
+                "manager" => [
+                    "id" => $this->managerActivity->manager->id,
+                    "name" => $this->managerActivity->manager->name,
+                ],
+                "coordinator" => null,
+                "consultant" => null,
+                "participant" => null,
+            ],
+        ];
+        
+        $uri = $this->invitationUri . "/{$this->invitation_fromManager->id}";
+        $this->put($uri, $this->submitReportInput, $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
     }
     
     public function test_show_200()
@@ -170,6 +244,7 @@ class InvitationControllerTest extends CoordinatorTestCase
             "id" => $this->invitation_fromManager->id,
             "willAttend" => $this->invitation_fromManager->invitee->willAttend,
             "attended" => $this->invitation_fromManager->invitee->attended,
+            "report" => null,
             "activityParticipant" => [
                 "id" => $this->invitation_fromManager->invitee->activityParticipant->id,
                 "reportForm" => [

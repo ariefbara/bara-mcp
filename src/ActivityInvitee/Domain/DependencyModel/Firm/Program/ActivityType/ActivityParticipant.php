@@ -2,13 +2,10 @@
 
 namespace ActivityInvitee\Domain\DependencyModel\Firm\Program\ActivityType;
 
-use ActivityInvitee\Domain\DependencyModel\Firm\ {
-    FeedbackForm,
-    Program\ActivityType
-};
-use SharedContext\Domain\ValueObject\ {
-    ActivityParticipantPriviledge,
-    ActivityParticipantType
+use ActivityInvitee\Domain\DependencyModel\Firm\FeedbackForm;
+use SharedContext\Domain\Model\SharedEntity\ {
+    FormRecord,
+    FormRecordData
 };
 
 class ActivityParticipant
@@ -16,27 +13,9 @@ class ActivityParticipant
 
     /**
      *
-     * @var ActivityType
-     */
-    protected $activityType;
-
-    /**
-     *
      * @var string
      */
     protected $id;
-
-    /**
-     *
-     * @var ActivityParticipantType
-     */
-    protected $participantType;
-
-    /**
-     *
-     * @var ActivityParticipantPriviledge
-     */
-    protected $participantPriviledge;
 
     /**
      *
@@ -47,6 +26,11 @@ class ActivityParticipant
     protected function __construct()
     {
         
+    }
+    
+    public function createFormRecord(string $formRecordId, FormRecordData $formRecordData): FormRecord
+    {
+        return $this->reportForm->createFormRecord($formRecordId, $formRecordData);
     }
 
 }
