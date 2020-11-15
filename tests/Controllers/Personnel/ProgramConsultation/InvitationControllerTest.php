@@ -37,6 +37,7 @@ class InvitationControllerTest extends ProgramConsultationTestCase
     protected $consultantInvitationOne_fromManager;
     protected $consultantInvitationTwo_fromCoordinator;
     protected $consultantInvitationThree_fromParticipant;
+    protected $submitReportInput;
 
     protected function setUp(): void
     {
@@ -58,6 +59,7 @@ class InvitationControllerTest extends ProgramConsultationTestCase
         $this->connection->table("CoordinatorActivity")->truncate();
         $this->connection->table("ParticipantActivity")->truncate();
         $this->connection->table("Invitee")->truncate();
+        $this->connection->table("InviteeReport")->truncate();
         $this->connection->table("ConsultantInvitee")->truncate();
 
         $program = $this->programConsultation->program;
@@ -142,6 +144,15 @@ class InvitationControllerTest extends ProgramConsultationTestCase
         $this->connection->table("ConsultantInvitee")->insert($this->consultantInvitationOne_fromManager->toArrayForDbEntry());
         $this->connection->table("ConsultantInvitee")->insert($this->consultantInvitationTwo_fromCoordinator->toArrayForDbEntry());
         $this->connection->table("ConsultantInvitee")->insert($this->consultantInvitationThree_fromParticipant->toArrayForDbEntry());
+        
+        $this->submitReportInput = [
+            "stringFieldRecords" => [],
+            "integerFieldRecords" => [],
+            "textAreaFieldRecords" => [],
+            "attachmentFieldRecords" => [],
+            "singleSelectFieldRecords" => [],
+            "multiSelectFieldRecords" => [],
+        ];
     }
 
     protected function tearDown(): void
@@ -163,7 +174,73 @@ class InvitationControllerTest extends ProgramConsultationTestCase
         $this->connection->table("CoordinatorActivity")->truncate();
         $this->connection->table("ParticipantActivity")->truncate();
         $this->connection->table("Invitee")->truncate();
+        $this->connection->table("InviteeReport")->truncate();
         $this->connection->table("ConsultantInvitee")->truncate();
+    }
+    
+    public function test_submitReport_200()
+    {
+        $response = [
+            "id" => $this->consultantInvitation_fromConsultant->id,
+            "willAttend" => $this->consultantInvitation_fromConsultant->invitee->willAttend,
+            "attended" => $this->consultantInvitation_fromConsultant->invitee->attended,
+            "report" => [
+                "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+                "stringFieldRecords" => [],
+                "integerFieldRecords" => [],
+                "textAreaFieldRecords" => [],
+                "attachmentFieldRecords" => [],
+                "singleSelectFieldRecords" => [],
+                "multiSelectFieldRecords" => [],
+            ],
+            "activityParticipant" => [
+                "id" => $this->consultantInvitation_fromConsultant->invitee->activityParticipant->id,
+                "reportForm" => [
+                    "id" => $this->consultantInvitation_fromConsultant->invitee->activityParticipant->feedbackForm->id,
+                    "name" => $this->consultantInvitation_fromConsultant->invitee->activityParticipant->feedbackForm->form->name,
+                    "description" => $this->consultantInvitation_fromConsultant->invitee->activityParticipant->feedbackForm->form->description,
+                    "stringFields" => [],
+                    "integerFields" => [],
+                    "textAreaFields" => [],
+                    "attachmentFields" => [],
+                    "singleSelectFields" => [],
+                    "multiSelectFields" => [],
+                ],
+            ],
+            "activity" => [
+                "id" => $this->consultantInvitation_fromConsultant->invitee->activity->id,
+                "name" => $this->consultantInvitation_fromConsultant->invitee->activity->name,
+                "description" => $this->consultantInvitation_fromConsultant->invitee->activity->description,
+                "location" => $this->consultantInvitation_fromConsultant->invitee->activity->location,
+                "note" => $this->consultantInvitation_fromConsultant->invitee->activity->note,
+                "startTime" => $this->consultantInvitation_fromConsultant->invitee->activity->startDateTime,
+                "endTime" => $this->consultantInvitation_fromConsultant->invitee->activity->endDateTime,
+                "cancelled" => $this->consultantInvitation_fromConsultant->invitee->activity->cancelled,
+                "program" => [
+                    "id" => $this->consultantInvitation_fromConsultant->invitee->activity->program->id,
+                    "name" => $this->consultantInvitation_fromConsultant->invitee->activity->program->name,
+                ],
+                "activityType" => [
+                    "id" => $this->consultantInvitation_fromConsultant->invitee->activity->activityType->id,
+                    "name" => $this->consultantInvitation_fromConsultant->invitee->activity->activityType->name,
+                ],
+                "consultant" => [
+                    "id" => $this->consultantActivity->consultant->id,
+                    "personnel" => [
+                        "id" => $this->consultantActivity->consultant->personnel->id,
+                        "name" => $this->consultantActivity->consultant->personnel->getFullName(),
+                    ],
+                ],
+                "manager" => null,
+                "coordinator" => null,
+                "participant" => null,
+            ],
+        ];
+
+        $uri = $this->inviteeUri . "/{$this->consultantInvitation_fromConsultant->id}";
+        $this->put($uri, $this->submitReportInput, $this->programConsultation->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
     }
 
     public function test_show_200()
@@ -172,6 +249,7 @@ class InvitationControllerTest extends ProgramConsultationTestCase
             "id" => $this->consultantInvitation_fromConsultant->id,
             "willAttend" => $this->consultantInvitation_fromConsultant->invitee->willAttend,
             "attended" => $this->consultantInvitation_fromConsultant->invitee->attended,
+            "report" => null,
             "activityParticipant" => [
                 "id" => $this->consultantInvitation_fromConsultant->invitee->activityParticipant->id,
                 "reportForm" => [

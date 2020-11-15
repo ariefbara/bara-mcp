@@ -2,7 +2,13 @@
 
 namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
+use ActivityInvitee\ {
+    Application\Service\Consultant\SubmitReport,
+    Domain\Model\ConsultantInvitee as ConsultantInvitee2
+};
 use App\Http\Controllers\ {
+    FormRecordDataBuilder,
+    FormRecordToArrayDataConverter,
     FormToArrayDataConverter,
     Personnel\PersonnelBaseController
 };
@@ -11,6 +17,7 @@ use Query\ {
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\FeedbackForm,
     Domain\Model\Firm\Manager\ManagerActivity,
+    Domain\Model\Firm\Program\Activity\Invitee\InviteeReport,
     Domain\Model\Firm\Program\Consultant\ConsultantActivity,
     Domain\Model\Firm\Program\Consultant\ConsultantInvitee,
     Domain\Model\Firm\Program\Coordinator\CoordinatorActivity,
@@ -18,9 +25,26 @@ use Query\ {
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
+use SharedContext\Domain\ {
+    Model\SharedEntity\FileInfo,
+    Service\FileInfoBelongsToPersonnelFinder
+};
 
 class InvitationController extends PersonnelBaseController
 {
+    
+    public function submitReport($programConsultationId, $invitationId)
+    {
+        $service = $this->buildSubmitReportService();
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        $fileInfoFinder = new FileInfoBelongsToPersonnelFinder(
+                $fileInfoRepository, $this->firmId(), $this->personnelId());
+
+        $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
+        $service->execute($this->firmId(), $this->personnelId(), $invitationId, $formRecordData);
+        
+        return $this->show($programConsultationId, $invitationId);
+    }
 
     public function show($programConsultationId, $invitationId)
     {
@@ -70,6 +94,7 @@ class InvitationController extends PersonnelBaseController
                 "id" => $invitation->getActivityParticipant()->getId(),
                 "reportForm" => $this->arrayDataOfReportForm($invitation->getActivityParticipant()->getReportForm()),
             ],
+            "report" => $this->arrayDataOfReport($invitation->getReport()),
             "activity" => [
                 "id" => $invitation->getActivity()->getId(),
                 "name" => $invitation->getActivity()->getName(),
@@ -102,6 +127,10 @@ class InvitationController extends PersonnelBaseController
         $reportFormData = (new FormToArrayDataConverter())->convert($reportForm);
         $reportFormData["id"] = $reportForm->getId();
         return $reportFormData;
+    }
+    protected function arrayDataOfReport(?InviteeReport $report): ?array
+    {
+        return isset($report)? (new FormRecordToArrayDataConverter())->convert($report): null;
     }
     protected function arrayDataOfManager(?ManagerActivity $managerActivity): ?array
     {
@@ -166,6 +195,12 @@ class InvitationController extends PersonnelBaseController
         $consultantInvitataionRepository = $this->em->getRepository(ConsultantInvitee::class);
         
         return new ViewInvitationForConsultant($consultantInvitataionRepository);
+    }
+    
+    protected function buildSubmitReportService()
+    {
+        $activityInvitationRepository = $this->em->getRepository(ConsultantInvitee2::class);
+        return new SubmitReport($activityInvitationRepository);
     }
 
 }

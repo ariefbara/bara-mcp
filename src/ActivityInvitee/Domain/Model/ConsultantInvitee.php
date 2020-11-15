@@ -3,6 +3,7 @@
 namespace ActivityInvitee\Domain\Model;
 
 use ActivityInvitee\Domain\DependencyModel\Firm\Personnel\Consultant;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class ConsultantInvitee
 {
@@ -28,6 +29,11 @@ class ConsultantInvitee
     protected function __construct()
     {
         
+    }
+    
+    public function submitReport(FormRecordData $formRecordData): void
+    {
+        $this->invitee->submitReport($formRecordData);
     }
 
 }

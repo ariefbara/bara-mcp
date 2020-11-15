@@ -17,12 +17,6 @@ class Consultant
      *
      * @var string
      */
-    protected $programId;
-
-    /**
-     *
-     * @var string
-     */
     protected $id;
 
     /**
