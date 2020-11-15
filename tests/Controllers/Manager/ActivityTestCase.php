@@ -19,7 +19,28 @@ class ActivityTestCase extends ManagerTestCase
      * @var RecordOfManagerActivity
      */
     protected $managerActivity;
-    
+    /**
+     *
+     * @var RecordOfActivityParticipant
+     */
+    protected $activityParticipant_coordinator;
+    /**
+     *
+     * @var RecordOfActivityParticipant
+     */
+    protected $activityParticipantOne_Manager;
+    /**
+     *
+     * @var RecordOfActivityParticipant
+     */
+    protected $activityParticipantTwo_Consultant;
+    /**
+     *
+     * @var RecordOfActivityParticipant
+     */
+    protected $activityParticipantThree_Participant;
+
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -37,17 +58,17 @@ class ActivityTestCase extends ManagerTestCase
         $activityType = new RecordOfActivityType($program, "999");
         $this->connection->table("ActivityType")->insert($activityType->toArrayForDbEntry());
         
-        $activityParticipant = new RecordOfActivityParticipant($activityType, null, "999");
-        $activityParticipantOne_Manager = new RecordOfActivityParticipant($activityType, null, "998");
-        $activityParticipantOne_Manager->participantType = ActivityParticipantType::MANAGER;
-        $activityParticipantTwo_Consultant = new RecordOfActivityParticipant($activityType, null, "997");
-        $activityParticipantTwo_Consultant->participantType = ActivityParticipantType::CONSULTANT;
-        $activityParticipantThree_Participant = new RecordOfActivityParticipant($activityType, null, "996");
-        $activityParticipantThree_Participant->participantType = ActivityParticipantType::PARTICIPANT;
-        $this->connection->table("ActivityParticipant")->insert($activityParticipant->toArrayForDbEntry());
-        $this->connection->table("ActivityParticipant")->insert($activityParticipantOne_Manager->toArrayForDbEntry());
-        $this->connection->table("ActivityParticipant")->insert($activityParticipantTwo_Consultant->toArrayForDbEntry());
-        $this->connection->table("ActivityParticipant")->insert($activityParticipantThree_Participant->toArrayForDbEntry());
+        $this->activityParticipant_coordinator = new RecordOfActivityParticipant($activityType, null, "999");
+        $this->activityParticipantOne_Manager = new RecordOfActivityParticipant($activityType, null, "998");
+        $this->activityParticipantOne_Manager->participantType = ActivityParticipantType::MANAGER;
+        $this->activityParticipantTwo_Consultant = new RecordOfActivityParticipant($activityType, null, "997");
+        $this->activityParticipantTwo_Consultant->participantType = ActivityParticipantType::CONSULTANT;
+        $this->activityParticipantThree_Participant = new RecordOfActivityParticipant($activityType, null, "996");
+        $this->activityParticipantThree_Participant->participantType = ActivityParticipantType::PARTICIPANT;
+        $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_coordinator->toArrayForDbEntry());
+        $this->connection->table("ActivityParticipant")->insert($this->activityParticipantOne_Manager->toArrayForDbEntry());
+        $this->connection->table("ActivityParticipant")->insert($this->activityParticipantTwo_Consultant->toArrayForDbEntry());
+        $this->connection->table("ActivityParticipant")->insert($this->activityParticipantThree_Participant->toArrayForDbEntry());
         
         $activity = new RecordOfActivity($program, $activityType, "999");
         $this->connection->table("Activity")->insert($activity->toArrayForDbEntry());

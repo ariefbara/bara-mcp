@@ -6,6 +6,7 @@ use ActivityCreator\Domain\ {
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\ActivityType,
     Model\Activity,
+    Model\Activity\Invitee,
     Model\ConsultantActivity
 };
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -16,7 +17,7 @@ class ConsultantTest extends TestBase
     protected $program;
     protected $consultant;
     protected $activityId = "activityId", $activityType, $activityDataProvider = "string represent data provider";
-
+    protected $invitee;
 
     protected function setUp(): void
     {
@@ -26,16 +27,18 @@ class ConsultantTest extends TestBase
         $this->consultant->program = $this->program;
         
         $this->activityType = $this->buildMockOfClass(ActivityType::class);
+        
+        $this->invitee = $this->buildMockOfClass(Invitee::class);
     }
     
-    public function test_belongsToProgram_sameProgram_returnTrue()
+    public function test_canInvolvedInProgram_sameProgram_returnTrue()
     {
-        $this->assertTrue($this->consultant->belongsToProgram($this->consultant->program));
+        $this->assertTrue($this->consultant->canInvolvedInProgram($this->consultant->program));
     }
-    public function test_belongsToProgram_differentProgram_returnFalse()
+    public function test_canInvolvedInProgram_differentProgram_returnFalse()
     {
         $program = $this->buildMockOfClass(Program::class);
-        $this->assertFalse($this->consultant->belongsToProgram($program));
+        $this->assertFalse($this->consultant->canInvolvedInProgram($program));
     }
     
     protected function executeInitiateActivity()
@@ -68,6 +71,14 @@ class ConsultantTest extends TestBase
         };
         $errorDetail = "forbidden: consultant not allowed to initiate this activity";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_registerAsInviteeRecipient_registerAsInviteeRecipient()
+    {
+        $this->invitee->expects($this->once())
+                ->method("registerConsultantAsRecipient")
+                ->with($this->consultant);
+        $this->consultant->registerAsInviteeRecipient($this->invitee);
     }
 }
 

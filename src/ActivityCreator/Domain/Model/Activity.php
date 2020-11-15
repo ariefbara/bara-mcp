@@ -2,22 +2,16 @@
 
 namespace ActivityCreator\Domain\Model;
 
-use ActivityCreator\Domain\{
-    DependencyModel\Firm\Manager,
-    DependencyModel\Firm\Personnel\Consultant,
-    DependencyModel\Firm\Personnel\Coordinator,
+use ActivityCreator\Domain\ {
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\ActivityType,
-    DependencyModel\Firm\Program\Participant,
-    Model\Activity\Invitation,
+    DependencyModel\Firm\Program\ActivityType\ActivityParticipant,
+    Model\Activity\Invitee,
     service\ActivityDataProvider
 };
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Resources\{
+use Doctrine\Common\Collections\ArrayCollection;
+use Resources\ {
     DateTimeImmutableBuilder,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
@@ -26,7 +20,6 @@ use Resources\{
     ValidationRule,
     ValidationService
 };
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class Activity extends EntityContainEvents
 {
@@ -90,12 +83,12 @@ class Activity extends EntityContainEvents
      * @var DateTimeImmutable
      */
     protected $createdTime;
-
+    
     /**
      *
      * @var ArrayCollection
      */
-    protected $invitations;
+    protected $invitees;
 
     protected function setName(string $name): void
     {
@@ -133,8 +126,9 @@ class Activity extends EntityContainEvents
         $this->cancelled = false;
         $this->createdTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
 
-        $this->invitations = new ArrayCollection();
-        $this->addInvitation($activityDataProvider);
+        $this->invitees = new ArrayCollection();
+
+        $this->activityType->addInviteesToActivity($this, $activityDataProvider);
     }
 
     public function update(ActivityDataProvider $activityDataProvider): void
@@ -144,121 +138,36 @@ class Activity extends EntityContainEvents
         $this->setStartEndTime($activityDataProvider->getStartTime(), $activityDataProvider->getEndTime());
         $this->location = $activityDataProvider->getLocation();
         $this->note = $activityDataProvider->getNote();
-
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq("removed", false));
-        foreach ($this->invitations->matching($criteria)->getIterator() as $invitation) {
-            $invitation->removeIfNotAppearInList($activityDataProvider);
+        
+        foreach ($this->invitees->getIterator() as $invitee) {
+            $invitee->cancelInvitation();
         }
 
-        foreach ($activityDataProvider->iterateInvitedManagerList() as $manager) {
-            $p = function (Invitation $invitation) use ($manager) {
-                return $invitation->isNonRemovedInvitationCorrespondWithManager($manager);
-            };
-            if (empty($this->invitations->filter($p)->count())) {
-                $this->addInvitationToManager($manager);
-            }
+        $this->activityType->addInviteesToActivity($this, $activityDataProvider);
+    }
+    
+    public function addInvitee(CanReceiveInvitation $recipient, ActivityParticipant $activityParticipant): void
+    {
+        if (!$recipient->canInvolvedInProgram($this->program)) {
+            $errorDetail = "forbidden: invitee cannot be involved in program";
+            throw RegularException::forbidden($errorDetail);
         }
-        foreach ($activityDataProvider->iterateInvitedCoordinatorList() as $coordinator) {
-            $p = function (Invitation $invitation) use ($coordinator) {
-                return $invitation->isNonRemovedInvitationCorrespondWithCoordinator($coordinator);
-            };
-            if (empty($this->invitations->filter($p)->count())) {
-                $this->addInvitationToCoordinator($coordinator);
-            }
-        }
-        foreach ($activityDataProvider->iterateInvitedConsultantList() as $consultant) {
-            $p = function (Invitation $invitation) use ($consultant) {
-                return $invitation->isNonRemovedInvitationCorrespondWithConsultant($consultant);
-            };
-            if (empty($this->invitations->filter($p)->count())) {
-                $this->addInvitationToConsultant($consultant);
-            }
-        }
-        foreach ($activityDataProvider->iterateInvitedParticipantList() as $participant) {
-            $p = function (Invitation $invitation) use ($participant) {
-                return $invitation->isNonRemovedInvitationCorrespondWithParticipant($participant);
-            };
-            if (empty($this->invitations->filter($p)->count())) {
-                $this->addInvitationToParticipant($participant);
-            }
+        if (!empty($invitee = $this->findInviteeCorrespondWithRecipient($recipient))) {
+            $invitee->reinvite();
+        } else {
+            $id = Uuid::generateUuid4();
+            $invitee = new Invitee($this, $id, $activityParticipant, $recipient);
+            $this->invitees->add($invitee);
         }
     }
-
-    protected function addInvitation(ActivityDataProvider $activityDataProvider): void
+    
+    protected function findInviteeCorrespondWithRecipient(CanReceiveInvitation $recipient): ?Invitee
     {
-        foreach ($activityDataProvider->iterateInvitedManagerList() as $manager) {
-            $this->addInvitationToManager($manager);
-        }
-        foreach ($activityDataProvider->iterateInvitedCoordinatorList() as $coordinator) {
-            $this->addInvitationToCoordinator($coordinator);
-        }
-        foreach ($activityDataProvider->iterateInvitedConsultantList() as $consultant) {
-            $this->addInvitationToConsultant($consultant);
-        }
-        foreach ($activityDataProvider->iterateInvitedParticipantList() as $participant) {
-            $this->addInvitationToParticipant($participant);
-        }
-    }
-
-    protected function addInvitationToManager(Manager $manager): void
-    {
-        if (!$this->activityType->canInvite(new ActivityParticipantType(ActivityParticipantType::MANAGER))) {
-            $errorDetail = "forbidden: cannot invite manager role";
-            throw RegularException::forbidden($errorDetail);
-        }
-        if (!$manager->belongsToSameFirmAs($this->program)) {
-            $errorDetail = "forbidden: unable to invite manager from different firm";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $id = Uuid::generateUuid4();
-        $invitation = Invitation::inviteManager($this, $id, $manager);
-        $this->invitations->add($invitation);
-    }
-
-    protected function addInvitationToCoordinator(Coordinator $coordinator): void
-    {
-        if (!$this->activityType->canInvite(new ActivityParticipantType(ActivityParticipantType::COORDINATOR))) {
-            $errorDetail = "forbidden: cannot invite coordinator role";
-            throw RegularException::forbidden($errorDetail);
-        }
-        if (!$coordinator->belongsToProgram($this->program)) {
-            $errorDetail = "forbidden: unable to invite coordinator from different program";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $id = Uuid::generateUuid4();
-        $invitation = Invitation::inviteCoordinator($this, $id, $coordinator);
-        $this->invitations->add($invitation);
-    }
-
-    protected function addInvitationToConsultant(Consultant $consultant): void
-    {
-        if (!$this->activityType->canInvite(new ActivityParticipantType(ActivityParticipantType::CONSULTANT))) {
-            $errorDetail = "forbidden: cannot invite consultant role";
-            throw RegularException::forbidden($errorDetail);
-        }
-        if (!$consultant->belongsToProgram($this->program)) {
-            $errorDetail = "forbidden: unable to invite consultant from different program";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $id = Uuid::generateUuid4();
-        $invitation = Invitation::inviteConsultant($this, $id, $consultant);
-        $this->invitations->add($invitation);
-    }
-
-    protected function addInvitationToParticipant(Participant $participant): void
-    {
-        if (!$this->activityType->canInvite(new ActivityParticipantType(ActivityParticipantType::PARTICIPANT))) {
-            $errorDetail = "forbidden: cannot invite participant role";
-            throw RegularException::forbidden($errorDetail);
-        }
-        if (!$participant->belongsToProgram($this->program)) {
-            $errorDetail = "forbidden: unable to invite participant from different program";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $id = Uuid::generateUuid4();
-        $invitation = Invitation::inviteParticipant($this, $id, $participant);
-        $this->invitations->add($invitation);
+        $p = function (Invitee $invitee) use ($recipient) {
+            return $invitee->correspondWithRecipient($recipient);
+        };
+        $invitee = $this->invitees->filter($p)->first();
+        return empty($invitee)? null: $invitee;
     }
 
 }

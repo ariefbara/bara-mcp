@@ -2,7 +2,8 @@
 
 namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitation;
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitee;
+
 
 class ViewInvitationForConsultant
 {
@@ -25,7 +26,7 @@ class ViewInvitationForConsultant
      * @param string $consultantId
      * @param int $page
      * @param int $pageSize
-     * @return ConsultantInvitation[]
+     * @return ConsultantInvitee[]
      */
     public function showAll(string $firmId, string $personnelId, string $consultantId, int $page, int $pageSize)
     {
@@ -33,7 +34,7 @@ class ViewInvitationForConsultant
                         $firmId, $personnelId, $consultantId, $page, $pageSize);
     }
 
-    public function showById(string $firmId, string $personnelId, string $invitationId): ConsultantInvitation
+    public function showById(string $firmId, string $personnelId, string $invitationId): ConsultantInvitee
     {
         return $this->consultantInvitataionRepository->anInvitationForConsultant($firmId, $personnelId, $invitationId);
     }

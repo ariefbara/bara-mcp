@@ -6,6 +6,7 @@ use ActivityCreator\Domain\ {
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Team\ProgramParticipation,
     Model\Activity,
+    Model\Activity\Invitee,
     Model\ParticipantActivity,
     service\ActivityDataProvider
 };
@@ -19,6 +20,7 @@ class ParticipantTest extends TestBase
     protected $participant;
     protected $activityId = "activityId", $activityType, $activityDataProvider;
     protected $teamParticipant;
+    protected $invitee;
 
     protected function setUp(): void
     {
@@ -33,16 +35,18 @@ class ParticipantTest extends TestBase
 
         $this->activityType = $this->buildMockOfClass(ActivityType::class);
         $this->activityDataProvider = $this->buildMockOfClass(ActivityDataProvider::class);
+        
+        $this->invitee = $this->buildMockOfClass(Invitee::class);
     }
 
-    public function test_belongsToProgram_sameProgram_returnTrue()
+    public function test_canInvolvedInProgram_sameProgram_returnTrue()
     {
-        $this->assertTrue($this->participant->belongsToProgram($this->participant->program));
+        $this->assertTrue($this->participant->canInvolvedInProgram($this->participant->program));
     }
-    public function test_belongsToProgram_differentProgram_returnFalse()
+    public function test_canInvolvedInProgram_differentProgram_returnFalse()
     {
         $program = $this->buildMockOfClass(Program::class);
-        $this->assertFalse($this->participant->belongsToProgram($program));
+        $this->assertFalse($this->participant->canInvolvedInProgram($program));
     }
     
     protected function executeInitiateActivity()
@@ -97,6 +101,14 @@ class ParticipantTest extends TestBase
     {
         $this->participant->teamParticipant = null;
         $this->assertFalse($this->participant->belongsToTeam("teamId"));
+    }
+    
+    public function test_registerAsInviteeRecipient_registerAsInviteeRecipient()
+    {
+        $this->invitee->expects($this->once())
+                ->method("registerParticipantAsRecipient")
+                ->with($this->participant);
+        $this->participant->registerAsInviteeRecipient($this->invitee);
     }
 
 }

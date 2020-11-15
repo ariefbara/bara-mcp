@@ -5,13 +5,15 @@ namespace ActivityCreator\Domain\DependencyModel\Firm\Program;
 use ActivityCreator\Domain\ {
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Team\ProgramParticipation as TeamParticipant,
+    Model\Activity\Invitee,
+    Model\CanReceiveInvitation,
     Model\ParticipantActivity,
     service\ActivityDataProvider
 };
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Participant
+class Participant implements CanReceiveInvitation
 {
 
     /**
@@ -43,11 +45,6 @@ class Participant
         
     }
 
-    public function belongsToProgram(Program $program): bool
-    {
-        return $this->program === $program;
-    }
-    
     public function belongsToTeam(string $teamId): bool
     {
         return isset($this->teamParticipant)? $this->teamParticipant->belongsToTeam($teamId): false;
@@ -66,6 +63,16 @@ class Participant
         }
         $activity = $this->program->createActivity($activityId, $activityType, $activityDataProvider);
         return new ParticipantActivity($this, $activityId, $activity);
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+
+    public function registerAsInviteeRecipient(Invitee $invitee): void
+    {
+        $invitee->registerParticipantAsRecipient($this);
     }
 
 }

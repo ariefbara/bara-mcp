@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="ActivityCreator\Domain\Model\Activity\Invitee\ConsultantInvitee" 
+            table="ConsultantInvitee"
+    >
+        
+        <one-to-one field="invitee" 
+                    target-entity="ActivityCreator\Domain\Model\Activity\Invitee"
+                    inversed-by="consultantInvitee"
+        >
+            <join-column name="Invitee_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="consultant" 
+                      target-entity="ActivityCreator\Domain\DependencyModel\Firm\Personnel\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

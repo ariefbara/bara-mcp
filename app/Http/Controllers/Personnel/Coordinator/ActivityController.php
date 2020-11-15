@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\Personnel\Coordinator;
 
-use ActivityCreator\ {
+use ActivityCreator\{
     Application\Service\Coordinator\InitiateActivity,
     Application\Service\Coordinator\UpdateActivity,
     Domain\DependencyModel\Firm\Manager,
     Domain\DependencyModel\Firm\Personnel\Consultant,
     Domain\DependencyModel\Firm\Personnel\Coordinator,
+    Domain\DependencyModel\Firm\Program,
     Domain\DependencyModel\Firm\Program\ActivityType,
     Domain\DependencyModel\Firm\Program\Participant,
     Domain\Model\CoordinatorActivity as CoordinatorActivity2,
     Domain\service\ActivityDataProvider
 };
 use App\Http\Controllers\Personnel\PersonnelBaseController;
-use Query\ {
+use Query\{
     Application\Service\Firm\Personnel\ProgramCoordinator\ViewCoordinatorActivity,
     Domain\Model\Firm\Program\Coordinator\CoordinatorActivity
 };
@@ -28,20 +29,20 @@ class ActivityController extends PersonnelBaseController
         $service = $this->buildInitiateService();
         $activityTypeId = $this->stripTagsInputRequest("activityTypeId");
 
-        $coordinatorActivityId = $service->execute(
+        $activityId = $service->execute(
                 $this->firmId(), $this->personnelId(), $coordinatorId, $activityTypeId,
                 $this->buildActivityDataProvider());
 
         $viewService = $this->buildViewService();
-        $coordinatorActivity = $viewService->showById($this->firmId(), $this->personnelId(), $coordinatorActivityId);
+        $coordinatorActivity = $viewService->showById($this->firmId(), $this->personnelId(), $activityId);
         return $this->commandCreatedResponse($this->arrayDataOfCoordinatorActivity($coordinatorActivity));
     }
 
-    public function update($coordinatorId, $activityId)
+    public function update($activityId)
     {
         $service = $this->buildUpdateService();
         $service->execute($this->firmId(), $this->personnelId(), $activityId, $this->buildActivityDataProvider());
-        return $this->show($coordinatorId, $activityId);
+        return $this->show($activityId);
     }
 
     protected function buildActivityDataProvider()
@@ -61,11 +62,11 @@ class ActivityController extends PersonnelBaseController
                 $managerRepository, $coordinatorRepository, $consultantRepository, $participantRepository, $name,
                 $description, $startTime, $endTime, $location, $note);
 
-        foreach ($this->request->input("invitedManagerList") as $managerId) {
-            $dataProvider->addManagerInvitation($managerId);
-        }
         foreach ($this->request->input("invitedCoordinatorList") as $coordinatorId) {
             $dataProvider->addCoordinatorInvitation($coordinatorId);
+        }
+        foreach ($this->request->input("invitedManagerList") as $managerId) {
+            $dataProvider->addManagerInvitation($managerId);
         }
         foreach ($this->request->input("invitedConsultantList") as $consultantId) {
             $dataProvider->addConsultantInvitation($consultantId);
@@ -77,7 +78,7 @@ class ActivityController extends PersonnelBaseController
         return $dataProvider;
     }
 
-    public function show($coordinatorId, $activityId)
+    public function show($activityId)
     {
         $service = $this->buildViewService();
         $coordinatorActivity = $service->showById($this->firmId(), $this->personnelId(), $activityId);

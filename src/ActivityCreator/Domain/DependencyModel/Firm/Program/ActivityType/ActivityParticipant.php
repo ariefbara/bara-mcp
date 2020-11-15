@@ -2,8 +2,12 @@
 
 namespace ActivityCreator\Domain\DependencyModel\Firm\Program\ActivityType;
 
-use ActivityCreator\Domain\DependencyModel\Firm\Program\ActivityType;
-use SharedContext\Domain\ValueObject\{
+use ActivityCreator\Domain\ {
+    DependencyModel\Firm\Program\ActivityType,
+    Model\Activity,
+    service\ActivityDataProvider
+};
+use SharedContext\Domain\ValueObject\ {
     ActivityParticipantPriviledge,
     ActivityParticipantType
 };
@@ -45,9 +49,31 @@ class ActivityParticipant
         return $this->participantPriviledge->canInitiate() && $this->participantType->sameValueAs($activityParticipantType);
     }
     
-    public function canAttendAndTypeEquals(ActivityParticipantType $activityParticipantType): bool
+    public function addInviteesToActivity(Activity $activity, ActivityDataProvider $activityDataProvider): void
     {
-        return $this->participantPriviledge->canAttend() && $this->participantType->sameValueAs($activityParticipantType);
+        if (!$this->participantPriviledge->canAttend()) {
+            return;
+        }
+        
+        if ($this->participantType->isCoordinatorType()) {
+            foreach ($activityDataProvider->iterateInvitedCoordinatorList() as $coordinator) {
+                $activity->addInvitee($coordinator, $this);
+            }
+        }elseif ($this->participantType->isConsultantType()) {
+            foreach ($activityDataProvider->iterateInvitedConsultantList() as $consultant) {
+                $activity->addInvitee($consultant, $this);
+            }
+        } elseif ($this->participantType->isManagerType()) {
+            foreach ($activityDataProvider->iterateInvitedManagerList() as $manager) {
+                $activity->addInvitee($manager, $this);
+            }
+        } elseif ($this->participantType->isParticipantType()) {
+            foreach ($activityDataProvider->iterateInvitedParticipantList() as $participant) {
+                $activity->addInvitee($participant, $this);
+            }
+        }
     }
+    
+    
 
 }

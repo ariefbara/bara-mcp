@@ -2,7 +2,7 @@
 
 namespace Query\Application\Service\Firm\Personnel\ProgramCoordinator;
 
-use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitation;
+use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee;
 
 class ViewInvitationForCoordinator
 {
@@ -25,7 +25,7 @@ class ViewInvitationForCoordinator
      * @param string $coordinatorId
      * @param int $page
      * @param int $pageSize
-     * @return CoordinatorInvitation[]
+     * @return CoordinatorInvitee[]
      */
     public function showAll(string $firmId, string $personnelId, string $coordinatorId, int $page, int $pageSize)
     {
@@ -33,7 +33,7 @@ class ViewInvitationForCoordinator
                         $coordinatorId, $page, $pageSize);
     }
 
-    public function showById(string $firmId, string $personnelId, string $invitationId): CoordinatorInvitation
+    public function showById(string $firmId, string $personnelId, string $invitationId): CoordinatorInvitee
     {
         return $this->coordinatorInvitationRepository->anInvitationForCoordinator($firmId, $personnelId, $invitationId);
     }

@@ -2,6 +2,14 @@
 
 namespace ActivityCreator\Domain\DependencyModel\Firm\Program\ActivityType;
 
+use ActivityCreator\Domain\ {
+    DependencyModel\Firm\Manager,
+    DependencyModel\Firm\Personnel\Consultant,
+    DependencyModel\Firm\Personnel\Coordinator,
+    DependencyModel\Firm\Program\Participant,
+    Model\Activity,
+    service\ActivityDataProvider
+};
 use SharedContext\Domain\ValueObject\ {
     ActivityParticipantPriviledge,
     ActivityParticipantType
@@ -13,7 +21,8 @@ class ActivityParticipantTest extends TestBase
     protected $activityParticipant;
     protected $activityParticipantType;
     protected $priviledge;
-
+    protected $activity;
+    protected $activityDataProvider;
 
     protected function setUp(): void
     {
@@ -25,6 +34,9 @@ class ActivityParticipantTest extends TestBase
         
         $this->priviledge = $this->buildMockOfClass(ActivityParticipantPriviledge::class);
         $this->activityParticipant->participantPriviledge = $this->priviledge;
+        
+        $this->activity = $this->buildMockOfClass(Activity::class);
+        $this->activityDataProvider = $this->buildMockOfClass(ActivityDataProvider::class);
     }
     
     protected function executeCanInitiateAndTypeEquals()
@@ -57,34 +69,89 @@ class ActivityParticipantTest extends TestBase
         $this->assertFalse($this->executeCanInitiateAndTypeEquals());
     }
     
-    protected function executeCanAttendAndTypeEquals()
+    protected function executeAddInviteesToActivity()
     {
-        $this->activityParticipantType->expects($this->any())
-                ->method("sameValueAs")
-                ->willReturn(true);
         $this->priviledge->expects($this->any())
                 ->method("canAttend")
                 ->willReturn(true);
-        return $this->activityParticipant->canAttendAndTypeEquals($this->activityParticipantType);
+        $this->activityParticipant->addInviteesToActivity($this->activity, $this->activityDataProvider);
     }
-    public function test_canAttendAndTypeEquals_sameTypeAndHasCanAttendPriviledge_returnTrue()
-    {
-        $this->assertTrue($this->executeCanAttendAndTypeEquals());
-    }
-    public function test_canAttendAndTypeEquals_differentType_returnFalse()
+    public function test_addInviteesToActivity_aCoordinatorTypeParticipant_inviteAllCoordinatorInDataProviderToActivity()
     {
         $this->activityParticipantType->expects($this->once())
-                ->method("sameValueAs")
-                ->with($this->activityParticipantType)
-                ->willReturn(false);
-        $this->assertFalse($this->executeCanAttendAndTypeEquals());
+                ->method("isCoordinatorType")
+                ->willReturn(true);
+        
+        $coordinator = $this->buildMockOfClass(Coordinator::class);
+        $this->activityDataProvider->expects($this->once())
+                ->method("iterateInvitedCoordinatorList")
+                ->willReturn([$coordinator]);
+        
+        $this->activity->expects($this->once())
+                ->method("addInvitee")
+                ->with($coordinator, $this->activityParticipant);
+        
+        $this->executeAddInviteesToActivity();
     }
-    public function test_canAttendAndTypeEquals_cantAttend_returnFalse()
+    public function test_addInviteesToActivity_aConsultantTypeParticipant_inviteAllConsultantInDataProviderToActivity()
+    {
+        $this->activityParticipantType->expects($this->once())
+                ->method("isConsultantType")
+                ->willReturn(true);
+        
+        $consultant = $this->buildMockOfClass(Consultant::class);
+        $this->activityDataProvider->expects($this->once())
+                ->method("iterateInvitedConsultantList")
+                ->willReturn([$consultant]);
+        
+        $this->activity->expects($this->once())
+                ->method("addInvitee")
+                ->with($consultant, $this->activityParticipant);
+        
+        $this->executeAddInviteesToActivity();
+    }
+    public function test_addInviteesToActivity_aManagerTypeParticipant_inviteAllManagerInDataProviderToActivity()
+    {
+        $this->activityParticipantType->expects($this->once())
+                ->method("isManagerType")
+                ->willReturn(true);
+        
+        $manager = $this->buildMockOfClass(Manager::class);
+        $this->activityDataProvider->expects($this->once())
+                ->method("iterateInvitedManagerList")
+                ->willReturn([$manager]);
+        
+        $this->activity->expects($this->once())
+                ->method("addInvitee")
+                ->with($manager, $this->activityParticipant);
+        
+        $this->executeAddInviteesToActivity();
+    }
+    public function test_addInviteesToActivity_aParticipantTypeParticipant_inviteAllParticipantInDataProviderToActivity()
+    {
+        $this->activityParticipantType->expects($this->once())
+                ->method("isParticipantType")
+                ->willReturn(true);
+        
+        $participant = $this->buildMockOfClass(Participant::class);
+        $this->activityDataProvider->expects($this->once())
+                ->method("iterateInvitedParticipantList")
+                ->willReturn([$participant]);
+        
+        $this->activity->expects($this->once())
+                ->method("addInvitee")
+                ->with($participant, $this->activityParticipant);
+        
+        $this->executeAddInviteesToActivity();
+    }
+    public function test_addInviteesToActivity_cannotAttend_preventAddInvitee()
     {
         $this->priviledge->expects($this->once())
                 ->method("canAttend")
                 ->willReturn(false);
-        $this->assertFalse($this->executeCanAttendAndTypeEquals());
+        $this->activityParticipantType->expects($this->never())
+                ->method("isCoordinatorType");
+        $this->executeAddInviteesToActivity();
     }
 }
 

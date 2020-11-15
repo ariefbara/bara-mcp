@@ -3,14 +3,9 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Query\Domain\Model\Firm\{
+use Query\Domain\Model\Firm\ {
     Manager\ManagerActivity,
     Program,
-    Program\Activity\Invitation,
     Program\Consultant\ConsultantActivity,
     Program\Coordinator\CoordinatorActivity,
     Program\Participant\ParticipantActivity
@@ -79,12 +74,6 @@ class Activity
      * @var DateTimeImmutable
      */
     protected $createdTime;
-
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $invitations;
 
     /**
      *
@@ -168,17 +157,6 @@ class Activity
     function getEndTimeString(): string
     {
         return $this->startEndTime->getEndTime()->format("Y-m-d H:i:s");
-    }
-
-    /**
-     * 
-     * @return Invitation[]
-     */
-    public function iterateInvitation()
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq("removed", false));
-        return $this->invitations->matching($criteria)->getIterator();
     }
 
     function getManagerActivity(): ?ManagerActivity

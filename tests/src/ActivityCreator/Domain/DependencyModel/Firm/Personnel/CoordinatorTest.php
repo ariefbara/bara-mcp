@@ -5,6 +5,7 @@ namespace ActivityCreator\Domain\DependencyModel\Firm\Personnel;
 use ActivityCreator\Domain\ {
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\ActivityType,
+    Model\Activity\Invitee,
     Model\CoordinatorActivity
 };
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -14,8 +15,8 @@ class CoordinatorTest extends TestBase
 {
     protected $program;
     protected $coordinator;
-    
     protected $coordinatorActivityId = "activityId", $activityType, $activityDataProvider = "activityDataProvider";
+    protected $invitee;
 
     protected function setUp(): void
     {
@@ -25,6 +26,8 @@ class CoordinatorTest extends TestBase
         $this->coordinator->program = $this->program;
         
         $this->activityType = $this->buildMockOfClass(ActivityType::class);
+        
+        $this->invitee = $this->buildMockOfClass(Invitee::class);
     }
     
     protected function executeInitiateActivity()
@@ -54,14 +57,22 @@ class CoordinatorTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
-    public function test_belongsToProgram_sameProgram_returnTrue()
+    public function test_canInvolvedInProgram_sameProgram_returnTrue()
     {
-        $this->assertTrue($this->coordinator->belongsToProgram($this->coordinator->program));
+        $this->assertTrue($this->coordinator->canInvolvedInProgram($this->coordinator->program));
     }
-    public function test_belongsToProgram_differentProgram_returnFalse()
+    public function test_canInvolvedInProgram_differentProgram_returnFalse()
     {
         $program = $this->buildMockOfClass(Program::class);
-        $this->assertFalse($this->coordinator->belongsToProgram($program));
+        $this->assertFalse($this->coordinator->canInvolvedInProgram($program));
+    }
+    
+    public function test_registerAsInviteeRecipient_registerAsInviteeRecipient()
+    {
+        $this->invitee->expects($this->once())
+                ->method("registerCoordinatorAsRecipient")
+                ->with($this->coordinator);
+        $this->coordinator->registerAsInviteeRecipient($this->invitee);
     }
 }
 

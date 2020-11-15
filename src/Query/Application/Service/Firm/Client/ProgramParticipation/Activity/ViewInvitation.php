@@ -2,7 +2,7 @@
 
 namespace Query\Application\Service\Firm\Client\ProgramParticipation\Activity;
 
-use Query\Domain\Model\Firm\Program\Activity\Invitation;
+use Query\Domain\Model\Firm\Program\Activity\Invitee;
 
 class ViewInvitation
 {
@@ -25,7 +25,7 @@ class ViewInvitation
      * @param string $activityId
      * @param int $page
      * @param int $pageSize
-     * @return Invitation[]
+     * @return Invitee[]
      */
     public function showAll(string $firmId, string $clientId, string $activityId, int $page, int $pageSize)
     {
@@ -33,7 +33,7 @@ class ViewInvitation
                         $firmId, $clientId, $activityId, $page, $pageSize);
     }
 
-    public function showById(string $firmId, string $clientId, string $invitationId): Invitation
+    public function showById(string $firmId, string $clientId, string $invitationId): Invitee
     {
         return $this->invitationRepository->anInvitationFromClient($firmId, $clientId, $invitationId);
     }

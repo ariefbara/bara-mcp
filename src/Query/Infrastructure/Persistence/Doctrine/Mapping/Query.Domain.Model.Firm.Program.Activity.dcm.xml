@@ -30,11 +30,6 @@
         <field name="cancelled" type="boolean" />
         <field name="createdTime" type="datetime_immutable" nullable="false"/>
         
-        <one-to-many field="invitations" 
-                     target-entity="Query\Domain\Model\Firm\Program\Activity\Invitation" 
-                     mapped-by="activity"
-        />
-        
         <one-to-one field="managerActivity" 
                      target-entity="Query\Domain\Model\Firm\Manager\ManagerActivity" 
                      mapped-by="activity"

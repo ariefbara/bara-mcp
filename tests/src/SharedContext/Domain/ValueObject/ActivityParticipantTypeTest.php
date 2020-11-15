@@ -55,6 +55,50 @@ class ActivityParticipantTypeTest extends TestBase
         $other = new ActivityParticipantType(ActivityParticipantType::CONSULTANT);
         $this->assertFalse($this->activityParticipantType->sameValueAs($other));
     }
+    
+    public function test_isManagerType_aManagerType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::MANAGER;
+        $this->assertTrue($this->activityParticipantType->isManagerType());
+    }
+    public function test_isManagerType_notAManagerType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::COORDINATOR;
+        $this->assertFalse($this->activityParticipantType->isManagerType());
+    }
+    
+    public function test_isCoordinatorType_aCoordinatorType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::COORDINATOR;
+        $this->assertTrue($this->activityParticipantType->isCoordinatorType());
+    }
+    public function test_isCoordinatorType_notACoordinatorType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::MANAGER;
+        $this->assertFalse($this->activityParticipantType->isCoordinatorType());
+    }
+    
+    public function test_isConsultantType_aConsultantType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::CONSULTANT;
+        $this->assertTrue($this->activityParticipantType->isConsultantType());
+    }
+    public function test_isConsultantType_notAConsultantType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::MANAGER;
+        $this->assertFalse($this->activityParticipantType->isConsultantType());
+    }
+    
+    public function test_isParticipantType_aParticipantType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::PARTICIPANT;
+        $this->assertTrue($this->activityParticipantType->isParticipantType());
+    }
+    public function test_isParticipantType_notAParticipantType_returnTrue()
+    {
+        $this->activityParticipantType->participantType = ActivityParticipantType::MANAGER;
+        $this->assertFalse($this->activityParticipantType->isParticipantType());
+    }
 }
 
 class TestableActivityParticipantType extends ActivityParticipantType

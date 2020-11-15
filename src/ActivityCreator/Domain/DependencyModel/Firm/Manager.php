@@ -4,12 +4,14 @@ namespace ActivityCreator\Domain\DependencyModel\Firm;
 
 use ActivityCreator\Domain\ {
     DependencyModel\Firm\Program\ActivityType,
+    Model\Activity\Invitee,
+    Model\CanReceiveInvitation,
     Model\ManagerActivity
 };
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Manager
+class Manager implements CanReceiveInvitation
 {
 
     /**
@@ -35,11 +37,6 @@ class Manager
         
     }
 
-    public function belongsToSameFirmAs(Program $program): bool
-    {
-        return $program->firmIdEquals($this->firmId);
-    }
-
     public function initiateActivityInProgram(
             string $activityId, Program $program, ActivityType $activityType, $activityDataProvider): ManagerActivity
     {
@@ -53,6 +50,16 @@ class Manager
         }
         $activity = $program->createActivity($activityId, $activityType, $activityDataProvider);
         return new ManagerActivity($this, $activityId, $activity);
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $program->firmIdEquals($this->firmId);
+    }
+
+    public function registerAsInviteeRecipient(Invitee $invitee): void
+    {
+        $invitee->registerManagerAsRecipient($this);
     }
 
 }

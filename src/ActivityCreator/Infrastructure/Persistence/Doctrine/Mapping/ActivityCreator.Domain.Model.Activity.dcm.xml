@@ -30,8 +30,8 @@
         <field name="cancelled" type="boolean" />
         <field name="createdTime" type="datetime_immutable" nullable="true"/>
         
-        <one-to-many  field="invitations" 
-                      target-entity="ActivityCreator\Domain\Model\Activity\Invitation"
+        <one-to-many  field="invitees" 
+                      target-entity="ActivityCreator\Domain\Model\Activity\Invitee"
                       mapped-by="activity"
         >
             <cascade><cascade-persist /></cascade>

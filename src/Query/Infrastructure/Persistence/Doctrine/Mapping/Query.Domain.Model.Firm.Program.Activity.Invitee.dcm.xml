@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Activity\Invitee" 
+            table="Invitee"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineInviteeRepository"
+    >
+        
+        <many-to-one  field="activity" 
+                      target-entity="Query\Domain\Model\Firm\Program\Activity"
+        >
+            <join-column name="Activity_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="activityParticipant" 
+                      target-entity="Query\Domain\Model\Firm\Program\ActivityType\ActivityParticipant"
+        >
+            <join-column name="ActivityParticipant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="willAttend" type="boolean" nullable="true" />
+        <field name="attended" type="boolean"  nullable="true" />
+        <field name="invitationCancelled" type="boolean"  nullable="false" />
+        
+        <one-to-one field="managerInvitee" 
+                    target-entity="Query\Domain\Model\Firm\Manager\ManagerInvitee"
+                    mapped-by="invitee"
+        />
+        
+        <one-to-one field="coordinatorInvitee" 
+                    target-entity="Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee"
+                    mapped-by="invitee"
+        />
+        
+        <one-to-one field="consultantInvitee" 
+                    target-entity="Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitee"
+                    mapped-by="invitee"
+        />
+        
+        <one-to-one field="participantInvitee" 
+                    target-entity="Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee"
+                    mapped-by="invitee"
+        />
+        
+    </entity>
+</doctrine-mapping>

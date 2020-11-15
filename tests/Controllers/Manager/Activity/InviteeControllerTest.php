@@ -5,11 +5,11 @@ namespace Tests\Controllers\Manager\Activity;
 use Tests\Controllers\ {
     Manager\ActivityTestCase,
     RecordPreparation\Firm\Client\RecordOfClientParticipant,
-    RecordPreparation\Firm\Manager\RecordOfManagerInvitation,
-    RecordPreparation\Firm\Program\Activity\RecordOfInvitation,
-    RecordPreparation\Firm\Program\Consultant\RecordOfConsultantInvitation,
-    RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorInvitation,
-    RecordPreparation\Firm\Program\Participant\RecordOfParticipantInvitation,
+    RecordPreparation\Firm\Manager\RecordOfActivityInvitation as ManagerInvitee,
+    RecordPreparation\Firm\Program\Activity\RecordOfInvitee,
+    RecordPreparation\Firm\Program\Consultant\RecordOfActivityInvitation as ConsultantInvitee,
+    RecordPreparation\Firm\Program\Coordinator\RecordOfActivityInvitation as CoordinatorInvitee,
+    RecordPreparation\Firm\Program\Participant\RecordOfActivityInvitation as ParticipantInvitee,
     RecordPreparation\Firm\Program\RecordOfConsultant,
     RecordPreparation\Firm\Program\RecordOfCoordinator,
     RecordPreparation\Firm\Program\RecordOfParticipant,
@@ -21,10 +21,10 @@ use Tests\Controllers\ {
 class InviteeControllerTest extends ActivityTestCase
 {
     protected $inviteeUri;
-    protected $managerInvitation;
-    protected $coordinatorInvitation;
-    protected $consultantInvitation;
-    protected $participantInvitation;
+    protected $managerInvitee;
+    protected $coordinatorInvitee;
+    protected $consultantInvitee;
+    protected $participantInvitee;
     protected $clientParticipant;
     
     protected function setUp(): void
@@ -44,20 +44,20 @@ class InviteeControllerTest extends ActivityTestCase
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Participant")->truncate();
         $this->connection->table("ClientParticipant")->truncate();
-        $this->connection->table("Invitation")->truncate();
-        $this->connection->table("ManagerInvitation")->truncate();
-        $this->connection->table("CoordinatorInvitation")->truncate();
-        $this->connection->table("ConsultantInvitation")->truncate();
-        $this->connection->table("ParticipantInvitation")->truncate();
+        $this->connection->table("Invitee")->truncate();
+        $this->connection->table("ManagerInvitee")->truncate();
+        $this->connection->table("CoordinatorInvitee")->truncate();
+        $this->connection->table("ConsultantInvitee")->truncate();
+        $this->connection->table("ParticipantInvitee")->truncate();
         
-        $invitation = new RecordOfInvitation($activity, 0);
-        $invitationOne = new RecordOfInvitation($activity, 1);
-        $invitationTwo = new RecordOfInvitation($activity, 2);
-        $invitationThree = new RecordOfInvitation($activity, 3);
-        $this->connection->table("Invitation")->insert($invitation->toArrayForDbEntry());
-        $this->connection->table("Invitation")->insert($invitationOne->toArrayForDbEntry());
-        $this->connection->table("Invitation")->insert($invitationTwo->toArrayForDbEntry());
-        $this->connection->table("Invitation")->insert($invitationThree->toArrayForDbEntry());
+        $invitee = new RecordOfInvitee($activity, $this->activityParticipantOne_Manager, 0);
+        $inviteeOne = new RecordOfInvitee($activity, $this->activityParticipant_coordinator,1);
+        $inviteeTwo = new RecordOfInvitee($activity, $this->activityParticipantTwo_Consultant, 2);
+        $inviteeThree = new RecordOfInvitee($activity, $this->activityParticipantThree_Participant, 3);
+        $this->connection->table("Invitee")->insert($invitee->toArrayForDbEntry());
+        $this->connection->table("Invitee")->insert($inviteeOne->toArrayForDbEntry());
+        $this->connection->table("Invitee")->insert($inviteeTwo->toArrayForDbEntry());
+        $this->connection->table("Invitee")->insert($inviteeThree->toArrayForDbEntry());
         
         $personnel = new RecordOfPersonnel($this->firm, 0);
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
@@ -77,17 +77,17 @@ class InviteeControllerTest extends ActivityTestCase
         $this->clientParticipant = new RecordOfClientParticipant($client, $participant);
         $this->connection->table("ClientParticipant")->insert($this->clientParticipant->toArrayForDbEntry());
         
-        $this->managerInvitation = new RecordOfManagerInvitation($manager, $invitation);
-        $this->connection->table("ManagerInvitation")->insert($this->managerInvitation->toArrayForDbEntry());
+        $this->managerInvitee = new ManagerInvitee($manager, $invitee);
+        $this->connection->table("ManagerInvitee")->insert($this->managerInvitee->toArrayForDbEntry());
         
-        $this->coordinatorInvitation = new RecordOfCoordinatorInvitation($coordinator, $invitationOne);
-        $this->connection->table("CoordinatorInvitation")->insert($this->coordinatorInvitation->toArrayForDbEntry());
+        $this->coordinatorInvitee = new CoordinatorInvitee($coordinator, $inviteeOne);
+        $this->connection->table("CoordinatorInvitee")->insert($this->coordinatorInvitee->toArrayForDbEntry());
         
-        $this->consultantInvitation = new RecordOfConsultantInvitation($consultant, $invitationTwo);
-        $this->connection->table("ConsultantInvitation")->insert($this->consultantInvitation->toArrayForDbEntry());
+        $this->consultantInvitee = new ConsultantInvitee($consultant, $inviteeTwo);
+        $this->connection->table("ConsultantInvitee")->insert($this->consultantInvitee->toArrayForDbEntry());
         
-        $this->participantInvitation = new RecordOfParticipantInvitation($participant, $invitationThree);
-        $this->connection->table("ParticipantInvitation")->insert($this->participantInvitation->toArrayForDbEntry());
+        $this->participantInvitee = new ParticipantInvitee($participant, $inviteeThree);
+        $this->connection->table("ParticipantInvitee")->insert($this->participantInvitee->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
@@ -100,29 +100,29 @@ class InviteeControllerTest extends ActivityTestCase
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Participant")->truncate();
         $this->connection->table("ClientParticipant")->truncate();
-        $this->connection->table("Invitation")->truncate();
-        $this->connection->table("ManagerInvitation")->truncate();
-        $this->connection->table("CoordinatorInvitation")->truncate();
-        $this->connection->table("ConsultantInvitation")->truncate();
-        $this->connection->table("ParticipantInvitation")->truncate();
+        $this->connection->table("Invitee")->truncate();
+        $this->connection->table("ManagerInvitee")->truncate();
+        $this->connection->table("CoordinatorInvitee")->truncate();
+        $this->connection->table("ConsultantInvitee")->truncate();
+        $this->connection->table("ParticipantInvitee")->truncate();
     }
     
     public function test_show_200()
     {
         $response = [
-            "id" => $this->managerInvitation->invitation->id,
-            "willAttend" => $this->managerInvitation->invitation->willAttend,
-            "attended" => $this->managerInvitation->invitation->attended,
+            "id" => $this->managerInvitee->invitee->id,
+            "willAttend" => $this->managerInvitee->invitee->willAttend,
+            "attended" => $this->managerInvitee->invitee->attended,
             "manager" => [
-                "id" => $this->managerInvitation->manager->id,
-                "name" => $this->managerInvitation->manager->name,
+                "id" => $this->managerInvitee->manager->id,
+                "name" => $this->managerInvitee->manager->name,
             ],
             "coordinator" => null,
             "consultant" => null,
             "participant" => null,
         ];
         
-        $uri = $this->inviteeUri . "/{$this->managerInvitation->invitation->id}";
+        $uri = $this->inviteeUri . "/{$this->managerInvitee->invitee->id}";
         $this->get($uri, $this->manager->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
@@ -134,56 +134,56 @@ class InviteeControllerTest extends ActivityTestCase
             "total" => 4,
             "list" => [
                 [
-                    "id" => $this->managerInvitation->invitation->id,
-                    "willAttend" => $this->managerInvitation->invitation->willAttend,
-                    "attended" => $this->managerInvitation->invitation->attended,
+                    "id" => $this->managerInvitee->invitee->id,
+                    "willAttend" => $this->managerInvitee->invitee->willAttend,
+                    "attended" => $this->managerInvitee->invitee->attended,
                     "manager" => [
-                        "id" => $this->managerInvitation->manager->id,
-                        "name" => $this->managerInvitation->manager->name,
+                        "id" => $this->managerInvitee->manager->id,
+                        "name" => $this->managerInvitee->manager->name,
                     ],
                     "coordinator" => null,
                     "consultant" => null,
                     "participant" => null,
                 ],
                 [
-                    "id" => $this->coordinatorInvitation->invitation->id,
-                    "willAttend" => $this->coordinatorInvitation->invitation->willAttend,
-                    "attended" => $this->coordinatorInvitation->invitation->attended,
+                    "id" => $this->coordinatorInvitee->invitee->id,
+                    "willAttend" => $this->coordinatorInvitee->invitee->willAttend,
+                    "attended" => $this->coordinatorInvitee->invitee->attended,
                     "manager" => null,
                     "coordinator" => [
-                        "id" => $this->coordinatorInvitation->coordinator->id,
+                        "id" => $this->coordinatorInvitee->coordinator->id,
                         "personnel" => [
-                            "id" => $this->coordinatorInvitation->coordinator->personnel->id,
-                            "name" => $this->coordinatorInvitation->coordinator->personnel->getFullName(),
+                            "id" => $this->coordinatorInvitee->coordinator->personnel->id,
+                            "name" => $this->coordinatorInvitee->coordinator->personnel->getFullName(),
                         ],
                     ],
                     "consultant" => null,
                     "participant" => null,
                 ],
                 [
-                    "id" => $this->consultantInvitation->invitation->id,
-                    "willAttend" => $this->consultantInvitation->invitation->willAttend,
-                    "attended" => $this->consultantInvitation->invitation->attended,
+                    "id" => $this->consultantInvitee->invitee->id,
+                    "willAttend" => $this->consultantInvitee->invitee->willAttend,
+                    "attended" => $this->consultantInvitee->invitee->attended,
                     "manager" => null,
                     "coordinator" => null,
                     "consultant" => [
-                        "id" => $this->consultantInvitation->consultant->id,
+                        "id" => $this->consultantInvitee->consultant->id,
                         "personnel" => [
-                            "id" => $this->consultantInvitation->consultant->personnel->id,
-                            "name" => $this->consultantInvitation->consultant->personnel->getFullName(),
+                            "id" => $this->consultantInvitee->consultant->personnel->id,
+                            "name" => $this->consultantInvitee->consultant->personnel->getFullName(),
                         ],
                     ],
                     "participant" => null,
                 ],
                 [
-                    "id" => $this->participantInvitation->invitation->id,
-                    "willAttend" => $this->participantInvitation->invitation->willAttend,
-                    "attended" => $this->participantInvitation->invitation->attended,
+                    "id" => $this->participantInvitee->invitee->id,
+                    "willAttend" => $this->participantInvitee->invitee->willAttend,
+                    "attended" => $this->participantInvitee->invitee->attended,
                     "manager" => null,
                     "coordinator" => null,
                     "consultant" => null,
                     "participant" => [
-                        "id" => $this->participantInvitation->participant->id,
+                        "id" => $this->participantInvitee->participant->id,
                         "user" => null,
                         "client" => [
                             "id" => $this->clientParticipant->client->id,

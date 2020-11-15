@@ -2,7 +2,7 @@
 
 namespace Query\Application\Service\Firm\Team\ProgramParticipation;
 
-use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitation;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
 
 class ViewInvitationForTeamParticipant
 {
@@ -25,7 +25,7 @@ class ViewInvitationForTeamParticipant
      * @param string $programParticipationId
      * @param int $page
      * @param int $pageSize
-     * @return ParticipantInvitation[]
+     * @return ParticipantInvitee[]
      */
     public function showAll(string $firmId, string $teamId, string $programParticipationId, int $page, int $pageSize)
     {
@@ -33,7 +33,7 @@ class ViewInvitationForTeamParticipant
                         $firmId, $teamId, $programParticipationId, $page, $pageSize);
     }
 
-    public function showById(string $firmId, string $teamId, string $invitationId): ParticipantInvitation
+    public function showById(string $firmId, string $teamId, string $invitationId): ParticipantInvitee
     {
         return $this->participantInvitationRepository->anInvitationForTeam($firmId, $teamId, $invitationId);
     }

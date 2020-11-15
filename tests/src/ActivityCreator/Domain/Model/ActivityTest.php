@@ -3,21 +3,22 @@
 namespace ActivityCreator\Domain\Model;
 
 use ActivityCreator\Domain\ {
-    DependencyModel\Firm\Manager,
-    DependencyModel\Firm\Personnel\Consultant,
-    DependencyModel\Firm\Personnel\Coordinator,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\ActivityType,
-    DependencyModel\Firm\Program\Participant,
-    Model\Activity\Invitation,
+    DependencyModel\Firm\Program\ActivityType\ActivityParticipant,
+    Model\Activity\ConsultantInvitee,
+    Model\Activity\CoordinatorInvitee,
+    Model\Activity\Invitee,
+    Model\Activity\ManagerInvitee,
+    Model\Activity\ParticipantInvitee,
     service\ActivityDataProvider
 };
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Resources\ {
     DateTimeImmutableBuilder,
     Domain\ValueObject\DateTimeInterval
 };
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ActivityTest extends TestBase
@@ -27,6 +28,7 @@ class ActivityTest extends TestBase
     protected $activityType;
     protected $managerRepository, $coordinatorRepository, $consultantRepository, $participantRepository;
     protected $activity;
+    protected $invitee;
     protected $id = "newId";
     protected $name = "new name";
     protected $description = "new description";
@@ -34,12 +36,9 @@ class ActivityTest extends TestBase
     protected $endTime;
     protected $location = "new location";
     protected $note = "new note";
-    protected $invitation;
     protected $activityDataProvider;
-    protected $manager, $managerList = [];
-    protected $coordinator, $coordinatorList = [];
-    protected $consultant, $consultantList = [];
-    protected $participant, $participantList = [];
+    protected $activityParticipant;
+    protected $canReceiveInvitation;
 
     protected function setUp(): void
     {
@@ -52,49 +51,20 @@ class ActivityTest extends TestBase
         $activityDataProvider->expects($this->any())->method("getStartTime")->willReturn(new DateTimeImmutable("+48 hours"));
         $activityDataProvider->expects($this->any())->method("getEndTime")->willReturn(new DateTimeImmutable("+50 hours"));
         $this->activity = new TestableActivity($this->program, "id", $this->activityType, $activityDataProvider);
-        $this->invitation = $this->buildMockOfClass(Invitation::class);
-        $this->activity->invitations->add($this->invitation);
+        $this->invitee = $this->buildMockOfClass(Invitee::class);
+        $this->activity->invitees->add($this->invitee);
 
         $this->startTime = new DateTimeImmutable("+72 hours");
         $this->endTime = new DateTimeImmutable("+75 hours");
 
         $this->activityDataProvider = $this->buildMockOfClass(ActivityDataProvider::class);
-        $this->manager = $this->buildMockOfClass(Manager::class);
-        $this->coordinator = $this->buildMockOfClass(Coordinator::class);
-        $this->consultant = $this->buildMockOfClass(Consultant::class);
-        $this->participant = $this->buildMockOfClass(Participant::class);
+        
+        $this->canReceiveInvitation = $this->buildMockOfInterface(CanReceiveInvitation::class);
+        $this->activityParticipant = $this->buildMockOfClass(ActivityParticipant::class);
     }
 
     protected function getActivityDataProvider()
     {
-        $this->activityDataProvider->expects($this->any())
-                ->method("iterateInvitedManagerList")
-                ->willReturn($this->managerList);
-        $this->manager->expects($this->any())
-                ->method("belongsToSameFirmAs")
-                ->willReturn(true);
-        
-        $this->activityDataProvider->expects($this->any())
-                ->method("iterateInvitedCoordinatorList")
-                ->willReturn($this->coordinatorList);
-        $this->coordinator->expects($this->any())
-                ->method("belongsToProgram")
-                ->willReturn(true);
-        
-        $this->activityDataProvider->expects($this->any())
-                ->method("iterateInvitedConsultantList")
-                ->willReturn($this->consultantList);
-        $this->consultant->expects($this->any())
-                ->method("belongsToProgram")
-                ->willReturn(true);
-        
-        $this->activityDataProvider->expects($this->any())
-                ->method("iterateInvitedParticipantList")
-                ->willReturn($this->participantList);
-        $this->participant->expects($this->any())
-                ->method("belongsToProgram")
-                ->willReturn(true);
-        
         $this->activityDataProvider->expects($this->any())->method("getName")->willReturn($this->name);
         $this->activityDataProvider->expects($this->any())->method("getDescription")->willReturn($this->description);
         $this->activityDataProvider->expects($this->any())->method("getStartTime")->willReturn($this->startTime);
@@ -106,10 +76,6 @@ class ActivityTest extends TestBase
 
     protected function executeConstruct()
     {
-        $this->activityType->expects($this->any())
-                ->method("canInvite")
-                ->willReturn(true);
-        
         return new TestableActivity($this->program, $this->id, $this->activityType, $this->getActivityDataProvider());
     }
     public function test_construct_setProperties()
@@ -128,6 +94,8 @@ class ActivityTest extends TestBase
         $this->assertEquals($this->note, $activity->note);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $activity->createdTime);
         $this->assertFalse($activity->cancelled);
+        
+        $this->assertInstanceOf(ArrayCollection::class, $activity->invitees);
     }
     public function test_construct_emptyName_badRequest()
     {
@@ -156,149 +124,16 @@ class ActivityTest extends TestBase
         $errorDetail = "bad request: activity end time is mandatory";
         $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
     }
-    public function test_construct_containInvitedManagerList_inviteManagerInDataProviderInvitedList()
+    public function test_construct_askActivityTypeToAddInvitees()
     {
-        $this->managerList = [$this->manager];
-        $activity = $this->executeConstruct();
-        $this->assertEquals(1, $activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $activity->invitations->first());
-    }
-    public function test_construct_containInvitedManagerList_activityTypeDoesntAllowedManagerToBeInvited()
-    {
-        $this->managerList = [$this->manager];
         $this->activityType->expects($this->once())
-                ->method("canInvite")
-                ->with(new ActivityParticipantType(ActivityParticipantType::MANAGER))
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: cannot invite manager role";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_construct_managerFromDifferentFirm_forbidden()
-    {
-        $this->managerList = [$this->manager];
-        $this->manager->expects($this->once())
-                ->method("belongsToSameFirmAs")
-                ->with($this->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: unable to invite manager from different firm";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_construct_containInvitedCoordinatorList_inviteCoordinatorInDataProviderInvitedList()
-    {
-        $this->coordinatorList = [$this->coordinator];
-        $activity = $this->executeConstruct();
-        $this->assertEquals(1, $activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $activity->invitations->first());
-    }
-    public function test_construct_containInvitedCoordinatorList_activityTypeDoesntAllowedCoordinatorToBeInvited()
-    {
-        $this->coordinatorList = [$this->coordinator];
-        $this->activityType->expects($this->once())
-                ->method("canInvite")
-                ->with(new ActivityParticipantType(ActivityParticipantType::COORDINATOR))
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: cannot invite coordinator role";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_construct_coordinatorFromDifferentFirm_forbidden()
-    {
-        $this->coordinatorList = [$this->coordinator];
-        $this->coordinator->expects($this->once())
-                ->method("belongsToProgram")
-                ->with($this->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: unable to invite coordinator from different program";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_construct_containInvitedConsultantList_inviteConsultantInDataProviderInvitedList()
-    {
-        $this->consultantList = [$this->consultant];
-        $activity = $this->executeConstruct();
-        $this->assertEquals(1, $activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $activity->invitations->first());
-    }
-    public function test_construct_containInvitedConsultantList_activityTypeDoesntAllowedConsultantToBeInvited()
-    {
-        $this->consultantList = [$this->consultant];
-        $this->activityType->expects($this->once())
-                ->method("canInvite")
-                ->with(new ActivityParticipantType(ActivityParticipantType::CONSULTANT))
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: cannot invite consultant role";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_construct_consultantFromDifferentFirm_forbidden()
-    {
-        $this->consultantList = [$this->consultant];
-        $this->consultant->expects($this->once())
-                ->method("belongsToProgram")
-                ->with($this->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: unable to invite consultant from different program";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_construct_containInvitedParticipantList_inviteParticipantInDataProviderInvitedList()
-    {
-        $this->participantList = [$this->participant];
-        $activity = $this->executeConstruct();
-        $this->assertEquals(1, $activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $activity->invitations->first());
-    }
-    public function test_construct_containInvitedParticipantList_activityTypeDoesntAllowedParticipantToBeInvited()
-    {
-        $this->participantList = [$this->participant];
-        $this->activityType->expects($this->once())
-                ->method("canInvite")
-                ->with(new ActivityParticipantType(ActivityParticipantType::PARTICIPANT))
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: cannot invite participant role";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_construct_participantFromDifferentFirm_forbidden()
-    {
-        $this->participantList = [$this->participant];
-        $this->participant->expects($this->once())
-                ->method("belongsToProgram")
-                ->with($this->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeConstruct();
-        };
-        $errorDetail = "forbidden: unable to invite participant from different program";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+                ->method("addInviteesToActivity")
+                ->with($this->anything(), $this->activityDataProvider);
+        $this->executeConstruct();
     }
     
     protected function executeUpdate()
     {
-        $this->activityType->expects($this->any())
-                ->method("canInvite")
-                ->willReturn(true);
-        
-        $this->invitation->expects($this->any())
-                ->method("isRemoved")
-                ->willReturn(false);
-        
         $this->activity->update($this->getActivityDataProvider());
     }
     public function test_update_updateProperties()
@@ -313,94 +148,63 @@ class ActivityTest extends TestBase
         $this->assertEquals($this->location, $this->activity->location);
         $this->assertEquals($this->note, $this->activity->note);
     }
-    public function test_update_executeExistingInvitationsRemoveIfNotAppearInList()
+    public function test_update_cancelAllExistingInvitees()
     {
-        $this->invitation->expects($this->once())
-                ->method("removeIfNotAppearInList")
-                ->with($this->activityDataProvider);
+        $this->invitee->expects($this->once())
+                ->method("cancelInvitation");
         $this->executeUpdate();
     }
-    public function test_update_existingInvitationAlreadyRemoved_skipUpdating()
+    public function test_update_askActivityTypeToAddInvitees()
     {
-        $this->invitation->expects($this->once())
-                ->method("isRemoved")
+        $this->activityType->expects($this->once())
+                ->method("addInviteesToActivity")
+                ->with($this->activity, $this->activityDataProvider);
+        $this->executeUpdate();
+    }
+    
+    protected function executeAddInvitee(): void
+    {
+        $this->canReceiveInvitation->expects($this->any())
+                ->method("canInvolvedInProgram")
                 ->willReturn(true);
-        $this->invitation->expects($this->never())
-                ->method("removeIfNotAppearInList")
-                ->with($this->activityDataProvider);
-        $this->executeUpdate();
+        $this->activity->addInvitee($this->canReceiveInvitation, $this->activityParticipant);
     }
-    public function test_update_containInvitedManagerList_inviteManagerInDataProviderInvitedList()
+    public function test_addInvitee_addInviteeToList()
     {
-        $this->managerList = [$this->manager];
-        $this->executeUpdate();
-        $this->assertEquals(2, $this->activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $this->activity->invitations->last());
+        $this->executeAddInvitee();
+        $this->assertEquals(2, $this->activity->invitees->count());
+        $this->assertInstanceOf(Invitee::class, $this->activity->invitees->last());
     }
-    public function test_update_containInvitedManagerList_invitedManagerAlreadyExistInvitationList_prependAddNewInvitation()
+    public function test_addInvitee_RecipientCantBeInvolved_forbidden()
     {
-        $this->invitation->expects($this->once())
-                ->method("isNonRemovedInvitationCorrespondWithManager")
-                ->with($this->manager)
+        $this->canReceiveInvitation->expects($this->once())
+                ->method("canInvolvedInProgram")
+                ->with($this->program)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeAddInvitee();
+        };
+        $errorDetail = "forbidden: invitee cannot be involved in program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_addInvitee_anInviteeCorrespondToRecipientExistInList_reinviteInviteeInList()
+    {
+        $this->invitee->expects($this->once())
+                ->method("correspondWithRecipient")
+                ->with($this->canReceiveInvitation)
                 ->willReturn(true);
+        $this->invitee->expects($this->once())
+                ->method("reinvite");
+        $this->executeAddInvitee();
+    }
+    public function test_addInvitee_anInviteeCorrespondToRecipientExist_preventAddNewInvitee()
+    {
+        $this->invitee->expects($this->once())
+                ->method("correspondWithRecipient")
+                ->willReturn(true);
+        $this->executeAddInvitee();
+        $this->assertEquals(1, $this->activity->invitees->count());
         
-        $this->managerList = [$this->manager];
-        $this->executeUpdate();
-        $this->assertEquals(1, $this->activity->invitations->count());
-    }
-    public function test_update_containInvitedCoordinatorList_inviteCoordinatorInDataProviderInvitedList()
-    {
-        $this->coordinatorList = [$this->coordinator];
-        $this->executeUpdate();
-        $this->assertEquals(2, $this->activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $this->activity->invitations->last());
-    }
-    public function test_update_containInvitedCoordinatorList_invitedCoordinatorAlreadyExistInvitationList_prependAddNewInvitation()
-    {
-        $this->invitation->expects($this->once())
-                ->method("isNonRemovedInvitationCorrespondWithCoordinator")
-                ->with($this->coordinator)
-                ->willReturn(true);
-        
-        $this->coordinatorList = [$this->coordinator];
-        $this->executeUpdate();
-        $this->assertEquals(1, $this->activity->invitations->count());
-    }
-    public function test_update_containInvitedConsultantList_inviteConsultantInDataProviderInvitedList()
-    {
-        $this->consultantList = [$this->consultant];
-        $this->executeUpdate();
-        $this->assertEquals(2, $this->activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $this->activity->invitations->last());
-    }
-    public function test_update_containInvitedConsultantList_invitedConsultantAlreadyExistInvitationList_prependAddNewInvitation()
-    {
-        $this->invitation->expects($this->once())
-                ->method("isNonRemovedInvitationCorrespondWithConsultant")
-                ->with($this->consultant)
-                ->willReturn(true);
-        
-        $this->consultantList = [$this->consultant];
-        $this->executeUpdate();
-        $this->assertEquals(1, $this->activity->invitations->count());
-    }
-    public function test_update_containInvitedParticipantList_inviteParticipantInDataProviderInvitedList()
-    {
-        $this->participantList = [$this->participant];
-        $this->executeUpdate();
-        $this->assertEquals(2, $this->activity->invitations->count());
-        $this->assertInstanceOf(Invitation::class, $this->activity->invitations->last());
-    }
-    public function test_update_containInvitedParticipantList_invitedParticipantAlreadyExistInvitationList_prependAddNewInvitation()
-    {
-        $this->invitation->expects($this->once())
-                ->method("isNonRemovedInvitationCorrespondWithParticipant")
-                ->with($this->participant)
-                ->willReturn(true);
-        
-        $this->participantList = [$this->participant];
-        $this->executeUpdate();
-        $this->assertEquals(1, $this->activity->invitations->count());
     }
 
 }
@@ -418,6 +222,6 @@ class TestableActivity extends Activity
     public $note;
     public $cancelled;
     public $createdTime;
-    public $invitations;
+    public $invitees;
 
 }

@@ -6,12 +6,14 @@ use ActivityCreator\Domain\ {
     DependencyModel\Firm\Personnel,
     DependencyModel\Firm\Program,
     DependencyModel\Firm\Program\ActivityType,
+    Model\Activity\Invitee,
+    Model\CanReceiveInvitation,
     Model\ConsultantActivity
 };
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Consultant
+class Consultant implements CanReceiveInvitation
 {
 
     /**
@@ -43,11 +45,6 @@ class Consultant
         
     }
     
-    public function belongsToProgram(Program $program): bool
-    {
-        return $this->program === $program;
-    }
-    
     public function initiateActivity(string $activityId, ActivityType $activityType, $activityDataProvider): ConsultantActivity
     {
         if (!$activityType->canBeInitiatedBy(new ActivityParticipantType(ActivityParticipantType::CONSULTANT))) {
@@ -56,6 +53,16 @@ class Consultant
         }
         $activity = $this->program->createActivity($activityId, $activityType, $activityDataProvider);
         return new ConsultantActivity($this, $activityId, $activity);
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+
+    public function registerAsInviteeRecipient(Invitee $invitee): void
+    {
+        $invitee->registerConsultantAsRecipient($this);
     }
 
 }

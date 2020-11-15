@@ -5,6 +5,7 @@ namespace ActivityCreator\Domain\DependencyModel\Firm;
 use ActivityCreator\Domain\ {
     DependencyModel\Firm\Program\ActivityType,
     Model\Activity,
+    Model\Activity\Invitee,
     Model\ManagerActivity
 };
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -15,6 +16,7 @@ class ManagerTest extends TestBase
     protected $manager;
     protected $program;
     protected $activityId = "activityId", $activityType, $activityDataProvider = "string represent data provider";
+    protected $invitee;
 
     protected function setUp(): void
     {
@@ -22,13 +24,15 @@ class ManagerTest extends TestBase
         $this->manager = new TestableManager();
         $this->program = $this->buildMockOfClass(Program::class);
         $this->activityType = $this->buildMockOfClass(ActivityType::class);
+        
+        $this->invitee = $this->buildMockOfClass(Invitee::class);
     }
-    public function test_belongsToSameFirmAs_returnProgramFirmIdEqualsResult()
+    public function test_canInvolvedInProgram_returnProgramFirmIdEqualsResult()
     {
         $this->program->expects($this->once())
                 ->method("firmIdEquals")
                 ->with($this->manager->firmId);
-        $this->manager->belongsToSameFirmAs($this->program);
+        $this->manager->canInvolvedInProgram($this->program);
     }
     
     protected function executeInitiateActivityInProgram()
@@ -77,6 +81,14 @@ class ManagerTest extends TestBase
         };
         $errorDetail = "forbidden: this activity can't be initiated by manager role";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_registerAsInviteeRecipient_registerAsInviteeRecipient()
+    {
+        $this->invitee->expects($this->once())
+                ->method("registerManagerAsRecipient")
+                ->with($this->manager);
+        $this->manager->registerAsInviteeRecipient($this->invitee);
     }
 }
 

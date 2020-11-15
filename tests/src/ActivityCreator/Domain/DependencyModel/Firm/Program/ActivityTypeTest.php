@@ -2,9 +2,11 @@
 
 namespace ActivityCreator\Domain\DependencyModel\Firm\Program;
 
-use ActivityCreator\Domain\DependencyModel\Firm\ {
-    Program,
-    Program\ActivityType\ActivityParticipant
+use ActivityCreator\Domain\ {
+    DependencyModel\Firm\Program,
+    DependencyModel\Firm\Program\ActivityType\ActivityParticipant,
+    Model\Activity,
+    service\ActivityDataProvider
 };
 use Doctrine\Common\Collections\ArrayCollection;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -15,6 +17,9 @@ class ActivityTypeTest extends TestBase
     protected $activityType;
     protected $activityParticipant;
     protected $activityParticipantType;
+    
+    protected $activity;
+    protected $activityDataProvider;
 
     protected function setUp(): void
     {
@@ -27,6 +32,9 @@ class ActivityTypeTest extends TestBase
         $this->activityType->participants->add($this->activityParticipant);
         
         $this->activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
+        
+        $this->activity = $this->buildMockOfClass(Activity::class);
+        $this->activityDataProvider = $this->buildMockOfClass(ActivityDataProvider::class);
     }
     
     protected function executeCanBeInititatedBy()
@@ -59,24 +67,16 @@ class ActivityTypeTest extends TestBase
         $this->assertFalse($this->activityType->belongsToProgram($program));
     }
     
-    protected function executeCanInvite()
+    protected function executeAddInviteesToActivity()
     {
-        $this->activityParticipant->expects($this->any())
-                ->method("canAttendAndTypeEquals")
-                ->willReturn(true);
-        return $this->activityType->canInvite($this->activityParticipantType);
+        $this->activityType->addInviteesToActivity($this->activity, $this->activityDataProvider);
     }
-    public function test_canInvite_containActivityParticipantWithSameTypeAndCanBeInvited_returnTrue()
-    {
-        $this->assertTrue($this->executeCanInvite());
-    }
-    public function test_canInvite_noActivityParticipantWithEqualsTypeCanBeInvited_returnFalse()
+    public function test_executeAddInviteesToActivity_executeAllActivityParticipantTypeAddInviteesToActivity()
     {
         $this->activityParticipant->expects($this->once())
-                ->method("canAttendAndTypeEquals")
-                ->with($this->activityParticipantType)
-                ->willReturn(false);
-        $this->assertFalse($this->executeCanInvite());
+                ->method("addInviteesToActivity")
+                ->with($this->activity, $this->activityDataProvider);
+        $this->executeAddInviteesToActivity();
     }
     
 }

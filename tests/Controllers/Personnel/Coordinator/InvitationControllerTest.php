@@ -2,62 +2,83 @@
 
 namespace Tests\Controllers\Personnel\Coordinator;
 
-use Tests\Controllers\RecordPreparation\Firm\ {
-    Client\RecordOfClientParticipant,
-    Manager\RecordOfManagerActivity,
-    Program\Activity\RecordOfInvitation,
-    Program\Consultant\RecordOfConsultantActivity,
-    Program\Coordinator\RecordOfCoordinatorActivity,
-    Program\Coordinator\RecordOfCoordinatorInvitation,
-    Program\Participant\RecordOfParticipantActivity,
-    Program\RecordOfActivity,
-    Program\RecordOfActivityType,
-    Program\RecordOfConsultant,
-    Program\RecordOfCoordinator,
-    Program\RecordOfParticipant,
-    RecordOfClient,
-    RecordOfManager,
-    RecordOfPersonnel
+use Tests\Controllers\RecordPreparation\ {
+    Firm\Client\RecordOfClientParticipant,
+    Firm\Manager\RecordOfManagerActivity,
+    Firm\Program\Activity\RecordOfInvitee,
+    Firm\Program\ActivityType\RecordOfActivityParticipant,
+    Firm\Program\Consultant\RecordOfConsultantActivity,
+    Firm\Program\Coordinator\RecordOfActivityInvitation,
+    Firm\Program\Coordinator\RecordOfCoordinatorActivity,
+    Firm\Program\Participant\RecordOfParticipantActivity,
+    Firm\Program\RecordOfActivity,
+    Firm\Program\RecordOfActivityType,
+    Firm\Program\RecordOfConsultant,
+    Firm\Program\RecordOfCoordinator,
+    Firm\Program\RecordOfParticipant,
+    Firm\RecordOfClient,
+    Firm\RecordOfFeedbackForm,
+    Firm\RecordOfManager,
+    Firm\RecordOfPersonnel,
+    Shared\RecordOfForm
 };
 
 class InvitationControllerTest extends CoordinatorTestCase
 {
     protected $invitationUri;
-    protected $coordinatorActivity;
     protected $managerActivity;
+    protected $coordinatorActivity;
     protected $consultantActivity;
     protected $participantActivity;
     protected $clientParticipant;
-    protected $coordinatorInvitation_fromCoordinator;
-    protected $coordinatorInvitationOne_fromManager;
-    protected $coordinatorInvitationTwo_fromConsultant;
-    protected $coordinatorInvitationThree_fromParticipant;
+    protected $invitation_fromManager;
+    protected $invitationOne_fromCoordinator;
+    protected $invitationTwo_fromConsultant;
+    protected $invitationThree_fromParticipant;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->invitationUri = $this->coordinatorUri . "/{$this->coordinator->id}/invitations";
         
-        
-        $this->connection->table("ActivityType")->truncate();
-        $this->connection->table("Activity")->truncate();
-        $this->connection->table("Client")->truncate();
-        $this->connection->table("Manager")->truncate();
-        $this->connection->table("Consultant")->truncate();
-        $this->connection->table("Participant")->truncate();
-        $this->connection->table("ClientParticipant")->truncate();
-        $this->connection->table("CoordinatorActivity")->truncate();
-        $this->connection->table("ManagerActivity")->truncate();
-        $this->connection->table("ConsultantActivity")->truncate();
-        $this->connection->table("ParticipantActivity")->truncate();
-        $this->connection->table("Invitation")->truncate();
-        $this->connection->table("CoordinatorInvitation")->truncate();
-        
         $program = $this->coordinator->program;
         $firm = $program->firm;
         
+        $this->connection->table("ActivityType")->truncate();
+        $this->connection->table("Form")->truncate();
+        $this->connection->table("FeedbackForm")->truncate();
+        $this->connection->table("ActivityParticipant")->truncate();
+        $this->connection->table("Activity")->truncate();
+        $this->connection->table("Manager")->truncate();
+        $this->connection->table("Client")->truncate();
+        $this->connection->table("Consultant")->truncate();
+        $this->connection->table("Participant")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
+        $this->connection->table("ManagerActivity")->truncate();
+        $this->connection->table("CoordinatorActivity")->truncate();
+        $this->connection->table("ConsultantActivity")->truncate();
+        $this->connection->table("ParticipantActivity")->truncate();
+        $this->connection->table("Invitee")->truncate();
+        $this->connection->table("CoordinatorInvitee")->truncate();
+        
+        
         $activityType = new RecordOfActivityType($program, 0);
         $this->connection->table("ActivityType")->insert($activityType->toArrayForDbEntry());
+        
+        $form = new RecordOfForm(0);
+        $this->connection->table("Form")->insert($form->toArrayForDbEntry());
+        
+        $feedbackForm = new RecordOfFeedbackForm($firm, $form);
+        $this->connection->table("FeedbackForm")->insert($feedbackForm->toArrayForDbEntry());
+        
+        $activityParticipant = new RecordOfActivityParticipant($activityType, $feedbackForm, 0);
+        $activityParticipantOne = new RecordOfActivityParticipant($activityType, null, 1);
+        $activityParticipantTwo = new RecordOfActivityParticipant($activityType, null, 2);
+        $activityParticipantThree = new RecordOfActivityParticipant($activityType, null, 3);
+        $this->connection->table("ActivityParticipant")->insert($activityParticipant->toArrayForDbEntry());
+        $this->connection->table("ActivityParticipant")->insert($activityParticipantOne->toArrayForDbEntry());
+        $this->connection->table("ActivityParticipant")->insert($activityParticipantTwo->toArrayForDbEntry());
+        $this->connection->table("ActivityParticipant")->insert($activityParticipantThree->toArrayForDbEntry());
         
         $activity = new RecordOfActivity($program, $activityType, 0);
         $activityOne = new RecordOfActivity($program, $activityType, 1);
@@ -68,14 +89,14 @@ class InvitationControllerTest extends CoordinatorTestCase
         $this->connection->table("Activity")->insert($activityTwo->toArrayForDbEntry());
         $this->connection->table("Activity")->insert($activityThree->toArrayForDbEntry());
         
+        $manager = new RecordOfManager($firm, 0, "manager@email.org", "Password123");
+        $this->connection->table("Manager")->insert($manager->toArrayForDbEntry());
+        
         $personnel = new RecordOfPersonnel($firm, 0);
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
         
         $client = new RecordOfClient($firm, 0);
         $this->connection->table("Client")->insert($client->toArrayForDbEntry());
-        
-        $manager = new RecordOfManager($firm, 0, "manager@email.org", "Password123");
-        $this->connection->table("Manager")->insert($manager->toArrayForDbEntry());
         
         $coordinator = new RecordOfCoordinator($program, $personnel, 0);
         $this->connection->table("Coordinator")->insert($coordinator->toArrayForDbEntry());
@@ -89,11 +110,11 @@ class InvitationControllerTest extends CoordinatorTestCase
         $this->clientParticipant = new RecordOfClientParticipant($client, $participant);
         $this->connection->table("ClientParticipant")->insert($this->clientParticipant->toArrayForDbEntry());
         
-        $this->coordinatorActivity = new RecordOfCoordinatorActivity($coordinator, $activity);
-        $this->connection->table("CoordinatorActivity")->insert($this->coordinatorActivity->toArrayForDbEntry());
-        
-        $this->managerActivity = new RecordOfManagerActivity($manager, $activityOne);
+        $this->managerActivity = new RecordOfManagerActivity($manager, $activity);
         $this->connection->table("ManagerActivity")->insert($this->managerActivity->toArrayForDbEntry());
+        
+        $this->coordinatorActivity = new RecordOfCoordinatorActivity($coordinator, $activityOne);
+        $this->connection->table("CoordinatorActivity")->insert($this->coordinatorActivity->toArrayForDbEntry());
         
         $this->consultantActivity = new RecordOfConsultantActivity($consultant, $activityTwo);
         $this->connection->table("ConsultantActivity")->insert($this->consultantActivity->toArrayForDbEntry());
@@ -102,219 +123,170 @@ class InvitationControllerTest extends CoordinatorTestCase
         $this->connection->table("ParticipantActivity")->insert($this->participantActivity->toArrayForDbEntry());
         
         
-        $invitation = new RecordOfInvitation($activity, 0);
-        $invitationOne = new RecordOfInvitation($activityOne, 1);
-        $invitationTwo = new RecordOfInvitation($activityTwo, 2);
-        $invitationThree = new RecordOfInvitation($activityThree, 3);
-        $this->connection->table("Invitation")->insert($invitation->toArrayForDbEntry());
-        $this->connection->table("Invitation")->insert($invitationOne->toArrayForDbEntry());
-        $this->connection->table("Invitation")->insert($invitationTwo->toArrayForDbEntry());
-        $this->connection->table("Invitation")->insert($invitationThree->toArrayForDbEntry());
+        $invitation = new RecordOfInvitee($activity, $activityParticipant, 0);
+        $invitationOne = new RecordOfInvitee($activityOne, $activityParticipantOne, 1);
+        $invitationTwo = new RecordOfInvitee($activityTwo, $activityParticipantTwo, 2);
+        $invitationThree = new RecordOfInvitee($activityThree, $activityParticipantThree, 3);
+        $this->connection->table("Invitee")->insert($invitation->toArrayForDbEntry());
+        $this->connection->table("Invitee")->insert($invitationOne->toArrayForDbEntry());
+        $this->connection->table("Invitee")->insert($invitationTwo->toArrayForDbEntry());
+        $this->connection->table("Invitee")->insert($invitationThree->toArrayForDbEntry());
         
-        $this->coordinatorInvitation_fromCoordinator = new RecordOfCoordinatorInvitation($this->coordinator, $invitation);
-        $this->coordinatorInvitationOne_fromManager = new RecordOfCoordinatorInvitation($this->coordinator, $invitationOne);
-        $this->coordinatorInvitationTwo_fromConsultant = new RecordOfCoordinatorInvitation($this->coordinator, $invitationTwo);
-        $this->coordinatorInvitationThree_fromParticipant = new RecordOfCoordinatorInvitation($this->coordinator, $invitationThree);
-        $this->connection->table("CoordinatorInvitation")->insert($this->coordinatorInvitation_fromCoordinator->toArrayForDbEntry());
-        $this->connection->table("CoordinatorInvitation")->insert($this->coordinatorInvitationOne_fromManager->toArrayForDbEntry());
-        $this->connection->table("CoordinatorInvitation")->insert($this->coordinatorInvitationTwo_fromConsultant->toArrayForDbEntry());
-        $this->connection->table("CoordinatorInvitation")->insert($this->coordinatorInvitationThree_fromParticipant->toArrayForDbEntry());
-        
+        $this->invitation_fromManager = new RecordOfActivityInvitation($this->coordinator, $invitation);
+        $this->invitationOne_fromCoordinator = new RecordOfActivityInvitation($this->coordinator, $invitationOne);
+        $this->invitationTwo_fromConsultant = new RecordOfActivityInvitation($this->coordinator, $invitationTwo);
+        $this->invitationThree_fromParticipant = new RecordOfActivityInvitation($this->coordinator, $invitationThree);
+        $this->connection->table("CoordinatorInvitee")->insert($this->invitation_fromManager->toArrayForDbEntry());
+        $this->connection->table("CoordinatorInvitee")->insert($this->invitationOne_fromCoordinator->toArrayForDbEntry());
+        $this->connection->table("CoordinatorInvitee")->insert($this->invitationTwo_fromConsultant->toArrayForDbEntry());
+        $this->connection->table("CoordinatorInvitee")->insert($this->invitationThree_fromParticipant->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
     {
         parent::tearDown();
         $this->connection->table("Program")->truncate();
+        $this->connection->table("Form")->truncate();
+        $this->connection->table("FeedbackForm")->truncate();
         $this->connection->table("ActivityType")->truncate();
+        $this->connection->table("ActivityParticipant")->truncate();
         $this->connection->table("Activity")->truncate();
-        $this->connection->table("Client")->truncate();
         $this->connection->table("Manager")->truncate();
+        $this->connection->table("Client")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Participant")->truncate();
         $this->connection->table("ClientParticipant")->truncate();
-        $this->connection->table("CoordinatorActivity")->truncate();
         $this->connection->table("ManagerActivity")->truncate();
+        $this->connection->table("CoordinatorActivity")->truncate();
         $this->connection->table("ConsultantActivity")->truncate();
         $this->connection->table("ParticipantActivity")->truncate();
-        $this->connection->table("Invitation")->truncate();
-        $this->connection->table("CoordinatorInvitation")->truncate();
+        $this->connection->table("Invitee")->truncate();
+        $this->connection->table("CoordinatorInvitee")->truncate();
     }
     
     public function test_show_200()
     {
         $response = [
-            "id" => $this->coordinatorInvitation_fromCoordinator->id,
-            "willAttend" => $this->coordinatorInvitation_fromCoordinator->invitation->willAttend,
-            "attended" => $this->coordinatorInvitation_fromCoordinator->invitation->attended,
+            "id" => $this->invitation_fromManager->id,
+            "willAttend" => $this->invitation_fromManager->invitee->willAttend,
+            "attended" => $this->invitation_fromManager->invitee->attended,
+            "activityParticipant" => [
+                "id" => $this->invitation_fromManager->invitee->activityParticipant->id,
+                "reportForm" => [
+                    "id" => $this->invitation_fromManager->invitee->activityParticipant->feedbackForm->id,
+                    "name" => $this->invitation_fromManager->invitee->activityParticipant->feedbackForm->form->name,
+                    "description" => $this->invitation_fromManager->invitee->activityParticipant->feedbackForm->form->description,
+                    "stringFields" => [],
+                    "integerFields" => [],
+                    "textAreaFields" => [],
+                    "attachmentFields" => [],
+                    "singleSelectFields" => [],
+                    "multiSelectFields" => [],
+                ],
+            ],
             "activity" => [
-                "id" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->id,
-                "name" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->name,
-                "description" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->description,
-                "location" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->location,
-                "note" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->note,
-                "startTime" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->startDateTime,
-                "endTime" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->endDateTime,
-                "cancelled" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->cancelled,
+                "id" => $this->invitation_fromManager->invitee->activity->id,
+                "name" => $this->invitation_fromManager->invitee->activity->name,
+                "description" => $this->invitation_fromManager->invitee->activity->description,
+                "location" => $this->invitation_fromManager->invitee->activity->location,
+                "note" => $this->invitation_fromManager->invitee->activity->note,
+                "startTime" => $this->invitation_fromManager->invitee->activity->startDateTime,
+                "endTime" => $this->invitation_fromManager->invitee->activity->endDateTime,
+                "cancelled" => $this->invitation_fromManager->invitee->activity->cancelled,
                 "program" => [
-                    "id" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->program->id,
-                    "name" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->program->name,
+                    "id" => $this->invitation_fromManager->invitee->activity->program->id,
+                    "name" => $this->invitation_fromManager->invitee->activity->program->name,
                 ],
                 "activityType" => [
-                    "id" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->activityType->id,
-                    "name" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->activityType->name,
+                    "id" => $this->invitation_fromManager->invitee->activity->activityType->id,
+                    "name" => $this->invitation_fromManager->invitee->activity->activityType->name,
                 ],
-                "coordinator" => [
-                    "id" => $this->coordinatorActivity->coordinator->id,
-                    "personnel" => [
-                        "id" => $this->coordinatorActivity->coordinator->personnel->id,
-                        "name" => $this->coordinatorActivity->coordinator->personnel->getFullName(),
-                    ],
+                "manager" => [
+                    "id" => $this->managerActivity->manager->id,
+                    "name" => $this->managerActivity->manager->name,
                 ],
-                "manager" => null,
+                "coordinator" => null,
                 "consultant" => null,
                 "participant" => null,
             ],
         ];
         
-        $uri = $this->invitationUri . "/{$this->coordinatorInvitation_fromCoordinator->id}";
+        $uri = $this->invitationUri . "/{$this->invitation_fromManager->id}";
         $this->get($uri, $this->coordinator->personnel->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
+    
     public function test_showAll_200()
     {
         $response = [
             "total" => 4,
             "list" => [
                 [
-                    "id" => $this->coordinatorInvitation_fromCoordinator->id,
-                    "willAttend" => $this->coordinatorInvitation_fromCoordinator->invitation->willAttend,
-                    "attended" => $this->coordinatorInvitation_fromCoordinator->invitation->attended,
+                    "id" => $this->invitation_fromManager->id,
+                    "willAttend" => $this->invitation_fromManager->invitee->willAttend,
+                    "attended" => $this->invitation_fromManager->invitee->attended,
                     "activity" => [
-                        "id" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->id,
-                        "name" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->name,
-                        "description" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->description,
-                        "location" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->location,
-                        "note" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->note,
-                        "startTime" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->startDateTime,
-                        "endTime" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->endDateTime,
-                        "cancelled" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->cancelled,
+                        "id" => $this->invitation_fromManager->invitee->activity->id,
+                        "name" => $this->invitation_fromManager->invitee->activity->name,
+                        "location" => $this->invitation_fromManager->invitee->activity->location,
+                        "startTime" => $this->invitation_fromManager->invitee->activity->startDateTime,
+                        "endTime" => $this->invitation_fromManager->invitee->activity->endDateTime,
+                        "cancelled" => $this->invitation_fromManager->invitee->activity->cancelled,
                         "program" => [
-                            "id" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->program->id,
-                            "name" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->program->name,
+                            "id" => $this->invitation_fromManager->invitee->activity->program->id,
+                            "name" => $this->invitation_fromManager->invitee->activity->program->name,
                         ],
-                        "activityType" => [
-                            "id" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->activityType->id,
-                            "name" => $this->coordinatorInvitation_fromCoordinator->invitation->activity->activityType->name,
-                        ],
-                        "coordinator" => [
-                            "id" => $this->coordinatorActivity->coordinator->id,
-                            "personnel" => [
-                                "id" => $this->coordinatorActivity->coordinator->personnel->id,
-                                "name" => $this->coordinatorActivity->coordinator->personnel->getFullName(),
-                            ],
-                        ],
-                        "manager" => null,
-                        "consultant" => null,
-                        "participant" => null,
                     ],
                 ],
                 [
-                    "id" => $this->coordinatorInvitationOne_fromManager->id,
-                    "willAttend" => $this->coordinatorInvitationOne_fromManager->invitation->willAttend,
-                    "attended" => $this->coordinatorInvitationOne_fromManager->invitation->attended,
+                    "id" => $this->invitationOne_fromCoordinator->id,
+                    "willAttend" => $this->invitationOne_fromCoordinator->invitee->willAttend,
+                    "attended" => $this->invitationOne_fromCoordinator->invitee->attended,
                     "activity" => [
-                        "id" => $this->coordinatorInvitationOne_fromManager->invitation->activity->id,
-                        "name" => $this->coordinatorInvitationOne_fromManager->invitation->activity->name,
-                        "description" => $this->coordinatorInvitationOne_fromManager->invitation->activity->description,
-                        "location" => $this->coordinatorInvitationOne_fromManager->invitation->activity->location,
-                        "note" => $this->coordinatorInvitationOne_fromManager->invitation->activity->note,
-                        "startTime" => $this->coordinatorInvitationOne_fromManager->invitation->activity->startDateTime,
-                        "endTime" => $this->coordinatorInvitationOne_fromManager->invitation->activity->endDateTime,
-                        "cancelled" => $this->coordinatorInvitationOne_fromManager->invitation->activity->cancelled,
+                        "id" => $this->invitationOne_fromCoordinator->invitee->activity->id,
+                        "name" => $this->invitationOne_fromCoordinator->invitee->activity->name,
+                        "location" => $this->invitationOne_fromCoordinator->invitee->activity->location,
+                        "startTime" => $this->invitationOne_fromCoordinator->invitee->activity->startDateTime,
+                        "endTime" => $this->invitationOne_fromCoordinator->invitee->activity->endDateTime,
+                        "cancelled" => $this->invitationOne_fromCoordinator->invitee->activity->cancelled,
                         "program" => [
-                            "id" => $this->coordinatorInvitationOne_fromManager->invitation->activity->program->id,
-                            "name" => $this->coordinatorInvitationOne_fromManager->invitation->activity->program->name,
+                            "id" => $this->invitationOne_fromCoordinator->invitee->activity->program->id,
+                            "name" => $this->invitationOne_fromCoordinator->invitee->activity->program->name,
                         ],
-                        "activityType" => [
-                            "id" => $this->coordinatorInvitationOne_fromManager->invitation->activity->activityType->id,
-                            "name" => $this->coordinatorInvitationOne_fromManager->invitation->activity->activityType->name,
-                        ],
-                        "coordinator" => null,
-                        "manager" => [
-                            "id" => $this->managerActivity->manager->id,
-                            "name" => $this->managerActivity->manager->name,
-                        ],
-                        "consultant" => null,
-                        "participant" => null,
                     ],
                 ],
                 [
-                    "id" => $this->coordinatorInvitationTwo_fromConsultant->id,
-                    "willAttend" => $this->coordinatorInvitationTwo_fromConsultant->invitation->willAttend,
-                    "attended" => $this->coordinatorInvitationTwo_fromConsultant->invitation->attended,
+                    "id" => $this->invitationTwo_fromConsultant->id,
+                    "willAttend" => $this->invitationTwo_fromConsultant->invitee->willAttend,
+                    "attended" => $this->invitationTwo_fromConsultant->invitee->attended,
                     "activity" => [
-                        "id" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->id,
-                        "name" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->name,
-                        "description" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->description,
-                        "location" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->location,
-                        "note" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->note,
-                        "startTime" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->startDateTime,
-                        "endTime" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->endDateTime,
-                        "cancelled" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->cancelled,
+                        "id" => $this->invitationTwo_fromConsultant->invitee->activity->id,
+                        "name" => $this->invitationTwo_fromConsultant->invitee->activity->name,
+                        "location" => $this->invitationTwo_fromConsultant->invitee->activity->location,
+                        "startTime" => $this->invitationTwo_fromConsultant->invitee->activity->startDateTime,
+                        "endTime" => $this->invitationTwo_fromConsultant->invitee->activity->endDateTime,
+                        "cancelled" => $this->invitationTwo_fromConsultant->invitee->activity->cancelled,
                         "program" => [
-                            "id" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->program->id,
-                            "name" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->program->name,
+                            "id" => $this->invitationTwo_fromConsultant->invitee->activity->program->id,
+                            "name" => $this->invitationTwo_fromConsultant->invitee->activity->program->name,
                         ],
-                        "activityType" => [
-                            "id" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->activityType->id,
-                            "name" => $this->coordinatorInvitationTwo_fromConsultant->invitation->activity->activityType->name,
-                        ],
-                        "coordinator" => null,
-                        "manager" => null,
-                        "consultant" => [
-                            "id" => $this->consultantActivity->consultant->id,
-                            "personnel" => [
-                                "id" => $this->consultantActivity->consultant->personnel->id,
-                                "name" => $this->consultantActivity->consultant->personnel->getFullName(),
-                            ],
-                        ],
-                        "participant" => null,
                     ],
                 ],
                 [
-                    "id" => $this->coordinatorInvitationThree_fromParticipant->id,
-                    "willAttend" => $this->coordinatorInvitationThree_fromParticipant->invitation->willAttend,
-                    "attended" => $this->coordinatorInvitationThree_fromParticipant->invitation->attended,
+                    "id" => $this->invitationThree_fromParticipant->id,
+                    "willAttend" => $this->invitationThree_fromParticipant->invitee->willAttend,
+                    "attended" => $this->invitationThree_fromParticipant->invitee->attended,
                     "activity" => [
-                        "id" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->id,
-                        "name" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->name,
-                        "description" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->description,
-                        "location" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->location,
-                        "note" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->note,
-                        "startTime" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->startDateTime,
-                        "endTime" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->endDateTime,
-                        "cancelled" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->cancelled,
+                        "id" => $this->invitationThree_fromParticipant->invitee->activity->id,
+                        "name" => $this->invitationThree_fromParticipant->invitee->activity->name,
+                        "location" => $this->invitationThree_fromParticipant->invitee->activity->location,
+                        "startTime" => $this->invitationThree_fromParticipant->invitee->activity->startDateTime,
+                        "endTime" => $this->invitationThree_fromParticipant->invitee->activity->endDateTime,
+                        "cancelled" => $this->invitationThree_fromParticipant->invitee->activity->cancelled,
                         "program" => [
-                            "id" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->program->id,
-                            "name" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->program->name,
-                        ],
-                        "activityType" => [
-                            "id" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->activityType->id,
-                            "name" => $this->coordinatorInvitationThree_fromParticipant->invitation->activity->activityType->name,
-                        ],
-                        "coordinator" => null,
-                        "manager" => null,
-                        "consultant" => null,
-                        "participant" => [
-                            "id" => $this->participantActivity->participant->id,
-                            "client" => [
-                                "id" => $this->clientParticipant->client->id,
-                                "name" => $this->clientParticipant->client->getFullName(),
-                            ],
-                            "user" => null,
-                            "team" => null,
+                            "id" => $this->invitationThree_fromParticipant->invitee->activity->program->id,
+                            "name" => $this->invitationThree_fromParticipant->invitee->activity->program->name,
                         ],
                     ],
                 ],

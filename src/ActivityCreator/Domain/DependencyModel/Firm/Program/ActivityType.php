@@ -2,9 +2,11 @@
 
 namespace ActivityCreator\Domain\DependencyModel\Firm\Program;
 
-use ActivityCreator\Domain\DependencyModel\Firm\ {
-    Program,
-    Program\ActivityType\ActivityParticipant
+use ActivityCreator\Domain\ {
+    DependencyModel\Firm\Program,
+    DependencyModel\Firm\Program\ActivityType\ActivityParticipant,
+    Model\Activity,
+    service\ActivityDataProvider
 };
 use Doctrine\Common\Collections\ArrayCollection;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -48,12 +50,11 @@ class ActivityType
         return !empty($this->participants->filter($p)->count());
     }
     
-    public function canInvite(ActivityParticipantType $activityParticipantType): bool
+    public function addInviteesToActivity(Activity $activity, ActivityDataProvider $activityDataProvider): void
     {
-        $p = function (ActivityParticipant $activityParticipant) use($activityParticipantType){
-            return $activityParticipant->canAttendAndTypeEquals($activityParticipantType);
-        };
-        return !empty($this->participants->filter($p)->count());
+        foreach ($this->participants->getIterator() as $participant) {
+            $participant->addInviteesToActivity($activity, $activityDataProvider);
+        }
     }
 
 }
