@@ -8,6 +8,7 @@ use Doctrine\ORM\ {
 };
 use Query\Domain\Model\ {
     Firm\Client\ClientFileInfo,
+    Firm\Manager\ManagerFileInfo,
     Firm\Personnel\PersonnelFileInfo,
     Firm\Team\TeamFileInfo,
     User\UserFileInfo
@@ -194,6 +195,39 @@ class DoctrineFileInfoRepository extends EntityRepository implements FileInfoRep
     public function aFileInfoBelongsToUser(string $userId, string $fileInfoId): FileInfo
     {
         return $this->fileInfoOfUser($userId, $fileInfoId);
+    }
+
+    public function aFileInfoBelongsToManager(string $firmId, string $managerId, string $fileInfoId): FileInfo
+    {
+        $params = [
+            'firmId' => $firmId,
+            'managerId' => $managerId,
+            'fileInfoId' => $fileInfoId,
+        ];
+        
+        $clientFileInfoQb = $this->getEntityManager()->createQueryBuilder();
+        $clientFileInfoQb->select('tFileInfo.id')
+                ->from(ManagerFileInfo::class, 'managerFileInfo')
+                ->leftJoin('managerFileInfo.fileInfo', 'tFileInfo')
+                ->andWhere($clientFileInfoQb->expr()->eq('tFileInfo.id', ':fileInfoId'))
+                ->leftJoin('managerFileInfo.manager', 'manager')
+                ->andWhere($clientFileInfoQb->expr()->eq('manager.id', ':managerId'))
+                ->leftJoin('manager.firm', 'firm')
+                ->andWhere($clientFileInfoQb->expr()->eq('firm.id', ':firmId'))
+                ->setMaxResults(1);
+        
+        $qb  = $this->createQueryBuilder('fileInfo');
+        $qb->select('fileInfo')
+                ->andWhere($qb->expr()->in('fileInfo.id', $clientFileInfoQb->getDQL()))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: file info not found';
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

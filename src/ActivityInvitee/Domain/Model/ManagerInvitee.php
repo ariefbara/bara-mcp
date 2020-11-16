@@ -3,6 +3,7 @@
 namespace ActivityInvitee\Domain\Model;
 
 use ActivityInvitee\Domain\DependencyModel\Firm\Manager;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class ManagerInvitee
 {
@@ -28,6 +29,11 @@ class ManagerInvitee
     protected function __construct()
     {
         
+    }
+    
+    public function submitReport(FormRecordData $formRecordData): void
+    {
+        $this->invitee->submitReport($formRecordData);
     }
 
 }

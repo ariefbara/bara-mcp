@@ -14,4 +14,6 @@ interface FileInfoRepository
     public function aFileInfoBelongsToTeam(string $firmId, string $teamId, string $fileInfoId): FileInfo;
 
     public function aFileInfoBelongsToUser(string $userId, string $fileInfoId): FileInfo;
+
+    public function aFileInfoBelongsToManager(string $firmId, string $managerId, string $fileInfoId): FileInfo;
 }
