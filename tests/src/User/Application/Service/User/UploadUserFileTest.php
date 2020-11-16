@@ -75,8 +75,9 @@ class UploadUserFileTest extends TestBase
         $this->execute();
     }
 
-      public function test_execute_returnNextId()
-      {
-          $this->assertEquals($this->nextId, $this->execute());
-      }
+    public function test_execute_returnNextId()
+    {
+        $this->assertEquals($this->nextId, $this->execute());
+    }
+
 }

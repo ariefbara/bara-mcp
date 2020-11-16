@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Manager\ManagerFileInfo" 
+            table="ManagerFileInfo" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineManagerFileInfoRepository" 
+    >
+        
+        <many-to-one  field="manager" 
+                      target-entity="Query\Domain\Model\Firm\Manager"
+        >
+            <join-column name="Manager_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="fileInfo" 
+                    target-entity="Query\Domain\Model\Shared\FileInfo"
+        >
+            <join-column name="FileInfo_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>
