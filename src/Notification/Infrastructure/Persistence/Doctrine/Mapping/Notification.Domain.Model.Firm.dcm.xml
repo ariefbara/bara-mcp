@@ -5,6 +5,7 @@
     >
         
         <id name="id" type="guid" />
+        <field name="identifier" type="string" length="256" nullable="false"/>
         <embedded name="firmWhitelableInfo" 
                   class="Query\Domain\Model\FirmWhitelableInfo" 
                   use-column-prefix="false" />

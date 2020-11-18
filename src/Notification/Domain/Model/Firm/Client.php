@@ -89,7 +89,7 @@ Hi {$this->name->getFirstName()},
 
 Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:
 
-{$this->firm->getDomain()}/client-account/activate/{$this->email}/{$this->activationCode}
+{$this->firm->getDomain()}/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}
 _MESSAGE;
                 
         $htmlMessage = <<<_HTMLMESSAGE
@@ -97,7 +97,7 @@ _MESSAGE;
 
 <p>Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:</p>
 
-<p> <a href="{$this->firm->getDomain()}/client-account/activate/{$this->email}/{$this->activationCode}">Aktivasi Akun</a></p>
+<p> <a href="{$this->firm->getDomain()}/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}">Aktivasi Akun</a></p>
                 
 _HTMLMESSAGE;
 
@@ -119,7 +119,7 @@ Hi {$this->name->getFirstName()},
 
 Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:
 
-{$this->firm->getDomain()}/client-account/reset-password/{$this->email}/{$this->activationCode}
+{$this->firm->getDomain()}/client-account/reset-password/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}
 
 Abaikan email ini jika kamu tidak merasa melakukan permintaan reset password.
 _MESSAGE;
@@ -130,7 +130,7 @@ _MESSAGE;
 
 <p>Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:</p>
 
-<p> <a href="{$this->firm->getDomain()}/client-account/reset-password/{$this->email}/{$this->activationCode}">reset password</a></p>
+<p> <a href="{$this->firm->getDomain()}/client-account/reset-password/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}">reset password</a></p>
 
 <p>Abaikan email ini jika kamu tidak merasa melakukan permintaan reset password.</p>
 _HTMLMESSAGE;
