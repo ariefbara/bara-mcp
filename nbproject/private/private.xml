@@ -11,6 +11,13 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/MeetingType/Meeting.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/MeetingType/Meeting/Attendee/ConsultantAttendee.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/MeetingType/Meeting/Attendee/ParticipantAttendee.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/MeetingType/Meeting/Attendee.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/MeetingType/Meeting/Attendee/CoordinatorAttendee.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/MeetingType/Meeting/Attendee/ManagerAttendee.php</file>
+        </group>
     </open-files>
 </project-private>

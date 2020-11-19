@@ -21,7 +21,8 @@ class RecordOfInvitee implements Record
      */
     public $activityParticipant;
     public $id;
-    public $invitationCancelled;
+    public $anInitiator;
+    public $cancelled;
     public $willAttend;
     public $attended;
     
@@ -32,7 +33,8 @@ class RecordOfInvitee implements Record
         $this->activity = $activity;
         $this->activityParticipant = $activityParticipant;
         $this->id = "invitee-$index-id";
-        $this->invitationCancelled = false;
+        $this->anInitiator = false;
+        $this->cancelled = false;
         $this->willAttend = null;
         $this->attended = null;
     }
@@ -43,7 +45,8 @@ class RecordOfInvitee implements Record
             "Activity_id" => $this->activity->id,
             "ActivityParticipant_id" => $this->activityParticipant->id,
             "id" => $this->id,
-            "invitationCancelled" => $this->invitationCancelled,
+            "anInitiator" => $this->anInitiator,
+            "cancelled" => $this->cancelled,
             "willAttend" => $this->willAttend,
             "attended" => $this->attended,
         ];

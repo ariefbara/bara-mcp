@@ -102,6 +102,11 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{coordinatorId}", ["uses" => "$controller@show"]);
         });
         
+        $router->group(['prefix' => '/meetings'], function () use($router) {
+            $controller = "MeetingController";
+            $router->post("", ["uses" => "$controller@initiate"]);
+        });
+        
     });
     
     $asProgramConsultantAggregate = [

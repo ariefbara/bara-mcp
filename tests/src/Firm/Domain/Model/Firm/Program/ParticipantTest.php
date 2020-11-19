@@ -5,10 +5,12 @@ namespace Firm\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Firm\Domain\ {
     Model\Firm\Program,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\Participant\MetricAssignment,
     Service\MetricAssignmentDataProvider
 };
 use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -213,6 +215,33 @@ class ParticipantTest extends TestBase
         $this->metric->expects($this->once())
                 ->method("belongsToProgram");
         $this->participant->belongsInTheSameProgramAs($this->metric);
+    }
+    
+    public function test_canInvolvedInProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->participant->canInvolvedInProgram($this->participant->program));
+    }
+    public function test_canInvolvedInProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->participant->canInvolvedInProgram($program));
+    }
+    
+    public function test_roleCorrespondWith_returnActivityParticipantTypeIsParticipantResult()
+    {
+        $activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
+        $activityParticipantType->expects($this->once())
+                ->method("isParticipantType");
+        $this->participant->roleCorrespondWith($activityParticipantType);
+    }
+    
+    public function test_registerAsAttendeeCandidate_setParticipantAsAttendeeCandidate()
+    {
+        $attendee = $this->buildMockOfClass(Attendee::class);
+        $attendee->expects($this->once())
+                ->method("setParticipantAsAttendeeCandidate")
+                ->with($this->participant);
+        $this->participant->registerAsAttendeeCandidate($attendee);
     }
 }
 

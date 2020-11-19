@@ -4,9 +4,10 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\ {
     Personnel,
-    Program
+    Program,
+    Program\MeetingType\Meeting\Attendee
 };
-use Resources\Domain\Model\Mail\Recipient;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ConsultantTest extends TestBase
@@ -53,6 +54,33 @@ class ConsultantTest extends TestBase
                 ->method('getName')
                 ->willReturn($name = 'hadi pranoto');
         $this->assertEquals($name, $this->consultant->getPersonnelName());
+    }
+    
+    public function test_canInvolvedInProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->consultant->canInvolvedInProgram($this->consultant->program));
+    }
+    public function test_canInvolvedInProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->consultant->canInvolvedInProgram($program));
+    }
+    
+    public function test_roleCorrespondWith_returnActivityParticipantTypeIsConsultantResult()
+    {
+        $activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
+        $activityParticipantType->expects($this->once())
+                ->method("isConsultantType");
+        $this->consultant->roleCorrespondWith($activityParticipantType);
+    }
+    
+    public function test_registerAsAttendeeCandidate_setConsultantAsAttendeeCandidate()
+    {
+        $attendee = $this->buildMockOfClass(Attendee::class);
+        $attendee->expects($this->once())
+                ->method("setConsultantAsAttendeeCandidate")
+                ->with($this->consultant);
+        $this->consultant->registerAsAttendeeCandidate($attendee);
     }
 
 }

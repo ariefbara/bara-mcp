@@ -11,11 +11,6 @@ class RecordOfActivity implements Record
 {
     /**
      *
-     * @var RecordOfProgram
-     */
-    public $program;
-    /**
-     *
      * @var RecordOfActivityType
      */
     public $activityType;
@@ -29,9 +24,8 @@ class RecordOfActivity implements Record
     public $startDateTime;
     public $endDateTime;
     
-    function __construct(RecordOfProgram $program, RecordOfActivityType $activityType, $index)
+    function __construct(RecordOfActivityType $activityType, $index)
     {
-        $this->program = $program;
         $this->activityType = $activityType;
         $this->id = "activity-$index-id";
         $this->name = "activity $index name";
@@ -47,7 +41,6 @@ class RecordOfActivity implements Record
     public function toArrayForDbEntry()
     {
         return [
-            "Program_id" => $this->program->id,
             "ActivityType_id" => $this->activityType->id,
             "id" => $this->id,
             "name" => $this->name,

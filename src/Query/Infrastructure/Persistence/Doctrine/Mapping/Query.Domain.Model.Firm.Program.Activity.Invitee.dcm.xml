@@ -19,9 +19,10 @@
             <join-column name="ActivityParticipant_id" referenced-column-name="id" />
         </many-to-one>
         
+        <field name="anInitiator" type="boolean" nullable="false"/>
         <field name="willAttend" type="boolean" nullable="true" />
         <field name="attended" type="boolean"  nullable="true" />
-        <field name="invitationCancelled" type="boolean"  nullable="false" />
+        <field name="cancelled" type="boolean"  nullable="false" />
         
         <one-to-one field="report" 
                     target-entity="Query\Domain\Model\Firm\Program\Activity\Invitee\InviteeReport"

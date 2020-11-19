@@ -81,8 +81,8 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
 
         $this->consultationSession = new RecordOfConsultationSession(
                 $consultationSetup, $participant, $this->programConsultation, 0);
-        $this->consultationSession->startDateTime = (new DateTimeImmutable('+48 hours'))->format('Y-m-d H:i:s');
-        $this->consultationSession->endDateTime = (new DateTimeImmutable('+49 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSession->startDateTime = (new DateTimeImmutable('-6 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSession->endDateTime = (new DateTimeImmutable('-4 hours'))->format('Y-m-d H:i:s');
 
         $this->consultationSessionOne = new RecordOfConsultationSession(
                 $consultationSetup, $participant, $this->programConsultation, 1);
@@ -262,7 +262,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                 ],
             ],
         ];
-        $minStartTimeString = (new DateTime())->format('Y-m-d H:i:s');
+        $minStartTimeString = (new DateTime("-12 hours"))->format('Y-m-d H:i:s');
         $uri = $this->consultationSessionUri
                 . "?minStartTime=$minStartTimeString";
 

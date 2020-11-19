@@ -3,9 +3,10 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\Criteria;
 use Firm\Domain\ {
     Model\Firm\Program,
+    Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\Participant\MetricAssignment,
     Service\MetricAssignmentDataProvider
 };
@@ -14,8 +15,9 @@ use Resources\ {
     Exception\RegularException,
     Uuid
 };
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Participant implements AssetInProgram
+class Participant implements AssetInProgram, CanAttendMeeting
 {
 
     /**
@@ -158,6 +160,21 @@ class Participant implements AssetInProgram
     public function belongsInTheSameProgramAs(Metric $metric): bool
     {
         return $metric->belongsToProgram($this->program);
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+
+    public function registerAsAttendeeCandidate(Attendee $attendee): void
+    {
+        $attendee->setParticipantAsAttendeeCandidate($this);
+    }
+
+    public function roleCorrespondWith(ActivityParticipantType $role): bool
+    {
+        return $role->isParticipantType();
     }
 
 }

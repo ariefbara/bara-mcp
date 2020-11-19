@@ -1,0 +1,166 @@
+<?php
+
+namespace Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+
+use Firm\Domain\Model\Firm\ {
+    Manager,
+    Program\ActivityType\ActivityParticipant,
+    Program\Consultant,
+    Program\Coordinator,
+    Program\MeetingType\CanAttendMeeting,
+    Program\MeetingType\Meeting,
+    Program\MeetingType\Meeting\Attendee\ConsultantAttendee,
+    Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
+    Program\MeetingType\Meeting\Attendee\ManagerAttendee,
+    Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
+    Program\MeetingType\MeetingData,
+    Program\Participant
+};
+use Resources\Exception\RegularException;
+
+class Attendee
+{
+
+    /**
+     *
+     * @var Meeting
+     */
+    protected $meeting;
+
+    /**
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
+     *
+     * @var ActivityParticipant
+     */
+    protected $attendeeSetup;
+
+    /**
+     *
+     * @var bool
+     */
+    protected $anInitiator;
+
+    /**
+     *
+     * @var bool|null
+     */
+    protected $willAttend;
+
+    /**
+     *
+     * @var bool|null
+     */
+    protected $attended;
+
+    /**
+     *
+     * @var bool
+     */
+    protected $cancelled;
+
+    /**
+     *
+     * @var ManagerAttendee|null
+     */
+    protected $managerAttendee;
+
+    /**
+     *
+     * @var CoordinatorAttendee|null
+     */
+    protected $coordinatorAttendee;
+
+    /**
+     *
+     * @var ConsultantAttendee|null
+     */
+    protected $consultantAttendee;
+
+    /**
+     *
+     * @var ParticipantAttendee|null
+     */
+    protected $participantAttendee;
+
+    function __construct(
+            Meeting $meeting, string $id, ActivityParticipant $attendeeSetup, CanAttendMeeting $user,
+            bool $anInitiator = false)
+    {
+        $this->meeting = $meeting;
+        $this->id = $id;
+        $this->attendeeSetup = $attendeeSetup;
+        $this->anInitiator = $anInitiator;
+        $this->willAttend = $this->anInitiator ? true : null;
+        $this->attended = null;
+        $this->cancelled = false;
+
+        $user->registerAsAttendeeCandidate($this);
+    }
+    
+    public function updateMeeting(MeetingData $meetingData): void
+    {
+        $this->assertInitiator();
+        $this->meeting->update($meetingData);
+    }
+    
+    public function inviteUserToAttendMeeting(CanAttendMeeting $user): void
+    {
+//        $this->meeting->inviteUser($user);
+    }
+
+    public function cancel(): void
+    {
+        $this->cancelled = true;
+    }
+
+    public function reinvite(): void
+    {
+        $this->cancelled = false;
+    }
+
+    public function correspondWithUser(CanAttendMeeting $user): bool
+    {
+        if (isset($this->managerAttendee)) {
+            return $this->managerAttendee->managerEquals($user);
+        } elseif (isset ($this->coordinatorAttendee)) {
+            return $this->coordinatorAttendee->coordinatorEquals($user);
+        } elseif (isset ($this->consultantAttendee)) {
+            return $this->consultantAttendee->consultantEquals($user);
+        } else {
+            return $this->participantAttendee->participantEquals($user);
+        }
+    }
+    
+    public function setManagerAsAttendeeCandidate(Manager $manager): void
+    {
+        $this->managerAttendee = new ManagerAttendee($this, $this->id, $manager);
+    }
+
+    public function setCoordinatorAsAttendeeCandidate(Coordinator $coordinator): void
+    {
+        $this->coordinatorAttendee = new CoordinatorAttendee($this, $this->id, $coordinator);
+    }
+    
+    public function setConsultantAsAttendeeCandidate(Consultant $consultant): void
+    {
+        $this->consultantAttendee = new ConsultantAttendee($this, $this->id, $consultant);
+    }
+    
+    public function setParticipantAsAttendeeCandidate(Participant $participant): void
+    {
+        $this->participantAttendee = new ParticipantAttendee($this, $this->id, $participant);
+    }
+    
+    protected function assertInitiator(): void
+    {
+        if (!$this->anInitiator) {
+            $errorDetail = "forbidden: only meeting initiator can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+}

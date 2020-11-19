@@ -4,11 +4,13 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\ {
     Personnel,
-    Program
+    Program,
+    Program\MeetingType\CanAttendMeeting,
+    Program\MeetingType\Meeting\Attendee
 };
-use Resources\Domain\Model\Mail\Recipient;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Consultant
+class Consultant implements CanAttendMeeting
 {
 
     /**
@@ -71,6 +73,21 @@ class Consultant
     public function getPersonnelName(): string
     {
         return $this->personnel->getName();
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+
+    public function registerAsAttendeeCandidate(Attendee $attendee): void
+    {
+        $attendee->setConsultantAsAttendeeCandidate($this);
+    }
+
+    public function roleCorrespondWith(ActivityParticipantType $role): bool
+    {
+        return $role->isConsultantType();
     }
 
 }

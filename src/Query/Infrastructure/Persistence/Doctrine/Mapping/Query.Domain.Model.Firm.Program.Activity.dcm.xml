@@ -2,21 +2,16 @@
 <doctrine-mapping>
     <entity name="Query\Domain\Model\Firm\Program\Activity" 
             table="Activity" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineActivityRepository"
     >
-        
-        <many-to-one  field="program" 
-                      target-entity="Query\Domain\Model\Firm\Program"
-        >
-            <join-column name="Program_id" referenced-column-name="id" />
-        </many-to-one>
-        
-        <id name="id" type="guid" />
         
         <many-to-one  field="activityType" 
                       target-entity="Query\Domain\Model\Firm\Program\ActivityType"
         >
             <join-column name="ActivityType_id" referenced-column-name="id" />
         </many-to-one>
+        
+        <id name="id" type="guid" />
         
         <field name="name" type="string" length="256" nullable="false"/>
         <field name="description" type="string" length="1024" nullable="true"/>
@@ -29,23 +24,6 @@
         <field name="note" type="string" length="1024" nullable="true"/>
         <field name="cancelled" type="boolean" />
         <field name="createdTime" type="datetime_immutable" nullable="false"/>
-        
-        <one-to-one field="managerActivity" 
-                     target-entity="Query\Domain\Model\Firm\Manager\ManagerActivity" 
-                     mapped-by="activity"
-        />
-        <one-to-one field="coordinatorActivity" 
-                     target-entity="Query\Domain\Model\Firm\Program\Coordinator\CoordinatorActivity" 
-                     mapped-by="activity"
-        />
-        <one-to-one field="consultantActivity" 
-                     target-entity="Query\Domain\Model\Firm\Program\Consultant\ConsultantActivity" 
-                     mapped-by="activity"
-        />
-        <one-to-one field="participantActivity" 
-                     target-entity="Query\Domain\Model\Firm\Program\Participant\ParticipantActivity" 
-                     mapped-by="activity"
-        />
         
     </entity>
 </doctrine-mapping>

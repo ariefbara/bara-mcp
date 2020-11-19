@@ -6,6 +6,8 @@ use DateTimeImmutable;
 use Firm\Domain\ {
     Model\Firm,
     Model\Firm\Program\ActivityType,
+    Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
     Service\ActivityTypeDataProvider
 };
 use Resources\ {
@@ -14,8 +16,9 @@ use Resources\ {
     ValidationRule,
     ValidationService
 };
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Manager
+class Manager implements CanAttendMeeting
 {
 
     /**
@@ -117,6 +120,21 @@ class Manager
             throw RegularException::forbidden($errorDetail);
         }
         return $program->createActivityType($activityTypeId, $activityTypeDataProvider);
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $program->belongsToFirm($this->firm);
+    }
+
+    public function registerAsAttendeeCandidate(Attendee $attendee): void
+    {
+        $attendee->setManagerAsAttendeeCandidate($this);
+    }
+
+    public function roleCorrespondWith(ActivityParticipantType $role): bool
+    {
+        return $role->isManagerType();
     }
 
 }

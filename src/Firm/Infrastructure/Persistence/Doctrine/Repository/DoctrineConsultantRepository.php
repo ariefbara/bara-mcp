@@ -45,4 +45,14 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
         $this->getEntityManager()->flush();
     }
 
+    public function aConsultantOfId(string $consultantId): Consultant
+    {
+        $consultant = $this->findOneBy(["id" => $consultantId]);
+        if (empty($consultant)) {
+            $errorDetail = "not found: consultant not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $consultant;
+    }
+
 }

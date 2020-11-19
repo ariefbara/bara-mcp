@@ -17,4 +17,6 @@ interface ManagerRepository extends InterfaceForManager
     public function isEmailAvailable(string $firmId, string $email): bool;
 
     public function ofId(string $firmId, string $managerId): Manager;
+    
+    public function aManagerOfId(string $managerId): Manager;
 }

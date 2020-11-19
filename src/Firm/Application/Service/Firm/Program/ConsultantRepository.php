@@ -10,4 +10,6 @@ interface ConsultantRepository
     public function update(): void;
 
     public function ofId(ProgramCompositionId $programCompositionId, string $consultantId): Consultant;
+    
+    public function aConsultantOfId(string $consultantId): Consultant;
 }

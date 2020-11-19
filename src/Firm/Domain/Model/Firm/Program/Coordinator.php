@@ -2,14 +2,19 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\{
+use Firm\Domain\ {
     Model\Firm\Personnel,
     Model\Firm\Program,
+    Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Service\MetricAssignmentDataProvider
 };
 use Resources\Exception\RegularException;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Coordinator
+class Coordinator implements CanAttendMeeting
 {
 
     /**
@@ -76,6 +81,13 @@ class Coordinator
         $this->assertAssetBelongsProgram($participant);
         $participant->assignMetrics($metricAssignmentDataCollector);
     }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsProgram($meetingType);
+        return $meetingType->createMeeting($meetingId, $meetingData, $this);
+    }
 
     protected function assertActive()
     {
@@ -91,6 +103,21 @@ class Coordinator
             $errorDetail = "forbidden: unable to manage asset of other program";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+
+    public function roleCorrespondWith(ActivityParticipantType $role): bool
+    {
+        return $role->isCoordinatorType();
+    }
+
+    public function registerAsAttendeeCandidate(Attendee $attendee): void
+    {
+        $attendee->setCoordinatorAsAttendeeCandidate($this);
     }
 
 }

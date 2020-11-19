@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee" 
+            table="Invitee"
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineMeetingAttendeeRepository"
+    >
+        
+        <many-to-one  field="meeting" 
+                      target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting"
+                      inversed-by="attendees"
+        >
+            <join-column name="Activity_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="attendeeSetup" 
+                      target-entity="Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant"
+        >
+            <join-column name="ActivityParticipant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="anInitiator" type="boolean" nullable="false"/>
+        <field name="willAttend" type="boolean" nullable="true"/>
+        <field name="attended" type="boolean" nullable="true"/>
+        <field name="cancelled" type="boolean" nullable="false"/>
+        
+        <one-to-one field="managerAttendee" 
+                    target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee"
+                    mapped-by="attendee"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+        <one-to-one field="coordinatorAttendee" 
+                    target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee"
+                    mapped-by="attendee"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+        <one-to-one field="consultantAttendee" 
+                    target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee"
+                    mapped-by="attendee"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+        <one-to-one field="participantAttendee" 
+                    target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee"
+                    mapped-by="attendee"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

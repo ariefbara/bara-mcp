@@ -4,8 +4,10 @@ namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\ {
     Model\Firm,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
     Service\ActivityTypeDataProvider
 };
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ManagerTest extends TestBase
@@ -120,6 +122,32 @@ class ManagerTest extends TestBase
         };
         $errorDetail = "forbidden: only active manager can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_canInvolvedInProgram_returnProgramsBelongsToFirmResult()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $program->expects($this->once())
+                ->method("belongsToFirm")
+                ->with($this->firm);
+        $this->manager->canInvolvedInProgram($program);
+    }
+    
+    public function test_roleCorrespondWith_returnActivityParticipantTypeIsManagerResult()
+    {
+        $activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
+        $activityParticipantType->expects($this->once())
+                ->method("isManagerType");
+        $this->manager->roleCorrespondWith($activityParticipantType);
+    }
+    
+    public function test_registerAsAttendeeCandidate_setManagerAsAttendeeCandidate()
+    {
+        $attendee = $this->buildMockOfClass(Attendee::class);
+        $attendee->expects($this->once())
+                ->method("setManagerAsAttendeeCandidate")
+                ->with($this->manager);
+        $this->manager->registerAsAttendeeCandidate($attendee);
     }
 
 }
