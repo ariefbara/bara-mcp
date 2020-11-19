@@ -1,9 +1,9 @@
 <?php
 
-namespace Firm\Application\Service\Personnel\ProgramCoordinator;
+namespace Firm\Application\Service\Personnel\ProgramConsultant;
 
 use Firm\ {
-    Application\Service\Personnel\ActivityTypeRepository,
+    Application\Service\Firm\Program\ActivityTypeRepository,
     Application\Service\Personnel\MeetingRepository,
     Domain\Model\Firm\Program\MeetingType\MeetingData
 };
@@ -19,9 +19,9 @@ class InitiateMeeting
 
     /**
      *
-     * @var ProgramCoordinatorRepository
+     * @var ProgramConsultantRepository
      */
-    protected $programCoordinatorRepository;
+    protected $programConsultantRepository;
 
     /**
      *
@@ -30,11 +30,11 @@ class InitiateMeeting
     protected $activityTypeRepository;
 
     function __construct(
-            MeetingRepository $meetingRepository, ProgramCoordinatorRepository $programCoordinatorRepository,
+            MeetingRepository $meetingRepository, ProgramConsultantRepository $programConsultantRepository,
             ActivityTypeRepository $activityTypeRepository)
     {
         $this->meetingRepository = $meetingRepository;
-        $this->programCoordinatorRepository = $programCoordinatorRepository;
+        $this->programConsultantRepository = $programConsultantRepository;
         $this->activityTypeRepository = $activityTypeRepository;
     }
 
@@ -42,10 +42,10 @@ class InitiateMeeting
             string $firmId, string $personnelId, string $programId, string $activityTypeId, MeetingData $meetingData): string
     {
         $id = $this->meetingRepository->nextIdentity();
-        $activityType = $this->activityTypeRepository->ofId($activityTypeId);
-        $meeting = $this->programCoordinatorRepository
-                ->aCoordinatorCorrespondWithProgram($firmId, $personnelId, $programId)
-                ->initiateMeeting($id, $activityType, $meetingData);
+        $meetingType = $this->activityTypeRepository->ofId($activityTypeId);
+        $meeting = $this->programConsultantRepository
+                ->aConsultantCorrespondWithProgram($firmId, $personnelId, $programId)
+                ->initiateMeeting($id, $meetingType, $meetingData);
         $this->meetingRepository->add($meeting);
         return $id;
     }

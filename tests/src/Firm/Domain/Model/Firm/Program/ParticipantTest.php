@@ -221,6 +221,11 @@ class ParticipantTest extends TestBase
     {
         $this->assertTrue($this->participant->canInvolvedInProgram($this->participant->program));
     }
+    public function test_canInvolvedInProgram_inactiveParticipant_returnFalse()
+    {
+        $this->participant->active = false;
+        $this->assertFalse($this->participant->canInvolvedInProgram($this->participant->program));
+    }
     public function test_canInvolvedInProgram_differentProgram_returnFalse()
     {
         $program = $this->buildMockOfClass(Program::class);

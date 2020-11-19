@@ -5,7 +5,8 @@ namespace Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\ {
     Personnel,
     Program,
-    Program\MeetingType\Meeting\Attendee
+    Program\MeetingType\Meeting\Attendee,
+    Program\MeetingType\MeetingData
 };
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
@@ -17,6 +18,8 @@ class ConsultantTest extends TestBase
     protected $id = 'consultant-id';
     protected $personnel;
     protected $consultant;
+    protected $meetingId = "meetingId", $meetingType, $meetingData;
+    protected $attendee;
 
     protected function setUp(): void
     {
@@ -24,6 +27,11 @@ class ConsultantTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
         $this->consultant = new TestableConsultant($this->program, 'id', $this->personnel);
+        
+        $this->attendee = $this->buildMockOfClass(Attendee::class);
+        
+        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
 
     public function test_construct_setProperties()
@@ -65,6 +73,11 @@ class ConsultantTest extends TestBase
         $program = $this->buildMockOfClass(Program::class);
         $this->assertFalse($this->consultant->canInvolvedInProgram($program));
     }
+    public function test_canInvolvedInProgram_inactiveConsultant_returnFalse()
+    {
+        $this->consultant->removed = true;
+        $this->assertFalse($this->consultant->canInvolvedInProgram($this->consultant->program));
+    }
     
     public function test_roleCorrespondWith_returnActivityParticipantTypeIsConsultantResult()
     {
@@ -74,13 +87,52 @@ class ConsultantTest extends TestBase
         $this->consultant->roleCorrespondWith($activityParticipantType);
     }
     
+    protected function executeRegisterAsAttendeeCandidate()
+    {
+        $this->consultant->registerAsAttendeeCandidate($this->attendee);
+    }
     public function test_registerAsAttendeeCandidate_setConsultantAsAttendeeCandidate()
     {
-        $attendee = $this->buildMockOfClass(Attendee::class);
-        $attendee->expects($this->once())
+        $this->attendee->expects($this->once())
                 ->method("setConsultantAsAttendeeCandidate")
                 ->with($this->consultant);
-        $this->consultant->registerAsAttendeeCandidate($attendee);
+        $this->executeRegisterAsAttendeeCandidate();
+    }
+    
+    protected function executeInitiateMeeting()
+    {
+        $this->meetingType->expects($this->any())
+                ->method("belongsToProgram")
+                ->willReturn(true);
+        return $this->consultant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingTypeCreateMeetingResult()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("createMeeting")
+                ->with($this->meetingId, $this->meetingData, $this->consultant);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_inactiveConsultant_forbidden()
+    {
+        $this->consultant->removed = true;
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: only active consultant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_initiateMeeting_meetingTypeNotFromInProgram_forbidden()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("belongsToProgram")
+                ->with($this->program)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: can only manage meeting type from same program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
 }

@@ -6,8 +6,11 @@ use Firm\Domain\Model\Firm\ {
     Personnel,
     Program,
     Program\MeetingType\CanAttendMeeting,
-    Program\MeetingType\Meeting\Attendee
+    Program\MeetingType\Meeting,
+    Program\MeetingType\Meeting\Attendee,
+    Program\MeetingType\MeetingData
 };
+use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class Consultant implements CanAttendMeeting
@@ -77,7 +80,7 @@ class Consultant implements CanAttendMeeting
 
     public function canInvolvedInProgram(Program $program): bool
     {
-        return $this->program === $program;
+        return !$this->removed && $this->program === $program;
     }
 
     public function registerAsAttendeeCandidate(Attendee $attendee): void
@@ -88,6 +91,20 @@ class Consultant implements CanAttendMeeting
     public function roleCorrespondWith(ActivityParticipantType $role): bool
     {
         return $role->isConsultantType();
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        if ($this->removed) {
+            $errorDetail = "forbidden: only active consultant can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
+        if (!$meetingType->belongsToProgram($this->program)) {
+            $errorDetail = "forbidden: can only manage meeting type from same program";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $meetingType->createMeeting($meetingId, $meetingData, $this);
     }
 
 }

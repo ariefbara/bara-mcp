@@ -124,7 +124,7 @@ class Manager implements CanAttendMeeting
 
     public function canInvolvedInProgram(Program $program): bool
     {
-        return $program->belongsToFirm($this->firm);
+        return !$this->removed && $program->belongsToFirm($this->firm);
     }
 
     public function registerAsAttendeeCandidate(Attendee $attendee): void

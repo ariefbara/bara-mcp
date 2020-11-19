@@ -1,12 +1,12 @@
 <?php
 
-namespace Firm\Application\Service\Personnel\ProgramCoordinator;
+namespace Firm\Application\Service\Personnel\ProgramConsultant;
 
 use Firm\ {
-    Application\Service\Personnel\ActivityTypeRepository,
+    Application\Service\Firm\Program\ActivityTypeRepository,
     Application\Service\Personnel\MeetingRepository,
     Domain\Model\Firm\Program\ActivityType,
-    Domain\Model\Firm\Program\Coordinator,
+    Domain\Model\Firm\Program\Consultant,
     Domain\Model\Firm\Program\MeetingType\MeetingData
 };
 use Tests\TestBase;
@@ -15,7 +15,7 @@ class InitiateMeetingTest extends TestBase
 {
     protected $meetingRepository, $nextId = "nextId";
     protected $activityTypeRepository, $activityType;
-    protected $programCoordinatorRepository, $programCoordinator;
+    protected $programConsultantRepository, $programConsultant;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $programId = "programId", $meetingTypeId = "meetingTypeId";
     protected $meetingData;
@@ -35,15 +35,15 @@ class InitiateMeetingTest extends TestBase
                 ->with($this->meetingTypeId)
                 ->willReturn($this->activityType);
         
-        $this->programCoordinator = $this->buildMockOfClass(Coordinator::class);
-        $this->programCoordinatorRepository = $this->buildMockOfInterface(ProgramCoordinatorRepository::class);
-        $this->programCoordinatorRepository->expects($this->any())
-                ->method("aCoordinatorCorrespondWithProgram")
+        $this->programConsultant = $this->buildMockOfClass(Consultant::class);
+        $this->programConsultantRepository = $this->buildMockOfInterface(ProgramConsultantRepository::class);
+        $this->programConsultantRepository->expects($this->any())
+                ->method("aConsultantCorrespondWithProgram")
                 ->with($this->firmId, $this->personnelId, $this->programId)
-                ->willReturn($this->programCoordinator);
+                ->willReturn($this->programConsultant);
         
         $this->service = new InitiateMeeting(
-                $this->meetingRepository, $this->programCoordinatorRepository, $this->activityTypeRepository);
+                $this->meetingRepository, $this->programConsultantRepository, $this->activityTypeRepository);
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
@@ -54,7 +54,7 @@ class InitiateMeetingTest extends TestBase
     }
     public function test_execute_addMeetingToRepository()
     {
-        $this->programCoordinator->expects($this->once())
+        $this->programConsultant->expects($this->once())
                 ->method("initiateMeeting")
                 ->with($this->nextId, $this->activityType, $this->meetingData);
         $this->meetingRepository->expects($this->once())

@@ -159,6 +159,11 @@ class CoordinatorTest extends TestBase
     {
         $this->assertTrue($this->coordinator->canInvolvedInProgram($this->coordinator->program));
     }
+    public function test_canInvolvedInProgram_inactiveConsultant_returnFalse()
+    {
+        $this->coordinator->removed = true;
+        $this->assertFalse($this->coordinator->canInvolvedInProgram($this->coordinator->program));
+    }
     public function test_canInvolvedInProgram_differentProgram_returnFalse()
     {
         $program = $this->buildMockOfClass(Program::class);

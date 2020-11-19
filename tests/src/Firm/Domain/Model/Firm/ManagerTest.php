@@ -132,6 +132,15 @@ class ManagerTest extends TestBase
                 ->with($this->firm);
         $this->manager->canInvolvedInProgram($program);
     }
+    public function test_canInvolvedInProgram_inactiveManager_returnFalse()
+    {
+        $this->manager->removed = true;
+        $program = $this->buildMockOfClass(Program::class);
+        $program->expects($this->any())
+                ->method("belongsToFirm")
+                ->willReturn(true);
+        $this->assertFalse($this->manager->canInvolvedInProgram($program));
+    }
     
     public function test_roleCorrespondWith_returnActivityParticipantTypeIsManagerResult()
     {

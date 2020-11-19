@@ -9,7 +9,7 @@ use Firm\{
 };
 use Resources\Uuid;
 
-class DoctrineMeetingRepository extends EntityRepository implements ActivityRepository
+class DoctrineMeetingRepository extends EntityRepository implements MeetingRepository
 {
 
     public function add(Meeting $meeting)

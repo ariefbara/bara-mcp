@@ -164,7 +164,7 @@ class Participant implements AssetInProgram, CanAttendMeeting
 
     public function canInvolvedInProgram(Program $program): bool
     {
-        return $this->program === $program;
+        return $this->active && $this->program === $program;
     }
 
     public function registerAsAttendeeCandidate(Attendee $attendee): void

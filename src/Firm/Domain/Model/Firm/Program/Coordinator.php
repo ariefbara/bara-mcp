@@ -107,7 +107,7 @@ class Coordinator implements CanAttendMeeting
 
     public function canInvolvedInProgram(Program $program): bool
     {
-        return $this->program === $program;
+        return !$this->removed && $this->program === $program;
     }
 
     public function roleCorrespondWith(ActivityParticipantType $role): bool

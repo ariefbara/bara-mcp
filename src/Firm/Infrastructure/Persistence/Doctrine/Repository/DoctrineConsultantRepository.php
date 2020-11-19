@@ -55,4 +55,31 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
         return $consultant;
     }
 
+    public function aConsultantCorrespondWithProgram(string $firmId, string $personnelId, string $programId): Consultant
+    {
+        $params = [
+            "firmId" => $firmId,
+            "personnelId" => $personnelId,
+            "programId" => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder("consultant");
+        $qb->select("consultant")
+                ->leftJoin("consultant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->leftJoin("consultant.personnel", "personnel")
+                ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
+                ->leftJoin("personnel.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: consultant not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }
