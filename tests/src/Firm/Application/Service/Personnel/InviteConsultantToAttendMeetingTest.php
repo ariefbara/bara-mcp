@@ -11,7 +11,7 @@ use Tests\TestBase;
 
 class InviteConsultantToAttendMeetingTest extends TestBase
 {
-    protected $meetingAttendanceRepository, $meetingAttendance;
+    protected $attendeeRepository, $attendee;
     protected $consultant, $consultantRepository;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $meetingId = "meetingId", $consultantId = "consultantId";
@@ -19,12 +19,12 @@ class InviteConsultantToAttendMeetingTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->meetingAttendance = $this->buildMockOfClass(Attendee::class);
-        $this->meetingAttendanceRepository = $this->buildMockOfInterface(MeetingAttendanceRepository::class);
-        $this->meetingAttendanceRepository->expects($this->any())
-                ->method("aMeetingAttendanceBelongsToPersonnelCorrespondWithMeeting")
+        $this->attendee = $this->buildMockOfClass(Attendee::class);
+        $this->attendeeRepository = $this->buildMockOfInterface(AttendeeRepository::class);
+        $this->attendeeRepository->expects($this->any())
+                ->method("anAttendeeBelongsToPersonnelCorrespondWithMeeting")
                 ->with($this->firmId, $this->personnelId, $this->meetingId)
-                ->willReturn($this->meetingAttendance);
+                ->willReturn($this->attendee);
         
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->consultantRepository = $this->buildMockOfInterface(ConsultantRepository::class);
@@ -33,7 +33,7 @@ class InviteConsultantToAttendMeetingTest extends TestBase
                 ->with($this->consultantId)
                 ->willReturn($this->consultant);
         
-        $this->service = new InviteConsultantToAttendMeeting($this->meetingAttendanceRepository, $this->consultantRepository);
+        $this->service = new InviteConsultantToAttendMeeting($this->attendeeRepository, $this->consultantRepository);
     }
     
     protected function execute()
@@ -42,14 +42,14 @@ class InviteConsultantToAttendMeetingTest extends TestBase
     }
     public function test_execute_inviteConsultantToAttendMeeting()
     {
-        $this->meetingAttendance->expects($this->once())
+        $this->attendee->expects($this->once())
                 ->method("inviteUserToAttendMeeting")
                 ->with($this->consultant);
         $this->execute();
     }
     public function test_execute_updateRepository()
     {
-        $this->meetingAttendanceRepository->expects($this->once())
+        $this->attendeeRepository->expects($this->once())
                 ->method("update");
         $this->execute();
     }

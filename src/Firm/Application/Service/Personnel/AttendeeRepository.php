@@ -4,11 +4,13 @@ namespace Firm\Application\Service\Personnel;
 
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 
-interface MeetingAttendanceRepository
+interface AttendeeRepository
 {
 
-    public function aMeetingAttendanceBelongsToPersonnelCorrespondWithMeeting(
+    public function anAttendeeBelongsToPersonnelCorrespondWithMeeting(
             string $firmId, string $personnelId, string $meetingId): Attendee;
 
     public function update(): void;
+    
+    public function ofId(string $attendeeId): Attendee;
 }

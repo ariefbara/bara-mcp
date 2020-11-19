@@ -9,21 +9,21 @@ class UpdateMeeting
 
     /**
      *
-     * @var MeetingAttendanceRepository
+     * @var AttendeeRepository
      */
-    protected $meetingAttendaceRepository;
+    protected $attendeeRepository;
 
-    function __construct(MeetingAttendanceRepository $meetingAttendaceRepository)
+    function __construct(AttendeeRepository $attendeeRepository)
     {
-        $this->meetingAttendaceRepository = $meetingAttendaceRepository;
+        $this->attendeeRepository = $attendeeRepository;
     }
 
     public function execute(string $firmId, string $personnelId, string $meetingId, MeetingData $meetingData): void
     {
-        $this->meetingAttendaceRepository
-                ->aMeetingAttendanceBelongsToPersonnelCorrespondWithMeeting($firmId, $personnelId, $meetingId)
+        $this->attendeeRepository
+                ->anAttendeeBelongsToPersonnelCorrespondWithMeeting($firmId, $personnelId, $meetingId)
                 ->updateMeeting($meetingData);
-        $this->meetingAttendaceRepository->update();
+        $this->attendeeRepository->update();
     }
 
 }

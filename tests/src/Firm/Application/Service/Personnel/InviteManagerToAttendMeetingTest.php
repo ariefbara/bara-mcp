@@ -11,7 +11,7 @@ use Tests\TestBase;
 
 class InviteManagerToAttendMeetingTest extends TestBase
 {
-    protected $meetingAttendanceRepository, $meetingAttendance;
+    protected $attendeeRepository, $attendee;
     protected $manager, $managerRepository;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $meetingId = "meetingId", $managerId = "managerId";
@@ -19,12 +19,12 @@ class InviteManagerToAttendMeetingTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->meetingAttendance = $this->buildMockOfClass(Attendee::class);
-        $this->meetingAttendanceRepository = $this->buildMockOfInterface(MeetingAttendanceRepository::class);
-        $this->meetingAttendanceRepository->expects($this->any())
-                ->method("aMeetingAttendanceBelongsToPersonnelCorrespondWithMeeting")
+        $this->attendee = $this->buildMockOfClass(Attendee::class);
+        $this->attendeeRepository = $this->buildMockOfInterface(AttendeeRepository::class);
+        $this->attendeeRepository->expects($this->any())
+                ->method("anAttendeeBelongsToPersonnelCorrespondWithMeeting")
                 ->with($this->firmId, $this->personnelId, $this->meetingId)
-                ->willReturn($this->meetingAttendance);
+                ->willReturn($this->attendee);
         
         $this->manager = $this->buildMockOfClass(Manager::class);
         $this->managerRepository = $this->buildMockOfInterface(ManagerRepository::class);
@@ -33,7 +33,7 @@ class InviteManagerToAttendMeetingTest extends TestBase
                 ->with($this->managerId)
                 ->willReturn($this->manager);
         
-        $this->service = new InviteManagerToAttendMeeting($this->meetingAttendanceRepository, $this->managerRepository);
+        $this->service = new InviteManagerToAttendMeeting($this->attendeeRepository, $this->managerRepository);
     }
     
     protected function execute()
@@ -42,14 +42,14 @@ class InviteManagerToAttendMeetingTest extends TestBase
     }
     public function test_execute_inviteManagerToAttendMeeting()
     {
-        $this->meetingAttendance->expects($this->once())
+        $this->attendee->expects($this->once())
                 ->method("inviteUserToAttendMeeting")
                 ->with($this->manager);
         $this->execute();
     }
     public function test_execute_updateRepository()
     {
-        $this->meetingAttendanceRepository->expects($this->once())
+        $this->attendeeRepository->expects($this->once())
                 ->method("update");
         $this->execute();
     }

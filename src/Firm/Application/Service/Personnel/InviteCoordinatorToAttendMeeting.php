@@ -9,9 +9,9 @@ class InviteCoordinatorToAttendMeeting
 
     /**
      *
-     * @var MeetingAttendanceRepository
+     * @var AttendeeRepository
      */
-    protected $meetingAttendaceRepository;
+    protected $attendeeRepository;
 
     /**
      *
@@ -19,19 +19,19 @@ class InviteCoordinatorToAttendMeeting
      */
     protected $coordinatorRepository;
 
-    function __construct(MeetingAttendanceRepository $meetingAttendaceRepository, CoordinatorRepository $coordinatorRepository)
+    function __construct(AttendeeRepository $attendeeRepository, CoordinatorRepository $coordinatorRepository)
     {
-        $this->meetingAttendaceRepository = $meetingAttendaceRepository;
+        $this->attendeeRepository = $attendeeRepository;
         $this->coordinatorRepository = $coordinatorRepository;
     }
 
     public function execute(string $firmId, string $personnelId, string $meetingId, string $coordinatorId): void
     {
         $coordinator = $this->coordinatorRepository->aCoordinatorOfId($coordinatorId);
-        $this->meetingAttendaceRepository
-                ->aMeetingAttendanceBelongsToPersonnelCorrespondWithMeeting($firmId, $personnelId, $meetingId)
+        $this->attendeeRepository
+                ->anAttendeeBelongsToPersonnelCorrespondWithMeeting($firmId, $personnelId, $meetingId)
                 ->inviteUserToAttendMeeting($coordinator);
-        $this->meetingAttendaceRepository->update();
+        $this->attendeeRepository->update();
     }
 
 }

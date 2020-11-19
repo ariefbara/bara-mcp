@@ -7,12 +7,15 @@ use Doctrine\ORM\{
     NoResultException
 };
 use Query\{
+    Application\Auth\MeetingAttendeeRepository as InterfaceForAuthorization,
     Application\Service\Firm\Program\Activity\InviteeRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerActivity,
     Domain\Model\Firm\Program\Activity\Invitee,
     Domain\Model\Firm\Program\Consultant\ConsultantActivity,
+    Domain\Model\Firm\Program\Consultant\ConsultantInvitee,
     Domain\Model\Firm\Program\Coordinator\CoordinatorActivity,
+    Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee,
     Domain\Model\Firm\Program\Participant\ParticipantActivity,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
@@ -22,7 +25,7 @@ use Resources\{
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
 
-class DoctrineInviteeRepository extends EntityRepository implements InviteeRepository
+class DoctrineInviteeRepository extends EntityRepository implements InviteeRepository, InterfaceForAuthorization
 {
 
     public function allInviteesInManagerActivity(
@@ -432,6 +435,104 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = "not found: invitation not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function containRecordOfActiveMeetingAttendeeCorrespondWithPersonnelWithInitiatorRole(
+            string $firmId, string $personnelId, string $meetingId): bool
+    {
+        $params = [
+            "firmId" => $firmId,
+            "personnelId" => $personnelId,
+            "meetingId" => $meetingId,
+        ];
+
+        $coordinatorInviteeQb = $this->getEntityManager()->createQueryBuilder();
+        $coordinatorInviteeQb->select("a_invitee.id")
+                ->from(CoordinatorInvitee::class, "coordinatorInvitee")
+                ->leftJoin("coordinatorInvitee.invitee", "a_invitee")
+                ->leftJoin("coordinatorInvitee.coordinator", "coordinator")
+                ->leftJoin("coordinator.personnel", "personnel")
+                ->andWhere($coordinatorInviteeQb->expr()->eq("personnel.id", ":personnelId"))
+                ->leftJoin("personnel.firm", "firm")
+                ->andWhere($coordinatorInviteeQb->expr()->eq("firm.id", ":firmId"));
+
+        $consultantInviteeQb = $this->getEntityManager()->createQueryBuilder();
+        $consultantInviteeQb->select("b_invitee.id")
+                ->from(ConsultantInvitee::class, "consultantInvitee")
+                ->leftJoin("consultantInvitee.invitee", "b_invitee")
+                ->leftJoin("consultantInvitee.consultant", "consultant")
+                ->leftJoin("consultant.personnel", "b_personnel")
+                ->andWhere($consultantInviteeQb->expr()->eq("b_personnel.id", ":personnelId"))
+                ->leftJoin("b_personnel.firm", "b_firm")
+                ->andWhere($consultantInviteeQb->expr()->eq("b_firm.id", ":firmId"));
+
+        $qb = $this->createQueryBuilder("invitee");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("invitee.anInitiator", "true"))
+                ->andWhere($qb->expr()->eq("invitee.cancelled", "false"))
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in("invitee.id", $coordinatorInviteeQb->getDQL()),
+                                $qb->expr()->in("invitee.id", $consultantInviteeQb->getDQL())
+                ))
+                ->leftJoin("invitee.activity", "activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        return !empty($qb->getQuery()->getResult());
+    }
+
+    public function allInviteesInMeeting(string $firmId, string $meetingId, int $page, int $pageSize, ?bool $initiatorStatus)
+    {
+        $params = [
+            "firmId" => $firmId,
+            "meetingId" => $meetingId,
+        ];
+
+        $qb = $this->createQueryBuilder("invitee");
+        $qb->select("invitee")
+                ->leftJoin("invitee.activity", "activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
+                ->leftJoin("activity.activityType", "activityType")
+                ->leftJoin("activityType.program", "program")
+                ->leftJoin("program.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params);
+        
+        if (isset($initiatorStatus)) {
+            $qb->andWhere($qb->expr()->eq("invitee.anInitiator", ":initiatorStatus"))
+                    ->setParameter("initiatorStatus", $initiatorStatus);
+        }
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function anInviteeInMeeting(string $firmId, string $meetingId, string $inviteeId): Invitee
+    {
+        $params = [
+            "firmId" => $firmId,
+            "meetingId" => $meetingId,
+            "inviteeId" => $inviteeId,
+        ];
+
+        $qb = $this->createQueryBuilder("invitee");
+        $qb->select("invitee")
+                ->andWhere($qb->expr()->eq("invitee.id", ":inviteeId"))
+                ->leftJoin("invitee.activity", "activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
+                ->leftJoin("activity.activityType", "activityType")
+                ->leftJoin("activityType.program", "program")
+                ->leftJoin("program.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: invitee not found";
             throw RegularException::notFound($errorDetail);
         }
     }

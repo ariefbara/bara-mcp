@@ -30,6 +30,7 @@ class AttendeeTest extends TestBase
     protected $participantAttendee;
     protected $id = "newId", $anInitiator = false;
     protected $meetingData;
+    protected $attendeeToCancel;
 
     protected function setUp(): void
     {
@@ -45,6 +46,8 @@ class AttendeeTest extends TestBase
         $this->participantAttendee = $this->buildMockOfClass(ParticipantAttendee::class);
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        
+        $this->attendeeToCancel = $this->buildMockOfClass(Attendee::class);
     }
     
     protected function executeConstruct()
@@ -75,6 +78,16 @@ class AttendeeTest extends TestBase
         $this->executeConstruct();
     }
     
+    public function test_meetingEquals_sameMeeting_returnTrue()
+    {
+        $this->assertTrue($this->attendee->meetingEquals($this->attendee->meeting));
+    }
+    public function test_meetingEquals_differentMeeting_returnFalse()
+    {
+        $meeting = $this->buildMockOfClass(Meeting::class);
+        $this->assertFalse($this->attendee->meetingEquals($meeting));
+    }
+    
     protected function executeUpdateMeeting()
     {
         $this->attendee->updateMeeting($this->meetingData);
@@ -99,8 +112,18 @@ class AttendeeTest extends TestBase
     
     public function test_cancel_setCancelledTrue()
     {
+        $this->attendee->anInitiator = false;
         $this->attendee->cancel();
         $this->assertTrue($this->attendee->cancelled);
+    }
+    public function test_cancel_anInitiator_forbidden()
+    {
+        $this->attendee->anInitiator = true;
+        $operation = function (){
+            $this->attendee->cancel();
+        };
+        $errorDetail = "forbidden: cannot cancel invitationt to initiator";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     public function test_reinvite_setCancelledFalse()
@@ -173,6 +196,66 @@ class AttendeeTest extends TestBase
         $this->attendee->setParticipantAsAttendeeCandidate($participant);
         $participantAttendee = new ParticipantAttendee($this->attendee, $this->attendee->id, $participant);
         $this->assertEquals($participantAttendee, $this->attendee->participantAttendee);
+    }
+    
+    protected function executeInviteUserToAttendMeeting()
+    {
+        $this->attendee->inviteUserToAttendMeeting($this->user);
+    }
+    public function test_inviteUserToAttendMeeeting_inviteUserToMeeting()
+    {
+        $this->attendee->anInitiator = true;
+        $this->meeting->expects($this->once())
+                ->method("inviteUser")
+                ->with($this->user);
+        $this->executeInviteUserToAttendMeeting();
+    }
+    public function test_inviteUserToAttendMeeting_notAnInitiator_forbidden()
+    {
+        $this->attendee->anInitiator = false;
+        $operation = function (){
+            $this->executeInviteUserToAttendMeeting();
+        };
+        $errorDetail = "forbidden: only meeting initiator can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    protected function executeCancelInvitation()
+    {
+        $this->attendeeToCancel->expects($this->any())
+                ->method("meetingEquals")
+                ->willReturn(true);
+        $this->attendee->cancelInvitationTo($this->attendeeToCancel);
+    }
+    public function test_cancelInvitation_cancelAttendee()
+    {
+        $this->attendee->anInitiator = true;
+        $this->attendeeToCancel->expects($this->once())
+                ->method("cancel");
+        $this->executeCancelInvitation();
+    }
+    public function test_cancelInvitation_attendeeFromDifferentMeeting_forbidden()
+    {
+        $this->attendee->anInitiator = true;
+        $this->attendeeToCancel->expects($this->once())
+                ->method("meetingEquals")
+                ->with($this->meeting)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeCancelInvitation();
+        };
+        $errorDetail = "forbidden: not allow to manage attendee of other meeting";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_cancelInvitation_notInitiator_forbidden()
+    {
+        $this->attendee->anInitiator = false;
+        $operation = function (){
+            $this->executeCancelInvitation();
+        };
+        $errorDetail = "forbidden: only meeting initiator can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        
     }
 }
 

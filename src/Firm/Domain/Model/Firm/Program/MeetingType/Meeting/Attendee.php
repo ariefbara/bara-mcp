@@ -2,7 +2,7 @@
 
 namespace Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 
-use Firm\Domain\Model\Firm\ {
+use Firm\Domain\Model\Firm\{
     Manager,
     Program\ActivityType\ActivityParticipant,
     Program\Consultant,
@@ -101,20 +101,40 @@ class Attendee
 
         $user->registerAsAttendeeCandidate($this);
     }
-    
+
+    public function meetingEquals(Meeting $meeting): bool
+    {
+        return $this->meeting === $meeting;
+    }
+
     public function updateMeeting(MeetingData $meetingData): void
     {
         $this->assertInitiator();
         $this->meeting->update($meetingData);
     }
-    
+
     public function inviteUserToAttendMeeting(CanAttendMeeting $user): void
     {
-//        $this->meeting->inviteUser($user);
+        $this->assertInitiator();
+        $this->meeting->inviteUser($user);
+    }
+
+    public function cancelInvitationTo(Attendee $attendee): void
+    {
+        $this->assertInitiator();
+        if (!$attendee->meetingEquals($this->meeting)) {
+            $errorDetail = "forbidden: not allow to manage attendee of other meeting";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $attendee->cancel();
     }
 
     public function cancel(): void
     {
+        if ($this->anInitiator) {
+            $errorDetail = "forbidden: cannot cancel invitationt to initiator";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->cancelled = true;
     }
 
@@ -127,15 +147,15 @@ class Attendee
     {
         if (isset($this->managerAttendee)) {
             return $this->managerAttendee->managerEquals($user);
-        } elseif (isset ($this->coordinatorAttendee)) {
+        } elseif (isset($this->coordinatorAttendee)) {
             return $this->coordinatorAttendee->coordinatorEquals($user);
-        } elseif (isset ($this->consultantAttendee)) {
+        } elseif (isset($this->consultantAttendee)) {
             return $this->consultantAttendee->consultantEquals($user);
         } else {
             return $this->participantAttendee->participantEquals($user);
         }
     }
-    
+
     public function setManagerAsAttendeeCandidate(Manager $manager): void
     {
         $this->managerAttendee = new ManagerAttendee($this, $this->id, $manager);
@@ -145,17 +165,17 @@ class Attendee
     {
         $this->coordinatorAttendee = new CoordinatorAttendee($this, $this->id, $coordinator);
     }
-    
+
     public function setConsultantAsAttendeeCandidate(Consultant $consultant): void
     {
         $this->consultantAttendee = new ConsultantAttendee($this, $this->id, $consultant);
     }
-    
+
     public function setParticipantAsAttendeeCandidate(Participant $participant): void
     {
         $this->participantAttendee = new ParticipantAttendee($this, $this->id, $participant);
     }
-    
+
     protected function assertInitiator(): void
     {
         if (!$this->anInitiator) {
@@ -163,4 +183,5 @@ class Attendee
             throw RegularException::forbidden($errorDetail);
         }
     }
+
 }

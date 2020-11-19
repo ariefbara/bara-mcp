@@ -30,7 +30,7 @@ class InitiateMeeting
     protected $activityTypeRepository;
 
     function __construct(
-            MeetingRepository $meetingRepository, ProgramCoordinatorRepository $programCoordinatorRepository,
+            ActivityRepository $meetingRepository, ProgramCoordinatorRepository $programCoordinatorRepository,
             ActivityTypeRepository $activityTypeRepository)
     {
         $this->meetingRepository = $meetingRepository;

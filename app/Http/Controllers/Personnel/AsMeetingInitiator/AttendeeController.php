@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Personnel\Coordinator\Activity;
+namespace App\Http\Controllers\Personnel\AsMeetingInitiator;
 
-use App\Http\Controllers\Personnel\PersonnelBaseController;
 use Firm\ {
     Application\Service\Personnel\CancelInvitation,
     Application\Service\Personnel\InviteConsultantToAttendMeeting,
@@ -27,30 +26,75 @@ use Query\ {
     Domain\Model\User\UserParticipant
 };
 
-class InviteeController extends PersonnelBaseController
+class AttendeeController extends AsMeetinginitiatorBaseController
 {
 
-    public function show($inviteeId)
+    public function inviteManager($meetingId)
     {
-        $service = $this->buildViewService();
-        $invitee = $service->showById($this->firmId(), $this->personnelId(), $inviteeId);
-        return $this->singleQueryResponse($this->arrayDataOfInvitee($invitee));
+        $service = $this->buildInviteManagerService();
+        $managerId = $this->stripTagsInputRequest("managerId");
+        $service->execute($this->firmId(), $this->personnelId(), $meetingId, $managerId);
+        
+        return $this->commandOkResponse();
     }
 
-    public function showAll($activityId)
+    public function inviteCoordinator($meetingId)
     {
-        $service = $this->buildViewService();
-        $invitees = $service->showAll(
-                $this->firmId(), $this->personnelId(), $activityId, $this->getPage(), $this->getPageSize());
+        $service = $this->buildInviteCoordinatorService();
+        $coordinatorId = $this->stripTagsInputRequest("coordinatorId");
+        $service->execute($this->firmId(), $this->personnelId(), $meetingId, $coordinatorId);
+        
+        return $this->commandOkResponse();
+    }
 
+    public function inviteConsultant($meetingId)
+    {
+        $service = $this->buildInviteConsultantService();
+        $consultantId = $this->stripTagsInputRequest("consultantId");
+        $service->execute($this->firmId(), $this->personnelId(), $meetingId, $consultantId);
+        
+        return $this->commandOkResponse();
+    }
+
+    public function inviteParticipant($meetingId)
+    {
+        $service = $this->buildInviteParticipantService();
+        $participantId = $this->stripTagsInputRequest("participantId");
+        $service->execute($this->firmId(), $this->personnelId(), $meetingId, $participantId);
+        
+        return $this->commandOkResponse();
+    }
+    
+    public function cancel($meetingId, $attendeeId)
+    {
+        $service = $this->buildCancelService();
+        $service->execute($this->firmId(), $this->personnelId(), $meetingId, $attendeeId);
+        
+        return $this->commandOkResponse();
+    }
+
+    public function show($meetingId, $attendeeId)
+    {
+        $this->authorizePersonnelIsMeetingInitiator($meetingId);
+        $service = $this->buildViewService();
+        $attendee = $service->showById($this->firmId(), $meetingId, $attendeeId);
+        return $this->singleQueryResponse($this->arrayDataOfInvitee($attendee));
+    }
+
+    public function showAll($meetingId)
+    {
+        $this->authorizePersonnelIsMeetingInitiator($meetingId);
+        $service = $this->buildViewService();
+        $attendees = $service->showAll($this->firmId(), $meetingId, $this->getPage(), $this->getPageSize(), false);
+        
         $result = [];
-        $result["total"] = count($invitees);
-        foreach ($invitees as $invitee) {
-            $result["list"][] = $this->arrayDataOfInvitee($invitee);
+        $result["total"] = count($attendees);
+        foreach ($attendees as $attendee) {
+            $result["list"][] = $this->arrayDataOfInvitee($attendee);
         }
         return $this->listQueryResponse($result);
     }
-
+    
     protected function arrayDataOfInvitee(Invitee $invitee): array
     {
         return [
@@ -120,7 +164,7 @@ class InviteeController extends PersonnelBaseController
             "name" => $teamParticipant->getTeam()->getName(),
         ];
     }
-
+    
     protected function buildViewService()
     {
         $inviteeRepository = $this->em->getRepository(Invitee::class);

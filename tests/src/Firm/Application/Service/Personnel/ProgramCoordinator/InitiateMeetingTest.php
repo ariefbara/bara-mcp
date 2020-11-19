@@ -23,7 +23,7 @@ class InitiateMeetingTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->meetingRepository = $this->buildMockOfInterface(MeetingRepository::class);
+        $this->meetingRepository = $this->buildMockOfInterface(ActivityRepository::class);
         $this->meetingRepository->expects($this->any())
                 ->method("nextIdentity")
                 ->willReturn($this->nextId);

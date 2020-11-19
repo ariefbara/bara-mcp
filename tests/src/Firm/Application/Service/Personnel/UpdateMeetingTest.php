@@ -10,7 +10,7 @@ use Tests\TestBase;
 
 class UpdateMeetingTest extends TestBase
 {
-    protected $meetingAttendanceRepository, $meetingAttendance;
+    protected $attendeeRepository, $attendee;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $meetingId = "meetingId";
     protected $meetingData;
@@ -18,14 +18,14 @@ class UpdateMeetingTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->meetingAttendance = $this->buildMockOfClass(Attendee::class);
-        $this->meetingAttendanceRepository = $this->buildMockOfInterface(MeetingAttendanceRepository::class);
-        $this->meetingAttendanceRepository->expects($this->any())
-                ->method("aMeetingAttendanceBelongsToPersonnelCorrespondWithMeeting")
+        $this->attendee = $this->buildMockOfClass(Attendee::class);
+        $this->attendeeRepository = $this->buildMockOfInterface(AttendeeRepository::class);
+        $this->attendeeRepository->expects($this->any())
+                ->method("anAttendeeBelongsToPersonnelCorrespondWithMeeting")
                 ->with($this->firmId, $this->personnelId, $this->meetingId)
-                ->willReturn($this->meetingAttendance);
+                ->willReturn($this->attendee);
         
-        $this->service = new UpdateMeeting($this->meetingAttendanceRepository);
+        $this->service = new UpdateMeeting($this->attendeeRepository);
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
@@ -36,14 +36,14 @@ class UpdateMeetingTest extends TestBase
     }
     public function test_execute_executeAttendeesUpdateMeeting()
     {
-        $this->meetingAttendance->expects($this->once())
+        $this->attendee->expects($this->once())
                 ->method("updateMeeting")
                 ->with($this->meetingData);
         $this->execute();
     }
     public function test_execute_updateRepository()
     {
-        $this->meetingAttendanceRepository->expects($this->once())
+        $this->attendeeRepository->expects($this->once())
                 ->method("update");
         $this->execute();
     }

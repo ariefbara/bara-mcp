@@ -2,14 +2,14 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Firm\ {
+use Firm\{
     Application\Service\Firm\Program\MeetingType\Meeting\AttendeeRepository,
-    Domain\Model\Firm\Program\Coordinator\MeetingAttendance as CoordinatorAttendee,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee
 };
 use Resources\Exception\RegularException;
 
@@ -21,7 +21,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
         $this->getEntityManager()->flush();
     }
 
-    public function aMeetingAttendanceBelongsToPersonnelCorrespondWithMeeting(
+    public function anAttendeeBelongsToPersonnelCorrespondWithMeeting(
             string $firmId, string $personnelId, string $meetingId): Attendee
     {
         $params = [
@@ -29,7 +29,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
             "personnelId" => $personnelId,
             "meetingId" => $meetingId,
         ];
-        
+
         $attendeeDql = $this->getEntityManager()->createQueryBuilder();
         $attendeeDql->select("t_attendee.id")
                 ->from(CoordinatorAttendee::class, "meetingAttendance")
@@ -39,7 +39,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
                 ->andWhere($attendeeDql->expr()->eq("personnel.id", ":personnelId"))
                 ->leftJoin("personnel.firm", "firm")
                 ->andWhere($attendeeDql->expr()->eq("firm.id", ":firmId"));
-        
+
         $qb = $this->createQueryBuilder("attendee");
         $qb->select("attendee")
                 ->andWhere($qb->expr()->in("attendee.id", $attendeeDql->getDQL()))
@@ -47,7 +47,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
                 ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -56,5 +56,14 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
         }
     }
 
+    public function ofId(string $attendeeId): Attendee
+    {
+        $attendee = $this->findOneBy(["id" => $attendeeId]);
+        if (empty($attendee)) {
+            $errorDetail = "not found: attendee not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $attendee;
+    }
 
 }

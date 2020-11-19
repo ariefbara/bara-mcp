@@ -14,7 +14,7 @@
         <id name="id" type="guid" />
         
         <many-to-one  field="participant" 
-                      target-entity="Firm\Domain\Model\Firm\Participant"
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant"
         >
             <join-column name="Participant_id" referenced-column-name="id" />
         </many-to-one>
