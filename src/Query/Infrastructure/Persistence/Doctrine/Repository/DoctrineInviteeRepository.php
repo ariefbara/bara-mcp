@@ -2,15 +2,16 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Query\{
+use Query\ {
     Application\Auth\MeetingAttendeeRepository as InterfaceForAuthorization,
     Application\Service\Firm\Program\Activity\InviteeRepository,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerActivity,
+    Domain\Model\Firm\Manager\ManagerInvitee,
     Domain\Model\Firm\Program\Activity\Invitee,
     Domain\Model\Firm\Program\Consultant\ConsultantActivity,
     Domain\Model\Firm\Program\Consultant\ConsultantInvitee,
@@ -20,7 +21,7 @@ use Query\{
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
@@ -484,7 +485,8 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         return !empty($qb->getQuery()->getResult());
     }
 
-    public function allInviteesInMeeting(string $firmId, string $meetingId, int $page, int $pageSize, ?bool $initiatorStatus)
+    public function allInviteesInMeeting(string $firmId, string $meetingId, int $page, int $pageSize,
+            ?bool $initiatorStatus)
     {
         $params = [
             "firmId" => $firmId,
@@ -500,12 +502,12 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
-        
+
         if (isset($initiatorStatus)) {
             $qb->andWhere($qb->expr()->eq("invitee.anInitiator", ":initiatorStatus"))
                     ->setParameter("initiatorStatus", $initiatorStatus);
         }
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -535,6 +537,37 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
             $errorDetail = "not found: invitee not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function containRecordOfActiveMeetingAttendeeCorrespondWithManagerWithInitiatorRole(
+            string $firmId, string $managerId, string $meetingId): bool
+    {
+        $params = [
+            "firmId" => $firmId,
+            "managerId" => $managerId,
+            "meetingId" => $meetingId,
+        ];
+
+        $inviteeQb = $this->getEntityManager()->createQueryBuilder();
+        $inviteeQb->select("a_invitee.id")
+                ->from(ManagerInvitee::class, "managerInvitee")
+                ->leftJoin("managerInvitee.invitee", "a_invitee")
+                ->leftJoin("managerInvitee.manager", "manager")
+                ->andWhere($inviteeQb->expr()->eq("manager.id", ":managerId"))
+                ->leftJoin("manager.firm", "firm")
+                ->andWhere($inviteeQb->expr()->eq("firm.id", ":firmId"));
+
+        $qb = $this->createQueryBuilder("invitee");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("invitee.anInitiator", "true"))
+                ->andWhere($qb->expr()->eq("invitee.cancelled", "false"))
+                ->andWhere($qb->expr()->in("invitee.id", $inviteeQb->getDQL()))
+                ->leftJoin("invitee.activity", "activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        return !empty($qb->getQuery()->getResult());
     }
 
 }

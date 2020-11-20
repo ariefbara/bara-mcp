@@ -2,7 +2,11 @@
 
 namespace Firm\Application\Service\Manager;
 
-use Firm\Domain\Service\ActivityTypeDataProvider;
+use Firm\ {
+    Application\Service\Firm\Program\ActivityTypeRepository,
+    Application\Service\Firm\ProgramRepository,
+    Domain\Service\ActivityTypeDataProvider
+};
 
 class CreateActivityType
 {
@@ -39,7 +43,7 @@ class CreateActivityType
     {
         $program = $this->programRepository->aProgramOfId($programId);
         $id = $this->activityTypeRepository->nextIdentity();
-        $activityType = $this->managerRepository->ofId($firmId, $managerId)
+        $activityType = $this->managerRepository->aManagerInFirm($firmId, $managerId)
                 ->createActivityTypeInProgram($program, $id, $activityTypeDataProvider);
         $this->activityTypeRepository->add($activityType);
         return $id;

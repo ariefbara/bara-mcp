@@ -7,7 +7,9 @@ use Firm\Domain\ {
     Model\Firm,
     Model\Firm\Program\ActivityType,
     Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Service\ActivityTypeDataProvider
 };
 use Resources\ {
@@ -135,6 +137,19 @@ class Manager implements CanAttendMeeting
     public function roleCorrespondWith(ActivityParticipantType $role): bool
     {
         return $role->isManagerType();
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        if ($this->removed) {
+            $errorDetail = "forbidden: only active manager can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        if (!$meetingType->belongsToFirm($this->firm)) {
+            $errorDetail = "forbidden: unable to manage meeting type from other firm";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $meetingType->createMeeting($meetingId, $meetingData, $this);
     }
 
 }

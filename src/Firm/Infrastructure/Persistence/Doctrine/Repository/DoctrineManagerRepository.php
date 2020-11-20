@@ -82,4 +82,28 @@ class DoctrineManagerRepository extends EntityRepository implements ManagerRepos
         return $manager;
     }
 
+    public function aManagerInFirm(string $firmId, string $managerId): Manager
+    {
+        $params = [
+            "firmId" => $firmId,
+            "managerId" => $managerId,
+        ];
+
+        $qb = $this->createQueryBuilder('manager');
+        $qb->select('manager')
+                ->andWhere($qb->expr()->eq('manager.id', ":managerId"))
+                ->andWhere($qb->expr()->eq('manager.removed', "false"))
+                ->leftJoin('manager.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: manager not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

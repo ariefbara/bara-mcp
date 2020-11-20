@@ -24,8 +24,8 @@ class RecordOfManager implements Record
     public function __construct(RecordOfFirm $firm, $index, $email, $rawPassword)
     {
         $this->firm = $firm;
-        $this->id = "personnel-$index-id";
-        $this->name = "personnel $index name";
+        $this->id = "manager-$index-id";
+        $this->name = "manager $index name";
         $this->email = $email;
         $this->password = (new TestablePassword($rawPassword))->getHashedPassword();
         $this->phone = "";

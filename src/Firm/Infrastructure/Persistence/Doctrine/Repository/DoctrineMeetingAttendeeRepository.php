@@ -2,14 +2,15 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Firm\{
+use Firm\ {
     Application\Service\Firm\Program\MeetingType\Meeting\AttendeeRepository,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee
 };
 use Resources\Exception\RegularException;
 
@@ -64,6 +65,39 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
             throw RegularException::notFound($errorDetail);
         }
         return $attendee;
+    }
+
+    public function anAttendeeBelongsToManagerCorrespondWithMeeting(string $firmId, string $managerId, string $meetingId): Attendee
+    {
+        $params = [
+            "firmId" => $firmId,
+            "managerId" => $managerId,
+            "meetingId" => $meetingId,
+        ];
+
+        $attendeeDql = $this->getEntityManager()->createQueryBuilder();
+        $attendeeDql->select("t_attendee.id")
+                ->from(ManagerAttendee::class, "meetingAttendance")
+                ->leftJoin("meetingAttendance.attendee", "t_attendee")
+                ->leftJoin("meetingAttendance.manager", "manager")
+                ->andWhere($attendeeDql->expr()->eq("manager.id", ":managerId"))
+                ->leftJoin("manager.firm", "firm")
+                ->andWhere($attendeeDql->expr()->eq("firm.id", ":firmId"));
+
+        $qb = $this->createQueryBuilder("attendee");
+        $qb->select("attendee")
+                ->andWhere($qb->expr()->in("attendee.id", $attendeeDql->getDQL()))
+                ->leftJoin("attendee.meeting", "meeting")
+                ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: meeting attendance not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

@@ -4,7 +4,9 @@ namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\ {
     Model\Firm,
+    Model\Firm\Program\ActivityType,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Service\ActivityTypeDataProvider
 };
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -19,6 +21,8 @@ class ManagerTest extends TestBase
     protected $manager;
     protected $program;
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
+    
+    protected $meetingId = "meetingId", $meetingType, $meetingData;
 
     protected function setUp(): void
     {
@@ -30,6 +34,9 @@ class ManagerTest extends TestBase
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->activityTypeDataProvider = $this->buildMockOfClass(ActivityTypeDataProvider::class);
+        
+        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
 
     protected function getManagerData()
@@ -157,6 +164,42 @@ class ManagerTest extends TestBase
                 ->method("setManagerAsAttendeeCandidate")
                 ->with($this->manager);
         $this->manager->registerAsAttendeeCandidate($attendee);
+    }
+    
+    protected function executeInitiateMeeting()
+    {
+        $this->meetingType->expects($this->any())
+                ->method("belongsToFirm")
+                ->willReturn(true);
+        return $this->manager->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingCreatedThroughMeetingType()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("createMeeting")
+                ->with($this->meetingId, $this->meetingData, $this->manager);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_inactiveManager_forbidden()
+    {
+        $this->manager->removed = true;
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: only active manager can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_initiateMeeting_meetingTypeBelongsToDifferentFirm_forbidden()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("belongsToFirm")
+                ->with($this->firm)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: unable to manage meeting type from other firm";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
 }
