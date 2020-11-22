@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Firm\Domain\ {
     Model\Firm\Program,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Model\Firm\Program\Participant\MetricAssignment,
     Service\MetricAssignmentDataProvider
 };
@@ -27,6 +28,7 @@ class ParticipantTest extends TestBase
     protected $metricAssignment;
     protected $metricAssignmentDataProvider;
     protected $metric;
+    protected $meetingId = "meetingId", $meetingType, $meetingData;
 
     protected function setUp(): void
     {
@@ -54,6 +56,9 @@ class ParticipantTest extends TestBase
         $this->metricAssignmentDataProvider->expects($this->any())->method("getEndDate")->willReturn(new DateTimeImmutable("+2 days"));
         
         $this->metric = $this->buildMockOfClass(Metric::class);
+        
+        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
 
     public function test_participantForUser_setProperties()
@@ -247,6 +252,42 @@ class ParticipantTest extends TestBase
                 ->method("setParticipantAsAttendeeCandidate")
                 ->with($this->participant);
         $this->participant->registerAsAttendeeCandidate($attendee);
+    }
+    
+    protected function executeInitiateMeeting()
+    {
+        $this->meetingType->expects($this->any())
+                ->method("belongsToProgram")
+                ->willReturn(true);
+        $this->participant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingTypeCreateMeetingResult()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("createMeeting")
+                ->with($this->meetingId, $this->meetingData, $this->participant);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: only active participant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_initiateMeeting_meetingTypeNotFromInProgram_forbidden()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("belongsToProgram")
+                ->with($this->program)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: can only manage meeting type on same program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 }
 

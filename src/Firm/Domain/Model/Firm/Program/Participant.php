@@ -6,7 +6,9 @@ use DateTimeImmutable;
 use Firm\Domain\ {
     Model\Firm\Program,
     Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Model\Firm\Program\Participant\MetricAssignment,
     Service\MetricAssignmentDataProvider
 };
@@ -175,6 +177,19 @@ class Participant implements AssetInProgram, CanAttendMeeting
     public function roleCorrespondWith(ActivityParticipantType $role): bool
     {
         return $role->isParticipantType();
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active participant can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        if (!$meetingType->belongsToProgram($this->program)) {
+            $errorDetail = "forbidden: can only manage meeting type on same program";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $meetingType->createMeeting($meetingId, $meetingData, $this);
     }
 
 }

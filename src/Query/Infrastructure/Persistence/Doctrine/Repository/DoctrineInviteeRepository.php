@@ -2,11 +2,11 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Query\ {
+use Query\{
     Application\Auth\MeetingAttendeeRepository as InterfaceForAuthorization,
     Application\Service\Firm\Program\Activity\InviteeRepository,
     Domain\Model\Firm\Client\ClientParticipant,
@@ -18,10 +18,11 @@ use Query\ {
     Domain\Model\Firm\Program\Coordinator\CoordinatorActivity,
     Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee,
     Domain\Model\Firm\Program\Participant\ParticipantActivity,
+    Domain\Model\Firm\Program\Participant\ParticipantInvitee,
     Domain\Model\Firm\Team\TeamProgramParticipation,
     Domain\Model\User\UserParticipant
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Infrastructure\Persistence\Doctrine\PaginatorBuilder
 };
@@ -556,6 +557,117 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
                 ->andWhere($inviteeQb->expr()->eq("manager.id", ":managerId"))
                 ->leftJoin("manager.firm", "firm")
                 ->andWhere($inviteeQb->expr()->eq("firm.id", ":firmId"));
+
+        $qb = $this->createQueryBuilder("invitee");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("invitee.anInitiator", "true"))
+                ->andWhere($qb->expr()->eq("invitee.cancelled", "false"))
+                ->andWhere($qb->expr()->in("invitee.id", $inviteeQb->getDQL()))
+                ->leftJoin("invitee.activity", "activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        return !empty($qb->getQuery()->getResult());
+    }
+
+    public function containRecordOfActiveMeetingAttendeeCorrespondWithClientAsProgramParticipantHavingInitiatorRole(
+            string $firmId, string $clientId, string $meetingId): bool
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "meetingId" => $meetingId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("b_participant.id")
+                ->from(ClientParticipant::class, "clientParticipant")
+                ->leftJoin("clientParticipant.participant", "b_participant")
+                ->leftJoin("clientParticipant.client", "client")
+                ->andWhere($participantQb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($participantQb->expr()->eq("firm.id", ":firmId"));
+
+        $inviteeQb = $this->getEntityManager()->createQueryBuilder();
+        $inviteeQb->select("a_invitee.id")
+                ->from(ParticipantInvitee::class, "participantInvitee")
+                ->leftJoin("participantInvitee.invitee", "a_invitee")
+                ->leftJoin("participantInvitee.participant", "participant")
+                ->andWhere($inviteeQb->expr()->in("participant.id", $participantQb->getDQL()));
+
+        $qb = $this->createQueryBuilder("invitee");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("invitee.anInitiator", "true"))
+                ->andWhere($qb->expr()->eq("invitee.cancelled", "false"))
+                ->andWhere($qb->expr()->in("invitee.id", $inviteeQb->getDQL()))
+                ->leftJoin("invitee.activity", "activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        return !empty($qb->getQuery()->getResult());
+    }
+
+    public function containRecordOfActiveMeetingAttendeeCorrespondWithTeamAsProgramParticipantHavingInitiatorRole(
+            string $firmId, string $teamId, string $meetingId): bool
+    {
+        $params = [
+            "firmId" => $firmId,
+            "teamId" => $teamId,
+            "meetingId" => $meetingId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("b_participant.id")
+                ->from(TeamProgramParticipation::class, "teamParticipant")
+                ->leftJoin("teamParticipant.participant", "b_participant")
+                ->leftJoin("teamParticipant.team", "team")
+                ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
+                ->leftJoin("team.firm", "firm")
+                ->andWhere($participantQb->expr()->eq("firm.id", ":firmId"));
+
+        $inviteeQb = $this->getEntityManager()->createQueryBuilder();
+        $inviteeQb->select("a_invitee.id")
+                ->from(ParticipantInvitee::class, "participantInvitee")
+                ->leftJoin("participantInvitee.invitee", "a_invitee")
+                ->leftJoin("participantInvitee.participant", "participant")
+                ->andWhere($inviteeQb->expr()->in("participant.id", $participantQb->getDQL()));
+
+        $qb = $this->createQueryBuilder("invitee");
+        $qb->select("1")
+                ->andWhere($qb->expr()->eq("invitee.anInitiator", "true"))
+                ->andWhere($qb->expr()->eq("invitee.cancelled", "false"))
+                ->andWhere($qb->expr()->in("invitee.id", $inviteeQb->getDQL()))
+                ->leftJoin("invitee.activity", "activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        return !empty($qb->getQuery()->getResult());
+    }
+
+    public function containRecordOfActiveMeetingAttendeeCorrespondWithUserAsProgramParticipantHavingInitiatorRole(
+            string $userId, string $meetingId): bool
+    {
+        $params = [
+            "userId" => $userId,
+            "meetingId" => $meetingId,
+        ];
+        
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("b_participant.id")
+                ->from(UserParticipant::class, "userParticipant")
+                ->leftJoin("userParticipant.participant", "b_participant")
+                ->leftJoin("userParticipant.user", "user")
+                ->andWhere($participantQb->expr()->eq("user.id", ":userId"));
+
+        $inviteeQb = $this->getEntityManager()->createQueryBuilder();
+        $inviteeQb->select("a_invitee.id")
+                ->from(ParticipantInvitee::class, "participantInvitee")
+                ->leftJoin("participantInvitee.invitee", "a_invitee")
+                ->leftJoin("participantInvitee.participant", "participant")
+                ->andWhere($inviteeQb->expr()->in("participant.id", $participantQb->getDQL()));
 
         $qb = $this->createQueryBuilder("invitee");
         $qb->select("1")

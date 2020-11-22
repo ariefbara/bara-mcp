@@ -8,9 +8,11 @@ use Doctrine\ORM\ {
 };
 use Firm\ {
     Application\Service\Firm\Program\MeetingType\Meeting\AttendeeRepository,
+    Domain\Model\Firm\Program\ClientParticipant,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee,
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee
 };
 use Resources\Exception\RegularException;
 
@@ -31,19 +33,19 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
             "meetingId" => $meetingId,
         ];
 
-        $attendeeDql = $this->getEntityManager()->createQueryBuilder();
-        $attendeeDql->select("t_attendee.id")
+        $attendeeQb = $this->getEntityManager()->createQueryBuilder();
+        $attendeeQb->select("t_attendee.id")
                 ->from(CoordinatorAttendee::class, "meetingAttendance")
                 ->leftJoin("meetingAttendance.attendee", "t_attendee")
                 ->leftJoin("meetingAttendance.coordinator", "coordinator")
                 ->leftJoin("coordinator.personnel", "personnel")
-                ->andWhere($attendeeDql->expr()->eq("personnel.id", ":personnelId"))
+                ->andWhere($attendeeQb->expr()->eq("personnel.id", ":personnelId"))
                 ->leftJoin("personnel.firm", "firm")
-                ->andWhere($attendeeDql->expr()->eq("firm.id", ":firmId"));
+                ->andWhere($attendeeQb->expr()->eq("firm.id", ":firmId"));
 
         $qb = $this->createQueryBuilder("attendee");
         $qb->select("attendee")
-                ->andWhere($qb->expr()->in("attendee.id", $attendeeDql->getDQL()))
+                ->andWhere($qb->expr()->in("attendee.id", $attendeeQb->getDQL()))
                 ->leftJoin("attendee.meeting", "meeting")
                 ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
                 ->setParameters($params)
@@ -75,18 +77,59 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
             "meetingId" => $meetingId,
         ];
 
-        $attendeeDql = $this->getEntityManager()->createQueryBuilder();
-        $attendeeDql->select("t_attendee.id")
+        $attendeeQb = $this->getEntityManager()->createQueryBuilder();
+        $attendeeQb->select("t_attendee.id")
                 ->from(ManagerAttendee::class, "meetingAttendance")
                 ->leftJoin("meetingAttendance.attendee", "t_attendee")
                 ->leftJoin("meetingAttendance.manager", "manager")
-                ->andWhere($attendeeDql->expr()->eq("manager.id", ":managerId"))
+                ->andWhere($attendeeQb->expr()->eq("manager.id", ":managerId"))
                 ->leftJoin("manager.firm", "firm")
-                ->andWhere($attendeeDql->expr()->eq("firm.id", ":firmId"));
+                ->andWhere($attendeeQb->expr()->eq("firm.id", ":firmId"));
 
         $qb = $this->createQueryBuilder("attendee");
         $qb->select("attendee")
-                ->andWhere($qb->expr()->in("attendee.id", $attendeeDql->getDQL()))
+                ->andWhere($qb->expr()->in("attendee.id", $attendeeQb->getDQL()))
+                ->leftJoin("attendee.meeting", "meeting")
+                ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: meeting attendance not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function anAttendeeBelongsToClientParticipantCorrespondWithMeeting(
+            string $firmId, string $clientId, string $meetingId): Attendee
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "meetingId" => $meetingId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("b_participant.id")
+                ->from(ClientParticipant::class, "clientParticipant")
+                ->leftJoin("clientParticipant.participant", "b_participant")
+                ->andWhere($participantQb->expr()->eq("clientParticipant.clientId", ":clientId"));
+        
+        $attendeeQb = $this->getEntityManager()->createQueryBuilder();
+        $attendeeQb->select("a_attendee.id")
+                ->from(ParticipantAttendee::class, "participantAttendee")
+                ->leftJoin("participantAttendee.attendee", "a_attendee")
+                ->andWhere($attendeeQb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->leftJoin("participantAttendee.participant", "participant")
+                ->leftJoin("participant.program", "program")
+                ->leftJoin("program.firm", "firm")
+                ->andWhere($attendeeQb->expr()->eq("firm.id", ":firmId"));
+
+        $qb = $this->createQueryBuilder("attendee");
+        $qb->select("attendee")
+                ->andWhere($qb->expr()->in("attendee.id", $attendeeQb->getDQL()))
                 ->leftJoin("attendee.meeting", "meeting")
                 ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
                 ->setParameters($params)
