@@ -2,10 +2,11 @@
 
 namespace Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 
-use Firm\Domain\Model\Firm\Program\ {
-    MeetingType\CanAttendMeeting,
-    MeetingType\Meeting\Attendee,
-    Participant
+use Firm\Domain\Model\Firm\ {
+    Program\MeetingType\CanAttendMeeting,
+    Program\MeetingType\Meeting\Attendee,
+    Program\Participant,
+    Team
 };
 
 class ParticipantAttendee
@@ -39,6 +40,11 @@ class ParticipantAttendee
     public function participantEquals(CanAttendMeeting $user): bool
     {
         return $this->participant === $user;
+    }
+    
+    public function belongsToTeam(Team $team): bool
+    {
+        return $this->participant->belongsToTeam($team);
     }
 
 }

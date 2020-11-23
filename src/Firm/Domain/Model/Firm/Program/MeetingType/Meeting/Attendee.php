@@ -2,7 +2,7 @@
 
 namespace Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 
-use Firm\Domain\Model\Firm\{
+use Firm\Domain\Model\Firm\ {
     Manager,
     Program\ActivityType\ActivityParticipant,
     Program\Consultant,
@@ -14,7 +14,8 @@ use Firm\Domain\Model\Firm\{
     Program\MeetingType\Meeting\Attendee\ManagerAttendee,
     Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
     Program\MeetingType\MeetingData,
-    Program\Participant
+    Program\Participant,
+    Team
 };
 use Resources\Exception\RegularException;
 
@@ -100,6 +101,11 @@ class Attendee
         $this->cancelled = false;
 
         $user->registerAsAttendeeCandidate($this);
+    }
+    
+    public function belongsToTeam(Team $team): bool
+    {
+        return isset($this->participantAttendee)? $this->participantAttendee->belongsToTeam($team): false;
     }
 
     public function meetingEquals(Meeting $meeting): bool

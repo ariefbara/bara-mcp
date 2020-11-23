@@ -13,11 +13,13 @@ use Firm\ {
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
-    Domain\Model\Firm\Program\UserParticipant
+    Domain\Model\Firm\Program\TeamParticipant,
+    Domain\Model\Firm\Program\UserParticipant,
+    Domain\Service\MeetingAttendeeRepository as InterfaceForDomainService
 };
 use Resources\Exception\RegularException;
 
-class DoctrineMeetingAttendeeRepository extends EntityRepository implements AttendeeRepository
+class DoctrineMeetingAttendeeRepository extends EntityRepository implements AttendeeRepository, InterfaceForDomainService
 {
 
     public function update(): void
@@ -163,6 +165,42 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
                 ->leftJoin("participantAttendee.attendee", "a_attendee")
                 ->leftJoin("participantAttendee.participant", "participant")
                 ->andWhere($attendeeQb->expr()->in("participant.id", $participantQb->getDQL()));
+
+        $qb = $this->createQueryBuilder("attendee");
+        $qb->select("attendee")
+                ->andWhere($qb->expr()->in("attendee.id", $attendeeQb->getDQL()))
+                ->leftJoin("attendee.meeting", "meeting")
+                ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: meeting attendance not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function anAttendeeBelongsToTeamCorrespondWithMeeting(string $teamId, string $meetingId): Attendee
+    {
+        $params = [
+            "teamId" => $teamId,
+            "meetingId" => $meetingId,
+        ];
+
+        $participantQb = $this->getEntityManager()->createQueryBuilder();
+        $participantQb->select("b_participant.id")
+                ->from(TeamParticipant::class, "teamParticipant")
+                ->leftJoin("teamParticipant.participant", "b_participant")
+                ->andWhere($participantQb->expr()->eq("teamParticipant.teamId", ":teamId"));
+        
+        $attendeeQb = $this->getEntityManager()->createQueryBuilder();
+        $attendeeQb->select("a_attendee.id")
+                ->from(ParticipantAttendee::class, "participantAttendee")
+                ->leftJoin("participantAttendee.attendee", "a_attendee")
+                ->andWhere($attendeeQb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->leftJoin("participantAttendee.participant", "participant");
 
         $qb = $this->createQueryBuilder("attendee");
         $qb->select("attendee")

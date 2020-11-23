@@ -621,7 +621,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("b_participant.id")
                 ->from(TeamProgramParticipation::class, "teamParticipant")
-                ->leftJoin("teamParticipant.participant", "b_participant")
+                ->leftJoin("teamParticipant.programParticipation", "b_participant")
                 ->leftJoin("teamParticipant.team", "team")
                 ->andWhere($participantQb->expr()->eq("team.id", ":teamId"))
                 ->leftJoin("team.firm", "firm")

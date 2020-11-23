@@ -14,7 +14,8 @@ use Firm\Domain\Model\Firm\ {
     Program\MeetingType\Meeting\Attendee\ManagerAttendee,
     Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
     Program\MeetingType\MeetingData,
-    Program\Participant
+    Program\Participant,
+    Team
 };
 use Tests\TestBase;
 
@@ -31,6 +32,7 @@ class AttendeeTest extends TestBase
     protected $id = "newId", $anInitiator = false;
     protected $meetingData;
     protected $attendeeToCancel;
+    protected $team;
 
     protected function setUp(): void
     {
@@ -48,6 +50,8 @@ class AttendeeTest extends TestBase
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
         
         $this->attendeeToCancel = $this->buildMockOfClass(Attendee::class);
+        
+        $this->team = $this->buildMockOfClass(Team::class);
     }
     
     protected function executeConstruct()
@@ -76,6 +80,20 @@ class AttendeeTest extends TestBase
         $this->user->expects($this->once())
                 ->method("registerAsAttendeeCandidate");
         $this->executeConstruct();
+    }
+    
+    public function test_belongsToTeam_returnParticipantBelongsToTeamResult()
+    {
+        $this->attendee->participantAttendee = $this->participantAttendee;
+        $this->participantAttendee->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($this->team);
+        $this->attendee->belongsToTeam($this->team);
+    }
+    public function test_belongsToTeam_notAParticipantAttendee_returnFalse()
+    {
+        $this->attendee->participantAttendee = null;
+        $this->assertFalse($this->attendee->belongsToTeam($this->team));
     }
     
     public function test_meetingEquals_sameMeeting_returnTrue()

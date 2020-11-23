@@ -8,6 +8,7 @@ use Firm\Domain\ {
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
     Model\Firm\Program\Participant\MetricAssignment,
+    Model\Firm\Team,
     Service\MetricAssignmentDataProvider
 };
 use Resources\DateTimeImmutableBuilder;
@@ -29,6 +30,7 @@ class ParticipantTest extends TestBase
     protected $metricAssignmentDataProvider;
     protected $metric;
     protected $meetingId = "meetingId", $meetingType, $meetingData;
+    protected $team;
 
     protected function setUp(): void
     {
@@ -59,6 +61,8 @@ class ParticipantTest extends TestBase
         
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        
+        $this->team = $this->buildMockOfClass(Team::class);
     }
 
     public function test_participantForUser_setProperties()
@@ -288,6 +292,20 @@ class ParticipantTest extends TestBase
         };
         $errorDetail = "forbidden: can only manage meeting type on same program";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_belongsToTeam_returnTeamParticipantBelongsToTeamResult()
+    {
+        $this->participant->teamParticipant = $this->teamParticipant;
+        $this->teamParticipant->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($this->team);
+        $this->participant->belongsToTeam($this->team);
+    }
+    public function test_belongsToTeam_notATeamParticipant_returnFalse()
+    {
+        $this->participant->teamParticipant = null;
+        $this->assertFalse($this->participant->belongsToTeam($this->team));
     }
 }
 

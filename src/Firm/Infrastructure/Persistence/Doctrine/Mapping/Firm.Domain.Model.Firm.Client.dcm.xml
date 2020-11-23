@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Client" 
+            table="Client" 
+    >
+        
+        <many-to-one  field="firm" 
+                      target-entity="Firm\Domain\Model\Firm"
+        >
+            <join-column name="Firm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="activated" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>
