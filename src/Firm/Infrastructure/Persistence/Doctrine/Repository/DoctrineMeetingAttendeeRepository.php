@@ -10,6 +10,7 @@ use Firm\ {
     Application\Service\Firm\Program\MeetingType\Meeting\AttendeeRepository,
     Domain\Model\Firm\Program\ClientParticipant,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee,
     Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
@@ -36,19 +37,32 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
             "meetingId" => $meetingId,
         ];
 
-        $attendeeQb = $this->getEntityManager()->createQueryBuilder();
-        $attendeeQb->select("t_attendee.id")
-                ->from(CoordinatorAttendee::class, "meetingAttendance")
-                ->leftJoin("meetingAttendance.attendee", "t_attendee")
-                ->leftJoin("meetingAttendance.coordinator", "coordinator")
-                ->leftJoin("coordinator.personnel", "personnel")
-                ->andWhere($attendeeQb->expr()->eq("personnel.id", ":personnelId"))
-                ->leftJoin("personnel.firm", "firm")
-                ->andWhere($attendeeQb->expr()->eq("firm.id", ":firmId"));
+        $consultantAttendeeQb = $this->getEntityManager()->createQueryBuilder();
+        $consultantAttendeeQb->select("b_attendee.id")
+                ->from(ConsultantAttendee::class, "consultantAttendee")
+                ->leftJoin("consultantAttendee.attendee", "b_attendee")
+                ->leftJoin("consultantAttendee.consultant", "consultant")
+                ->leftJoin("consultant.personnel", "b_personnel")
+                ->andWhere($consultantAttendeeQb->expr()->eq("b_personnel.id", ":personnelId"))
+                ->leftJoin("b_personnel.firm", "b_firm")
+                ->andWhere($consultantAttendeeQb->expr()->eq("b_firm.id", ":firmId"));
+
+        $coordinatorAttendeeQb = $this->getEntityManager()->createQueryBuilder();
+        $coordinatorAttendeeQb->select("a_attendee.id")
+                ->from(CoordinatorAttendee::class, "coordinatorAttendee")
+                ->leftJoin("coordinatorAttendee.attendee", "a_attendee")
+                ->leftJoin("coordinatorAttendee.coordinator", "coordinator")
+                ->leftJoin("coordinator.personnel", "a_personnel")
+                ->andWhere($coordinatorAttendeeQb->expr()->eq("a_personnel.id", ":personnelId"))
+                ->leftJoin("a_personnel.firm", "a_firm")
+                ->andWhere($coordinatorAttendeeQb->expr()->eq("a_firm.id", ":firmId"));
 
         $qb = $this->createQueryBuilder("attendee");
         $qb->select("attendee")
-                ->andWhere($qb->expr()->in("attendee.id", $attendeeQb->getDQL()))
+                ->andWhere($qb->expr()->orX(
+                        $qb->expr()->in("attendee.id", $coordinatorAttendeeQb->getDQL()),
+                        $qb->expr()->in("attendee.id", $consultantAttendeeQb->getDQL())
+                ))
                 ->leftJoin("attendee.meeting", "meeting")
                 ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
                 ->setParameters($params)
