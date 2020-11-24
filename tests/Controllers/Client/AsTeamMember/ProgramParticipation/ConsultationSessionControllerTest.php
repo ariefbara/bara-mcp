@@ -219,8 +219,40 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         ];
         $maxEndTimeString = (new DateTime())->format('Y-m-d H:i:s');
         $uri = $this->consultationSessionUri
-                . "?maxEndTime=$maxEndTimeString"
-                . "&containParticipantFeedback=true";
+                . "?maxEndTime=$maxEndTimeString";
+//                . "&containParticipantFeedback=true";
+
+        $this->get($uri, $this->teamMember->client->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+    }
+    public function test_showAll_minStartTimeFilter()
+    {
+        $response = [
+            "total" => 1,
+            "list" => [
+                [
+                    "id" => $this->consultationSession->id,
+                    "startTime" => $this->consultationSession->startDateTime,
+                    "endTime" => $this->consultationSession->endDateTime,
+                    "hasParticipantFeedback" => false,
+                    "consultationSetup" => [
+                        "id" => $this->consultationSession->consultationSetup->id,
+                        "name" => $this->consultationSession->consultationSetup->name,
+                    ],
+                    "consultant" => [
+                        "id" => $this->consultationSession->consultant->id,
+                        "personnel" => [
+                            "id" => $this->consultationSession->consultant->personnel->id,
+                            "name" => $this->consultationSession->consultant->personnel->getFullName(),
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $minStartTimeStrings = (new DateTime())->format('Y-m-d H:i:s');
+        $uri = $this->consultationSessionUri
+                . "?minStartTime=$minStartTimeStrings";
 
         $this->get($uri, $this->teamMember->client->token)
                 ->seeStatusCode(200)
