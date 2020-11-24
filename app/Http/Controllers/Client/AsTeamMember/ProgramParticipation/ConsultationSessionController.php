@@ -56,7 +56,7 @@ class ConsultationSessionController extends \App\Http\Controllers\Client\AsTeamM
         $service = $this->buildViewService();
         $consultationSessionFilter = (new ConsultationSessionFilter())
                 ->setMinStartTime($this->dateTimeImmutableOfQueryRequest("minStartTime"))
-                ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("endTime"))
+                ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("maxEndTime"))
                 ->setContainParticipantFeedback($this->filterBooleanOfQueryRequest("containParticipantFeedback"));
 
         $consultationSessions = $service->showAll(
