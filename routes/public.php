@@ -26,11 +26,18 @@ $router->group($guestAggregate, function () use ($router) {
         $router->patch("/generate-activation-code", ["uses" => "$controller@generateActivationCode"]);
         $router->patch("/generate-reset-password-code", ["uses" => "$controller@generateResetPasswordCode"]);
     });
+    
     $router->group(['prefix' => '/user-account'], function () use($router) {
         $controller = "UserAccountController";
         $router->patch("/activate", ["uses" => "$controller@activate"]);
         $router->patch("/reset-password", ["uses" => "$controller@resetPassword"]);
         $router->patch("/generate-activation-code", ["uses" => "$controller@generateActivationCode"]);
+        $router->patch("/generate-reset-password-code", ["uses" => "$controller@generateResetPasswordCode"]);
+    });
+    
+    $router->group(['prefix' => '/manager-account'], function () use($router) {
+        $controller = "ManagerAccountController";
+        $router->patch("/reset-password", ["uses" => "$controller@resetPassword"]);
         $router->patch("/generate-reset-password-code", ["uses" => "$controller@generateResetPasswordCode"]);
     });
     

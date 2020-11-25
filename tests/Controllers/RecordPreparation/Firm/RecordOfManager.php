@@ -18,6 +18,8 @@ class RecordOfManager implements Record
      */
     public $firm;
     public $id, $name, $email, $password, $phone = "", $joinTime, $removed = false;
+    public $resetPasswordCode;
+    public $resetPasswordCodeExpiredTime;
     public $rawPassword;
     public $token;
     
@@ -30,6 +32,8 @@ class RecordOfManager implements Record
         $this->password = (new TestablePassword($rawPassword))->getHashedPassword();
         $this->phone = "";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
+        $this->resetPasswordCode = bin2hex(random_bytes(32));
+        $this->resetPasswordCodeExpiredTime = (new \DateTimeImmutable("+8 hours"))->format("Y-m-d H:i:s");
         $this->removed = false;
         
         $this->rawPassword = $rawPassword;
@@ -50,6 +54,8 @@ class RecordOfManager implements Record
             "password" => $this->password,
             "phone" => $this->phone,
             "joinTime" => $this->joinTime,
+            "resetPasswordCode" => $this->resetPasswordCode,
+            "resetPasswordCodeExpiredTime" => $this->resetPasswordCodeExpiredTime,
             "removed" => $this->removed,
         ];
     }

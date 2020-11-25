@@ -1,20 +1,20 @@
 <?php
 
-namespace Query\Domain\Model\Firm\Client;
+namespace Query\Domain\Model\Firm\Manager;
 
-use Query\Domain\{
-    Model\Firm\Client,
+use Query\Domain\ {
+    Model\Firm\Manager,
     SharedModel\Mail
 };
 
-class ClientMail
+class ManagerMail
 {
 
     /**
      *
-     * @var Client
+     * @var Manager
      */
-    protected $client;
+    protected $manager;
 
     /**
      *

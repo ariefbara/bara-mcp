@@ -107,7 +107,7 @@ class Client
         $greetings = "Hi {$this->name->getFirstName()}";
         $mainMessage = "Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:";
         $domain = $this->firm->getDomain();
-        $urlPath = "/client-account/reset-password/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}";
+        $urlPath = "/client-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
 
         $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
