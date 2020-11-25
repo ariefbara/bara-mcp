@@ -14,7 +14,7 @@
         
         <field name="willAttend" type="boolean" nullable="true" />
         <field name="attended" type="boolean"  nullable="true" />
-        <field name="invitationCancelled" type="boolean"  nullable="false" />
+        <field name="cancelled" type="boolean"  nullable="false" />
         
         <one-to-one field="report" 
                     target-entity="ActivityInvitee\Domain\Model\Invitee\InviteeReport"
