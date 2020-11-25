@@ -48,7 +48,10 @@ class FirmControllerTest extends ManagerTestCase
             "domain" => $this->firm->url,
             "mailSenderAddress" => $this->firm->mailSenderAddress,
             "mailSenderName" => $this->firm->mailSenderName,
-            "logoPath" => DIRECTORY_SEPARATOR . $this->firmFileInfoLogo->fileInfo->name,
+            "logo" => [
+                "id" => $this->firmFileInfoLogo->id,
+                "path" => DIRECTORY_SEPARATOR . $this->firmFileInfoLogo->fileInfo->name,
+            ],
             "displaySetting" => $this->updateProfileInput["displaySetting"],
         ];
         
@@ -71,7 +74,7 @@ class FirmControllerTest extends ManagerTestCase
             "domain" => $this->firm->url,
             "mailSenderAddress" => $this->firm->mailSenderAddress,
             "mailSenderName" => $this->firm->mailSenderName,
-            "logoPath" => null,
+            "logo" => null,
             "displaySetting" => $this->firm->displaySetting,
         ];
         $this->get($this->firmUri, $this->manager->token)

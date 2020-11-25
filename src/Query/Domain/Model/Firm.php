@@ -69,6 +69,11 @@ class Firm
         return $this->displaySetting;
     }
 
+    function getLogo(): ?FirmFileInfo
+    {
+        return $this->logo;
+    }
+
     function isSuspended(): bool
     {
         return $this->suspended;
@@ -77,11 +82,6 @@ class Firm
     protected function __construct()
     {
         
-    }
-
-    public function getLogoPath(): ?string
-    {
-        return empty($this->logo) ? null : $this->logo->getFullyQualifiedFileName();
     }
 
     public function getWhitelableUrl(): string
