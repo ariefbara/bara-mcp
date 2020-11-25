@@ -19,6 +19,8 @@ class RecordOfPersonnel implements Record
     public $firm;
     public $id, $firstName, $lastName, $email, $password, $phone = "", $joinTime, $removed = false;
     public $bio;
+    public $resetPasswordCode;
+    public $resetPasswordCodeExpiredTime;
     public $rawPassword;
     public $token;
     
@@ -35,6 +37,8 @@ class RecordOfPersonnel implements Record
         $this->phone = "";
         $this->bio = "personnel $index bio";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
+        $this->resetPasswordCode = bin2hex(random_bytes(32));
+        $this->resetPasswordCodeExpiredTime = (new \DateTimeImmutable("+12 hours"))->format("Y-m-d H:i:s");
         $this->removed = false;
         
         $data = [
@@ -56,6 +60,8 @@ class RecordOfPersonnel implements Record
             "phone" => $this->phone,
             "bio" => $this->bio,
             "joinTime" => $this->joinTime,
+            "resetPasswordCode" => $this->resetPasswordCode,
+            "resetPasswordCodeExpiredTime" => $this->resetPasswordCodeExpiredTime,
             "removed" => $this->removed,
         ];
     }

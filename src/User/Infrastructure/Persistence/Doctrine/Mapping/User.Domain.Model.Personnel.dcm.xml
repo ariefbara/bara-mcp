@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
-    <entity name="Query\Domain\Model\Firm\Personnel" 
+    <entity name="User\Domain\Model\Personnel" 
             table="Personnel"
-            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrinePersonnelRepository" 
+            repository-class="User\Infrastructure\Persistence\Doctrine\Repository\DoctrinePersonnelRepository" 
     >
         
         <many-to-one  field="firm" 
-                      target-entity="Query\Domain\Model\Firm"
+                      target-entity="User\Domain\DependencyModel\Firm"
         >
             <join-column name="Firm_id" referenced-column-name="id" />
         </many-to-one>
@@ -25,19 +25,9 @@
         
         <field name="phone" type="string" length="16" nullable="true"/>
         <field name="bio" type="text" nullable="true"/>
-        <field name="joinTime" type="datetime_immutable" nullable="true"/>
         <field name="resetPasswordCode" type="string" length="64" nullable="true"/>
         <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true"/>
         <field name="removed" type="boolean" />
-        
-        <one-to-many field="programConsultants"
-                     target-entity="Query\Domain\Model\Firm\Program\Consultant"
-                     mapped-by="personnel"
-        />
-        <one-to-many field="programCoordinators"
-                     target-entity="Query\Domain\Model\Firm\Program\Coordinator"
-                     mapped-by="personnel"
-        />
         
     </entity>
 </doctrine-mapping>

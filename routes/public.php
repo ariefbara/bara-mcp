@@ -41,6 +41,12 @@ $router->group($guestAggregate, function () use ($router) {
         $router->patch("/generate-reset-password-code", ["uses" => "$controller@generateResetPasswordCode"]);
     });
     
+    $router->group(['prefix' => '/personnel-account'], function () use($router) {
+        $controller = "PersonnelAccountController";
+        $router->patch("/reset-password", ["uses" => "$controller@resetPassword"]);
+        $router->patch("/generate-reset-password-code", ["uses" => "$controller@generateResetPasswordCode"]);
+    });
+    
     $router->group(['prefix' => '/firms'], function () use($router) {
         $controller = "FirmController";
         $router->get("/{firmId}", ["uses" => "$controller@show"]);
