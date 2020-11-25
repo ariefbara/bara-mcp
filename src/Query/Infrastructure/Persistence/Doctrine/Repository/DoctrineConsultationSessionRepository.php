@@ -270,7 +270,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
             return;
         }
         if (!empty($consultationSessionFilter->getMinStartTime())) {
-            $qb->andWhere($qb->expr()->gte("consultationSession.startEndTime.startDateTime", ":minStartTime"))
+            $qb->andWhere($qb->expr()->gte("consultationSession.startEndTime.endDateTime", ":minStartTime"))
                     ->setParameter("minStartTime", $consultationSessionFilter->getMinStartTime());
         }
         if (!empty($consultationSessionFilter->getMaxEndTime())) {
