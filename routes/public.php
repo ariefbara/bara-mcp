@@ -17,6 +17,8 @@ $guestAggregate = [
 ];
 $router->group($guestAggregate, function () use ($router) {
     
+    $router->get('/firm-setting/{firmIdentifier}', ['uses' => "FirmSettingController@show"]);
+    
     $router->group(['prefix' => '/client-account'], function () use($router) {
         $controller = "ClientAccountController";
         $router->patch("/activate", ["uses" => "$controller@activate"]);

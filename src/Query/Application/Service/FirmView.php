@@ -32,5 +32,10 @@ class FirmView
     {
         return $this->firmRepository->all($page, $pageSize);
     }
+    
+    public function showByIdentifier(string $firmIdentifier): Firm
+    {
+        return $this->firmRepository->ofIdentifier($firmIdentifier);
+    }
 
 }
