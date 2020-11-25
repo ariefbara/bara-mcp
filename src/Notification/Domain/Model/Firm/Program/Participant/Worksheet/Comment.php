@@ -9,10 +9,10 @@ use Notification\Domain\ {
     Model\Firm\Program\Participant\Worksheet\Comment\CommentMail,
     Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
 use Resources\Uuid;
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class Comment implements CanSendPersonalizeMail
 {
@@ -62,15 +62,13 @@ class Comment implements CanSendPersonalizeMail
     {
         $subject = "Konsulta: Komentar Worksheet";
         $greetings = "Hi Konsultan";
-        $mainMessage = <<<_MESSAGE
-Partisipan {$this->worksheet->getParticipantName()} telah membalas komentar.
-
-Untuk melihat detail komentar balasan, kunjungi:
-_MESSAGE;
+        $mainMessage = "Partisipan {$this->worksheet->getParticipantName()} telah membalas komentar";
         $domain = $this->worksheet->getFirmDomain();
         $urlPath = "/worksheets/{$this->worksheet->getId()}/comments/{$this->id}";
-
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath);
+        $logoPath = $this->worksheet->getFirmLogoPath();
+        
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        
         $this->parent->registerConsultantAsMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();
@@ -86,16 +84,12 @@ _MESSAGE;
     {
         $subject = "Konsulta: Komentar Worksheet";
         $greetings = "Hi Participan";
-        $consultantName = $this->consultantComment->getConsultantName();
-        $mainMessage = <<<_MESSAGE
-Konsultant {$consultantName} telah memberi komentar di worksheet.
-
-Untuk melihat detail komentar, kunjungi:
-_MESSAGE;
+        $mainMessage = "Konsultant {$this->consultantComment->getConsultantName()} telah memberi komentar di worksheet.";
         $domain = $this->worksheet->getFirmDomain();
         $urlPath = "/comments/{$this->id}";
-
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath);
+        $logoPath = $this->worksheet->getFirmLogoPath();
+        
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
         $this->worksheet->registerParticipantAsMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();
@@ -114,13 +108,9 @@ _MESSAGE;
         $id = Uuid::generateUuid4();
         $senderMailAddress = $this->worksheet->getFirmMailSenderAddress();
         $senderName = $this->worksheet->getFirmMailSenderName();
-        $subject = $mailMessage->getSubject();
-        $message = $mailMessage->getTextMessage();
-        $htmlMessage = $mailMessage->getHtmlMessage();
 
         $commentMail = new CommentMail(
-                $this, $id, $senderMailAddress, $senderName, $subject, $message, $htmlMessage, $recipientMailAddress,
-                $recipientName);
+                $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
         $this->commentMails->add($commentMail);
     }
 

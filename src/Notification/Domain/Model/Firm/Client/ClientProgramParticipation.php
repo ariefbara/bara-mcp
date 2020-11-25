@@ -6,9 +6,9 @@ use Notification\Domain\ {
     Model\Firm\Client,
     Model\Firm\Program\Participant,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class ClientProgramParticipation
 {

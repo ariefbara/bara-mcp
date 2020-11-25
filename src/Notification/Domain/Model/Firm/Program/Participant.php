@@ -9,9 +9,9 @@ use Notification\Domain\ {
     Model\Firm\Team\TeamProgramParticipation,
     Model\User\UserProgramParticipation,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class Participant
 {
@@ -67,6 +67,11 @@ class Participant
     public function getFirmDomain(): string
     {
         return $this->program->getFirmDomain();
+    }
+    
+    public function getFirmLogoPath(): ?string
+    {
+        return $this->program->getFirmLogoPath();
     }
 
     public function getFirmMailSenderAddress(): string

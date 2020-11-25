@@ -219,8 +219,8 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         ];
         $maxEndTimeString = (new DateTime())->format('Y-m-d H:i:s');
         $uri = $this->consultationSessionUri
-                . "?maxEndTime=$maxEndTimeString";
-//                . "&containParticipantFeedback=true";
+                . "?maxEndTime=$maxEndTimeString"
+                . "&containParticipantFeedback=true";
 
         $this->get($uri, $this->teamMember->client->token)
                 ->seeStatusCode(200)

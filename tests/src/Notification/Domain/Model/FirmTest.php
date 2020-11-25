@@ -2,6 +2,7 @@
 
 namespace Notification\Domain\Model;
 
+use Notification\Domain\Model\Firm\FirmFileInfo;
 use Query\Domain\Model\FirmWhitelableInfo;
 use Tests\TestBase;
 
@@ -9,13 +10,17 @@ class FirmTest extends TestBase
 {
     protected $firm;
     protected $firmWhitelableInfo;
-    
+    protected $logo;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->firm = new TestableFirm();
         $this->firmWhitelableInfo = $this->buildMockOfClass(FirmWhitelableInfo::class);
         $this->firm->firmWhitelableInfo = $this->firmWhitelableInfo;
+        
+        $this->logo = $this->buildMockOfClass(FirmFileInfo::class);
+        $this->firm->logo = $this->logo;
     }
     
     public function test_getDomain_returnWhitelableInfosGetUrlResult()
@@ -37,12 +42,25 @@ class FirmTest extends TestBase
         $this->firm->getMailSenderName();
     }
     
+    public function test_getLogoPath_returnLogoGetFullyQualifiedNameResult()
+    {
+        $this->logo->expects($this->once())
+                ->method("getFullyQualifiedFileName");
+        $this->firm->getLogoPath();
+    }
+    public function test_getLogoPath_emptyLogo_returnNull()
+    {
+        $this->firm->logo = null;
+        $this->assertNull($this->firm->getLogoPath());
+    }
+    
 }
 
 class TestableFirm extends Firm
 {
     public $id;
     public $firmWhitelableInfo;
+    public $logo;
     
     function __construct()
     {

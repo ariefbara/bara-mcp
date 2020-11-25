@@ -5,9 +5,9 @@ namespace Notification\Domain\Model\Firm\Program\Participant;
 use Notification\Domain\ {
     Model\Firm\Program\Participant,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class Worksheet
 {
@@ -42,6 +42,11 @@ class Worksheet
     public function getFirmDomain(): string
     {
         return $this->participant->getFirmDomain();
+    }
+    
+    public function getFirmLogoPath(): ?string
+    {
+        return $this->participant->getFirmLogoPath();
     }
 
     public function getFirmMailSenderAddress(): string

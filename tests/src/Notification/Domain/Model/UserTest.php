@@ -4,10 +4,10 @@ namespace Notification\Domain\Model;
 
 use Notification\Domain\ {
     Model\User\UserMail,
-    SharedModel\CanSendPersonalizeMail,
-    SharedModel\MailMessage
+    SharedModel\CanSendPersonalizeMail
 };
 use Resources\Domain\ValueObject\PersonName;
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class UserTest extends TestBase

@@ -2,12 +2,12 @@
 
 namespace Notification\Domain\Model\Firm;
 
-use Notification\Domain\{
+use Notification\Domain\ {
     Model\Firm,
-    SharedModel\CanSendPersonalizeMail,
-    SharedModel\MailMessage
+    SharedModel\CanSendPersonalizeMail
 };
 use Resources\Domain\ValueObject\PersonName;
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class Personnel
 {
@@ -38,7 +38,6 @@ class Personnel
 
     protected function __construct()
     {
-        ;
     }
 
     public function getFullName(): string
@@ -49,7 +48,6 @@ class Personnel
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
         $mailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName());
-//        $modifiedMailMessage = $modifiedGreetingsMailMessage->prependUrlPath("/personnel/{$this->id}");
         
         $mailGenerator->addMail($mailMessage, $this->email, $this->name->getFullName());
     }

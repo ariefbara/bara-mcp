@@ -5,9 +5,9 @@ namespace Notification\Domain\Model\Firm\Program\Participant;
 use Notification\Domain\ {
     Model\Firm\Program\Participant,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class WorksheetTest extends TestBase
@@ -44,6 +44,14 @@ class WorksheetTest extends TestBase
                 ->method("getFirmDomain");
         $this->worksheet->getFirmDomain();
     }
+    
+    public function test_getFirmLogoPath_returnParticipantGetFirmLogoPathResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("getFirmLogoPath");
+        $this->worksheet->getFirmLogoPath();
+    }
+    
     public function test_getFirmMailSenderAddress_returnParticipantsGetFirmMailSenderAddressResult()
     {
         $this->participant->expects($this->once())

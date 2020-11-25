@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\MailMessage">
+        
+        <field name="subject" type="string" length="256" nullable="false"/>
+        <field name="greetings" type="string" length="256" nullable="true"/>
+        <field name="mainMessage" type="text" nullable="true"/>
+        <field name="domain" type="string" length="256" nullable="true"/>
+        <field name="urlPath" type="string" length="1024" nullable="true"/>
+        <field name="logoPath" type="string" length="1024" nullable="true"/>
+        
+    </embeddable>
+</doctrine-mapping>

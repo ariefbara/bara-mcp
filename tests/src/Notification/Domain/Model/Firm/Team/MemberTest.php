@@ -6,9 +6,9 @@ use Notification\Domain\ {
     Model\Firm\Client,
     Model\Firm\Team,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class MemberTest extends TestBase

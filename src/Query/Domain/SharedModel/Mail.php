@@ -2,6 +2,8 @@
 
 namespace Query\Domain\SharedModel;
 
+use SharedContext\Domain\ValueObject\MailMessage;
+
 class Mail
 {
 
@@ -25,21 +27,9 @@ class Mail
 
     /**
      *
-     * @var string
-     */
-    protected $subject;
-
-    /**
-     *
-     * @var string
+     * @var MailMessage
      */
     protected $message;
-
-    /**
-     *
-     * @var string|null
-     */
-    protected $htmlMessage;
 
     public function getId(): string
     {
@@ -56,24 +46,29 @@ class Mail
         return $this->senderName;
     }
 
-    public function getSubject(): string
-    {
-        return $this->subject;
-    }
-
-    public function getMessage(): string
-    {
-        return $this->message;
-    }
-
-    public function getHtmlMessage(): ?string
-    {
-        return $this->htmlMessage;
-    }
-
     protected function __construct()
     {
-        ;
+        
+    }
+    
+    public function getSubject(): string
+    {
+        return $this->message->getSubject();
+    }
+
+    function getGreetings(): string
+    {
+        return $this->message->getGreetings();
+    }
+
+    function getMainMessage(): string
+    {
+        return $this->message->getMainMessage();
+    }
+
+    function getShortcutLink(): string
+    {
+        return $this->message->getShortcutLink();
     }
 
 }

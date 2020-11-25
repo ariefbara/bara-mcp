@@ -37,6 +37,13 @@ class ProgramTest extends TestBase
                 ->method("getMailSenderName");
         $this->program->getFirmMailSenderName();
     }
+    
+    public function test_getFirmLogoPath_returnFirmGetLogoPathResult()
+    {
+        $this->firm->expects($this->once())
+                ->method("getLogoPath");
+        $this->program->getFirmLogoPath();
+    }
 }
 
 class TestableProgram extends Program

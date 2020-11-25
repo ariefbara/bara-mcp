@@ -3,13 +3,13 @@
 namespace Notification\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\{
+use Notification\Domain\ {
     Model\Firm,
     Model\Firm\Team\Member,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class Team
 {

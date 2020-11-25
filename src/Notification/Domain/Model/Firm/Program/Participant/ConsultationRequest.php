@@ -3,19 +3,19 @@
 namespace Notification\Domain\Model\Firm\Program\Participant;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\ {
+use Notification\Domain\{
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Participant\ConsultationRequest\ConsultationRequestMail,
     Model\Firm\Program\Participant\ConsultationRequest\ConsultationRequestNotification,
     Model\Firm\Team\Member,
-    SharedModel\CanSendPersonalizeMail,
-    SharedModel\MailMessage
+    SharedModel\CanSendPersonalizeMail
 };
-use Resources\ {
+use Resources\{
     Domain\ValueObject\DateTimeInterval,
     Uuid
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class ConsultationRequest implements CanSendPersonalizeMail
 {
@@ -61,7 +61,6 @@ class ConsultationRequest implements CanSendPersonalizeMail
     const CANCELLED_BY_PARTICIPANT = 3;
     const OFFERED_BY_CONSULTANT = 4;
     const REJECTED_BY_CONSULTANT = 5;
-    
     const NOTIFICATION_MESSAGE = [
         self::SUBMITTED_BY_PARTICIPANT => "consultation request submitted",
         self::TIME_CHANGED_BY_PARTICIPANT => "consultation request time changed",
@@ -72,6 +71,7 @@ class ConsultationRequest implements CanSendPersonalizeMail
 
     protected function __construct()
     {
+        
     }
 
     protected function buildNotificationMessageTriggeredByTeamMember(int $state, string $submitterName): string
@@ -128,9 +128,10 @@ class ConsultationRequest implements CanSendPersonalizeMail
 
 {$closing}
 _MESSAGE;
-        $firmDomain = $this->participant->getFirmDomain();
+        $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-requests/{$this->id}";
-        return new MailMessage($subject, $greetings, $mainMessage, $firmDomain, $urlPath);
+        $logoPath = $this->participant->getFirmLogoPath();
+        return new MailMessage($subject, $greetings, $closing, $domain, $urlPath, $logoPath);
     }
 
     protected function buildMailMessageTriggeredByTeamMember(int $state, string $submitterName): MailMessage
@@ -157,9 +158,10 @@ _MESSAGE;
 
 {$closing}
 _MESSAGE;
-        $firmDomain = $this->participant->getFirmDomain();
+        $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-requests/{$this->id}";
-        return new MailMessage($subject, $greetings, $mainMessage, $firmDomain, $urlPath);
+        $logoPath = $this->participant->getFirmLogoPath();
+        return new MailMessage($subject, $greetings, $closing, $submitterName, $urlPath, $logoPath);
     }
 
     protected function buildMailMessageTriggeredByParticipant(int $state): MailMessage
@@ -186,9 +188,10 @@ _MESSAGE;
 
 {$closing}
 _MESSAGE;
-        $firmDomain = $this->participant->getFirmDomain();
+        $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-requests/{$this->id}";
-        return new MailMessage($subject, $greetings, $mainMessage, $firmDomain, $urlPath);
+        $logoPath = $this->participant->getFirmLogoPath();
+        return new MailMessage($subject, $greetings, $closing, $domain, $urlPath, $logoPath);
     }
 
     public function createNotificationTriggeredByTeamMember(int $state, Member $submitter): void
@@ -269,10 +272,9 @@ _MESSAGE;
         $subject = $mailMessage->getSubject();
         $message = $mailMessage->getTextMessage();
         $htmlMessage = $mailMessage->getHtmlMessage();
-        
+
         $consultationRequestMail = new ConsultationRequestMail(
-                $this, $id, $senderMailAddress, $senderName, $subject, $message, $htmlMessage, $recipientMailAddress,
-                $recipientName);
+                $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
         $this->consultationRequestMails->add($consultationRequestMail);
     }
 
