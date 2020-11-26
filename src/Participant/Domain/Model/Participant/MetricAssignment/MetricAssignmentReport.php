@@ -80,6 +80,11 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
 
     public function update(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
+        if ($this->approved) {
+            $errorDetail = "forbidden: unable to update approved report";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
         $this->metricAssignment->setActiveAssignmentFieldValuesTo($this, $metricAssignmentReportDataProvider);
 
         $p = function (AssignmentFieldValue $assignmentFieldValue) {

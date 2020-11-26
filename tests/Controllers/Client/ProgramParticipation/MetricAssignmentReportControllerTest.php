@@ -18,7 +18,7 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
 {
     protected  $metricAssignmentReportUri;
     protected  $metricAssignmentReport;
-    protected  $metricAssignmentReportOne;
+    protected  $metricAssignmentReportOne_approved;
     
     protected $fileInfo;
     protected $fileInfoOne;
@@ -86,15 +86,16 @@ class MetricAssignmentReportControllerTest extends ProgramParticipationTestCase
         $this->connection->table("AssignmentField")->insert($this->assignmentFieldTwo->toArrayForDbEntry());
         
         $this->metricAssignmentReport = new RecordOfMetricAssignmentReport($this->metricAssignment, 0);
-        $this->metricAssignmentReportOne = new RecordOfMetricAssignmentReport($this->metricAssignment, 1);
+        $this->metricAssignmentReportOne_approved = new RecordOfMetricAssignmentReport($this->metricAssignment, 1);
+        $this->metricAssignmentReportOne_approved->approved = true;;
         $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReport->toArrayForDbEntry());
-        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne_approved->toArrayForDbEntry());
         
         $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReport, $this->assignmentField, "00", $this->fileInfoOne);
         $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReport, $this->assignmentFieldOne_removed, "01");
-        $this->assignmentFieldValue_10 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne, $this->assignmentField, "10");
-        $this->assignmentFieldValue_11 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne, $this->assignmentFieldOne_removed, "11");
-        $this->assignmentFieldValue_12 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne, $this->assignmentFieldTwo, "12");
+        $this->assignmentFieldValue_10 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_approved, $this->assignmentField, "10");
+        $this->assignmentFieldValue_11 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_approved, $this->assignmentFieldOne_removed, "11");
+        $this->assignmentFieldValue_12 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_approved, $this->assignmentFieldTwo, "12");
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_10->toArrayForDbEntry());
@@ -276,6 +277,12 @@ $this->connection->table("AssignmentFieldValue")->truncate();
         ];
         $this->seeInDatabase("AssignmentFieldValue", $assignedFieldValueTwoEntry);
     }
+    public function test_update_alreadyApproved_403()
+    {
+        $uri = $this->metricAssignmentReportUri . "/{$this->metricAssignmentReportOne_approved->id}";
+        $this->patch($uri, $this->updateInput, $this->programParticipation->client->token)
+                ->seeStatusCode(403);
+    }
     
     public function test_show_200()
     {
@@ -377,10 +384,10 @@ $this->connection->table("AssignmentFieldValue")->truncate();
                     ],
                 ],
                 [
-                    "id" => $this->metricAssignmentReportOne->id,
-                    "observationTime" => $this->metricAssignmentReportOne->observationTime,
-                    "submitTime" => $this->metricAssignmentReportOne->submitTime,
-                    "removed" => $this->metricAssignmentReportOne->removed,
+                    "id" => $this->metricAssignmentReportOne_approved->id,
+                    "observationTime" => $this->metricAssignmentReportOne_approved->observationTime,
+                    "submitTime" => $this->metricAssignmentReportOne_approved->submitTime,
+                    "removed" => $this->metricAssignmentReportOne_approved->removed,
                     "assignmentFieldValues" => [
                         [
                             "id" => $this->assignmentFieldValue_10->id,
