@@ -3,15 +3,13 @@
 namespace Notification\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Notification\Domain\ {
-    Model\Firm,
-    Model\Firm\Personnel\PersonnelMail,
-    SharedModel\CanSendPersonalizeMail
+use Notification\Domain\Model\{
+    Firm,
+    Firm\Manager\ManagerMail
 };
-use Resources\Domain\ValueObject\PersonName;
 use SharedContext\Domain\ValueObject\MailMessage;
 
-class Personnel
+class Manager
 {
 
     /**
@@ -28,7 +26,7 @@ class Personnel
 
     /**
      *
-     * @var PersonName
+     * @var string
      */
     protected $name;
 
@@ -37,13 +35,13 @@ class Personnel
      * @var string
      */
     protected $email;
-    
+
     /**
      *
      * @var string|null
      */
     protected $resetPasswordCode;
-    
+
     /**
      *
      * @var DateTimeImmutable|null
@@ -55,37 +53,26 @@ class Personnel
         
     }
 
-    public function getFullName(): string
+    public function createResetPasswordMail(string $managerMailId): ManagerMail
     {
-        return $this->name->getFullName();
-    }
-
-    public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
-    {
-        $mailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName());
-
-        $mailGenerator->addMail($mailMessage, $this->email, $this->name->getFullName());
-    }
-
-    public function createResetPasswordMail(string $personnelMailId): PersonnelMail
-    {
-        $subject = "Konsulta: Reset Password";
-        $greetings = "Hi {$this->name->getFirstName()}";
+        $subject = "Konsulta: reset password";
+        $greetings = "Hi $this->name";
         $mainMessage = <<<_MESSAGE
 Permintaan reset password akun telah kami terima, kunjungi tautan di bawah untuk menyelesaikan proses reset password.
 _MESSAGE;
         $domain = $this->firm->getDomain();
-        $urlPath = "/personnel-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
+        $urlPath = "/manager-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
         $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
         $recipientMailAddress = $this->email;
-        $recipientName = $this->getFullName();
-        
-        return new PersonnelMail(
-                $this, $personnelMailId, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress,
+        $recipientName = $this->name;
+
+        return new ManagerMail(
+                $this, $managerMailId, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress,
                 $recipientName);
     }
 

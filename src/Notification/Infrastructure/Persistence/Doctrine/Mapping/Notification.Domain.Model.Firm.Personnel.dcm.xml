@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Notification\Domain\Model\Firm\Personnel" 
             table="Personnel"
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrinePersonnelRepository"
     >
         
         <many-to-one  field="firm" 
@@ -17,6 +18,8 @@
                   use-column-prefix="false" />
         
         <field name="email" type="string" length="256" nullable="false"/>
+        <field name="resetPasswordCode" type="string" length="64" nullable="true"/>
+        <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true"/>
         
     </entity>
 </doctrine-mapping>

@@ -90,4 +90,34 @@ class PersonnelAccountControllerTest extends ControllerTestCase
         $this->patch($this->resetPasswordUri, $this->resetPasswordInput)
                 ->seeStatusCode(403);
     }
+    
+    public function test_generateResetPasswordCode_200()
+    {
+        $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
+                ->seeStatusCode(200);
+        
+        $personnelEntry = [
+            "id" => $this->personnel->id,
+            "resetPasswordCodeExpiredTime" => (new \DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s")
+        ];
+        $this->seeInDatabase("Personnel", $personnelEntry);
+    }
+    public function test_generateResetPasswordCode_sendMail()
+    {
+        $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
+                ->seeStatusCode(200);
+        
+        $personnelMailEntry = [
+            "Personnel_id" => $this->personnel->id,
+        ];
+        $this->seeInDatabase("PersonnelMail", $personnelMailEntry);
+        
+        $mailRecipientEntry = [
+            "recipientMailAddress" => $this->personnel->email,
+            "recipientName" => $this->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $mailRecipientEntry);
+    }
 }

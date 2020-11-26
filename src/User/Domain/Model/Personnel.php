@@ -2,8 +2,11 @@
 
 namespace User\Domain\Model;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Resources\ {
+    DateTimeImmutableBuilder,
+    Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
@@ -80,7 +83,11 @@ class Personnel extends EntityContainEvents
     
     public function generateResetPasswordCode(): void
     {
+        $this->resetPasswordCode = bin2hex(random_bytes(32));
+        $this->resetPasswordCodeExpiredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy("+24 hours");
         
+        $event = new CommonEvent(EventList::PERSONNEL_RESET_PASSWORD_CODE_GENERATED, $this->id);
+        $this->recordEvent($event);
     }
     
     public function resetPassword(string $resetPasswordCode, string $password): void
@@ -89,6 +96,9 @@ class Personnel extends EntityContainEvents
                 || $this->resetPasswordCode !== $resetPasswordCode
                 || $this->resetPasswordCodeExpiredTime < new \DateTimeImmutable()
         ) {
+            $this->resetPasswordCode = null;
+            $this->resetPasswordCodeExpiredTime = null;
+            
             $errorDetail = "forbidden: invalid or expired token";
             throw RegularException::forbidden($errorDetail);
         }

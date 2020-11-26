@@ -37,7 +37,7 @@ class RecordOfPersonnel implements Record
         $this->phone = "";
         $this->bio = "personnel $index bio";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
-        $this->resetPasswordCode = bin2hex(random_bytes(32));
+        $this->resetPasswordCode = "string-represent-reset-token";
         $this->resetPasswordCodeExpiredTime = (new \DateTimeImmutable("+12 hours"))->format("Y-m-d H:i:s");
         $this->removed = false;
         

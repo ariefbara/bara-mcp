@@ -4,6 +4,7 @@ namespace Notification\Domain\Model\Firm;
 
 use Notification\Domain\ {
     Model\Firm,
+    Model\Firm\Personnel\PersonnelMail,
     SharedModel\CanSendPersonalizeMail
 };
 use Resources\Domain\ValueObject\PersonName;
@@ -73,6 +74,11 @@ class PersonnelTest extends TestBase
                 ->with($mailMessage, $this->personnel->email, $fullName);
         
         $this->executeRegisterAsMailRecipient();
+    }
+    
+    public function test_createResePasswordMail_returnPersonnelMail()
+    {
+        $this->assertInstanceOf(PersonnelMail::class, $this->personnel->createResetPasswordMail("personnelMailId"));
     }
 }
 

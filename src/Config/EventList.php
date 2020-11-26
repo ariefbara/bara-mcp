@@ -9,6 +9,10 @@ class EventList
     
     const USER_ACTIVATION_CODE_GENERATED = "user-activation-code-generated";
     const USER_RESET_PASSWORD_CODE_GENERATED = "user-reset-password-code-generated";
+    
+    const MANAGER_RESET_PASSWORD_CODE_GENERATED = "manager-reset-password-code-generated";
+    
+    const PERSONNEL_RESET_PASSWORD_CODE_GENERATED = "personnel-reset-password-code-generated";
 
     const PROGRAM_REGISTRATION_SUBMITTED = "program-registration-submitted";
     const REGISTRANT_ACCEPTED = "registrant-accepted";

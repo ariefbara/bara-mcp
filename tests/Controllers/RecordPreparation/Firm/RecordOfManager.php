@@ -32,7 +32,7 @@ class RecordOfManager implements Record
         $this->password = (new TestablePassword($rawPassword))->getHashedPassword();
         $this->phone = "";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
-        $this->resetPasswordCode = bin2hex(random_bytes(32));
+        $this->resetPasswordCode = "string-represent-reset-token";
         $this->resetPasswordCodeExpiredTime = (new \DateTimeImmutable("+8 hours"))->format("Y-m-d H:i:s");
         $this->removed = false;
         
