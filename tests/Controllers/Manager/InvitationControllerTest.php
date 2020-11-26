@@ -126,6 +126,7 @@ class InvitationControllerTest extends ManagerTestCase
             "id" => $this->invitation->id,
             "willAttend" => $this->invitation->invitee->willAttend,
             "attended" => $this->invitation->invitee->attended,
+            "anInitiator" => $this->invitation->invitee->anInitiator,
             "report" => [
                 "submitTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
                 "stringFieldRecords" => [],
@@ -186,6 +187,7 @@ class InvitationControllerTest extends ManagerTestCase
             "id" => $this->invitation->id,
             "willAttend" => $this->invitation->invitee->willAttend,
             "attended" => $this->invitation->invitee->attended,
+            "anInitiator" => $this->invitation->invitee->anInitiator,
             "report" => null,
             "activityParticipant" => [
                 "id" => $this->invitation->invitee->activityParticipant->id,
@@ -236,6 +238,7 @@ class InvitationControllerTest extends ManagerTestCase
                     "id" => $this->invitation->id,
                     "willAttend" => $this->invitation->invitee->willAttend,
                     "attended" => $this->invitation->invitee->attended,
+                    "anInitiator" => $this->invitation->invitee->anInitiator,
                     "activity" => [
                         "id" => $this->invitation->invitee->activity->id,
                         "name" => $this->invitation->invitee->activity->name,
@@ -257,6 +260,7 @@ class InvitationControllerTest extends ManagerTestCase
                     "id" => $this->invitationOne->id,
                     "willAttend" => $this->invitationOne->invitee->willAttend,
                     "attended" => $this->invitationOne->invitee->attended,
+                    "anInitiator" => $this->invitationOne->invitee->anInitiator,
                     "activity" => [
                         "id" => $this->invitationOne->invitee->activity->id,
                         "name" => $this->invitationOne->invitee->activity->name,
@@ -278,6 +282,7 @@ class InvitationControllerTest extends ManagerTestCase
                     "id" => $this->invitationTwo->id,
                     "willAttend" => $this->invitationTwo->invitee->willAttend,
                     "attended" => $this->invitationTwo->invitee->attended,
+                    "anInitiator" => $this->invitationTwo->invitee->anInitiator,
                     "activity" => [
                         "id" => $this->invitationTwo->invitee->activity->id,
                         "name" => $this->invitationTwo->invitee->activity->name,
@@ -299,6 +304,7 @@ class InvitationControllerTest extends ManagerTestCase
                     "id" => $this->invitationThree->id,
                     "willAttend" => $this->invitationThree->invitee->willAttend,
                     "attended" => $this->invitationThree->invitee->attended,
+                    "anInitiator" => $this->invitationThree->invitee->anInitiator,
                     "activity" => [
                         "id" => $this->invitationThree->invitee->activity->id,
                         "name" => $this->invitationThree->invitee->activity->name,

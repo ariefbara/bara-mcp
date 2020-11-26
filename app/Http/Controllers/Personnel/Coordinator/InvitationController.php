@@ -59,6 +59,7 @@ class InvitationController extends PersonnelBaseController
                 "id" => $invitation->getId(),
                 "willAttend" => $invitation->willAttend(),
                 "attended" => $invitation->isAttended(),
+                "anInitiator" => $invitation->isAnInitiator(),
                 "activity" => [
                     "id" => $invitation->getActivity()->getId(),
                     "name" => $invitation->getActivity()->getName(),
@@ -79,6 +80,7 @@ class InvitationController extends PersonnelBaseController
             "id" => $invitation->getId(),
             "willAttend" => $invitation->willAttend(),
             "attended" => $invitation->isAttended(),
+            "anInitiator" => $invitation->isAnInitiator(),
             "report" => $this->arrayDataOfReport($invitation->getReport()),
             "activityParticipant" => [
                 "id" => $invitation->getActivityParticipant()->getId(),
