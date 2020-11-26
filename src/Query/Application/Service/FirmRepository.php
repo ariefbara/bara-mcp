@@ -11,4 +11,6 @@ interface FirmRepository extends InterfaceForClientBC
     public function ofId(string $firmId): Firm;
 
     public function all(int $page, int $pageSize);
+    
+    public function ofIdentifier(string $firmIdentifier): Firm;
 }

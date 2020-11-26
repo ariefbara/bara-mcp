@@ -18,18 +18,22 @@ class RecordOfManager implements Record
      */
     public $firm;
     public $id, $name, $email, $password, $phone = "", $joinTime, $removed = false;
+    public $resetPasswordCode;
+    public $resetPasswordCodeExpiredTime;
     public $rawPassword;
     public $token;
     
     public function __construct(RecordOfFirm $firm, $index, $email, $rawPassword)
     {
         $this->firm = $firm;
-        $this->id = "personnel-$index-id";
-        $this->name = "personnel $index name";
+        $this->id = "manager-$index-id";
+        $this->name = "manager $index name";
         $this->email = $email;
         $this->password = (new TestablePassword($rawPassword))->getHashedPassword();
         $this->phone = "";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
+        $this->resetPasswordCode = "string-represent-reset-token";
+        $this->resetPasswordCodeExpiredTime = (new \DateTimeImmutable("+8 hours"))->format("Y-m-d H:i:s");
         $this->removed = false;
         
         $this->rawPassword = $rawPassword;
@@ -50,6 +54,8 @@ class RecordOfManager implements Record
             "password" => $this->password,
             "phone" => $this->phone,
             "joinTime" => $this->joinTime,
+            "resetPasswordCode" => $this->resetPasswordCode,
+            "resetPasswordCodeExpiredTime" => $this->resetPasswordCodeExpiredTime,
             "removed" => $this->removed,
         ];
     }

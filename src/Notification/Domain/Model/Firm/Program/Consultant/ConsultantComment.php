@@ -2,13 +2,13 @@
 
 namespace Notification\Domain\Model\Firm\Program\Consultant;
 
-use Notification\Domain\{
+use Notification\Domain\ {
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Participant\Worksheet\Comment,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class ConsultantComment
 {

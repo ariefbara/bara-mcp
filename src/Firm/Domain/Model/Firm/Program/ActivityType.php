@@ -8,15 +8,19 @@ use Firm\Domain\ {
     Model\Firm,
     Model\Firm\Program,
     Model\Firm\Program\ActivityType\ActivityParticipant,
+    Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting,
+    Model\Firm\Program\MeetingType\MeetingData,
     Service\ActivityTypeDataProvider
 };
 use Resources\ {
+    Exception\RegularException,
     Uuid,
     ValidationRule,
     ValidationService
 };
 
-class ActivityType implements AssetBelongsToFirm
+class ActivityType implements AssetBelongsToFirm, AssetInProgram
 {
 
     /**
@@ -64,7 +68,7 @@ class ActivityType implements AssetBelongsToFirm
         $this->id = $id;
         $this->setName($activityTypeDataProvider->getName());
         $this->description = $activityTypeDataProvider->getDescription();
-        
+
         $this->participants = new ArrayCollection();
         foreach ($activityTypeDataProvider->iterateActivityParticipantData() as $activityParticipantData) {
             $id = Uuid::generateUuid4();
@@ -76,6 +80,43 @@ class ActivityType implements AssetBelongsToFirm
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->program->belongsToFirm($firm);
+    }
+    
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+
+    public function createMeeting(string $meetingId, MeetingData $meetingData, CanAttendMeeting $initiator): Meeting
+    {
+        return new Meeting($this, $meetingId, $meetingData, $initiator);
+    }
+    
+    public function setUserAsInitiatorInMeeting(Meeting $meeting, CanAttendMeeting $user): void
+    {
+        $this->findAttendeeSetupCorrespondWithUserOrDie($user)->setUserAsInitiatorInMeeting($meeting, $user);
+    }
+
+    public function addUserAsAttendeeInMeeting(Meeting $meeting, CanAttendMeeting $user): void
+    {
+        if (!$user->canInvolvedInProgram($this->program)) {
+            $errorDetail = "forbidden: user cannot be involved in program";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $this->findAttendeeSetupCorrespondWithUserOrDie($user)->addUserAsAttendeeInMeeting($meeting, $user);
+    }
+
+    protected function findAttendeeSetupCorrespondWithUserOrDie(CanAttendMeeting $user): ActivityParticipant
+    {
+        $p = function (ActivityParticipant $attendeeSetup) use ($user) {
+            return $attendeeSetup->roleCorrespondWithUser($user);
+        };
+        $meetingSetup = $this->participants->filter($p)->first();
+        if (empty($meetingSetup)) {
+            $errorDetail = "forbidden: this user type is not allowed to involved in meeting type";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $meetingSetup;
     }
 
 }

@@ -2,15 +2,15 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Firm\ {
+use Firm\{
     Application\Service\Firm\ProgramRepository,
     Domain\Model\Firm\Program
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Uuid
 };
@@ -34,13 +34,13 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
     {
         $qb = $this->createQueryBuilder('program');
         $qb->select('program')
-            ->andWhere($qb->expr()->eq('program.removed', 'false'))
-            ->andWhere($qb->expr()->eq('program.id', ':programId'))
-            ->setParameter('programId', $programId)
-            ->leftJoin('program.firm', 'firm')
-            ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-            ->setParameter('firmId', $firmId)
-            ->setMaxResults(1);
+                ->andWhere($qb->expr()->eq('program.removed', 'false'))
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameter('programId', $programId)
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameter('firmId', $firmId)
+                ->setMaxResults(1);
 
         try {
             return $qb->getQuery()->getSingleResult();

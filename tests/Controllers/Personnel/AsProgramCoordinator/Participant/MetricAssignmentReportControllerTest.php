@@ -170,6 +170,7 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
                     "id" => $this->metricAssignmentReport->id,
                     "observationTime" => $this->metricAssignmentReport->observationTime,
                     "submitTime" => $this->metricAssignmentReport->submitTime,
+                    "approved" => $this->metricAssignmentReport->approved,
                     "removed" => $this->metricAssignmentReport->removed,
                     "assignmentFieldValues" => [
                         [
@@ -213,6 +214,7 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
                     "id" => $this->metricAssignmentReportOne->id,
                     "observationTime" => $this->metricAssignmentReportOne->observationTime,
                     "submitTime" => $this->metricAssignmentReportOne->submitTime,
+                    "approved" => $this->metricAssignmentReportOne->approved,
                     "removed" => $this->metricAssignmentReportOne->removed,
                     "assignmentFieldValues" => [
                         [
@@ -270,5 +272,27 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
         $this->get($this->metricAssignmentReportUri, $this->coordinator->personnel->token)
                 ->seeJsonContains($reponse)
                 ->seeStatusCode(200);
+    }
+    
+    public function test_approve_200()
+    {
+        $response = [
+            "id" => $this->metricAssignmentReport->id,
+            "observationTime" => $this->metricAssignmentReport->observationTime,
+            "submitTime" => $this->metricAssignmentReport->submitTime,
+            "approved" => true,
+            "removed" => $this->metricAssignmentReport->removed,
+        ];
+        
+        $uri = $this->metricAssignmentReportUri . "/{$this->metricAssignmentReport->id}/approve";
+        $this->patch($uri, [], $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+        
+        $metricAssignmentReportEntry = [
+            "id" => $this->metricAssignmentReport->id,
+            "approved" => true,
+        ];
+        $this->seeInDatabase("MetricAssignmentReport", $metricAssignmentReportEntry);
     }
 }

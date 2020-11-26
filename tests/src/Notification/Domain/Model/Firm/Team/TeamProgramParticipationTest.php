@@ -2,12 +2,12 @@
 
 namespace Notification\Domain\Model\Firm\Team;
 
-use Notification\Domain\{
+use Notification\Domain\ {
     Model\Firm\Team,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class TeamProgramParticipationTest extends TestBase

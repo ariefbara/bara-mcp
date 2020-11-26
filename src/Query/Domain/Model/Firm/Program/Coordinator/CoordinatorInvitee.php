@@ -65,10 +65,15 @@ class CoordinatorInvitee
     {
         return $this->invitee->isAttended();
     }
-
-    function isInvitationCancelled(): bool
+    
+    function isAnInitiator(): bool
     {
-        return $this->invitee->isInviteeCancelled();
+        return $this->invitee->isAnInitiator();
+    }
+
+    function isCancelled(): bool
+    {
+        return $this->invitee->isCancelled();
     }
 
     function getReport(): ?InviteeReport

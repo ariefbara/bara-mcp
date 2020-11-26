@@ -2,6 +2,7 @@
 
 namespace Notification\Domain\Model;
 
+use Notification\Domain\Model\Firm\FirmFileInfo;
 use Query\Domain\Model\FirmWhitelableInfo;
 
 class Firm
@@ -24,6 +25,12 @@ class Firm
      * @var FirmWhitelableInfo
      */
     protected $firmWhitelableInfo;
+    
+    /**
+     *
+     * @var FirmFileInfo|null
+     */
+    protected $logo;
 
     function getIdentifier(): string
     {
@@ -32,7 +39,11 @@ class Firm
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function getLogoPath(): ?string
+    {
+        return isset($this->logo)? $this->logo->getFullyQualifiedFileName(): null;
     }
 
     public function getDomain(): string

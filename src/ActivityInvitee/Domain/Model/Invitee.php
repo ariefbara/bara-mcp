@@ -40,7 +40,7 @@ class Invitee
      *
      * @var bool
      */
-    protected $invitationCancelled;
+    protected $cancelled;
 
     /**
      *

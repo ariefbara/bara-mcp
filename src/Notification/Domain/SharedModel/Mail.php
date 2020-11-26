@@ -5,9 +5,11 @@ namespace Notification\Domain\SharedModel;
 use Doctrine\Common\Collections\ArrayCollection;
 use Notification\Domain\SharedModel\Mail\Recipient;
 use Resources\Uuid;
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class Mail
 {
+
     /**
      *
      * @var string
@@ -28,21 +30,9 @@ class Mail
 
     /**
      *
-     * @var string
-     */
-    protected $subject;
-
-    /**
-     *
-     * @var string
+     * @var MailMessage
      */
     protected $message;
-
-    /**
-     *
-     * @var string|null
-     */
-    protected $htmlMessage;
 
     /**
      *
@@ -62,17 +52,17 @@ class Mail
 
     public function getSubject(): string
     {
-        return $this->subject;
+        return $this->message->getSubject();
     }
 
     public function getMessage(): string
     {
-        return $this->message;
+        return $this->message->getTextMessage();
     }
 
     public function getHtmlMessage(): ?string
     {
-        return $this->htmlMessage;
+        return $this->message->getHtmlMessage();
     }
 
     /**
@@ -84,15 +74,13 @@ class Mail
         return $this->recipients;
     }
 
-    public function __construct(string $id, string $senderMailAddress, string $senderName, string $subject, string $message,
-            ?string $htmlMessage, string $recipientMailAddress, string $recipientName)
+    public function __construct(string $id, string $senderMailAddress, string $senderName, MailMessage $mailMessage,
+            string $recipientMailAddress, string $recipientName)
     {
         $this->id = $id;
         $this->senderMailAddress = $senderMailAddress;
         $this->senderName = $senderName;
-        $this->subject = $subject;
-        $this->message = $message;
-        $this->htmlMessage = $htmlMessage;
+        $this->message = $mailMessage;
         $this->recipients = new ArrayCollection();
         $this->addRecipient($recipientMailAddress, $recipientName);
     }

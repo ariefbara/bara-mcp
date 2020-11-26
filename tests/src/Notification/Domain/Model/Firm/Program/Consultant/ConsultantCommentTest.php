@@ -5,9 +5,9 @@ namespace Notification\Domain\Model\Firm\Program\Consultant;
 use Notification\Domain\ {
     Model\Firm\Program\Consultant,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class ConsultantCommentTest extends TestBase

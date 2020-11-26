@@ -2,7 +2,7 @@
 
 namespace Query\Domain\Model\Firm\Program\Activity;
 
-use Query\Domain\Model\Firm\ {
+use Query\Domain\Model\Firm\{
     Manager\ManagerInvitee,
     Program\Activity,
     Program\Activity\Invitee\InviteeReport,
@@ -35,6 +35,12 @@ class Invitee
 
     /**
      *
+     * @var bool
+     */
+    protected $anInitiator;
+
+    /**
+     *
      * @var bool|null
      */
     protected $willAttend;
@@ -49,7 +55,7 @@ class Invitee
      *
      * @var bool
      */
-    protected $invitationCancelled;
+    protected $cancelled;
 
     /**
      *
@@ -96,6 +102,11 @@ class Invitee
         return $this->activityParticipant;
     }
 
+    function isAnInitiator(): bool
+    {
+        return $this->anInitiator;
+    }
+
     function WillAttend(): ?bool
     {
         return $this->willAttend;
@@ -106,9 +117,9 @@ class Invitee
         return $this->attended;
     }
 
-    function isInviteeCancelled(): bool
+    function isCancelled(): bool
     {
-        return $this->invitationCancelled;
+        return $this->cancelled;
     }
 
     function getReport(): ?InviteeReport

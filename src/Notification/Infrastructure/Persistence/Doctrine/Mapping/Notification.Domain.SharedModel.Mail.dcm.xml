@@ -7,9 +7,10 @@
         <id name="id" type="guid" />
         <field name="senderMailAddress" type="string" length="256" nullable="false"/>
         <field name="senderName" type="string" length="256" nullable="false"/>
-        <field name="subject" type="string" length="256" nullable="false"/>
-        <field name="message" type="text" nullable="true"/>
-        <field name="htmlMessage" type="text" nullable="true"/>
+        
+        <embedded name="message" 
+                  class="SharedContext\Domain\ValueObject\MailMessage" 
+                  use-column-prefix="false" />
         
         <one-to-many field="recipients" 
                      target-entity="Notification\Domain\SharedModel\Mail\Recipient" 

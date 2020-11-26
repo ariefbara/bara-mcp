@@ -3,19 +3,24 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\Criteria;
-use Firm\Domain\ {
+use Firm\Domain\{
     Model\Firm\Program,
+    Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Model\Firm\Program\Participant\MetricAssignment,
+    Model\Firm\Team,
     Service\MetricAssignmentDataProvider
 };
-use Resources\ {
+use Resources\{
     DateTimeImmutableBuilder,
     Exception\RegularException,
     Uuid
 };
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Participant implements AssetInProgram
+class Participant implements AssetInProgram, CanAttendMeeting
 {
 
     /**
@@ -65,7 +70,7 @@ class Participant implements AssetInProgram
      * @var TeamParticipant|null
      */
     protected $teamParticipant;
-    
+
     /**
      *
      * @var MetricAssignment|null
@@ -85,7 +90,7 @@ class Participant implements AssetInProgram
         $this->active = true;
         $this->note = null;
     }
-    
+
     public function belongsToProgram(Program $program): bool
     {
         return $this->program === $program;
@@ -104,7 +109,7 @@ class Participant implements AssetInProgram
         $participant->clientParticipant = new ClientParticipant($participant, $id, $clientId);
         return $participant;
     }
-    
+
     public static function participantForTeam(Program $program, string $id, string $teamId): self
     {
         $participant = new static($program, $id);
@@ -144,7 +149,7 @@ class Participant implements AssetInProgram
             return $this->teamParticipant->correspondWithRegistrant($registrant);
         }
     }
-    
+
     public function assignMetrics(MetricAssignmentDataProvider $metricAssignmentDataProvider): void
     {
         if (!empty($this->metricAssignment)) {
@@ -154,10 +159,43 @@ class Participant implements AssetInProgram
             $this->metricAssignment = new MetricAssignment($this, $id, $metricAssignmentDataProvider);
         }
     }
-    
+
     public function belongsInTheSameProgramAs(Metric $metric): bool
     {
         return $metric->belongsToProgram($this->program);
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return $this->active && $this->program === $program;
+    }
+
+    public function registerAsAttendeeCandidate(Attendee $attendee): void
+    {
+        $attendee->setParticipantAsAttendeeCandidate($this);
+    }
+
+    public function roleCorrespondWith(ActivityParticipantType $role): bool
+    {
+        return $role->isParticipantType();
+    }
+
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active participant can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        if (!$meetingType->belongsToProgram($this->program)) {
+            $errorDetail = "forbidden: can only manage meeting type on same program";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $meetingType->createMeeting($meetingId, $meetingData, $this);
+    }
+
+    public function belongsToTeam(Team $team): bool
+    {
+        return isset($this->teamParticipant) ? $this->teamParticipant->belongsToTeam($team) : false;
     }
 
 }

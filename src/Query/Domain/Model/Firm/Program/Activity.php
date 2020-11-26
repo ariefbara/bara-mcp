@@ -3,7 +3,7 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\ {
+use Query\Domain\Model\Firm\{
     Manager\ManagerActivity,
     Program,
     Program\Consultant\ConsultantActivity,
@@ -17,21 +17,15 @@ class Activity
 
     /**
      *
-     * @var Program
+     * @var ActivityType
      */
-    protected $program;
+    protected $activityType;
 
     /**
      *
      * @var string
      */
     protected $id;
-
-    /**
-     *
-     * @var ActivityType
-     */
-    protected $activityType;
 
     /**
      *
@@ -75,43 +69,14 @@ class Activity
      */
     protected $createdTime;
 
-    /**
-     *
-     * @var ManagerActivity|null
-     */
-    protected $managerActivity;
-
-    /**
-     *
-     * @var CoordinatorActivity|null
-     */
-    protected $coordinatorActivity;
-
-    /**
-     *
-     * @var ConsultantActivity|null
-     */
-    protected $consultantActivity;
-
-    /**
-     *
-     * @var ParticipantActivity|null
-     */
-    protected $participantActivity;
-
-    function getProgram(): Program
+    function getActivityType(): ActivityType
     {
-        return $this->program;
+        return $this->activityType;
     }
 
     function getId(): string
     {
         return $this->id;
-    }
-
-    function getActivityType(): ActivityType
-    {
-        return $this->activityType;
     }
 
     function getName(): string
@@ -157,26 +122,6 @@ class Activity
     function getEndTimeString(): string
     {
         return $this->startEndTime->getEndTime()->format("Y-m-d H:i:s");
-    }
-
-    function getManagerActivity(): ?ManagerActivity
-    {
-        return $this->managerActivity;
-    }
-
-    function getCoordinatorActivity(): ?CoordinatorActivity
-    {
-        return $this->coordinatorActivity;
-    }
-
-    function getConsultantActivity(): ?ConsultantActivity
-    {
-        return $this->consultantActivity;
-    }
-
-    function getParticipantActivity(): ?ParticipantActivity
-    {
-        return $this->participantActivity;
     }
 
 }

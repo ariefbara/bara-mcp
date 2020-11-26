@@ -58,7 +58,8 @@ class ConsultationSessionController extends PersonnelBaseController
         $consultationSessionFilter = (new ConsultationSessionFilter())
                 ->setMinStartTime($this->dateTimeImmutableOfQueryRequest("minStartTime"))
                 ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("maxEndTime"))
-                ->setContainParticipantFeedback($this->filterBooleanOfQueryRequest("containParticipantFeedback"));
+                ->setContainParticipantFeedback($this->filterBooleanOfQueryRequest("containParticipantFeedback"))
+                ->setContainConsultantFeedback($this->filterBooleanOfQueryRequest("containConsultantFeedback"));
         
         $consultationSessions = $service->showAll(
                 $this->firmId(), $this->personnelId(), $programConsultationId, $this->getPage(), $this->getPageSize(),

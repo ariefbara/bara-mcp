@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Firm\Domain\Model\Firm\Program\ClientParticipant" 
             table="ClientParticipant" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientParticipantRepository"
     >
         
         <one-to-one  field="participant" 

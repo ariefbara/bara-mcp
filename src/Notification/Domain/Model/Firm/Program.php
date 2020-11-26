@@ -26,6 +26,11 @@ class Program
         return $this->firm->getDomain();
     }
     
+    public function getFirmLogoPath(): ?string
+    {
+        return $this->firm->getLogoPath();
+    }
+    
     public function getFirmMailSenderAddress(): string
     {
         return $this->firm->getMailSenderAddress();

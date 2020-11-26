@@ -2,6 +2,12 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Firm\Domain\Model\Firm\ {
+    Program\MeetingType\Meeting,
+    Program\MeetingType\MeetingData,
+    Team
+};
+
 class TeamParticipant
 {
 
@@ -33,6 +39,16 @@ class TeamParticipant
     public function correspondWithRegistrant(Registrant $registrant): bool
     {
         return $registrant->correspondWithTeam($this->teamId);
+    }
+    
+    public function belongsToTeam(Team $team): bool
+    {
+        return $team->idEquals($this->teamId);
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        return $this->participant->initiateMeeting($meetingId, $meetingType, $meetingData);
     }
 
 }

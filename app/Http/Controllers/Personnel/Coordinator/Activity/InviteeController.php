@@ -3,8 +3,20 @@
 namespace App\Http\Controllers\Personnel\Coordinator\Activity;
 
 use App\Http\Controllers\Personnel\PersonnelBaseController;
+use Firm\ {
+    Application\Service\Personnel\CancelInvitation,
+    Application\Service\Personnel\InviteConsultantToAttendMeeting,
+    Application\Service\Personnel\InviteCoordinatorToAttendMeeting,
+    Application\Service\Personnel\InviteManagerToAttendMeeting,
+    Application\Service\Personnel\InviteParticipantToAttendMeeting,
+    Domain\Model\Firm\Manager,
+    Domain\Model\Firm\Program\Consultant,
+    Domain\Model\Firm\Program\Coordinator,
+    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Domain\Model\Firm\Program\Participant
+};
 use Query\ {
-    Application\Service\Firm\Personnel\ProgramCoordinator\Activity\ViewInvitation,
+    Application\Service\Firm\Program\Activity\ViewInvitee,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Manager\ManagerInvitee,
     Domain\Model\Firm\Program\Activity\Invitee,
@@ -111,8 +123,42 @@ class InviteeController extends PersonnelBaseController
 
     protected function buildViewService()
     {
-        $invitationRepository = $this->em->getRepository(Invitee::class);
-        return new ViewInvitation($invitationRepository);
+        $inviteeRepository = $this->em->getRepository(Invitee::class);
+        return new ViewInvitee($inviteeRepository);
+    }
+    
+    protected function buildInviteManagerService()
+    {
+        $attendeeRepository = $this->em->getRepository(Attendee::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        return new InviteManagerToAttendMeeting($attendeeRepository, $managerRepository);
+    }
+    
+    protected function buildInviteCoordinatorService()
+    {
+        $attendeeRepository = $this->em->getRepository(Attendee::class);
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        return new InviteCoordinatorToAttendMeeting($attendeeRepository, $coordinatorRepository);
+    }
+    
+    protected function buildInviteConsultantService()
+    {
+        $attendeeRepository = $this->em->getRepository(Attendee::class);
+        $consultantRepository = $this->em->getRepository(Consultant::class);
+        return new InviteConsultantToAttendMeeting($attendeeRepository, $consultantRepository);
+    }
+    
+    protected function buildInviteParticipantService()
+    {
+        $attendeeRepository = $this->em->getRepository(Attendee::class);
+        $participantRepository = $this->em->getRepository(Participant::class);
+        return new InviteParticipantToAttendMeeting($attendeeRepository, $participantRepository);
+    }
+    
+    protected function buildCancelService()
+    {
+        $attendeeRepository = $this->em->getRepository(Attendee::class);
+        return new CancelInvitation($attendeeRepository);
     }
 
 }

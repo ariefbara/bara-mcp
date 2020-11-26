@@ -14,16 +14,10 @@ use App\Http\Controllers\ {
 };
 use Query\ {
     Application\Service\Firm\Personnel\ProgramCoordinator\ViewInvitationForCoordinator,
-    Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Manager\ManagerActivity,
     Domain\Model\Firm\Program\Activity\Invitee\InviteeReport,
-    Domain\Model\Firm\Program\Consultant\ConsultantActivity,
-    Domain\Model\Firm\Program\Coordinator\CoordinatorActivity,
-    Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee,
-    Domain\Model\Firm\Program\Participant\ParticipantActivity,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
+    Domain\Model\Firm\Program\ActivityType,
+    Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee
 };
 use SharedContext\Domain\ {
     Model\SharedEntity\FileInfo,
@@ -32,34 +26,32 @@ use SharedContext\Domain\ {
 
 class InvitationController extends PersonnelBaseController
 {
-
-    public function submitReport($coordinatorId, $invitationId)
+    
+    public function submitReport($invitationId)
     {
         $service = $this->buildSubmitReportService();
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
-        $fileInfoFinder = new FileInfoBelongsToPersonnelFinder(
-                $fileInfoRepository, $this->firmId(), $this->personnelId());
-
+        $fileInfoFinder = new FileInfoBelongsToPersonnelFinder($fileInfoRepository, $this->firmId(), $this->personnelId());
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
+        
         $service->execute($this->firmId(), $this->personnelId(), $invitationId, $formRecordData);
         
-        return $this->show($coordinatorId, $invitationId);
+        return $this->show($invitationId);
     }
-
-    public function show($coordinatorId, $invitationId)
+    
+    public function show($invitationId)
     {
         $service = $this->buildViewService();
         $invitation = $service->showById($this->firmId(), $this->personnelId(), $invitationId);
-
+        
         return $this->singleQueryResponse($this->arrayDataOfActivityInvitation($invitation));
     }
-
+    
     public function showAll($coordinatorId)
     {
         $service = $this->buildViewService();
-        $invitations = $service->showAll(
-                $this->firmId(), $this->personnelId(), $coordinatorId, $this->getPage(), $this->getPageSize());
-
+        $invitations = $service->showAll($this->firmId(), $this->personnelId(), $coordinatorId, $this->getPage(), $this->getPageSize());
+        
         $result = [];
         $result["total"] = count($invitations);
         foreach ($invitations as $invitation) {
@@ -67,6 +59,7 @@ class InvitationController extends PersonnelBaseController
                 "id" => $invitation->getId(),
                 "willAttend" => $invitation->willAttend(),
                 "attended" => $invitation->isAttended(),
+                "anInitiator" => $invitation->isAnInitiator(),
                 "activity" => [
                     "id" => $invitation->getActivity()->getId(),
                     "name" => $invitation->getActivity()->getName(),
@@ -74,27 +67,25 @@ class InvitationController extends PersonnelBaseController
                     "startTime" => $invitation->getActivity()->getStartTimeString(),
                     "endTime" => $invitation->getActivity()->getEndTimeString(),
                     "cancelled" => $invitation->getActivity()->isCancelled(),
-                    "program" => [
-                        "id" => $invitation->getActivity()->getProgram()->getId(),
-                        "name" => $invitation->getActivity()->getProgram()->getName(),
-                    ],
+                    "activityType" => $this->arrayDataOfActivityType($invitation->getActivity()->getActivityType()),
                 ],
             ];
         }
         return $this->listQueryResponse($result);
     }
-
+    
     protected function arrayDataOfActivityInvitation(CoordinatorInvitee $invitation): array
     {
         return [
             "id" => $invitation->getId(),
             "willAttend" => $invitation->willAttend(),
             "attended" => $invitation->isAttended(),
+            "anInitiator" => $invitation->isAnInitiator(),
+            "report" => $this->arrayDataOfReport($invitation->getReport()),
             "activityParticipant" => [
                 "id" => $invitation->getActivityParticipant()->getId(),
                 "reportForm" => $this->arrayDataOfReportForm($invitation->getActivityParticipant()->getReportForm()),
             ],
-            "report" => $this->arrayDataOfReport($invitation->getReport()),
             "activity" => [
                 "id" => $invitation->getActivity()->getId(),
                 "name" => $invitation->getActivity()->getName(),
@@ -104,18 +95,18 @@ class InvitationController extends PersonnelBaseController
                 "startTime" => $invitation->getActivity()->getStartTimeString(),
                 "endTime" => $invitation->getActivity()->getEndTimeString(),
                 "cancelled" => $invitation->getActivity()->isCancelled(),
-                "program" => [
-                    "id" => $invitation->getActivity()->getProgram()->getId(),
-                    "name" => $invitation->getActivity()->getProgram()->getName(),
-                ],
-                "activityType" => [
-                    "id" => $invitation->getActivity()->getActivityType()->getId(),
-                    "name" => $invitation->getActivity()->getActivityType()->getName(),
-                ],
-                "manager" => $this->arrayDataOfManager($invitation->getActivity()->getManagerActivity()),
-                "coordinator" => $this->arrayDataOfCoordinator($invitation->getActivity()->getCoordinatorActivity()),
-                "consultant" => $this->arrayDataOfConsultant($invitation->getActivity()->getConsultantActivity()),
-                "participant" => $this->arrayDataOfParticipant($invitation->getActivity()->getParticipantActivity()),
+                "activityType" => $this->arrayDataOfActivityType($invitation->getActivity()->getActivityType()),
+            ],
+        ];
+    }
+    protected function arrayDataOfActivityType(ActivityType $activityType): array
+    {
+        return [
+            "id" => $activityType->getId(),
+            "name" => $activityType->getName(),
+            "program" => [
+                "id" => $activityType->getProgram()->getId(),
+                "name" => $activityType->getProgram()->getName(),
             ],
         ];
     }
@@ -132,74 +123,18 @@ class InvitationController extends PersonnelBaseController
     {
         return isset($report)? (new FormRecordToArrayDataConverter())->convert($report): null;
     }
-    protected function arrayDataOfManager(?ManagerActivity $managerActivity): ?array
-    {
-        return empty($managerActivity) ? null : [
-            "id" => $managerActivity->getManager()->getId(),
-            "name" => $managerActivity->getManager()->getName(),
-        ];
-    }
-    protected function arrayDataOfCoordinator(?CoordinatorActivity $coordinatorActivity): ?array
-    {
-        return empty($coordinatorActivity) ? null : [
-            "id" => $coordinatorActivity->getCoordinator()->getId(),
-            "personnel" => [
-                "id" => $coordinatorActivity->getCoordinator()->getPersonnel()->getId(),
-                "name" => $coordinatorActivity->getCoordinator()->getPersonnel()->getName(),
-            ],
-        ];
-    }
-    protected function arrayDataOfConsultant(?ConsultantActivity $consultantActivity): ?array
-    {
-        return empty($consultantActivity) ? null : [
-            "id" => $consultantActivity->getConsultant()->getId(),
-            "personnel" => [
-                "id" => $consultantActivity->getConsultant()->getPersonnel()->getId(),
-                "name" => $consultantActivity->getConsultant()->getPersonnel()->getName(),
-            ],
-        ];
-    }
-    protected function arrayDataOfParticipant(?ParticipantActivity $participantActivity): ?array
-    {
-        return empty($participantActivity) ? null : [
-            "id" => $participantActivity->getParticipant()->getId(),
-            "user" => $this->arrayDataOfUser($participantActivity->getParticipant()->getUserParticipant()),
-            "client" => $this->arrayDataOfClient($participantActivity->getParticipant()->getClientParticipant()),
-            "team" => $this->arrayDataOfTeam($participantActivity->getParticipant()->getTeamParticipant()),
-        ];
-    }
-    protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
-    {
-        return empty($userParticipant) ? null : [
-            "id" => $userParticipant->getUser()->getId(),
-            "name" => $userParticipant->getUser()->getFullName(),
-        ];
-    }
-    protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
-    {
-        return empty($clientParticipant) ? null : [
-            "id" => $clientParticipant->getClient()->getId(),
-            "name" => $clientParticipant->getClient()->getFullName(),
-        ];
-    }
-    protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
-    {
-        return empty($teamParticipant) ? null : [
-            "id" => $teamParticipant->getTeam()->getId(),
-            "name" => $teamParticipant->getTeam()->getName(),
-        ];
-    }
-
+    
     protected function buildViewService()
     {
         $coordinatorInvitationRepository = $this->em->getRepository(CoordinatorInvitee::class);
         return new ViewInvitationForCoordinator($coordinatorInvitationRepository);
     }
-
+    
     protected function buildSubmitReportService()
     {
         $activityInvitationRepository = $this->em->getRepository(CoordinatorInvitee2::class);
         return new SubmitReport($activityInvitationRepository);
     }
-
+    
+    
 }

@@ -66,12 +66,12 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
 
         $this->consultationSession = new RecordOfConsultationSession(
                 $consultationSetup, $this->programParticipation->participant, $consultant, 0);
-        $this->consultationSession->startDateTime = (new DateTimeImmutable('+48 hours'))->format('Y-m-d H:i:s');
-        $this->consultationSession->endDateTime = (new DateTimeImmutable('+49 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSession->startDateTime = (new DateTimeImmutable('-1 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSession->endDateTime = (new DateTimeImmutable('+1 hours'))->format('Y-m-d H:i:s');
         $this->consultationSessionOne = new RecordOfConsultationSession(
                 $consultationSetup, $this->programParticipation->participant, $consultant, 1);
-        $this->consultationSessionOne->startDateTime = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
-        $this->consultationSessionOne->endDateTime = (new DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSessionOne->startDateTime = (new DateTimeImmutable('-48 hours'))->format('Y-m-d H:i:s');
+        $this->consultationSessionOne->endDateTime = (new DateTimeImmutable('-47 hours'))->format('Y-m-d H:i:s');
         $this->connection->table("ConsultationSession")->insert($this->consultationSession->toArrayForDbEntry());
         $this->connection->table("ConsultationSession")->insert($this->consultationSessionOne->toArrayForDbEntry());
 
@@ -221,6 +221,38 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $uri = $this->consultationSessionUri
                 . "?maxEndTime=$maxEndTimeString";
 //                . "&containParticipantFeedback=true";
+
+        $this->get($uri, $this->teamMember->client->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+    }
+    public function test_showAll_minStartTimeFilter()
+    {
+        $response = [
+            "total" => 1,
+            "list" => [
+                [
+                    "id" => $this->consultationSession->id,
+                    "startTime" => $this->consultationSession->startDateTime,
+                    "endTime" => $this->consultationSession->endDateTime,
+                    "hasParticipantFeedback" => false,
+                    "consultationSetup" => [
+                        "id" => $this->consultationSession->consultationSetup->id,
+                        "name" => $this->consultationSession->consultationSetup->name,
+                    ],
+                    "consultant" => [
+                        "id" => $this->consultationSession->consultant->id,
+                        "personnel" => [
+                            "id" => $this->consultationSession->consultant->personnel->id,
+                            "name" => $this->consultationSession->consultant->personnel->getFullName(),
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $minStartTimeStrings = (new DateTime())->format('Y-m-d H:i:s');
+        $uri = $this->consultationSessionUri
+                . "?minStartTime=$minStartTimeStrings";
 
         $this->get($uri, $this->teamMember->client->token)
                 ->seeStatusCode(200)

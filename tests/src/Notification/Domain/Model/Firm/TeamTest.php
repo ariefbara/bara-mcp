@@ -6,9 +6,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Notification\Domain\ {
     Model\Firm\Team\Member,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class TeamTest extends TestBase

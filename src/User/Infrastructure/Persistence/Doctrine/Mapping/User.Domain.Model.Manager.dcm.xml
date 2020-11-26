@@ -5,7 +5,12 @@
             repository-class="User\Infrastructure\Persistence\Doctrine\Repository\DoctrineManagerRepository"
     >
         
-        <field name="firmId" column="Firm_id" type="guid" nullable="false"/>
+        <many-to-one  field="firm" 
+                      target-entity="User\Domain\DependencyModel\Firm"
+        >
+            <join-column name="Firm_id" referenced-column-name="id" />
+        </many-to-one>
+        
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
         <field name="email" type="string" length="256" nullable="false"/>
@@ -13,6 +18,8 @@
                   class="Resources\Domain\ValueObject\Password" 
                   use-column-prefix="false" />
         <field name="phone" type="string" length="16" nullable="true"/>
+        <field name="resetPasswordCode" type="string" length="64" nullable="true"/>
+        <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true"/>
         <field name="removed" type="boolean" />
         
     </entity>

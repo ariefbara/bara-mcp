@@ -67,6 +67,18 @@ class Personnel
      * @var DateTimeImmutable
      */
     protected $joinTime;
+    
+    /**
+     *
+     * @var string|null
+     */
+    protected $resetPasswordCode;
+    
+    /**
+     *
+     * @var DateTimeImmutable|null
+     */
+    protected $resetPasswordCodeExpiredTime;
 
     /**
      *

@@ -6,6 +6,10 @@ use DateTimeImmutable;
 use Firm\Domain\ {
     Model\Firm,
     Model\Firm\Program\ActivityType,
+    Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Service\ActivityTypeDataProvider
 };
 use Resources\ {
@@ -14,8 +18,9 @@ use Resources\ {
     ValidationRule,
     ValidationService
 };
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Manager
+class Manager implements CanAttendMeeting
 {
 
     /**
@@ -117,6 +122,34 @@ class Manager
             throw RegularException::forbidden($errorDetail);
         }
         return $program->createActivityType($activityTypeId, $activityTypeDataProvider);
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return !$this->removed && $program->belongsToFirm($this->firm);
+    }
+
+    public function registerAsAttendeeCandidate(Attendee $attendee): void
+    {
+        $attendee->setManagerAsAttendeeCandidate($this);
+    }
+
+    public function roleCorrespondWith(ActivityParticipantType $role): bool
+    {
+        return $role->isManagerType();
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        if ($this->removed) {
+            $errorDetail = "forbidden: only active manager can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        if (!$meetingType->belongsToFirm($this->firm)) {
+            $errorDetail = "forbidden: unable to manage meeting type from other firm";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $meetingType->createMeeting($meetingId, $meetingData, $this);
     }
 
 }

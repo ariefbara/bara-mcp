@@ -2,12 +2,9 @@
 
 namespace Firm\Application\Service\Firm;
 
-use Firm\ {
-    Application\Service\Manager\ProgramRepository as InterfaceForManager,
-    Domain\Model\Firm\Program
-};
+use Firm\Domain\Model\Firm\Program;
 
-interface ProgramRepository extends InterfaceForManager
+interface ProgramRepository
 {
 
     public function nextIdentity(): string;
@@ -17,4 +14,6 @@ interface ProgramRepository extends InterfaceForManager
     public function update(): void;
 
     public function ofId(string $firmId, string $programId): Program;
+    
+    public function aProgramOfId(string $programId): Program;
 }

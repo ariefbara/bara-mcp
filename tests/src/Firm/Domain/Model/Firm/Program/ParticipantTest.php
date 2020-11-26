@@ -5,10 +5,14 @@ namespace Firm\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Firm\Domain\ {
     Model\Firm\Program,
+    Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\MeetingData,
     Model\Firm\Program\Participant\MetricAssignment,
+    Model\Firm\Team,
     Service\MetricAssignmentDataProvider
 };
 use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -25,6 +29,8 @@ class ParticipantTest extends TestBase
     protected $metricAssignment;
     protected $metricAssignmentDataProvider;
     protected $metric;
+    protected $meetingId = "meetingId", $meetingType, $meetingData;
+    protected $team;
 
     protected function setUp(): void
     {
@@ -52,6 +58,11 @@ class ParticipantTest extends TestBase
         $this->metricAssignmentDataProvider->expects($this->any())->method("getEndDate")->willReturn(new DateTimeImmutable("+2 days"));
         
         $this->metric = $this->buildMockOfClass(Metric::class);
+        
+        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        
+        $this->team = $this->buildMockOfClass(Team::class);
     }
 
     public function test_participantForUser_setProperties()
@@ -213,6 +224,88 @@ class ParticipantTest extends TestBase
         $this->metric->expects($this->once())
                 ->method("belongsToProgram");
         $this->participant->belongsInTheSameProgramAs($this->metric);
+    }
+    
+    public function test_canInvolvedInProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->participant->canInvolvedInProgram($this->participant->program));
+    }
+    public function test_canInvolvedInProgram_inactiveParticipant_returnFalse()
+    {
+        $this->participant->active = false;
+        $this->assertFalse($this->participant->canInvolvedInProgram($this->participant->program));
+    }
+    public function test_canInvolvedInProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->participant->canInvolvedInProgram($program));
+    }
+    
+    public function test_roleCorrespondWith_returnActivityParticipantTypeIsParticipantResult()
+    {
+        $activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
+        $activityParticipantType->expects($this->once())
+                ->method("isParticipantType");
+        $this->participant->roleCorrespondWith($activityParticipantType);
+    }
+    
+    public function test_registerAsAttendeeCandidate_setParticipantAsAttendeeCandidate()
+    {
+        $attendee = $this->buildMockOfClass(Attendee::class);
+        $attendee->expects($this->once())
+                ->method("setParticipantAsAttendeeCandidate")
+                ->with($this->participant);
+        $this->participant->registerAsAttendeeCandidate($attendee);
+    }
+    
+    protected function executeInitiateMeeting()
+    {
+        $this->meetingType->expects($this->any())
+                ->method("belongsToProgram")
+                ->willReturn(true);
+        $this->participant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingTypeCreateMeetingResult()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("createMeeting")
+                ->with($this->meetingId, $this->meetingData, $this->participant);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: only active participant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_initiateMeeting_meetingTypeNotFromInProgram_forbidden()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("belongsToProgram")
+                ->with($this->program)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeInitiateMeeting();
+        };
+        $errorDetail = "forbidden: can only manage meeting type on same program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_belongsToTeam_returnTeamParticipantBelongsToTeamResult()
+    {
+        $this->participant->teamParticipant = $this->teamParticipant;
+        $this->teamParticipant->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($this->team);
+        $this->participant->belongsToTeam($this->team);
+    }
+    public function test_belongsToTeam_notATeamParticipant_returnFalse()
+    {
+        $this->participant->teamParticipant = null;
+        $this->assertFalse($this->participant->belongsToTeam($this->team));
     }
 }
 

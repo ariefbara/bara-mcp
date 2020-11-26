@@ -3,15 +3,15 @@
 namespace Notification\Domain\Model\Firm\Program\Participant;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\ {
-    Model\Firm\Program\Consultant,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Participant\ConsultationRequest\ConsultationRequestMail,
-    Model\Firm\Program\Participant\ConsultationRequest\ConsultationRequestNotification,
-    Model\Firm\Team\Member,
-    SharedModel\MailMessage
+use Notification\Domain\Model\Firm\ {
+    Program\Consultant,
+    Program\Participant,
+    Program\Participant\ConsultationRequest\ConsultationRequestMail,
+    Program\Participant\ConsultationRequest\ConsultationRequestNotification,
+    Team\Member
 };
 use Resources\Domain\ValueObject\DateTimeInterval;
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class ConsultationRequestTest extends TestBase
@@ -187,9 +187,6 @@ class ConsultationRequestTest extends TestBase
     {
         $this->participant->expects($this->once())->method("getFirmMailSenderAddress");
         $this->participant->expects($this->once())->method("getFirmMailSenderName");
-        $this->mailMessage->expects($this->once())->method("getSubject");
-        $this->mailMessage->expects($this->once())->method("getTextMessage");
-        $this->mailMessage->expects($this->once())->method("getHtmlMessage");
         $this->consultationRequest->addMail($this->mailMessage, $this->recipientMailAddress, $this->recipientName);
         $this->assertInstanceOf(ConsultationRequestMail::class, $this->consultationRequest->consultationRequestMails->first());
     }

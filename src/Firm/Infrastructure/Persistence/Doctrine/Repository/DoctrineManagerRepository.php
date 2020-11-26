@@ -2,15 +2,15 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Firm\{
+use Firm\ {
     Application\Service\Firm\ManagerRepository,
     Domain\Model\Firm\Manager
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Uuid
 };
@@ -49,6 +49,40 @@ class DoctrineManagerRepository extends EntityRepository implements ManagerRepos
     }
 
     public function ofId(string $firmId, string $managerId): Manager
+    {
+        $params = [
+            "firmId" => $firmId,
+            "managerId" => $managerId,
+        ];
+
+        $qb = $this->createQueryBuilder('manager');
+        $qb->select('manager')
+                ->andWhere($qb->expr()->eq('manager.id', ":managerId"))
+                ->andWhere($qb->expr()->eq('manager.removed', "false"))
+                ->leftJoin('manager.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: manager not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aManagerOfId(string $managerId): Manager
+    {
+        $manager = $this->findOneBy(["id" => $managerId]);
+        if (empty($manager)) {
+            $errorDetail = "not found: manager not found";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $manager;
+    }
+
+    public function aManagerInFirm(string $firmId, string $managerId): Manager
     {
         $params = [
             "firmId" => $firmId,

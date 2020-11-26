@@ -2,6 +2,11 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Firm\Domain\Model\Firm\Program\MeetingType\ {
+    Meeting,
+    MeetingData
+};
+
 class ClientParticipant
 {
 
@@ -33,6 +38,11 @@ class ClientParticipant
     public function correspondWithRegistrant(Registrant $registrant): bool
     {
         return $registrant->correspondWithClient($this->clientId);
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        return $this->participant->initiateMeeting($meetingId, $meetingType, $meetingData);
     }
 
 }

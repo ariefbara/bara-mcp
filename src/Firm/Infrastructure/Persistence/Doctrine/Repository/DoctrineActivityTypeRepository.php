@@ -4,10 +4,13 @@ namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Firm\{
-    Application\Service\Manager\ActivityTypeRepository,
+    Application\Service\Firm\Program\ActivityTypeRepository,
     Domain\Model\Firm\Program\ActivityType
 };
-use Resources\Uuid;
+use Resources\{
+    Exception\RegularException,
+    Uuid
+};
 
 class DoctrineActivityTypeRepository extends EntityRepository implements ActivityTypeRepository
 {
@@ -22,6 +25,16 @@ class DoctrineActivityTypeRepository extends EntityRepository implements Activit
     public function nextIdentity(): string
     {
         return Uuid::generateUuid4();
+    }
+
+    public function ofId(string $activityTypeId): ActivityType
+    {
+        $activityType = $this->findOneBy(["id" => $activityTypeId]);
+        if (empty($activityType)) {
+            $errorDetail = "not found: activity type not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $activityType;
     }
 
 }

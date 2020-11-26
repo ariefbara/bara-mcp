@@ -28,44 +28,9 @@ class UserMail
      */
     protected $mail;
 
-    public function getUser(): User
-    {
-        return $this->user;
-    }
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
     protected function __construct()
     {
         
-    }
-
-    public function getSenderMailAddress(): string
-    {
-        return $this->mail->getSenderMailAddress();
-    }
-
-    public function getSenderName(): string
-    {
-        return $this->mail->getSenderName();
-    }
-
-    public function getSubject(): string
-    {
-        return $this->mail->getSubject();
-    }
-
-    public function getMessage(): string
-    {
-        return $this->mail->getMessage();
-    }
-
-    public function getHtmlMessage(): ?string
-    {
-        return $this->mail->getHtmlMessage();
     }
 
 }

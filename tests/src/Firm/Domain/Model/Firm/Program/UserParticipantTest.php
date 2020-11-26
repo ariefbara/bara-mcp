@@ -2,24 +2,16 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\ {
-    Firm\Program,
-    User
-};
-use Resources\ {
-    Application\Service\Mailer,
-    Domain\ValueObject\PersonName
-};
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Tests\TestBase;
 
 class UserParticipantTest extends TestBase
 {
     protected $userParticipant;
     protected $participant;
-    
     protected $id = 'id', $userId = 'userId';
-    
     protected $registrant;
+    protected $meetingId = "meetingId", $meetingType, $meetingData;
 
     protected function setUp(): void
     {
@@ -30,6 +22,8 @@ class UserParticipantTest extends TestBase
         $this->userParticipant = new TestableUserParticipant($this->participant, 'id', 'userId');
         
         $this->registrant = $this->buildMockOfClass(Registrant::class);
+        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
     
     public function test_construct_setProperties()
@@ -46,6 +40,14 @@ class UserParticipantTest extends TestBase
                 ->method('correspondWithUser')
                 ->with($this->userParticipant->userId);
         $this->userParticipant->correspondWithRegistrant($this->registrant);
+    }
+    
+    public function test_initiateMeeting_returnParticipantInitiateMeetingResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("initiateMeeting")
+                ->with($this->meetingId, $this->meetingType, $this->meetingData);
+        $this->userParticipant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
     }
     
 }

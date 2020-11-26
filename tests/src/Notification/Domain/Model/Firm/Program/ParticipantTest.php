@@ -9,9 +9,9 @@ use Notification\Domain\ {
     Model\Firm\Team\TeamProgramParticipation,
     Model\User\UserProgramParticipation,
     SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification,
-    SharedModel\MailMessage
+    SharedModel\ContainNotification
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -91,6 +91,14 @@ class ParticipantTest extends TestBase
         $this->program->expects($this->once())->method("getFirmDomain");
         $this->participant->getFirmDomain();
     }
+    
+    public function test_getFirmLogoPath_returnProgramGetFirmLogoPathResult()
+    {
+        $this->program->expects($this->once())
+                ->method("getFirmLogoPath");
+        $this->participant->getFirmLogoPath();
+    }
+    
     public function test_getFirmMailSenderAddress_returnProgramsGetFirmMailSenderAddressResult()
     {
         $this->program->expects($this->once())->method("getFirmMailSenderAddress");

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Personnel\PersonnelMail" 
+            table="PersonnelMail" 
+    >
+        
+        <many-to-one  field="personnel" 
+                      target-entity="Query\Domain\Model\Firm\Personnel"
+        >
+            <join-column name="Personnel_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="mail" 
+                    target-entity="Query\Domain\SharedModel\Mail"
+        >
+            <join-column name="Mail_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -9,13 +9,13 @@ use Notification\Domain\{
     Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionMail,
     Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionNotification,
     Model\Firm\Team\Member,
-    SharedModel\CanSendPersonalizeMail,
-    SharedModel\MailMessage
+    SharedModel\CanSendPersonalizeMail
 };
 use Resources\{
     Domain\ValueObject\DateTimeInterval,
     Uuid
 };
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class ConsultationSession implements CanSendPersonalizeMail
 {
@@ -68,13 +68,13 @@ class ConsultationSession implements CanSendPersonalizeMail
         $mainMessage = <<<_MESSAGE
 Anggota {$teamMember->getClientFullName()} dari tim {$this->participant->getName()} telah menyetujui usulan jadwal Konsultasi dari {$this->consultant->getPersonnelFullName()} di waktu:
     {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-
 Untuk melihat detail konsultasi kunjungi;
 _MESSAGE;
         $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-sessions/$this->id";
+        $logoPath = $this->participant->getFirmLogoPath();
 
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath);
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
 
         $this->participant->registerMailRecipient($this, $mailMessage);
         $this->consultant->registerMailRecipient($this, $this->buildMailMessageForConsultant());
@@ -100,8 +100,9 @@ Untuk melihat detail konsultasi kunjungi;
 _MESSAGE;
         $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-sessions/$this->id";
+        $logoPath = $this->participant->getFirmLogoPath();
 
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath);
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
 
         $this->participant->registerMailRecipient($this, $mailMessage);
         $this->consultant->registerMailRecipient($this, $this->buildMailMessageForConsultant());
@@ -126,8 +127,9 @@ Untuk melihat detail konsultasi kunjungi;
 _MESSAGE;
         $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-sessions/$this->id";
+        $logoPath = $this->participant->getFirmLogoPath();
 
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath);
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
 
         $this->participant->registerMailRecipient($this, $mailMessage);
         $this->consultant->registerMailRecipient($this, $this->buildMailMessageForConsultant());
@@ -145,13 +147,9 @@ _MESSAGE;
         $id = Uuid::generateUuid4();
         $senderMailAddress = $this->participant->getFirmMailSenderAddress();
         $senderName = $this->participant->getFirmMailSenderName();
-        $subject = $mailMessage->getSubject();
-        $message = $mailMessage->getTextMessage();
-        $htmlMessage = $mailMessage->getHtmlMessage();
 
         $consultationSessionMail = new ConsultationSessionMail(
-                $this, $id, $senderMailAddress, $senderName, $subject, $message, $htmlMessage, $recipientMailAddress,
-                $recipientName);
+                $this, $id, $recipientMailAddress, $recipientName, $mailMessage, $senderMailAddress, $senderName);
         $this->consultationSessionMails->add($consultationSessionMail);
     }
 
@@ -167,7 +165,8 @@ Untuk melihat detail konsultasi kunjungi;
 _MESSAGE;
         $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-sessions/$this->id";
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath);
+        $logoPath = $this->participant->getFirmLogoPath();
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
     }
 
 }

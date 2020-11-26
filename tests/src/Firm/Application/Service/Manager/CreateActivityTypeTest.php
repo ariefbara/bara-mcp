@@ -2,10 +2,12 @@
 
 namespace Firm\Application\Service\Manager;
 
-use Firm\Domain\ {
-    Model\Firm\Manager,
-    Model\Firm\Program,
-    Service\ActivityTypeDataProvider
+use Firm\ {
+    Application\Service\Firm\Program\ActivityTypeRepository,
+    Application\Service\Firm\ProgramRepository,
+    Domain\Model\Firm\Manager,
+    Domain\Model\Firm\Program,
+    Domain\Service\ActivityTypeDataProvider
 };
 use Tests\TestBase;
 
@@ -29,7 +31,7 @@ class CreateActivityTypeTest extends TestBase
         $this->manager = $this->buildMockOfClass(Manager::class);
         $this->managerRepository = $this->buildMockOfInterface(ManagerRepository::class);
         $this->managerRepository->expects($this->any())
-                ->method("ofId")
+                ->method("aManagerInFirm")
                 ->with($this->firmId, $this->managerId)
                 ->willReturn($this->manager);
 

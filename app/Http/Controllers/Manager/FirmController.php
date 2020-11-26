@@ -9,7 +9,8 @@ use Firm\ {
 };
 use Query\ {
     Application\Service\FirmView,
-    Domain\Model\Firm
+    Domain\Model\Firm,
+    Domain\Model\Firm\FirmFileInfo as FirmFileInfo2
 };
 
 class FirmController extends ManagerBaseController
@@ -44,8 +45,15 @@ class FirmController extends ManagerBaseController
             "domain" => $firm->getWhitelableUrl(),
             "mailSenderAddress" => $firm->getWhitelableMailSenderAddress(),
             "mailSenderName" => $firm->getWhitelableMailSenderName(),
-            "logoPath" => $firm->getLogoPath(),
+            "logo" => $this->arrayDataOfLogo($firm->getLogo()),
             "displaySetting" => $firm->getDisplaySetting(),
+        ];
+    }
+    protected function arrayDataOfLogo(?FirmFileInfo2 $logo): ?array
+    {
+        return empty($logo)? null: [
+            "id" => $logo->getId(),
+            "path" => $logo->getFullyQualifiedFileName(),
         ];
     }
     protected function buildViewService()

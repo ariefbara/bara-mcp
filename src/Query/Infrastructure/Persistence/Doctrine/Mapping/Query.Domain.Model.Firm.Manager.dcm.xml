@@ -18,6 +18,8 @@
                   use-column-prefix="false" />
         <field name="phone" type="string" length="16" nullable="true"/>
         <field name="joinTime" type="datetime_immutable" nullable="true"/>
+        <field name="resetPasswordCode" type="string" length="64" nullable="true"/>
+        <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true"/>
         <field name="removed" type="boolean" />
         
     </entity>

@@ -31,8 +31,8 @@ class ParticipantControllerTest extends ParticipantTestCase
     protected $assignmentFieldOne;
     protected $assignMetricInput;
     protected $metricAssignmentReport;
-    protected $metricAssignmentReportOne_last;
-    protected $metricAssignmentReportTwo;
+    protected $metricAssignmentReportOne_lastApproved;
+    protected $metricAssignmentReportTwo_last;
     protected $assignmentFieldValue_00;
     protected $assignmentFieldValue_01;
 
@@ -90,16 +90,18 @@ class ParticipantControllerTest extends ParticipantTestCase
         
         $this->metricAssignmentReport = new RecordOfMetricAssignmentReport($this->metricAssignment, 0);
         $this->metricAssignmentReport->observationTime = (new DateTime("-2 months"))->format("Y-m-d H:i:s");
-        $this->metricAssignmentReportOne_last = new RecordOfMetricAssignmentReport($this->metricAssignment, 1);
-        $this->metricAssignmentReportOne_last->observationTime = (new DateTime("-2 days"))->format("Y-m-d H:i:s");
-        $this->metricAssignmentReportTwo = new RecordOfMetricAssignmentReport($this->metricAssignment, 2);
-        $this->metricAssignmentReportTwo->observationTime = (new DateTime("-2 weeks"))->format("Y-m-d H:i:s");
+        $this->metricAssignmentReport->approved = true;
+        $this->metricAssignmentReportOne_lastApproved = new RecordOfMetricAssignmentReport($this->metricAssignment, 1);
+        $this->metricAssignmentReportOne_lastApproved->observationTime = (new DateTime("-2 weeks"))->format("Y-m-d H:i:s");
+        $this->metricAssignmentReportOne_lastApproved->approved = true;
+        $this->metricAssignmentReportTwo_last = new RecordOfMetricAssignmentReport($this->metricAssignment, 2);
+        $this->metricAssignmentReportTwo_last->observationTime = (new DateTime("-2 days"))->format("Y-m-d H:i:s");
         $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReport->toArrayForDbEntry());
-        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne_last->toArrayForDbEntry());
-        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportTwo->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne_lastApproved->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportTwo_last->toArrayForDbEntry());
         
-        $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_last, $this->assignmentField, "00");
-        $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_last, $this->assignmentFieldOne, "01");
+        $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_lastApproved, $this->assignmentField, "00");
+        $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_lastApproved, $this->assignmentFieldOne, "01");
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
         
@@ -135,6 +137,8 @@ class ParticipantControllerTest extends ParticipantTestCase
     
     public function test_show()
     {
+        $this->connection->table("MetricAssignmentReport")->truncate();
+        
         $response = [
             "id" => $this->participant->id,
             "enrolledTime" => $this->participant->enrolledTime,
@@ -167,24 +171,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                         ],
                     ],
                 ],
-                "lastMetricAssignmentReport" => [
-                    "id" => $this->metricAssignmentReportOne_last->id,
-                    "observationTime" => $this->metricAssignmentReportOne_last->observationTime,
-                    "submitTime" => $this->metricAssignmentReportOne_last->submitTime,
-                    "removed" => $this->metricAssignmentReportOne_last->removed,
-                    "assignmentFieldValues" => [
-                        [
-                            "id" => $this->assignmentFieldValue_00->id,
-                            "value" => $this->assignmentFieldValue_00->inputValue,
-                            "assignmentFieldId" => $this->assignmentFieldValue_00->assignmentField->id,
-                        ],
-                        [
-                            "id" => $this->assignmentFieldValue_01->id,
-                            "value" => $this->assignmentFieldValue_01->inputValue,
-                            "assignmentFieldId" => $this->assignmentFieldValue_01->assignmentField->id,
-                        ],
-                    ],
-                ],
+                "lastMetricAssignmentReport" => null,
             ],
         ];
         
@@ -199,6 +186,31 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->get($uri, $this->removedCoordinator->personnel->token)
                 ->seeStatusCode(403);
         
+    }
+    public function test_show_hasMetricAssignmentReport_includeLastApprovedReportInResponse()
+    {
+        $response = [
+            "id" => $this->metricAssignmentReportOne_lastApproved->id,
+            "observationTime" => $this->metricAssignmentReportOne_lastApproved->observationTime,
+            "submitTime" => $this->metricAssignmentReportOne_lastApproved->submitTime,
+            "removed" => $this->metricAssignmentReportOne_lastApproved->removed,
+            "assignmentFieldValues" => [
+                [
+                    "id" => $this->assignmentFieldValue_00->id,
+                    "value" => $this->assignmentFieldValue_00->inputValue,
+                    "assignmentFieldId" => $this->assignmentFieldValue_00->assignmentField->id,
+                ],
+                [
+                    "id" => $this->assignmentFieldValue_01->id,
+                    "value" => $this->assignmentFieldValue_01->inputValue,
+                    "assignmentFieldId" => $this->assignmentFieldValue_01->assignmentField->id,
+                ],
+            ],
+        ];
+        $uri = $this->participantUri . "/{$this->participant->id}";
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
     }
     
     public function test_showAll()
@@ -239,10 +251,10 @@ class ParticipantControllerTest extends ParticipantTestCase
                             ],
                         ],
                         "lastMetricAssignmentReport" => [
-                            "id" => $this->metricAssignmentReportOne_last->id,
-                            "observationTime" => $this->metricAssignmentReportOne_last->observationTime,
-                            "submitTime" => $this->metricAssignmentReportOne_last->submitTime,
-                            "removed" => $this->metricAssignmentReportOne_last->removed,
+                            "id" => $this->metricAssignmentReportOne_lastApproved->id,
+                            "observationTime" => $this->metricAssignmentReportOne_lastApproved->observationTime,
+                            "submitTime" => $this->metricAssignmentReportOne_lastApproved->submitTime,
+                            "removed" => $this->metricAssignmentReportOne_lastApproved->removed,
                             "assignmentFieldValues" => [
                                 [
                                     "id" => $this->assignmentFieldValue_00->id,
@@ -328,10 +340,10 @@ class ParticipantControllerTest extends ParticipantTestCase
                             ],
                         ],
                         "lastMetricAssignmentReport" => [
-                            "id" => $this->metricAssignmentReportOne_last->id,
-                            "observationTime" => $this->metricAssignmentReportOne_last->observationTime,
-                            "submitTime" => $this->metricAssignmentReportOne_last->submitTime,
-                            "removed" => $this->metricAssignmentReportOne_last->removed,
+                            "id" => $this->metricAssignmentReportOne_lastApproved->id,
+                            "observationTime" => $this->metricAssignmentReportOne_lastApproved->observationTime,
+                            "submitTime" => $this->metricAssignmentReportOne_lastApproved->submitTime,
+                            "removed" => $this->metricAssignmentReportOne_lastApproved->removed,
                             "assignmentFieldValues" => [
                                 [
                                     "id" => $this->assignmentFieldValue_00->id,

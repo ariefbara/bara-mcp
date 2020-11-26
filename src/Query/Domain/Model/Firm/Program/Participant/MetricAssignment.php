@@ -82,9 +82,10 @@ class MetricAssignment
         return $this->assignmentFields->matching($criteria)->getIterator();
     }
     
-    public function getLastNonRemovedMetricAssignmentReports(): ?MetricAssignmentReport
+    public function getLastApprovedMetricAssignmentReports(): ?MetricAssignmentReport
     {
         $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq("approved", true))
                 ->andWhere(Criteria::expr()->eq("removed", false))
                 ->orderBy(["observationTime" => "DESC"])
                 ->setMaxResults(1);

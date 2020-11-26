@@ -4,11 +4,16 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\ {
     Personnel,
-    Program
+    Program,
+    Program\MeetingType\CanAttendMeeting,
+    Program\MeetingType\Meeting,
+    Program\MeetingType\Meeting\Attendee,
+    Program\MeetingType\MeetingData
 };
-use Resources\Domain\Model\Mail\Recipient;
+use Resources\Exception\RegularException;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Consultant
+class Consultant implements CanAttendMeeting
 {
 
     /**
@@ -71,6 +76,35 @@ class Consultant
     public function getPersonnelName(): string
     {
         return $this->personnel->getName();
+    }
+
+    public function canInvolvedInProgram(Program $program): bool
+    {
+        return !$this->removed && $this->program === $program;
+    }
+
+    public function registerAsAttendeeCandidate(Attendee $attendee): void
+    {
+        $attendee->setConsultantAsAttendeeCandidate($this);
+    }
+
+    public function roleCorrespondWith(ActivityParticipantType $role): bool
+    {
+        return $role->isConsultantType();
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
+    {
+        if ($this->removed) {
+            $errorDetail = "forbidden: only active consultant can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
+        if (!$meetingType->belongsToProgram($this->program)) {
+            $errorDetail = "forbidden: can only manage meeting type from same program";
+            throw RegularException::forbidden($errorDetail);
+        }
+        return $meetingType->createMeeting($meetingId, $meetingData, $this);
     }
 
 }

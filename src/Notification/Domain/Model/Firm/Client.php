@@ -6,10 +6,10 @@ use DateTimeImmutable;
 use Notification\Domain\{
     Model\Firm,
     Model\Firm\Client\ClientMail,
-    SharedModel\CanSendPersonalizeMail,
-    SharedModel\MailMessage
+    SharedModel\CanSendPersonalizeMail
 };
 use Resources\Domain\ValueObject\PersonName;
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class Client
 {
@@ -64,7 +64,7 @@ class Client
 
     protected function __construct()
     {
-        ;
+        
     }
 
     public function getFullName(): string
@@ -84,29 +84,19 @@ class Client
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
         $subject = "Konsulta: Aktivasi Akun";
-        $message = <<<_MESSAGE
-Hi {$this->name->getFirstName()},
+        $greetings = "Hi {$this->name->getFirstName()}";
+        $mainMessage = "Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:";
+        $domain = $this->firm->getDomain();
+        $urlPath = "/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}";
+        $logoPath = $this->firm->getLogoPath();
 
-Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:
-
-{$this->firm->getDomain()}/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}
-_MESSAGE;
-                
-        $htmlMessage = <<<_HTMLMESSAGE
-<p> Hi {$this->name->getFirstName()}, </p>
-
-<p>Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:</p>
-
-<p> <a href="{$this->firm->getDomain()}/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}">Aktivasi Akun</a></p>
-                
-_HTMLMESSAGE;
-
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
-        
+
         return new ClientMail(
-                $this, $clientMailId, $senderMailAddress, $senderName, $subject, $message, $htmlMessage,
-                $recipientMailAddress, $recipientName);
+                $this, $clientMailId, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress,
+                $recipientName);
     }
 
     public function createResetPasswordMail(string $clientMailId): ClientMail
@@ -114,33 +104,19 @@ _HTMLMESSAGE;
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
         $subject = "Konsulta: Reset Password";
-        $message = <<<_MESSAGE
-Hi {$this->name->getFirstName()},
+        $greetings = "Hi {$this->name->getFirstName()}";
+        $mainMessage = "Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:";
+        $domain = $this->firm->getDomain();
+        $urlPath = "/client-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
+        $logoPath = $this->firm->getLogoPath();
 
-Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:
-
-{$this->firm->getDomain()}/client-account/reset-password/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}
-
-Abaikan email ini jika kamu tidak merasa melakukan permintaan reset password.
-_MESSAGE;
-        
-        $htmlMessage = <<<_HTMLMESSAGE
-<p> Hi {$this->name->getFirstName()}, </p>
-
-
-<p>Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:</p>
-
-<p> <a href="{$this->firm->getDomain()}/client-account/reset-password/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}">reset password</a></p>
-
-<p>Abaikan email ini jika kamu tidak merasa melakukan permintaan reset password.</p>
-_HTMLMESSAGE;
-
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
-        
+
         return new ClientMail(
-                $this, $clientMailId, $senderMailAddress, $senderName, $subject, $message, $htmlMessage,
-                $recipientMailAddress, $recipientName);
+                $this, $clientMailId, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress,
+                $recipientName);
     }
 
 }
