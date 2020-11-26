@@ -124,7 +124,7 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "endDate" => $metricAssignment->getEndDateString(),
             "assignmentFields" => $assignmentFields,
             "lastMetricAssignmentReport" => $this->arrayDataOfMetricAssignmentReport(
-                    $metricAssignment->getLastNonRemovedMetricAssignmentReports()),
+                    $metricAssignment->getLastApprovedMetricAssignmentReports()),
         ];
     }
     protected function arrayDataOfAssignmentField(?AssignmentField $assignmentField): array
