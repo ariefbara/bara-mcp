@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator\Participant;
 
 use App\Http\Controllers\Personnel\AsProgramCoordinator\AsProgramCoordinatorBaseController;
+use Firm\ {
+    Application\Service\Coordinator\ApproveMetricAssignmentReport,
+    Domain\Model\Firm\Program\Coordinator,
+    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport as MetricAssignmentReport2
+};
 use Query\ {
     Application\Service\Firm\Program\Participant\ViewMetricAssignmentReport,
     Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
@@ -12,6 +17,15 @@ use Query\ {
 
 class MetricAssignmentReportController extends AsProgramCoordinatorBaseController
 {
+    
+    public function approve($programId, $participantId, $metricAssignmentReportId)
+    {
+        $service = $this->buildApproveService();
+        $service->execute($this->firmId(), $this->personnelId(), $programId, $metricAssignmentReportId);
+        
+        return $this->show($programId, $participantId, $metricAssignmentReportId);
+    }
+    
     public function show($programId, $participantId, $metricAssignmentReportId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
@@ -46,6 +60,7 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
             "id" => $metricAssignmentReport->getId(),
             "observationTime" => $metricAssignmentReport->getObservationTimeString(),
             "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
+            "approved" => $metricAssignmentReport->isApproved(),
             "removed" => $metricAssignmentReport->isRemoved(),
             "assignmentFieldValues" => $assignmentFieldValues,
         ];
@@ -83,5 +98,12 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
     {
         $metricAssignmentReportRepository = $this->em->getRepository(MetricAssignmentReport::class);
         return new ViewMetricAssignmentReport($metricAssignmentReportRepository);
+    }
+    
+    protected function buildApproveService()
+    {
+        $metricAssignmentReportRepository = $this->em->getRepository(MetricAssignmentReport2::class);
+        $coordiantorRepository = $this->em->getRepository(Coordinator::class);
+        return new ApproveMetricAssignmentReport($metricAssignmentReportRepository, $coordiantorRepository);
     }
 }

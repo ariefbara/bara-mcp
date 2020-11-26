@@ -3,8 +3,13 @@
 namespace Firm\Domain\Model\Firm\Program\Participant;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\ {
+    ArrayCollection,
+    Criteria
+};
 use Firm\Domain\ {
+    Model\Firm\Program,
+    Model\Firm\Program\AssetInProgram,
     Model\Firm\Program\Metric,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Participant\MetricAssignment\AssignmentField,
@@ -18,7 +23,7 @@ use Resources\ {
     ValidationService
 };
 
-class MetricAssignment
+class MetricAssignment implements AssetInProgram
 {
 
     /**
@@ -67,6 +72,11 @@ class MetricAssignment
         $this->assignmentFields = new ArrayCollection();
         $this->addAssignmentFields($metricAssignmentDataProvider);
     }
+    
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->participant->belongsToProgram($program);
+    }
 
     public function update(MetricAssignmentDataProvider $metricAssignmentDataProvider): void
     {
@@ -100,8 +110,8 @@ class MetricAssignment
      */
     protected function iterateActiveAssignmentFields()
     {
-        $criteria = \Doctrine\Common\Collections\Criteria::create()
-                ->andWhere(\Doctrine\Common\Collections\Criteria::expr()->eq("removed", false));
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq("removed", false));
         return $this->assignmentFields->matching($criteria)->getIterator();
     }
 

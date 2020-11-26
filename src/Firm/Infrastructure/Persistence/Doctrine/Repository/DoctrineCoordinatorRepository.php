@@ -2,18 +2,19 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Firm\{
+use Firm\ {
+    Application\Service\Coordinator\CoordinatorRepository as InterfaceForCoordinator,
     Application\Service\Firm\Program\CoordinatorRepository,
     Application\Service\Firm\Program\ProgramCompositionId,
     Domain\Model\Firm\Program\Coordinator
 };
 use Resources\Exception\RegularException;
 
-class DoctrineCoordinatorRepository extends EntityRepository implements CoordinatorRepository
+class DoctrineCoordinatorRepository extends EntityRepository implements CoordinatorRepository, InterfaceForCoordinator
 {
 
     public function ofId(ProgramCompositionId $programCompositionId, string $coordinatorId): Coordinator

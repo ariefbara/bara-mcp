@@ -7,6 +7,7 @@ use Firm\Domain\ {
     Model\Firm\Program,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
+    Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
     Service\MetricAssignmentDataProvider
 };
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -25,6 +26,7 @@ class CoordinatorTest extends TestBase
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $activityParticipantType;
     protected $attendee;
+    protected $metricAssignmentReport;
 
     protected function setUp(): void
     {
@@ -43,6 +45,8 @@ class CoordinatorTest extends TestBase
         $this->activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
         
         $this->attendee = $this->buildMockOfClass(Attendee::class);
+        
+        $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
     }
     
     protected function setAssetBelongsToProgram($asset)
@@ -183,6 +187,32 @@ class CoordinatorTest extends TestBase
                 ->method("setCoordinatorAsAttendeeCandidate")
                 ->with($this->coordinator);
         $this->coordinator->registerAsAttendeeCandidate($this->attendee);
+    }
+    
+    protected function executeApproveMetricAssignmentReport()
+    {
+        $this->setAssetBelongsToProgram($this->metricAssignmentReport);
+        $this->coordinator->approveMetricAssignmentReport($this->metricAssignmentReport);
+    }
+    public function test_approveMetricAssignmentReport_approveReport()
+    {
+        $this->metricAssignmentReport->expects($this->once())
+                ->method("approve");
+        $this->executeApproveMetricAssignmentReport();
+    }
+    public function test_approveMetricAssignmentReport_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->removed = true;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeApproveMetricAssignmentReport();
+        });
+    }
+    public function test_approveMetricAssignmentReport_metricAssignmentReportDoesntBelongsToProgram_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->metricAssignmentReport);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeApproveMetricAssignmentReport();
+        });
     }
 
 }

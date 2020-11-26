@@ -4,6 +4,7 @@ namespace Firm\Domain\Model\Firm\Program\Participant;
 
 use DateTimeImmutable;
 use Firm\Domain\ {
+    Model\Firm\Program,
     Model\Firm\Program\Metric,
     Model\Firm\Program\Participant,
     Model\Firm\Program\Participant\MetricAssignment\AssignmentField,
@@ -22,6 +23,7 @@ class MetricAssignmentTest extends TestBase
     protected $endDate;
     protected $metric, $target = 999;
     protected $metricAssignmentDataProvider;
+    protected $program;
 
     protected function setUp(): void
     {
@@ -49,6 +51,8 @@ class MetricAssignmentTest extends TestBase
                 ->method("pullTargetCorrespondWithMetric")
                 ->with($this->metric)
                 ->willReturn($this->target);
+        
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
     protected function setMetricAssignmentGetDateMethod()
@@ -108,6 +112,14 @@ class MetricAssignmentTest extends TestBase
         };
         $errorDetail = "forbidden : unable to assign metric from other program";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_belongsToProgram_returnParticipantBelongsToProgramResult()
+    {
+        $this->participant->expects($this->once())
+                ->method("belongsToProgram")
+                ->with($this->program);
+        $this->metricAssignment->belongsToProgram($this->program);
     }
     
     protected function executeUpdate()

@@ -9,6 +9,7 @@ use Firm\Domain\ {
     Model\Firm\Program\MeetingType\Meeting,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
+    Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
     Service\MetricAssignmentDataProvider
 };
 use Resources\Exception\RegularException;
@@ -87,6 +88,13 @@ class Coordinator implements CanAttendMeeting
         $this->assertActive();
         $this->assertAssetBelongsProgram($meetingType);
         return $meetingType->createMeeting($meetingId, $meetingData, $this);
+    }
+    
+    public function approveMetricAssignmentReport(MetricAssignmentReport $metricAssignmentReport): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsProgram($metricAssignmentReport);
+        $metricAssignmentReport->approve();
     }
 
     protected function assertActive()
