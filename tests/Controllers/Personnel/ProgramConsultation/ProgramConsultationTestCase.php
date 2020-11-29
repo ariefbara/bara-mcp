@@ -44,7 +44,7 @@ class ProgramConsultationTestCase extends PersonnelTestCase
     protected function removeProgramConsultation()
     {
         $this->connection->table("Consultant")->truncate();
-        $this->programConsultation->removed = true;
+        $this->programConsultation->active = false;
         $this->connection->table("Consultant")->insert($this->programConsultation->toArrayForDbEntry());
     }
 

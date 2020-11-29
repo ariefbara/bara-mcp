@@ -303,6 +303,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
 
     public function test_submitReport()
     {
+$this->disableExceptionHandling();
         $this->connection->table('ConsultantFeedback')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();

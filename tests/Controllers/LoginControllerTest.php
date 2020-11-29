@@ -84,7 +84,7 @@ class LoginControllerTest extends ControllerTestCase
 
         $this->personnel = new RecordOfPersonnel($this->firm, 0, 'personnel@email.org', 'password123');
         $this->removedPersonnel = new RecordOfPersonnel($this->firm, 1, 'removed_personnel@email.org', 'password123');
-        $this->removedPersonnel->removed = true;
+        $this->removedPersonnel->active = false;
         $this->connection->table('Personnel')->insert($this->personnel->toArrayForDbEntry());
         $this->connection->table('Personnel')->insert($this->removedPersonnel->toArrayForDbEntry());
 

@@ -36,7 +36,7 @@ class PersonnelTestCase extends ControllerTestCase
 
         $this->personnel = new RecordOfPersonnel($firm, 999, 'adi@barapraja.com', 'password123');
         $this->removedPersonnel = new RecordOfPersonnel($firm, 'removed', 'removed_personnel@email.org', 'password123');
-        $this->removedPersonnel->removed = true;
+        $this->removedPersonnel->active = false;
         $this->connection->table('Personnel')->insert($this->personnel->toArrayForDbEntry());
         $this->connection->table('Personnel')->insert($this->removedPersonnel->toArrayForDbEntry());
     }

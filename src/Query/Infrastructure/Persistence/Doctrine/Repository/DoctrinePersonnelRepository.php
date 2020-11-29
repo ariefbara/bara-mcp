@@ -58,6 +58,7 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
 
         $qb = $this->createQueryBuilder('personnel');
         $qb->select('personnel')
+                ->andWhere($qb->expr()->eq('personnel.active', 'true'))
                 ->andWhere($qb->expr()->eq('personnel.email', ':email'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.identifier', ':firmIdentifier'))

@@ -120,7 +120,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->consultant = new RecordOfConsultant($program, $personnel, 0);
         $this->consultantOne = new RecordOfConsultant($program, $personnelOne, 1);
         $this->consultantTwo_removed = new RecordOfConsultant($program, $personnelTwo, 2);
-        $this->consultantTwo_removed->removed = true;
+        $this->consultantTwo_removed->active = false;
         $this->consultantThree = new RecordOfConsultant($program, $personnelThree, 3);
         $this->consultantFour_otherProgram = new RecordOfConsultant($programOne, $personnelFour, 4);
         $this->connection->table("Consultant")->insert($this->consultant->toArrayForDbEntry());
