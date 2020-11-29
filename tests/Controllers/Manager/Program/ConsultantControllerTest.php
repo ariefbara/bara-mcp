@@ -129,11 +129,19 @@ class ConsultantControllerTest extends ProgramTestCase
         ];
         $this->seeInDatabase('Consultant', $consultantRecord);
     }
-
     public function test_assign_userNotManager_error401()
     {
         $this->put($this->consultantUri, $this->consultantInput, $this->removedManager->token)
                 ->seeStatusCode(401);
+    }
+    public function test_assign_inactivePersonnel_403()
+    {
+        $personnel = new RecordOfPersonnel($this->manager->firm, 99);
+        $personnel->active = false;
+        $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
+        
+        $this->put($this->consultantUri, ["personnelId" => $personnel->id], $this->manager->token)
+                ->seeStatusCode(403);
     }
 
     public function test_disable()

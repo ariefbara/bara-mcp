@@ -35,6 +35,8 @@ class ConsultantTest extends TestBase
         parent::setUp();
         $this->program = $this->buildMockOfClass(Program::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
+        $this->personnel->expects($this->any())->method("isActive")->willReturn(true);
+        
         $this->consultant = new TestableConsultant($this->program, 'id', $this->personnel);
         $this->consultant->meetingInvitations = new ArrayCollection();
         $this->consultant->consultationRequests = new ArrayCollection();
@@ -64,6 +66,18 @@ class ConsultantTest extends TestBase
         $this->assertEquals($this->id, $consultant->id);
         $this->assertEquals($this->personnel, $consultant->personnel);
         $this->assertTrue($consultant->active);
+    }
+    public function test_construct_inactivePersonnel_forbidden()
+    {
+        $operation = function (){
+            $personnel = $this->buildMockOfClass(Personnel::class);
+            $personnel->expects($this->once())->method("isActive")->willReturn(false);
+            new TestableConsultant($this->program, $this->id, $personnel);
+        };
+        $errorDetail = "forbidden: can only assign active personnel as program mentor";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        
+        
     }
 
     protected function executeDisable()

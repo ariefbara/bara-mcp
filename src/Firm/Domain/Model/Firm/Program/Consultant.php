@@ -78,6 +78,10 @@ class Consultant implements CanAttendMeeting, AssetBelongsToFirm
 
     function __construct(Program $program, string $id, Personnel $personnel)
     {
+        if (!$personnel->isActive()) {
+            $errorDetail = "forbidden: can only assign active personnel as program mentor";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->program = $program;
         $this->id = $id;
         $this->personnel = $personnel;
