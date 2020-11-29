@@ -296,6 +296,12 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
+    public function test_showAll_inactiveInitiator_403()
+    {
+        $this->setInactiveMeetingInitiator();
+        $this->get($this->attendeeUri, $this->manager->token)
+                ->seeStatusCode(403);
+    }
     
     public function test_show_200()
     {
@@ -321,6 +327,13 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
+    public function test_show_inactiveInitiator_403()
+    {
+        $this->setInactiveMeetingInitiator();
+        $uri = $this->attendeeUri . "/{$this->teamParticipantAttendee->invitee->id}";
+        $this->get($uri, $this->manager->token)
+                ->seeStatusCode(403);
+    }
     
     public function test_inviteManager_200()
     {
@@ -332,6 +345,13 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
             "Manager_id" => $this->managerOne->id,
         ];
         $this->seeInDatabase("ManagerInvitee", $managerInviteeEntry);
+    }
+    public function test_inviteManager_inactiveInitiator_403()
+    {
+        $this->setInactiveMeetingInitiator();
+        $uri = $this->attendeeUri . "/invite-manager";
+        $this->put($uri, $this->inviteManagerInput, $this->manager->token)
+                ->seeStatusCode(403);
     }
     
     public function test_inviteCoordinator_200()
@@ -345,6 +365,23 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         ];
         $this->seeInDatabase("CoordinatorInvitee", $coordinatorInviteeEntry);
     }
+    public function test_inviteCoordinator_inactiveCoordinator_403()
+    {
+        $this->connection->table("Coordinator")->truncate();
+        $this->coordinatorOne->active = false;
+        $this->connection->table("Coordinator")->insert($this->coordinatorOne->toArrayForDbEntry());
+        
+        $uri = $this->attendeeUri . "/invite-coordinator";
+        $this->put($uri, $this->inviteCoordinatorInput, $this->manager->token)
+                ->seeStatusCode(403);
+    }
+    public function test_inviteCoordinator_inactiveInitiator_403()
+    {
+        $this->setInactiveMeetingInitiator();
+        $uri = $this->attendeeUri . "/invite-coordinator";
+        $this->put($uri, $this->inviteCoordinatorInput, $this->manager->token)
+                ->seeStatusCode(403);
+    }
     
     public function test_inviteConsultant_200()
     {
@@ -357,6 +394,23 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         ];
         $this->seeInDatabase("ConsultantInvitee", $consultantInviteeEntry);
     }
+    public function test_inviteConsultant_inactiveConsultant_403()
+    {
+        $this->connection->table("Consultant")->truncate();
+        $this->consultantOne->active = false;
+        $this->connection->table("Consultant")->insert($this->consultantOne->toArrayForDbEntry());
+        
+        $uri = $this->attendeeUri . "/invite-consultant";
+        $this->put($uri, $this->inviteConsultantInput, $this->manager->token)
+                ->seeStatusCode(403);
+    }
+    public function test_inviteConsultant_inactiveInitiator_403()
+    {
+        $this->setInactiveMeetingInitiator();
+        $uri = $this->attendeeUri . "/invite-consultant";
+        $this->put($uri, $this->inviteConsultantInput, $this->manager->token)
+                ->seeStatusCode(403);
+    }
     
     public function test_inviteParticipant_200()
     {
@@ -368,6 +422,13 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
             "Participant_id" => $this->participantThree->id,
         ];
         $this->seeInDatabase("ParticipantInvitee", $participantInviteeEntry);
+    }
+    public function test_inviteParticipant_inactiveInitiator_403()
+    {
+        $this->setInactiveMeetingInitiator();
+        $uri = $this->attendeeUri . "/invite-participant";
+        $this->put($uri, $this->inviteParticipantInput, $this->manager->token)
+                ->seeStatusCode(403);
     }
     
     public function test_cancelInvitation_200()
@@ -382,6 +443,15 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         ];
         $this->seeInDatabase("Invitee", $inviteeEntry);
         
+    }
+    public function test_cancelInvitation_inactiveInitiator_403()
+    {
+        $this->setInactiveMeetingInitiator();
+        $this->connection->table("Invitee")->insert($this->teamParticipantAttendee->invitee->toArrayForDbEntry());
+        
+        $uri = $this->attendeeUri . "/cancel-invitation/{$this->teamParticipantAttendee->invitee->id}";
+        $this->patch($uri, [], $this->manager->token)
+                ->seeStatusCode(403);
     }
 
 }

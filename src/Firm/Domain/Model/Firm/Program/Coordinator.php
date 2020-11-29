@@ -141,6 +141,10 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
 
     public function registerAsAttendeeCandidate(Attendee $attendee): void
     {
+        if (!$this->active) {
+            $errorDetail = "forbidden: can only invite active coordinator";
+            throw RegularException::forbidden($errorDetail);
+        }
         $attendee->setCoordinatorAsAttendeeCandidate($this);
     }
 

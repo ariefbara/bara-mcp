@@ -119,6 +119,10 @@ class Consultant implements CanAttendMeeting, AssetBelongsToFirm
 
     public function registerAsAttendeeCandidate(Attendee $attendee): void
     {
+        if (!$this->active) {
+            $errorDetail = "forbidden: can only invite active consultant to meeting";
+            throw RegularException::forbidden($errorDetail);
+        }
         $attendee->setConsultantAsAttendeeCandidate($this);
     }
 

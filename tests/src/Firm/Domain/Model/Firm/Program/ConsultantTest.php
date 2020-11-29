@@ -157,6 +157,15 @@ class ConsultantTest extends TestBase
                 ->with($this->consultant);
         $this->executeRegisterAsAttendeeCandidate();
     }
+    public function test_registerAsAttendeeCandidate_inactiveConsultant_forbidden()
+    {
+        $this->consultant->active = false;
+        $operation = function (){
+            $this->executeRegisterAsAttendeeCandidate();
+        };
+        $errorDetail = "forbidden: can only invite active consultant to meeting";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
     
     protected function executeInitiateMeeting()
     {

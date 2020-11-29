@@ -219,12 +219,25 @@ class CoordinatorTest extends TestBase
         $this->coordinator->roleCorrespondWith($this->activityParticipantType);
     }
     
+    protected function executeRegisterAsAttendeeCandidate()
+    {
+        $this->coordinator->registerAsAttendeeCandidate($this->attendee);
+    }
     public function test_registerAsAttendeeCandidate_setCoordinatorAsAttendeeCandidate()
     {
         $this->attendee->expects($this->once())
                 ->method("setCoordinatorAsAttendeeCandidate")
                 ->with($this->coordinator);
-        $this->coordinator->registerAsAttendeeCandidate($this->attendee);
+        $this->executeRegisterAsAttendeeCandidate();
+    }
+    public function test_registerAsAttendeeCandidate_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $operation = function (){
+            $this->executeRegisterAsAttendeeCandidate();
+        };
+        $errorDetail = "forbidden: can only invite active coordinator";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeApproveMetricAssignmentReport()
