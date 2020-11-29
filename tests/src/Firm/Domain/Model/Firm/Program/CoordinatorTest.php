@@ -38,6 +38,7 @@ class CoordinatorTest extends TestBase
         parent::setUp();
         $this->program = $this->buildMockOfClass(Program::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
+        $this->personnel->expects($this->any())->method("isActive")->willReturn(true);
 
         $this->coordinator = new TestableCoordinator($this->program, 'id', $this->personnel);
         
@@ -84,14 +85,30 @@ class CoordinatorTest extends TestBase
         $errorDetail = "forbidden: only active coordinator can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-
+    
+    protected function executeConstruct()
+    {
+        $this->personnel->expects($this->any())->method("isActive")->willReturn(true);
+        return new TestableCoordinator($this->program, $this->id, $this->personnel);
+    }
     public function test_construct_setProperties()
     {
-        $coordinator = new TestableCoordinator($this->program, $this->id, $this->personnel);
+        $coordinator = $this->executeConstruct();
         $this->assertEquals($this->program, $coordinator->program);
         $this->assertEquals($this->id, $coordinator->id);
         $this->assertEquals($this->personnel, $coordinator->personnel);
         $this->assertTrue($coordinator->active);
+    }
+    public function test_inactivePersonnel_forbidden()
+    {
+        $operation = function (){
+            $personnel = $this->buildMockOfClass(Personnel::class);
+            $personnel->expects($this->any())->method("isActive")->willReturn(false);
+            new TestableCoordinator($this->program, $this->id, $personnel);
+        };
+        $errorDetail = "forbidden: only active personnel can be assigned as coordinator";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        
     }
 
     protected function executeDisable()

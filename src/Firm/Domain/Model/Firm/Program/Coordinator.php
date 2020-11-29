@@ -68,6 +68,10 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
 
     function __construct(Program $program, $id, Personnel $personnel)
     {
+        if (!$personnel->isActive()) {
+            $errorDetail = "forbidden: only active personnel can be assigned as coordinator";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->program = $program;
         $this->id = $id;
         $this->personnel = $personnel;

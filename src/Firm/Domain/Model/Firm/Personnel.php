@@ -3,15 +3,15 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Firm\Domain\Model\ {
+use Firm\Domain\Model\{
     AssetBelongsToFirm,
     Firm
 };
-use Resources\ {
+use Resources\{
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
     Exception\RegularException,
@@ -88,6 +88,11 @@ class Personnel implements AssetBelongsToFirm
      */
     protected $programMentorships;
 
+    function isActive(): bool
+    {
+        return $this->active;
+    }
+
     protected function setEmail(string $email): void
     {
         $errorDetail = "bad request: personnel email is required in valid format";
@@ -124,19 +129,18 @@ class Personnel implements AssetBelongsToFirm
     {
         return $this->name->getFullName();
     }
-    
+
     public function disable(): void
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("active", true));
-        
-        if (!empty($this->programCoordinatorships->matching($criteria)->count())
-                || !empty($this->programMentorships->matching($criteria)->count())
+
+        if (!empty($this->programCoordinatorships->matching($criteria)->count()) || !empty($this->programMentorships->matching($criteria)->count())
         ) {
             $errorDetail = "forbidden: unable to disable personnel still having active role as coordinator or mentor in program";
             throw RegularException::forbidden($errorDetail);
         }
-        
+
         $this->active = false;
     }
 
