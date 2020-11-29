@@ -15,7 +15,7 @@
         
         <many-to-one  field="personnel" 
                       target-entity="Firm\Domain\Model\Firm\Personnel"
-                      inversed-by="programConsultants"
+                      inversed-by="programMentorships"
         >
             <join-column name="Personnel_id" referenced-column-name="id" />
         </many-to-one>

@@ -5,13 +5,19 @@ namespace Tests\Controllers\Manager;
 use DateTime;
 use Tests\Controllers\ {
     Manager\ManagerTestCase,
-    RecordPreparation\Firm\RecordOfPersonnel
+    RecordPreparation\Firm\Program\RecordOfConsultant,
+    RecordPreparation\Firm\Program\RecordOfCoordinator,
+    RecordPreparation\Firm\RecordOfPersonnel,
+    RecordPreparation\Firm\RecordOfProgram
 };
 
 class PersonnelControllerTest extends ManagerTestCase
 {
     protected $uri;
     protected $personnel, $personnelOne;
+    protected $program;
+    protected $inactiveCoordinator;
+    protected $inactiveMentor;
     protected $personnelInput = [
         "firstName" => 'firstname',
         "lastName" => 'lastname',
@@ -26,18 +32,36 @@ class PersonnelControllerTest extends ManagerTestCase
     {
         parent::setUp();
         $this->uri = $this->managerUri . "/personnels";
+        
         $this->connection->table('Personnel')->truncate();
+        $this->connection->table("Program")->truncate();
+        $this->connection->table("Coordinator")->truncate();
+        $this->connection->table("Consultant")->truncate();
         
         $this->personnel = new RecordOfPersonnel($this->firm, 0, 'personnel@email.org', 'password123');
         $this->personnelOne = new RecordOfPersonnel($this->firm, 1, 'personnel_one@email.org', 'password123');
         $this->connection->table('Personnel')->insert($this->personnel->toArrayForDbEntry());
         $this->connection->table('Personnel')->insert($this->personnelOne->toArrayForDbEntry());
+        
+        $this->program = new RecordOfProgram($this->manager->firm, 0);
+        $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
+        
+        $this->inactiveCoordinator = new RecordOfCoordinator($this->program, $this->personnel, 0);
+        $this->inactiveCoordinator->active = false;
+        $this->connection->table('Coordinator')->insert($this->inactiveCoordinator->toArrayForDbEntry());
+        
+        $this->inactiveConsultant = new RecordOfConsultant($this->program, $this->personnel, 0);
+        $this->inactiveConsultant->active = false;
+        $this->connection->table('Consultant')->insert($this->inactiveConsultant->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
     {
         parent::tearDown();
         $this->connection->table('Personnel')->truncate();
+        $this->connection->table("Program")->truncate();
+        $this->connection->table("Coordinator")->truncate();
+        $this->connection->table("Consultant")->truncate();
     }
     
     public function test_add()
@@ -61,7 +85,7 @@ class PersonnelControllerTest extends ManagerTestCase
             "phone" => $this->personnelInput['phone'],
             "bio" => $this->personnelInput['bio'],
             "joinTime" => (new DateTime())->format('Y-m-d H:i:s'),
-            "removed" => false,
+            "active" => true,
         ];
         $this->seeInDatabase('Personnel', $personnelRecord);
     }
@@ -87,6 +111,36 @@ class PersonnelControllerTest extends ManagerTestCase
     {
         $this->post($this->uri, $this->personnelInput, $this->removedManager->token)
             ->seeStatusCode(401);
+    }
+    
+    public function test_disable_200()
+    {
+        $uri = $this->uri . "/{$this->personnel->id}";
+        $this->delete($uri, [], $this->manager->token)
+                ->seeStatusCode(200);
+        
+        $personnelEntry = [
+            "id" => $this->personnel->id,
+            "active" => false,
+        ];
+        $this->seeInDatabase("Personnel", $personnelEntry);
+    }
+    public function test_disable_hasActiveProgramCoordinatorships_403()
+    {
+        $coordinator = new RecordOfCoordinator($this->program, $this->personnel, 1);
+        $this->connection->table("Coordinator")->insert($coordinator->toArrayForDbEntry());
+        $uri = $this->uri . "/{$this->personnel->id}";
+        $this->delete($uri, [], $this->manager->token)
+                ->seeStatusCode(403);
+    }
+    public function test_disable_hasActiveProgramMentorships_403()
+    {
+        $consultant = new RecordOfConsultant($this->program, $this->personnel, 99);
+        $this->connection->table("Consultant")->insert($consultant->toArrayForDbEntry());
+        
+        $uri = $this->uri . "/{$this->personnel->id}";
+        $this->delete($uri, [], $this->manager->token)
+                ->seeStatusCode(403);
     }
     
     public function test_show()

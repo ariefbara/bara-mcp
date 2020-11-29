@@ -74,7 +74,7 @@ class Personnel extends EntityContainEvents
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
     
     public function __construct()
     {

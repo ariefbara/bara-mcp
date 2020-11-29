@@ -28,6 +28,7 @@ class ManagerTest extends TestBase
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $coordinator;
     protected $consultant;
+    protected $personnel;
 
     protected function setUp(): void
     {
@@ -45,6 +46,7 @@ class ManagerTest extends TestBase
         
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
+        $this->personnel = $this->buildMockOfClass(Personnel::class);
     }
     
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -264,6 +266,25 @@ class ManagerTest extends TestBase
         $this->setAssetDoesntBelongsToFirm($this->consultant);
         $this->assertUnmanageableAssetForbiddenError(function (){
             $this->executeDisableConsultant();
+        });
+    }
+    
+    protected function executeDisablePersonnel()
+    {
+        $this->setAssetBelongsToFirm($this->personnel);
+        $this->manager->disablePersonnel($this->personnel);
+    }
+    public function test_disablePersonnel_disablePersonnel()
+    {
+        $this->personnel->expects($this->once())
+                ->method("disable");
+        $this->executeDisablePersonnel();
+    }
+    public function test_disablePersonnel_personnelFromOtherFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->personnel);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisablePersonnel();
         });
     }
 

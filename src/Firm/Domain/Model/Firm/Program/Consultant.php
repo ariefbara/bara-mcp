@@ -3,7 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\ {
+use Firm\Domain\Model\{
     AssetBelongsToFirm,
     Firm,
     Firm\Personnel,
@@ -42,19 +42,19 @@ class Consultant implements CanAttendMeeting, AssetBelongsToFirm
      * @var bool
      */
     protected $active;
-    
+
     /**
      *
      * @var ArrayCollection
      */
     protected $meetingInvitations;
-    
+
     /**
      *
      * @var ArrayCollection
      */
     protected $consultationRequests;
-    
+
     /**
      *
      * @var ArrayCollection
@@ -69,6 +69,11 @@ class Consultant implements CanAttendMeeting, AssetBelongsToFirm
     function getId(): string
     {
         return $this->id;
+    }
+
+    function isActive(): bool
+    {
+        return $this->active;
     }
 
     function __construct(Program $program, string $id, Personnel $personnel)

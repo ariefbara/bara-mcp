@@ -21,7 +21,7 @@
         <field name="phone" type="string" length="16" nullable="true"/>
         <field name="bio" type="text" nullable="true"/>
         <field name="joinTime" type="datetime_immutable" nullable="true"/>
-        <field name="removed" type="boolean" />
+        <field name="active" type="boolean" />
         
     </entity>
 </doctrine-mapping>

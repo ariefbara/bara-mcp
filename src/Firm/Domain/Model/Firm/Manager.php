@@ -166,6 +166,12 @@ class Manager implements CanAttendMeeting
         $consultant->disable();
     }
     
+    public function disablePersonnel(Personnel $personnel): void
+    {
+        $this->assertAssetBelongsToSameFirm($personnel);
+        $personnel->disable();
+    }
+    
     
     protected function assertAssetBelongsToSameFirm(\Firm\Domain\Model\AssetBelongsToFirm $asset): void
     {

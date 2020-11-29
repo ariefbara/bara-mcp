@@ -28,7 +28,7 @@
         <field name="joinTime" type="datetime_immutable" nullable="true"/>
         <field name="resetPasswordCode" type="string" length="64" nullable="true"/>
         <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true"/>
-        <field name="removed" type="boolean" />
+        <field name="active" type="boolean" />
         
         <one-to-many field="programConsultants"
                      target-entity="Query\Domain\Model\Firm\Program\Consultant"

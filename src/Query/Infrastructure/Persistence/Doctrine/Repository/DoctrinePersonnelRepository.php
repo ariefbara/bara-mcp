@@ -26,7 +26,6 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
                 ->setParameter('firmId', $firmId)
                 ->setParameter('personnelId', $personnelId)
                 ->setMaxResults(1);
@@ -42,7 +41,7 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
     {
         $qb = $this->createQueryBuilder('personnel');
         $qb->select('personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
+                ->andWhere($qb->expr()->eq('personnel.active', 'true'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameter('firmId', $firmId);
@@ -59,7 +58,6 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
 
         $qb = $this->createQueryBuilder('personnel');
         $qb->select('personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
                 ->andWhere($qb->expr()->eq('personnel.email', ':email'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.identifier', ':firmIdentifier'))
@@ -83,7 +81,7 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
         $qb = $this->createQueryBuilder("personnel");
         $qb->select("1")
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
-                ->andWhere($qb->expr()->eq("personnel.removed", "false"))
+                ->andWhere($qb->expr()->eq("personnel.active", "true"))
                 ->leftJoin("personnel.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params)

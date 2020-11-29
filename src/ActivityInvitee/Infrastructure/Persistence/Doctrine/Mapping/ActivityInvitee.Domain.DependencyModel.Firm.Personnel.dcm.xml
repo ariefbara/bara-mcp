@@ -6,7 +6,7 @@
         
         <field name="firmId" column="Firm_id" type="guid" nullable="false"/>
         <id name="id" type="guid" />
-        <field name="removed" type="boolean" />
+        <field name="active" type="boolean" />
         
     </entity>
 </doctrine-mapping>

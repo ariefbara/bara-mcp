@@ -66,7 +66,7 @@ class Personnel
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     public function getFirmId(): string
     {

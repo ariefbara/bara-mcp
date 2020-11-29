@@ -17,7 +17,7 @@ class RecordOfPersonnel implements Record
      * @var RecordOfFirm
      */
     public $firm;
-    public $id, $firstName, $lastName, $email, $password, $phone = "", $joinTime, $removed = false;
+    public $id, $firstName, $lastName, $email, $password, $phone = "", $joinTime, $active;
     public $bio;
     public $resetPasswordCode;
     public $resetPasswordCodeExpiredTime;
@@ -39,7 +39,7 @@ class RecordOfPersonnel implements Record
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
         $this->resetPasswordCode = "string-represent-reset-token";
         $this->resetPasswordCodeExpiredTime = (new \DateTimeImmutable("+12 hours"))->format("Y-m-d H:i:s");
-        $this->removed = false;
+        $this->active = true;
         
         $data = [
             "firmId" => $this->firm->id,
@@ -62,7 +62,7 @@ class RecordOfPersonnel implements Record
             "joinTime" => $this->joinTime,
             "resetPasswordCode" => $this->resetPasswordCode,
             "resetPasswordCodeExpiredTime" => $this->resetPasswordCodeExpiredTime,
-            "removed" => $this->removed,
+            "active" => $this->active,
         ];
     }
     

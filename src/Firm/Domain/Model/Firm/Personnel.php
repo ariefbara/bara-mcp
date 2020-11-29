@@ -3,16 +3,23 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\Firm;
+use Doctrine\Common\Collections\ {
+    ArrayCollection,
+    Criteria
+};
+use Firm\Domain\Model\ {
+    AssetBelongsToFirm,
+    Firm
+};
 use Resources\ {
-    Domain\Model\Mail\Recipient,
     Domain\ValueObject\Password,
     Domain\ValueObject\PersonName,
+    Exception\RegularException,
     ValidationRule,
     ValidationService
 };
 
-class Personnel
+class Personnel implements AssetBelongsToFirm
 {
 
     /**
@@ -50,7 +57,7 @@ class Personnel
      * @var string
      */
     protected $phone;
-    
+
     /**
      *
      * @var string
@@ -67,7 +74,19 @@ class Personnel
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
+
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $programCoordinatorships;
+
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $programMentorships;
 
     protected function setEmail(string $email): void
     {
@@ -97,13 +116,33 @@ class Personnel
         $this->setPhone($personnelData->getPhone());
         $this->bio = $personnelData->getBio();
         $this->joinTime = new DateTimeImmutable();
-        $this->removed = false;
+        $this->active = true;
         $this->assignedAdmin = null;
     }
-    
+
     public function getName(): string
     {
         return $this->name->getFullName();
+    }
+    
+    public function disable(): void
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq("active", true));
+        
+        if (!empty($this->programCoordinatorships->matching($criteria)->count())
+                || !empty($this->programMentorships->matching($criteria)->count())
+        ) {
+            $errorDetail = "forbidden: unable to disable personnel still having active role as coordinator or mentor in program";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
+        $this->active = false;
+    }
+
+    public function belongsToFirm(Firm $firm): bool
+    {
+        return $this->firm === $firm;
     }
 
 }

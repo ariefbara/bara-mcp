@@ -23,7 +23,7 @@ class Personnel
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     protected function __construct()
     {

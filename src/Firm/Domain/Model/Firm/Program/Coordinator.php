@@ -3,7 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
+use Firm\Domain\{
     Model\AssetBelongsToFirm,
     Model\Firm,
     Model\Firm\Personnel,
@@ -59,6 +59,11 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
     function getId(): string
     {
         return $this->id;
+    }
+
+    function isActive(): bool
+    {
+        return $this->active;
     }
 
     function __construct(Program $program, $id, Personnel $personnel)
