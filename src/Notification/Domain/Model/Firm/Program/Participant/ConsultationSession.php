@@ -149,7 +149,7 @@ _MESSAGE;
         $senderName = $this->participant->getFirmMailSenderName();
 
         $consultationSessionMail = new ConsultationSessionMail(
-                $this, $id, $recipientMailAddress, $recipientName, $mailMessage, $senderMailAddress, $senderName);
+                $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
         $this->consultationSessionMails->add($consultationSessionMail);
     }
 

@@ -18,6 +18,7 @@ use Resources\ {
     Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
+    Exception\RegularException,
     Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -54,6 +55,12 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
      * @var DateTimeInterval
      */
     protected $startEndTime;
+    
+    /**
+     *
+     * @var bool
+     */
+    protected $cancelled;
 
     /**
      *
@@ -71,11 +78,16 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
             Participant $participant, $id, ConsultationSetup $consultationSetup, Consultant $consultant,
             DateTimeInterval $startEndTime, ?TeamMembership $teamMember)
     {
+        if (!$consultant->isActive()) {
+            $errorDetail = "forbidden: inactive mentor can't give consultation";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->participant = $participant;
         $this->id = $id;
         $this->consultationSetup = $consultationSetup;
         $this->consultant = $consultant;
         $this->startEndTime = $startEndTime;
+        $this->cancelled = false;
 
         $this->consultationSessionActivityLogs = new ArrayCollection();
         
@@ -92,11 +104,15 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
 
     public function conflictedWithConsultationRequest(ConsultationRequest $consultationRequest): bool
     {
-        return $consultationRequest->scheduleIntersectWith($this->startEndTime);
+        return !$this->cancelled && $consultationRequest->scheduleIntersectWith($this->startEndTime);
     }
 
     public function setParticipantFeedback(FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
     {
+        if ($this->cancelled) {
+            $errorDetail = "forbidden: can send report on cancelled session";
+            throw RegularException::forbidden($errorDetail);
+        }
         if (!empty($this->participantFeedback)) {
             $this->participantFeedback->update($formRecordData);
         } else {

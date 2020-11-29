@@ -37,6 +37,7 @@ class ConsultationSessionTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
+        $this->consultant->expects($this->any())->method("isActive")->willReturn(true);
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
 
@@ -66,6 +67,7 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals($this->participant, $consultationSession->participant);
         $this->assertEquals($this->consultant, $consultationSession->consultant);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
+        $this->assertFalse($consultationSession->cancelled);
     }
     public function test_construct_recordOfferedConsultationSessionAccepetedEvent()
     {
@@ -79,6 +81,17 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals(1, $consultationSession->consultationSessionActivityLogs->count());
         $this->assertInstanceOf(ConsultationSessionActivityLog::class, $consultationSession->consultationSessionActivityLogs->first());
     }
+    public function test_construct_inactiveConsultant_forbidden()
+    {
+        $operation = function (){
+            $consultant = $this->buildMockOfClass(Consultant::class);
+            $consultant->expects($this->any())->method("isActive")->willReturn(false);
+            return new TestableConsultationSession(
+                $this->participant, $this->id, $this->consultationSetup, $consultant, $this->startEndTime, $this->teamMember);
+        };
+        $errorDetail = "forbidden: inactive mentor can't give consultation";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
     
     public function test_belongsToTeam_returnParticipantBelongsToTeamResult()
     {
@@ -88,14 +101,25 @@ class ConsultationSessionTest extends TestBase
         $this->assertTrue($this->consultationSession->belongsToTeam($this->team));
     }
 
+    protected function executeConflictedWithConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->any())
+                ->method("scheduleIntersectWith")
+                ->willReturn(true);
+        return $this->consultationSession->conflictedWithConsultationRequest($this->consultationRequest);
+    }
     public function test_conflictedWithConsultationRequest_returnConsultationRequestsScheduleIntersectWithResult()
     {
         $this->consultationRequest->expects($this->once())
                 ->method("scheduleIntersectWith")
                 ->with($this->consultationSession->startEndTime)
                 ->willReturn(true);
-
-        $this->assertTrue($this->consultationSession->conflictedWithConsultationRequest($this->consultationRequest));
+        $this->assertTrue($this->executeConflictedWithConsultationRequest());
+    }
+    public function test_conflictedWithConsultationRequest_cancelledSession_returnFalse()
+    {
+        $this->consultationSession->cancelled = true;
+        $this->assertFalse($this->executeConflictedWithConsultationRequest());
     }
 
     protected function executeSetParticipantFeedback()
@@ -121,6 +145,15 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals(1, $this->consultationSession->consultationSessionActivityLogs->count());
         $this->assertInstanceOf(ConsultationSessionActivityLog::class, $this->consultationSession->consultationSessionActivityLogs->first());
     }
+    public function test_setParticipantFeedback_cancelledSession_forbidden()
+    {
+        $this->consultationSession->cancelled = true;
+        $operation = function (){
+            $this->executeSetParticipantFeedback();
+        };
+        $errorDetail = "forbidden: can send report on cancelled session";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
     
 }
 
@@ -128,6 +161,7 @@ class TestableConsultationSession extends ConsultationSession
 {
     public $recordedEvents;
     public $consultationSetup, $id, $participant, $consultant, $startEndTime;
+    public $cancelled = false;
     public $participantFeedback;
     public $consultationSessionActivityLogs;
 }

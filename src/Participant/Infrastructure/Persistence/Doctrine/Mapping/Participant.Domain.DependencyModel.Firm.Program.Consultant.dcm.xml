@@ -13,7 +13,7 @@
         
         <id name="id" type="guid" />
         <field name="personnelId" column="Personnel_id" type="guid" nullable="false"/>
-        <field name="removed" type="boolean" />
+        <field name="active" type="boolean" />
         
         <one-to-many field="consultationSessions" 
                      target-entity="Participant\Domain\Model\Participant\ConsultationSession"
