@@ -27,7 +27,7 @@ class ConsultationSessionTest extends TestBase
     protected $id = 'id';
     protected $consultantFeedback;
     protected $formRecordData;
-
+    protected $consultationRequest;
 
     protected function setUp(): void
     {
@@ -41,6 +41,7 @@ class ConsultationSessionTest extends TestBase
         
         $this->consultantFeedback = $this->buildMockOfClass(ConsultantFeedback::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
     }
     
     protected function executeConstruct()
@@ -56,6 +57,7 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals($this->participant, $consultationSession->participant);
         $this->assertEquals($this->consultationSetup, $consultationSession->consultationSetup);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
+        $this->assertFalse($consultationSession->cancelled);
     }
     public function test_construct_addConsultationSessionActivityLog()
     {
@@ -70,14 +72,25 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals($event, $consultationSession->recordedEvents[0]);
     }
     
+    protected function executeIntersectWithConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->any())
+                ->method('scheduleIntersectWith')
+                ->willReturn(true);
+        return $this->consultationSession->intersectWithConsultationRequest($this->consultationRequest);
+    }
     public function test_intersectWithConsultationRequest_returnResultOfStartEndTimeIntersectComparison()
     {
-        $consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
-        $consultationRequest->expects($this->once())
+        $this->consultationRequest->expects($this->once())
                 ->method('scheduleIntersectWith')
                 ->with($this->consultationSession->startEndTime)
                 ->willReturn(true);
-        $this->assertTrue($this->consultationSession->intersectWithConsultationRequest($consultationRequest));
+        $this->assertTrue($this->executeIntersectWithConsultationRequest());
+    }
+    public function test_intersectWithConsultationRequest_cancelledSession_returnFalse()
+    {
+        $this->consultationSession->cancelled = true;
+        $this->assertFalse($this->executeIntersectWithConsultationRequest());
     }
     
     protected function executeSetConsultantFeedback()
@@ -103,6 +116,15 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals(1, $this->consultationSession->consultationSessionActivityLogs->count());
         $this->assertInstanceOf(ConsultationSessionActivityLog::class, $this->consultationSession->consultationSessionActivityLogs->first());
     }
+    public function test_setConsultantFeedback_cancelledSession_forbidden()
+    {
+        $this->consultationSession->cancelled = true;
+        $operation = function (){
+            $this->executeSetConsultantFeedback();
+        };
+        $errorDetail = "forbidden: unable to submit report on cancelled session";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
 
 }
 
@@ -114,6 +136,7 @@ class TestableConsultationSession extends ConsultationSession
     public $participant;
     public $consultationSetup;
     public $startEndTime;
+    public $cancelled;
     public $consultantFeedback;
     public $consultationSessionActivityLogs;
     

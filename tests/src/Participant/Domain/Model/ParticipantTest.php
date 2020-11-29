@@ -148,6 +148,9 @@ class ParticipantTest extends TestBase
         $this->consultant->expects($this->any())
                 ->method('programEquals')
                 ->willReturn(true);
+        $this->consultant->expects($this->any())
+                ->method('canAcceptConsultationRequest')
+                ->willReturn(true);
         $this->consultationRequest->expects($this->any())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->willReturn(false);

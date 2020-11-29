@@ -2,7 +2,7 @@
 
 namespace ActivityCreator\Domain\service;
 
-use Query\Domain\Model\Firm\Program\Consultant;
+use ActivityCreator\Domain\DependencyModel\Firm\Personnel\Consultant;
 
 interface ConsultantRepository
 {

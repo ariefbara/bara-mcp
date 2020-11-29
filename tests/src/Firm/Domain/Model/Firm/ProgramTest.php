@@ -143,6 +143,7 @@ class ProgramTest extends TestBase
 
     protected function executeAssignPersonnelAsConsultant()
     {
+        $this->personnel->expects($this->any())->method("isActive")->willReturn(true);
         return $this->program->assignPersonnelAsConsultant($this->personnel);
     }
     public function test_assignPersonnelAsConsultant_addConsultantToCollection()
@@ -173,6 +174,7 @@ class ProgramTest extends TestBase
     
     protected function executeAssignPersonnelAsCoordinator()
     {
+        $this->personnel->expects($this->any())->method("isActive")->willReturn(true);
         return $this->program->assignPersonnelAsCoordinator($this->personnel);
     }
     public function test_assignPersonnelAsCoordinator_addCoordinatorToCollection()

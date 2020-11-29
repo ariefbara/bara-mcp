@@ -66,13 +66,13 @@ class PersonnelTest extends TestBase
         $errorDetail = "forbidden: invalid or expired token";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    public function test_resetPasswordCode_unsetTokenAndExpiredTime()
+    public function test_resetPassword_unsetTokenAndExpiredTime()
     {
         $this->executeResetPassword();
         $this->assertNull($this->personnel->resetPasswordCode);
         $this->assertNull($this->personnel->resetPasswordCodeExpiredTime);
     }
-    public function test_resetPasswordCode_failedAttempt_unsetTokenAndExpiredTime()
+    public function test_resetPassword_failedAttempt_unsetTokenAndExpiredTime()
     {
         $this->personnel->resetPasswordCodeExpiredTime = (new DateTimeImmutable("-1 minutes"));
         $operation = function (){
@@ -83,6 +83,15 @@ class PersonnelTest extends TestBase
         
         $this->assertNull($this->personnel->resetPasswordCode);
         $this->assertNull($this->personnel->resetPasswordCodeExpiredTime);
+    }
+    public function test_resetPassword_inactivePersonnel_forbidden()
+    {
+        $this->personnel->active = false;
+        $operation = function (){
+            $this->executeResetPassword();
+        };
+        $errorDetail = "forbiden: only active personnel can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeGenerateResetPasswordCode()
@@ -101,6 +110,15 @@ class PersonnelTest extends TestBase
         $event = new CommonEvent(EventList::PERSONNEL_RESET_PASSWORD_CODE_GENERATED, $this->personnel->id);
         $this->assertEquals($event, $this->personnel->recordedEvents[0]);
     }
+    public function test_generateResetPasswordCode_inactivePersonnel_forbidden()
+    {
+        $this->personnel->active = false;
+        $operation = function (){
+            $this->executeGenerateResetPasswordCode();
+        };
+        $errorDetail = "forbiden: only active personnel can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
 }
 
 class TestablePersonnel extends Personnel
@@ -114,6 +132,11 @@ class TestablePersonnel extends Personnel
     public $bio;
     public $resetPasswordCode;
     public $resetPasswordCodeExpiredTime;
-    public $removed;
+    public $active = true;
     public $recordedEvents;
+    
+    function __construct()
+    {
+        parent::__construct();
+    }
 }

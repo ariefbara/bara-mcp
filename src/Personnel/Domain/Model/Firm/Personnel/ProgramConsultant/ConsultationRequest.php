@@ -88,7 +88,7 @@ class ConsultationRequest extends EntityContainEvents
 
     public function scheduleIntersectWith(DateTimeInterval $otherSchedule): bool
     {
-        return $this->startEndTime->intersectWith($otherSchedule);
+        return !$this->concluded && $this->startEndTime->intersectWith($otherSchedule);
     }
 
     public function reject(): void

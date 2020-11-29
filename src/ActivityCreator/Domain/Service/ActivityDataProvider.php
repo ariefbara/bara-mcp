@@ -1,6 +1,6 @@
 <?php
 
-namespace ActivityCreator\Domain\service;
+namespace ActivityCreator\Domain\Service;
 
 use ActivityCreator\Domain\DependencyModel\Firm\ {
     Manager,

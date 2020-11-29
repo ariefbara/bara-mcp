@@ -116,10 +116,19 @@ class ProgramConsultantTest extends TestBase
         $this->executeAcceptConsultationRequest();
         $this->assertEquals([$event], $this->programConsultant->recordedEvents);
     }
+    public function test_accept_inactiveConsultant_forbidden()
+    {
+        $this->programConsultant->active = false;
+        $operation = function (){
+            $this->executeAcceptConsultationRequest();
+        };
+        $errorDetail = "forbidden: only active consultant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
 
     protected function executeOfferConsultationRequestTime()
     {
-        $this->consultationRequest->expects($this->atLeastOnce())
+        $this->consultationRequest->expects($this->any())
                 ->method('offer');
         $this->programConsultant->offerConsultationRequestTime($this->consultationRequestId, $this->startTime);
     }
@@ -162,6 +171,15 @@ class ProgramConsultantTest extends TestBase
         $this->executeOfferConsultationRequestTime();
         $this->assertEquals([$event], $this->programConsultant->recordedEvents);
     }
+    public function test_offer_inactiveConsultant_forbidden()
+    {
+        $this->programConsultant->active = false;
+        $operation = function (){
+            $this->executeOfferConsultationRequestTime();
+        };
+        $errorDetail = "forbidden: only active consultant can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
     
     protected function executeSubmitNewCommentOnWorksheet()
     {
@@ -175,9 +193,9 @@ class ProgramConsultantTest extends TestBase
         $comment = new Comment($this->worksheet, $this->consultantCommentId, $this->message);
         $this->assertInstanceOf(ConsultantComment::class, $this->executeSubmitNewCommentOnWorksheet());
     }
-    public function test_submitNewComment_removedConsultant_forbiddenError()
+    public function test_submitNewComment_inactiveConsultant_forbiddenError()
     {
-        $this->programConsultant->removed = true;
+        $this->programConsultant->active = false;
         $operation = function (){
             $this->executeSubmitNewCommentOnWorksheet();
         };
@@ -217,7 +235,7 @@ class ProgramConsultantTest extends TestBase
     }
     public function test_submitReplyOnWorksheetComment_inactiveConsultant_forbiddenError()
     {
-        $this->programConsultant->removed = true;
+        $this->programConsultant->active = false;
         $operation = function (){
             $this->executeSubmitReplyOnWorksheetComment();
         };
@@ -241,7 +259,7 @@ class ProgramConsultantTest extends TestBase
 class TestableProgramConsultant extends ProgramConsultant
 {
 
-    public $personnel, $id = 'id', $removed;
+    public $personnel, $id = 'id', $active = true;
     public $programId = "programId";
     public $consultationRequests, $consultationSessions;
     public $recordedEvents;

@@ -13,6 +13,7 @@
         </many-to-one>
         
         <id name="id" type="guid" />
+        <field name="cancelled" type="boolean" />
         
         <many-to-one  field="participant" 
                       target-entity="Personnel\Domain\Model\Firm\Program\Participant"

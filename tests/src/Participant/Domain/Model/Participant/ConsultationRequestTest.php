@@ -272,6 +272,7 @@ class ConsultationRequestTest extends TestBase
 
     public function test_createConsultationSetupSchedule_returnConsultationSetupSchedule()
     {
+        $this->consultant->expects($this->any())->method("isActive")->willReturn(true);
         $this->assertInstanceOf(ConsultationSession::class, $this->consultationRequest->createConsultationSession($id = "consultationSessionId", $this->teamMember));
     }
     

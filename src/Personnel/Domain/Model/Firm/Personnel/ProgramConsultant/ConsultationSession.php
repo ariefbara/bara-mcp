@@ -15,6 +15,7 @@ use Resources\ {
     Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Domain\ValueObject\DateTimeInterval,
+    Exception\RegularException,
     Uuid
 };
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -51,6 +52,12 @@ class ConsultationSession extends EntityContainEvents
      * @var DateTimeInterval
      */
     protected $startEndTime;
+    
+    /**
+     *
+     * @var bool
+     */
+    protected $cancelled;
 
     /**
      *
@@ -73,6 +80,7 @@ class ConsultationSession extends EntityContainEvents
         $this->participant = $participant;
         $this->consultationSetup = $consultationSetup;
         $this->startEndTime = $startEndTime;
+        $this->cancelled = false;
         
         $this->consultationSessionActivityLogs = new ArrayCollection();
         $this->logActivity("Jadwal Konsultasi Disepakati");
@@ -83,11 +91,15 @@ class ConsultationSession extends EntityContainEvents
 
     public function intersectWithConsultationRequest(ConsultationRequest $consultationRequest): bool
     {
-        return $consultationRequest->scheduleIntersectWith($this->startEndTime);
+        return !$this->cancelled && $consultationRequest->scheduleIntersectWith($this->startEndTime);
     }
 
     public function setConsultantFeedback(FormRecordData $formRecordData): void
     {
+        if ($this->cancelled) {
+            $errorDetail = "forbidden: unable to submit report on cancelled session";
+            throw RegularException::forbidden($errorDetail);
+        }
         if (!empty($this->consultantFeedback)) {
             $this->consultantFeedback->update($formRecordData);
         } else {

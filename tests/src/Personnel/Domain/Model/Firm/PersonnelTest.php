@@ -51,6 +51,15 @@ class PersonnelTest extends TestBase
         $this->executeUpdate();
         $this->markAsSuccess();
     }
+    public function test_update_inactivePersonnel_forbidden()
+    {
+        $this->personnel->active = false;
+        $operation = function (){
+            $this->executeUpdate();
+        };
+        $errorDetail = "forbidden: only active personnel can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
     
     protected function executeChangePassword()
     {
@@ -70,10 +79,19 @@ class PersonnelTest extends TestBase
         $errorDetail = "forbidden: previous password not match";
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+    public function test_changePassword_inactivePersonnel_forbidden()
+    {
+        $this->personnel->active = false;
+        $operation = function (){
+            $this->executeChangePassword();
+        };
+        $errorDetail = "forbidden: only active personnel can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
 }
 
 class TestablePersonnel extends Personnel{
-    public $incubator, $id, $name, $email, $password, $phone, $joinTime, $removed;
+    public $incubator, $id, $name, $email, $password, $phone, $joinTime, $active = true;
     public $bio;
     public $programMentorships, $personnelFileInfos;
     

@@ -76,13 +76,15 @@ class Personnel extends EntityContainEvents
      */
     protected $active;
     
-    public function __construct()
+    protected function __construct()
     {
         
     }
     
     public function generateResetPasswordCode(): void
     {
+        $this->assertActive();
+        
         $this->resetPasswordCode = bin2hex(random_bytes(32));
         $this->resetPasswordCodeExpiredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy("+24 hours");
         
@@ -92,6 +94,7 @@ class Personnel extends EntityContainEvents
     
     public function resetPassword(string $resetPasswordCode, string $password): void
     {
+        $this->assertActive();
         if (empty($this->resetPasswordCode)
                 || $this->resetPasswordCode !== $resetPasswordCode
                 || $this->resetPasswordCodeExpiredTime < new \DateTimeImmutable()
@@ -105,6 +108,14 @@ class Personnel extends EntityContainEvents
         $this->password = new Password($password);
         $this->resetPasswordCode = null;
         $this->resetPasswordCodeExpiredTime = null;
+    }
+    
+    protected function assertActive(): void
+    {
+        if (!$this->active) {
+            $errorDetail = "forbiden: only active personnel can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
     
 }
