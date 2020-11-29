@@ -336,7 +336,6 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     
     public function test_inviteCoordinator_200()
     {
-$this->disableExceptionHandling();
         $uri = $this->attendeeUri . "/invite-coordinator";
         $this->put($uri, $this->inviteCoordinatorInput, $this->manager->token)
                 ->seeStatusCode(200);

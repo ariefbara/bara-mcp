@@ -2,10 +2,10 @@
 
 namespace ActivityCreator\Domain\service;
 
-use ActivityCreator\Domain\DependencyModel\Firm\Personnel\Consultant;
-
+use Query\Domain\Model\Firm\Program\Consultant;
 
 interface ConsultantRepository
 {
+
     public function ofId(string $consultantId): Consultant;
 }

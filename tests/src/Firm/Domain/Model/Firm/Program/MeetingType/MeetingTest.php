@@ -21,6 +21,7 @@ class MeetingTest extends TestBase
     protected $meetingType;
     protected $user;
     protected $meeting;
+    protected $startEndTime;
     protected $attendee;
     protected $id = "newId", $name = "new name", $description = "new description ", $startTime, $endTime,
             $location = "new location", $note = "new note";
@@ -36,6 +37,8 @@ class MeetingTest extends TestBase
                 "location", "note");
 
         $this->meeting = new TestableMeeting($this->meetingType, "id", $meetingData, $this->user);
+        $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->meeting->startEndTime = $this->startEndTime;
         
         $this->attendee = $this->buildMockOfClass(Attendee::class);
         $this->meeting->attendees->add($this->attendee);
@@ -166,7 +169,13 @@ class MeetingTest extends TestBase
                 ->willReturn(true);
         $this->executeAddAttendee();
         $this->assertEquals(1, $this->meeting->attendees->count());
-        
+    }
+    
+    public function test_isUpcoming_returnStartEndTimeAfterResult()
+    {
+        $this->startEndTime->expects($this->once())
+                ->method("isUpcoming");
+        $this->meeting->isUpcoming();
     }
 
 }

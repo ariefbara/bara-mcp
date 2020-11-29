@@ -163,6 +163,21 @@ class TimeIntervalTest extends TestBase
         $this->assertTrue($this->executeIntersectWith());
     }
     
+    protected function executeIsUpcoming()
+    {
+        return $this->vo->isUpcoming();
+    }
+    public function test_isUpcoming_startTimeInFuture_returnTrue()
+    {
+        $this->vo->startTime = new \DateTimeImmutable("+1 hours");
+        $this->assertTrue($this->executeIsUpcoming());
+    }
+    public function test_isUpcoming_startTimeNotInFuture_returnFalse()
+    {
+        $this->vo->startTime = new \DateTimeImmutable();
+        $this->assertFalse($this->executeIsUpcoming());
+    }
+    
 }
 
 class TestableTimeInterval extends TimeInterval{

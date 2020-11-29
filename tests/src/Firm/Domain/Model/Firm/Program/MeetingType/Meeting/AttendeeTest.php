@@ -273,7 +273,27 @@ class AttendeeTest extends TestBase
         };
         $errorDetail = "forbidden: only meeting initiator can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-        
+    }
+    
+    protected function executeDisableValidInvitation()
+    {
+        $this->meeting->expects($this->any())
+                ->method("isUpcoming")
+                ->willReturn(true);
+        $this->attendee->disableValidInvitation();
+    }
+    public function test_disableValidInvitation_CancelInvitation()
+    {
+        $this->executeDisableValidInvitation();
+        $this->assertTrue($this->attendee->cancelled);
+    }
+    public function test_disableValidInvitation_notAnUpcomingMeeting_nop()
+    {
+        $this->meeting->expects($this->once())
+                ->method("isUpcoming")
+                ->willReturn(false);
+        $this->executeDisableValidInvitation();
+        $this->assertFalse($this->attendee->cancelled);
     }
 }
 

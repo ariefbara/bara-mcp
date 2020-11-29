@@ -189,5 +189,12 @@ class Attendee
             throw RegularException::forbidden($errorDetail);
         }
     }
+    
+    public function disableValidInvitation(): void
+    {
+        if ($this->meeting->isUpcoming()) {
+            $this->cancelled = true;
+        }
+    }
 
 }

@@ -7,6 +7,8 @@ use Firm\ {
     Application\Service\Firm\Program\CoordinatorAssign,
     Application\Service\Firm\Program\CoordinatorRemove,
     Application\Service\Firm\Program\ProgramCompositionId,
+    Application\Service\Manager\DisableCoordinator,
+    Domain\Model\Firm\Manager,
     Domain\Model\Firm\Personnel,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\Coordinator
@@ -32,12 +34,10 @@ class CoordinatorController extends ManagerBaseController
         return $this->singleQueryResponse($this->arrayDataOfCoordinator($coordinator));
     }
 
-    public function remove($programId, $coordinatorId)
+    public function disable($programId, $coordinatorId)
     {
-        $service = $this->buildRemoveService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-        $service->execute($programCompositionId, $coordinatorId);
-        
+        $service = $this->buildDisableService();
+        $service->execute($this->firmId(), $this->managerId(), $coordinatorId);
         return $this->commandOkResponse();
     }
 
@@ -83,16 +83,17 @@ class CoordinatorController extends ManagerBaseController
         return new CoordinatorAssign($programRepository, $personnelRepository);
     }
 
-    protected function buildRemoveService()
-    {
-        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
-        return new CoordinatorRemove($coordinatorRepository);
-    }
-
     protected function buildViewService()
     {
         $coordinatorRepository = $this->em->getRepository(Coordinator2::class);
         return new CoordinatorView($coordinatorRepository);
+    }
+    
+    protected function buildDisableService()
+    {
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        return new DisableCoordinator($coordinatorRepository, $managerRepository);
     }
 
 }

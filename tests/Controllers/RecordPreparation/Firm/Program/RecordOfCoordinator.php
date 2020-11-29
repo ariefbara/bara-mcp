@@ -20,14 +20,15 @@ class RecordOfCoordinator implements Record
      * @var RecordOfPersonnel
      */
     public $personnel;
-    public $id, $removed = false;
+    public $id;
+    public $active;
 
     function __construct(RecordOfProgram $program, RecordOfPersonnel $personnel, $index)
     {
         $this->program = $program;
         $this->personnel = $personnel;
         $this->id = "coordinator-$index";
-        $this->removed = false;
+        $this->active = true;
     }
 
     public function toArrayForDbEntry()
@@ -36,7 +37,7 @@ class RecordOfCoordinator implements Record
             "Program_id" => $this->program->id,
             "id" => $this->id,
             "Personnel_id" => $this->personnel->id,
-            "removed" => $this->removed,
+            "active" => $this->active,
         ];
     }
 

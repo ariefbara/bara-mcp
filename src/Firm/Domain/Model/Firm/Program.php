@@ -152,12 +152,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
         $consultant = $this->consultants->matching($criteria)->first();
 
         if (!empty($consultant)) {
-            if (!$consultant->isRemoved()) {
-                $errorDetail = 'forbidden: personnel already assigned as consultant';
-                throw RegularException::forbidden($errorDetail);
-            } else {
-                $consultant->reassign();
-            }
+            $consultant->enable();
         } else {
             $id = Uuid::generateUuid4();
             $consultant = new Consultant($this, $id, $personnel);
@@ -173,12 +168,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
         $coordinator = $this->coordinators->matching($criteria)->first();
 
         if (!empty($coordinator)) {
-            if (!$coordinator->isRemoved()) {
-                $errorDetail = "forbidden: personnel already assigned as coordinator";
-                throw RegularException::forbidden($errorDetail);
-            } else {
-                $coordinator->reassign();
-            }
+            $coordinator->enable();
         } else {
             $id = Uuid::generateUuid4();
             $coordinator = new Coordinator($this, $id, $personnel);

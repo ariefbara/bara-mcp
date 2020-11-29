@@ -30,5 +30,11 @@ abstract class TimeInterval
             || $this->containTimeStamp($other->getEndTimeStamp())
             || $other->encompass($this);
     }
+    
+    public function isUpcoming(): bool
+    {
+        return $this->getStartTimeStamp() > (new \DateTimeImmutable())->getTimestamp();
+    }
+    
 }
 

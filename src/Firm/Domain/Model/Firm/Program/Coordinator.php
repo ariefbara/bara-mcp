@@ -2,7 +2,10 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\ {
+    Model\AssetBelongsToFirm,
+    Model\Firm,
     Model\Firm\Personnel,
     Model\Firm\Program,
     Model\Firm\Program\MeetingType\CanAttendMeeting,
@@ -15,7 +18,7 @@ use Firm\Domain\ {
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Coordinator implements CanAttendMeeting
+class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
 {
 
     /**
@@ -40,7 +43,13 @@ class Coordinator implements CanAttendMeeting
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
+
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $meetingInvitations;
 
     function getPersonnel(): Personnel
     {
@@ -52,27 +61,25 @@ class Coordinator implements CanAttendMeeting
         return $this->id;
     }
 
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     function __construct(Program $program, $id, Personnel $personnel)
     {
         $this->program = $program;
         $this->id = $id;
         $this->personnel = $personnel;
-        $this->removed = false;
+        $this->active = true;
     }
 
-    public function remove(): void
+    public function disable(): void
     {
-        $this->removed = true;
+        $this->active = false;
+        foreach ($this->meetingInvitations->getIterator() as $invitation) {
+            $invitation->disableValidInvitation();
+        }
     }
 
-    public function reassign(): void
+    public function enable(): void
     {
-        $this->removed = false;
+        $this->active = true;
     }
 
     public function assignMetricsToParticipant(
@@ -82,14 +89,14 @@ class Coordinator implements CanAttendMeeting
         $this->assertAssetBelongsProgram($participant);
         $participant->assignMetrics($metricAssignmentDataCollector);
     }
-    
+
     public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
     {
         $this->assertActive();
         $this->assertAssetBelongsProgram($meetingType);
         return $meetingType->createMeeting($meetingId, $meetingData, $this);
     }
-    
+
     public function approveMetricAssignmentReport(MetricAssignmentReport $metricAssignmentReport): void
     {
         $this->assertActive();
@@ -99,12 +106,12 @@ class Coordinator implements CanAttendMeeting
 
     protected function assertActive()
     {
-        if ($this->removed) {
+        if (!$this->active) {
             $errorDetail = "forbidden: only active coordinator can make this request";
             throw RegularException::forbidden($errorDetail);
         }
     }
-    
+
     protected function assertAssetBelongsProgram(AssetInProgram $asset): void
     {
         if (!$asset->belongsToProgram($this->program)) {
@@ -115,7 +122,7 @@ class Coordinator implements CanAttendMeeting
 
     public function canInvolvedInProgram(Program $program): bool
     {
-        return !$this->removed && $this->program === $program;
+        return $this->active && $this->program === $program;
     }
 
     public function roleCorrespondWith(ActivityParticipantType $role): bool
@@ -126,6 +133,11 @@ class Coordinator implements CanAttendMeeting
     public function registerAsAttendeeCandidate(Attendee $attendee): void
     {
         $attendee->setCoordinatorAsAttendeeCandidate($this);
+    }
+
+    public function belongsToFirm(Firm $firm): bool
+    {
+        return $this->program->belongsToFirm($firm);
     }
 
 }

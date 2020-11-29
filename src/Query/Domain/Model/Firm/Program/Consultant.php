@@ -36,7 +36,7 @@ class Consultant
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     function getProgram(): Program
     {
@@ -53,14 +53,14 @@ class Consultant
         return $this->personnel;
     }
 
-    function isRemoved(): bool
+    function isActive(): bool
     {
-        return $this->removed;
+        return $this->active;
     }
 
     protected function __construct()
     {
-        ;
+        
     }
 
     protected function assertActvie(): void

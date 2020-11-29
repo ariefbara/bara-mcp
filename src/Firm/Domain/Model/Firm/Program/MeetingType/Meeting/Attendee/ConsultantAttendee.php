@@ -40,5 +40,10 @@ class ConsultantAttendee
     {
         return $this->consultant === $user;
     }
+    
+    public function disableValidInvitation(): void
+    {
+        $this->attendee->disableValidInvitation();
+    }
 
 }

@@ -2,11 +2,16 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\Firm\ {
-    Personnel,
-    Program,
-    Program\MeetingType\Meeting\Attendee,
-    Program\MeetingType\MeetingData
+use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Domain\Model\ {
+    Firm,
+    Firm\Personnel,
+    Firm\Program,
+    Firm\Program\ConsultationSetup\ConsultationRequest,
+    Firm\Program\ConsultationSetup\ConsultationSession,
+    Firm\Program\MeetingType\Meeting\Attendee,
+    Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee,
+    Firm\Program\MeetingType\MeetingData
 };
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
@@ -20,6 +25,10 @@ class ConsultantTest extends TestBase
     protected $consultant;
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $attendee;
+    protected $meetingInvitation;
+    protected $consultationRequest;
+    protected $consultationSession;
+    protected $firm;
 
     protected function setUp(): void
     {
@@ -27,11 +36,25 @@ class ConsultantTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
         $this->consultant = new TestableConsultant($this->program, 'id', $this->personnel);
+        $this->consultant->meetingInvitations = new ArrayCollection();
+        $this->consultant->consultationRequests = new ArrayCollection();
+        $this->consultant->consultationSessions = new ArrayCollection();
+        
+        $this->meetingInvitation = $this->buildMockOfClass(ConsultantAttendee::class);
+        $this->consultant->meetingInvitations->add($this->meetingInvitation);
+        
+        $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
+        $this->consultant->consultationRequests->add($this->consultationRequest);
+        
+        $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
+        $this->consultant->consultationSessions->add($this->consultationSession);
         
         $this->attendee = $this->buildMockOfClass(Attendee::class);
         
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        
+        $this->firm = $this->buildMockOfClass(Firm::class);
     }
 
     public function test_construct_setProperties()
@@ -40,20 +63,42 @@ class ConsultantTest extends TestBase
         $this->assertEquals($this->program, $consultant->program);
         $this->assertEquals($this->id, $consultant->id);
         $this->assertEquals($this->personnel, $consultant->personnel);
-        $this->assertFalse($consultant->removed);
+        $this->assertTrue($consultant->active);
     }
 
-    public function test_remove_setRemovedFlagTrue()
+    protected function executeDisable()
     {
-        $this->consultant->remove();
-        $this->assertTrue($this->consultant->removed);
+        $this->consultant->disable();
+    }
+    public function test_disable_setInactive()
+    {
+        $this->executeDisable();
+        $this->assertFalse($this->consultant->active);
+    }
+    public function test_disable_disableAllValidInvitation()
+    {
+        $this->meetingInvitation->expects($this->once())
+                ->method("disableValidInvitation");
+        $this->executeDisable();
+    }
+    public function test_disable_disableUpcomingRequest()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("disableUpcomingRequest");
+        $this->executeDisable();
+    }
+    public function test_disable_disableUpcomingSession()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("disableUpcomingSession");
+        $this->executeDisable();
     }
 
-    public function test_reassign_setRemovedFlagFalse()
+    public function test_enable_setRemovedFlagFalse()
     {
-        $this->consultant->removed = true;
-        $this->consultant->reassign();
-        $this->assertFalse($this->consultant->removed);
+        $this->consultant->active = false;
+        $this->consultant->enable();
+        $this->assertTrue($this->consultant->active);
     }
     
     public function test_getPersonnelName_returnPersonnelsGetNameResult()
@@ -75,7 +120,7 @@ class ConsultantTest extends TestBase
     }
     public function test_canInvolvedInProgram_inactiveConsultant_returnFalse()
     {
-        $this->consultant->removed = true;
+        $this->consultant->active = false;
         $this->assertFalse($this->consultant->canInvolvedInProgram($this->consultant->program));
     }
     
@@ -115,7 +160,7 @@ class ConsultantTest extends TestBase
     }
     public function test_initiateMeeting_inactiveConsultant_forbidden()
     {
-        $this->consultant->removed = true;
+        $this->consultant->active = false;
         $operation = function (){
             $this->executeInitiateMeeting();
         };
@@ -134,12 +179,23 @@ class ConsultantTest extends TestBase
         $errorDetail = "forbidden: can only manage meeting type from same program";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+    
+    public function test_belongsToFirm_returnProgramsBelongsToFirmResult()
+    {
+        $this->program->expects($this->once())
+                ->method("belongsToFirm")
+                ->with($this->firm);
+        $this->consultant->belongsToFirm($this->firm);
+    }
 
 }
 
 class TestableConsultant extends Consultant
 {
 
-    public $program, $id, $personnel, $removed;
+    public $program, $id, $personnel, $active;
+    public $meetingInvitations;
+    public $consultationRequests;
+    public $consultationSessions;
 
 }

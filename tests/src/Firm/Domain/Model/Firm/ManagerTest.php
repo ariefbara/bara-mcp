@@ -5,10 +5,13 @@ namespace Firm\Domain\Model\Firm;
 use Firm\Domain\ {
     Model\Firm,
     Model\Firm\Program\ActivityType,
+    Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
     Service\ActivityTypeDataProvider
 };
+use PHPUnit\Framework\MockObject\MockObject;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
@@ -23,6 +26,8 @@ class ManagerTest extends TestBase
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
     
     protected $meetingId = "meetingId", $meetingType, $meetingData;
+    protected $coordinator;
+    protected $consultant;
 
     protected function setUp(): void
     {
@@ -37,6 +42,28 @@ class ManagerTest extends TestBase
         
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        
+        $this->coordinator = $this->buildMockOfClass(Coordinator::class);
+        $this->consultant = $this->buildMockOfClass(Consultant::class);
+    }
+    
+    protected function setAssetBelongsToFirm(MockObject $asset): void
+    {
+        $asset->expects($this->any())
+                ->method("belongsToFirm")
+                ->willReturn(true);
+    }
+    protected function setAssetDoesntBelongsToFirm(MockObject $asset): void
+    {
+        $asset->expects($this->any())
+                ->method("belongsToFirm")
+                ->with($this->firm)
+                ->willReturn(false);
+    }
+    protected function assertUnmanageableAssetForbiddenError(callable $operation): void
+    {
+        $errorDetail = "forbidden: unable to manage asset from other firm";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
     protected function getManagerData()
@@ -200,6 +227,44 @@ class ManagerTest extends TestBase
         };
         $errorDetail = "forbidden: unable to manage meeting type from other firm";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    protected function executeDisableCoordinator()
+    {
+        $this->setAssetBelongsToFirm($this->coordinator);
+        $this->manager->disableCoordinator($this->coordinator);
+    }
+    public function test_disableCoordinator_disableCoordinator()
+    {
+        $this->coordinator->expects($this->once())
+                ->method("disable");
+        $this->executeDisableCoordinator();
+    }
+    public function test_disableCoordinator_coordinatorBelongsToDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->coordinator);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableCoordinator();
+        });
+    }
+    
+    protected function executeDisableConsultant()
+    {
+        $this->setAssetBelongsToFirm($this->consultant);
+        $this->manager->disableConsultant($this->consultant);
+    }
+    public function test_disableConsultant_disableConsultant()
+    {
+        $this->consultant->expects($this->once())
+                ->method("disable");
+        $this->executeDisableConsultant();
+    }
+    public function test_disableConsultant_consultantFromOtherFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->consultant);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableConsultant();
+        });
     }
 
 }

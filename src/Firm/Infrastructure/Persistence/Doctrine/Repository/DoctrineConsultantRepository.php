@@ -9,11 +9,12 @@ use Doctrine\ORM\ {
 use Firm\ {
     Application\Service\Firm\Program\ConsultantRepository,
     Application\Service\Firm\Program\ProgramCompositionId,
+    Application\Service\Manager\ConsultantRepository as InterfaceForManager,
     Domain\Model\Firm\Program\Consultant
 };
 use Resources\Exception\RegularException;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository
+class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForManager
 {
 
     public function ofId(ProgramCompositionId $programCompositionId, string $consultantId): Consultant

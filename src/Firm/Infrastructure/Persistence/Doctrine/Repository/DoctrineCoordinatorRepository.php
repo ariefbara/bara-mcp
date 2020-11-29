@@ -10,11 +10,12 @@ use Firm\ {
     Application\Service\Coordinator\CoordinatorRepository as InterfaceForCoordinator,
     Application\Service\Firm\Program\CoordinatorRepository,
     Application\Service\Firm\Program\ProgramCompositionId,
+    Application\Service\Manager\CoordinatorRepository as InterfaceForManager,
     Domain\Model\Firm\Program\Coordinator
 };
 use Resources\Exception\RegularException;
 
-class DoctrineCoordinatorRepository extends EntityRepository implements CoordinatorRepository, InterfaceForCoordinator
+class DoctrineCoordinatorRepository extends EntityRepository implements CoordinatorRepository, InterfaceForCoordinator, InterfaceForManager
 {
 
     public function ofId(ProgramCompositionId $programCompositionId, string $coordinatorId): Coordinator

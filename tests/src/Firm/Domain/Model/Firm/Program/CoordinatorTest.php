@@ -2,10 +2,13 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\ {
+    Model\Firm,
     Model\Firm\Personnel,
     Model\Firm\Program,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
+    Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
     Model\Firm\Program\MeetingType\MeetingData,
     Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
     Service\MetricAssignmentDataProvider
@@ -20,6 +23,7 @@ class CoordinatorTest extends TestBase
     protected $id = 'coordinator-id';
     protected $personnel;
     protected $coordinator;
+    protected $coordinatorAttendee;
     
     protected $participant;
     protected $metricAssignemtDataCollector;
@@ -27,6 +31,7 @@ class CoordinatorTest extends TestBase
     protected $activityParticipantType;
     protected $attendee;
     protected $metricAssignmentReport;
+    protected $firm;
 
     protected function setUp(): void
     {
@@ -35,6 +40,10 @@ class CoordinatorTest extends TestBase
         $this->personnel = $this->buildMockOfClass(Personnel::class);
 
         $this->coordinator = new TestableCoordinator($this->program, 'id', $this->personnel);
+        
+        $this->coordinator->meetingInvitations = new ArrayCollection();
+        $this->coordinatorAttendee = $this->buildMockOfClass(CoordinatorAttendee::class);
+        $this->coordinator->meetingInvitations->add($this->coordinatorAttendee);
         
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->metricAssignemtDataCollector = $this->buildMockOfClass(MetricAssignmentDataProvider::class);
@@ -47,6 +56,8 @@ class CoordinatorTest extends TestBase
         $this->attendee = $this->buildMockOfClass(Attendee::class);
         
         $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
+        
+        $this->firm = $this->buildMockOfClass(Firm::class);
     }
     
     protected function setAssetBelongsToProgram($asset)
@@ -80,20 +91,30 @@ class CoordinatorTest extends TestBase
         $this->assertEquals($this->program, $coordinator->program);
         $this->assertEquals($this->id, $coordinator->id);
         $this->assertEquals($this->personnel, $coordinator->personnel);
-        $this->assertFalse($coordinator->removed);
+        $this->assertTrue($coordinator->active);
     }
 
-    public function test_remove_setRemovedFlagTrue()
+    protected function executeDisable()
     {
-        $this->coordinator->remove();
-        $this->assertTrue($this->coordinator->removed);
+        $this->coordinator->disable();
+    }
+    public function test_disable_disableCoordinator()
+    {
+        $this->executeDisable();
+        $this->assertFalse($this->coordinator->active);
+    }
+    public function test_disable_disableAllValidInvitation()
+    {
+        $this->coordinatorAttendee->expects($this->once())
+                ->method("disableValidInvitation");
+        $this->executeDisable();
     }
 
     public function test_reassign_setRemovedFlagFalse()
     {
-        $this->coordinator->removed = true;
-        $this->coordinator->reassign();
-        $this->assertFalse($this->coordinator->removed);
+        $this->coordinator->active = false;
+        $this->coordinator->enable();
+        $this->assertTrue($this->coordinator->active);
     }
     
     protected function executeAssignMetricToParticipant()
@@ -110,7 +131,7 @@ class CoordinatorTest extends TestBase
     }
     public function test_assignMetricToParticipant_inactiveCoordinator_forbiddenError()
     {
-        $this->coordinator->removed = true;
+        $this->coordinator->active = false;
         $this->assertInactiveCoordinatorForbiddenError(function () {
             $this->executeAssignMetricToParticipant();
         });
@@ -139,7 +160,7 @@ class CoordinatorTest extends TestBase
     }
     public function test_initiateMeeting_inactiveCoordinator_forbidden()
     {
-        $this->coordinator->removed = true;
+        $this->coordinator->active = false;
         $operation = function (){
             $this->executeInitiateMeeting();
         };
@@ -165,7 +186,7 @@ class CoordinatorTest extends TestBase
     }
     public function test_canInvolvedInProgram_inactiveConsultant_returnFalse()
     {
-        $this->coordinator->removed = true;
+        $this->coordinator->active = false;
         $this->assertFalse($this->coordinator->canInvolvedInProgram($this->coordinator->program));
     }
     public function test_canInvolvedInProgram_differentProgram_returnFalse()
@@ -202,7 +223,7 @@ class CoordinatorTest extends TestBase
     }
     public function test_approveMetricAssignmentReport_inactiveCoordinator_forbidden()
     {
-        $this->coordinator->removed = true;
+        $this->coordinator->active = false;
         $this->assertInactiveCoordinatorForbiddenError(function (){
             $this->executeApproveMetricAssignmentReport();
         });
@@ -214,11 +235,20 @@ class CoordinatorTest extends TestBase
             $this->executeApproveMetricAssignmentReport();
         });
     }
+    
+    public function test_belongsToFirm_returnProgramsBelongsToFirmResult()
+    {
+        $this->program->expects($this->once())
+                ->method("belongsToFirm")
+                ->with($this->firm);
+        $this->coordinator->belongsToFirm($this->firm);
+    }
 
 }
 
 class TestableCoordinator extends Coordinator
 {
-    public $program, $id, $personnel, $removed;
+    public $program, $id, $personnel, $active;
+    public $meetingInvitations;
 
 }

@@ -150,27 +150,14 @@ class ProgramTest extends TestBase
         $this->executeAssignPersonnelAsConsultant();
         $this->assertEquals(2, $this->program->consultants->count());
     }
-    function test_assignPersonnelAsConsultant_aConsultantReferToSamePersonnelExistInCollection_throwEx()
+    function test_assignPersonnelAsConsultant_aConsultantReferToSamePersonnelExistInCollection_enableExistingConsultant()
     {
         $this->consultant->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
-        $operation = function () {
-            $this->executeAssignPersonnelAsConsultant();
-        };
-        $errorDetails = 'forbidden: personnel already assigned as consultant';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetails);
-    }
-    public function test_assignPersonnelAsConsultant_consultantReferedToSamePersonnelAlreadyRemove_reassignConsultant()
-    {
+        
         $this->consultant->expects($this->once())
-            ->method('getPersonnel')
-            ->willReturn($this->personnel);
-        $this->consultant->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
-        $this->consultant->expects($this->once())
-            ->method('reassign');
+                ->method("enable");
         $this->executeAssignPersonnelAsConsultant();
     }
     public function test_assignePersonnelAsConsultant_returnConsultantId()
@@ -178,9 +165,6 @@ class ProgramTest extends TestBase
         $this->consultant->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
-        $this->consultant->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
         $this->consultant->expects($this->once())
             ->method('getId')
             ->willReturn($id = 'id');
@@ -196,27 +180,13 @@ class ProgramTest extends TestBase
         $this->executeAssignPersonnelAsCoordinator();
         $this->assertEquals(2, $this->program->coordinators->count());
     }
-    public function test_assignePersonnelAsCoordinator_personnelAlreadyAssignAsCoordinator_throwEx()
-    {
-        $this->coordinator->expects($this->once())
-            ->method('getPersonnel')
-            ->willReturn($this->personnel);
-        $operation = function () {
-            $this->executeAssignPersonnelAsCoordinator();
-        };
-        $errorDetail = "forbidden: personnel already assigned as coordinator";
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
-    public function test_assignPersonnelAsCoordinator_coordinatorReferToSamePersonnelAlreadyRemoved_reassignCoordinator()
+    public function test_assignPersonnelAsCoordinator_personnelAlreadyAssignAsCoordinator_enableCorrespondCoordinator()
     {
         $this->coordinator->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
         $this->coordinator->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
-        $this->coordinator->expects($this->once())
-            ->method('reassign');
+            ->method('enable');
         $this->executeAssignPersonnelAsCoordinator();
     }
     public function test_assignPersonnelAsCoordiantor_returnCoordinatorId()
@@ -224,9 +194,6 @@ class ProgramTest extends TestBase
         $this->coordinator->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
-        $this->coordinator->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
         $this->coordinator->expects($this->once())
             ->method('getId')
             ->willReturn($id = 'id');

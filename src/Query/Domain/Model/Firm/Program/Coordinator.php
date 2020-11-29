@@ -32,7 +32,7 @@ class Coordinator
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     function getProgram(): Program
     {
@@ -49,9 +49,9 @@ class Coordinator
         return $this->personnel;
     }
 
-    function isRemoved(): bool
+    function isActive(): bool
     {
-        return $this->removed;
+        return $this->active;
     }
 
     protected function __construct()

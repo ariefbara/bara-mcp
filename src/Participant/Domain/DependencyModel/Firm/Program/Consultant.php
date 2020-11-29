@@ -44,7 +44,7 @@ class Consultant
 
     protected function __construct()
     {
-        ;
+        
     }
 
     public function programEquals(Program $program): bool

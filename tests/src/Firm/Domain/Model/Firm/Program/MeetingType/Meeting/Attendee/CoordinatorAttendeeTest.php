@@ -44,6 +44,13 @@ class CoordinatorAttendeeTest extends TestBase
         $user = $this->buildMockOfInterface(CanAttendMeeting::class);
         $this->assertFalse($this->coordinatorAttendee->coordinatorEquals($user));
     }
+    
+    public function test_disableValidInvitation_executeAttendeesDisableValidInvitation()
+    {
+        $this->attendee->expects($this->once())
+                ->method("disableValidInvitation");
+        $this->coordinatorAttendee->disableValidInvitation();
+    }
 
 }
 

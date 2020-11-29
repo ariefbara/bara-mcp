@@ -10,14 +10,22 @@
         >
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
+        
     	<many-to-one  field="personnel" 
                       target-entity="Firm\Domain\Model\Firm\Personnel"
                       inversed-by="programCoordinators"
         >
             <join-column name="Personnel_id" referenced-column-name="id" />
         </many-to-one>
-        <field name="removed" type="boolean" />
+        
+        <field name="active" type="boolean" />
+        
+        <one-to-many  field="meetingInvitations" 
+                      target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee"
+                      mapped-by="coordinator"
+        />
         
     </entity>
 </doctrine-mapping>

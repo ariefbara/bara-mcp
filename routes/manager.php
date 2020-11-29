@@ -74,7 +74,7 @@ $router->group($managerAggregate, function () use ($router) {
         $router->group(['prefix' => '/coordinators'], function () use($router) {
             $controller = "CoordinatorController";
             $router->put("", ["uses" => "$controller@assign"]);
-            $router->delete("/{coordinatorId}", ["uses" => "$controller@remove"]);
+            $router->delete("/{coordinatorId}", ["uses" => "$controller@disable"]);
             $router->get("/{coordinatorId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
@@ -82,7 +82,7 @@ $router->group($managerAggregate, function () use ($router) {
         $router->group(['prefix' => '/consultants'], function () use($router) {
             $controller = "ConsultantController";
             $router->put("", ["uses" => "$controller@assign"]);
-            $router->delete("/{consultantId}", ["uses" => "$controller@remove"]);
+            $router->delete("/{consultantId}", ["uses" => "$controller@disable"]);
             $router->get("/{consultantId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });

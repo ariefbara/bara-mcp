@@ -6,6 +6,8 @@ use DateTimeImmutable;
 use Firm\Domain\ {
     Model\Firm,
     Model\Firm\Program\ActivityType,
+    Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
     Model\Firm\Program\MeetingType\CanAttendMeeting,
     Model\Firm\Program\MeetingType\Meeting,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
@@ -150,6 +152,27 @@ class Manager implements CanAttendMeeting
             throw RegularException::forbidden($errorDetail);
         }
         return $meetingType->createMeeting($meetingId, $meetingData, $this);
+    }
+    
+    public function disableCoordinator(Coordinator $coordinator): void
+    {
+        $this->assertAssetBelongsToSameFirm($coordinator);
+        $coordinator->disable();
+    }
+    
+    public function disableConsultant(Consultant $consultant): void
+    {
+        $this->assertAssetBelongsToSameFirm($consultant);
+        $consultant->disable();
+    }
+    
+    
+    protected function assertAssetBelongsToSameFirm(\Firm\Domain\Model\AssetBelongsToFirm $asset): void
+    {
+        if (!$asset->belongsToFirm($this->firm)) {
+            $errorDetail = "forbidden: unable to manage asset from other firm";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
 }
