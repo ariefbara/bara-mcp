@@ -10,6 +10,7 @@ use Query\ {
     Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog,
     Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog,
     Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog,
+    Domain\Model\Firm\Team\Member\TeamMemberActivityLog,
     Domain\SharedModel\ActivityLog
 };
 
@@ -37,18 +38,23 @@ class ActivityLogController extends AsTeamMemberBaseController
             "id" => $activityLog->getId(),
             "message" => $activityLog->getMessage(),
             "occuredTime" => $activityLog->getOccuredTimeString(),
-            "teamMember" => [
-                "id" => $activityLog->getTeamMemberActivityLog()->getMember()->getId(),
-                "client" => [
-                    "id" => $activityLog->getTeamMemberActivityLog()->getMember()->getClient()->getId(),
-                    "name" => $activityLog->getTeamMemberActivityLog()->getMember()->getClient()->getFullName(),
-                ],
-            ],
+            "teamMember" => $this->arrayDataOfTeamMember($activityLog->getTeamMemberActivityLog()),
             "consultationRequest" => $this->arrayDataOfConsultationRequest($activityLog->getConsultationRequestActivityLog()),
             "consultationSession" => $this->arrayDataOfConsultationSession($activityLog->getConsultationSessionActivityLog()),
             "worksheet" => $this->arrayDataOfWorksheet($activityLog->getWorksheetActivityLog()),
             "comment" => $this->arrayDataOfComment($activityLog->getCommentActivityLog()),
             "learningMaterial" => $this->arrayDataOfLearningMaterial($activityLog->getViewLearningMaterialActivityLog()),
+        ];
+    }
+    
+    protected function arrayDataOfTeamMember(?TeamMemberActivityLog $teamMemberActivityLog): ?array
+    {
+        return empty($teamMemberActivityLog)? null: [
+            "id" => $teamMemberActivityLog->getMember()->getId(),
+            "client" => [
+                "id" => $teamMemberActivityLog->getMember()->getClient()->getId(),
+                "name" => $teamMemberActivityLog->getMember()->getClient()->getFullName(),
+            ],
         ];
     }
 
