@@ -88,7 +88,7 @@ class MissionController extends ManagerBaseController
     public function showAll($programId)
     {
         $service = $this->buildViewService();
-        $missions = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), null);
+        $missions = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), false);
         
         $result = [];
         $result['total'] = count($missions);
