@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
+use App\Http\Controllers\FormRecordToArrayDataConverter;
 use Query\ {
     Application\Service\Firm\Program\ViewConsultationSession,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
     Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
+    Domain\Model\User\UserParticipant,
+    Infrastructure\QueryFilter\ConsultationSessionFilter
 };
 
 class ConsultationSessionController extends AsProgramCoordinatorBaseController
@@ -17,7 +19,7 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
         $this->authorizedUserIsProgramCoordinator($programId);
         
         $service = $this->buildViewService();
-        $consultationSessionFilter = (new \Query\Infrastructure\QueryFilter\ConsultationSessionFilter())
+        $consultationSessionFilter = (new ConsultationSessionFilter())
                 ->setMinStartTime($this->dateTimeImmutableOfQueryRequest("minStartTime"))
                 ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("maxEndTime"))
                 ->setContainConsultantFeedback($this->filterBooleanOfQueryRequest("containConsultantFeedback"))
@@ -29,7 +31,29 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
         $result = [];
         $result["total"] = count($consultationSessions);
         foreach ($consultationSessions as $consultationSession) {
-            $result["list"][] = $this->arrayDataOfConsultationSession($consultationSession);
+            $result["list"][] = [
+                "id" => $consultationSession->getId(),
+                "startTime" => $consultationSession->getStartTime(),
+                "endTime" => $consultationSession->getEndTime(),
+                "consultationSetup" => [
+                    "id" => $consultationSession->getConsultationSetup()->getId(),
+                    "name" => $consultationSession->getConsultationSetup()->getName(),
+                ],
+                "consultant" => [
+                    "id" => $consultationSession->getConsultant()->getId(),
+                    "personnel" => [
+                        "id" => $consultationSession->getConsultant()->getPersonnel()->getId(),
+                        "name" => $consultationSession->getConsultant()->getPersonnel()->getName(),
+                    ],
+                ],
+                "participant" => [
+                    "id" => $consultationSession->getParticipant()->getId(),
+                    "active" => $consultationSession->getParticipant()->isActive(),
+                    "client" => $this->arrayDataOfClient($consultationSession->getParticipant()->getClientParticipant()),
+                    "team" => $this->arrayDataOfTeam($consultationSession->getParticipant()->getTeamParticipant()),
+                    "user" => $this->arrayDataOfUser($consultationSession->getParticipant()->getUserParticipant()),
+                ],
+            ];
         }
         return $this->listQueryResponse($result);
     }
@@ -44,6 +68,11 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
     
     protected function arrayDataOfConsultationSession(ConsultationSession $consultationSession): array
     {
+        $participantReport = empty($consultationSession->getParticipantFeedback())? null:
+                (new FormRecordToArrayDataConverter())->convert($consultationSession->getParticipantFeedback());
+        $consultantReport = empty($consultationSession->getConsultantFeedback())? null:
+                (new FormRecordToArrayDataConverter())->convert($consultationSession->getConsultantFeedback());
+        
         return [
             "id" => $consultationSession->getId(),
             "startTime" => $consultationSession->getStartTime(),
@@ -69,6 +98,8 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
                 "team" => $this->arrayDataOfTeam($consultationSession->getParticipant()->getTeamParticipant()),
                 "user" => $this->arrayDataOfUser($consultationSession->getParticipant()->getUserParticipant()),
             ],
+            "consultantReport" => $consultantReport,
+            "participantReport" => $participantReport,
         ];
     }
     protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array

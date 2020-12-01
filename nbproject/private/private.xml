@@ -12,20 +12,13 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Application/Service/ClientParticipant/ActivityInvitationRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/AsProgramParticipant/MissionController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Infrastructure/Persistence/Doctrine/Repository/DoctrineMissionRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Client/AsTeamMember/ProgramParticipation/ActivityLogControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Application/Service/ClientParticipant/SubmitReport.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Infrastructure/Persistence/Doctrine/Mapping/ActivityInvitee.Domain.Model.ParticipantInvitee.dcm.xml</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Domain/Model/ParticipantInvitee.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/AsTeamMember/ProgramParticipation/ActivityLogController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Client/AsProgramParticipant/MissionControllerTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Manager/Program/ActivityTypeController.php</file>
             <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/ProgramParticipation/InvitationController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Infrastructure/Persistence/Doctrine/Repository/DoctrineParticipantSummaryRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Providers/DoctrineEntityManagerProvider.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ConsultationSessionController.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Manager/InvitationController.php</file>
             <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Client/ProgramParticipation/InvitationControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Infrastructure/Persistence/Doctrine/Mapping/ActivityInvitee.Domain.DependencyModel.Firm.Program.Participant.dcm.xml</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Domain/Model/ParticipantInvitee.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Infrastructure/Persistence/Doctrine/Mapping/ActivityInvitee.Domain.Model.ParticipantInvitee.dcm.xml</file>
         </group>
     </open-files>
 </project-private>

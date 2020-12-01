@@ -24,6 +24,8 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
     protected $consultationSession;
     protected $consultationSessionOne;
     protected $clientParticipant;
+    protected $participantFeedback_session;
+    protected $consultantFeedback_sessionOne;
 
     protected function setUp(): void
     {
@@ -81,11 +83,11 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
         $formRecord = new RecordOfFormRecord($form, 0);
         $this->connection->table("FormRecord")->insert($formRecord->toArrayForDbEntry());
 
-        $participantFeedback = new RecordOfParticipantFeedback($this->consultationSession, $formRecord);
-        $this->connection->table("ParticipantFeedback")->insert($participantFeedback->toArrayForDbEntry());
+        $this->participantFeedback_session = new RecordOfParticipantFeedback($this->consultationSession, $formRecord);
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_session->toArrayForDbEntry());
 
-        $consultantFeedback = new RecordOfConsultantFeedback($this->consultationSessionOne, $formRecord);
-        $this->connection->table("ConsultantFeedback")->insert($consultantFeedback->toArrayForDbEntry());
+        $this->consultantFeedback_sessionOne = new RecordOfConsultantFeedback($this->consultationSessionOne, $formRecord);
+        $this->connection->table("ConsultantFeedback")->insert($this->consultantFeedback_sessionOne->toArrayForDbEntry());
     }
 
     protected function tearDown(): void
@@ -135,6 +137,16 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                 "team" => null,
                 "user" => null,
             ],
+            "consultantReport" => [
+                "submitTime" => $this->participantFeedback_session->formRecord->submitTime,
+                "attachmentFieldRecords" => [],
+                "stringFieldRecords" => [],
+                "integerFieldRecords" => [],
+                "textAreaFieldRecords" => [],
+                "singleSelectFieldRecords" => [],
+                "multiSelectFieldRecords" => [],
+            ],
+            "participantReport" => null,
         ];
         $uri = $this->consultationSessionUri . "/{$this->consultationSessionOne->id}";
         $this->get($uri, $this->coordinator->personnel->token)
@@ -160,7 +172,6 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                     "consultationSetup" => [
                         "id" => $this->consultationSession->consultationSetup->id,
                         "name" => $this->consultationSession->consultationSetup->name,
-                        "duration" => $this->consultationSession->consultationSetup->sessionDuration,
                     ],
                     "consultant" => [
                         "id" => $this->consultationSession->consultant->id,
@@ -171,9 +182,7 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                     ],
                     "participant" => [
                         "id" => $this->consultationSession->participant->id,
-                        "enrolledTime" => $this->consultationSession->participant->enrolledTime,
                         "active" => $this->consultationSession->participant->active,
-                        "note" => $this->consultationSession->participant->note,
                         "client" => [
                             "id" => $this->clientParticipant->client->id,
                             "name" => $this->clientParticipant->client->getFullName(),
@@ -189,7 +198,6 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                     "consultationSetup" => [
                         "id" => $this->consultationSessionOne->consultationSetup->id,
                         "name" => $this->consultationSessionOne->consultationSetup->name,
-                        "duration" => $this->consultationSessionOne->consultationSetup->sessionDuration,
                     ],
                     "consultant" => [
                         "id" => $this->consultationSessionOne->consultant->id,
@@ -200,9 +208,7 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                     ],
                     "participant" => [
                         "id" => $this->consultationSessionOne->participant->id,
-                        "enrolledTime" => $this->consultationSessionOne->participant->enrolledTime,
                         "active" => $this->consultationSessionOne->participant->active,
-                        "note" => $this->consultationSessionOne->participant->note,
                         "client" => [
                             "id" => $this->clientParticipant->client->id,
                             "name" => $this->clientParticipant->client->getFullName(),
