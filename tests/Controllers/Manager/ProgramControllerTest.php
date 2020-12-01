@@ -20,6 +20,7 @@ class ProgramControllerTest extends ProgramTestCase
         parent::setUp();
         
         $this->programOne = new RecordOfProgram($this->firm, 1);
+        $this->programOne->published = false;
         $this->connection->table('Program')->insert($this->programOne->toArrayForDbEntry());
     }
     

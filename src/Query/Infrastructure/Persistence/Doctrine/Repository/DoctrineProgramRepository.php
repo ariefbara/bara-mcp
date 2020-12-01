@@ -53,6 +53,7 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
                     ->setParameter("participantType", "%$participantType%");
         }
         if ($publishOnly) {
+echo "HERE";
             $qb->andWhere($qb->expr()->eq("program.published", "true"));
         }
 
@@ -63,6 +64,7 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
     {
         $qb = $this->createQueryBuilder('program');
         $qb->select('program')
+                ->andWhere($qb->expr()->eq("program.published", "true"))
                 ->andWhere($qb->expr()->like('program.participantTypes.values', ":participantType"))
                 ->setParameter("participantType", "%".ParticipantTypes::USER_TYPE."%")
                 ->andWhere($qb->expr()->eq('program.removed', 'false'));
