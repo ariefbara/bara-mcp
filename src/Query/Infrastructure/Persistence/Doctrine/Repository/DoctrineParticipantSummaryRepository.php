@@ -36,6 +36,7 @@ FROM (
     SELECT COUNT(*) totalMission, Mission.Program_id programId
     FROM Mission
     WHERE Mission.Program_id = :programId
+        AND Mission.Published = true
 )_a
 LEFT JOIN (
     SELECT 
