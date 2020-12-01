@@ -53,7 +53,6 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
                     ->setParameter("participantType", "%$participantType%");
         }
         if ($publishOnly) {
-echo "HERE";
             $qb->andWhere($qb->expr()->eq("program.published", "true"));
         }
 
