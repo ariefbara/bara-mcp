@@ -30,8 +30,7 @@ class ConsultationSessionController extends \App\Http\Controllers\Client\AsTeamM
         $service = $this->buildSubmitReport();
 
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
-        $fileInfoFinder = new TeamFileInfoFinder(
-                $fileInfoRepository, $this->firmId(), $this->clientId(), $teamId);
+        $fileInfoFinder = new TeamFileInfoFinder($fileInfoRepository, $teamId);
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
 
         $service->execute(

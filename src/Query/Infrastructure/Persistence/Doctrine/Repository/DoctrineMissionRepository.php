@@ -49,7 +49,7 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
         }
     }
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize)
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $publishedOnly = true)
     {
         $params = [
             "firmId" => $firmId,
@@ -63,6 +63,10 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
+        
+        if ($publishedOnly) {
+            $qb->andWhere($qb->expr()->eq("mission.published", "true"));
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

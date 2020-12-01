@@ -9,7 +9,7 @@ interface MissionRepository
 
     public function ofId(string $firmId, string $programId, string $missionId): Mission;
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize);
+    public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $publishedOnly = true);
 
     public function aMissionByPositionBelongsToProgram(string $programId, string $position): Mission;
 }

@@ -29,6 +29,7 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->group($asProgramCoordinatorAggregate, function () use ($router) {
         
         $router->get('/participant-summary', ['uses' => "ParticipantSummaryController@showAll"]);
+        $router->get('/participant-achievement-summary', ['uses' => "ParticipantSummaryController@showAllMetricAchievement"]);
         $router->get('/consultant-summary', ['uses' => "ConsultantSummaryController@showAll"]);
         
         $router->group(['prefix' => '/consultation-requests'], function () use($router) {

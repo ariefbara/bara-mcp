@@ -76,7 +76,7 @@ class ProgramController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
         
         $service = $this->buildViewService();
-        $programs = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize());
+        $programs = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize(), null, false);
         
         $result = [];
         $result['total'] = count($programs);

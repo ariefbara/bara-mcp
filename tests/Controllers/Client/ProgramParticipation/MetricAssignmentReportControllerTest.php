@@ -290,6 +290,7 @@ $this->connection->table("AssignmentFieldValue")->truncate();
             "id" => $this->metricAssignmentReport->id,
             "observationTime" => $this->metricAssignmentReport->observationTime,
             "submitTime" => $this->metricAssignmentReport->submitTime,
+            "approved" => $this->metricAssignmentReport->approved,
             "removed" => $this->metricAssignmentReport->removed,
             "assignmentFieldValues" => [
                 [
@@ -344,6 +345,7 @@ $this->connection->table("AssignmentFieldValue")->truncate();
                     "id" => $this->metricAssignmentReport->id,
                     "observationTime" => $this->metricAssignmentReport->observationTime,
                     "submitTime" => $this->metricAssignmentReport->submitTime,
+                    "approved" => $this->metricAssignmentReport->approved,
                     "removed" => $this->metricAssignmentReport->removed,
                     "assignmentFieldValues" => [
                         [
@@ -387,6 +389,7 @@ $this->connection->table("AssignmentFieldValue")->truncate();
                     "id" => $this->metricAssignmentReportOne_approved->id,
                     "observationTime" => $this->metricAssignmentReportOne_approved->observationTime,
                     "submitTime" => $this->metricAssignmentReportOne_approved->submitTime,
+                    "approved" => $this->metricAssignmentReportOne_approved->approved,
                     "removed" => $this->metricAssignmentReportOne_approved->removed,
                     "assignmentFieldValues" => [
                         [

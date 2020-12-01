@@ -89,6 +89,7 @@ class MetricAssignmentReportController extends UserBaseController
             "id" => $metricAssignmentReport->getId(),
             "observationTime" => $metricAssignmentReport->getObservationTimeString(),
             "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
+            "approved" => $metricAssignmentReport->isApproved(),
             "removed" => $metricAssignmentReport->isRemoved(),
             "assignmentFieldValues" => $assignmentFieldValues,
         ];
