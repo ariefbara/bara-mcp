@@ -108,7 +108,7 @@ _MESSAGE;
         $greetingText = $doc->createTextNode($this->greetings);
         $mainMessageText = $doc->createTextNode($this->mainMessage);
         $logoPath = empty($this->logoPath)? null: "app.innov.id/bara-mcp/public/storage/app" . $this->logoPath;
-        $doc->getElementById("firm_logo")->setAttribute("src", $logoPath);
+        $doc->getElementById("firm_logo")->setAttribute("src", urlencode($logoPath));
         $doc->getElementById("greeting")->appendChild($greetingText);
         $doc->getElementById("main_message")->appendChild($mainMessageText);
         $doc->getElementById("shortcut_link")->setAttribute("href", $this->domain . $this->urlPath);
