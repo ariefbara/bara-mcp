@@ -60,7 +60,7 @@ class Comment implements CanSendPersonalizeMail
 
     public function generateNotificationsForRepliedConsultantComment(): void
     {
-        $subject = "Konsulta: Komentar Worksheet";
+        $subject = "Komentar Worksheet";
         $greetings = "Hi Konsultan";
         $mainMessage = "Partisipan {$this->worksheet->getParticipantName()} telah membalas komentar";
         $domain = $this->worksheet->getFirmDomain();
@@ -82,7 +82,7 @@ class Comment implements CanSendPersonalizeMail
 
     public function generateNotificationsTriggeredByConsultant(): void
     {
-        $subject = "Konsulta: Komentar Worksheet";
+        $subject = "Komentar Worksheet";
         $greetings = "Hi Participan";
         $mainMessage = "Konsultant {$this->consultantComment->getConsultantName()} telah memberi komentar di worksheet.";
         $domain = $this->worksheet->getFirmDomain();

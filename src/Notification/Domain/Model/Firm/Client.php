@@ -83,7 +83,7 @@ class Client
     {
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
-        $subject = "Konsulta: Aktivasi Akun";
+        $subject = "Aktivasi Akun";
         $greetings = "Hi {$this->name->getFirstName()}";
         $mainMessage = "Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:";
         $domain = $this->firm->getDomain();
@@ -103,7 +103,7 @@ class Client
     {
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
-        $subject = "Konsulta: Reset Password";
+        $subject = "Reset Password";
         $greetings = "Hi {$this->name->getFirstName()}";
         $mainMessage = "Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:";
         $domain = $this->firm->getDomain();
