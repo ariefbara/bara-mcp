@@ -74,8 +74,9 @@ class ConsultationSessionController extends PersonnelBaseController
                 "endTime" => $consultationSession->getEndTime(),
                 "participant" => [
                     "id" => $consultationSession->getParticipant()->getId(),
-                    "clientParticipant" => $this->arrayDataOfClientParticipant($consultationSession->getParticipant()->getClientParticipant()),
-                    "userParticipant" => $this->arrayDataOfUserParticipant($consultationSession->getParticipant()->getUserParticipant()),
+                    "client" => $this->arrayDataOfClient($consultationSession->getParticipant()->getClientParticipant()),
+                    "user" => $this->arrayDataOfUser($consultationSession->getParticipant()->getUserParticipant()),
+                    "team" => $this->arrayDataOfTeam($consultationSession->getParticipant()->getTeamParticipant()),
                 ],
                 "hasConsultantFeedback" => !empty($consultationSession->getConsultantFeedback()),
             ];
@@ -99,24 +100,32 @@ class ConsultationSessionController extends PersonnelBaseController
             ],
             "participant" => [
                 "id" => $consultationSession->getParticipant()->getId(),
-                "clientParticipant" => $this->arrayDataOfClientParticipant($consultationSession->getParticipant()->getClientParticipant()),
-                "userParticipant" => $this->arrayDataOfUserParticipant($consultationSession->getParticipant()->getUserParticipant()),
+                "client" => $this->arrayDataOfClient($consultationSession->getParticipant()->getClientParticipant()),
+                "user" => $this->arrayDataOfUser($consultationSession->getParticipant()->getUserParticipant()),
+                "team" => $this->arrayDataOfTeam($consultationSession->getParticipant()->getTeamParticipant()),
             ],
             "consultantFeedback" => $consultantFeedbackData,
         ];
     }
-    protected function arrayDataOfClientParticipant(?ClientParticipant $clientParticipant): ?array
+    protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
     {
         return empty($clientParticipant)? null: [
             "id" => $clientParticipant->getClient()->getId(),
             "name" => $clientParticipant->getClient()->getFullName(),
         ];
     }
-    protected function arrayDataOfUserParticipant(?UserParticipant $userParticipant): ?array
+    protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
     {
         return empty($userParticipant)? null: [
             "id" => $userParticipant->getUser()->getId(),
             "name" => $userParticipant->getUser()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfTeam(?\Query\Domain\Model\Firm\Team\TeamProgramParticipation $teamParticipant): ?array
+    {
+        return empty($teamParticipant)? null: [
+            "id" => $teamParticipant->getTeam()->getId(),
+            "name" => $teamParticipant->getTeam()->getName(),
         ];
     }
 
