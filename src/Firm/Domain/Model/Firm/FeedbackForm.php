@@ -3,13 +3,14 @@
 namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\ {
+    AssetBelongsToFirm,
     Firm,
     Firm\Program\ActivityType,
     Shared\Form,
     Shared\FormData
 };
 
-class FeedbackForm
+class FeedbackForm implements AssetBelongsToFirm
 {
 
     /**
@@ -57,6 +58,11 @@ class FeedbackForm
     public function belongsToSameFirmAs(ActivityType $activityType): bool
     {
         return $activityType->belongsToFirm($this->firm);
+    }
+
+    public function belongsToFirm(Firm $firm): bool
+    {
+        return $this->firm === $firm;
     }
 
 }

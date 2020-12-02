@@ -2,21 +2,23 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
+use Doctrine\ORM\{
     EntityRepository,
     NoResultException
 };
-use Firm\ {
+use Firm\{
     Application\Service\Firm\FeedbackFormRepository,
+    Application\Service\Manager\FeedbackFormRepository as InterfaceForManager,
     Domain\Model\Firm\FeedbackForm,
     Domain\Service\FeedbackFormRepository as InterfaceForDomainService
 };
-use Resources\ {
+use Resources\{
     Exception\RegularException,
     Uuid
 };
 
-class DoctrineFeedbackFormRepository extends EntityRepository implements FeedbackFormRepository, InterfaceForDomainService
+class DoctrineFeedbackFormRepository extends EntityRepository implements FeedbackFormRepository, InterfaceForDomainService,
+        InterfaceForManager
 {
 
     public function add(FeedbackForm $feedbackForm): void
@@ -45,7 +47,7 @@ class DoctrineFeedbackFormRepository extends EntityRepository implements Feedbac
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {

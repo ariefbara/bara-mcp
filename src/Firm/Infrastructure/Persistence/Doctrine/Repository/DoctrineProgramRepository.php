@@ -2,20 +2,21 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
+use Doctrine\ORM\ {
     EntityRepository,
     NoResultException
 };
-use Firm\{
+use Firm\ {
     Application\Service\Firm\ProgramRepository,
+    Application\Service\Manager\ProgramRepository as InterfaceForManager,
     Domain\Model\Firm\Program
 };
-use Resources\{
+use Resources\ {
     Exception\RegularException,
     Uuid
 };
 
-class DoctrineProgramRepository extends EntityRepository implements ProgramRepository
+class DoctrineProgramRepository extends EntityRepository implements ProgramRepository, InterfaceForManager
 {
 
     public function add(Program $program): void

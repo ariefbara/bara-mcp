@@ -149,6 +149,16 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{activityTypeId}", ["uses" => "$controller@show"]);
         });
+        
+        $router->group(['prefix' => '/evaluation-plans'], function () use($router) {
+            $controller = "EvaluationPlanController";
+            $router->post("", ["uses" => "$controller@create"]);
+            $router->patch("/{evaluationPlanId}/update", ["uses" => "$controller@update"]);
+            $router->patch("/{evaluationPlanId}/disable", ["uses" => "$controller@disable"]);
+            $router->patch("/{evaluationPlanId}/enable", ["uses" => "$controller@enable"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{evaluationPlanId}", ["uses" => "$controller@show"]);
+        });
     });
     
     $router->group(['prefix' => '/activities'], function () use($router) {

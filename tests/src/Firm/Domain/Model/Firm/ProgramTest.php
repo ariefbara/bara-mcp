@@ -5,8 +5,11 @@ namespace Firm\Domain\Model\Firm;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\ {
     Model\Firm,
+    Model\Firm\Program\ActivityType,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Coordinator,
+    Model\Firm\Program\EvaluationPlan,
+    Model\Firm\Program\EvaluationPlanData,
     Model\Firm\Program\Metric,
     Model\Firm\Program\MetricData,
     Model\Firm\Program\Participant,
@@ -30,10 +33,9 @@ class ProgramTest extends TestBase
     protected $participant;
 
     protected $personnel;
-    
     protected $metricId = "metricId", $metricData;
-    
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
+    protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData, $feedbackForm;
 
     protected function setUp(): void
     {
@@ -67,6 +69,10 @@ class ProgramTest extends TestBase
         
         $this->activityTypeDataProvider = $this->buildMockOfClass(ActivityTypeDataProvider::class);
         $this->activityTypeDataProvider->expects($this->any())->method("getName")->willReturn("name");
+        
+        $this->evaluationPlanData = $this->buildMockOfClass(EvaluationPlanData::class);
+        $this->evaluationPlanData->expects($this->any())->method("getName")->willReturn("name");
+        $this->feedbackForm = $this->buildMockOfClass(FeedbackForm::class);
     }
 
     protected function getProgramData()
@@ -269,8 +275,17 @@ class ProgramTest extends TestBase
     
     public function test_createActivityType_returnActivityType()
     {
-        $activityType = new Program\ActivityType($this->program, $this->activityTypeId, $this->activityTypeDataProvider);
+        $activityType = new ActivityType($this->program, $this->activityTypeId, $this->activityTypeDataProvider);
         $this->assertEquals($activityType, $this->program->createActivityType($this->activityTypeId, $this->activityTypeDataProvider));
+    }
+    
+    public function test_createEvaluationPlan_returnNewEvaluationPlan()
+    {
+        $evaluationPlan = new EvaluationPlan(
+                $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
+        $this->assertEquals(
+                $evaluationPlan, $this->program->createEvaluationPlan(
+                        $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm));
     }
     
 }
