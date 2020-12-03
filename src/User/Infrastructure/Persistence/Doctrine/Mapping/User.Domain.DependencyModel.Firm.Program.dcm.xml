@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="User\Domain\DependencyModel\Firm\Program" 
+            table="Program" 
+    >
+        <many-to-one field="firm" 
+                     target-entity="User\Domain\DependencyModel\Firm" 
+        >
+            <join-column name="Firm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="participantTypes" 
+                  class="Query\Domain\Model\Firm\ParticipantTypes" 
+                  use-column-prefix="false" />
+        <field name="published" type="boolean" />
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

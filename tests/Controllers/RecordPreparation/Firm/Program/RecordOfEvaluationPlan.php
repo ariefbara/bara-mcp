@@ -21,16 +21,16 @@ class RecordOfEvaluationPlan implements Record
      *
      * @var RecordOfFeedbackForm
      */
-    public $feedbackFormForm;
+    public $feedbackForm;
     public $id;
     public $name;
     public $interval;
     public $disabled;
 
-    function __construct(RecordOfProgram $program, RecordOfFeedbackForm $feedbackFormForm, $index)
+    function __construct(RecordOfProgram $program, RecordOfFeedbackForm $feedbackForm, $index)
     {
         $this->program = $program;
-        $this->feedbackFormForm = $feedbackFormForm;
+        $this->feedbackForm = $feedbackForm;
         $this->id = "evaluation_plan-$index-id";
         $this->name = "evaluation plan $index name";
         $this->interval = 99;
@@ -41,7 +41,7 @@ class RecordOfEvaluationPlan implements Record
     {
         return [
             "Program_id" => $this->program->id,
-            "FeedbackForm_id" => $this->feedbackFormForm->id,
+            "FeedbackForm_id" => $this->feedbackForm->id,
             "id" => $this->id,
             "name" => $this->name,
             "days_interval" => $this->interval,

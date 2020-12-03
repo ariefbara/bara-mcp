@@ -55,7 +55,7 @@ class Participant extends EntityContainEvents
 
     /**
      *
-     * @var UserParticipant||null
+     * @var ClientParticipant||null
      */
     protected $clientParticipant;
 
@@ -125,6 +125,17 @@ class Participant extends EntityContainEvents
     protected function __construct()
     {
         
+    }
+    
+    public function getName(): string
+    {
+        if (isset($this->userParticipant)) {
+            return $this->userParticipant->getUser()->getFullName();
+        } elseif (isset ($this->clientParticipant)) {
+            return $this->clientParticipant->getClient()->getFullName();
+        } else {
+            return $this->teamParticipant->getTeam()->getName();
+        }
     }
 
     public function viewWorksheet(WorksheetFinder $worksheetFinder, string $worksheetId): Worksheet

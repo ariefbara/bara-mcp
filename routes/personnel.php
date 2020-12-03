@@ -287,6 +287,13 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{invitationId}", ["uses" => "$controller@show"]);
         });
+        
+        $router->group(['prefix' => '/evaluation-reports'], function () use($router) {
+            $controller = "EvaluationReportController";
+            $router->put("/{participantId}/{evaluationPlanId}", ["uses" => "$controller@submit"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{participantId}/{evaluationPlanId}", ["uses" => "$controller@show"]);
+        });
     });
     
     $asMeetingInitiatorAggregate = [

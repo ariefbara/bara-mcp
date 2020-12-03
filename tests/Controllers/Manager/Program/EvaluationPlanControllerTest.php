@@ -180,8 +180,8 @@ class EvaluationPlanControllerTest extends ProgramTestCase
             "interval" => $this->evaluationPlan->interval,
             "disabled" => $this->evaluationPlan->disabled,
             "reportForm" => [
-                "id" => $this->evaluationPlan->feedbackFormForm->id,
-                "name" => $this->evaluationPlan->feedbackFormForm->form->name,
+                "id" => $this->evaluationPlan->feedbackForm->id,
+                "name" => $this->evaluationPlan->feedbackForm->form->name,
             ],
         ];
         $uri = $this->evaluationPlanUri . "/{$this->evaluationPlan->id}";
@@ -201,8 +201,8 @@ class EvaluationPlanControllerTest extends ProgramTestCase
                     "interval" => $this->evaluationPlan->interval,
                     "disabled" => $this->evaluationPlan->disabled,
                     "reportForm" => [
-                        "id" => $this->evaluationPlan->feedbackFormForm->id,
-                        "name" => $this->evaluationPlan->feedbackFormForm->form->name,
+                        "id" => $this->evaluationPlan->feedbackForm->id,
+                        "name" => $this->evaluationPlan->feedbackForm->form->name,
                     ],
                 ],
                 [
@@ -211,8 +211,8 @@ class EvaluationPlanControllerTest extends ProgramTestCase
                     "interval" => $this->evaluationPlanOne_disabled->interval,
                     "disabled" => $this->evaluationPlanOne_disabled->disabled,
                     "reportForm" => [
-                        "id" => $this->evaluationPlanOne_disabled->feedbackFormForm->id,
-                        "name" => $this->evaluationPlanOne_disabled->feedbackFormForm->form->name,
+                        "id" => $this->evaluationPlanOne_disabled->feedbackForm->id,
+                        "name" => $this->evaluationPlanOne_disabled->feedbackForm->form->name,
                     ],
                 ],
             ],
