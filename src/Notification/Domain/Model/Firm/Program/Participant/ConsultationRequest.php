@@ -120,7 +120,7 @@ class ConsultationRequest implements CanSendPersonalizeMail
                 $closing = "Untuk melihat detail, kunjungi:";
                 break;
         }
-        $subject = "Konsulta: Permintaan Konsultasi";
+        $subject = "Permintaan Konsultasi";
         $greetings = "Hi Partisipan";
         $mainMessage = <<<_MESSAGE
 {$introduction}
@@ -150,7 +150,7 @@ _MESSAGE;
                 $closing = "Untuk melihat detail, kunjungi:";
                 break;
         }
-        $subject = "Konsulta: Permintaan Konsultasi";
+        $subject = "Permintaan Konsultasi";
         $greetings = "Hi Partisipan";
         $mainMessage = <<<_MESSAGE
 {$introduction}
@@ -180,7 +180,7 @@ _MESSAGE;
                 $closing = "Untuk melihat detail, kunjungi:";
                 break;
         }
-        $subject = "Konsulta: Permintaan Konsultasi";
+        $subject = "Permintaan Konsultasi";
         $greetings = "Hi Konsultan";
         $mainMessage = <<<_MESSAGE
 {$introduction}

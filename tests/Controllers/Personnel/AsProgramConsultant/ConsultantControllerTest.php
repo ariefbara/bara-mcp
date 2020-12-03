@@ -41,7 +41,6 @@ class ConsultantControllerTest extends AsProgramConsultantTestCase
     {
         $response = [
             "id" => $this->consultantOne->id,
-            "removed" => $this->consultantOne->removed,
             "personnel" => [
                 "id" => $this->consultantOne->personnel->id,
                 "name" => $this->consultantOne->personnel->getFullName(),
@@ -62,27 +61,17 @@ class ConsultantControllerTest extends AsProgramConsultantTestCase
     public function test_showAll_200()
     {
         $response = [
-            "total" => 4,
+            "total" => 3,
             "list" => [
                 [
                     "id" => $this->consultant->id,
-                    "removed" => $this->consultant->removed,
                     "personnel" => [
                         "id" => $this->consultant->personnel->id,
                         "name" => $this->consultant->personnel->getFullName(),
                     ],
                 ],
                 [
-                    "id" => $this->removedConsultant->id,
-                    "removed" => $this->removedConsultant->removed,
-                    "personnel" => [
-                        "id" => $this->removedConsultant->personnel->id,
-                        "name" => $this->removedConsultant->personnel->getFullName(),
-                    ],
-                ],
-                [
                     "id" => $this->consultantOne->id,
-                    "removed" => $this->consultantOne->removed,
                     "personnel" => [
                         "id" => $this->consultantOne->personnel->id,
                         "name" => $this->consultantOne->personnel->getFullName(),
@@ -90,7 +79,6 @@ class ConsultantControllerTest extends AsProgramConsultantTestCase
                 ],
                 [
                     "id" => $this->consultantTwo->id,
-                    "removed" => $this->consultantTwo->removed,
                     "personnel" => [
                         "id" => $this->consultantTwo->personnel->id,
                         "name" => $this->consultantTwo->personnel->getFullName(),

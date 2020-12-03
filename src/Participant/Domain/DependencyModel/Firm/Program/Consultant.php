@@ -3,7 +3,7 @@
 namespace Participant\Domain\DependencyModel\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\ {
+use Participant\Domain\{
     DependencyModel\Firm\Program,
     Model\Participant\ConsultationRequest,
     Model\Participant\ConsultationSession
@@ -34,7 +34,7 @@ class Consultant
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     /**
      *
@@ -42,9 +42,14 @@ class Consultant
      */
     protected $consultationSessions;
 
+    function isActive(): bool
+    {
+        return $this->active;
+    }
+
     protected function __construct()
     {
-        ;
+        
     }
 
     public function programEquals(Program $program): bool
@@ -52,12 +57,13 @@ class Consultant
         return $this->program === $program;
     }
 
-    public function hasConsultationSessionConflictedWith(ConsultationRequest $consultationRequest): bool
+    public function canAcceptConsultationRequest(ConsultationRequest $consultationRequest): bool
     {
         $p = function (ConsultationSession $consultationSession) use ($consultationRequest) {
             return $consultationSession->conflictedWithConsultationRequest($consultationRequest);
         };
-        return $this->consultationSessions->filter($p)->count();
+
+        return $this->active && empty($this->consultationSessions->filter($p)->count());
     }
 
 }

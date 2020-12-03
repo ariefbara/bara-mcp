@@ -36,7 +36,7 @@ class Consultant
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     function getProgram(): Program
     {
@@ -53,19 +53,19 @@ class Consultant
         return $this->personnel;
     }
 
-    function isRemoved(): bool
+    function isActive(): bool
     {
-        return $this->removed;
+        return $this->active;
     }
 
     protected function __construct()
     {
-        ;
+        
     }
 
-    protected function assertActvie(): void
+    protected function assertActive(): void
     {
-        if ($this->removed) {
+        if (!$this->active) {
             $errorDetail = "forbidden: only active consultant can make this request";
             throw RegularException::forbidden($errorDetail);
         }
@@ -73,27 +73,27 @@ class Consultant
 
     public function viewParticipant(ParticipantFinder $participantFinder, $participantId): Participant
     {
-        $this->assertActvie();
+        $this->assertActive();
         return $participantFinder->findParticipantInProgram($this->program, $participantId);
     }
 
     public function viewAllParticipant(ParticipantFinder $participantFinder, int $page, int $pageSize,
             ?bool $activeStatus)
     {
-        $this->assertActvie();
+        $this->assertActive();
         return $participantFinder->findAllParticipantInProgram($this->program, $page, $pageSize, $activeStatus);
     }
 
     public function viewWorksheet(WorksheetFinder $worksheetFinder, string $participantId, string $worksheetId): Worksheet
     {
-        $this->assertActvie();
+        $this->assertActive();
         return $worksheetFinder->findWorksheetBelongsToParticipantInProgram(
                         $this->program, $participantId, $worksheetId);
     }
 
     public function viewAllWorksheets(WorksheetFinder $worksheetFinder, string $participantId, int $page, int $pageSize)
     {
-        $this->assertActvie();
+        $this->assertActive();
         return $worksheetFinder->findAllWorksheetBelongsToParticipantInProgram(
                         $this->program, $participantId, $page, $pageSize);
     }
@@ -101,7 +101,7 @@ class Consultant
     public function viewAllRootWorksheets(
             WorksheetFinder $worksheetFinder, string $participantId, int $page, int $pageSize)
     {
-        $this->assertActvie();
+        $this->assertActive();
         return $worksheetFinder->findAllRootWorksheetBelongsToParticipantInProgram(
                         $this->program, $participantId, $page, $pageSize);
     }
@@ -109,7 +109,7 @@ class Consultant
     public function viewAllBrancesOfWorksheets(
             WorksheetFinder $worksheetFinder, string $participantId, string $worksheetId, int $page, int $pageSize)
     {
-        $this->assertActvie();
+        $this->assertActive();
         return $worksheetFinder->findAllBranchOfWorksheetBelongsToParticipantInProgram(
                         $this->program, $participantId, $worksheetId, $page, $pageSize);
     }

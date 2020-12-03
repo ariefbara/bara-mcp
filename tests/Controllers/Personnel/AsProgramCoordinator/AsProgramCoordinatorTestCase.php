@@ -37,7 +37,7 @@ class AsProgramCoordinatorTestCase extends PersonnelTestCase
         
         $this->coordinator = new RecordOfCoordinator($program, $this->personnel, 999);
         $this->removedCoordinator = new RecordOfCoordinator($program, $personnel, 998);
-        $this->removedCoordinator->removed = true;
+        $this->removedCoordinator->active = false;
         $this->connection->table("Coordinator")->insert($this->coordinator->toArrayForDbEntry());
         $this->connection->table("Coordinator")->insert($this->removedCoordinator->toArrayForDbEntry());
         

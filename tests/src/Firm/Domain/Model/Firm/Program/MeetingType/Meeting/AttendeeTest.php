@@ -124,7 +124,16 @@ class AttendeeTest extends TestBase
         $operation = function (){
             $this->executeUpdateMeeting();
         };
-        $errorDetail = "forbidden: only meeting initiator can make this request";
+        $errorDetail = "forbidden: only active meeting initiator can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_updateMeeting_cancelledInvitation_forbidden()
+    {
+        $this->attendee->cancelled = true;
+        $operation = function (){
+            $this->executeUpdateMeeting();
+        };
+        $errorDetail = "forbidden: only active meeting initiator can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
@@ -234,7 +243,16 @@ class AttendeeTest extends TestBase
         $operation = function (){
             $this->executeInviteUserToAttendMeeting();
         };
-        $errorDetail = "forbidden: only meeting initiator can make this request";
+        $errorDetail = "forbidden: only active meeting initiator can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_inviteUserToAttendMeeting_cancelled_forbidden()
+    {
+        $this->attendee->cancelled = true;
+        $operation = function (){
+            $this->executeInviteUserToAttendMeeting();
+        };
+        $errorDetail = "forbidden: only active meeting initiator can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
@@ -271,9 +289,29 @@ class AttendeeTest extends TestBase
         $operation = function (){
             $this->executeCancelInvitation();
         };
-        $errorDetail = "forbidden: only meeting initiator can make this request";
+        $errorDetail = "forbidden: only active meeting initiator can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-        
+    }
+    
+    protected function executeDisableValidInvitation()
+    {
+        $this->meeting->expects($this->any())
+                ->method("isUpcoming")
+                ->willReturn(true);
+        $this->attendee->disableValidInvitation();
+    }
+    public function test_disableValidInvitation_CancelInvitation()
+    {
+        $this->executeDisableValidInvitation();
+        $this->assertTrue($this->attendee->cancelled);
+    }
+    public function test_disableValidInvitation_notAnUpcomingMeeting_nop()
+    {
+        $this->meeting->expects($this->once())
+                ->method("isUpcoming")
+                ->willReturn(false);
+        $this->executeDisableValidInvitation();
+        $this->assertFalse($this->attendee->cancelled);
     }
 }
 

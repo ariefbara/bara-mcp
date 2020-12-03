@@ -37,7 +37,7 @@ class AsProgramConsultantTestCase extends PersonnelTestCase
         
         $this->consultant = new RecordOfConsultant($program, $this->personnel, 999);
         $this->removedConsultant = new RecordOfConsultant($program, $personnel, 998);
-        $this->removedConsultant->removed = true;
+        $this->removedConsultant->active = false;
         $this->connection->table('Consultant')->insert($this->consultant->toArrayForDbEntry());
         $this->connection->table('Consultant')->insert($this->removedConsultant->toArrayForDbEntry());
         

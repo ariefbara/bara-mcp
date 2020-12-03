@@ -24,11 +24,9 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
     {
         $qb = $this->createQueryBuilder('coordinator');
         $qb->select('coordinator')
-                ->andWhere($qb->expr()->eq('coordinator.removed', 'false'))
                 ->andWhere($qb->expr()->eq('coordinator.id', ':coordinatorId'))
                 ->setParameter('coordinatorId', $coordinatorId)
                 ->leftJoin('coordinator.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameter('programId', $programCompositionId->getProgramId())
                 ->leftJoin('program.firm', 'firm')
@@ -48,9 +46,8 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
     {
         $qb = $this->createQueryBuilder('coordinator');
         $qb->select('coordinator')
-                ->andWhere($qb->expr()->eq('coordinator.removed', 'false'))
+                ->andWhere($qb->expr()->eq('coordinator.active', 'true'))
                 ->leftJoin('coordinator.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameter('programId', $programCompositionId->getProgramId())
                 ->leftJoin('program.firm', 'firm')
@@ -70,12 +67,10 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
         ];
         $qb = $this->createQueryBuilder('coordinator');
         $qb->select('1')
-                ->andWhere($qb->expr()->eq('coordinator.removed', 'false'))
+                ->andWhere($qb->expr()->eq('coordinator.active', 'true'))
                 ->leftJoin('coordinator.personnel', 'personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->leftJoin('coordinator.program', 'program')
-                ->andWhere($qb->expr()->eq('program.removed', 'false'))
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))

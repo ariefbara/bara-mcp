@@ -100,6 +100,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
         ];
         $qb = $this->createQueryBuilder('consultationSession');
         $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.cancelled', 'false'))
                 ->leftJoin('consultationSession.consultant', 'programConsultation')
                 ->andWhere($qb->expr()->eq('programConsultation.id', ':programConsultationId'))
                 ->leftJoin('programConsultation.personnel', 'personnel')
@@ -136,6 +137,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
 
         $qb = $this->createQueryBuilder('consultationSession');
         $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.cancelled', 'false'))
                 ->leftJoin('consultationSession.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $clientParticipantQb->getDQL()))
                 ->setParameters($params);
@@ -197,6 +199,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
 
         $qb = $this->createQueryBuilder('consultationSession');
         $qb->select('consultationSession')
+                ->andWhere($qb->expr()->eq('consultationSession.cancelled', 'false'))
                 ->leftJoin('consultationSession.participant', 'participant')
                 ->andWhere($qb->expr()->in('participant.id', $userParticipantQb->getDQL()))
                 ->setParameters($params);
@@ -256,6 +259,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
 
         $qb = $this->createQueryBuilder("consultationSession");
         $qb->select("consultationSession")
+                ->andWhere($qb->expr()->eq('consultationSession.cancelled', 'false'))
                 ->leftJoin("consultationSession.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
@@ -330,6 +334,7 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
 
         $qb = $this->createQueryBuilder("consultationSession");
         $qb->select("consultationSession")
+                ->andWhere($qb->expr()->eq('consultationSession.cancelled', 'false'))
                 ->leftJoin("consultationSession.participant", "participant")
                 ->leftJoin("participant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))

@@ -24,7 +24,7 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
 
         $qb = $this->createQueryBuilder('personnel');
         $qb->select('personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
+                ->andWhere($qb->expr()->eq('personnel.active', 'true'))
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->andWhere($qb->expr()->eq('personnel.firmId', ':firmId'))
                 ->setParameters($parameters)

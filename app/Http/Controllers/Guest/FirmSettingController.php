@@ -17,7 +17,7 @@ class FirmSettingController extends Controller
         
         $firm = $service->showByIdentifier($firmIdentifier);
         $result = [
-            "logoPath" => $firm->getLogo()->getFullyQualifiedFileName(),
+            "logoPath" => !empty($firm->getLogo())? $firm->getLogo()->getFullyQualifiedFileName(): null,
             "displaySetting" => $firm->getDisplaySetting(),
         ];
         return $this->singleQueryResponse($result);

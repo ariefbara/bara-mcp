@@ -26,7 +26,7 @@
                   use-column-prefix="false" 
         />
         <field name="concluded" type="boolean" />
-        <field name="status" type="string" length="10" nullable="true"/>
+        <field name="status" type="string" length="32" nullable="true"/>
         
     </entity>
 </doctrine-mapping>

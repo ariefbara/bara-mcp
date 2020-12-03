@@ -29,6 +29,7 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->group($asProgramCoordinatorAggregate, function () use ($router) {
         
         $router->get('/participant-summary', ['uses' => "ParticipantSummaryController@showAll"]);
+        $router->get('/participant-achievement-summary', ['uses' => "ParticipantSummaryController@showAllMetricAchievement"]);
         $router->get('/consultant-summary', ['uses' => "ConsultantSummaryController@showAll"]);
         
         $router->group(['prefix' => '/consultation-requests'], function () use($router) {
@@ -106,6 +107,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->group(['prefix' => '/meetings'], function () use($router) {
             $controller = "MeetingController";
             $router->post("", ["uses" => "$controller@initiate"]);
+        });
+        
+        $router->group(['prefix' => '/evaluation-plans'], function () use($router) {
+            $controller = "EvaluationPlanController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{evaluationPlanId}", ["uses" => "$controller@show"]);
         });
         
     });

@@ -71,4 +71,10 @@ class AsMeetingInitiatorTestCase extends ManagerTestCase
         $this->connection->table("Invitee")->truncate();
         $this->connection->table("ManagerInvitee")->truncate();
     }
+    protected function setInactiveMeetingInitiator()
+    {
+        $this->connection->table("Invitee")->truncate();
+        $this->meetingAttendace->invitee->cancelled = true;
+        $this->connection->table("Invitee")->insert($this->meetingAttendace->invitee->toArrayForDbEntry());
+    }
 }

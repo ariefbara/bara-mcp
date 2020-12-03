@@ -40,5 +40,10 @@ class CoordinatorAttendee
     {
         return $this->coordinator === $user;
     }
+    
+    public function disableValidInvitation(): void
+    {
+        $this->attendee->disableValidInvitation();
+    }
 
 }

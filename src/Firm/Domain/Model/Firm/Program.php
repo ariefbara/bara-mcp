@@ -3,16 +3,18 @@
 namespace Firm\Domain\Model\Firm;
 
 use Config\EventList;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Firm\Domain\ {
+use Firm\Domain\{
     Model\AssetBelongsToFirm,
     Model\Firm,
     Model\Firm\Program\ActivityType,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Coordinator,
+    Model\Firm\Program\EvaluationPlan,
+    Model\Firm\Program\EvaluationPlanData,
     Model\Firm\Program\Metric,
     Model\Firm\Program\MetricData,
     Model\Firm\Program\Participant,
@@ -20,7 +22,7 @@ use Firm\Domain\ {
     Service\ActivityTypeDataProvider
 };
 use Query\Domain\Model\Firm\ParticipantTypes;
-use Resources\ {
+use Resources\{
     Domain\Event\CommonEvent,
     Domain\Model\EntityContainEvents,
     Exception\RegularException,
@@ -122,7 +124,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
         $this->published = false;
         $this->removed = false;
     }
-    
+
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->firm === $firm;
@@ -152,12 +154,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
         $consultant = $this->consultants->matching($criteria)->first();
 
         if (!empty($consultant)) {
-            if (!$consultant->isRemoved()) {
-                $errorDetail = 'forbidden: personnel already assigned as consultant';
-                throw RegularException::forbidden($errorDetail);
-            } else {
-                $consultant->reassign();
-            }
+            $consultant->enable();
         } else {
             $id = Uuid::generateUuid4();
             $consultant = new Consultant($this, $id, $personnel);
@@ -173,12 +170,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
         $coordinator = $this->coordinators->matching($criteria)->first();
 
         if (!empty($coordinator)) {
-            if (!$coordinator->isRemoved()) {
-                $errorDetail = "forbidden: personnel already assigned as coordinator";
-                throw RegularException::forbidden($errorDetail);
-            } else {
-                $coordinator->reassign();
-            }
+            $coordinator->enable();
         } else {
             $id = Uuid::generateUuid4();
             $coordinator = new Coordinator($this, $id, $personnel);
@@ -191,7 +183,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
     {
         $registrant = $this->findRegistrantOrDie($registrantId);
         $registrant->accept();
-        
+
         if (!empty($participant = $this->findParticipantCorrespondToRegistrant($registrant))) {
             $participant->reenroll();
         } else {
@@ -199,15 +191,20 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
             $participant = $registrant->createParticipant($participantId);
             $this->participants->add($participant);
         }
-        
+
         $event = new CommonEvent(EventList::REGISTRANT_ACCEPTED, $participant->getId());
         $this->recordEvent($event);
-
     }
-    
+
     public function addMetric(string $metricId, MetricData $metricData): Metric
     {
         return new Metric($this, $metricId, $metricData);
+    }
+
+    public function createEvaluationPlan(
+            string $evaluationPlanId, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): EvaluationPlan
+    {
+        return new EvaluationPlan($this, $evaluationPlanId, $evaluationPlanData, $reportForm);
     }
 
     protected function findRegistrantOrDie(string $registrantId): Registrant
@@ -221,6 +218,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
         }
         return $registrant;
     }
+
     protected function findParticipantCorrespondToRegistrant(Registrant $registrant): ?Participant
     {
         $p = function (Participant $participant) use ($registrant) {
@@ -229,7 +227,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
         $participant = $this->participants->filter($p)->first();
         return empty($participant) ? null : $participant;
     }
-    
+
     public function createActivityType(string $activityTypeId, ActivityTypeDataProvider $activityTypeDataProvider): ActivityType
     {
         return new ActivityType($this, $activityTypeId, $activityTypeDataProvider);

@@ -46,6 +46,18 @@ class ConsultationSession
 
     /**
      *
+     * @var bool
+     */
+    protected $cancelled;
+
+    /**
+     *
+     * @var string|null
+     */
+    protected $note;
+
+    /**
+     *
      * @var ParticipantFeedback||null
      */
     protected $participantFeedback = null;
@@ -86,9 +98,19 @@ class ConsultationSession
         return $this->consultantFeedback;
     }
 
+    function isCancelled(): bool
+    {
+        return $this->cancelled;
+    }
+
+    function getNote(): ?string
+    {
+        return $this->note;
+    }
+
     protected function __construct()
     {
-        ;
+        
     }
 
     function getStartTime(): string

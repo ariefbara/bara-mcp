@@ -38,7 +38,6 @@ class ConsultantController extends AsProgramCoordinatorBaseController
     {
         return [
             "id" => $consultant->getId(),
-            "removed" => $consultant->isRemoved(),
             "personnel" => [
                 "id" => $consultant->getPersonnel()->getId(),
                 "name" => $consultant->getPersonnel()->getName(),

@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Manager\Program;
 use App\Http\Controllers\Manager\ManagerBaseController;
 use Firm\ {
     Application\Service\Firm\Program\ConsultantAssign,
-    Application\Service\Firm\Program\ConsultantRemove,
     Application\Service\Firm\Program\ProgramCompositionId,
+    Application\Service\Manager\DisableConsultant,
+    Domain\Model\Firm\Manager,
     Domain\Model\Firm\Personnel,
     Domain\Model\Firm\Program,
     Domain\Model\Firm\Program\Consultant
@@ -30,12 +31,10 @@ class ConsultantController extends ManagerBaseController
         return $this->singleQueryResponse($this->arrayDataOfConsultant($consultant));
     }
 
-    public function remove($programId, $consultantId)
+    public function disable($programId, $consultantId)
     {
-        $service = $this->buildRemoveService();
-        $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
-
-        $service->execute($programCompositionId, $consultantId);
+        $service = $this->buildDisableService();
+        $service->execute($this->firmId(), $this->managerId(), $consultantId);
         return $this->commandOkResponse();
     }
 
@@ -81,10 +80,12 @@ class ConsultantController extends ManagerBaseController
         return new ConsultantAssign($programRepository, $personnelRepository);
     }
 
-    protected function buildRemoveService()
+    protected function buildDisableService()
     {
         $consultantRepository = $this->em->getRepository(Consultant::class);
-        return new ConsultantRemove($consultantRepository);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        
+        return new DisableConsultant($consultantRepository, $managerRepository);
     }
 
     protected function buildViewService()

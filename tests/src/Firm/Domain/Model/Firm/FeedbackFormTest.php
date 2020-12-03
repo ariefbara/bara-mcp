@@ -61,6 +61,16 @@ class FeedbackFormTest extends TestBase
         $this->feedbackForm->belongsToSameFirmAs($activityType);
     }
     
+    public function test_belongsToFirm_sameFirm_returnTrue()
+    {
+        $this->assertTrue($this->feedbackForm->belongsToFirm($this->feedbackForm->firm));
+    }
+    public function test_belongsToFirm_differentFirm_returnFalse()
+    {
+        $firm = $this->buildMockOfClass(Firm::class);
+        $this->assertFalse($this->feedbackForm->belongsToFirm($firm));
+    }
+    
 }
 
 class TestableFeedbackForm extends FeedbackForm

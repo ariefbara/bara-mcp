@@ -20,14 +20,15 @@ class RecordOfConsultant implements Record
      * @var RecordOfPersonnel
      */
     public $personnel;
-    public $id, $removed = false;
+    public $id;
+    public $active;
     
     function __construct(RecordOfProgram $program, RecordOfPersonnel $personnel, $index)
     {
         $this->program = $program;
         $this->personnel = $personnel;
         $this->id = "consultant-$index";
-        $this->removed = false;
+        $this->active = true;
     }
 
     
@@ -37,7 +38,7 @@ class RecordOfConsultant implements Record
             "Program_id" => $this->program->id,
             "id" => $this->id,
             "Personnel_id" => $this->personnel->id,
-            "removed" => $this->removed,
+            "active" => $this->active,
         ];
     }
 

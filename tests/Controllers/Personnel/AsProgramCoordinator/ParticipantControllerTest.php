@@ -432,4 +432,5 @@ class ParticipantControllerTest extends ParticipantTestCase
         ];
         $this->seeInDatabase("AssignmentField", $assignmentFieldOneEntry);
     }
+    
 }

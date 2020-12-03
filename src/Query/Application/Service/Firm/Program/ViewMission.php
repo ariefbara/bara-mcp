@@ -27,9 +27,9 @@ class ViewMission
      * @param string|null $position
      * @return Mission[]
      */
-    public function showAll(string $firmId, string $programId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $programId, int $page, int $pageSize, ?bool $publishedOnly = true)
     {
-        return $this->missionRepository->all($firmId, $programId, $page, $pageSize);
+        return $this->missionRepository->all($firmId, $programId, $page, $pageSize, $publishedOnly);
     }
 
     public function showById(string $firmId, string $programId, string $missionId): Mission

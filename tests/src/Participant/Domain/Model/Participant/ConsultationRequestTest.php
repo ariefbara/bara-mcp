@@ -23,6 +23,7 @@ class ConsultationRequestTest extends TestBase
 {
 
     protected $consultationSetup, $participant, $consultant;
+    protected $ineligibleConsultant;
     protected $teamMember;
     protected $consultationRequest;
     protected $id = 'negotiate-consultationSetupSchedule-id', $startTime;
@@ -40,7 +41,12 @@ class ConsultationRequestTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
 
         $this->participant = $this->buildMockOfClass(Participant::class);
+        
         $this->consultant = $this->buildMockOfClass(Consultant::class);
+        $this->consultant->expects($this->any())->method('canAcceptConsultationRequest')->willReturn(true);
+        
+        $this->ineligibleConsultant = $this->buildMockOfClass(Consultant::class);
+        $this->ineligibleConsultant->expects($this->any())->method('canAcceptConsultationRequest')->willReturn(false);
 
         $this->consultationRequest = new TestableConsultationRequest(
                 $this->participant, 'id', $this->consultationSetup, $this->consultant, $this->startTime, null);
@@ -78,16 +84,14 @@ class ConsultationRequestTest extends TestBase
         $status = new ConsultationRequestStatusVO('proposed');
         $this->assertEquals($status, $consultationRequest->status);
     }
-    public function test_construct_consultantHasConsultationSessionConflictedWithStartEndTime_throwEx()
+    public function test_construct_consultantCantAcceptRequest_throwEx()
     {
-        $this->consultant->expects($this->once())
-                ->method('hasConsultationSessionConflictedWith')
-                ->willReturn(true);
         $operation = function () {
-            $this->executeConstruct();
+            new TestableConsultationRequest($this->participant, $this->id, $this->consultationSetup,
+                    $this->ineligibleConsultant, $this->startTime, $this->teamMember);
         };
-        $errorDetail = "conflict: consultant already has consultation session at this time";
-        $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
+        $errorDetail = "forbidden: consultant can accept consultation request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     public function test_construct_addConsultationRequestActivityLog()
     {
@@ -161,17 +165,14 @@ class ConsultationRequestTest extends TestBase
         $this->executeRePropose();
         $this->assertEquals($this->startEndTime, $this->consultationRequest->startEndTime);
     }
-    public function test_repropose_consultantHasConsultationSessionConflictedWithStartEndTime_throwEx()
+    public function test_repropose_consultantCanAcceptRequest_throwEx()
     {
-        $this->consultant->expects($this->once())
-                ->method('hasConsultationSessionConflictedWith')
-                ->with($this->consultationRequest)
-                ->willReturn(true);
+        $this->consultationRequest->consultant = $this->ineligibleConsultant;
         $operation = function () {
             $this->executeRePropose();
         };
-        $errorDetail = "conflict: consultant already has consultation session at this time";
-        $this->assertRegularExceptionThrowed($operation, "Conflict", $errorDetail);
+        $errorDetail = "forbidden: consultant can accept consultation request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     public function test_rePropose_alreadyConcluded_throwEx()
     {
@@ -271,6 +272,7 @@ class ConsultationRequestTest extends TestBase
 
     public function test_createConsultationSetupSchedule_returnConsultationSetupSchedule()
     {
+        $this->consultant->expects($this->any())->method("isActive")->willReturn(true);
         $this->assertInstanceOf(ConsultationSession::class, $this->consultationRequest->createConsultationSession($id = "consultationSessionId", $this->teamMember));
     }
     

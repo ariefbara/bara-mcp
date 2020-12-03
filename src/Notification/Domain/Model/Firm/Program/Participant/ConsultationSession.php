@@ -63,7 +63,7 @@ class ConsultationSession implements CanSendPersonalizeMail
 
     public function addAcceptNotificationTriggeredByTeamMember(Member $teamMember): void
     {
-        $subject = "Konsulta: Jadwal Konsultasi";
+        $subject = "Jadwal Konsultasi";
         $greetings = "Hi Partisipan";
         $mainMessage = <<<_MESSAGE
 Anggota {$teamMember->getClientFullName()} dari tim {$this->participant->getName()} telah menyetujui usulan jadwal Konsultasi dari {$this->consultant->getPersonnelFullName()} di waktu:
@@ -90,7 +90,7 @@ _MESSAGE;
 
     public function addAcceptNotificationTriggeredByParticipant(): void
     {
-        $subject = "Konsulta: Jadwal Konsultasi";
+        $subject = "Jadwal Konsultasi";
         $greetings = "Hi Partisipan";
         $mainMessage = <<<_MESSAGE
 Jadwal Konsultasi bersama konsultan {$this->consultant->getPersonnelFullName()} telah disetujui di waktu:
@@ -117,7 +117,7 @@ _MESSAGE;
 
     public function addAcceptNotificationTriggeredByConsultant(): void
     {
-        $subject = "Konsulta: Jadwal Konsultasi";
+        $subject = "Jadwal Konsultasi";
         $greetings = "Hi Partisipan";
         $mainMessage = <<<_MESSAGE
 Konsultan {$this->consultant->getPersonnelFullName()} telah menyetujui permintaan konsultasi di waktu:
@@ -149,13 +149,13 @@ _MESSAGE;
         $senderName = $this->participant->getFirmMailSenderName();
 
         $consultationSessionMail = new ConsultationSessionMail(
-                $this, $id, $recipientMailAddress, $recipientName, $mailMessage, $senderMailAddress, $senderName);
+                $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
         $this->consultationSessionMails->add($consultationSessionMail);
     }
 
     protected function buildMailMessageForConsultant(): MailMessage
     {
-        $subject = "Konsulta: Jadwal Konsultasi";
+        $subject = "Jadwal Konsultasi";
         $greetings = "Hi Konsultan";
         $mainMessage = <<<_MESSAGE
 Partisipan {$this->participant->getName()} telah menyetujui usulan Konsultasi di waktu:

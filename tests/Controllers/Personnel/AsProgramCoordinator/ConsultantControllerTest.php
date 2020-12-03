@@ -43,7 +43,6 @@ class ConsultantControllerTest extends AsProgramCoordinatorTestCase
     {
         $response = [
             "id" => $this->consultantOne->id,
-            "removed" => $this->consultantOne->removed,
             "personnel" => [
                 "id" => $this->consultantOne->personnel->id,
                 "name" => $this->consultantOne->personnel->getFullName(),
@@ -68,7 +67,6 @@ class ConsultantControllerTest extends AsProgramCoordinatorTestCase
             "list" => [
                 [
                     "id" => $this->consultantOne->id,
-                    "removed" => $this->consultantOne->removed,
                     "personnel" => [
                         "id" => $this->consultantOne->personnel->id,
                         "name" => $this->consultantOne->personnel->getFullName(),
@@ -76,7 +74,6 @@ class ConsultantControllerTest extends AsProgramCoordinatorTestCase
                 ],
                 [
                     "id" => $this->consultantTwo->id,
-                    "removed" => $this->consultantTwo->removed,
                     "personnel" => [
                         "id" => $this->consultantTwo->personnel->id,
                         "name" => $this->consultantTwo->personnel->getFullName(),

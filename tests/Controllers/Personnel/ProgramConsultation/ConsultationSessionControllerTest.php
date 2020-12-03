@@ -188,11 +188,12 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
             ],
             "participant" => [
                 "id" => $this->consultationSession->participant->id,
-                "clientParticipant" => null,
-                "userParticipant" => [
+                "client" => null,
+                "user" => [
                     "id" => $this->userParticipant->user->id,
                     "name" => $this->userParticipant->user->getFullName(),
                 ],
+                "team" => null,
             ],
             "consultantFeedback" => null,
         ];
@@ -213,11 +214,12 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                     "hasConsultantFeedback" => false,
                     "participant" => [
                         "id" => $this->consultationSession->participant->id,
-                        "clientParticipant" => null,
-                        "userParticipant" => [
+                        "client" => null,
+                        "user" => [
                             "id" => $this->userParticipant->user->id,
                             "name" => $this->userParticipant->user->getFullName(),
                         ],
+                        "team" => null
                     ],
                 ],
                 [
@@ -227,11 +229,12 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                     "hasConsultantFeedback" => true,
                     "participant" => [
                         "id" => $this->consultationSessionOne->participant->id,
-                        "clientParticipant" => null,
-                        "userParticipant" => [
+                        "client" => null,
+                        "user" => [
                             "id" => $this->userParticipant->user->id,
                             "name" => $this->userParticipant->user->getFullName(),
                         ],
+                        "team" => null,
                     ],
                 ],
             ],
@@ -253,11 +256,12 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                     "hasConsultantFeedback" => false,
                     "participant" => [
                         "id" => $this->consultationSession->participant->id,
-                        "clientParticipant" => null,
-                        "userParticipant" => [
+                        "client" => null,
+                        "user" => [
                             "id" => $this->userParticipant->user->id,
                             "name" => $this->userParticipant->user->getFullName(),
                         ],
+                        "team" => null,
                     ],
                 ],
             ],
@@ -282,11 +286,12 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                     "hasConsultantFeedback" => true,
                     "participant" => [
                         "id" => $this->consultationSessionOne->participant->id,
-                        "clientParticipant" => null,
-                        "userParticipant" => [
+                        "client" => null,
+                        "user" => [
                             "id" => $this->userParticipant->user->id,
                             "name" => $this->userParticipant->user->getFullName(),
                         ],
+                        "team" => null,
                     ],
                 ],
             ],
@@ -303,6 +308,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
 
     public function test_submitReport()
     {
+$this->disableExceptionHandling();
         $this->connection->table('ConsultantFeedback')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
@@ -371,11 +377,12 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
             ],
             "participant" => [
                 "id" => $this->consultationSessionOne->participant->id,
-                "clientParticipant" => null,
-                "userParticipant" => [
+                "client" => null,
+                "user" => [
                     "id" => $this->userParticipant->user->id,
                     "name" => $this->userParticipant->user->getFullName(),
                 ],
+                "team" => null,
             ],
             "consultantFeedback" => [
                 "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),

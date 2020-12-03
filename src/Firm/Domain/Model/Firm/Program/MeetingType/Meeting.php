@@ -161,4 +161,9 @@ class Meeting
         return empty($attendee) ? null : $attendee;
     }
     
+    public function isUpcoming(): bool
+    {
+        return $this->startEndTime->isUpcoming();
+    }
+    
 }

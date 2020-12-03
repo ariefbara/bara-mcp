@@ -28,6 +28,8 @@ class RecordOfConsultationSession implements Record
      */
     public $consultant;
     public $id, $startDateTime, $endDateTime;
+    public $cancelled;
+    public $note;
     
     function __construct(RecordOfConsultationSetup $consultationSetup, RecordOfParticipant $participant, RecordOfConsultant $consultant, $index)
     {
@@ -37,6 +39,8 @@ class RecordOfConsultationSession implements Record
         $this->id = "schedule-$index-id";
         $this->startDateTime = (new DateTime("+96 hours"))->format('Y-m-d H:i:s');
         $this->endDateTime = (new DateTime("+97 hours"))->format('Y-m-d H:i:s');
+        $this->cancelled = false;
+        $this->note = null;
     }
 
     
@@ -49,6 +53,8 @@ class RecordOfConsultationSession implements Record
             "id" => $this->id,
             "startDateTime" => $this->startDateTime,
             "endDateTime" => $this->endDateTime,
+            "cancelled" => $this->cancelled,
+            "note" => $this->note,
         ];
     }
 

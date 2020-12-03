@@ -184,9 +184,16 @@ class Attendee
 
     protected function assertInitiator(): void
     {
-        if (!$this->anInitiator) {
-            $errorDetail = "forbidden: only meeting initiator can make this request";
+        if (!$this->anInitiator || $this->cancelled) {
+            $errorDetail = "forbidden: only active meeting initiator can make this request";
             throw RegularException::forbidden($errorDetail);
+        }
+    }
+    
+    public function disableValidInvitation(): void
+    {
+        if ($this->meeting->isUpcoming()) {
+            $this->cancelled = true;
         }
     }
 

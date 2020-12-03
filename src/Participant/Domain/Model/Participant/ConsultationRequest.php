@@ -174,9 +174,9 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
 
     protected function assertNotConflictedWithConsultantExistingConsultationSession(): void
     {
-        if ($this->consultant->hasConsultationSessionConflictedWith($this)) {
-            $errorDetail = "conflict: consultant already has consultation session at this time";
-            throw RegularException::conflict($errorDetail);
+        if (!$this->consultant->canAcceptConsultationRequest($this)) {
+            $errorDetail = "forbidden: consultant can accept consultation request";
+            throw RegularException::forbidden($errorDetail);
         }
     }
 

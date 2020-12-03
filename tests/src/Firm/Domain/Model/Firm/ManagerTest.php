@@ -5,10 +5,15 @@ namespace Firm\Domain\Model\Firm;
 use Firm\Domain\ {
     Model\Firm,
     Model\Firm\Program\ActivityType,
+    Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
+    Model\Firm\Program\EvaluationPlan,
+    Model\Firm\Program\EvaluationPlanData,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
     Service\ActivityTypeDataProvider
 };
+use PHPUnit\Framework\MockObject\MockObject;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
@@ -23,6 +28,12 @@ class ManagerTest extends TestBase
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
     
     protected $meetingId = "meetingId", $meetingType, $meetingData;
+    protected $coordinator;
+    protected $consultant;
+    protected $personnel;
+    protected $feedbackForm;
+    protected $evaluationPlan;
+    protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData;
 
     protected function setUp(): void
     {
@@ -37,6 +48,32 @@ class ManagerTest extends TestBase
         
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        
+        $this->coordinator = $this->buildMockOfClass(Coordinator::class);
+        $this->consultant = $this->buildMockOfClass(Consultant::class);
+        $this->personnel = $this->buildMockOfClass(Personnel::class);
+        $this->feedbackForm = $this->buildMockOfClass(FeedbackForm::class);
+        $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
+        $this->evaluationPlanData = $this->buildMockOfClass(EvaluationPlanData::class);
+    }
+    
+    protected function setAssetBelongsToFirm(MockObject $asset): void
+    {
+        $asset->expects($this->any())
+                ->method("belongsToFirm")
+                ->willReturn(true);
+    }
+    protected function setAssetDoesntBelongsToFirm(MockObject $asset): void
+    {
+        $asset->expects($this->any())
+                ->method("belongsToFirm")
+                ->with($this->firm)
+                ->willReturn(false);
+    }
+    protected function assertUnmanageableAssetForbiddenError(callable $operation): void
+    {
+        $errorDetail = "forbidden: unable to manage asset from other firm";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
     protected function getManagerData()
@@ -200,6 +237,158 @@ class ManagerTest extends TestBase
         };
         $errorDetail = "forbidden: unable to manage meeting type from other firm";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    protected function executeDisableCoordinator()
+    {
+        $this->setAssetBelongsToFirm($this->coordinator);
+        $this->manager->disableCoordinator($this->coordinator);
+    }
+    public function test_disableCoordinator_disableCoordinator()
+    {
+        $this->coordinator->expects($this->once())
+                ->method("disable");
+        $this->executeDisableCoordinator();
+    }
+    public function test_disableCoordinator_coordinatorBelongsToDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->coordinator);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableCoordinator();
+        });
+    }
+    
+    protected function executeDisableConsultant()
+    {
+        $this->setAssetBelongsToFirm($this->consultant);
+        $this->manager->disableConsultant($this->consultant);
+    }
+    public function test_disableConsultant_disableConsultant()
+    {
+        $this->consultant->expects($this->once())
+                ->method("disable");
+        $this->executeDisableConsultant();
+    }
+    public function test_disableConsultant_consultantFromOtherFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->consultant);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableConsultant();
+        });
+    }
+    
+    protected function executeDisablePersonnel()
+    {
+        $this->setAssetBelongsToFirm($this->personnel);
+        $this->manager->disablePersonnel($this->personnel);
+    }
+    public function test_disablePersonnel_disablePersonnel()
+    {
+        $this->personnel->expects($this->once())
+                ->method("disable");
+        $this->executeDisablePersonnel();
+    }
+    public function test_disablePersonnel_personnelFromOtherFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->personnel);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisablePersonnel();
+        });
+    }
+    
+    protected function executeCreateEvaluationPlanInProgram()
+    {
+        $this->setAssetBelongsToFirm($this->program);
+        $this->setAssetBelongsToFirm($this->feedbackForm);
+        return $this->manager->createEvaluationPlanInProgram(
+                $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
+    }
+    public function test_createEvaluationPlanInProgram_returnEvaluationPlanCreatedInProgram()
+    {
+        $this->program->expects($this->once())
+                ->method("createEvaluationPlan")
+                ->with($this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
+        $this->executeCreateEvaluationPlanInProgram();
+    }
+    public function test_createEvaluationPlanInProgram_programFromDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->program);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeCreateEvaluationPlanInProgram();
+        });
+    }
+    public function test_createEvaluationPlanInProgram_reportFormFromDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->feedbackForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeCreateEvaluationPlanInProgram();
+        });
+    }
+    
+    protected function executeUpdateEvaluationPlan()
+    {
+        $this->setAssetBelongsToFirm($this->evaluationPlan);
+        $this->setAssetBelongsToFirm($this->feedbackForm);
+        $this->manager->updateEvaluationPlan($this->evaluationPlan, $this->evaluationPlanData, $this->feedbackForm);
+    }
+    public function test_updateEvaluationPlan_updateEvaluationPlan()
+    {
+        $this->evaluationPlan->expects($this->once())
+                ->method("update")
+                ->with($this->evaluationPlanData, $this->feedbackForm);
+        $this->executeUpdateEvaluationPlan();
+    }
+    public function test_updateEvaluationPlan_unmanagerableEvaluationPlan_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->evaluationPlan);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateEvaluationPlan();
+        });
+    }
+    public function test_updateEvaluationPlan_unmanagerableFeedbackForm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->feedbackForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateEvaluationPlan();
+        });
+    }
+    
+    protected function executeDisableEvaluationPlan()
+    {
+        $this->setAssetBelongsToFirm($this->evaluationPlan);
+        $this->manager->disableEvaluationPlan($this->evaluationPlan, $this->evaluationPlanData);
+    }
+    public function test_disableEvaluationPlan_disableEvaluationPlan()
+    {
+        $this->evaluationPlan->expects($this->once())
+                ->method("disable");
+        $this->executeDisableEvaluationPlan();
+    }
+    public function test_disableEvaluationPlan_unmanagerableEvaluationPlan_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->evaluationPlan);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableEvaluationPlan();
+        });
+    }
+    
+    protected function executeEnableEvaluationPlan()
+    {
+        $this->setAssetBelongsToFirm($this->evaluationPlan);
+        $this->manager->enableEvaluationPlan($this->evaluationPlan, $this->evaluationPlanData);
+    }
+    public function test_enableEvaluationPlan_enableEvaluationPlan()
+    {
+        $this->evaluationPlan->expects($this->once())
+                ->method("enable");
+        $this->executeEnableEvaluationPlan();
+    }
+    public function test_enableEvaluationPlan_unmanagerableEvaluationPlan_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->evaluationPlan);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeEnableEvaluationPlan();
+        });
     }
 
 }

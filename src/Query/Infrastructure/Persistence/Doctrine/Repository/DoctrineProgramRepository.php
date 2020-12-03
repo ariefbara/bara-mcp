@@ -39,7 +39,7 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
         }
     }
 
-    public function all(string $firmId, int $page, int $pageSize, ?string $participantType)
+    public function all(string $firmId, int $page, int $pageSize, ?string $participantType, ?bool $publishOnly = true)
     {
         $qb = $this->createQueryBuilder('program');
         $qb->select('program')
@@ -52,6 +52,9 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
             $qb->andWhere($qb->expr()->like("program.participantTypes.values", ":participantType"))
                     ->setParameter("participantType", "%$participantType%");
         }
+        if ($publishOnly) {
+            $qb->andWhere($qb->expr()->eq("program.published", "true"));
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
@@ -60,6 +63,7 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
     {
         $qb = $this->createQueryBuilder('program');
         $qb->select('program')
+                ->andWhere($qb->expr()->eq("program.published", "true"))
                 ->andWhere($qb->expr()->like('program.participantTypes.values', ":participantType"))
                 ->setParameter("participantType", "%".ParticipantTypes::USER_TYPE."%")
                 ->andWhere($qb->expr()->eq('program.removed', 'false'));

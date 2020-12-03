@@ -28,7 +28,7 @@ class DoctrinePersonnelFileInfoRepository extends EntityRepository implements Pe
                 ->andWhere($qb->expr()->eq('personnelFileInfo.removed', 'false'))
                 ->andWhere($qb->expr()->eq('personnelFileInfo.id', ':personnelFileInfoId'))
                 ->leftJoin('personnelFileInfo.personnel', 'personnel')
-                ->andWhere($qb->expr()->eq('personnel.removed', 'false'))
+                ->andWhere($qb->expr()->eq('personnel.active', 'true'))
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))

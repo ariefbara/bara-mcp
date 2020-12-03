@@ -496,6 +496,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
 
         $qb = $this->createQueryBuilder("invitee");
         $qb->select("invitee")
+                ->andWhere($qb->expr()->eq("invitee.cancelled", "false"))
                 ->leftJoin("invitee.activity", "activity")
                 ->andWhere($qb->expr()->eq("activity.id", ":meetingId"))
                 ->leftJoin("activity.activityType", "activityType")

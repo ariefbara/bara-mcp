@@ -3,16 +3,21 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Firm\Domain\ {
+use Firm\Domain\{
+    Model\AssetBelongsToFirm,
     Model\Firm,
     Model\Firm\Program\ActivityType,
+    Model\Firm\Program\Consultant,
+    Model\Firm\Program\Coordinator,
+    Model\Firm\Program\EvaluationPlan,
+    Model\Firm\Program\EvaluationPlanData,
     Model\Firm\Program\MeetingType\CanAttendMeeting,
     Model\Firm\Program\MeetingType\Meeting,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
     Service\ActivityTypeDataProvider
 };
-use Resources\ {
+use Resources\{
     Domain\ValueObject\Password,
     Exception\RegularException,
     ValidationRule,
@@ -138,7 +143,7 @@ class Manager implements CanAttendMeeting
     {
         return $role->isManagerType();
     }
-    
+
     public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
     {
         if ($this->removed) {
@@ -150,6 +155,60 @@ class Manager implements CanAttendMeeting
             throw RegularException::forbidden($errorDetail);
         }
         return $meetingType->createMeeting($meetingId, $meetingData, $this);
+    }
+
+    public function disableCoordinator(Coordinator $coordinator): void
+    {
+        $this->assertAssetBelongsToSameFirm($coordinator);
+        $coordinator->disable();
+    }
+
+    public function disableConsultant(Consultant $consultant): void
+    {
+        $this->assertAssetBelongsToSameFirm($consultant);
+        $consultant->disable();
+    }
+
+    public function disablePersonnel(Personnel $personnel): void
+    {
+        $this->assertAssetBelongsToSameFirm($personnel);
+        $personnel->disable();
+    }
+
+    public function createEvaluationPlanInProgram(
+            Program $program, string $evaluationPlanId, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): EvaluationPlan
+    {
+        $this->assertAssetBelongsToSameFirm($program);
+        $this->assertAssetBelongsToSameFirm($reportForm);
+        return $program->createEvaluationPlan($evaluationPlanId, $evaluationPlanData, $reportForm);
+    }
+
+    public function updateEvaluationPlan(
+            EvaluationPlan $evaluationPlan, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($evaluationPlan);
+        $this->assertAssetBelongsToSameFirm($reportForm);
+        $evaluationPlan->update($evaluationPlanData, $reportForm);
+    }
+
+    public function disableEvaluationPlan(EvaluationPlan $evaluationPlan): void
+    {
+        $this->assertAssetBelongsToSameFirm($evaluationPlan);
+        $evaluationPlan->disable();
+    }
+
+    public function enableEvaluationPlan(EvaluationPlan $evaluationPlan): void
+    {
+        $this->assertAssetBelongsToSameFirm($evaluationPlan);
+        $evaluationPlan->enable();
+    }
+
+    protected function assertAssetBelongsToSameFirm(AssetBelongsToFirm $asset): void
+    {
+        if (!$asset->belongsToFirm($this->firm)) {
+            $errorDetail = "forbidden: unable to manage asset from other firm";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
 }

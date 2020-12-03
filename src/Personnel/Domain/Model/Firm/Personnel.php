@@ -66,7 +66,7 @@ class Personnel
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     public function getFirmId(): string
     {
@@ -95,6 +95,7 @@ class Personnel
 
     public function updateProfile(PersonnelProfileData $data): void
     {
+        $this->assertActive();
         $this->name = new PersonName($data->getFirstName(), $data->getLastName());
         $this->setPhone($data->getPhone());
         $this->bio = $data->getBio();
@@ -102,11 +103,20 @@ class Personnel
 
     public function changePassword(string $previousPassword, string $newPassword): void
     {
+        $this->assertActive();
         if (!$this->password->match($previousPassword)) {
             $errorDetail = "forbidden: previous password not match";
             throw RegularException::forbidden($errorDetail);
         }
         $this->password = new Password($newPassword);
+    }
+    
+    protected function assertActive(): void
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active personnel can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
 }

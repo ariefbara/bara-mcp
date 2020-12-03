@@ -5,8 +5,11 @@ namespace Firm\Domain\Model\Firm;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\ {
     Model\Firm,
+    Model\Firm\Program\ActivityType,
     Model\Firm\Program\Consultant,
     Model\Firm\Program\Coordinator,
+    Model\Firm\Program\EvaluationPlan,
+    Model\Firm\Program\EvaluationPlanData,
     Model\Firm\Program\Metric,
     Model\Firm\Program\MetricData,
     Model\Firm\Program\Participant,
@@ -30,10 +33,9 @@ class ProgramTest extends TestBase
     protected $participant;
 
     protected $personnel;
-    
     protected $metricId = "metricId", $metricData;
-    
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
+    protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData, $feedbackForm;
 
     protected function setUp(): void
     {
@@ -67,6 +69,10 @@ class ProgramTest extends TestBase
         
         $this->activityTypeDataProvider = $this->buildMockOfClass(ActivityTypeDataProvider::class);
         $this->activityTypeDataProvider->expects($this->any())->method("getName")->willReturn("name");
+        
+        $this->evaluationPlanData = $this->buildMockOfClass(EvaluationPlanData::class);
+        $this->evaluationPlanData->expects($this->any())->method("getName")->willReturn("name");
+        $this->feedbackForm = $this->buildMockOfClass(FeedbackForm::class);
     }
 
     protected function getProgramData()
@@ -143,6 +149,7 @@ class ProgramTest extends TestBase
 
     protected function executeAssignPersonnelAsConsultant()
     {
+        $this->personnel->expects($this->any())->method("isActive")->willReturn(true);
         return $this->program->assignPersonnelAsConsultant($this->personnel);
     }
     public function test_assignPersonnelAsConsultant_addConsultantToCollection()
@@ -150,27 +157,14 @@ class ProgramTest extends TestBase
         $this->executeAssignPersonnelAsConsultant();
         $this->assertEquals(2, $this->program->consultants->count());
     }
-    function test_assignPersonnelAsConsultant_aConsultantReferToSamePersonnelExistInCollection_throwEx()
+    function test_assignPersonnelAsConsultant_aConsultantReferToSamePersonnelExistInCollection_enableExistingConsultant()
     {
         $this->consultant->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
-        $operation = function () {
-            $this->executeAssignPersonnelAsConsultant();
-        };
-        $errorDetails = 'forbidden: personnel already assigned as consultant';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetails);
-    }
-    public function test_assignPersonnelAsConsultant_consultantReferedToSamePersonnelAlreadyRemove_reassignConsultant()
-    {
+        
         $this->consultant->expects($this->once())
-            ->method('getPersonnel')
-            ->willReturn($this->personnel);
-        $this->consultant->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
-        $this->consultant->expects($this->once())
-            ->method('reassign');
+                ->method("enable");
         $this->executeAssignPersonnelAsConsultant();
     }
     public function test_assignePersonnelAsConsultant_returnConsultantId()
@@ -179,9 +173,6 @@ class ProgramTest extends TestBase
             ->method('getPersonnel')
             ->willReturn($this->personnel);
         $this->consultant->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
-        $this->consultant->expects($this->once())
             ->method('getId')
             ->willReturn($id = 'id');
         $this->assertEquals($id, $this->executeAssignPersonnelAsConsultant());
@@ -189,6 +180,7 @@ class ProgramTest extends TestBase
     
     protected function executeAssignPersonnelAsCoordinator()
     {
+        $this->personnel->expects($this->any())->method("isActive")->willReturn(true);
         return $this->program->assignPersonnelAsCoordinator($this->personnel);
     }
     public function test_assignPersonnelAsCoordinator_addCoordinatorToCollection()
@@ -196,27 +188,13 @@ class ProgramTest extends TestBase
         $this->executeAssignPersonnelAsCoordinator();
         $this->assertEquals(2, $this->program->coordinators->count());
     }
-    public function test_assignePersonnelAsCoordinator_personnelAlreadyAssignAsCoordinator_throwEx()
-    {
-        $this->coordinator->expects($this->once())
-            ->method('getPersonnel')
-            ->willReturn($this->personnel);
-        $operation = function () {
-            $this->executeAssignPersonnelAsCoordinator();
-        };
-        $errorDetail = "forbidden: personnel already assigned as coordinator";
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
-    public function test_assignPersonnelAsCoordinator_coordinatorReferToSamePersonnelAlreadyRemoved_reassignCoordinator()
+    public function test_assignPersonnelAsCoordinator_personnelAlreadyAssignAsCoordinator_enableCorrespondCoordinator()
     {
         $this->coordinator->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
         $this->coordinator->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
-        $this->coordinator->expects($this->once())
-            ->method('reassign');
+            ->method('enable');
         $this->executeAssignPersonnelAsCoordinator();
     }
     public function test_assignPersonnelAsCoordiantor_returnCoordinatorId()
@@ -224,9 +202,6 @@ class ProgramTest extends TestBase
         $this->coordinator->expects($this->once())
             ->method('getPersonnel')
             ->willReturn($this->personnel);
-        $this->coordinator->expects($this->once())
-            ->method('isRemoved')
-            ->willReturn(true);
         $this->coordinator->expects($this->once())
             ->method('getId')
             ->willReturn($id = 'id');
@@ -300,8 +275,17 @@ class ProgramTest extends TestBase
     
     public function test_createActivityType_returnActivityType()
     {
-        $activityType = new Program\ActivityType($this->program, $this->activityTypeId, $this->activityTypeDataProvider);
+        $activityType = new ActivityType($this->program, $this->activityTypeId, $this->activityTypeDataProvider);
         $this->assertEquals($activityType, $this->program->createActivityType($this->activityTypeId, $this->activityTypeDataProvider));
+    }
+    
+    public function test_createEvaluationPlan_returnNewEvaluationPlan()
+    {
+        $evaluationPlan = new EvaluationPlan(
+                $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
+        $this->assertEquals(
+                $evaluationPlan, $this->program->createEvaluationPlan(
+                        $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm));
     }
     
 }

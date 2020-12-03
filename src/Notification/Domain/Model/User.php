@@ -75,7 +75,7 @@ class User
 
     public function createActivationMail(string $userMailId): UserMail
     {
-        $subject = "Konsulta: Aktivasi Akun";
+        $subject = "Aktivasi Akun";
         $greetings = "Hi {$this->name->getFirstName()}";
         $mainMessage = "Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:";
         $domain = "http://konsulta.id";
@@ -94,7 +94,7 @@ class User
 
     public function createResetPasswordMail(string $userMailId): UserMail
     {
-        $subject = "Konsulta: Reset Password";
+        $subject = "Reset Password";
         $greetings = "Hi {$this->name->getFirstName()}";
         $mainMessage = "Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:";
         $domain = "http://konsulta.id";

@@ -42,21 +42,22 @@ class ConsultantTest extends TestBase
         $this->assertFalse($this->consultant->programEquals($program));
     }
     
-    protected function executeHasConsultationSessionConflictedWith()
+    protected function executeCanAcceptConsultationRequest()
     {
-        return $this->consultant->hasConsultationSessionConflictedWith($this->consultationRequest);
+        return $this->consultant->canAcceptConsultationRequest($this->consultationRequest);
     }
-    public function test_hasConsultationSessionConflictedWith_returnFalse()
+    public function test_canAcceptConsultationRequest_inactiveConsultant_returnFalse()
     {
-        $this->assertFalse($this->executeHasConsultationSessionConflictedWith());
+        $this->consultant->active = false;
+        $this->assertFalse($this->executeCanAcceptConsultationRequest());
     }
-    public function test_hasConsultationSessionConflictedWith_containConsultationSessionConflictedWithNegoitateConsultationSessionArg_returnTrue()
+    public function test_canAcceptConsultationRequest_hasConsultationSessionInConflictWithRequestedConsultation_returnFalse()
     {
         $this->consultationSession->expects($this->once())
             ->method('conflictedWithConsultationRequest')
             ->with($this->consultationRequest)
             ->willReturn(true);
-        $this->assertTrue($this->executeHasConsultationSessionConflictedWith());
+        $this->assertFalse($this->executeCanAcceptConsultationRequest());
     }
 }
 
@@ -65,7 +66,7 @@ class TestableConsultant extends Consultant
     public $program;
     public $id;
     public $personnelId;
-    public $removed;
+    public $active = true;
     public $consultationSessions;
     
     function __construct()

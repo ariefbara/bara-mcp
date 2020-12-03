@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Manager;
 
 use Firm\ {
     Application\Service\Firm\PersonnelAdd,
+    Application\Service\Manager\DisablePersonnel,
     Domain\Model\Firm,
+    Domain\Model\Firm\Manager,
     Domain\Model\Firm\Personnel,
     Domain\Model\Firm\PersonnelData
 };
@@ -26,6 +28,13 @@ class PersonnelController extends ManagerBaseController
         $viewservice = $this->buildViewService();
         $personnel = $viewservice->showById($this->firmId(), $personnelId);
         return $this->commandCreatedResponse($this->arrayDataOfPersonnel($personnel));
+    }
+    
+    public function disable($personnelId)
+    {
+        $this->buildDisableService()
+                ->execute($this->firmId(), $this->managerId(), $personnelId);
+        return $this->commandOkResponse();
     }
 
     public function show($personnelId)
@@ -81,6 +90,13 @@ class PersonnelController extends ManagerBaseController
     {
         $personnelRepository = $this->em->getRepository(Personnel2::class);
         return new PersonnelView($personnelRepository);
+    }
+    
+    protected function buildDisableService()
+    {
+        $personnelRepository = $this->em->getRepository(Personnel::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        return new DisablePersonnel($personnelRepository, $managerRepository);
     }
 
 }

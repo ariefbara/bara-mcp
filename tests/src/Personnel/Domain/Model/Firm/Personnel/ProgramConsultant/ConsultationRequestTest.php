@@ -26,6 +26,7 @@ class ConsultationRequestTest extends TestBase
     protected $consultationRequest;
     protected $startTime;
     protected $otherConsultationRequest;
+    protected $otherSchedule;
 
     protected function setUp(): void
     {
@@ -48,15 +49,27 @@ class ConsultationRequestTest extends TestBase
         $this->startTime = new DateTimeImmutable('+1 days');
         $this->otherConsultationRequest = new TestableConsultationRequest();
         $this->otherConsultationRequest->startEndTime = $this->startEndTime;
+        $this->otherSchedule = $this->buildMockOfClass(DateTimeInterval::class);
     }
     
-    public function test_returnSchedulesIntersectWithResult()
+    protected function executeScheduleIntersectWith()
     {
-        $otherSchedule = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->startEndTime->expects($this->any())
+                ->method("intersectWith")
+                ->willReturn(true);
+        return $this->consultationRequest->scheduleIntersectWith($this->otherSchedule);
+    }
+    public function test_scheduleIntersectWith_returnSchedulesIntersectWithResult()
+    {
         $this->startEndTime->expects($this->once())
                 ->method("intersectWith")
-                ->with($otherSchedule);
-        $this->consultationRequest->scheduleIntersectWith($otherSchedule);
+                ->with($this->otherSchedule);
+        $this->executeScheduleIntersectWith();
+    }
+    public function test_shceduleIntersectWith_concludedRequest_returnFalse()
+    {
+        $this->consultationRequest->concluded = true;
+        $this->assertFalse($this->executeScheduleIntersectWith());
     }
 
     protected function executeReject()

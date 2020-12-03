@@ -23,12 +23,15 @@ class ProgramControllerTest extends ClientTestCase
         $firm = $this->client->firm;
         
         $this->program = new RecordOfProgram($firm, 0);
+        $this->program->published = true;
         $this->programOne_forClientType = new RecordOfProgram($firm, 1);
         $this->programOne_forClientType->participantTypes = ParticipantTypes::CLIENT_TYPE;
+        $this->programOne_forClientType->published = true;
         $this->programTwo_forUserType = new RecordOfProgram($firm, 2);
         $this->programTwo_forUserType->participantTypes = ParticipantTypes::USER_TYPE;
         $this->programThree_forTeamType = new RecordOfProgram($firm, 3);
         $this->programThree_forTeamType->participantTypes = ParticipantTypes::TEAM_TYPE;
+        $this->programThree_forTeamType->published = true;
         $this->connection->table("Program")->insert($this->program->toArrayForDbEntry());
         $this->connection->table("Program")->insert($this->programOne_forClientType->toArrayForDbEntry());
         $this->connection->table("Program")->insert($this->programTwo_forUserType->toArrayForDbEntry());

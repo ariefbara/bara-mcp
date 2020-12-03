@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\EvaluationPlan" 
+            table="EvaluationPlan"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineEvaluationPlanRepository"
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Query\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="interval" column="days_interval" type="integer" nullable="false"/>
+        <field name="disabled" type="boolean" />
+        
+        
+        <many-to-one  field="reportForm" 
+                      target-entity="Query\Domain\Model\Firm\FeedbackForm"
+        >
+            <join-column name="FeedbackForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

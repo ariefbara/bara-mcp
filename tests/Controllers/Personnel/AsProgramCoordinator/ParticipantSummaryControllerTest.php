@@ -204,4 +204,12 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->get($this->participantSummaryUri, $this->removedCoordinator->personnel->token)
                 ->seeStatusCode(403);
     }
+    
+    public function test_showAllMetricAchievement_200()
+    {
+$this->disableExceptionHandling();
+        $uri = $this->asProgramCoordinatorUri . "/participant-achievement-summary";
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeStatusCode(200);
+    }
 }

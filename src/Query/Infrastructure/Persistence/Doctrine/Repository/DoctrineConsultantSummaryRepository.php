@@ -79,7 +79,7 @@ LEFT OUTER JOIN (
     GROUP BY Consultant_id
 )_g ON _g.Consultant_id = C.id
 WHERE C.Program_Id = :programId
-    AND C.removed = false
+    AND C.active = true
 ORDER BY consultationSessionCount DESC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
@@ -98,7 +98,7 @@ _STATEMENT;
 SELECT COUNT(Consultant.id) total
 FROM Consultant
 WHERE Consultant.Program_id = :programId
-    AND Consultant.removed = false
+    AND Consultant.active = true
 _STATEMENT;
         $query = $this->em->getConnection()->prepare($statement);
         $params = [

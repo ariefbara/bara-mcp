@@ -7,16 +7,13 @@ use Doctrine\Common\Collections\ {
     ArrayCollection,
     Criteria
 };
-use Personnel\Domain\ {
-    Event\Consultant\ConsultantAcceptedConsultationRequest,
-    Event\Consultant\ConsultantOfferedConsultationRequest,
-    Event\Consultant\ConsultantSubmittedCommentOnWorksheet,
-    Model\Firm\Personnel,
-    Model\Firm\Personnel\ProgramConsultant\ConsultantComment,
-    Model\Firm\Personnel\ProgramConsultant\ConsultationRequest,
-    Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
-    Model\Firm\Program\Participant\Worksheet,
-    Model\Firm\Program\Participant\Worksheet\Comment
+use Personnel\Domain\Model\Firm\ {
+    Personnel,
+    Personnel\ProgramConsultant\ConsultantComment,
+    Personnel\ProgramConsultant\ConsultationRequest,
+    Personnel\ProgramConsultant\ConsultationSession,
+    Program\Participant\Worksheet,
+    Program\Participant\Worksheet\Comment
 };
 use Resources\ {
     Domain\Model\EntityContainEvents,
@@ -49,7 +46,7 @@ class ProgramConsultant extends EntityContainEvents
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     /**
      *
@@ -70,6 +67,8 @@ class ProgramConsultant extends EntityContainEvents
 
     public function acceptConsultationRequest(string $consultationRequestId): void
     {
+        $this->assertActive();
+        
         $consultationRequest = $this->findConsultationRequestOrDie($consultationRequestId);
 
         $this->assertNoConsultationSessionInConflictWithConsultationRequest($consultationRequest);
@@ -89,6 +88,8 @@ class ProgramConsultant extends EntityContainEvents
 
     public function offerConsultationRequestTime(string $consultationRequestId, DateTimeImmutable $startTime): void
     {
+        $this->assertActive();
+        
         $consultationRequest = $this->findConsultationRequestOrDie($consultationRequestId);
         $consultationRequest->offer($startTime);
 
@@ -161,7 +162,7 @@ class ProgramConsultant extends EntityContainEvents
     
     protected function assertActive(): void
     {
-        if ($this->removed) {
+        if (!$this->active) {
             $errorDetail = "forbidden: only active consultant can make this request";
             throw RegularException::forbidden($errorDetail);
         }

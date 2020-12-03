@@ -44,7 +44,7 @@ LEFT OUTER JOIN (
     WHERE W.removed = false
     GROUP BY Mission_id, Participant_id
 )_b ON _b.Mission_id = M.id AND _b.Participant_id = _a.participantId
-WHERE M.Program_id = :programId
+WHERE M.Program_id = :programId AND M.published = true
 ORDER BY M.position ASC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
@@ -97,7 +97,7 @@ LEFT OUTER JOIN (
     WHERE W.removed = false
     GROUP BY Mission_id, Participant_id
 )_b ON _b.Mission_id = M.id AND _b.Participant_id = _a.participantId
-WHERE M.Program_id = :programId
+WHERE M.Program_id = :programId AND M.published = true
 ORDER BY M.position ASC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
@@ -132,7 +132,7 @@ LEFT OUTER JOIN (
     WHERE W.removed = false
     GROUP BY Mission_id, Participant_id
 )_b ON _b.Mission_id = M.id AND _b.Participant_id = _a.participantId
-WHERE M.Program_id = :programId
+WHERE M.Program_id = :programId AND M.published = true
 ORDER BY M.position ASC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;

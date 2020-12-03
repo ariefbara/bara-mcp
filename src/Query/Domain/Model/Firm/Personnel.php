@@ -84,7 +84,7 @@ class Personnel
      *
      * @var bool
      */
-    protected $removed;
+    protected $active;
 
     /**
      *
@@ -139,7 +139,7 @@ class Personnel
      */
     function getUnremovedProgramCoordinators()
     {
-        return $this->programCoordinators->matching($this->unremovedCriteria())->getIterator();
+        return $this->programCoordinators->matching($this->activeCriteria())->getIterator();
     }
 
     /**
@@ -148,7 +148,7 @@ class Personnel
      */
     function getUnremovedProgramConsultants()
     {
-        return $this->programConsultants->matching($this->unremovedCriteria())->getIterator();
+        return $this->programConsultants->matching($this->activeCriteria())->getIterator();
     }
 
     protected function __construct()
@@ -161,10 +161,10 @@ class Personnel
         return $this->password->match($password);
     }
 
-    private function unremovedCriteria()
+    private function activeCriteria()
     {
         return Criteria::create()
-                        ->andWhere(Criteria::expr()->eq('removed', false));
+                        ->andWhere(Criteria::expr()->eq('active', true));
     }
 
     public function getName(): string

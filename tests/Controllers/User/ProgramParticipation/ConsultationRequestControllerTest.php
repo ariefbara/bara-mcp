@@ -212,11 +212,11 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->post($this->consultationRequestUri, $this->proposeInput, $this->user->token)
             ->seeStatusCode(201);
     }
-    public function test_submit_conflictWithExistingConsultationSession_409()
+    public function test_submit_conflictWithExistingConsultationSession_403()
     {
         $this->proposeInput["startTime"] = $this->consultationSession->startDateTime;
         $this->post($this->consultationRequestUri, $this->proposeInput, $this->user->token)
-            ->seeStatusCode(409);
+            ->seeStatusCode(403);
     }
     public function test_submit_logActivity()
     {
@@ -304,12 +304,12 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
     }
-    public function test_changeTime_conflictWithExistingSession_409()
+    public function test_changeTime_conflictWithExistingSession_403()
     {
         $this->changeTimeInput["startTime"] = $this->consultationSession->startDateTime;
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/change-time";
         $this->patch($uri, $this->changeTimeInput, $this->user->token)
-            ->seeStatusCode(409);
+            ->seeStatusCode(403);
     }
     public function test_changeTime_logActivity()
     {
