@@ -17,6 +17,7 @@ class RecordOfActivityType implements Record
     public $id;
     public $name;
     public $description;
+    public $disabled;
     
     function __construct(RecordOfProgram $program, $index)
     {
@@ -24,6 +25,7 @@ class RecordOfActivityType implements Record
         $this->id = "activityType-$index-id";
         $this->name = "activity type $index name";
         $this->description = "activity type $index description";
+        $this->disabled = false;
     }
 
     
@@ -34,6 +36,7 @@ class RecordOfActivityType implements Record
             "id" => $this->id,
             "name" => $this->name,
             "description" => $this->description,
+            "disabled" => $this->disabled,
         ];
     }
 

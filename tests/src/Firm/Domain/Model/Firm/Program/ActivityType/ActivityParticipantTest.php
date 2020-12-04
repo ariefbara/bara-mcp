@@ -2,11 +2,12 @@
 
 namespace Firm\Domain\Model\Firm\Program\ActivityType;
 
-use Firm\Domain\Model\Firm\ {
-    FeedbackForm,
-    Program\ActivityType,
-    Program\MeetingType\CanAttendMeeting,
-    Program\MeetingType\Meeting
+use Firm\Domain\ {
+    Model\Firm\FeedbackForm,
+    Model\Firm\Program\ActivityType,
+    Model\Firm\Program\MeetingType\CanAttendMeeting,
+    Model\Firm\Program\MeetingType\Meeting,
+    Service\ActivityTypeDataProvider
 };
 use SharedContext\Domain\ValueObject\ {
     ActivityParticipantPriviledge,
@@ -24,6 +25,7 @@ class ActivityParticipantTest extends TestBase
     protected $feedbackForm;
     protected $user;
     protected $meeting;
+    protected $activityTypeDataProvider, $activityParticipantData;
 
     protected function setUp(): void
     {
@@ -31,7 +33,7 @@ class ActivityParticipantTest extends TestBase
         $this->activityType = $this->buildMockOfClass(ActivityType::class);
         $this->feedbackForm = $this->buildMockOfClass(FeedbackForm::class);
         
-        $activityParticipantData = new ActivityParticipantData($this->participantType, true, true, null);
+        $activityParticipantData = new ActivityParticipantData("consultant", true, true, null);
         $this->attendeeSetup = new TestableActivityParticipant($this->activityType, "id", $activityParticipantData);
         
         $this->priviledge = $this->buildMockOfClass(ActivityParticipantPriviledge::class);
@@ -39,6 +41,8 @@ class ActivityParticipantTest extends TestBase
         
         $this->user = $this->buildMockOfInterface(CanAttendMeeting::class);
         $this->meeting = $this->buildMockOfClass(Meeting::class);
+        
+        $this->activityTypeDataProvider = $this->buildMockOfClass(ActivityTypeDataProvider::class);
     }
     
     protected function getActivityParticipantData()
@@ -66,6 +70,7 @@ class ActivityParticipantTest extends TestBase
         $this->assertEquals($participantPriviledge, $activityParticipant->participantPriviledge);
         
         $this->assertEquals($this->feedbackForm, $activityParticipant->reportForm);
+        $this->assertFalse($activityParticipant->disabled);
     }
     public function test_construct_reportFormBelongsToDifferentFirm()
     {
@@ -84,6 +89,33 @@ class ActivityParticipantTest extends TestBase
         $this->feedbackForm = null;
         $this->executeConstruct();
         $this->markAsSuccess();
+    }
+    
+    protected function executeUpdate()
+    {
+        $this->activityTypeDataProvider->expects($this->any())
+                ->method("pullActivityParticipantDataCorrespondWithType")
+                ->willReturn($this->getActivityParticipantData());
+        $this->attendeeSetup->update($this->activityTypeDataProvider);
+    }
+    public function test_update_updatePriviledgeReportFormAndEnable()
+    {
+        $this->attendeeSetup->disabled = true;
+        $this->executeUpdate();
+        
+        $participantPriviledge = new ActivityParticipantPriviledge($this->canInitiate, $this->canAttend);
+        $this->assertEquals($participantPriviledge, $this->attendeeSetup->participantPriviledge);
+        $this->assertEquals($this->feedbackForm, $this->attendeeSetup->reportForm);
+        $this->assertFalse($this->attendeeSetup->disabled);
+    }
+    public function test_update_noResultFromDataProvider_disable()
+    {
+        $this->activityTypeDataProvider->expects($this->any())
+                ->method("pullActivityParticipantDataCorrespondWithType")
+                ->with($this->attendeeSetup->participantType->getParticipantType())
+                ->willReturn(null);
+        $this->executeUpdate();
+        $this->assertTrue($this->attendeeSetup->disabled);
     }
     
     public function test_roleCorrespondWithUser_returnUsersRoleCorrespondWithParticipantTypeResult()
@@ -180,4 +212,5 @@ class TestableActivityParticipant extends ActivityParticipant
     public $participantType;
     public $participantPriviledge;
     public $reportForm;
+    public $disabled;
 }

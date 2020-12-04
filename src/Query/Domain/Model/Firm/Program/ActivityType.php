@@ -2,8 +2,11 @@
 
 namespace Query\Domain\Model\Firm\Program;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Query\Domain\Model\Firm\{
+use Doctrine\Common\Collections\ {
+    ArrayCollection,
+    Criteria
+};
+use Query\Domain\Model\Firm\ {
     Program,
     Program\ActivityType\ActivityParticipant
 };
@@ -37,6 +40,12 @@ class ActivityType
 
     /**
      *
+     * @var bool
+     */
+    protected $disabled;
+
+    /**
+     *
      * @var ArrayCollection
      */
     protected $participants;
@@ -61,6 +70,11 @@ class ActivityType
         return $this->description;
     }
 
+    function isDisabled(): bool
+    {
+        return $this->disabled;
+    }
+
     protected function __construct()
     {
         
@@ -70,9 +84,15 @@ class ActivityType
      * 
      * @return ActivityParticipant[]
      */
-    public function iterateParticipants()
+    public function iterateParticipants(?bool $enableOnly = true)
     {
-        return $this->participants->getIterator();
+        if ($enableOnly) {
+            $criteria = Criteria::create()
+                    ->andWhere(Criteria::expr()->eq("disabled", false));
+            return $this->participants->matching($criteria)->getIterator();
+        } else {
+            return $this->participants->getIterator();
+        }
     }
 
 }

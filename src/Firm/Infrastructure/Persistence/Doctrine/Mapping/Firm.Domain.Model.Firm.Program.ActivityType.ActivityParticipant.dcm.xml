@@ -12,6 +12,8 @@
         </many-to-one>
         
         <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        
         <embedded name="participantType" 
                   class="SharedContext\Domain\ValueObject\ActivityParticipantType" 
                   use-column-prefix="false" />
@@ -25,6 +27,7 @@
         >
             <join-column name="FeedbackForm_id" referenced-column-name="id" />
         </many-to-one>
+        
         
     </entity>
 </doctrine-mapping>

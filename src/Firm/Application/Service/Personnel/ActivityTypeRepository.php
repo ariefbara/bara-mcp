@@ -11,4 +11,6 @@ interface ActivityTypeRepository
     public function add(ActivityType $activityType): void;
 
     public function ofId(string $activityTypeId): ActivityType;
+    
+    public function update(): void;
 }

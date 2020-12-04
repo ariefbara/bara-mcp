@@ -146,6 +146,9 @@ $router->group($managerAggregate, function () use ($router) {
         $router->group(['prefix' => '/activity-types'], function () use($router) {
             $controller = "ActivityTypeController";
             $router->post("", ["uses" => "$controller@create"]);
+            $router->patch("/{activityTypeId}/update", ["uses" => "$controller@update"]);
+            $router->patch("/{activityTypeId}/disable", ["uses" => "$controller@disable"]);
+            $router->patch("/{activityTypeId}/enable", ["uses" => "$controller@enable"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{activityTypeId}", ["uses" => "$controller@show"]);
         });

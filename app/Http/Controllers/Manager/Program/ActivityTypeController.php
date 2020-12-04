@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Manager\Program;
 use App\Http\Controllers\Manager\ManagerBaseController;
 use Firm\ {
     Application\Service\Manager\CreateActivityType,
+    Application\Service\Manager\DisableActivityType,
+    Application\Service\Manager\EnableActivityType,
+    Application\Service\Manager\UpdateActivityType,
     Domain\Model\Firm\FeedbackForm as FeedbackForm2,
     Domain\Model\Firm\Manager,
     Domain\Model\Firm\Program,
@@ -30,6 +33,28 @@ class ActivityTypeController extends ManagerBaseController
         $activityType = $viewService->showById($programId, $activityTypeId);
         return $this->commandCreatedResponse($this->arrayDataOfActivityType($activityType));
     }
+    
+    public function update($programId, $activityTypeId)
+    {
+        $service = $this->buildUpdateService();
+        $service->execute($this->firmId(), $this->managerId(), $activityTypeId, $this->getActivityTypeDataProvider());
+        
+        return $this->show($programId, $activityTypeId);
+    }
+    
+    public function disable($programId, $activityTypeId)
+    {
+        $service = $this->buildDisableService();
+        $service->execute($this->firmId(), $this->managerId(), $activityTypeId);
+        return $this->show($programId, $activityTypeId);
+    }
+    
+    public function enable($programId, $activityTypeId)
+    {
+        $this->buildEnableService()->execute($this->firmId(), $this->managerId(), $activityTypeId);
+        return $this->show($programId, $activityTypeId);
+    }
+    
     protected function getActivityTypeDataProvider()
     {
         $feedbackFormRepository = $this->em->getRepository(FeedbackForm2::class);
@@ -52,8 +77,18 @@ class ActivityTypeController extends ManagerBaseController
     {
         $this->authorizedUserIsFirmManager();
         $service = $this->buildViewService();
-        $activityTypes = $service->showAll($programId, $this->getPage(), $this->getPageSize());
-        return $this->commonIdNameListQueryResponse($activityTypes);
+        $activityTypes = $service->showAll($programId, $this->getPage(), $this->getPageSize(), $enabledOnly = false);
+        
+        $result = [];
+        $result["total"] = count($activityTypes);
+        foreach ($activityTypes as $activityType) {
+            $result["list"][] = [
+                "id" => $activityType->getId(),
+                "name" => $activityType->getName(),
+                "disabled" => $activityType->isDisabled(),
+            ];
+        }
+        return $this->listQueryResponse($result);
     }
     
     public function show($programId, $activityTypeId)
@@ -61,13 +96,14 @@ class ActivityTypeController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
         $service = $this->buildViewService();
         $activityType = $service->showById($programId, $activityTypeId);
+        
         return $this->singleQueryResponse($this->arrayDataOfActivityType($activityType));
     }
     
     protected function arrayDataOfActivityType(ActivityType $activityType): array
     {
         $participants = [];
-        foreach ($activityType->iterateParticipants() as $activityParticipant) {
+        foreach ($activityType->iterateParticipants($enableOnly = false) as $activityParticipant) {
             $participants[] = $this->arrayDataOfActivityParticipant($activityParticipant);
         }
         
@@ -75,6 +111,7 @@ class ActivityTypeController extends ManagerBaseController
             "id" => $activityType->getId(),
             "name" => $activityType->getName(),
             "description" => $activityType->getDescription(),
+            "disabled" => $activityType->isDisabled(),
             "participants" => $participants,
         ];
     }
@@ -86,6 +123,7 @@ class ActivityTypeController extends ManagerBaseController
             "canInitiate" => $activityParticipant->canInitiate(),
             "canAttend" => $activityParticipant->canAttend(),
             "feedbackForm" => $this->arrayDataOfFeedbackForm($activityParticipant->getReportForm()),
+            "disabled" => $activityParticipant->isDisabled(),
         ];
     }
     protected function arrayDataOfFeedbackForm(?FeedbackForm $feedbackForm): ?array
@@ -109,5 +147,26 @@ class ActivityTypeController extends ManagerBaseController
         $managerRepository = $this->em->getRepository(Manager::class);
         $programRepository = $this->em->getRepository(Program::class);
         return new CreateActivityType($activityTypeRepository, $managerRepository, $programRepository);
+    }
+    
+    protected function buildUpdateService()
+    {
+        $activityTypeRepository = $this->em->getRepository(ActivityType2::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        return new UpdateActivityType($activityTypeRepository, $managerRepository);
+    }
+    
+    protected function buildDisableService()
+    {
+        $activityTypeRepository = $this->em->getRepository(ActivityType2::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        return new DisableActivityType($activityTypeRepository, $managerRepository);
+    }
+    
+    protected function buildEnableService()
+    {
+        $activityTypeRepository = $this->em->getRepository(ActivityType2::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        return new EnableActivityType($activityTypeRepository, $managerRepository);
     }
 }

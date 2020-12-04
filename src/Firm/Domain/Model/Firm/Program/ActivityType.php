@@ -46,6 +46,8 @@ class ActivityType implements AssetBelongsToFirm, AssetInProgram
      * @var string|null
      */
     protected $description;
+    
+    protected $disabled;
 
     /**
      *
@@ -68,8 +70,35 @@ class ActivityType implements AssetBelongsToFirm, AssetInProgram
         $this->id = $id;
         $this->setName($activityTypeDataProvider->getName());
         $this->description = $activityTypeDataProvider->getDescription();
+        $this->disabled = false;
 
         $this->participants = new ArrayCollection();
+        $this->addActivityParticipant($activityTypeDataProvider);
+    }
+    
+    public function update(ActivityTypeDataProvider $activityTypeDataProvider): void
+    {
+        $this->setName($activityTypeDataProvider->getName());
+        $this->description = $activityTypeDataProvider->getDescription();
+        
+        foreach ($this->participants->getIterator() as $attendeeSetup) {
+            $attendeeSetup->update($activityTypeDataProvider);
+        }
+        $this->addActivityParticipant($activityTypeDataProvider);
+    }
+    
+    public function disable(): void
+    {
+        $this->disabled = true;
+    }
+    
+    public function enable(): void
+    {
+        $this->disabled = false;
+    }
+    
+    protected function addActivityParticipant(ActivityTypeDataProvider $activityTypeDataProvider): void
+    {
         foreach ($activityTypeDataProvider->iterateActivityParticipantData() as $activityParticipantData) {
             $id = Uuid::generateUuid4();
             $activityParticipant = new ActivityParticipant($this, $id, $activityParticipantData);
@@ -89,6 +118,10 @@ class ActivityType implements AssetBelongsToFirm, AssetInProgram
 
     public function createMeeting(string $meetingId, MeetingData $meetingData, CanAttendMeeting $initiator): Meeting
     {
+        if ($this->disabled) {
+            $errorDetail = "Forbidden: can only create meeting on enabled type";
+            throw RegularException::forbidden($errorDetail);
+        }
         return new Meeting($this, $meetingId, $meetingData, $initiator);
     }
     

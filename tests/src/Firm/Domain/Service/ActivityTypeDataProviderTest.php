@@ -14,7 +14,8 @@ class ActivityTypeDataProviderTest extends TestBase
     protected $data;
     protected $name = "new name", $description = "new description";
     protected $participantType = "new participant type", $canInitiate = true, $canAttend = true, $feedbackFormId = "feedbackFormId";
-    
+    protected $activityParticipantData;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -26,6 +27,9 @@ class ActivityTypeDataProviderTest extends TestBase
                 ->willReturn($this->feedbackForm);
         
         $this->data = new TestableActivityTypeDataProvider($this->feedbackFormRepository, "name", "description");
+        
+        $this->activityParticipantData = $this->buildMockOfClass(ActivityParticipantData::class);
+        $this->data->activityParticipantDataCollection[$this->participantType] = $this->activityParticipantData;
     }
     
     public function test_construct_setProperties()
@@ -58,6 +62,26 @@ class ActivityTypeDataProviderTest extends TestBase
                 $this->participantType, $this->canInitiate, $this->canAttend, null);
         $this->assertEquals($activityParticipantData, $this->data->activityParticipantDataCollection[$this->participantType]);
     }
+    
+    protected function executePullActivityParticipantDataCorrespondWithType()
+    {
+        return $this->data->pullActivityParticipantDataCorrespondWithType($this->participantType);
+    }
+    public function test_pullActivityParticipantDataCorrespondWithType_returnActivityParticipantData()
+    {
+        $this->assertEquals($this->activityParticipantData, $this->executePullActivityParticipantDataCorrespondWithType());
+    }
+    public function test_pullActivityParticipantDataCorrespondWithType_unsetCollection()
+    {
+        $this->executePullActivityParticipantDataCorrespondWithType();
+        $this->assertFalse(isset($this->data->activityParticipantDataCollection[$this->participantType]));
+    }
+    public function test_pullActivityParticipantDataCorrespondWithType_noDataCorrespondWithType_returnNull()
+    {
+        $this->participantType = "non existing type";
+        $this->assertNull($this->executePullActivityParticipantDataCorrespondWithType());
+    }
+    
 }
 
 class TestableActivityTypeDataProvider extends ActivityTypeDataProvider

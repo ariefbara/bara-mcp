@@ -18,7 +18,7 @@ use Resources\ {
 class DoctrineActivityTypeRepository extends EntityRepository implements ActivityTypeRepository
 {
 
-    public function allActivityTypesInProgram(string $programId, int $page, int $pageSize)
+    public function allActivityTypesInProgram(string $programId, int $page, int $pageSize, ?bool $enabledOnly = true)
     {
         $params = [
             "programId" => $programId,
@@ -29,6 +29,10 @@ class DoctrineActivityTypeRepository extends EntityRepository implements Activit
                 ->leftJoin("activityType.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params);
+        
+        if ($enabledOnly) {
+            $qb->andWhere($qb->expr()->eq("activityType.disabled", "false"));
+        }
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
         

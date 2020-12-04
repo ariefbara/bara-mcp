@@ -128,6 +128,24 @@ class Manager implements CanAttendMeeting
         }
         return $program->createActivityType($activityTypeId, $activityTypeDataProvider);
     }
+    
+    public function updateActivityType(ActivityType $activityType, ActivityTypeDataProvider $activityTypeDataProvider): void
+    {
+        $this->assertAssetBelongsToSameFirm($activityType);
+        $activityType->update($activityTypeDataProvider);
+    }
+    
+    public function disableActivityType(ActivityType $activityType): void
+    {
+        $this->assertAssetBelongsToSameFirm($activityType);
+        $activityType->disable();
+    }
+    
+    public function enableActivityType(ActivityType $activityType): void
+    {
+        $this->assertAssetBelongsToSameFirm($activityType);
+        $activityType->enable();
+    }
 
     public function canInvolvedInProgram(Program $program): bool
     {

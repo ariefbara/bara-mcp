@@ -12,9 +12,12 @@
         </many-to-one>
         
         <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        
         <embedded name="participantType" 
                   class="SharedContext\Domain\ValueObject\ActivityParticipantType" 
                   use-column-prefix="false" />
+        
         <embedded name="participantPriviledge" 
                   class="SharedContext\Domain\ValueObject\ActivityParticipantPriviledge" 
                   use-column-prefix="false" />
