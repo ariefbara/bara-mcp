@@ -196,7 +196,6 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->fieldThree_ofParticipantTwoMetricAssignment_23 = new RecordOfAssignmentField($this->participantTwoMetricAssignment_2, $metric, "23");
         $this->fieldThree_ofParticipantTwoMetricAssignment_23->target = 300;
         $this->fieldOne_ofParticipantThreeMetricAssignment_31 = new RecordOfAssignmentField($this->participantThreeMetricAssignment_3, $metric, "31");
-        $this->fieldOne_ofParticipantThreeMetricAssignment_31->removed = true;
         $this->fieldOne_ofParticipantThreeMetricAssignment_31->target = 100;
         $this->fieldTwo_ofParticipantThreeMetricAssignment_32 = new RecordOfAssignmentField($this->participantThreeMetricAssignment_3, $metric, "32");
         $this->fieldTwo_ofParticipantThreeMetricAssignment_32->target = 200;
@@ -220,7 +219,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->assignmentReportOne_fromParticipantThree_31_approved->observationTime = (new \DateTimeImmutable("-14 days"))->format("Y-m-d H:i:s");
         $this->assignmentReportTwo_fromParticipantThree_32_approved = new RecordOfMetricAssignmentReport($this->participantThreeMetricAssignment_3,"32");
         $this->assignmentReportTwo_fromParticipantThree_32_approved->approved = true;
-        $this->assignmentReportTwo_fromParticipantThree_32_approved->observationTim = (new \DateTimeImmutable("-7 days"))->format("Y-m-d H:i:s");
+        $this->assignmentReportTwo_fromParticipantThree_32_approved->observationTime = (new \DateTimeImmutable("-7 days"))->format("Y-m-d H:i:s");
         $this->assignmentReportThree_fromParticipantThree_33_approved_removed = new RecordOfMetricAssignmentReport($this->participantThreeMetricAssignment_3,"33");
         $this->assignmentReportThree_fromParticipantThree_33_approved_removed->approved = true;
         $this->assignmentReportThree_fromParticipantThree_33_approved_removed->removed = true;
@@ -231,10 +230,10 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         
         $this->value_forFieldOne_assignmentReport01_011 = new RecordOfAssignmentFieldValue( 
                 $this->assignmentReportOne_fromParticipant_01_approved, $this->fieldOne_ofParticipantMetricAssignment_01, "011");
-        $this->value_forFieldOne_assignmentReport01_011->inputValue = 10;
+        $this->value_forFieldOne_assignmentReport01_011->inputValue = 200;
         $this->value_forFieldTwo_assignmentReport01_012 = new RecordOfAssignmentFieldValue(
                 $this->assignmentReportOne_fromParticipant_01_approved, $this->fieldTwo_ofParticipantMetricAssignment_02_removed, "012");
-        $this->value_forFieldTwo_assignmentReport01_012->inputValue = 20;
+        $this->value_forFieldTwo_assignmentReport01_012->inputValue = 40;
         $this->value_forFieldThree_assignmentReport01_013 = new RecordOfAssignmentFieldValue(
                 $this->assignmentReportOne_fromParticipant_01_approved, $this->fieldThree_ofParticipantMetricAssignment_03, "013");
         $this->value_forFieldThree_assignmentReport01_013->inputValue = 30;
@@ -252,7 +251,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->value_forFieldOne_assignmentReport32_321->inputValue = 60;
         $this->value_forFieldTwo_assignmentReport32_322 = new RecordOfAssignmentFieldValue(
                 $this->assignmentReportTwo_fromParticipantThree_32_approved, $this->fieldTwo_ofParticipantThreeMetricAssignment_32, "322");
-        $this->value_forFieldTwo_assignmentReport32_322->inputValue = 120;
+        $this->value_forFieldTwo_assignmentReport32_322->inputValue = 60;
         $this->value_forFieldThree_assignmentReport32_323 = new RecordOfAssignmentFieldValue(
                 $this->assignmentReportTwo_fromParticipantThree_32_approved, $this->fieldThree_ofParticipantThreeMetricAssignment_33_removed, "323");
         $this->value_forFieldThree_assignmentReport32_323->inputValue = 180;
@@ -376,7 +375,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
                 [
                     "id" => $this->clientParticipant->participant->id,
                     "name" => $this->clientParticipant->client->getFullName(),
-                    "achievement" => "10",
+                    "achievement" => "55",
                 ],
                 [
                     "id" => $this->teamParticipant->participant->id,
@@ -386,7 +385,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
                 [
                     "id" => $this->userParticipant->participant->id,
                     "name" => $this->userParticipant->user->getFullName(),
-                    "achievement" => "60",
+                    "achievement" => "45",
                 ],
             ],
         ];
@@ -402,9 +401,9 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
             "total" => 3,
             "list" => [
                 [
-                    "id" => $this->userParticipant->participant->id,
-                    "name" => $this->userParticipant->user->getFullName(),
-                    "achievement" => "60",
+                    "id" => $this->clientParticipant->participant->id,
+                    "name" => $this->clientParticipant->client->getFullName(),
+                    "achievement" => "55",
                 ],
             ],
         ];
@@ -420,9 +419,9 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
             "total" => 3,
             "list" => [
                 [
-                    "id" => $this->clientParticipant->participant->id,
-                    "name" => $this->clientParticipant->client->getFullName(),
-                    "achievement" => "10",
+                    "id" => $this->userParticipant->participant->id,
+                    "name" => $this->userParticipant->user->getFullName(),
+                    "achievement" => "45",
                 ],
                 [
                     "id" => $this->teamParticipant->participant->id,
