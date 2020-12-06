@@ -10,6 +10,7 @@ use Firm\Domain\ {
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
     Model\Firm\Program\MeetingType\MeetingData,
+    Model\Firm\Program\Participant\EvaluationData,
     Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
     Service\MetricAssignmentDataProvider
 };
@@ -32,6 +33,7 @@ class CoordinatorTest extends TestBase
     protected $attendee;
     protected $metricAssignmentReport;
     protected $firm;
+    protected $evaluationPlan, $evaluationData;
 
     protected function setUp(): void
     {
@@ -59,6 +61,9 @@ class CoordinatorTest extends TestBase
         $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
         
         $this->firm = $this->buildMockOfClass(Firm::class);
+        
+        $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
+        $this->evaluationData = $this->buildMockOfClass(EvaluationData::class);
     }
     
     protected function setAssetBelongsToProgram($asset)
@@ -272,6 +277,41 @@ class CoordinatorTest extends TestBase
                 ->method("belongsToFirm")
                 ->with($this->firm);
         $this->coordinator->belongsToFirm($this->firm);
+    }
+    
+    protected function executeEvaluateParticipant()
+    {
+        $this->setAssetBelongsToProgram($this->participant);
+        $this->setAssetBelongsToProgram($this->evaluationPlan);
+        $this->coordinator->evaluateParticipant($this->participant, $this->evaluationPlan, $this->evaluationData);
+    }
+    public function test_evaluateParticipant_participantReceiveFailEvaluation()
+    {
+        $this->participant->expects($this->once())
+                ->method("receiveEvaluation")
+                ->with($this->evaluationPlan, $this->evaluationData, $this->coordinator);
+        $this->executeEvaluateParticipant();
+    }
+    public function test_evaluateParticipant_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeEvaluateParticipant();
+        });
+    }
+    public function test_evaluateParticipant_participantFromDifferentProgram_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->participant);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeEvaluateParticipant();
+        });
+    }
+    public function test_evaluateParticipant_evaluationPlanFromDifferentProgram_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->evaluationPlan);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeEvaluateParticipant();
+        });
     }
 
 }

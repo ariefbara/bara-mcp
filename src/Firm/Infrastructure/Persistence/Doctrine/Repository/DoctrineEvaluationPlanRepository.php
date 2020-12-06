@@ -4,6 +4,7 @@ namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Firm\ {
+    Application\Service\Coordinator\EvaluationPlanRepository as InterfaceFoorCoordinator,
     Application\Service\Manager\EvaluationPlanRepository,
     Domain\Model\Firm\Program\EvaluationPlan
 };
@@ -12,7 +13,7 @@ use Resources\ {
     Uuid
 };
 
-class DoctrineEvaluationPlanRepository extends EntityRepository implements EvaluationPlanRepository
+class DoctrineEvaluationPlanRepository extends EntityRepository implements EvaluationPlanRepository, InterfaceFoorCoordinator
 {
 
     public function add(EvaluationPlan $evaluationPlan): void

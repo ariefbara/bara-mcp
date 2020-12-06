@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
 use Firm\ {
+    Application\Service\Coordinator\EvaluateParticipant,
     Application\Service\Firm\Program\Participant\AssignMetrics,
     Domain\Model\Firm\Program\Coordinator,
+    Domain\Model\Firm\Program\EvaluationPlan,
     Domain\Model\Firm\Program\Metric,
     Domain\Model\Firm\Program\Participant as Participant2,
+    Domain\Model\Firm\Program\Participant\EvaluationData,
     Domain\Service\MetricAssignmentDataProvider
 };
 use Query\ {
     Application\Service\Firm\Program\ViewParticipant,
     Domain\Model\Firm\Client\ClientParticipant,
     Domain\Model\Firm\Program\Participant,
+    Domain\Model\Firm\Program\Participant\Evaluation,
     Domain\Model\Firm\Program\Participant\MetricAssignment,
     Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField,
     Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
@@ -23,15 +27,28 @@ use Query\ {
 
 class ParticipantController extends AsProgramCoordinatorBaseController
 {
-    
+
+    public function evaluate($programId, $participantId)
+    {
+        $service = $this->buildEvaluateService();
+        $evaluationPlanId = $this->stripTagsInputRequest("evaluationPlanId");
+        $status = $this->stripTagsInputRequest("status");
+        $extendDays = $this->integerOfInputRequest("extendDays");
+        $evaluationData = new EvaluationData($status, $extendDays);
+
+        $service->execute(
+                $this->firmId(), $this->personnelId(), $programId, $participantId, $evaluationPlanId, $evaluationData);
+        return $this->show($programId, $participantId);
+    }
+
     public function assignMetric($programId, $participantId)
     {
         $service = $this->buildAssignMetricService();
         $service->execute($programId, $this->personnelId(), $participantId, $this->getMetricAssignmentDataProvider());
-        
+
         return $this->show($programId, $participantId);
     }
-    
+
     protected function getMetricAssignmentDataProvider()
     {
         $metricRepositoy = $this->em->getRepository(Metric::class);
@@ -55,7 +72,7 @@ class ParticipantController extends AsProgramCoordinatorBaseController
 
         $participants = $service->showAll(
                 $this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activeStatus);
-        
+
         $result = [];
         $result["total"] = count($participants);
         foreach ($participants as $participant) {
@@ -67,7 +84,7 @@ class ParticipantController extends AsProgramCoordinatorBaseController
     public function show($programId, $participantId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
-        
+
         $service = $this->buildViewService();
         $participant = $service->showById($this->firmId(), $programId, $participantId);
         return $this->singleQueryResponse($this->arrayDataOfParticipant($participant));
@@ -84,9 +101,9 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
             "team" => $this->arrayDataOfTeam($participant->getTeamParticipant()),
             "metricAssignment" => $this->arrayDataOfMetricAssignment($participant->getMetricAssignment()),
+            "lastEvaluation" => $this->arrayDataOfEvaluation($participant->getLastEvaluation()),
         ];
     }
-
     protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
     {
         return empty($clientParticipant) ? null : [
@@ -94,7 +111,6 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "name" => $clientParticipant->getClient()->getFullName(),
         ];
     }
-
     protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
     {
         return empty($userParticipant) ? null : [
@@ -102,7 +118,6 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "name" => $userParticipant->getUser()->getFullName(),
         ];
     }
-
     protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
     {
         return empty($teamParticipant) ? null : [
@@ -119,7 +134,7 @@ class ParticipantController extends AsProgramCoordinatorBaseController
         foreach ($metricAssignment->iterateNonRemovedAssignmentFields() as $assignmentField) {
             $assignmentFields[] = $this->arrayDataOfAssignmentField($assignmentField);
         }
-        return empty($metricAssignment)? null: [
+        return empty($metricAssignment) ? null : [
             "startDate" => $metricAssignment->getStartDateString(),
             "endDate" => $metricAssignment->getEndDateString(),
             "assignmentFields" => $assignmentFields,
@@ -155,7 +170,6 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "assignmentFieldValues" => $assignmentFieldValues,
         ];
     }
-
     protected function arrayDataOfAssignmentFieldValue(AssignmentFieldValue $assignmentFieldValue): array
     {
         return [
@@ -164,18 +178,41 @@ class ParticipantController extends AsProgramCoordinatorBaseController
             "assignmentFieldId" => $assignmentFieldValue->getAssignmentField()->getId(),
         ];
     }
+    protected function arrayDataOfEvaluation(?Evaluation $evaluation): ?array
+    {
+        return empty($evaluation)? null: [
+            "id" => $evaluation->getId(),
+            "status" => $evaluation->getStatus(),
+            "extendDays" => $evaluation->getExtendDays(),
+            "submitTime" => $evaluation->getSubmitTimeString(),
+            "coordinator" => [
+                "id" => $evaluation->getCoordinator()->getId(),
+                "name" => $evaluation->getCoordinator()->getPersonnel()->getName(),
+            ],
+            "evaluationPlan" => [
+                "id" => $evaluation->getEvaluationPlan()->getId(),
+                "name" => $evaluation->getEvaluationPlan()->getName(),
+            ],
+        ];
+    }
 
     protected function buildViewService()
     {
         $participantRepository = $this->em->getRepository(Participant::class);
         return new ViewParticipant($participantRepository);
     }
-    
     protected function buildAssignMetricService()
     {
         $participantRepository = $this->em->getRepository(Participant2::class);
         $coordinatorRepository = $this->em->getRepository(Coordinator::class);
         return new AssignMetrics($participantRepository, $coordinatorRepository);
+    }
+    protected function buildEvaluateService()
+    {
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        $participantRepository = $this->em->getRepository(Participant2::class);
+        $evaluationPlanRepository = $this->em->getRepository(EvaluationPlan::class);
+        return new EvaluateParticipant($coordinatorRepository, $participantRepository, $evaluationPlanRepository);
     }
 
 }

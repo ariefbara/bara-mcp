@@ -53,6 +53,7 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->group(['prefix' => '/participants'], function () use($router) {
             $controller = "ParticipantController";
             $router->put("/{participantId}/assign-metric", ["uses" => "$controller@assignMetric"]);
+            $router->patch("/{participantId}/evaluate", ["uses" => "$controller@evaluate"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{participantId}", ["uses" => "$controller@show"]);
         });

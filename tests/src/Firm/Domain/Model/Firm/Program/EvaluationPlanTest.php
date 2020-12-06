@@ -112,6 +112,16 @@ class EvaluationPlanTest extends TestBase
         $this->evaluationPlan->enable();
         $this->assertFalse($this->evaluationPlan->disabled);
     }
+    
+    public function test_belongsToProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->evaluationPlan->belongsToProgram($this->evaluationPlan->program));
+    }
+    public function test_belongsToProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->evaluationPlan->belongsToProgram($program));
+    }
 }
 
 class TestableEvaluationPlan extends EvaluationPlan

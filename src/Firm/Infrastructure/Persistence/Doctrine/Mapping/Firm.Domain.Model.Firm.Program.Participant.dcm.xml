@@ -44,5 +44,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-one>
         
+        <one-to-many  field="evaluations" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant\Evaluation"
+                      mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

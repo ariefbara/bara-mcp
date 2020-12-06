@@ -75,7 +75,6 @@ class Handler extends ExceptionHandler
             ];
             return response()->json($data, 404);
         }
-        
         return parent::render($request, $exception);
     }
 }

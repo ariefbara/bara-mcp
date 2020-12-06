@@ -7,6 +7,7 @@ use Tests\Controllers\ {
     RecordPreparation\Firm\Program\ActivityType\RecordOfActivityParticipant,
     RecordPreparation\Firm\Program\RecordOfActivityType,
     RecordPreparation\Firm\RecordOfFeedbackForm,
+    RecordPreparation\JwtHeaderTokenGenerator,
     RecordPreparation\Shared\RecordOfForm
 };
 
@@ -77,7 +78,7 @@ class ActivityTypeControllerTest extends ProgramTestCase
         $this->connection->table("FeedbackForm")->truncate();
         $this->connection->table("ActivityParticipant")->truncate();
     }
-    
+
     public function test_create_201()
     {
         $this->connection->table("ActivityParticipant")->truncate();

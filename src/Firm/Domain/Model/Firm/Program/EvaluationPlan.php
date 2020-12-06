@@ -13,7 +13,7 @@ use Resources\ {
     ValidationService
 };
 
-class EvaluationPlan implements AssetBelongsToFirm
+class EvaluationPlan implements AssetBelongsToFirm, AssetInProgram
 {
 
     /**
@@ -96,6 +96,11 @@ class EvaluationPlan implements AssetBelongsToFirm
     public function enable(): void
     {
         $this->disabled = false;
+    }
+
+    public function belongsToProgram(Program $program): bool
+    {
+        return  $this->program === $program;
     }
 
 }

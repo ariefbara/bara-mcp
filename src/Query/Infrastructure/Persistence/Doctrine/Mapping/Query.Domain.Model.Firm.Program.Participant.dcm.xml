@@ -35,5 +35,10 @@
                       mapped-by="participant"
         />
         
+        <one-to-many  field="evaluations" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\Evaluation"
+                      mapped-by="participant"
+        />
+        
     </entity>
 </doctrine-mapping>
