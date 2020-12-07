@@ -57,6 +57,7 @@ class ParticipantSummaryController extends AsProgramCoordinatorBaseController
     public function showAllEvaluationSummary($programId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
+        
         $service = $this->buildViewService();
         $participants = $service->showAllWithEvaluationSummary(
             $this->firmId(), $programId, $this->getPage(), $this->getPageSize());

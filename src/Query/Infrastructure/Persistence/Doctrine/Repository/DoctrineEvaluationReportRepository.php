@@ -2,39 +2,41 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Query\{
-    Application\Service\Firm\Personnel\ProgramCoordinator\EvaluationReportRepository as InterfaceForCoordinator,
-    Application\Service\Firm\Program\EvaluationReportRepository,
-    Domain\Model\Firm\Program\EvaluationPlan\EvaluationReport
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\Personnel\ProgramCoordinator\EvaluationReportRepository as InterfaceForCoordinator;
+use Query\Application\Service\Firm\Program\Participant\EvaluationReportRepository;
+use Query\Domain\Model\Firm\Program\EvaluationPlan\EvaluationReport;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineEvaluationReportRepository extends EntityRepository implements EvaluationReportRepository, InterfaceForCoordinator
 {
-
-    public function allEvaluationReportsInProgram(string $firmId, string $programId, int $page, int $pageSize)
+    public function allEvaluationReportsBelongsToProgramParticipant(string $firmId, string $programId, $participantId,
+            int $page, int $pageSize, ?string $evaluationPlanId)
     {
         $params = [
             "firmId" => $firmId,
             "programId" => $programId,
+            "participantId" => $participantId,
         ];
 
         $qb = $this->createQueryBuilder("evaluationReport");
         $qb->select("evaluationReport")
-                ->leftJoin("evaluationReport.evaluationPlan", "evaluationPlan")
-                ->leftJoin("evaluationPlan.program", "program")
+                ->leftJoin("evaluationReport.participant", "participant")
+                ->andWhere($qb->expr()->eq("participant.id", ":participantId"))
+                ->leftJoin("participant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
-
+        
+        if (isset($evaluationPlanId)) {
+            $qb->leftJoin("evaluationReport.evaluationPlan", "evaluationPlan")
+                    ->andWhere($qb->expr()->eq("evaluationPlan.id", ":evaluationPlanId"))
+                    ->setParameter("evaluationPlanId", $evaluationPlanId);
+        }
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -117,5 +119,6 @@ class DoctrineEvaluationReportRepository extends EntityRepository implements Eva
             throw RegularException::notFound($errorDetail);
         }
     }
+
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Query\Application\Service\Firm\Program;
+namespace Query\Application\Service\Firm\Program\Participant;
 
 use Query\Domain\Model\Firm\Program\EvaluationPlan\EvaluationReport;
 
@@ -26,9 +26,12 @@ class ViewEvaluationReport
      * @param int $pageSize
      * @return EvaluationReport[]
      */
-    public function showAll(string $firmId, string $programId, int $page, int $pageSize)
+    public function showAll(
+            string $firmId, string $programId, string $participantId, int $page, int $pageSize,
+            ?string $evaluationPlanId)
     {
-        return $this->evaluationReportRepository->allEvaluationReportsInProgram($firmId, $programId, $page, $pageSize);
+        return $this->evaluationReportRepository->allEvaluationReportsBelongsToProgramParticipant(
+                $firmId, $programId, $participantId, $page, $pageSize, $evaluationPlanId);
     }
 
     public function showById(string $firmId, string $programId, string $evaluationReportId): EvaluationReport

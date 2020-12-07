@@ -1,6 +1,6 @@
 <?php
 
-namespace Query\Application\Service\Firm\Program;
+namespace Query\Application\Service\Firm\Program\Participant;
 
 use Query\Domain\Model\Firm\Program\EvaluationPlan\EvaluationReport;
 
@@ -9,5 +9,6 @@ interface EvaluationReportRepository
 
     public function anEvaluationReportInProgram(string $firmId, string $programId, string $evaluationReportId): EvaluationReport;
 
-    public function allEvaluationReportsInProgram(string $firmId, string $programId, int $page, int $pageSize);
+    public function allEvaluationReportsBelongsToProgramParticipant(
+            string $firmId, string $programId, $participantId, int $page, int $pageSize, ?string $evaluationPlanId);
 }
