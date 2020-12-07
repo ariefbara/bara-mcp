@@ -104,10 +104,10 @@ _STATEMENT;
     }
 
     public function allParticipantAchievmentSummaryInProgram(
-            string $firmId, string $programId, int $page, int $pageSize, string $orderType = "DESC"): array
+        string $firmId, string $programId, int $page, int $pageSize, string $orderType = "DESC"): array
     {
         $offset = $pageSize * ($page - 1);
-        
+
         $statement = <<<_STATEMENT
 SELECT 
     Participant.id participantId, 
@@ -158,6 +158,60 @@ WHERE Program.Firm_id = :firmId
     AND Program.id = :programId
     AND Participant.active= true
 ORDER BY achievement {$orderType}
+LIMIT {$offset}, {$pageSize}
+_STATEMENT;
+
+        $query = $this->em->getConnection()->prepare($statement);
+        $params = [
+            "firmId" => $firmId,
+            "programId" => $programId,
+        ];
+        $query->execute($params);
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function allParticipantEvaluationSummaryInProgram(string $firmId, string $programId, int $page, int $pageSize): array
+    {
+        $offset = $pageSize * ($page - 1);
+
+        $statement = <<<_STATEMENT
+SELECT _a.participantId, 
+    COALESCE(_d.userName, _e.clientName, _f.teamName) participantName,
+    _b.id evaluationPlanId, 
+    _b.name evaluationPlanName, 
+    DATE_ADD(DATE(_a.enrolledTime), INTERVAL _b.days_interval DAY) scheduledEvaluation,
+    _c.extendDays
+FROM (
+    SELECT __a.Program_id, __a.id participantId, __a.active, __a.enrolledTime, MIN(__b.days_interval) days_interval
+    FROM Participant __a
+    CROSS JOIN EvaluationPlan __b
+    LEFT JOIN Evaluation __c ON __c.Participant_id = __a.id AND __c.EvaluationPlan_id = __b.id
+    WHERE __c.id IS NULL OR __c.c_status = 'extend'
+    GROUP BY participantId
+)_a
+LEFT JOIN EvaluationPlan _b ON _b.days_interval = _a.days_interval
+LEFT JOIN Evaluation _c ON _c.Participant_id = _a.participantId AND _c.EvaluationPlan_id = _b.id
+LEFT JOIN (
+    SELECT CONCAT(User.firstName, ' ', User.lastName) userName, UserParticipant.Participant_id participantId
+    FROM UserParticipant
+        LEFT JOIN User ON User.id = UserParticipant.User_id
+)_d ON _d.participantId = _a.participantId
+LEFT JOIN (
+    SELECT CONCAT(Client.firstName, ' ', Client.lastName) clientName, ClientParticipant.Participant_id participantId
+    FROM ClientParticipant
+        LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+)_e ON _e.participantId = _a.participantId
+LEFT JOIN (
+    SELECT Team.name teamName, TeamParticipant.Participant_id participantId
+    FROM TeamParticipant
+        LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+)_f ON _f.participantId = _a.participantId
+LEFT JOIN Program _g ON _g.id = _a.Program_id
+WHERE _g.Firm_id = :firmId
+    AND _g.id = :programId
+    AND _a.active= true
+ORDER BY scheduledEvaluation ASC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
 

@@ -27,10 +27,16 @@ class ViewParticipantSummary
     }
 
     public function showAllWithMetricAchievement(
-            string $firmId, string $programId, int $page, int $pageSize, string $orderType = "DESC")
+        string $firmId, string $programId, int $page, int $pageSize, string $orderType = "DESC")
     {
         return $this->participantSummaryRepository
-                        ->allParticipantAchievmentSummaryInProgram($firmId, $programId, $page, $pageSize, $orderType);
+                ->allParticipantAchievmentSummaryInProgram($firmId, $programId, $page, $pageSize, $orderType);
+    }
+
+    public function showAllWithEvaluationSummary(string $firmId, string $programId, int $page, int $pageSize)
+    {
+        return $this->participantSummaryRepository
+                ->allParticipantEvaluationSummaryInProgram($firmId, $programId, $page, $pageSize);
     }
 
 }
