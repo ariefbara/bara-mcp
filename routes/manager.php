@@ -150,6 +150,7 @@ $router->group($managerAggregate, function () use ($router) {
             $router->patch("/{activityTypeId}/disable", ["uses" => "$controller@disable"]);
             $router->patch("/{activityTypeId}/enable", ["uses" => "$controller@enable"]);
             $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/all-initiable", ["uses" => "$controller@showAllInitableActivityType"]);
             $router->get("/{activityTypeId}", ["uses" => "$controller@show"]);
         });
         

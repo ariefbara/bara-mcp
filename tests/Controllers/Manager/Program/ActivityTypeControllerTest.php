@@ -46,7 +46,7 @@ class ActivityTypeControllerTest extends ProgramTestCase
         $this->activityParticipant_00 = new RecordOfActivityParticipant($this->activityType, $this->feedbackForm, "00");
         $this->activityParticipant_00->disabled = true;
         $this->activityParticipant_01 = new RecordOfActivityParticipant($this->activityType, $this->feedbackForm, "01");
-        $this->activityParticipant_01->participantType = "participant";
+        $this->activityParticipant_01->participantType = "manager";
         $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_00->toArrayForDbEntry());
         $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_01->toArrayForDbEntry());
         
@@ -312,6 +312,25 @@ class ActivityTypeControllerTest extends ProgramTestCase
         ];
         
         $this->get($this->activityTypeUri, $this->manager->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+    }
+    
+    public function test_showAllInitiable_200()
+    {
+        $response = [
+            "total" => 1,
+            "list" => [
+                [
+                    "id" => $this->activityType->id,
+                    "name" => $this->activityType->name,
+                    "disabled" => $this->activityType->disabled,
+                ],
+            ],
+        ];
+        
+        $uri = $this->activityTypeUri . "/all-initiable";
+        $this->get($uri, $this->manager->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }

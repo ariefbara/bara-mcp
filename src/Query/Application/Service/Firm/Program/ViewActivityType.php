@@ -18,9 +18,11 @@ class ViewActivityType
         $this->activityTypeRepository = $activityTypeRepository;
     }
 
-    public function showAll(string $programId, int $page, int $pageSize, ?bool $enabledOnly = true)
+    public function showAll(
+            string $programId, int $page, int $pageSize, ?bool $enabledOnly, ?string $userRoleAllowedToInitiate)
     {
-        return $this->activityTypeRepository->allActivityTypesInProgram($programId, $page, $pageSize, $enabledOnly);
+        return $this->activityTypeRepository->allActivityTypesInProgram(
+                        $programId, $page, $pageSize, $enabledOnly, $userRoleAllowedToInitiate);
     }
 
     public function showById(string $programId, string $activityTypeId): ActivityType

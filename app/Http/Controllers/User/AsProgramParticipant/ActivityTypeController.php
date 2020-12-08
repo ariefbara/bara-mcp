@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\User\AsProgramParticipant;
 
-use Query\ {
+use Query\{
     Application\Service\Firm\Program\ViewActivityType,
     Domain\Model\Firm\FeedbackForm,
     Domain\Model\Firm\Program\ActivityType,
@@ -11,31 +11,34 @@ use Query\ {
 
 class ActivityTypeController extends AsProgramParticipantBaseController
 {
+
     public function showAll($firmId, $programId)
     {
         $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
-        
+
         $service = $this->buildViewService();
-        $activityTypes = $service->showAll($programId, $this->getPage(), $this->getPageSize());
+        $activityTypes = $service->showAll(
+                $programId, $this->getPage(), $this->getPageSize(), $enabledOnly = true,
+                $userRoleAllowedToInitiate = "participant");
         return $this->commonIdNameListQueryResponse($activityTypes);
     }
-    
+
     public function show($firmId, $programId, $activityTypeId)
     {
         $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
-        
+
         $service = $this->buildViewService();
         $activityType = $service->showById($programId, $activityTypeId);
         return $this->singleQueryResponse($this->arrayDataOfActivityType($activityType));
     }
-    
+
     protected function arrayDataOfActivityType(ActivityType $activityType): array
     {
         $participants = [];
         foreach ($activityType->iterateParticipants() as $activityParticipant) {
             $participants[] = $this->arrayDataOfActivityParticipant($activityParticipant);
         }
-        
+
         return [
             "id" => $activityType->getId(),
             "name" => $activityType->getName(),
@@ -43,6 +46,7 @@ class ActivityTypeController extends AsProgramParticipantBaseController
             "participants" => $participants,
         ];
     }
+
     protected function arrayDataOfActivityParticipant(ActivityParticipant $activityParticipant): array
     {
         return [
@@ -53,18 +57,20 @@ class ActivityTypeController extends AsProgramParticipantBaseController
             "feedbackForm" => $this->arrayDataOfFeedbackForm($activityParticipant->getReportForm()),
         ];
     }
+
     protected function arrayDataOfFeedbackForm(?FeedbackForm $feedbackForm): ?array
     {
-        return empty($feedbackForm)? null: [
+        return empty($feedbackForm) ? null : [
             "id" => $feedbackForm->getId(),
             "name" => $feedbackForm->getName(),
             "description" => $feedbackForm->getDescription(),
         ];
     }
-    
+
     protected function buildViewService()
     {
         $activityTypeRepository = $this->em->getRepository(ActivityType::class);
         return new ViewActivityType($activityTypeRepository);
     }
+
 }

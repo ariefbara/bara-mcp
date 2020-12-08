@@ -9,5 +9,6 @@ interface ActivityTypeRepository
 
     public function anActivityTypeInProgram(string $programId, string $activityTypeId): ActivityType;
 
-    public function allActivityTypesInProgram(string $programId, int $page, int $pageSize, ?bool $enabledOnly = true);
+    public function allActivityTypesInProgram(
+            string $programId, int $page, int $pageSize, ?bool $enabledOnly, ?string $userRoleAllowedToInitiate);
 }

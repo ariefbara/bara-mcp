@@ -105,15 +105,11 @@ class ActivityTypeControllerTest extends AsProgramCoordinatorTestCase
     public function test_showAll_200()
     {
         $response = [
-            "total" => 2,
+            "total" => 1,
             "list" => [
                 [
                     "id" => $this->activityType->id,
                     "name" => $this->activityType->name,
-                ],
-                [
-                    "id" => $this->activityTypeOne->id,
-                    "name" => $this->activityTypeOne->name,
                 ],
             ],
         ];

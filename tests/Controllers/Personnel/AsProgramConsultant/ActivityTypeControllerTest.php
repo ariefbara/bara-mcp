@@ -44,7 +44,7 @@ class ActivityTypeControllerTest extends AsProgramConsultantTestCase
         
         $this->activityParticipant_00 = new RecordOfActivityParticipant($this->activityType, $this->feedbackForm, "00");
         $this->activityParticipant_01 = new RecordOfActivityParticipant($this->activityType, $this->feedbackForm, "01");
-        $this->activityParticipant_01->participantType = "participant";
+        $this->activityParticipant_01->participantType = "consultant";
         $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_00->toArrayForDbEntry());
         $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_01->toArrayForDbEntry());
     }
@@ -105,15 +105,11 @@ class ActivityTypeControllerTest extends AsProgramConsultantTestCase
     public function test_showAll_200()
     {
         $response = [
-            "total" => 2,
+            "total" => 1,
             "list" => [
                 [
                     "id" => $this->activityType->id,
                     "name" => $this->activityType->name,
-                ],
-                [
-                    "id" => $this->activityTypeOne->id,
-                    "name" => $this->activityTypeOne->name,
                 ],
             ],
         ];
