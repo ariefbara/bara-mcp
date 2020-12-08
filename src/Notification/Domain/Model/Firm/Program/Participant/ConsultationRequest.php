@@ -269,9 +269,6 @@ _MESSAGE;
         $id = Uuid::generateUuid4();
         $senderMailAddress = $this->participant->getFirmMailSenderAddress();
         $senderName = $this->participant->getFirmMailSenderName();
-        $subject = $mailMessage->getSubject();
-        $message = $mailMessage->getTextMessage();
-        $htmlMessage = $mailMessage->getHtmlMessage();
 
         $consultationRequestMail = new ConsultationRequestMail(
                 $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);

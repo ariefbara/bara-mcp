@@ -3,14 +3,13 @@
 namespace Notification\Domain\SharedModel;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Personnel,
-    Model\User,
-    SharedModel\Notification\ClientNotificationRecipient,
-    SharedModel\Notification\PersonnelNotificationRecipient,
-    SharedModel\Notification\UserNotificationRecipient
-};
+use Notification\Domain\Model\Firm\Client;
+use Notification\Domain\Model\Firm\Manager;
+use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\Model\User;
+use Notification\Domain\SharedModel\Notification\ClientNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\PersonnelNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\UserNotificationRecipient;
 use Resources\Uuid;
 
 class Notification
@@ -74,6 +73,11 @@ class Notification
         $id = Uuid::generateUuid4();
         $personnelNotificationRecipient = new PersonnelNotificationRecipient($this, $id, $personnel);
         $this->personnelNotificationRecipients->add($personnelNotificationRecipient);
+    }
+    
+    public function addManagerRecipient(Manager $manager): void
+    {
+        
     }
 
 }

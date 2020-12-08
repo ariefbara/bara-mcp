@@ -84,6 +84,13 @@ $router->group($personnelAggregate, function () use ($router) {
                 $router->get("/{evaluationReportId}", ["uses" => "$controller@show"]);
             });
             
+            $router->group(['prefix' => '/evaluations'], function () use($router) {
+                $controller = "EvaluationController";
+                $router->post("", ["uses" => "$controller@evaluate"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{evaluationId}", ["uses" => "$controller@show"]);
+            });
+            
         });
         
         $router->group(['prefix' => '/registrants'], function () use($router) {

@@ -40,7 +40,7 @@ class DoctrineEvaluationRepository extends EntityRepository implements Evaluatio
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
-    public function anEvaluationOfInProgram(string $firmId, string $programId, string $evaluationId): Evaluation
+    public function anEvaluationInProgram(string $firmId, string $programId, string $evaluationId): Evaluation
     {
         $params = [
             "firmId" => $firmId,

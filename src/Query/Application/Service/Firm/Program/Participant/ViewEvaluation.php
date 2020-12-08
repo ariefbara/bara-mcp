@@ -35,7 +35,7 @@ class ViewEvaluation
 
     public function showById(string $firmId, string $programId, string $evaluationId): Evaluation
     {
-        return $this->evaluationRepository->anEvaluationOfInProgram($firmId, $programId, $evaluationId);
+        return $this->evaluationRepository->anEvaluationInProgram($firmId, $programId, $evaluationId);
     }
 
 }
