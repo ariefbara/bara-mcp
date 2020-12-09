@@ -2,13 +2,14 @@
 
 namespace Firm\Domain\Model\Firm\Program\ConsultationSetup;
 
-use Firm\Domain\Model\Firm\Program\{
-    Consultant,
-    ConsultationSetup
-};
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\AssetInProgram;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup;
 use Resources\Domain\ValueObject\DateTimeInterval;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 
-class ConsultationSession
+class ConsultationSession implements AssetInProgram
 {
 
     /**
@@ -34,6 +35,12 @@ class ConsultationSession
      * @var DateTimeInterval
      */
     protected $startEndTime;
+    
+    /**
+     * 
+     * @var ConsultationChannel
+     */
+    protected $channel;
 
     /**
      *
@@ -58,6 +65,16 @@ class ConsultationSession
             $this->cancelled = true;
             $this->note = "inactive consultant";
         }
+    }
+    
+    public function changeChannel(?string $media, ?string $address): void
+    {
+        $this->channel = new ConsultationChannel($media, $address);
+    }
+
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->consultationSetup->belongsToProgram($program);
     }
 
 }

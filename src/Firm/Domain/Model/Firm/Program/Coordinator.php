@@ -7,6 +7,7 @@ use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Personnel;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
@@ -111,7 +112,7 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertAssetBelongsProgram($metricAssignmentReport);
         $metricAssignmentReport->approve();
     }
-    
+
     public function rejectMetricAssignmentReport(MetricAssignmentReport $metricAssignmentReport, ?string $note): void
     {
         $this->assertActive();
@@ -162,12 +163,20 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertAssetBelongsProgram($evaluationPlan);
         $participant->receiveEvaluation($evaluationPlan, $evaluationData, $this);
     }
-    
+
     public function qualifyParticipant(Participant $participant): void
     {
         $this->assertActive();
         $this->assertAssetBelongsProgram($participant);
         $participant->qualify();
+    }
+
+    public function changeConsultationSessionChannel(
+            ConsultationSession $consultationSession, ?string $media, ?string $address): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsProgram($consultationSession);
+        $consultationSession->changeChannel($media, $address);
     }
 
     public function belongsToFirm(Firm $firm): bool

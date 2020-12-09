@@ -3,17 +3,16 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
-    Model\Firm,
-    Model\Firm\Personnel,
-    Model\Firm\Program,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\Participant\EvaluationData,
-    Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Service\MetricAssignmentDataProvider
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Personnel;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
@@ -34,6 +33,7 @@ class CoordinatorTest extends TestBase
     protected $metricAssignmentReport, $note = "new note";
     protected $firm;
     protected $evaluationPlan, $evaluationData;
+    protected $consultationSession, $media = "new media", $address = "new Address";
 
     protected function setUp(): void
     {
@@ -64,6 +64,8 @@ class CoordinatorTest extends TestBase
         
         $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
         $this->evaluationData = $this->buildMockOfClass(EvaluationData::class);
+        
+        $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
     }
     
     protected function setAssetBelongsToProgram($asset)
@@ -363,6 +365,33 @@ class CoordinatorTest extends TestBase
         $this->setAssetNotBelongsToProgram($this->participant);
         $this->assertAssetNotBelongsToProgramForbiddenError(function (){
             $this->executeQualifyParticipant();
+        });
+    }
+    
+    protected function executeChangeConsultationSessionChannel()
+    {
+        $this->setAssetBelongsToProgram($this->consultationSession);
+        $this->coordinator->changeConsultationSessionChannel($this->consultationSession, $this->media, $this->address);
+    }
+    public function test_changeConsultationSessionChannel_changeConsultationSessionChannel()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("changeChannel")
+                ->with($this->media, $this->address);
+        $this->executeChangeConsultationSessionChannel();
+    }
+    public function test_changeConsultationSessionChannel_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeChangeConsultationSessionChannel();
+        });
+    }
+    public function test_changeConsultationSessionChannel_unmanageableConsultationSession_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->consultationSession);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeChangeConsultationSessionChannel();
         });
     }
 

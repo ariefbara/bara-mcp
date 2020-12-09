@@ -41,6 +41,7 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
             $controller = "ConsultationSessionController";
+            $router->patch("/{consultationSessionId}/change-channel", ["uses" => "$controller@changeChannel"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
         });

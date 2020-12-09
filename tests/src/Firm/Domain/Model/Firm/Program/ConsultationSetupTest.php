@@ -111,6 +111,16 @@ class ConsultationSetupTest extends TestBase
                 ->with($this->firm);
         $this->consultationSetup->belongsToFirm($this->firm);
     }
+    
+    public function test_belongsToProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->consultationSetup->belongsToProgram($this->consultationSetup->program));
+    }
+    public function test_belongsToProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->consultationSetup->belongsToProgram($program));
+    }
 
 }
 

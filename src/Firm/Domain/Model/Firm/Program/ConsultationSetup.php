@@ -10,7 +10,7 @@ use Query\Domain\Model\FirmWhitelableInfo;
 use Resources\ValidationRule;
 use Resources\ValidationService;
 
-class ConsultationSetup implements AssetBelongsToFirm
+class ConsultationSetup implements AssetBelongsToFirm, AssetInProgram
 {
 
     /**
@@ -116,6 +116,11 @@ class ConsultationSetup implements AssetBelongsToFirm
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->program->belongsToFirm($firm);
+    }
+
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->program === $program;
     }
 
 }

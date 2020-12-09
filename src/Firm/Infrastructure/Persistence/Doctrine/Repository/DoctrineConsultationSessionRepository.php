@@ -2,18 +2,15 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\Program\ConsultationSetup\ConsultationSessionRepository,
-    Domain\Model\Firm\Program\ClientParticipant,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Coordinator\ConsultationSessionRepository as InterfaceForCoordinator;
+use Firm\Application\Service\Firm\Program\ConsultationSetup\ConsultationSessionRepository;
+use Firm\Domain\Model\Firm\Program\ClientParticipant;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Resources\Exception\RegularException;
 
-class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository
+class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository, InterfaceForCoordinator
 {
 
     public function aConsultationSessionOfClient(
@@ -54,6 +51,21 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
             $errorDetail = 'not found: consultation session not found';
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function ofId(string $consultationSessionId): ConsultationSession
+    {
+        $consultationSession = $this->findOneBy(["id" => $consultationSessionId]);
+        if (empty($consultationSession)) {
+            $errorDetail = "not found: consultation session not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $consultationSession;
+    }
+
+    public function update(): void
+    {
+        $this->getEntityManager()->flush();
     }
 
 }

@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession" 
             table="ConsultationSession" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultationSessionRepository"
     >
         
         <many-to-one  field="consultationSetup" 
@@ -21,6 +22,11 @@
         
         <embedded name="startEndTime" 
                   class="Resources\Domain\ValueObject\DateTimeInterval" 
+                  use-column-prefix="false" 
+        />
+        
+        <embedded name="channel" 
+                  class="SharedContext\Domain\ValueObject\ConsultationChannel" 
                   use-column-prefix="false" 
         />
         
