@@ -56,7 +56,7 @@ class MetricAssignmentReportTest extends TestBase
         $this->assertEquals($this->observationTime, $metricAssignmentReport->observationTime);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $metricAssignmentReport->submitTime);
         $this->assertFalse($metricAssignmentReport->removed);
-        $this->assertFalse($metricAssignmentReport->approved);
+        $this->assertNull($metricAssignmentReport->approved);
         $this->assertInstanceOf(ArrayCollection::class, $metricAssignmentReport->assignmentFieldValues);
     }
     public function test_construct_executeMetricAssignmentsSetActiveAssignmentFieldValuesToMethod()

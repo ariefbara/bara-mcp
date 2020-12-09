@@ -74,6 +74,7 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->group(['prefix' => '/metric-assignment-reports'], function () use($router) {
                 $controller = "MetricAssignmentReportController";
                 $router->patch("/{metricAssignmentReportId}/approve", ["uses" => "$controller@approve"]);
+                $router->patch("/{metricAssignmentReportId}/reject", ["uses" => "$controller@reject"]);
                 $router->get("", ["uses" => "$controller@showAll"]);
                 $router->get("/{metricAssignmentReportId}", ["uses" => "$controller@show"]);
             });

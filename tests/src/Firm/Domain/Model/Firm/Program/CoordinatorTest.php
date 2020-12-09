@@ -31,7 +31,7 @@ class CoordinatorTest extends TestBase
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $activityParticipantType;
     protected $attendee;
-    protected $metricAssignmentReport;
+    protected $metricAssignmentReport, $note = "new note";
     protected $firm;
     protected $evaluationPlan, $evaluationData;
 
@@ -268,6 +268,33 @@ class CoordinatorTest extends TestBase
         $this->setAssetNotBelongsToProgram($this->metricAssignmentReport);
         $this->assertAssetNotBelongsToProgramForbiddenError(function (){
             $this->executeApproveMetricAssignmentReport();
+        });
+    }
+    
+    protected function executeRejectMetricAssignmentReport()
+    {
+        $this->setAssetBelongsToProgram($this->metricAssignmentReport);
+        $this->coordinator->rejectMetricAssignmentReport($this->metricAssignmentReport, $this->note);
+    }
+    public function test_rejectMetricAssignmentReport_rejectReport()
+    {
+        $this->metricAssignmentReport->expects($this->once())
+                ->method("reject")
+                ->with($this->note);
+        $this->executeRejectMetricAssignmentReport();
+    }
+    public function test_rejectMetricAssignmentReport_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeRejectMetricAssignmentReport();
+        });
+    }
+    public function test_rejectMetricAssignmentReport_metricAssignmentReportDoesntBelongsToProgram_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->metricAssignmentReport);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeRejectMetricAssignmentReport();
         });
     }
     

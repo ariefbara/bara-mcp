@@ -3,17 +3,14 @@
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator\Participant;
 
 use App\Http\Controllers\Personnel\AsProgramCoordinator\AsProgramCoordinatorBaseController;
-use Firm\ {
-    Application\Service\Coordinator\ApproveMetricAssignmentReport,
-    Domain\Model\Firm\Program\Coordinator,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport as MetricAssignmentReport2
-};
-use Query\ {
-    Application\Service\Firm\Program\Participant\ViewMetricAssignmentReport,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
-    Domain\Model\Shared\FileInfo
-};
+use Firm\Application\Service\Coordinator\ApproveMetricAssignmentReport;
+use Firm\Application\Service\Coordinator\RejectMetricAssignmentReport;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport as MetricAssignmentReport2;
+use Query\Application\Service\Firm\Program\Participant\ViewMetricAssignmentReport;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue;
+use Query\Domain\Model\Shared\FileInfo;
 
 class MetricAssignmentReportController extends AsProgramCoordinatorBaseController
 {
@@ -22,6 +19,15 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
     {
         $service = $this->buildApproveService();
         $service->execute($this->firmId(), $this->personnelId(), $programId, $metricAssignmentReportId);
+        
+        return $this->show($programId, $participantId, $metricAssignmentReportId);
+    }
+    
+    public function reject($programId, $participantId, $metricAssignmentReportId)
+    {
+        $note = $this->stripTagsInputRequest("note");
+        $this->buildRejectService()
+                ->execute($this->firmId(), $this->personnelId(), $programId, $metricAssignmentReportId, $note);
         
         return $this->show($programId, $participantId, $metricAssignmentReportId);
     }
@@ -61,6 +67,7 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
             "observationTime" => $metricAssignmentReport->getObservationTimeString(),
             "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
             "approved" => $metricAssignmentReport->isApproved(),
+            "note" => $metricAssignmentReport->getNote(),
             "removed" => $metricAssignmentReport->isRemoved(),
             "assignmentFieldValues" => $assignmentFieldValues,
         ];
@@ -103,7 +110,14 @@ class MetricAssignmentReportController extends AsProgramCoordinatorBaseControlle
     protected function buildApproveService()
     {
         $metricAssignmentReportRepository = $this->em->getRepository(MetricAssignmentReport2::class);
-        $coordiantorRepository = $this->em->getRepository(Coordinator::class);
-        return new ApproveMetricAssignmentReport($metricAssignmentReportRepository, $coordiantorRepository);
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        return new ApproveMetricAssignmentReport($metricAssignmentReportRepository, $coordinatorRepository);
+    }
+    
+    protected function buildRejectService()
+    {
+        $metricAssignmentReportRepository = $this->em->getRepository(MetricAssignmentReport2::class);
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        return new RejectMetricAssignmentReport($metricAssignmentReportRepository, $coordinatorRepository);
     }
 }

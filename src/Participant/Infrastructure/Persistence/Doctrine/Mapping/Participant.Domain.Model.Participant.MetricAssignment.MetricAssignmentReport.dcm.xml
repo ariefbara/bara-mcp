@@ -14,7 +14,7 @@
         <id name="id" type="guid" />
         <field name="observationTime" type="datetime_immutable" nullable="false"/>
         <field name="submitTime" type="datetime_immutable" nullable="false"/>
-        <field name="approved" type="boolean" />
+        <field name="approved" type="boolean" nullable="true"/>
         <field name="removed" type="boolean" />
         
         <one-to-many field="assignmentFieldValues" 

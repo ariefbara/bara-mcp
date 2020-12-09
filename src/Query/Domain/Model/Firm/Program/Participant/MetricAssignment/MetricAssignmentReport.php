@@ -41,9 +41,15 @@ class MetricAssignmentReport
 
     /**
      *
-     * @var bool
+     * @var bool|null
      */
     protected $approved;
+
+    /**
+     *
+     * @var string|null
+     */
+    protected $note;
 
     /**
      *
@@ -77,9 +83,14 @@ class MetricAssignmentReport
         return $this->submitTime->format("Y-m-d H:i:s");
     }
 
-    function isApproved(): bool
+    function isApproved(): ?bool
     {
         return $this->approved;
+    }
+
+    function getNote(): ?string
+    {
+        return $this->note;
     }
 
     public function isRemoved(): bool

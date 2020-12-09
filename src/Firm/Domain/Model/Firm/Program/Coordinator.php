@@ -3,19 +3,17 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\{
-    Model\AssetBelongsToFirm,
-    Model\Firm,
-    Model\Firm\Personnel,
-    Model\Firm\Program,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\Participant\EvaluationData,
-    Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Service\MetricAssignmentDataProvider
-};
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Personnel;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
@@ -112,6 +110,13 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertActive();
         $this->assertAssetBelongsProgram($metricAssignmentReport);
         $metricAssignmentReport->approve();
+    }
+    
+    public function rejectMetricAssignmentReport(MetricAssignmentReport $metricAssignmentReport, ?string $note): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsProgram($metricAssignmentReport);
+        $metricAssignmentReport->reject($note);
     }
 
     protected function assertActive()
