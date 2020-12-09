@@ -340,6 +340,31 @@ class CoordinatorTest extends TestBase
             $this->executeEvaluateParticipant();
         });
     }
+    
+    protected function executeQualifyParticipant()
+    {
+        $this->setAssetBelongsToProgram($this->participant);
+        $this->coordinator->qualifyParticipant($this->participant);
+    }
+    public function test_qualifyParticipant_qualifyParticipant()
+    {
+        $this->participant->expects($this->once())->method("qualify");
+        $this->executeQualifyParticipant();
+    }
+    public function test_qualifyParticipant_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeQualifyParticipant();
+        });
+    }
+    public function test_qualifyParticipant_unmanageableParticipant_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->participant);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeQualifyParticipant();
+        });
+    }
 
 }
 

@@ -138,6 +138,16 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $this->evaluations->add($evaluation);
     }
     
+    public function qualify(): void
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: unable to qualify inactive participant";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $this->active = false;
+        $this->note = "completed";
+    }
+    
     public function disable(): void
     {
         $this->active = false;

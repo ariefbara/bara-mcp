@@ -581,4 +581,24 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->seeInDatabase("Evaluation", $evaluationEntry);
     }
     
+    public function test_qualify_200()
+    {
+        $response = [
+            "id" => $this->participant->id,
+            "active" => false,
+            "note" => "completed",
+        ];
+        $uri = $this->participantUri . "/{$this->participant->id}/qualify";
+        $this->patch($uri, [], $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+        
+        $participantEntry = [
+            "id" => $this->participant->id,
+            "active" => false,
+            "note" => "completed",
+        ];
+        $this->seeInDatabase("Participant", $participantEntry);
+    }
+    
 }

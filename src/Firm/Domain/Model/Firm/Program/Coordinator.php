@@ -162,6 +162,13 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertAssetBelongsProgram($evaluationPlan);
         $participant->receiveEvaluation($evaluationPlan, $evaluationData, $this);
     }
+    
+    public function qualifyParticipant(Participant $participant): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsProgram($participant);
+        $participant->qualify();
+    }
 
     public function belongsToFirm(Firm $firm): bool
     {

@@ -311,6 +311,26 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
+    protected function executeQualify()
+    {
+        $this->participant->qualify();
+    }
+    public function test_qualify_setInactiveAndNoteQualified()
+    {
+        $this->executeQualify();
+        $this->assertFalse($this->participant->active);
+        $this->assertEquals("completed", $this->participant->note);
+    }
+    public function test_qualify_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeQualify();
+        };
+        $errorDetail = "forbidden: unable to qualify inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
     public function test_disable_setInactive()
     {
         $this->participant->disable();
