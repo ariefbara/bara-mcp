@@ -2,11 +2,9 @@
 
 namespace Participant\Application\Service\ClientParticipant;
 
-use DateTimeImmutable;
-use Participant\Application\Service\{
-    ClientParticipantRepository,
-    Participant\ConsultationRequestRepository
-};
+use Participant\Application\Service\ClientParticipantRepository;
+use Participant\Application\Service\Participant\ConsultationRequestRepository;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Resources\Application\Event\Dispatcher;
 
 class ClientSubmitConsultationRequest
@@ -56,7 +54,7 @@ class ClientSubmitConsultationRequest
 
     public function execute(
             string $firmId, string $clientId, string $programParticipationId, string $consultationSetupId,
-            string $consultantId, DateTimeImmutable $startTime): string
+            string $consultantId, ConsultationRequestData $consultationRequestData): string
     {
         $id = $this->consultationRequestRepository->nextIdentity();
         $consultationSetup = $this->consultationSetupRepository
@@ -66,7 +64,7 @@ class ClientSubmitConsultationRequest
                 ->aConsultantInProgramWhereClientParticipate($firmId, $clientId, $programParticipationId, $consultantId);
 
         $clientParticipant = $this->clientParticipantRepository->ofId($firmId, $clientId, $programParticipationId);
-        $consultationRequest = $clientParticipant->proposeConsultation($id, $consultationSetup, $consultant, $startTime);
+        $consultationRequest = $clientParticipant->proposeConsultation($id, $consultationSetup, $consultant, $consultationRequestData);
         $this->consultationRequestRepository->add($consultationRequest);
 
         $this->dispatcher->dispatch($consultationRequest);

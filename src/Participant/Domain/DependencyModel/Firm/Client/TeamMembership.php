@@ -3,30 +3,27 @@
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
-use Participant\Domain\{
-    DependencyModel\Firm\Client,
-    DependencyModel\Firm\Program,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    DependencyModel\Firm\Team,
-    Event\EventTriggeredByTeamMember,
-    Model\Participant,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\ConsultationSession,
-    Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\ViewLearningMaterialActivityLog,
-    Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment,
-    Model\TeamProgramParticipation,
-    Model\TeamProgramRegistration,
-    Service\MetricAssignmentReportDataProvider
-};
-use Resources\{
-    Application\Event\ContainEvents,
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException
-};
+use Participant\Domain\DependencyModel\Firm\Client;
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Event\EventTriggeredByTeamMember;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Model\TeamProgramParticipation;
+use Participant\Domain\Model\TeamProgramRegistration;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Resources\Application\Event\ContainEvents;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class TeamMembership extends EntityContainEvents
@@ -133,12 +130,13 @@ class TeamMembership extends EntityContainEvents
 
     public function submitConsultationRequest(
             TeamProgramParticipation $teamProgramParticipation, string $consultationRequestId,
-            ConsultationSetup $consultationSetup, Consultant $consultant, DateTimeImmutable $startTime): ConsultationRequest
+            ConsultationSetup $consultationSetup, Consultant $consultant,
+            ConsultationRequestData $consultationRequestData): ConsultationRequest
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($teamProgramParticipation);
         $consultationRequest = $teamProgramParticipation->submitConsultationRequest(
-                $consultationRequestId, $consultationSetup, $consultant, $startTime, $this);
+                $consultationRequestId, $consultationSetup, $consultant, $consultationRequestData, $this);
 
         $this->pullAndRecordEventFromEntity($consultationRequest);
 
@@ -147,11 +145,11 @@ class TeamMembership extends EntityContainEvents
 
     public function changeConsultationRequestTime(
             TeamProgramParticipation $teamProgramParticipation, string $consultationRequestId,
-            DateTimeImmutable $startTime): void
+            ConsultationRequestData $consultationRequestData): void
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($teamProgramParticipation);
-        $teamProgramParticipation->changeConsultationRequestTime($consultationRequestId, $startTime, $this);
+        $teamProgramParticipation->changeConsultationRequestTime($consultationRequestId, $consultationRequestData, $this);
 
         $this->pullAndRecordEventFromEntity($teamProgramParticipation);
     }

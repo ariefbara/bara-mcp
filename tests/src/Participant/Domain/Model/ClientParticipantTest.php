@@ -2,19 +2,16 @@
 
 namespace Participant\Domain\Model;
 
-use DateTimeImmutable;
-use Participant\Domain\ {
-    DependencyModel\Firm\Client,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment,
-    Service\MetricAssignmentReportDataProvider,
-    SharedModel\FileInfo
-};
+use Participant\Domain\DependencyModel\Firm\Client;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\SharedModel\FileInfo;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
@@ -24,7 +21,7 @@ class ClientParticipantTest extends TestBase
     protected $clientParticipant;
     protected $client, $clientId = 'clientId', $firmId = 'firmId';
     protected $participant;
-    protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $startTime;
+    protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $consultationRequestData;
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
     protected $worksheet;
     protected $commentId = 'commentId', $message = 'message';
@@ -47,7 +44,7 @@ class ClientParticipantTest extends TestBase
 
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
-        $this->startTime = new DateTimeImmutable();
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
         
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         $this->mission = $this->buildMockOfClass(Mission::class);
@@ -70,27 +67,27 @@ class ClientParticipantTest extends TestBase
     protected function executeProposeConsultation()
     {
         return $this->clientParticipant->proposeConsultation(
-                        $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
+                        $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->consultationRequestData);
     }
     public function test_proposeConsultation_returnParticipantsProposeConsultationMethod()
     {
         $consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $this->participant->expects($this->once())
                 ->method('submitConsultationRequest')
-                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime)
+                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->consultationRequestData)
                 ->willReturn($consultationRequest);
         $this->assertEquals($consultationRequest, $this->executeProposeConsultation());
     }
 
     protected function executeReProsposeConsultationRequest()
     {
-        $this->clientParticipant->reproposeConsultationRequest($this->consultationRequestId, $this->startTime);
+        $this->clientParticipant->reproposeConsultationRequest($this->consultationRequestId, $this->consultationRequestData);
     }
     public function test_reProposeConsultationRequest_executeParticipantReproposeMethod()
     {
         $this->participant->expects($this->once())
                 ->method('changeConsultationRequestTime')
-                ->with($this->consultationRequestId, $this->startTime);
+                ->with($this->consultationRequestId, $this->consultationRequestData);
         $this->executeReProsposeConsultationRequest();
     }
     

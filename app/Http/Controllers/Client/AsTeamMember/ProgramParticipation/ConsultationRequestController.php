@@ -5,33 +5,28 @@ namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation;
 use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
 use Config\EventList;
 use DateTimeImmutable;
-use Notification\{
-    Application\Listener\Firm\Team\MemberAcceptedOfferedConsultationRequestListener,
-    Application\Listener\Firm\Team\MemberCancelledConsultationRequestListener,
-    Application\Listener\Firm\Team\MemberChangedConsultationRequestTimeListener,
-    Application\Listener\Firm\Team\MemberSubmittedConsultationRequestListener,
-    Application\Service\AddConsultationSessionScheduledNotificationTriggeredByTeamMember,
-    Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3,
-    Domain\Model\Firm\Program\Participant\ConsultationSession,
-    Domain\Model\Firm\Team\Member
-};
-use Participant\{
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\AcceptOfferedConsultationRequest,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\CancelConsultationRequest,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ChangeConsultationRequestTime,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitConsultationRequest,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\DependencyModel\Firm\Program\Consultant,
-    Domain\DependencyModel\Firm\Program\ConsultationSetup,
-    Domain\Model\Participant\ConsultationRequest as ConsultationRequest2,
-    Domain\Model\TeamProgramParticipation
-};
-use Query\{
-    Application\Service\Firm\Team\ProgramParticipation\ViewConsultationRequest,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
-    Infrastructure\QueryFilter\ConsultationRequestFilter
-};
+use Notification\Application\Listener\Firm\Team\MemberAcceptedOfferedConsultationRequestListener;
+use Notification\Application\Listener\Firm\Team\MemberCancelledConsultationRequestListener;
+use Notification\Application\Listener\Firm\Team\MemberChangedConsultationRequestTimeListener;
+use Notification\Application\Listener\Firm\Team\MemberSubmittedConsultationRequestListener;
+use Notification\Application\Service\AddConsultationSessionScheduledNotificationTriggeredByTeamMember;
+use Notification\Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Notification\Domain\Model\Firm\Team\Member;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\AcceptOfferedConsultationRequest;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\CancelConsultationRequest;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ChangeConsultationRequestTime;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitConsultationRequest;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\Model\Participant\ConsultationRequest as ConsultationRequest2;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\TeamProgramParticipation;
+use Query\Application\Service\Firm\Team\ProgramParticipation\ViewConsultationRequest;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestController extends AsTeamMemberBaseController
@@ -42,10 +37,10 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         $service = $this->buildSubmitService();
         $consultationSetupId = $this->stripTagsInputRequest("consultationSetupId");
         $consultantId = $this->stripTagsInputRequest("consultantId");
-        $startTime = new DateTimeImmutable($this->stripTagsInputRequest("startTime"));
+
         $consultationRequestId = $service->execute(
                 $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $consultationSetupId,
-                $consultantId, $startTime);
+                $consultantId, $this->getConsultationRequestData());
 
         $viewService = $this->buildViewService();
         $consultationRequest = $viewService->showById($teamId, $consultationRequestId);
@@ -55,10 +50,10 @@ class ConsultationRequestController extends AsTeamMemberBaseController
     public function changeTime($teamId, $teamProgramParticipationId, $consultationRequestId)
     {
         $service = $this->buildChangeTimeService();
-        $startTime = new DateTimeImmutable($this->stripTagsInputRequest("startTime"));
+        
         $service->execute(
                 $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $consultationRequestId,
-                $startTime);
+                $this->getConsultationRequestData());
 
         return $this->show($teamId, $teamProgramParticipationId, $consultationRequestId);
     }
@@ -79,10 +74,19 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         return $this->show($teamId, $teamProgramParticipationId, $consultationRequestId);
     }
 
+    protected function getConsultationRequestData()
+    {
+        $startTime = $this->dateTimeImmutableOfInputRequest("startTime");
+        $media = $this->stripTagsInputRequest("media");
+        $address = $this->stripTagsInputRequest("address");
+
+        return new ConsultationRequestData($startTime, $media, $address);
+    }
+
     public function show($teamId, $teamProgramParticipationId, $consultationRequestId)
     {
         $this->authorizeClientIsActiveTeamMember($teamId);
-        
+
         $service = $this->buildViewService();
         $consultationRequest = $service->showById($teamId, $consultationRequestId);
         return $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
@@ -91,7 +95,7 @@ class ConsultationRequestController extends AsTeamMemberBaseController
     public function showAll($teamId, $teamProgramParticipationId)
     {
         $this->authorizeClientIsActiveTeamMember($teamId);
-        
+
         $service = $this->buildViewService();
         $status = $this->request->query("status") == null ?
                 null : filter_var_array($this->request->query("status"), FILTER_SANITIZE_STRING);
@@ -129,6 +133,8 @@ class ConsultationRequestController extends AsTeamMemberBaseController
             ],
             "startTime" => $consultationRequest->getStartTimeString(),
             "endTime" => $consultationRequest->getEndTimeString(),
+            "media" => $consultationRequest->getMedia(),
+            "address" => $consultationRequest->getAddress(),
             "concluded" => $consultationRequest->isConcluded(),
             "status" => $consultationRequest->getStatus(),
         ];

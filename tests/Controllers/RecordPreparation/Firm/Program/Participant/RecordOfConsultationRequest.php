@@ -28,6 +28,7 @@ class RecordOfConsultationRequest implements Record
      */
     public $consultant;
     public $id, $startDateTime, $endDateTime, $concluded = false, $status;
+    public $media, $address;
     
     function __construct(
             RecordOfConsultationSetup $consultationSetup, RecordOfParticipant $participant, RecordOfConsultant $consultant, $index)
@@ -38,6 +39,8 @@ class RecordOfConsultationRequest implements Record
         $this->id = "consultation-request-$index-id";
         $this->startDateTime = (new DateTime("+128 hours"))->format('Y-m-d H:i:s');
         $this->endDateTime = (new DateTime("+129 hours"))->format('Y-m-d H:i:s');
+        $this->media = "media $index";
+        $this->address = "consultation request $index address";
         $this->concluded = false;
         $this->status = "proposed";
     }
@@ -52,6 +55,8 @@ class RecordOfConsultationRequest implements Record
             "id" => $this->id,
             "startDateTime" => $this->startDateTime,
             "endDateTime" => $this->endDateTime,
+            "media" => $this->media,
+            "address" => $this->address,
             "concluded" => $this->concluded,
             "status" => $this->status,
         ];

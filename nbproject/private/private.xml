@@ -20,20 +20,9 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/MeetingType/Meeting/MeetingAttendee/MeetingAttendeeNotification.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/MeetingType/Meeting/MeetingAttendee.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/Consultant/ConsultantMeetingAttendee.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/Coordinator/CoordinatorMeetingAttendee.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/Coordinator.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/MeetingType/Meeting/MeetingAttendee/MeetingAttendeeMail.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/MeetingType/Meeting.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/MeetingType.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/MeetingType/Meeting/MeetingMail.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/MeetingType/Meeting/MeetingNotification.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Program/Participant/ParticipantMeetingAttendee.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/SharedModel/Notification.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Manager/ManagerMeetingAttendee.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/src/Notification/Domain/Model/Firm/Program/Participant/ConsultationRequest/ConsultationRequestMailTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Program/ConsultationSetup/ConsultationRequest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Program/ConsultationSetup/ConsultationSession.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Infrastructure/Persistence/Doctrine/Mapping/Query.Domain.Model.Firm.Program.ConsultationSetup.ConsultationSession.dcm.xml</file>
         </group>
     </open-files>
 </project-private>

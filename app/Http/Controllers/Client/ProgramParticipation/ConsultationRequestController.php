@@ -5,33 +5,28 @@ namespace App\Http\Controllers\Client\ProgramParticipation;
 use App\Http\Controllers\Client\ClientBaseController;
 use Config\EventList;
 use DateTimeImmutable;
-use Notification\ {
-    Application\Listener\ConsultationRequestCancelledListener,
-    Application\Listener\ConsultationRequestSubmittedListener,
-    Application\Listener\ConsultationRequestTimeChangedListener,
-    Application\Listener\ConsultationSessionScheduledByParticipantListener,
-    Application\Service\GenerateNotificationWhenConsultationRequestCancelled,
-    Application\Service\GenerateNotificationWhenConsultationRequestSubmitted,
-    Application\Service\GenerateNotificationWhenConsultationRequestTimeChanged,
-    Application\Service\GenerateNotificationWhenConsultationSessionScheduledByParticipant,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3,
-    Domain\Model\Firm\Program\Participant\ConsultationSession
-};
-use Participant\ {
-    Application\Service\ClientParticipant\ClientAcceptConsultationRequest,
-    Application\Service\ClientParticipant\ClientCancelConcultationRequest,
-    Application\Service\ClientParticipant\ClientChangeConsultationRequestTime,
-    Application\Service\ClientParticipant\ClientSubmitConsultationRequest,
-    Domain\DependencyModel\Firm\Program\Consultant,
-    Domain\DependencyModel\Firm\Program\ConsultationSetup,
-    Domain\Model\ClientParticipant,
-    Domain\Model\Participant\ConsultationRequest as ConsultationRequest2
-};
-use Query\ {
-    Application\Service\Firm\Client\ProgramParticipation\ViewConsultationRequest,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
-    Infrastructure\QueryFilter\ConsultationRequestFilter
-};
+use Notification\Application\Listener\ConsultationRequestCancelledListener;
+use Notification\Application\Listener\ConsultationRequestSubmittedListener;
+use Notification\Application\Listener\ConsultationRequestTimeChangedListener;
+use Notification\Application\Listener\ConsultationSessionScheduledByParticipantListener;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestCancelled;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestSubmitted;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestTimeChanged;
+use Notification\Application\Service\GenerateNotificationWhenConsultationSessionScheduledByParticipant;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Participant\Application\Service\ClientParticipant\ClientAcceptConsultationRequest;
+use Participant\Application\Service\ClientParticipant\ClientCancelConcultationRequest;
+use Participant\Application\Service\ClientParticipant\ClientChangeConsultationRequestTime;
+use Participant\Application\Service\ClientParticipant\ClientSubmitConsultationRequest;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\Participant\ConsultationRequest as ConsultationRequest2;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Query\Application\Service\Firm\Client\ProgramParticipation\ViewConsultationRequest;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestController extends ClientBaseController
@@ -43,11 +38,10 @@ class ConsultationRequestController extends ClientBaseController
 
         $consultationSetupId = $this->stripTagsInputRequest('consultationSetupId');
         $consultantId = $this->stripTagsInputRequest('consultantId');
-        $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
 
         $consultationRequestId = $service->execute(
                 $this->firmId(), $this->clientId(), $programParticipationId, $consultationSetupId, $consultantId,
-                $startTime);
+                $this->getConsultationRequestData());
 
         $viewService = $this->buildViewService();
         $consultationRequest = $viewService
@@ -65,9 +59,9 @@ class ConsultationRequestController extends ClientBaseController
     public function changeTime($programParticipationId, $consultationRequestId)
     {
         $service = $this->buildChangeTimeService();
-        $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
-        $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId,
-                $startTime);
+        $service->execute(
+                $this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId,
+                $this->getConsultationRequestData());
 
         return $this->show($programParticipationId, $consultationRequestId);
     }
@@ -78,6 +72,15 @@ class ConsultationRequestController extends ClientBaseController
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId);
 
         return $this->show($programParticipationId, $consultationRequestId);
+    }
+
+    protected function getConsultationRequestData()
+    {
+        $startTime = $this->dateTimeImmutableOfInputRequest("startTime");
+        $media = $this->stripTagsInputRequest("media");
+        $address = $this->stripTagsInputRequest("address");
+
+        return new ConsultationRequestData($startTime, $media, $address);
     }
 
     public function show($programParticipationId, $consultationRequestId)
@@ -91,7 +94,7 @@ class ConsultationRequestController extends ClientBaseController
     public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
-        
+
         $status = $this->request->query("status") == null ?
                 null : filter_var_array($this->request->query("status"), FILTER_SANITIZE_STRING);
         $consultationRequestFilter = (new ConsultationRequestFilter())
@@ -129,6 +132,8 @@ class ConsultationRequestController extends ClientBaseController
             ],
             "startTime" => $consultationRequest->getStartTimeString(),
             "endTime" => $consultationRequest->getEndTimeString(),
+            "media" => $consultationRequest->getMedia(),
+            "address" => $consultationRequest->getAddress(),
             "concluded" => $consultationRequest->isConcluded(),
             "status" => $consultationRequest->getStatus(),
         ];

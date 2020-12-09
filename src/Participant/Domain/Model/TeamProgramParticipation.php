@@ -3,23 +3,20 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\{
-    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    DependencyModel\Firm\Team,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\Worksheet,
-    Service\MetricAssignmentReportDataProvider
-};
-use Resources\{
-    Application\Event\ContainEvents,
-    Uuid
-};
+use Participant\Domain\DependencyModel\Firm\Client\AssetBelongsToTeamInterface;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Resources\Application\Event\ContainEvents;
+use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEvents
@@ -81,16 +78,17 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
 
     public function submitConsultationRequest(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime, TeamMembership $teamMember): ConsultationRequest
+            ConsultationRequestData $consultationRequestData, TeamMembership $teamMember): ConsultationRequest
     {
         return $this->programParticipation->submitConsultationRequest(
-                        $consultationRequestId, $consultationSetup, $consultant, $startTime, $teamMember);
+                        $consultationRequestId, $consultationSetup, $consultant, $consultationRequestData, $teamMember);
     }
 
     public function changeConsultationRequestTime(
-            string $consultationRequestId, DateTimeImmutable $startTime, TeamMembership $teamMember): void
+            string $consultationRequestId, ConsultationRequestData $consultationRequestData, TeamMembership $teamMember): void
     {
-        $this->programParticipation->changeConsultationRequestTime($consultationRequestId, $startTime, $teamMember);
+        $this->programParticipation->changeConsultationRequestTime(
+                $consultationRequestId, $consultationRequestData, $teamMember);
     }
 
     public function acceptOfferedConsultationRequest(string $consultationRequestId, TeamMembership $teamMember): void

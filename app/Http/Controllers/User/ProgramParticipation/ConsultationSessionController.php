@@ -66,6 +66,8 @@ class ConsultationSessionController extends UserBaseController
                 "id" => $consultationSession->getId(),
                 "startTime" => $consultationSession->getStartTime(),
                 "endTime" => $consultationSession->getEndTime(),
+                "media" => $consultationSession->getMedia(),
+                "address" => $consultationSession->getAddress(),
                 "hasParticipantFeedback" => $consultationSession->hasParticipantFeedback(),
                 "consultationSetup" => [
                     "id" => $consultationSession->getConsultationSetup()->getId(),
@@ -91,6 +93,8 @@ class ConsultationSessionController extends UserBaseController
             "id" => $consultationSession->getId(),
             "startTime" => $consultationSession->getStartTime(),
             "endTime" => $consultationSession->getEndTime(),
+            "media" => $consultationSession->getMedia(),
+            "address" => $consultationSession->getAddress(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
                 "name" => $consultationSession->getConsultationSetup()->getName(),

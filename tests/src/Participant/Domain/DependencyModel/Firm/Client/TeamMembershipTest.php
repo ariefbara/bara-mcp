@@ -2,25 +2,22 @@
 
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
-use DateTimeImmutable;
-use Participant\Domain\ {
-    DependencyModel\Firm\Program,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    DependencyModel\Firm\Team,
-    Event\EventTriggeredByTeamMember,
-    Model\Participant,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\ConsultationSession,
-    Model\Participant\MetricAssignment,
-    Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment,
-    Model\TeamProgramParticipation,
-    Model\TeamProgramRegistration,
-    Service\MetricAssignmentReportDataProvider
-};
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Event\EventTriggeredByTeamMember;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Model\TeamProgramParticipation;
+use Participant\Domain\Model\TeamProgramRegistration;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -37,7 +34,7 @@ class TeamMembershipTest extends TestBase
     protected $worksheet;
     protected $consultationRequest, $consultationRequestId = "consultatioNRequestId";
     protected $consultationSetup, $consultant;
-    protected $startTIme;
+    protected $consultationRequestData;
     protected $consultationSession;
     protected $comment, $commentId = "commentId", $commentMessage = "comment message";
     protected $event;
@@ -64,7 +61,7 @@ class TeamMembershipTest extends TestBase
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
-        $this->startTIme = new DateTimeImmutable();
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
 
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
 
@@ -277,13 +274,13 @@ class TeamMembershipTest extends TestBase
         $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         return $this->teamMembership->submitConsultationRequest(
                         $this->teamProgramParticipation, $this->consultationRequestId, $this->consultationSetup,
-                        $this->consultant, $this->startTIme);
+                        $this->consultant, $this->consultationRequestData);
     }
     public function test_submitConsultationRequest_returnConsultationRequest()
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("submitConsultationRequest")
-                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTIme,
+                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->consultationRequestData,
                         $this->teamMembership)
                 ->willReturn($this->consultationRequest);
         $this->assertEquals($this->consultationRequest, $this->executeSubmitConsultationRequest());
@@ -321,13 +318,13 @@ class TeamMembershipTest extends TestBase
     {
         $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
         $this->teamMembership->changeConsultationRequestTime(
-                $this->teamProgramParticipation, $this->consultationRequestId, $this->startTIme);
+                $this->teamProgramParticipation, $this->consultationRequestId, $this->consultationRequestData);
     }
     public function test_changeConsultationRequestTime_executeTeamProgramParticipationChangeConsultationRequestTime()
     {
         $this->teamProgramParticipation->expects($this->once())
                 ->method("changeConsultationRequestTime")
-                ->with($this->consultationRequestId, $this->startTIme, $this->teamMembership);
+                ->with($this->consultationRequestId, $this->consultationRequestData, $this->teamMembership);
         $this->executeChangeConsultationRequestTime();
     }
     public function test_changeConsultationRequestTime_inactiveMember_forbiddenError()

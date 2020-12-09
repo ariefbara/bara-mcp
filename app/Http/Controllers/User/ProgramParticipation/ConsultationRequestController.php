@@ -5,33 +5,28 @@ namespace App\Http\Controllers\User\ProgramParticipation;
 use App\Http\Controllers\User\UserBaseController;
 use Config\EventList;
 use DateTimeImmutable;
-use Notification\ {
-    Application\Listener\ConsultationRequestCancelledListener,
-    Application\Listener\ConsultationRequestSubmittedListener,
-    Application\Listener\ConsultationRequestTimeChangedListener,
-    Application\Listener\ConsultationSessionScheduledByParticipantListener,
-    Application\Service\GenerateNotificationWhenConsultationRequestCancelled,
-    Application\Service\GenerateNotificationWhenConsultationRequestSubmitted,
-    Application\Service\GenerateNotificationWhenConsultationRequestTimeChanged,
-    Application\Service\GenerateNotificationWhenConsultationSessionScheduledByParticipant,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3,
-    Domain\Model\Firm\Program\Participant\ConsultationSession
-};
-use Participant\ {
-    Application\Service\UserParticipant\UserParticipantAcceptConsultationRequest,
-    Application\Service\UserParticipant\UserParticipantCancelConcultationRequest,
-    Application\Service\UserParticipant\UserParticipantChangeConsultationRequestTime,
-    Application\Service\UserParticipant\UserParticipantSubmitConsultationRequest,
-    Domain\DependencyModel\Firm\Program\Consultant,
-    Domain\DependencyModel\Firm\Program\ConsultationSetup,
-    Domain\Model\Participant\ConsultationRequest as ConsultationRequest2,
-    Domain\Model\UserParticipant
-};
-use Query\ {
-    Application\Service\User\ProgramParticipation\ViewConsultationRequest,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
-    Infrastructure\QueryFilter\ConsultationRequestFilter
-};
+use Notification\Application\Listener\ConsultationRequestCancelledListener;
+use Notification\Application\Listener\ConsultationRequestSubmittedListener;
+use Notification\Application\Listener\ConsultationRequestTimeChangedListener;
+use Notification\Application\Listener\ConsultationSessionScheduledByParticipantListener;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestCancelled;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestSubmitted;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestTimeChanged;
+use Notification\Application\Service\GenerateNotificationWhenConsultationSessionScheduledByParticipant;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Participant\Application\Service\UserParticipant\UserParticipantAcceptConsultationRequest;
+use Participant\Application\Service\UserParticipant\UserParticipantCancelConcultationRequest;
+use Participant\Application\Service\UserParticipant\UserParticipantChangeConsultationRequestTime;
+use Participant\Application\Service\UserParticipant\UserParticipantSubmitConsultationRequest;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\Model\Participant\ConsultationRequest as ConsultationRequest2;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\UserParticipant;
+use Query\Application\Service\User\ProgramParticipation\ViewConsultationRequest;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestController extends UserBaseController
@@ -43,10 +38,10 @@ class ConsultationRequestController extends UserBaseController
 
         $consultationSetupId = $this->stripTagsInputRequest('consultationSetupId');
         $consultantId = $this->stripTagsInputRequest('consultantId');
-        $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
 
         $consultationRequestId = $service->execute(
-                $this->userId(), $programParticipationId, $consultationSetupId, $consultantId, $startTime);
+                $this->userId(), $programParticipationId, $consultationSetupId, $consultantId,
+                $this->getConsultationRequestData());
 
         $viewService = $this->buildViewService();
         $consultationRequest = $viewService
@@ -65,7 +60,8 @@ class ConsultationRequestController extends UserBaseController
     {
         $service = $this->buildChangeTimeService();
         $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
-        $service->execute($this->userId(), $programParticipationId, $consultationRequestId, $startTime);
+        $service->execute(
+                $this->userId(), $programParticipationId, $consultationRequestId, $this->getConsultationRequestData());
 
         return $this->show($programParticipationId, $consultationRequestId);
     }
@@ -78,6 +74,15 @@ class ConsultationRequestController extends UserBaseController
         return $this->show($programParticipationId, $consultationRequestId);
     }
 
+    protected function getConsultationRequestData()
+    {
+        $startTime = $this->dateTimeImmutableOfInputRequest("startTime");
+        $media = $this->stripTagsInputRequest("media");
+        $address = $this->stripTagsInputRequest("address");
+
+        return new ConsultationRequestData($startTime, $media, $address);
+    }
+
     public function show($programParticipationId, $consultationRequestId)
     {
         $service = $this->buildViewService();
@@ -88,7 +93,7 @@ class ConsultationRequestController extends UserBaseController
     public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
-        
+
         $status = $this->request->query("status") == null ?
                 null : filter_var_array($this->request->query("status"), FILTER_SANITIZE_STRING);
         $consultationRequestFilter = (new ConsultationRequestFilter())
@@ -126,6 +131,8 @@ class ConsultationRequestController extends UserBaseController
             ],
             "startTime" => $consultationRequest->getStartTimeString(),
             "endTime" => $consultationRequest->getEndTimeString(),
+            "media" => $consultationRequest->getMedia(),
+            "address" => $consultationRequest->getAddress(),
             "concluded" => $consultationRequest->isConcluded(),
             "status" => $consultationRequest->getStatus(),
         ];
@@ -152,6 +159,7 @@ class ConsultationRequestController extends UserBaseController
                 $consultationRequestRepository, $userParticipantRepository, $consultationSetupRepository,
                 $consultantRepository, $dispatcher);
     }
+
     protected function buildConsultationRequestSubmittedListener()
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
@@ -168,6 +176,7 @@ class ConsultationRequestController extends UserBaseController
 
         return new UserParticipantCancelConcultationRequest($consultationRequestRepository, $dispatcher);
     }
+
     protected function buildConsultationRequestCancelledListener()
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
@@ -186,6 +195,7 @@ class ConsultationRequestController extends UserBaseController
 
         return new UserParticipantAcceptConsultationRequest($userParticipantRepository, $dispatcher);
     }
+
     protected function buildConsultationSessionScheduledByParticipantListener()
     {
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
@@ -202,12 +212,12 @@ class ConsultationRequestController extends UserBaseController
 
         return new UserParticipantChangeConsultationRequestTime($userParticipantRepository, $dispatcher);
     }
+
     protected function buildConsultationRequestTimeChangedListener()
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
         $service = new GenerateNotificationWhenConsultationRequestTimeChanged($consultationRequestRepository);
-        return new ConsultationRequestTimeChangedListener($service,
-                $this->buildSendImmediateMail());
+        return new ConsultationRequestTimeChangedListener($service, $this->buildSendImmediateMail());
     }
 
 }

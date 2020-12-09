@@ -2,18 +2,16 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
-use DateTimeImmutable;
-use Participant\ {
-    Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository,
-    Application\Service\Firm\Client\TeamMembershipRepository,
-    Application\Service\Firm\Program\ConsultantRepository,
-    Application\Service\Firm\Program\ConsultationSetupRepository,
-    Application\Service\Participant\ConsultationRequestRepository,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\DependencyModel\Firm\Program\Consultant,
-    Domain\DependencyModel\Firm\Program\ConsultationSetup,
-    Domain\Model\TeamProgramParticipation
-};
+use Participant\Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository;
+use Participant\Application\Service\Firm\Client\TeamMembershipRepository;
+use Participant\Application\Service\Firm\Program\ConsultantRepository;
+use Participant\Application\Service\Firm\Program\ConsultationSetupRepository;
+use Participant\Application\Service\Participant\ConsultationRequestRepository;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\TeamProgramParticipation;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
@@ -30,7 +28,7 @@ class SubmitConsultationRequestTest extends TestBase
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
             $programParticipationId = "programParticipationId", $consultationSetupId = "consultationSetupid",
             $consultantId = "consultantId";
-    protected $startTime;
+    protected $consultationRequestData;
 
     protected function setUp(): void
     {
@@ -73,14 +71,14 @@ class SubmitConsultationRequestTest extends TestBase
                 $this->teamProgramParticipationRepository, $this->consultationSetupRepository,
                 $this->consultantRepository, $this->dispatcher);
 
-        $this->startTime = new DateTimeImmutable();
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
     }
 
     protected function execute()
     {
         return $this->service->execute(
                         $this->firmId, $this->clientId, $this->teamMembershipId, $this->programParticipationId,
-                        $this->consultationSetupId, $this->consultantId, $this->startTime);
+                        $this->consultationSetupId, $this->consultantId, $this->consultationRequestData);
     }
 
     public function test_execute_addConsultationRequestToRepository()
@@ -89,7 +87,7 @@ class SubmitConsultationRequestTest extends TestBase
                 ->method("submitConsultationRequest")
                 ->with(
                         $this->teamProgramParticipation, $this->nextId, $this->consultationSetup, $this->consultant,
-                        $this->startTime);
+                        $this->consultationRequestData);
 
         $this->consultationRequestRepository->expects($this->once())
                 ->method("add");

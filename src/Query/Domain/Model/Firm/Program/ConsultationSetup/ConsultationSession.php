@@ -2,14 +2,13 @@
 
 namespace Query\Domain\Model\Firm\Program\ConsultationSetup;
 
-use Query\Domain\Model\Firm\Program\{
-    Consultant,
-    ConsultationSetup,
-    ConsultationSetup\ConsultationSession\ConsultantFeedback,
-    ConsultationSetup\ConsultationSession\ParticipantFeedback,
-    Participant
-};
+use Query\Domain\Model\Firm\Program\Consultant;
+use Query\Domain\Model\Firm\Program\ConsultationSetup;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultantFeedback;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ParticipantFeedback;
+use Query\Domain\Model\Firm\Program\Participant;
 use Resources\Domain\ValueObject\DateTimeInterval;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 
 class ConsultationSession
 {
@@ -43,6 +42,12 @@ class ConsultationSession
      * @var DateTimeInterval
      */
     protected $startEndTime;
+    
+    /**
+     * 
+     * @var ConsultationChannel
+     */
+    protected $channel;
 
     /**
      *
@@ -121,6 +126,16 @@ class ConsultationSession
     function getEndTime(): string
     {
         return $this->startEndTime->getEndTime()->format("Y-m-d H:i:s");
+    }
+    
+    public function getMedia(): ?string
+    {
+        return $this->channel->getMedia();
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->channel->getAddress();
     }
 
     public function hasConsultantFeedback(): bool

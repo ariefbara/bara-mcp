@@ -2,11 +2,9 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation;
 
-use DateTimeImmutable;
-use Participant\Application\Service\Firm\Client\{
-    TeamMembership\TeamProgramParticipationRepository,
-    TeamMembershipRepository
-};
+use Participant\Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository;
+use Participant\Application\Service\Firm\Client\TeamMembershipRepository;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Resources\Application\Event\Dispatcher;
 
 class ChangeConsultationRequestTime
@@ -41,11 +39,11 @@ class ChangeConsultationRequestTime
 
     public function execute(
             string $firmId, string $clientId, string $teamMembershipId, string $programParticipationId,
-            string $consultationRequestId, DateTimeImmutable $startTime): void
+            string $consultationRequestId, ConsultationRequestData $consultationRequestTime): void
     {
         $teamProgramParticipation = $this->teamProgramParticipationRepository->ofId($programParticipationId);
         $teamMembership = $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId);
-        $teamMembership->changeConsultationRequestTime($teamProgramParticipation, $consultationRequestId, $startTime);
+        $teamMembership->changeConsultationRequestTime($teamProgramParticipation, $consultationRequestId, $consultationRequestTime);
         $this->teamProgramParticipationRepository->update();
         
         $this->dispatcher->dispatch($teamMembership);

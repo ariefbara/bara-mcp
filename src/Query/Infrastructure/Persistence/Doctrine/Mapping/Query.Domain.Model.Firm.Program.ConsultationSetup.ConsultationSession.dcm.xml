@@ -30,6 +30,11 @@
                   use-column-prefix="false" 
         />
         
+        <embedded name="channel" 
+                  class="SharedContext\Domain\ValueObject\ConsultationChannel" 
+                  use-column-prefix="false" 
+        />
+        
         <field name="cancelled" type="boolean" />
         <field name="note" type="string" length="32" nullable="true"/>
         

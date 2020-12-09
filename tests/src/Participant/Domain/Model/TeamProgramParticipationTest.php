@@ -3,19 +3,18 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    DependencyModel\Firm\Team,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\ConsultationSession,
-    Model\Participant\Worksheet,
-    Service\MetricAssignmentReportDataProvider,
-    SharedModel\FileInfo
-};
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\SharedModel\FileInfo;
 use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -28,7 +27,7 @@ class TeamProgramParticipationTest extends TestBase
     protected $program;
     protected $worksheetId = "worksheetId", $worksheetName = "worksheet name", $mission, $formRecordData;
     protected $worksheet;
-    protected $consultationRequest, $consultationRequestId = "consultationRequestId", $startTime;
+    protected $consultationRequest, $consultationRequestId = "consultationRequestId", $consultationRequestData;
     protected $consultationSetup, $consultant;
     protected $consultationSession;
     protected $teamMember;
@@ -53,7 +52,7 @@ class TeamProgramParticipationTest extends TestBase
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
-        $this->startTime = new DateTimeImmutable();
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
         
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
         
@@ -115,17 +114,17 @@ class TeamProgramParticipationTest extends TestBase
     {
         $this->programParticipation->expects($this->once())
                 ->method("submitConsultationRequest")
-                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime, $this->teamMember);
+                ->with($this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->consultationRequestData, $this->teamMember);
         $this->teamProgramParticipation->submitConsultationRequest(
-                $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime, $this->teamMember);
+                $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->consultationRequestData, $this->teamMember);
     }
     
     public function test_changeConsultationRequestTime_executeProgramParticipationChangeConsultationRequestTime()
     {
         $this->programParticipation->expects($this->once())
                 ->method("changeConsultationRequestTime")
-                ->with($this->consultationRequestId, $this->startTime, $this->teamMember);
-        $this->teamProgramParticipation->changeConsultationRequestTime($this->consultationRequestId, $this->startTime, $this->teamMember);
+                ->with($this->consultationRequestId, $this->consultationRequestData, $this->teamMember);
+        $this->teamProgramParticipation->changeConsultationRequestTime($this->consultationRequestId, $this->consultationRequestData, $this->teamMember);
     }
     
     public function test_acceptOfferedConsultationRequest_executeProgramParticipationsAcceptOfferedConsultationRequestMethod()

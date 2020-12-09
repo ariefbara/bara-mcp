@@ -2,8 +2,8 @@
 
 namespace Participant\Application\Service\UserParticipant;
 
-use DateTimeImmutable;
 use Participant\Application\Service\UserParticipantRepository;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Resources\Application\Event\Dispatcher;
 
 class UserParticipantChangeConsultationRequestTime
@@ -29,10 +29,10 @@ class UserParticipantChangeConsultationRequestTime
 
     public function execute(
             string $userId, string $userParticipantId, string $consultationRequestId,
-            DateTimeImmutable $startTime): void
+            ConsultationRequestData $consultationRequestData): void
     {
         $userParticipant = $this->userParticipantRepository->ofId($userId, $userParticipantId);
-        $userParticipant->reproposeConsultationRequest($consultationRequestId, $startTime);
+        $userParticipant->reproposeConsultationRequest($consultationRequestId, $consultationRequestData);
         $this->userParticipantRepository->update();
 
         $this->dispatcher->dispatch($userParticipant);

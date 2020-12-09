@@ -4,19 +4,16 @@ namespace Participant\Domain\Model\Participant;
 
 use Config\EventList;
 use DateTimeImmutable;
-use Participant\Domain\ {
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Team,
-    Model\Participant,
-    Model\Participant\ConsultationRequest\ConsultationRequestActivityLog
-};
-use Resources\Domain\ {
-    Event\CommonEvent,
-    ValueObject\DateTimeInterval
-};
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ConsultationRequest\ConsultationRequestActivityLog;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 use Tests\TestBase;
 
 class ConsultationRequestTest extends TestBase
@@ -28,6 +25,7 @@ class ConsultationRequestTest extends TestBase
     protected $consultationRequest;
     protected $id = 'negotiate-consultationSetupSchedule-id', $startTime;
     protected $startEndTime;
+    protected $media = "new media", $address = "new address";
     protected $otherConsultationRequest;
     
     protected $team;
@@ -48,18 +46,24 @@ class ConsultationRequestTest extends TestBase
         $this->ineligibleConsultant = $this->buildMockOfClass(Consultant::class);
         $this->ineligibleConsultant->expects($this->any())->method('canAcceptConsultationRequest')->willReturn(false);
 
+        $consultationRequestData = new ConsultationRequestData(new \DateTimeImmutable(), "media", "address");
         $this->consultationRequest = new TestableConsultationRequest(
-                $this->participant, 'id', $this->consultationSetup, $this->consultant, $this->startTime, null);
+                $this->participant, 'id', $this->consultationSetup, $this->consultant, $consultationRequestData, null);
         $this->consultationRequest->startEndTime = $this->startEndTime;
         $this->consultationRequest->consultationRequestActivityLogs->clear();
         $this->consultationRequest->recordedEvents = [];
 
         $this->otherConsultationRequest = new TestableConsultationRequest(
-                $this->participant, "otherId", $this->consultationSetup, $this->consultant, (new \DateTimeImmutable()), null);
+                $this->participant, "otherId", $this->consultationSetup, $this->consultant, $consultationRequestData, null);
         
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
         $this->team = $this->buildMockOfClass(Team::class);
+    }
+    
+    protected function getConsultationRequestData()
+    {
+        return new ConsultationRequestData($this->startTime, $this->media, $this->address);
     }
     
     protected function executeConstruct()
@@ -69,7 +73,7 @@ class ConsultationRequestTest extends TestBase
                 ->with($this->startTime)
                 ->willReturn($this->startEndTime);
         return new TestableConsultationRequest($this->participant, $this->id, $this->consultationSetup,
-                $this->consultant, $this->startTime, $this->teamMember);
+                $this->consultant, $this->getConsultationRequestData(), $this->teamMember);
     }
     public function test_construct_setProperties()
     {
@@ -79,16 +83,27 @@ class ConsultationRequestTest extends TestBase
         $this->assertEquals($this->consultationSetup, $consultationRequest->consultationSetup);
         $this->assertEquals($this->consultant, $consultationRequest->consultant);
         $this->assertEquals($this->startEndTime, $consultationRequest->startEndTime);
+        $channel = new ConsultationChannel($this->media, $this->address);
+        $this->assertEquals($channel, $consultationRequest->channel);
         $this->assertFalse($consultationRequest->concluded);
 
         $status = new ConsultationRequestStatusVO('proposed');
         $this->assertEquals($status, $consultationRequest->status);
     }
+    public function test_construct_emptyStartTime_badRequest()
+    {
+        $this->startTime = null;
+        $operation = function (){
+            $this->executeConstruct();
+        };
+        $errorDetail = "bad request: consultation request start time is mandatory";
+        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
+    }
     public function test_construct_consultantCantAcceptRequest_throwEx()
     {
         $operation = function () {
             new TestableConsultationRequest($this->participant, $this->id, $this->consultationSetup,
-                    $this->ineligibleConsultant, $this->startTime, $this->teamMember);
+                    $this->ineligibleConsultant, $this->getConsultationRequestData(), $this->teamMember);
         };
         $errorDetail = "forbidden: consultant can accept consultation request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
@@ -158,12 +173,14 @@ class ConsultationRequestTest extends TestBase
                 ->method('getSessionStartEndTimeOf')
                 ->with($this->startTime)
                 ->willReturn($this->startEndTime);
-        $this->consultationRequest->rePropose($this->startTime, $this->teamMember);
+        $this->consultationRequest->rePropose($this->getConsultationRequestData(), $this->teamMember);
     }
-    public function test_rePropose_changeStartEndTime()
+    public function test_rePropose_changeProperties()
     {
         $this->executeRePropose();
         $this->assertEquals($this->startEndTime, $this->consultationRequest->startEndTime);
+        $channel = new ConsultationChannel($this->media, $this->address);
+        $this->assertEquals($channel, $this->consultationRequest->channel);
     }
     public function test_repropose_consultantCanAcceptRequest_throwEx()
     {
@@ -282,6 +299,7 @@ class TestableConsultationRequest extends ConsultationRequest
 {
 
     public $consultationSetup, $id, $participant, $consultant, $startEndTime, $concluded, $status;
+    public $channel;
     public $consultationRequestActivityLogs;
     
     public $recordedEvents;

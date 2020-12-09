@@ -2,23 +2,21 @@
 
 namespace Participant\Domain\Model;
 
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\ {
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    DependencyModel\Firm\Team,
-    Model\Participant\CompletedMission,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\ConsultationSession,
-    Model\Participant\MetricAssignment,
-    Model\Participant\ViewLearningMaterialActivityLog,
-    Model\Participant\Worksheet,
-    Service\MetricAssignmentReportDataProvider
-};
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant\CompletedMission;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\MetricAssignment;
+use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -35,7 +33,7 @@ class ParticipantTest extends TestBase
     protected $userParticipant;
     protected $metricAssignment;
 
-    protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $startTime;
+    protected $consultationRequestId = 'consultationRequestId', $consultationSetup, $consultant, $consultationRequestData;
     protected $consultationSessionId = 'consultationSessionId';
     protected $otherConsultationRequest;
     protected $worksheetId = 'worksheetId', $worksheetName = 'worksheet name', $mission, $formRecordData;
@@ -80,7 +78,8 @@ class ParticipantTest extends TestBase
 
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
-        $this->startTime = new DateTimeImmutable();
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
+        $this->consultationRequestData->expects($this->any())->method("getStartTime")->willReturn(new \DateTimeImmutable());
 
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->mission->expects($this->any())->method("isRootMission")->willReturn(true);
@@ -155,7 +154,7 @@ class ParticipantTest extends TestBase
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->willReturn(false);
         return $this->participant->submitConsultationRequest(
-                        $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->startTime);
+                        $this->consultationRequestId, $this->consultationSetup, $this->consultant, $this->consultationRequestData);
     }
     public function test_submitConsultationRequest_returnConsultationRequest()
     {
@@ -214,13 +213,13 @@ class ParticipantTest extends TestBase
         $this->otherConsultationRequest->expects($this->any())
                 ->method('isProposedConsultationRequestConflictedWith')
                 ->willReturn(false);
-        $this->participant->changeConsultationRequestTime($this->consultationRequestId, $this->startTime);
+        $this->participant->changeConsultationRequestTime($this->consultationRequestId, $this->consultationRequestData);
     }
     public function test_changeConsultationRequestTime_changeConsultationRequestTime()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('rePropose')
-                ->with($this->startTime);
+                ->with($this->consultationRequestData);
         $this->executeChangeConsultationRequestTime();
     }
     public function test_changeConsultationRequestTime_containOtherConsultationRequestConflictedWithReProposedSchedule_throwEx()
@@ -249,7 +248,7 @@ class ParticipantTest extends TestBase
     public function test_changeConsultationRequestTime_consultationRequestNotFound_throwEx()
     {
         $operation = function () {
-            $this->participant->changeConsultationRequestTime('non-existing-schedule', $this->startTime);
+            $this->participant->changeConsultationRequestTime('non-existing-schedule', $this->consultationRequestData);
         };
         $errorDetail = "not found: consultation request not found";
         $this->assertRegularExceptionThrowed($operation, 'Not Found', $errorDetail);
@@ -258,8 +257,8 @@ class ParticipantTest extends TestBase
     {
         $this->consultationRequest->expects($this->once())
                 ->method('rePropose')
-                ->with($this->startTime, $this->teamMember);
-        $this->participant->changeConsultationRequestTime($this->consultationRequestId, $this->startTime, $this->teamMember);
+                ->with($this->consultationRequestData, $this->teamMember);
+        $this->participant->changeConsultationRequestTime($this->consultationRequestId, $this->consultationRequestData, $this->teamMember);
     }
     public function test_changeConsultationRequestTime_pullConsultationRequestEventAndRecordIt()
     {

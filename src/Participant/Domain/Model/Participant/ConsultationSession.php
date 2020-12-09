@@ -4,24 +4,21 @@ namespace Participant\Domain\Model\Participant;
 
 use Config\EventList;
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\ {
-    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Team,
-    Model\Participant,
-    Model\Participant\ConsultationSession\ConsultationSessionActivityLog,
-    Model\Participant\ConsultationSession\ParticipantFeedback
-};
-use Resources\ {
-    Domain\Event\CommonEvent,
-    Domain\Model\EntityContainEvents,
-    Domain\ValueObject\DateTimeInterval,
-    Exception\RegularException,
-    Uuid
-};
+use Participant\Domain\DependencyModel\Firm\Client\AssetBelongsToTeamInterface;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ConsultationSession\ConsultationSessionActivityLog;
+use Participant\Domain\Model\Participant\ConsultationSession\ParticipantFeedback;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 
 class ConsultationSession extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
@@ -57,6 +54,12 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
     protected $startEndTime;
     
     /**
+     * 
+     * @var ConsultationChannel
+     */
+    protected $channel;
+
+    /**
      *
      * @var bool
      */
@@ -76,7 +79,7 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
 
     function __construct(
             Participant $participant, $id, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeInterval $startEndTime, ?TeamMembership $teamMember)
+            DateTimeInterval $startEndTime, ConsultationChannel $channel, ?TeamMembership $teamMember)
     {
         if (!$consultant->isActive()) {
             $errorDetail = "forbidden: inactive mentor can't give consultation";
@@ -87,12 +90,13 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
         $this->consultationSetup = $consultationSetup;
         $this->consultant = $consultant;
         $this->startEndTime = $startEndTime;
+        $this->channel = $channel;
         $this->cancelled = false;
 
         $this->consultationSessionActivityLogs = new ArrayCollection();
-        
+
         $this->addActivityLog("scheduled consultation session", $teamMember);
-        
+
         $event = new CommonEvent(EventList::OFFERED_CONSULTATION_REQUEST_ACCEPTED, $this->id);
         $this->recordEvent($event);
     }

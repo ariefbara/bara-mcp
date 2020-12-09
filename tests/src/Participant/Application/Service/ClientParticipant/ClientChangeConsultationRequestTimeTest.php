@@ -2,11 +2,9 @@
 
 namespace Participant\Application\Service\ClientParticipant;
 
-use DateTimeImmutable;
-use Participant\{
-    Application\Service\ClientParticipantRepository,
-    Domain\Model\ClientParticipant
-};
+use Participant\Application\Service\ClientParticipantRepository;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
@@ -17,7 +15,7 @@ class ClientChangeConsultationRequestTimeTest extends TestBase
     protected $clientParticipantRepository, $clientParticipant;
     protected $dispatcher;
     protected $firmId = 'firmId', $clientId = 'clientId', $programId = 'programId', $consultationRequestId = 'negotiate-schedule-id';
-    protected $startTime;
+    protected $consultationRequestData;
 
     protected function setUp(): void
     {
@@ -32,20 +30,20 @@ class ClientChangeConsultationRequestTimeTest extends TestBase
 
         $this->service = new ClientChangeConsultationRequestTime($this->clientParticipantRepository, $this->dispatcher);
 
-        $this->startTime = new DateTimeImmutable();
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::Class);
     }
 
     protected function execute()
     {
         $this->service->execute($this->firmId, $this->clientId, $this->programId, $this->consultationRequestId,
-                $this->startTime);
+                $this->consultationRequestData);
     }
 
     public function test_execute_reProposeNegotiateMentoringScheduleInClientParticipant()
     {
         $this->clientParticipant->expects($this->once())
                 ->method('reproposeConsultationRequest')
-                ->with($this->consultationRequestId, $this->startTime);
+                ->with($this->consultationRequestId, $this->consultationRequestData);
         $this->execute();
     }
 
