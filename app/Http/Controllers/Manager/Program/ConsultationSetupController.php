@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\Manager\Program;
 
 use App\Http\Controllers\Manager\ManagerBaseController;
-use Firm\ {
-    Application\Service\Firm\Program\ConsultationSetupAdd,
-    Application\Service\Firm\Program\ConsultationSetupRemove,
-    Application\Service\Firm\Program\ProgramCompositionId,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program,
-    Domain\Model\Firm\Program\ConsultationSetup
-};
-use Query\ {
-    Application\Service\Firm\Program\ViewConsultationSetup,
-    Domain\Model\Firm\Program\ConsultationSetup as ConsultationSetup2
-};
+use Firm\Application\Service\Firm\Program\ConsultationSetupAdd;
+use Firm\Application\Service\Firm\Program\ConsultationSetupRemove;
+use Firm\Application\Service\Firm\Program\ProgramCompositionId;
+use Firm\Application\Service\Manager\UpdateConsultationSetup;
+use Firm\Domain\Model\Firm\FeedbackForm;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup;
+use Query\Application\Service\Firm\Program\ViewConsultationSetup;
+use Query\Domain\Model\Firm\Program\ConsultationSetup as ConsultationSetup2;
 
 class ConsultationSetupController extends ManagerBaseController
 {
@@ -30,10 +28,24 @@ class ConsultationSetupController extends ManagerBaseController
         $consultationSetupId = $service->execute(
                 $this->firmId(), $programId, $name, $sessionDuration, $participantFeedbackFormId,
                 $consultantFeedbackFormId);
-        
+
         $viewService = $this->buildViewService();
         $consultationSetup = $viewService->showById($this->firmId(), $programId, $consultationSetupId);
         return $this->commandCreatedResponse($this->arrayDataOfConsultationSetup($consultationSetup));
+    }
+
+    public function update($programId, $consultationSetupId)
+    {
+        $name = $this->stripTagsInputRequest('name');
+        $sessionDuration = $this->integerOfInputRequest('sessionDuration');
+        $participantFeedbackFormId = $this->stripTagsInputRequest('participantFeedbackFormId');
+        $consultantFeedbackFormId = $this->stripTagsInputRequest('consultantFeedbackFormId');
+        
+        $this->buildUpdateService()->execute(
+                $this->firmId(), $this->managerId(), $consultationSetupId, $name, $sessionDuration,
+                $participantFeedbackFormId, $consultantFeedbackFormId);
+        
+        return $this->show($programId, $consultationSetupId);
     }
 
     public function remove($programId, $consultationSetupId)
@@ -97,6 +109,15 @@ class ConsultationSetupController extends ManagerBaseController
     {
         $consultationSetupRepository = $this->em->getRepository(ConsultationSetup2::class);
         return new ViewConsultationSetup($consultationSetupRepository);
+    }
+
+    protected function buildUpdateService()
+    {
+        $consultationSetupRepository = $this->em->getRepository(ConsultationSetup::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        $feedbackFormRepository = $this->em->getRepository(FeedbackForm::class);
+
+        return new UpdateConsultationSetup($consultationSetupRepository, $managerRepository, $feedbackFormRepository);
     }
 
 }

@@ -119,11 +119,40 @@ class ConsultationSetupControllerTest extends ProgramTestCase
         $this->post($this->consultationSetupUri, $this->consultationSetupInput, $this->manager->token)
                 ->seeStatusCode(400);
     }
-
     public function test_add_userNotAdmin_error401()
     {
         $this->post($this->consultationSetupUri, $this->consultationSetupInput, $this->removedManager->token)
                 ->seeStatusCode(401);
+    }
+    
+    public function test_update_200()
+    {
+        $response = [
+            "id" => $this->consultationSetup->id,
+            "name" => $this->consultationSetupInput["name"],
+            "sessionDuration" => $this->consultationSetupInput["sessionDuration"],
+            "participantFeedbackForm" => [
+                "id" => $this->participantFeedbackFormTwo->id,
+                "name" => $this->participantFeedbackFormTwo->form->name,
+            ],
+            "consultantFeedbackForm" => [
+                "id" => $this->consultantFeedbackFormTwo->id,
+                "name" => $this->consultantFeedbackFormTwo->form->name,
+            ],
+        ];
+        $uri = $this->consultationSetupUri . "/{$this->consultationSetup->id}";
+        $this->patch($uri, $this->consultationSetupInput, $this->manager->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+        
+        $consultationSetupEntry = [
+            "id" => $this->consultationSetup->id,
+            "name" => $this->consultationSetupInput["name"],
+            "sessionDuration" => $this->consultationSetupInput["sessionDuration"],
+            "FeedbackForm_idForParticipant" => $this->participantFeedbackFormTwo->id,
+            "FeedbackForm_idForConsultant" => $this->consultantFeedbackFormTwo->id,
+        ];
+        $this->seeInDatabase("ConsultationSetup", $consultationSetupEntry);
     }
 
     public function test_remove()
