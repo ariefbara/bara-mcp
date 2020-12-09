@@ -15,7 +15,7 @@ class ConsultantTest extends TestBase
     protected $consultant;
     protected $personnel;
     protected $mailGenerator;
-    protected $mailMessage;
+    protected $mailMessage, $modifiedMailMessage;
     protected $notification;
 
     protected function setUp(): void
@@ -28,6 +28,7 @@ class ConsultantTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
         
         $this->notification = $this->buildMockOfClass(ContainNotification::class);
     }
@@ -41,6 +42,9 @@ class ConsultantTest extends TestBase
     
     protected function executeRegisterMailRecipient()
     {
+        $this->mailMessage->expects($this->any())
+                ->method("prependUrlPath")
+                ->willReturn($this->modifiedMailMessage);
         $this->consultant->registerMailRecipient($this->mailGenerator, $this->mailMessage);
     }
     public function test_registerMailRecipient_prependConsultantPathToMailMessageUrlPath()
@@ -52,13 +56,9 @@ class ConsultantTest extends TestBase
     }
     public function test_registerMailRecipient_registerPersonnelAsRecipientOnModifiedMail()
     {
-        $modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
-        $this->mailMessage->expects($this->once())
-                ->method("prependUrlPath")
-                ->willReturn($modifiedMailMessage);
         $this->personnel->expects($this->once())
                 ->method("registerAsMailRecipient")
-                ->with($this->mailGenerator, $modifiedMailMessage);
+                ->with($this->mailGenerator, $this->identicalTo($this->modifiedMailMessage));
         $this->executeRegisterMailRecipient();
     }
     

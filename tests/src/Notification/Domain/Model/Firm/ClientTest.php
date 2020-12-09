@@ -17,7 +17,7 @@ class ClientTest extends TestBase
     protected $client;
     protected $name;
     protected $mailGenerator;
-    protected $mailMessage, $modifiedGreetings, $modifiedUrl;
+    protected $mailMessage, $modifiedMail;
     protected $clientMailId = "clientMailId";
 
     protected function setUp(): void
@@ -31,8 +31,7 @@ class ClientTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
-        $this->modifiedGreetings = $this->buildMockOfClass(MailMessage::class);
-        $this->modifiedUrl = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedMail = $this->buildMockOfClass(MailMessage::class);
     }
     
     public function test_getName_returnFullName()
@@ -45,7 +44,7 @@ class ClientTest extends TestBase
     {
         $this->mailMessage->expects($this->any())
                 ->method("appendRecipientFirstNameInGreetings")
-                ->willReturn($this->modifiedGreetings);
+                ->willReturn($this->modifiedMail);
         
         $this->client->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }
@@ -55,7 +54,7 @@ class ClientTest extends TestBase
                 ->method("getFirstName")
                 ->willReturn($firstName = "first name");
         
-        $this->mailMessage->expects($this->any())
+        $this->mailMessage->expects($this->once())
                 ->method("appendRecipientFirstNameInGreetings")
                 ->with($firstName);
         
@@ -68,7 +67,7 @@ class ClientTest extends TestBase
                 ->willReturn($fullName = "full name");
         $this->mailGenerator->expects($this->once())
                 ->method("addMail")
-                ->with($this->modifiedGreetings, $this->client->email, $fullName);
+                ->with($this->identicalTo($this->modifiedMail), $this->client->email, $fullName);
         $this->executeRegisterAsMailRecipient();
     }
     

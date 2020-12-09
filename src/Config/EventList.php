@@ -31,4 +31,9 @@ class EventList
     
     const LEARNING_MATERIAL_VIEWED_BY_PARTICIPANT = "learning-material-viewed-by-participant";
     
+    const MEETING_CREATED = "meeting-created";
+    const MEETING_INVITATION_SENT = "meeting-invitation-sent";
+    const MEETING_INVITATION_CANCELLED = "meeting-invitation-cancelled";
+    const MEETING_SCHEDULE_CHANGED = "meeting-schedule-changed";
+    
 }

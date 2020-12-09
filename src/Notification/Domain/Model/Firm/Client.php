@@ -74,9 +74,9 @@ class Client
 
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $mailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName());
+        $modifiedMailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName());
 
-        $mailGenerator->addMail($mailMessage, $this->email, $this->name->getFullName());
+        $mailGenerator->addMail($modifiedMailMessage, $this->email, $this->name->getFullName());
     }
 
     public function createActivationMail(string $clientMailId): ClientMail

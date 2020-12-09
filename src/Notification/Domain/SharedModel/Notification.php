@@ -45,6 +45,12 @@ class Notification
      */
     protected $personnelNotificationRecipients;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $managerNotificationRecipients;
+
     public function __construct(string $id, string $message)
     {
         $this->id = $id;
@@ -52,6 +58,7 @@ class Notification
         $this->userNotificationRecipients = new ArrayCollection();
         $this->clientNotificationRecipients = new ArrayCollection();
         $this->personnelNotificationRecipients = new ArrayCollection();
+        $this->managerNotificationRecipients = new ArrayCollection();
     }
 
     public function addUserRecipient(User $user): void
@@ -77,7 +84,9 @@ class Notification
     
     public function addManagerRecipient(Manager $manager): void
     {
-        
+        $id = Uuid::generateUuid4();
+        $managerNotificationRecipient = new Notification\ManagerNotificationRecipient($this, $id, $manager);
+        $this->managerNotificationRecipients->add($managerNotificationRecipient);
     }
 
 }

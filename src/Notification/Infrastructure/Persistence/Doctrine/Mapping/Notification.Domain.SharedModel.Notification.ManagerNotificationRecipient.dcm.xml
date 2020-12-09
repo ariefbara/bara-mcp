@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\SharedModel\Notification\ManagerNotificationRecipient" 
+            table="ManagerNotificationRecipient" 
+    >
+        
+        <many-to-one  field="notification" 
+                      target-entity="Notification\Domain\SharedModel\Notification"
+                      inversed-by="managerNotificationRecipients"
+        >
+            <join-column name="Notification_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="manager" 
+                      target-entity="Notification\Domain\Model\Firm\Manager"
+        >
+            <join-column name="Manager_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="read" column="readStatus" type="boolean" />
+        <field name="notifiedTime" type="datetime_immutable" nullable="false"/>
+        
+    </entity>
+</doctrine-mapping>

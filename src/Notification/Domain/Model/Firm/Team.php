@@ -56,7 +56,6 @@ class Team
     public function registerAllActiveMembersAsMailRecipient(
             CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?Member $excludedMember): void
     {
-        $modifiedMailMessage = $mailMessage->prependUrlPath("/as-team-member/{$this->id}");
         foreach ($this->iterateActiveMembersNotEquals($excludedMember) as $member) {
             $member->registerClientAsMailRecipient($mailGenerator, $mailMessage);
         }

@@ -15,7 +15,7 @@ class UserTest extends TestBase
     protected $user;
     protected $name;
     protected $mailGenerator;
-    protected $mailMessage, $modifiedGreetings, $modifiedUrl;
+    protected $mailMessage, $modifiedGreetings, $modifiedUrl, $modifiedMail;
     protected $userMailId = "userMailId";
 
     protected function setUp(): void
@@ -64,7 +64,7 @@ class UserTest extends TestBase
                 ->willReturn($fullName = "full name");
         $this->mailGenerator->expects($this->once())
                 ->method("addMail")
-                ->with($this->modifiedMail, $this->user->email, $fullName);
+                ->with($this->identicalTo($this->modifiedMail), $this->user->email, $fullName);
         $this->executeRegisterAsMailRecipient();
     }
     

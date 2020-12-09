@@ -60,7 +60,7 @@ class ClientProgramParticipationTest extends TestBase
     {
         $this->client->expects($this->once())
                 ->method("registerAsMailRecipient")
-                ->with($this->mailGenerator, $this->modifiedMailMessage);
+                ->with($this->mailGenerator, $this->identicalTo($this->modifiedMailMessage));
         $this->executeRegisterClientAsMailRecipient();
     }
     
