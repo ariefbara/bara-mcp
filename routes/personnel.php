@@ -131,6 +131,12 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{evaluationPlanId}", ["uses" => "$controller@show"]);
         });
         
+        $router->group(['prefix' => '/activities'], function () use($router) {
+            $controller = "ActivityController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{activityId}", ["uses" => "$controller@show"]);
+        });
+        
     });
     
     $asProgramConsultantAggregate = [
