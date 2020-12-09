@@ -137,6 +137,9 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{activityId}", ["uses" => "$controller@show"]);
         });
         
+        $router->get("/activities/{activityId}/activity-reports", ["uses" => "ActivityReportController@showAllReportsInActivity"]);
+        $router->get("/activity-reports/{activityReportId}", ["uses" => "ActivityReportController@show"]);
+        
     });
     
     $asProgramConsultantAggregate = [
