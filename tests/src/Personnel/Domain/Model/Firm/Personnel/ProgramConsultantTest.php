@@ -2,16 +2,14 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel;
 
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Personnel\Domain\Model\Firm\ {
-    Personnel,
-    Personnel\ProgramConsultant\ConsultantComment,
-    Personnel\ProgramConsultant\ConsultationRequest,
-    Personnel\ProgramConsultant\ConsultationSession,
-    Program\Participant\Worksheet,
-    Program\Participant\Worksheet\Comment
-};
+use Personnel\Domain\Model\Firm\Personnel;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
+use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
 use Resources\Application\Event\Event;
 use Tests\TestBase;
 
@@ -22,7 +20,7 @@ class ProgramConsultantTest extends TestBase
     protected $consultationRequest, $consultationRequestId = 'negotiate-consultationSession-id';
     protected $otherConsultationRequest;
     protected $consultationSession;
-    protected $startTime;
+    protected $consultationRequestData;
     
     protected $consultantCommentId = 'newCommentId', $worksheet, $message = 'new comment message';
     protected $comment;
@@ -46,7 +44,8 @@ class ProgramConsultantTest extends TestBase
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
         $this->programConsultant->consultationSessions->add($this->consultationSession);
 
-        $this->startTime = new DateTimeImmutable('+1 days');
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
+        $this->consultationRequestData->expects($this->any())->method("getStartTime")->willReturn(new \DateTimeImmutable());
         
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         $this->comment = $this->buildMockOfClass(Comment::class);
@@ -130,13 +129,13 @@ class ProgramConsultantTest extends TestBase
     {
         $this->consultationRequest->expects($this->any())
                 ->method('offer');
-        $this->programConsultant->offerConsultationRequestTime($this->consultationRequestId, $this->startTime);
+        $this->programConsultant->offerConsultationRequestTime($this->consultationRequestId, $this->consultationRequestData);
     }
     public function test_offerConsultationRequestTime_offerTimeToConsultationRequest()
     {
         $this->consultationRequest->expects($this->once())
                 ->method('offer')
-                ->with($this->startTime);
+                ->with($this->consultationRequestData);
         $this->executeOfferConsultationRequestTime();
     }
     public function test_offer_containConsultationSessionInConflictWithOfferedConsultationRequest_throwEx()

@@ -5,31 +5,26 @@ namespace App\Http\Controllers\Personnel\ProgramConsultation;
 use App\Http\Controllers\Personnel\PersonnelBaseController;
 use Config\EventList;
 use DateTimeImmutable;
-use Notification\{
-    Application\Listener\ConsultationRequestOfferedListener,
-    Application\Listener\ConsultationRequestRejectedListener,
-    Application\Listener\ConsultationSessionAcceptedByConsultantListener,
-    Application\Service\GenerateNotificationWhenConsultationRequestOffered,
-    Application\Service\GenerateNotificationWhenConsultationRequestRejected,
-    Application\Service\GenerateNotificationWhenConsultationSessionAcceptedByConsultant,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3,
-    Domain\Model\Firm\Program\Participant\ConsultationSession
-};
-use Personnel\{
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestAccept,
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestOffer,
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestReject,
-    Domain\Model\Firm\Personnel\ProgramConsultant,
-    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest
-};
-use Query\{
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestView,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest as ConsultationRequest2,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant,
-    Infrastructure\QueryFilter\ConsultationRequestFilter
-};
+use Notification\Application\Listener\ConsultationRequestOfferedListener;
+use Notification\Application\Listener\ConsultationRequestRejectedListener;
+use Notification\Application\Listener\ConsultationSessionAcceptedByConsultantListener;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestOffered;
+use Notification\Application\Service\GenerateNotificationWhenConsultationRequestRejected;
+use Notification\Application\Service\GenerateNotificationWhenConsultationSessionAcceptedByConsultant;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest as ConsultationRequest3;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestAccept;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestOffer;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestReject;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
+use Query\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestView;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest as ConsultationRequest2;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestController extends PersonnelBaseController
@@ -47,8 +42,13 @@ class ConsultationRequestController extends PersonnelBaseController
     {
         $service = $this->buildOfferService();
         $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
-        $service->execute($this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId,
-                $startTime);
+        $media = $this->stripTagsInputRequest("media");
+        $address = $this->stripTagsInputRequest("address");
+        
+        $consultationRequestData = new ConsultationRequestData($startTime, $media, $address);
+        
+        $service->execute(
+                $this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId, $consultationRequestData);
 
         return $this->show($programConsultationId, $consultationRequestId);
     }
@@ -60,7 +60,7 @@ class ConsultationRequestController extends PersonnelBaseController
 
         return $this->commandOkResponse();
     }
-
+    
     public function show($programConsultationId, $consultationRequestId)
     {
         $service = $this->buildViewService();
@@ -98,6 +98,8 @@ class ConsultationRequestController extends PersonnelBaseController
             "id" => $consultationRequest->getId(),
             "startTime" => $consultationRequest->getStartTimeString(),
             "endTime" => $consultationRequest->getEndTimeString(),
+            "media" => $consultationRequest->getMedia(),
+            "address" => $consultationRequest->getAddress(),
             "concluded" => $consultationRequest->isConcluded(),
             "status" => $consultationRequest->getStatus(),
             "consultationSetup" => [

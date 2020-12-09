@@ -2,8 +2,8 @@
 
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use DateTimeImmutable;
 use Personnel\Application\Service\Firm\Personnel\ProgramConsultantRepository;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Resources\Application\Event\Dispatcher;
 
 class ConsultationRequestOffer
@@ -29,10 +29,10 @@ class ConsultationRequestOffer
 
     public function execute(
             string $firmId, string $personnelId, string $programConsultantId,
-            string $consultationRequestId, DateTimeImmutable $startTime): void
+            string $consultationRequestId, ConsultationRequestData $consultationRequestData): void
     {
         $programConsultant = $this->programConsultantRepository->ofId($firmId, $personnelId, $programConsultantId);
-        $programConsultant->offerConsultationRequestTime($consultationRequestId, $startTime);
+        $programConsultant->offerConsultationRequestTime($consultationRequestId, $consultationRequestData);
         $this->programConsultantRepository->update();
         
         $this->dispatcher->dispatch($programConsultant);

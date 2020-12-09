@@ -2,24 +2,18 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel;
 
-use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
-    ArrayCollection,
-    Criteria
-};
-use Personnel\Domain\Model\Firm\ {
-    Personnel,
-    Personnel\ProgramConsultant\ConsultantComment,
-    Personnel\ProgramConsultant\ConsultationRequest,
-    Personnel\ProgramConsultant\ConsultationSession,
-    Program\Participant\Worksheet,
-    Program\Participant\Worksheet\Comment
-};
-use Resources\ {
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Personnel\Domain\Model\Firm\Personnel;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
+use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 
 class ProgramConsultant extends EntityContainEvents
 {
@@ -86,12 +80,13 @@ class ProgramConsultant extends EntityContainEvents
         $this->aggregateEventFrom($consultationSession);
     }
 
-    public function offerConsultationRequestTime(string $consultationRequestId, DateTimeImmutable $startTime): void
+    public function offerConsultationRequestTime(
+            string $consultationRequestId, ConsultationRequestData $consultationRequestData): void
     {
         $this->assertActive();
         
         $consultationRequest = $this->findConsultationRequestOrDie($consultationRequestId);
-        $consultationRequest->offer($startTime);
+        $consultationRequest->offer($consultationRequestData);
 
         $this->assertNoConsultationSessionInConflictWithConsultationRequest($consultationRequest);
         $this->assertNoOtherOfferedConsultationRequestInConflictWithConsultationRequest(

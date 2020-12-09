@@ -2,12 +2,9 @@
 
 namespace Personnel\Application\Service\Firm\Personnel\ProgramConsultant;
 
-use DateTimeImmutable;
-use Personnel\ {
-    Application\Service\Firm\Personnel\ProgramConsultantRepository,
-    Domain\Model\Firm\Personnel\ProgramConsultant
-};
-use Query\Application\Service\Firm\Personnel\PersonnelCompositionId;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultantRepository;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
@@ -20,7 +17,7 @@ class ConsultationRequestOfferTest extends TestBase
     
     protected $firmId = 'firmId', $personnelId = 'personnelId', $programConsultationId = 'programConsultationId', 
             $consultationRequestId = 'consultationRequetId';
-    protected $startTime;
+    protected $consultationRequestData;
     
     protected function setUp(): void
     {
@@ -37,20 +34,20 @@ class ConsultationRequestOfferTest extends TestBase
         
         $this->service = new ConsultationRequestOffer($this->programConsultantRepository, $this->dispatcher);
         
-        $this->startTime = new DateTimeImmutable('+1 days');
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
     }
     
     protected function execute()
     {
         $this->service->execute(
             $this->firmId, $this->personnelId, $this->programConsultationId, $this->consultationRequestId, 
-            $this->startTime);
+            $this->consultationRequestData);
     }
     public function test_execute_offerNegotitateMentoringScheduleTimeInProgramConsultant()
     {
         $this->programConsultant->expects($this->once())
             ->method('offerConsultationRequestTime')
-            ->with($this->consultationRequestId, $this->startTime);
+            ->with($this->consultationRequestId, $this->consultationRequestData);
         $this->execute();
     }
     public function test_execute_updateProgramConsultantRepository()

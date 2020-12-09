@@ -72,6 +72,8 @@ class ConsultationSessionController extends PersonnelBaseController
                 "id" => $consultationSession->getId(),
                 "startTime" => $consultationSession->getStartTime(),
                 "endTime" => $consultationSession->getEndTime(),
+                "media" => $consultationSession->getMedia(),
+                "address" => $consultationSession->getAddress(),
                 "participant" => [
                     "id" => $consultationSession->getParticipant()->getId(),
                     "client" => $this->arrayDataOfClient($consultationSession->getParticipant()->getClientParticipant()),
@@ -92,6 +94,8 @@ class ConsultationSessionController extends PersonnelBaseController
             "id" => $consultationSession->getId(),
             "startTime" => $consultationSession->getStartTime(),
             "endTime" => $consultationSession->getEndTime(),
+            "media" => $consultationSession->getMedia(),
+            "address" => $consultationSession->getAddress(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
                 "name" => $consultationSession->getConsultationSetup()->getName(),
