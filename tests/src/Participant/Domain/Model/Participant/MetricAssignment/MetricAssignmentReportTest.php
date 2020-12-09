@@ -87,9 +87,18 @@ class MetricAssignmentReportTest extends TestBase
                 ->method("remove");
         $this->executeUpdate();
     }
-    public function test_update_alreadyApproved_forbidden()
+    public function test_update_alreadyDecidedAsApproved_forbidden()
     {
         $this->metricAssignmentReport->approved = true;
+        $operation = function (){
+            $this->executeUpdate();
+        };
+        $errorDetail = "forbidden: unable to update approved report";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_update_alreadyDecidedAsRejected_forbidden()
+    {
+        $this->metricAssignmentReport->approved = false;
         $operation = function (){
             $this->executeUpdate();
         };

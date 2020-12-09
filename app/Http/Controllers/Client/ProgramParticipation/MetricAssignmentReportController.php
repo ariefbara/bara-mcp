@@ -92,6 +92,7 @@ class MetricAssignmentReportController extends ClientBaseController
             "observationTime" => $metricAssignmentReport->getObservationTimeString(),
             "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
             "approved" => $metricAssignmentReport->isApproved(),
+            "note" => $metricAssignmentReport->getNote(),
             "removed" => $metricAssignmentReport->isRemoved(),
             "assignmentFieldValues" => $assignmentFieldValues,
         ];

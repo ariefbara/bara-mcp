@@ -80,7 +80,7 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
 
     public function update(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
-        if ($this->approved) {
+        if ($this->approved !== null) {
             $errorDetail = "forbidden: unable to update approved report";
             throw RegularException::forbidden($errorDetail);
         }
