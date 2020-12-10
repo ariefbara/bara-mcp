@@ -19,10 +19,6 @@
         </file>
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ConsultationSessionController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/routes/personnel.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/AsProgramCoordinator/ConsultationSessionControllerTest.php</file>
-        </group>
+        <group/>
     </open-files>
 </project-private>

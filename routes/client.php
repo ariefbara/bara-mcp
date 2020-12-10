@@ -217,6 +217,12 @@ $router->group($clientAggregate, function () use ($router) {
             $router->post("", ["uses" => "$controller@initiate"]);
         });
         
+        $router->group(['prefix' => '/programs-profile-forms'], function () use($router) {
+            $controller = "ProgramsProfileFormController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
+        });
+        
     });
     
     $asTeamMemberAggregate = [
@@ -319,6 +325,12 @@ $router->group($clientAggregate, function () use ($router) {
             $router->group(['prefix' => '/meetings'], function () use($router) {
                 $controller = "MeetingController";
                 $router->post("", ["uses" => "$controller@initiate"]);
+            });
+            
+            $router->group(['prefix' => '/programs-profile-forms'], function () use($router) {
+                $controller = "ProgramsProfileFormController";
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
             });
             
         });

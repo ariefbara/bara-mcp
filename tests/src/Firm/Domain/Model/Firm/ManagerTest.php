@@ -11,6 +11,7 @@ use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -37,6 +38,7 @@ class ManagerTest extends TestBase
     protected $consultationSetup, $consultationSetupName = "new consultation setup name",
             $sessionDuration = 99, $consultantFeedbackForm;
     protected $profileFormId = "profileFormId", $formData, $profileForm;
+    protected $programsProfileForm;
 
     protected function setUp(): void
     {
@@ -63,7 +65,9 @@ class ManagerTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         
         $this->formData = $this->buildMockOfClass(FormData::class);
+        $this->formData->expects($this->any())->method("getName")->willReturn("name");
         $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -523,6 +527,53 @@ class ManagerTest extends TestBase
         $this->setAssetDoesntBelongsToFirm($this->profileForm);
         $this->assertUnmanageableAssetForbiddenError(function (){
             $this->executeUpdateProfileForm();
+        });
+    }
+    
+    protected function executeAssignProfileFormToProgram()
+    {
+        $this->setAssetBelongsToFirm($this->program);
+        $this->setAssetBelongsToFirm($this->profileForm);
+        $this->manager->assignProfileFormToProgram($this->program, $this->profileForm);
+    }
+    public function test_assignProfileFormToProgram_returnProgramsAssignProfileFormToProgramResult()
+    {
+        $this->program->expects($this->once())
+                ->method("assignProfileForm")
+                ->with($this->profileForm);
+        $this->executeAssignProfileFormToProgram();
+    }
+    public function test_assignProfileFormToProgram_programUnmanaged_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->program);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeAssignProfileFormToProgram();
+        });
+    }
+    public function test_assignProfileFormToProgram_profileFormUnmanaged_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->profileForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeAssignProfileFormToProgram();
+        });
+    }
+    
+    protected function executeDisableProgramsProfileForm()
+    {
+        $this->setAssetBelongsToFirm($this->programsProfileForm);
+        $this->manager->disableProgramsProfileForm($this->programsProfileForm);
+    }
+    public function test_disableProgramsProfileForm_disableProgramsProfileForm()
+    {
+        $this->programsProfileForm->expects($this->once())
+                ->method("disable");
+        $this->executeDisableProgramsProfileForm();
+    }
+    public function test_disableProgramsProfileForm_programsProfileFormUnmanaged_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->programsProfileForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableProgramsProfileForm();
         });
     }
 }

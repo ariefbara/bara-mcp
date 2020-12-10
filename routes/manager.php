@@ -171,6 +171,14 @@ $router->group($managerAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{evaluationPlanId}", ["uses" => "$controller@show"]);
         });
+        
+        $router->group(['prefix' => '/programs-profile-forms'], function () use($router) {
+            $controller = "ProgramsProfileFormController";
+            $router->post("", ["uses" => "$controller@assign"]);
+            $router->delete("/{programsProfileFormId}", ["uses" => "$controller@disable"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
+        });
     });
     
     $router->group(['prefix' => '/activities'], function () use($router) {
