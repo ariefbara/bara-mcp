@@ -54,9 +54,9 @@ class EvaluationPlanControllerTest extends AsProgramCoordinatorTestCase
             "name" => $this->evaluationPlan->name,
             "interval" => $this->evaluationPlan->interval,
             "reportForm" => [
-                "id" => $this->evaluationPlan->feedbackFormForm->id,
-                "name" => $this->evaluationPlan->feedbackFormForm->form->name,
-                "description" => $this->evaluationPlan->feedbackFormForm->form->description,
+                "id" => $this->evaluationPlan->feedbackForm->id,
+                "name" => $this->evaluationPlan->feedbackForm->form->name,
+                "description" => $this->evaluationPlan->feedbackForm->form->description,
                 "attachmentFields" => [],
                 "stringFields" => [],
                 "integerFields" => [],
@@ -87,8 +87,8 @@ class EvaluationPlanControllerTest extends AsProgramCoordinatorTestCase
                     "name" => $this->evaluationPlan->name,
                     "interval" => $this->evaluationPlan->interval,
                     "reportForm" => [
-                        "id" => $this->evaluationPlan->feedbackFormForm->id,
-                        "name" => $this->evaluationPlan->feedbackFormForm->form->name,
+                        "id" => $this->evaluationPlan->feedbackForm->id,
+                        "name" => $this->evaluationPlan->feedbackForm->form->name,
                     ],
                 ],
             ],

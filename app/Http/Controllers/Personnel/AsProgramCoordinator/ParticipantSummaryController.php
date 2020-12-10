@@ -54,6 +54,29 @@ class ParticipantSummaryController extends AsProgramCoordinatorBaseController
         return $this->listQueryResponse($result);
     }
     
+    public function showAllEvaluationSummary($programId)
+    {
+        $this->authorizedUserIsProgramCoordinator($programId);
+        
+        $service = $this->buildViewService();
+        $participants = $service->showAllWithEvaluationSummary(
+            $this->firmId(), $programId, $this->getPage(), $this->getPageSize());
+        
+        $result = [];
+        $result["total"] = $service->getTotalActvieParticipants($programId);
+        foreach ($participants as $participant) {
+            $result["list"][] = [
+                "id" => $participant["participantId"],
+                "name" => $participant["participantName"],
+                "evaluationPlanId" => $participant["evaluationPlanId"],
+                "evaluationPlanName" => $participant["evaluationPlanName"],
+                "scheduledEvaluation" => $participant["scheduledEvaluation"],
+                "extendDays" => $participant["extendDays"],
+            ];
+        }
+        return $this->listQueryResponse($result);
+    }
+    
     protected function buildViewService()
     {
         $participantSummaryRepository = new DoctrineParticipantSummaryRepository($this->em);

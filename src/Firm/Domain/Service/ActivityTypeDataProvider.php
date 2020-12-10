@@ -65,5 +65,14 @@ class ActivityTypeDataProvider
     {
         return $this->activityParticipantDataCollection;
     }
+    
+    public function pullActivityParticipantDataCorrespondWithType(string $participantType): ?ActivityParticipantData
+    {
+        
+        $activityParticipantData = isset($this->activityParticipantDataCollection[$participantType])?
+                $this->activityParticipantDataCollection[$participantType]: null;
+        unset($this->activityParticipantDataCollection[$participantType]);
+        return $activityParticipantData;
+    }
 
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="User\Domain\Model\Personnel\Coordinator\EvaluationReport" 
+            table="EvaluationReport"
+    >
+        
+        <many-to-one  field="coordinator" 
+                      target-entity="User\Domain\Model\Personnel\Coordinator"
+                      inversed-by="evaluationReports"
+        >
+            <join-column name="Coordinator_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+
+        <many-to-one  field="participant" 
+                      target-entity="User\Domain\DependencyModel\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+
+        <many-to-one  field="evaluationPlan" 
+                      target-entity="User\Domain\DependencyModel\Firm\Program\EvaluationPlan"
+        >
+            <join-column name="EvaluationPlan_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="formRecord" 
+                    target-entity="SharedContext\Domain\Model\SharedEntity\FormRecord"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

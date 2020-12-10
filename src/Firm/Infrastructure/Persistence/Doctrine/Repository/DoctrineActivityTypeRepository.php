@@ -37,4 +37,9 @@ class DoctrineActivityTypeRepository extends EntityRepository implements Activit
         return $activityType;
     }
 
+    public function update(): void
+    {
+        $this->getEntityManager()->flush();
+    }
+
 }

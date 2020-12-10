@@ -65,6 +65,7 @@ class ActivityTypeTest extends TestBase
         $this->assertEquals($this->id, $activityType->id);
         $this->assertEquals($this->name, $activityType->name);
         $this->assertEquals($this->description, $activityType->description);
+        $this->assertFalse($activityType->disabled);
     }
     public function test_construct_emptyName_badRequest()
     {
@@ -86,6 +87,61 @@ class ActivityTypeTest extends TestBase
         $activityType = $this->executeConstruct();
         $this->assertEquals(1, $activityType->participants->count());
         $this->assertInstanceOf(ActivityParticipant::class, $activityType->participants->first());
+    }
+    
+    protected function executeUpdate()
+    {
+        $this->activityTypeDataProvider->expects($this->any())->method("getName")->willReturn($this->name);
+        $this->activityTypeDataProvider->expects($this->any())->method("getDescription")->willReturn($this->description);
+        $this->activityType->update($this->activityTypeDataProvider);
+    }
+    public function test_update_changeProperties()
+    {
+        $this->executeUpdate();
+        $this->assertEquals($this->name, $this->activityType->name);
+        $this->assertEquals($this->description, $this->activityType->description);
+    }
+    public function test_update_emptyName_badRequst()
+    {
+        $this->name = "";
+        $operation = function (){
+            $this->executeUpdate();
+        };
+        $errorDetail = "bad request: activity type name is mandatory";
+        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
+    }
+    public function test_update_updateAllExistingAttendeeSetup()
+    {
+        $this->attendeeSetup->expects($this->once())
+                ->method("update")
+                ->with($this->activityTypeDataProvider);
+        $this->executeUpdate();
+    }
+    public function test_update_addLeftOverAttendeeSetupToCollection()
+    {
+        $this->activityParticipantData->expects($this->any())->method("getParticipantType")->willReturn("coordinator");
+        $this->activityParticipantData->expects($this->any())->method("getCanInitiate")->willReturn(false);
+        $this->activityParticipantData->expects($this->any())->method("getCanAttend")->willReturn(true);
+        $this->activityTypeDataProvider->expects($this->once())
+                ->method("iterateActivityParticipantData")
+                ->willReturn([$this->activityParticipantData]);
+        
+        $this->executeUpdate();
+        $this->assertEquals(2, $this->activityType->participants->count());
+        $this->assertInstanceOf(ActivityParticipant::class, $this->activityType->participants->last());
+    }
+    
+    public function test_disable_setDisabled()
+    {
+        $this->activityType->disable();
+        $this->assertTrue($this->activityType->disabled);
+    }
+    
+    public function test_enable_setDisabledFalse()
+    {
+        $this->activityType->disabled = true;
+        $this->activityType->enable();
+        $this->assertFalse($this->activityType->disabled);
     }
     
     public function test_belongsToFirm_returnProgramBelongsToFirmResult()
@@ -117,6 +173,15 @@ class ActivityTypeTest extends TestBase
     public function test_createMeeting_returnMeeting()
     {
         $this->assertInstanceOf(Meeting::class, $this->executeCreateMeeting());
+    }
+    public function test_createMeeting_disabledActivityType_forbidden()
+    {
+        $this->activityType->disabled = true;
+        $operation = function (){
+            $this->executeCreateMeeting();
+        };
+        $errorDetail = "Forbidden: can only create meeting on enabled type";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeSetUserAsInitiatorInMeeting()
@@ -175,6 +240,7 @@ class ActivityTypeTest extends TestBase
         $errorDetail = "forbidden: user cannot be involved in program";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+    
 }
 
 class TestableActivityType extends ActivityType
@@ -183,5 +249,6 @@ class TestableActivityType extends ActivityType
     public $id;
     public $name;
     public $description;
+    public $disabled;
     public $participants;
 }

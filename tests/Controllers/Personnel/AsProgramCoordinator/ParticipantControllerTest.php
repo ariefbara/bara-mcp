@@ -9,6 +9,7 @@ use Tests\Controllers\RecordPreparation\ {
     Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField,
     Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport,
     Firm\Program\Participant\RecordOfMetricAssignment,
+    Firm\Program\RecordOfEvaluationPlan,
     Firm\Program\RecordOfMetric,
     Firm\Program\RecordOfParticipant,
     Firm\RecordOfClient,
@@ -35,6 +36,8 @@ class ParticipantControllerTest extends ParticipantTestCase
     protected $metricAssignmentReportTwo_last;
     protected $assignmentFieldValue_00;
     protected $assignmentFieldValue_01;
+    protected $evaluationPlan;
+    protected $evaluateInput;
 
     protected function setUp(): void
     {
@@ -48,6 +51,8 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->connection->table("AssignmentField")->truncate();
         $this->connection->table("MetricAssignmentReport")->truncate();
         $this->connection->table("AssignmentFieldValue")->truncate();
+        $this->connection->table("EvaluationPlan")->truncate();
+        $this->connection->table("Evaluation")->truncate();
         
         $program = $this->coordinator->program;
         $firm = $program->firm;
@@ -105,6 +110,9 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
         
+        $this->evaluationPlan = new RecordOfEvaluationPlan($program, null, 0);
+        $this->connection->table("EvaluationPlan")->insert($this->evaluationPlan->toArrayForDbEntry());
+        
         $this->assignMetricInput = [
             "startDate" => (new DateTime("+4 months"))->format("Y-m-d H:i:s"),
             "endDate" => (new DateTime("+6 months"))->format("Y-m-d H:i:s"),
@@ -120,6 +128,12 @@ class ParticipantControllerTest extends ParticipantTestCase
             ],
         ];
         
+        $this->evaluateInput = [
+            "evaluationPlanId" => $this->evaluationPlan->id,
+            "status" => "pass",
+            "extendDays" => null,
+        ];
+        
     }
     protected function tearDown(): void
     {
@@ -133,6 +147,8 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->connection->table('TeamParticipant')->truncate();
         $this->connection->table("MetricAssignmentReport")->truncate();
         $this->connection->table("AssignmentFieldValue")->truncate();
+        $this->connection->table("EvaluationPlan")->truncate();
+        $this->connection->table("Evaluation")->truncate();
     }
     
     public function test_show()
@@ -173,6 +189,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                 ],
                 "lastMetricAssignmentReport" => null,
             ],
+            "lastEvaluation" => null,
         ];
         
         $uri = $this->participantUri . "/{$this->participant->id}";
@@ -269,6 +286,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                             ],
                         ],
                     ],
+                    "lastEvaluation" => null,
                 ],
                 [
                     "id" => $this->participantOne_client->id,
@@ -282,6 +300,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                     ],
                     "team" => null,
                     "metricAssignment" => null,
+                    "lastEvaluation" => null,
                 ],
                 [
                     "id" => $this->participantTwo_team->id,
@@ -295,6 +314,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                         "name" => $this->teamParticipant->team->name,
                     ],
                     "metricAssignment" => null,
+                    "lastEvaluation" => null,
                 ],
             ],
         ];
@@ -358,6 +378,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                             ],
                         ],
                     ],
+                    "lastEvaluation" => null,
                 ],
                 [
                     "id" => $this->participantTwo_team->id,
@@ -371,6 +392,7 @@ class ParticipantControllerTest extends ParticipantTestCase
                         "name" => $this->teamParticipant->team->name,
                     ],
                     "metricAssignment" => null,
+                    "lastEvaluation" => null,
                 ],
             ],
         ];
@@ -431,6 +453,132 @@ class ParticipantControllerTest extends ParticipantTestCase
             "Metric_id" => $this->assignMetricInput["assignmentFields"][1]["metricId"],
         ];
         $this->seeInDatabase("AssignmentField", $assignmentFieldOneEntry);
+    }
+    
+    public function test_evaluate_pass_200()
+    {
+        $participantResponse = [
+            "id" => $this->participant->id,
+            "active" => $this->participant->active,
+        ];
+        $lastEvaluationResponse = [
+            "status" => $this->evaluateInput["status"],
+            "extendDays" => null,
+            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "coordinator" => [
+                "id" => $this->coordinator->id,
+                "name" => $this->coordinator->personnel->getFullName(),
+            ],
+            "evaluationPlan" => [
+                "id" => $this->evaluationPlan->id,
+                "name" => $this->evaluationPlan->name,
+            ],
+        ];
+        
+        $uri = $this->participantUri . "/{$this->participant->id}/evaluate";
+        $this->patch($uri, $this->evaluateInput, $this->coordinator->personnel->token)
+                ->seeJsonContains($participantResponse)
+                ->seeJsonContains($lastEvaluationResponse)
+                ->seeStatusCode(200);
+        
+        $evaluationEntry = [
+            "Participant_id" => $this->participant->id,
+            "c_status" => $this->evaluateInput["status"],
+            "extendDays" => null,
+            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "Coordinator_id" => $this->coordinator->id,
+            "EvaluationPlan_id" => $this->evaluationPlan->id,
+        ];
+        $this->seeInDatabase("Evaluation", $evaluationEntry);
+    }
+    public function test_evaluate_fail_disableParticipant_200()
+    {
+        $this->evaluateInput["status"] = "fail";
+        
+        $participantResponse = [
+            "id" => $this->participant->id,
+            "active" => false,
+        ];
+        $lastEvaluationResponse = [
+            "status" => $this->evaluateInput["status"],
+            "extendDays" => null,
+            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "coordinator" => [
+                "id" => $this->coordinator->id,
+                "name" => $this->coordinator->personnel->getFullName(),
+            ],
+            "evaluationPlan" => [
+                "id" => $this->evaluationPlan->id,
+                "name" => $this->evaluationPlan->name,
+            ],
+        ];
+        
+        $uri = $this->participantUri . "/{$this->participant->id}/evaluate";
+        $this->patch($uri, $this->evaluateInput, $this->coordinator->personnel->token)
+                ->seeJsonContains($participantResponse)
+                ->seeJsonContains($lastEvaluationResponse)
+                ->seeStatusCode(200);
+        
+        $participantEntry = [
+            "id" => $this->participant->id,
+            "active" => false,
+        ];
+        $this->seeInDatabase("Participant", $participantEntry);
+        
+        $evaluationEntry = [
+            "Participant_id" => $this->participant->id,
+            "c_status" => $this->evaluateInput["status"],
+            "extendDays" => null,
+            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "Coordinator_id" => $this->coordinator->id,
+            "EvaluationPlan_id" => $this->evaluationPlan->id,
+        ];
+        $this->seeInDatabase("Evaluation", $evaluationEntry);
+    }
+    public function test_evaluate_extend_200()
+    {
+        $this->evaluateInput["status"] = "extend";
+        $this->evaluateInput["extendDays"] = 99;
+        
+        $participantResponse = [
+            "id" => $this->participant->id,
+            "active" => true,
+        ];
+        $lastEvaluationResponse = [
+            "status" => $this->evaluateInput["status"],
+            "extendDays" => 99,
+            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "coordinator" => [
+                "id" => $this->coordinator->id,
+                "name" => $this->coordinator->personnel->getFullName(),
+            ],
+            "evaluationPlan" => [
+                "id" => $this->evaluationPlan->id,
+                "name" => $this->evaluationPlan->name,
+            ],
+        ];
+        
+        $uri = $this->participantUri . "/{$this->participant->id}/evaluate";
+        $this->patch($uri, $this->evaluateInput, $this->coordinator->personnel->token)
+                ->seeJsonContains($participantResponse)
+                ->seeJsonContains($lastEvaluationResponse)
+                ->seeStatusCode(200);
+        
+        $participantEntry = [
+            "id" => $this->participant->id,
+            "active" => true,
+        ];
+        $this->seeInDatabase("Participant", $participantEntry);
+        
+        $evaluationEntry = [
+            "Participant_id" => $this->participant->id,
+            "c_status" => $this->evaluateInput["status"],
+            "extendDays" => 99,
+            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "Coordinator_id" => $this->coordinator->id,
+            "EvaluationPlan_id" => $this->evaluationPlan->id,
+        ];
+        $this->seeInDatabase("Evaluation", $evaluationEntry);
     }
     
 }

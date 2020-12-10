@@ -16,7 +16,7 @@ class AccountController extends ManagerBaseController
     public function changePassword()
     {
         $service = $this->buildChangePasswordService();
-        $oldPassword = $this->stripTagsInputRequest("oldPassword");
+        $oldPassword = $this->stripTagsInputRequest("previousPassword");
         $newPassword = $this->stripTagsInputRequest("newPassword");
         
         $service->execute($this->firmId(), $this->managerId(), $oldPassword, $newPassword);

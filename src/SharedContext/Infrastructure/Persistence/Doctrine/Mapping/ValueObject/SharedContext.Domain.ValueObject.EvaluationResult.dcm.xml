@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\EvaluationResult">
+        
+        <field name="status" column="c_status" type="string" length="8" nullable="false"/>
+        <field name="extendDays" type="smallint" nullable="true"/>
+        
+    </embeddable>
+</doctrine-mapping>

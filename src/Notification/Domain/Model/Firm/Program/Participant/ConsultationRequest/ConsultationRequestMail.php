@@ -30,7 +30,7 @@ class ConsultationRequestMail
     protected $mail;
 
     function __construct(
-            ConsultationRequest $consultationRequest, string $id, $senderMailAddress, string $senderName,
+            ConsultationRequest $consultationRequest, string $id, string $senderMailAddress, string $senderName,
             MailMessage $mailMessage, string $recipientMailAddress, string $recipientName)
     {
         $this->consultationRequest = $consultationRequest;

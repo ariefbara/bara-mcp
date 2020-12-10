@@ -3,12 +3,15 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\{
     Model\Firm\Program,
     Model\Firm\Program\MeetingType\CanAttendMeeting,
     Model\Firm\Program\MeetingType\Meeting,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
+    Model\Firm\Program\Participant\Evaluation,
+    Model\Firm\Program\Participant\EvaluationData,
     Model\Firm\Program\Participant\MetricAssignment,
     Model\Firm\Team,
     Service\MetricAssignmentDataProvider
@@ -77,6 +80,12 @@ class Participant implements AssetInProgram, CanAttendMeeting
      */
     protected $metricAssignment;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $evaluations;
+
     public function getId(): string
     {
         return $this->id;
@@ -117,14 +126,21 @@ class Participant implements AssetInProgram, CanAttendMeeting
         return $participant;
     }
 
-    public function bootout(): void
+    public function receiveEvaluation(
+            EvaluationPlan $evaluationPlan, EvaluationData $evaluationData, Coordinator $coordinator): void
     {
         if (!$this->active) {
-            $errorDetail = 'forbidden: participant already inactive';
+            $errorDetail = "forbidden: unable to evaluate inactive participant";
             throw RegularException::forbidden($errorDetail);
         }
+        $id = Uuid::generateUuid4();
+        $evaluation = new Evaluation($this, $id, $evaluationPlan, $evaluationData, $coordinator);
+        $this->evaluations->add($evaluation);
+    }
+    
+    public function disable(): void
+    {
         $this->active = false;
-        $this->note = 'booted';
     }
 
     public function reenroll(): void

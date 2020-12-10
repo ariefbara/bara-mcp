@@ -12,6 +12,7 @@ use Firm\Domain\{
     Model\Firm\Program\MeetingType\Meeting,
     Model\Firm\Program\MeetingType\Meeting\Attendee,
     Model\Firm\Program\MeetingType\MeetingData,
+    Model\Firm\Program\Participant\EvaluationData,
     Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
     Service\MetricAssignmentDataProvider
 };
@@ -146,6 +147,15 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
             throw RegularException::forbidden($errorDetail);
         }
         $attendee->setCoordinatorAsAttendeeCandidate($this);
+    }
+
+    public function evaluateParticipant(
+            Participant $participant, EvaluationPlan $evaluationPlan, EvaluationData $evaluationData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsProgram($participant);
+        $this->assertAssetBelongsProgram($evaluationPlan);
+        $participant->receiveEvaluation($evaluationPlan, $evaluationData, $this);
     }
 
     public function belongsToFirm(Firm $firm): bool

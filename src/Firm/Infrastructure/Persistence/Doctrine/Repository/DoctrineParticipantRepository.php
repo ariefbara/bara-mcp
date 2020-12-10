@@ -4,12 +4,13 @@ namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Firm\ {
+    Application\Service\Coordinator\ParticipantRepository as InterfaceForCoordinator,
     Application\Service\Firm\Program\ParticipantRepository,
     Domain\Model\Firm\Program\Participant
 };
 use Resources\Exception\RegularException;
 
-class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository
+class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, InterfaceForCoordinator
 {
     
     public function ofId(string $participantId): Participant

@@ -17,6 +17,7 @@ class ActivityTypeControllerTest extends AsProgramParticipantTestCase
     protected $activityTypeOne;
     protected $activityParticipant_00;
     protected $activityParticipant_01;
+    protected $activityParticipant_10;
 
     protected function setUp(): void
     {
@@ -45,8 +46,10 @@ class ActivityTypeControllerTest extends AsProgramParticipantTestCase
         $this->activityParticipant_00 = new RecordOfActivityParticipant($this->activityType, $this->feedbackForm, "00");
         $this->activityParticipant_01 = new RecordOfActivityParticipant($this->activityType, $this->feedbackForm, "01");
         $this->activityParticipant_01->participantType = "participant";
+        $this->activityParticipant_10 = new RecordOfActivityParticipant($this->activityTypeOne, $this->feedbackForm, "10");
         $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_00->toArrayForDbEntry());
         $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_01->toArrayForDbEntry());
+        $this->connection->table("ActivityParticipant")->insert($this->activityParticipant_10->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
@@ -105,15 +108,11 @@ class ActivityTypeControllerTest extends AsProgramParticipantTestCase
     public function test_showAll_200()
     {
         $response = [
-            "total" => 2,
+            "total" => 1,
             "list" => [
                 [
                     "id" => $this->activityType->id,
                     "name" => $this->activityType->name,
-                ],
-                [
-                    "id" => $this->activityTypeOne->id,
-                    "name" => $this->activityTypeOne->name,
                 ],
             ],
         ];

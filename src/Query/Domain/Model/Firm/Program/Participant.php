@@ -3,11 +3,13 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\{
+use Doctrine\Common\Collections\ArrayCollection;
+use Query\Domain\ {
     Event\LearningMaterialViewedByParticipantEvent,
     Model\Firm\Client\ClientParticipant,
     Model\Firm\Program,
     Model\Firm\Program\Mission\LearningMaterial,
+    Model\Firm\Program\Participant\Evaluation,
     Model\Firm\Program\Participant\MetricAssignment,
     Model\Firm\Program\Participant\Worksheet,
     Model\Firm\Team\TeamProgramParticipation,
@@ -15,7 +17,7 @@ use Query\Domain\{
     Service\Firm\Program\Participant\WorksheetFinder,
     Service\LearningMaterialFinder
 };
-use Resources\{
+use Resources\ {
     Domain\Model\EntityContainEvents,
     Exception\RegularException
 };
@@ -55,7 +57,7 @@ class Participant extends EntityContainEvents
 
     /**
      *
-     * @var UserParticipant||null
+     * @var ClientParticipant||null
      */
     protected $clientParticipant;
 
@@ -76,6 +78,12 @@ class Participant extends EntityContainEvents
      * @var MetricAssignment|null
      */
     protected $metricAssignment;
+    
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $evaluations;
 
     public function getProgram(): Program
     {
@@ -126,6 +134,17 @@ class Participant extends EntityContainEvents
     {
         
     }
+    
+    public function getName(): string
+    {
+        if (isset($this->userParticipant)) {
+            return $this->userParticipant->getUser()->getFullName();
+        } elseif (isset ($this->clientParticipant)) {
+            return $this->clientParticipant->getClient()->getFullName();
+        } else {
+            return $this->teamParticipant->getTeam()->getName();
+        }
+    }
 
     public function viewWorksheet(WorksheetFinder $worksheetFinder, string $worksheetId): Worksheet
     {
@@ -170,6 +189,14 @@ class Participant extends EntityContainEvents
         $this->recordEvent($event);
 
         return $learningMaterial;
+    }
+    
+    public function getLastEvaluation(): ?Evaluation
+    {
+        $criteria = \Doctrine\Common\Collections\Criteria::create()
+                ->orderBy(["submitTime" => "DESC"]);
+        $evaluation = $this->evaluations->matching($criteria)->first();
+        return empty($evaluation)? null: $evaluation;
     }
 
 }

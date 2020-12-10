@@ -24,6 +24,7 @@ class RecordOfActivityParticipant implements Record
     public $participantType;
     public $canInitiate;
     public $canAttend;
+    public $disabled;
     
     function __construct(RecordOfActivityType $activityType, ?RecordOfFeedbackForm $feedbackForm, $index)
     {
@@ -33,6 +34,7 @@ class RecordOfActivityParticipant implements Record
         $this->participantType = "coordinator";
         $this->canInitiate = true;
         $this->canAttend = true;
+        $this->disabled = false;
     }
 
     
@@ -45,6 +47,7 @@ class RecordOfActivityParticipant implements Record
             "participantType" => $this->participantType,
             "canInitiate" => $this->canInitiate,
             "canAttend" => $this->canAttend,
+            "disabled" => $this->disabled,
         ];
     }
 

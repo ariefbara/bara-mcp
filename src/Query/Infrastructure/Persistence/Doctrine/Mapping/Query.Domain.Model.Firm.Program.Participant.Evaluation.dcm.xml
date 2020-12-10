@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\Evaluation" 
+            table="Evaluation"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineEvaluationRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+                      inversed-by="evaluations"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="evaluationPlan" 
+                      target-entity="Query\Domain\Model\Firm\Program\EvaluationPlan"
+        >
+            <join-column name="EvaluationPlan_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="coordinator" 
+                      target-entity="Query\Domain\Model\Firm\Program\Coordinator"
+        >
+            <join-column name="Coordinator_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <embedded name="evaluationResult" 
+                  class="SharedContext\Domain\ValueObject\EvaluationResult" 
+                  use-column-prefix="false" />
+        
+        <field name="submitTime" type="datetime_immutable" nullable="true"/>
+        
+    </entity>
+</doctrine-mapping>

@@ -30,6 +30,7 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->get('/participant-summary', ['uses' => "ParticipantSummaryController@showAll"]);
         $router->get('/participant-achievement-summary', ['uses' => "ParticipantSummaryController@showAllMetricAchievement"]);
+        $router->get('/participant-evaluation-summary', ['uses' => "ParticipantSummaryController@showAllEvaluationSummary"]);
         $router->get('/consultant-summary', ['uses' => "ConsultantSummaryController@showAll"]);
         
         $router->group(['prefix' => '/consultation-requests'], function () use($router) {
@@ -53,6 +54,7 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->group(['prefix' => '/participants'], function () use($router) {
             $controller = "ParticipantController";
             $router->put("/{participantId}/assign-metric", ["uses" => "$controller@assignMetric"]);
+            $router->patch("/{participantId}/evaluate", ["uses" => "$controller@evaluate"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{participantId}", ["uses" => "$controller@show"]);
         });
@@ -74,6 +76,19 @@ $router->group($personnelAggregate, function () use ($router) {
                 $router->patch("/{metricAssignmentReportId}/approve", ["uses" => "$controller@approve"]);
                 $router->get("", ["uses" => "$controller@showAll"]);
                 $router->get("/{metricAssignmentReportId}", ["uses" => "$controller@show"]);
+            });
+            
+            $router->group(['prefix' => '/evaluation-reports'], function () use($router) {
+                $controller = "EvaluationReportController";
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{evaluationReportId}", ["uses" => "$controller@show"]);
+            });
+            
+            $router->group(['prefix' => '/evaluations'], function () use($router) {
+                $controller = "EvaluationController";
+                $router->post("", ["uses" => "$controller@evaluate"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{evaluationId}", ["uses" => "$controller@show"]);
             });
             
         });
@@ -286,6 +301,13 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->put("/{invitationId}", ["uses" => "$controller@submitReport"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{invitationId}", ["uses" => "$controller@show"]);
+        });
+        
+        $router->group(['prefix' => '/evaluation-reports'], function () use($router) {
+            $controller = "EvaluationReportController";
+            $router->put("/{participantId}/{evaluationPlanId}", ["uses" => "$controller@submit"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{participantId}/{evaluationPlanId}", ["uses" => "$controller@show"]);
         });
     });
     

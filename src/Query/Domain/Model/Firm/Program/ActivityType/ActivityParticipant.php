@@ -44,6 +44,12 @@ class ActivityParticipant
      */
     protected $reportForm;
 
+    /**
+     *
+     * @var bool
+     */
+    protected $disabled;
+
     function getActivityType(): ActivityType
     {
         return $this->activityType;
@@ -57,6 +63,11 @@ class ActivityParticipant
     function getReportForm(): ?FeedbackForm
     {
         return $this->reportForm;
+    }
+
+    function isDisabled(): bool
+    {
+        return $this->disabled;
     }
 
     protected function __construct()

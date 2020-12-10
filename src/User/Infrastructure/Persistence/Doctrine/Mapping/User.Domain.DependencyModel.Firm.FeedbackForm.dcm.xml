@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="User\Domain\DependencyModel\Firm\FeedbackForm" 
+            table="FeedbackForm" 
+    >
+        
+        <many-to-one  field="firm" 
+                      target-entity="User\Domain\DependencyModel\Firm"
+        >
+            <join-column name="Firm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="form" 
+                    target-entity="SharedContext\Domain\Model\SharedEntity\Form"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

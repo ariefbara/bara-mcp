@@ -26,6 +26,7 @@ class ManagerTest extends TestBase
     protected $manager;
     protected $program;
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
+    protected $activityType;
     
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $coordinator;
@@ -45,6 +46,7 @@ class ManagerTest extends TestBase
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->activityTypeDataProvider = $this->buildMockOfClass(ActivityTypeDataProvider::class);
+        $this->activityType = $this->buildMockOfClass(ActivityType::class);
         
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
@@ -166,6 +168,64 @@ class ManagerTest extends TestBase
         };
         $errorDetail = "forbidden: only active manager can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    protected function executeUpdateActivityType()
+    {
+        $this->setAssetBelongsToFirm($this->activityType);
+        $this->manager->updateActivityType($this->activityType, $this->activityTypeDataProvider);
+    }
+    public function test_updateActivityType_updateActivityType()
+    {
+        $this->activityType->expects($this->once())
+                ->method("update")
+                ->with($this->activityTypeDataProvider);
+        $this->executeUpdateActivityType();
+    }
+    public function test_updateActivityType_unmanagedActivityType_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->activityType);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateActivityType();
+        });
+    }
+    
+    protected function executeDisableActivityType()
+    {
+        $this->setAssetBelongsToFirm($this->activityType);
+        $this->manager->disableActivityType($this->activityType);
+    }
+    public function test_disableActivityType_disableActivityType()
+    {
+        $this->activityType->expects($this->once())
+                ->method("disable");
+        $this->executeDisableActivityType();
+    }
+    public function test_disableActivityType_unmanagedActivityType_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->activityType);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableActivityType();
+        });
+    }
+    
+    protected function executeEnableActivityType()
+    {
+        $this->setAssetBelongsToFirm($this->activityType);
+        $this->manager->enableActivityType($this->activityType);
+    }
+    public function test_enableActivityType_enableActivityType()
+    {
+        $this->activityType->expects($this->once())
+                ->method("enable");
+        $this->executeEnableActivityType();
+    }
+    public function test_enableActivityType_unmanagedActivityType_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->activityType);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeEnableActivityType();
+        });
     }
     
     public function test_canInvolvedInProgram_returnProgramsBelongsToFirmResult()

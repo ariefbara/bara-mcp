@@ -13,7 +13,7 @@ class AccountControllerTest extends ManagerTestCase
         parent::setUp();
         $this->accountUri = $this->managerUri . "/account";
         $this->changePasswordInput = [
-            "oldPassword" => $this->manager->rawPassword,
+            "previousPassword" => $this->manager->rawPassword,
             "newPassword" => "newPassword123",
         ];
     }
@@ -35,7 +35,7 @@ class AccountControllerTest extends ManagerTestCase
     }
     public function test_changePassword_oldPasswordNotMatch_403()
     {
-        $this->changePasswordInput["oldPassword"] = "unmatchPassword";
+        $this->changePasswordInput["previousPassword"] = "unmatchPassword";
         
         $uri = $this->accountUri . "/change-password";
         $this->patch($uri, $this->changePasswordInput, $this->manager->token)

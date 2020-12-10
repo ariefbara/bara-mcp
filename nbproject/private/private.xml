@@ -12,13 +12,10 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Manager/Program/ActivityTypeController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/ProgramParticipation/InvitationController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ConsultationSessionController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Manager/InvitationController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Client/ProgramParticipation/InvitationControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Domain/Model/ParticipantInvitee.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/ActivityInvitee/Infrastructure/Persistence/Doctrine/Mapping/ActivityInvitee.Domain.Model.ParticipantInvitee.dcm.xml</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Infrastructure/Persistence/Doctrine/Repository/DoctrineParticipantSummaryRepository.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ParticipantSummaryController.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Application/Service/Firm/Program/ParticipantSummaryRepository.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Application/Service/Firm/Program/ViewParticipantSummary.php</file>
         </group>
     </open-files>
 </project-private>
