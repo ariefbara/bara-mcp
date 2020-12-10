@@ -11,6 +11,7 @@ use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -35,6 +36,7 @@ class ManagerTest extends TestBase
     protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData;
     protected $consultationSetup, $consultationSetupName = "new consultation setup name",
             $sessionDuration = 99, $consultantFeedbackForm;
+    protected $profileFormId = "profileFormId", $formData, $profileForm;
 
     protected function setUp(): void
     {
@@ -59,6 +61,9 @@ class ManagerTest extends TestBase
         $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
         $this->evaluationPlanData = $this->buildMockOfClass(EvaluationPlanData::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
+        
+        $this->formData = $this->buildMockOfClass(FormData::class);
+        $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -490,7 +495,36 @@ class ManagerTest extends TestBase
             $this->executeUpdateConsultationSetup();
         });
     }
-
+    
+    protected function executeCreateProfileForm()
+    {
+        return $this->manager->createProfileForm($this->profileFormId, $this->formData);
+    }
+    public function test_createProfileForm_returnProfileForm()
+    {
+        $profileForm = new ProfileForm($this->manager->firm, $this->profileFormId, $this->formData);
+        $this->assertEquals($profileForm, $this->executeCreateProfileForm());
+    }
+    
+    protected function executeUpdateProfileForm()
+    {
+        $this->setAssetBelongsToFirm($this->profileForm);
+        $this->manager->updateProfileForm($this->profileForm, $this->formData);
+    }
+    public function test_updateProfileForm_updateProfileForm()
+    {
+        $this->profileForm->expects($this->once())
+                ->method("update")
+                ->with($this->formData);
+        $this->executeUpdateProfileForm();
+    }
+    public function test_updateProfileForm_unmanagedProfileForm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->profileForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateProfileForm();
+        });
+    }
 }
 
 class TestableManager extends Manager

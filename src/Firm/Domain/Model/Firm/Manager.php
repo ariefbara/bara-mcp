@@ -15,6 +15,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Resources\Domain\ValueObject\Password;
 use Resources\Exception\RegularException;
@@ -226,6 +227,17 @@ class Manager implements CanAttendMeeting
         $this->assertAssetBelongsToSameFirm($participantFeedbackForm);
         $this->assertAssetBelongsToSameFirm($consultantFeedbackForm);
         $consultationSetup->update($name, $sessionDuration, $participantFeedbackForm, $consultantFeedbackForm);
+    }
+    
+    public function createProfileForm(string $profileFormId, FormData $formData): ProfileForm
+    {
+        return new ProfileForm($this->firm, $profileFormId, $formData);
+    }
+    
+    public function updateProfileForm(ProfileForm $profileForm, FormData $formData): void
+    {
+        $this->assertAssetBelongsToSameFirm($profileForm);
+        $profileForm->update($formData);
     }
 
     protected function assertAssetBelongsToSameFirm(AssetBelongsToFirm $asset): void
