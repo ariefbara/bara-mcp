@@ -173,6 +173,20 @@ $router->group($clientAggregate, function () use ($router) {
         
     });
     
+    $asProgramRegistrantAggregate = [
+        'prefix' => '/as-program-registrant/{programId}',
+        'namespace' => 'AsProgramRegistrant',
+    ];
+    $router->group($asProgramRegistrantAggregate, function () use ($router) {
+        
+        $router->group(['prefix' => '/programs-profile-forms'], function () use($router) {
+            $controller = "ProgramsProfileFormController";
+            $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+        
+    });
+    
     $asProgramParticipantAggregate = [
         'prefix' => '/as-program-participant/{programId}',
         'namespace' => 'AsProgramParticipant',

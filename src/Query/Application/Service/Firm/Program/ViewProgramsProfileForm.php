@@ -26,10 +26,10 @@ class ViewProgramsProfileForm
      * @param int $pageSize
      * @return ProgramsProfileForm[]
      */
-    public function showAll(string $firmId, string $programId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $programId, int $page, int $pageSize, ?bool $enableOnly = true)
     {
         return $this->programsProfileFormRepository
-                        ->allProgramsProfileFormsInProgram($firmId, $programId, $page, $pageSize);
+                        ->allProgramsProfileFormsInProgram($firmId, $programId, $page, $pageSize, $enableOnly);
     }
 
     public function showById(string $firmId, string $programId, string $programsProfileFormId): ProgramsProfileForm

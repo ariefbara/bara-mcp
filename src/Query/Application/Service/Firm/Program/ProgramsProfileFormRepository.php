@@ -9,5 +9,6 @@ interface ProgramsProfileFormRepository
 
     public function aProgramsProfileFormInProgram(string $firmId, string $programId, string $programsProfileFormId): ProgramsProfileForm;
 
-    public function allProgramsProfileFormsInProgram(string $firmId, string $programId, int $page, int $pageSize);
+    public function allProgramsProfileFormsInProgram(
+            string $firmId, string $programId, int $page, int $pageSize, ?bool $enableOnly = true);
 }
