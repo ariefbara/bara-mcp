@@ -185,12 +185,12 @@ SELECT _a.participantId,
 FROM (
     SELECT __a.Program_id, __a.id participantId, __a.active, __a.enrolledTime, MIN(__b.days_interval) days_interval
     FROM Participant __a
-    CROSS JOIN EvaluationPlan __b
+    CROSS JOIN EvaluationPlan __b ON __b.Program_id = __a.Program_id
     LEFT JOIN Evaluation __c ON __c.Participant_id = __a.id AND __c.EvaluationPlan_id = __b.id
     WHERE __c.id IS NULL OR __c.c_status = 'extend'
     GROUP BY participantId
 )_a
-LEFT JOIN EvaluationPlan _b ON _b.days_interval = _a.days_interval
+LEFT JOIN EvaluationPlan _b ON _b.days_interval = _a.days_interval AND _b.Program_id = _a.Program_id
 LEFT JOIN Evaluation _c ON _c.Participant_id = _a.participantId AND _c.EvaluationPlan_id = _b.id
 LEFT JOIN (
     SELECT CONCAT(User.firstName, ' ', User.lastName) userName, UserParticipant.Participant_id participantId
