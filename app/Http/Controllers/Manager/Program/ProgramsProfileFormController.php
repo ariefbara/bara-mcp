@@ -36,7 +36,7 @@ class ProgramsProfileFormController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
         
         $programsProfileForms = $this->buildViewService()
-                ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
+                ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $enableOnly = false);
         
         $result = [];
         $result["total"] = count($programsProfileForms);

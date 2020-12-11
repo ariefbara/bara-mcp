@@ -11,7 +11,7 @@ class ProgramsProfileFormControllerTest extends ProgramTestCase
 {
     protected $programsProfileFormUri;
     protected $programsProfileFormOne;
-    protected $programsProfileFormTwo;
+    protected $programsProfileFormTwo_disable;
     protected $profileForm;
     protected $assignInput;
 
@@ -38,9 +38,10 @@ class ProgramsProfileFormControllerTest extends ProgramTestCase
         $this->connection->table("ProfileForm")->insert($profileFormTwo->toArrayForDbEntry());
         
         $this->programsProfileFormOne = new RecordOfProgramsProfileForm($this->program, $profileFormOne, 1);
-        $this->programsProfileFormTwo = new RecordOfProgramsProfileForm($this->program, $profileFormTwo, 2);
+        $this->programsProfileFormTwo_disable = new RecordOfProgramsProfileForm($this->program, $profileFormTwo, 2);
+        $this->programsProfileFormTwo_disable->disabled = true;
         $this->connection->table("ProgramsProfileForm")->insert($this->programsProfileFormOne->toArrayForDbEntry());
-        $this->connection->table("ProgramsProfileForm")->insert($this->programsProfileFormTwo->toArrayForDbEntry());
+        $this->connection->table("ProgramsProfileForm")->insert($this->programsProfileFormTwo_disable->toArrayForDbEntry());
         
         $this->assignInput = [
             "profileFormId" => $this->profileForm->id,
@@ -127,18 +128,18 @@ class ProgramsProfileFormControllerTest extends ProgramTestCase
             "list" => [
                 [
                     "id" => $this->programsProfileFormOne->id,
-                    "disabled" => false,
+                    "disabled" => $this->programsProfileFormOne->disabled,
                     "profileForm" => [
                         "id" => $this->programsProfileFormOne->profileForm->id,
                         "name" => $this->programsProfileFormOne->profileForm->form->name,
                     ],
                 ],
                 [
-                    "id" => $this->programsProfileFormTwo->id,
-                    "disabled" => false,
+                    "id" => $this->programsProfileFormTwo_disable->id,
+                    "disabled" => $this->programsProfileFormTwo_disable->disabled,
                     "profileForm" => [
-                        "id" => $this->programsProfileFormTwo->profileForm->id,
-                        "name" => $this->programsProfileFormTwo->profileForm->form->name,
+                        "id" => $this->programsProfileFormTwo_disable->profileForm->id,
+                        "name" => $this->programsProfileFormTwo_disable->profileForm->form->name,
                     ],
                 ],
             ],
