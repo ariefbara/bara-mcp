@@ -237,7 +237,7 @@ $router->group($userAggregate, function () use ($router) {
     });
     
     $asProgramRegistrantAggregate = [
-        'prefix' => '/as-program-registrant/{programId}',
+        'prefix' => '/as-program-registrant/{firmId}/{programId}',
         'namespace' => 'AsProgramRegistrant',
     ];
     $router->group($asProgramRegistrantAggregate, function () use ($router) {

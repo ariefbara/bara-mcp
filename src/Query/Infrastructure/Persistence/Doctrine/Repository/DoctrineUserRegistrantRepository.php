@@ -2,20 +2,15 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\User\ProgramRegistrationRepository,
-    Domain\Model\User\UserRegistrant
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Auth\UserRegistrantRepository as InterfaceForAuthorization;
+use Query\Application\Service\User\ProgramRegistrationRepository;
+use Query\Domain\Model\User\UserRegistrant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineUserRegistrantRepository extends EntityRepository implements ProgramRegistrationRepository
+class DoctrineUserRegistrantRepository extends EntityRepository implements ProgramRegistrationRepository, InterfaceForAuthorization
 {
 
     public function aProgramRegistrationOfUser(string $userId, string $programRegistrationId): UserRegistrant
@@ -54,6 +49,30 @@ class DoctrineUserRegistrantRepository extends EntityRepository implements Progr
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function containRecordOfUnconcludedRegistrationToProgram(string $userId, string $firmId, string $programId): bool
+    {
+        $params = [
+            "userId" => $userId,
+            "firmId" => $firmId,
+            "programId" => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder("userRegistrant");
+        $qb->select("1")
+                ->leftJoin("userRegistrant.registrant", "registrant")
+                ->andWhere($qb->expr()->eq("registrant.concluded", "false"))
+                ->leftJoin("registrant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->leftJoin("program.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->leftJoin("userRegistrant.user", "user")
+                ->andWhere($qb->expr()->eq("user.id", ":userId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        return !empty($qb->getQuery()->getResult());
     }
 
 }
