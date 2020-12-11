@@ -220,4 +220,34 @@ $router->group($userAggregate, function () use ($router) {
         
     });
     
+    $programRegistrationAggregate = [
+        'prefix' => '/program-registrations/{programRegistrationId}',
+        'namespace' => 'ProgramRegistration',
+    ];
+    $router->group($programRegistrationAggregate, function () use ($router) {
+        
+        $router->group(['prefix' => '/profiles'], function () use($router) {
+            $controller = "ProfileController";
+            $router->put("/{programsProfileFormId}", ["uses" => "$controller@submit"]);
+            $router->delete("/{programsProfileFormId}", ["uses" => "$controller@remove"]);
+            $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+        
+    });
+    
+    $asProgramRegistrantAggregate = [
+        'prefix' => '/as-program-registrant/{programId}',
+        'namespace' => 'AsProgramRegistrant',
+    ];
+    $router->group($asProgramRegistrantAggregate, function () use ($router) {
+        
+        $router->group(['prefix' => '/programs-profile-forms'], function () use($router) {
+            $controller = "ProgramsProfileFormController";
+            $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
+        
+    });
+    
 });
