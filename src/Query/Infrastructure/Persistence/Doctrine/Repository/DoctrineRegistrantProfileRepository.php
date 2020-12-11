@@ -2,16 +2,17 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\Client\RegistrantProfileRepository as InterfaceForClient;
 use Query\Application\Service\Firm\Program\RegistrantProfileRepository;
+use Query\Application\Service\Firm\Team\RegistrantProfileRepository as InterfaceForTeam;
 use Query\Domain\Model\Firm\Client\ClientRegistrant;
 use Query\Domain\Model\Firm\Program\Registrant\RegistrantProfile;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineRegistrantProfileRepository extends EntityRepository implements RegistrantProfileRepository, InterfaceForClient
+class DoctrineRegistrantProfileRepository extends BelongsToRegistrantEntityRepository implements RegistrantProfileRepository, InterfaceForClient,
+        InterfaceForTeam
 {
 
     public function aRegistrantProfileInProgram(string $firmId, string $programId, string $registrantProfileId): RegistrantProfile
@@ -74,7 +75,7 @@ class DoctrineRegistrantProfileRepository extends EntityRepository implements Re
             "registrantId" => $programRegistrationId,
             "programsProfileFormId" => $programsProfileFormId,
         ];
-        
+
         $registrantQb = $this->getEntityManager()->createQueryBuilder();
         $registrantQb->select("a_registrant.id")
                 ->from(ClientRegistrant::class, "clientRegistrant")
@@ -111,7 +112,7 @@ class DoctrineRegistrantProfileRepository extends EntityRepository implements Re
             "clientId" => $clientId,
             "registrantId" => $programRegistrationId,
         ];
-        
+
         $registrantQb = $this->getEntityManager()->createQueryBuilder();
         $registrantQb->select("a_registrant.id")
                 ->from(ClientRegistrant::class, "clientRegistrant")
@@ -129,6 +130,51 @@ class DoctrineRegistrantProfileRepository extends EntityRepository implements Re
                 ->andWhere($qb->expr()->in("registrant.id", $registrantQb->getDQL()))
                 ->setParameters($params);
 
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aRegistrantProfileBelongsToTeamCorrespondWithProgramsProfileForm(
+            string $firmId, string $teamId, string $programRegistrationId, string $programsProfileFormId): RegistrantProfile
+    {
+        $params = [
+            "firmId" => $firmId,
+            "teamId" => $teamId,
+            "programRegistrationId" => $programRegistrationId,
+            "programsProfileFormId" => $programsProfileFormId,
+        ];
+        $qb = $this->createQueryBuilder("registrantProfile");
+        $qb->select("registrantProfile")
+                ->andWhere($qb->expr()->eq("registrantProfile.removed", "false"))
+                ->leftJoin("registrantProfile.registrant", "registrant")
+                ->andWhere($qb->expr()->in("registrant.id", $this->getTeamRegistrantIdDQL()))
+                ->leftJoin("registrantProfile.programsProfileForm", "programsProfileForm")
+                ->andWhere($qb->expr()->eq("programsProfileForm.id", ":programsProfileFormId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: registrant profile not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allRegistrantProfilesBelongsToTeamCorrespondWithProgramsProfileForm(
+            string $firmId, string $teamId, string $programRegistrationId, int $page, int $pageSize)
+    {
+        $params = [
+            "firmId" => $firmId,
+            "teamId" => $teamId,
+            "programRegistrationId" => $programRegistrationId,
+        ];
+        $qb = $this->createQueryBuilder("registrantProfile");
+        $qb->select("registrantProfile")
+                ->andWhere($qb->expr()->eq("registrantProfile.removed", "false"))
+                ->leftJoin("registrantProfile.registrant", "registrant")
+                ->andWhere($qb->expr()->in("registrant.id", $this->getTeamRegistrantIdDQL()))
+                ->setParameters($params);
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

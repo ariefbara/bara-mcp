@@ -2,17 +2,14 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Participant\ {
-    Application\Service\Firm\Client\TeamMembershipRepository,
-    Domain\DependencyModel\Firm\Client\TeamMembership
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\Client\AsTeamMember\TeamMemberRepository;
+use Participant\Application\Service\Firm\Client\TeamMembershipRepository;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
 use Resources\Exception\RegularException;
 
-class DoctrineTeamMembershipRepository extends EntityRepository implements TeamMembershipRepository
+class DoctrineTeamMembershipRepository extends EntityRepository implements TeamMembershipRepository, TeamMemberRepository
 {
 
     public function aTeamMembershipCorrespondWithTeam(string $firmId, string $clientId, string $teamId): TeamMembership

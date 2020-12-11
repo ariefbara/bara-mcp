@@ -2,10 +2,12 @@
 
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
+use DateTimeImmutable;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Event\EventTriggeredByTeamMember;
 use Participant\Domain\Model\Participant;
@@ -15,6 +17,7 @@ use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Model\Registrant\RegistrantProfile;
 use Participant\Domain\Model\TeamProgramParticipation;
 use Participant\Domain\Model\TeamProgramRegistration;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -41,6 +44,8 @@ class TeamMembershipTest extends TestBase
     protected $participant, $logId = "logId", $learningMaterialId = "learningMaterialId";
     protected $metricAssignmentReportId = "metricAssignmentReportId", $metricAssignmentReport, $metricAssignmentReportDataProvider;
     protected $observationTime;
+    protected $programRegistration;
+    protected $programsProfileForm, $registrantProfile;
 
     protected function setUp(): void
     {
@@ -71,9 +76,13 @@ class TeamMembershipTest extends TestBase
         
         $this->participant = $this->buildMockOfClass(Participant::class);
         
-        $this->observationTime = new \DateTimeImmutable();
+        $this->observationTime = new DateTimeImmutable();
         $this->metricAssignmentReport = $this->buildMockOfClass(MetricAssignmentReport::class);
         $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
+        
+        $this->programRegistration = $this->buildMockOfClass(TeamProgramRegistration::class);
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->registrantProfile = $this->buildMockOfClass(RegistrantProfile::class);
     }
 
     protected function setAssetsNotBelongsToTeam($asset)
@@ -578,6 +587,61 @@ class TeamMembershipTest extends TestBase
         $this->setAssetsNotBelongsToTeam($this->metricAssignmentReport);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
             $this->executeUpdateMetricAssignmentReport();
+        });
+    }
+    
+    protected function executeSubmitRegistrantProfile()
+    {
+        $this->setAssetsBelongsToTeam($this->programRegistration);
+        $this->teamMembership->submitRegistrantProfile(
+                $this->programRegistration, $this->programsProfileForm, $this->formRecordData);
+    }
+    public function test_submitRegistrantProfile_submitProfileInProgramRegistration()
+    {
+        $this->programRegistration->expects($this->once())
+                ->method("submitProfile")
+                ->with($this->programsProfileForm, $this->formRecordData);
+        $this->executeSubmitRegistrantProfile();
+    }
+    public function test_submitRegistrantProfile_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertInactiveTeamMembershipForbiddenError(function (){
+            $this->executeSubmitRegistrantProfile();
+        });
+    }
+    public function test_submitRegistrantProfile_programRegistrationNotFromSameTeam()
+    {
+        $this->setAssetsNotBelongsToTeam($this->programRegistration);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeSubmitRegistrantProfile();
+        });
+    }
+    
+    protected function executeRemoveRegistrantProfile()
+    {
+        $this->setAssetsBelongsToTeam($this->programRegistration);
+        $this->teamMembership->removeRegistrantProfile($this->programRegistration, $this->registrantProfile);
+    }
+    public function test_removeRegistrantProfile_removeProgramRegistrationProfile()
+    {
+        $this->programRegistration->expects($this->once())
+                ->method("removeProfile")
+                ->with($this->registrantProfile);
+        $this->executeRemoveRegistrantProfile();
+    }
+    public function test_removeRegistrantProfile_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertInactiveTeamMembershipForbiddenError(function (){
+            $this->executeRemoveRegistrantProfile();
+        });
+    }
+    public function test_removeRegistrantProfile_teamDoesntOwnProgramRegistration_forbidden()
+    {
+        $this->setAssetsNotBelongsToTeam($this->programRegistration);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeRemoveRegistrantProfile();
         });
     }
 }
