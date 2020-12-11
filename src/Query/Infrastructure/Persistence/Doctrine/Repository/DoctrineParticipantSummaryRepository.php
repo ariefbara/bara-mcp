@@ -112,13 +112,17 @@ _STATEMENT;
 SELECT 
     Participant.id participantId, 
     COALESCE(_b.userName, _c.clientName, _d.teamName) participantName,
-    ROUND (_a.achievement * 100) achievement
+    ROUND (_a.achievement * 100) achievement,
+    _a.completedMetric,
+    _a.totalAssignedMetric
 FROM  Participant
 LEFT JOIN Program ON Program.id = Participant.Program_id
 LEFT OUTER JOIN (
     SELECT MetricAssignment.Participant_id,
         __b.id reportId,
-        SUM(CASE WHEN __d.inputValue > __c.target THEN 1 ELSE __d.inputValue/__c.target END)/COUNT(__c.target) achievement
+        SUM(__d.inputValue/__c.target)/COUNT(__c.target) achievement,
+        SUM(CASE WHEN __d.inputValue >= __c.target THEN 1 ELSE 0 END) completedMetric,
+        COUNT(__c.target) totalAssignedMetric
     FROM (
         SElECT MetricAssignment_id, MAX(observationTime) observationTime
         FROM MetricAssignmentReport
