@@ -112,13 +112,17 @@ _STATEMENT;
 SELECT 
     Participant.id participantId, 
     COALESCE(_b.userName, _c.clientName, _d.teamName) participantName,
-    ROUND (_a.achievement * 100) achievement
+    ROUND (_a.achievement * 100) achievement,
+    _a.completedMetric,
+    _a.totalAssignedMetric
 FROM  Participant
 LEFT JOIN Program ON Program.id = Participant.Program_id
 LEFT OUTER JOIN (
     SELECT MetricAssignment.Participant_id,
         __b.id reportId,
-        SUM(CASE WHEN __d.inputValue > __c.target THEN 1 ELSE __d.inputValue/__c.target END)/COUNT(__c.target) achievement
+        SUM(__d.inputValue/__c.target)/COUNT(__c.target) achievement,
+        SUM(CASE WHEN __d.inputValue >= __c.target THEN 1 ELSE 0 END) completedMetric,
+        COUNT(__c.target) totalAssignedMetric
     FROM (
         SElECT MetricAssignment_id, MAX(observationTime) observationTime
         FROM MetricAssignmentReport
@@ -185,12 +189,12 @@ SELECT _a.participantId,
 FROM (
     SELECT __a.Program_id, __a.id participantId, __a.active, __a.enrolledTime, MIN(__b.days_interval) days_interval
     FROM Participant __a
-    CROSS JOIN EvaluationPlan __b
+    CROSS JOIN EvaluationPlan __b ON __b.Program_id = __a.Program_id
     LEFT JOIN Evaluation __c ON __c.Participant_id = __a.id AND __c.EvaluationPlan_id = __b.id
-    WHERE __c.id IS NULL OR __c.c_status = 'extend'
+    WHERE (__c.id IS NULL OR __c.c_status = 'extend') AND __b.disabled = false
     GROUP BY participantId
 )_a
-LEFT JOIN EvaluationPlan _b ON _b.days_interval = _a.days_interval
+LEFT JOIN EvaluationPlan _b ON _b.days_interval = _a.days_interval AND _b.Program_id = _a.Program_id
 LEFT JOIN Evaluation _c ON _c.Participant_id = _a.participantId AND _c.EvaluationPlan_id = _b.id
 LEFT JOIN (
     SELECT CONCAT(User.firstName, ' ', User.lastName) userName, UserParticipant.Participant_id participantId
@@ -211,6 +215,7 @@ LEFT JOIN Program _g ON _g.id = _a.Program_id
 WHERE _g.Firm_id = :firmId
     AND _g.id = :programId
     AND _a.active= true
+    AND _b.disabled = false
 ORDER BY scheduledEvaluation ASC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
