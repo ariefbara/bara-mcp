@@ -187,7 +187,7 @@ FROM (
     FROM Participant __a
     CROSS JOIN EvaluationPlan __b ON __b.Program_id = __a.Program_id
     LEFT JOIN Evaluation __c ON __c.Participant_id = __a.id AND __c.EvaluationPlan_id = __b.id
-    WHERE __c.id IS NULL OR __c.c_status = 'extend'
+    WHERE (__c.id IS NULL OR __c.c_status = 'extend') AND __b.disabled = false
     GROUP BY participantId
 )_a
 LEFT JOIN EvaluationPlan _b ON _b.days_interval = _a.days_interval AND _b.Program_id = _a.Program_id
@@ -211,6 +211,7 @@ LEFT JOIN Program _g ON _g.id = _a.Program_id
 WHERE _g.Firm_id = :firmId
     AND _g.id = :programId
     AND _a.active= true
+    AND _b.disabled = false
 ORDER BY scheduledEvaluation ASC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
