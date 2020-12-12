@@ -12,7 +12,7 @@ class CoordinatorTest extends TestBase
 {
     protected $coordinator;
     protected $personnel;
-    protected $mailGenerator, $mailMessage, $modifiedMailMessage;
+    protected $mailGenerator, $mailMessage, $modifiedMailMessage, $haltPrependUrlPath = false;
     protected $notification;
     
     protected function setUp(): void
@@ -34,7 +34,7 @@ class CoordinatorTest extends TestBase
         $this->mailMessage->expects($this->any())
                 ->method("prependUrlPath")
                 ->willReturn($this->modifiedMailMessage);
-        $this->coordinator->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
+        $this->coordinator->registerAsMailRecipient($this->mailGenerator, $this->mailMessage, $this->haltPrependUrlPath);
     }
     public function test_registerAsMailRecipient_prependCoordinatorUriToMessage()
     {
@@ -48,6 +48,13 @@ class CoordinatorTest extends TestBase
         $this->personnel->expects($this->once())
                 ->method("registerAsMailRecipient")
                 ->with($this->mailGenerator, $this->identicalTo($this->modifiedMailMessage));
+        $this->executeRegisterAsMailRecipient();
+    }
+    public function test_registerAsMailRecipient_haltPrependUrlPaht_preventModifyMailMessageWithUrlPrepend()
+    {
+        $this->mailMessage->expects($this->never())
+                ->method("prependUrlPath");
+        $this->haltPrependUrlPath = true;
         $this->executeRegisterAsMailRecipient();
     }
     

@@ -3,20 +3,21 @@
 namespace Tests\Controllers\Personnel\ProgramConsultation;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Client\RecordOfClientParticipant,
-    Firm\Program\Participant\RecordOfConsultationRequest,
-    Firm\Program\RecordOfConsultationSetup,
-    Firm\Program\RecordOfParticipant,
-    Firm\RecordOfClient,
-    Firm\RecordOfFeedbackForm,
-    Firm\RecordOfTeam,
-    Firm\Team\RecordOfMember,
-    Firm\Team\RecordOfTeamProgramParticipation,
-    RecordOfUser,
-    Shared\RecordOfForm,
-    User\RecordOfUserParticipant
-};
+use DateTimeImmutable;
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfMember;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
+use Tests\Controllers\RecordPreparation\RecordOfUser;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\User\RecordOfUserParticipant;
 
 class ConsultationRequestControllerTest extends ProgramConsultationTestCase
 {
@@ -31,6 +32,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
     protected $teamMember;
     protected $teamMemberOne;
     protected $offerInput;
+    protected $coordinatorOne;
+    protected $coordinatorTwo_inactive;
 
     protected function setUp(): void
     {
@@ -41,6 +44,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->connection->table('User')->truncate();
         $this->connection->table('Team')->truncate();
         $this->connection->table('T_Member')->truncate();
+        $this->connection->table('Coordinator')->truncate();
         
         $this->connection->table('Participant')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
@@ -61,11 +65,14 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->connection->table('Mail')->truncate();
         $this->connection->table('MailRecipient')->truncate();
         $this->connection->table('CommentMail')->truncate();
+        $this->connection->table('ConsultationRequestMail')->truncate();
+        $this->connection->table('ConsultationSessionMail')->truncate();
         
         $this->connection->table('Notification')->truncate();
         $this->connection->table('ConsultationRequestNotification')->truncate();
         $this->connection->table('ConsultationSessionNotification')->truncate();
         $this->connection->table('ClientNotificationRecipient')->truncate();
+        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
 
         $program = $this->programConsultation->program;
         $firm = $program->firm;
@@ -110,16 +117,29 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         
         $this->consultationRequest = new RecordOfConsultationRequest(
                 $consultationSetup, $this->participant, $this->programConsultation, 0);
-        $this->consultationRequest->startDateTime = (new \DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
-        $this->consultationRequest->endDateTime = (new \DateTimeImmutable("+25 hours"))->format("Y-m-d H:i:s");
+        $this->consultationRequest->startDateTime = (new DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
+        $this->consultationRequest->endDateTime = (new DateTimeImmutable("+25 hours"))->format("Y-m-d H:i:s");
         $this->consultationRequest_concluded = new RecordOfConsultationRequest(
                 $consultationSetup, $this->participant, $this->programConsultation, 1);
         $this->consultationRequest_concluded->concluded = true;
         $this->consultationRequest_concluded->status = "rejected";
-        $this->consultationRequest_concluded->startDateTime = (new \DateTimeImmutable("-24 hours"))->format("Y-m-d H:i:s");
-        $this->consultationRequest_concluded->endDateTime = (new \DateTimeImmutable("-23 hours"))->format("Y-m-d H:i:s");
+        $this->consultationRequest_concluded->startDateTime = (new DateTimeImmutable("-24 hours"))->format("Y-m-d H:i:s");
+        $this->consultationRequest_concluded->endDateTime = (new DateTimeImmutable("-23 hours"))->format("Y-m-d H:i:s");
         $this->connection->table('ConsultationRequest')->insert($this->consultationRequest->toArrayForDbEntry());
         $this->connection->table('ConsultationRequest')->insert($this->consultationRequest_concluded->toArrayForDbEntry());
+        
+        $personnelOne = new RecordOfPersonnel($firm, 1);
+        $personnelOne->email = "purnama.adi+coordinatorOne@gmail.com";
+        $personnelTwo = new RecordOfPersonnel($firm, 2);
+        $personnelTwo->email = "purnama.adi+coordinatorTwo@gmail.com";
+        $this->connection->table("Personnel")->insert($personnelOne->toArrayForDbEntry());
+        $this->connection->table("Personnel")->insert($personnelTwo->toArrayForDbEntry());
+        
+        $this->coordinatorOne = new RecordOfCoordinator($program, $personnelOne, 1);
+        $this->coordinatorTwo_inactive = new RecordOfCoordinator($program, $personnelTwo, 2);
+        $this->coordinatorTwo_inactive->active = false;
+        $this->connection->table("Coordinator")->insert($this->coordinatorOne->toArrayForDbEntry());
+        $this->connection->table("Coordinator")->insert($this->coordinatorTwo_inactive->toArrayForDbEntry());
         
         $this->offerInput = [
             "startTime" => (new DateTime('+5 hours'))->format('Y-m-d H:i:s'),
@@ -135,6 +155,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->connection->table('User')->truncate();
         $this->connection->table('Team')->truncate();
         $this->connection->table('T_Member')->truncate();
+        $this->connection->table('Coordinator')->truncate();
         
         $this->connection->table('Participant')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
@@ -155,11 +176,14 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->connection->table('Mail')->truncate();
         $this->connection->table('MailRecipient')->truncate();
         $this->connection->table('CommentMail')->truncate();
+        $this->connection->table('ConsultationRequestMail')->truncate();
+        $this->connection->table('ConsultationSessionMail')->truncate();
         
         $this->connection->table('Notification')->truncate();
         $this->connection->table('ConsultationRequestNotification')->truncate();
-         $this->connection->table('ConsultationSessionNotification')->truncate();
+        $this->connection->table('ConsultationSessionNotification')->truncate();
         $this->connection->table('ClientNotificationRecipient')->truncate();
+        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
     }
     protected function setAsTeamParticipant()
     {
@@ -519,6 +543,20 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
             "attempt" => 1,
         ];
         $this->seeInDatabase("MailRecipient", $recipientEntry);
+        
+        $coordinatorMailRecipientEntry = [
+            "recipientMailAddress" => $this->coordinatorOne->personnel->email,
+            "recipientName" => $this->coordinatorOne->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $coordinatorMailRecipientEntry);
+        
+        $coordinatorNotificationRecipientEntry = [
+            "Coordinator_id" => $this->coordinatorOne->id,
+            "readStatus" => false,
+        ];
+        $this->seeInDatabase("CoordinatorNotificationRecipient", $coordinatorNotificationRecipientEntry);
         
     }
     public function test_accept_teamParticipant_notifyAllMembers()

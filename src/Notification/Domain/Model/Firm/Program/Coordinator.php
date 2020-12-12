@@ -24,20 +24,34 @@ class Coordinator
     protected $id;
 
     /**
+     * 
+     * @var bool
+     */
+    protected $active;
+
+    /**
      *
      * @var Personnel
      */
     protected $personnel;
 
+    function isActive(): bool
+    {
+        return $this->active;
+    }
+
     protected function __construct()
     {
         
     }
-    
-    public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
+
+    public function registerAsMailRecipient(
+            CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltPrependUrlPath): void
     {
-        $modifiedMail = $mailMessage->prependUrlPath("/coordinators/{$this->id}");
-        $this->personnel->registerAsMailRecipient($mailGenerator, $modifiedMail);
+        if (!$haltPrependUrlPath) {
+            $mailMessage = $mailMessage->prependUrlPath("/coordinators/{$this->id}");
+        }
+        $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
 
     public function registerAsNotificationRecipient(ContainNotification $notification): void

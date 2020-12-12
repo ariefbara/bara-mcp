@@ -5,8 +5,10 @@ namespace Notification\Domain\SharedModel;
 use Notification\Domain\Model\Firm\Client;
 use Notification\Domain\Model\Firm\Manager;
 use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\Model\Firm\Program\Coordinator;
 use Notification\Domain\Model\User;
 use Notification\Domain\SharedModel\Notification\ClientNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\CoordinatorNotificationRecipient;
 use Notification\Domain\SharedModel\Notification\ManagerNotificationRecipient;
 use Notification\Domain\SharedModel\Notification\PersonnelNotificationRecipient;
 use Notification\Domain\SharedModel\Notification\UserNotificationRecipient;
@@ -22,6 +24,7 @@ class NotificationTest extends TestBase
     protected $client;
     protected $personnel;
     protected $manager;
+    protected $coordinator;
 
     protected function setUp(): void
     {
@@ -32,6 +35,7 @@ class NotificationTest extends TestBase
         $this->client = $this->buildMockOfClass(Client::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
         $this->manager = $this->buildMockOfClass(Manager::class);
+        $this->coordinator = $this->buildMockOfClass(Coordinator::class);
     }
     
     public function test_construct_setProperties()
@@ -64,6 +68,12 @@ class NotificationTest extends TestBase
         $this->notification->addManagerRecipient($this->manager);
         $this->assertInstanceOf(ManagerNotificationRecipient::class, $this->notification->managerNotificationRecipients->first());
     }
+    
+    public function test_addCoordinatorRecipient_addCoordinatorRecipientNotification()
+    {
+        $this->notification->addCoordinatorRecipient($this->coordinator);
+        $this->assertInstanceOf(CoordinatorNotificationRecipient::class, $this->notification->coordinatorNotificationRecipients->first());
+    }
 }
 
 class TestableNotification extends Notification
@@ -74,4 +84,5 @@ class TestableNotification extends Notification
     public $clientNotificationRecipients;
     public $personnelNotificationRecipients;
     public $managerNotificationRecipients;
+    public $coordinatorNotificationRecipients;
 }

@@ -6,8 +6,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Notification\Domain\Model\Firm\Client;
 use Notification\Domain\Model\Firm\Manager;
 use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\Model\Firm\Program\Coordinator;
 use Notification\Domain\Model\User;
 use Notification\Domain\SharedModel\Notification\ClientNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\CoordinatorNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\ManagerNotificationRecipient;
 use Notification\Domain\SharedModel\Notification\PersonnelNotificationRecipient;
 use Notification\Domain\SharedModel\Notification\UserNotificationRecipient;
 use Resources\Uuid;
@@ -51,6 +54,12 @@ class Notification
      */
     protected $managerNotificationRecipients;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $coordinatorNotificationRecipients;
+
     public function __construct(string $id, string $message)
     {
         $this->id = $id;
@@ -59,6 +68,7 @@ class Notification
         $this->clientNotificationRecipients = new ArrayCollection();
         $this->personnelNotificationRecipients = new ArrayCollection();
         $this->managerNotificationRecipients = new ArrayCollection();
+        $this->coordinatorNotificationRecipients = new ArrayCollection();
     }
 
     public function addUserRecipient(User $user): void
@@ -85,8 +95,15 @@ class Notification
     public function addManagerRecipient(Manager $manager): void
     {
         $id = Uuid::generateUuid4();
-        $managerNotificationRecipient = new Notification\ManagerNotificationRecipient($this, $id, $manager);
+        $managerNotificationRecipient = new ManagerNotificationRecipient($this, $id, $manager);
         $this->managerNotificationRecipients->add($managerNotificationRecipient);
+    }
+    
+    public function addCoordinatorRecipient(Coordinator $coordinator): void
+    {
+        $id = Uuid::generateUuid4();
+        $coordinatorNotificationRecipient = new CoordinatorNotificationRecipient($this, $id, $coordinator);
+        $this->coordinatorNotificationRecipients->add($coordinatorNotificationRecipient);
     }
 
 }

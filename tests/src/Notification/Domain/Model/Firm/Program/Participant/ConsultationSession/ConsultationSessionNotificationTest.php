@@ -2,13 +2,12 @@
 
 namespace Notification\Domain\Model\Firm\Program\Participant\ConsultationSession;
 
-use Notification\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Personnel,
-    Model\Firm\Program\Participant\ConsultationSession,
-    Model\User,
-    SharedModel\Notification
-};
+use Notification\Domain\Model\Firm\Client;
+use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\Model\Firm\Program\Coordinator;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession;
+use Notification\Domain\Model\User;
+use Notification\Domain\SharedModel\Notification;
 use Tests\TestBase;
 
 class ConsultationSessionNotificationTest extends TestBase
@@ -21,6 +20,7 @@ class ConsultationSessionNotificationTest extends TestBase
     protected $user;
     protected $client;
     protected $personnel;
+    protected $coordinator;
 
     protected function setUp(): void
     {
@@ -34,6 +34,7 @@ class ConsultationSessionNotificationTest extends TestBase
         $this->user = $this->buildMockOfClass(User::class);
         $this->client = $this->buildMockOfClass(Client::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
+        $this->coordinator = $this->buildMockOfClass(Coordinator::class);
     }
     
     public function test_construct_setProperties()
@@ -62,6 +63,13 @@ class ConsultationSessionNotificationTest extends TestBase
         $this->notification->expects($this->once())
                 ->method("addPersonnelRecipient");
         $this->consultationSessionNotification->addPersonnelRecipient($this->personnel);
+    }
+    
+    public function test_addCoordinatorAsRecipient_addCoordinatorAsNotificationRecipient()
+    {
+        $this->notification->expects($this->once())
+                ->method("addCoordinatorRecipient");
+        $this->consultationSessionNotification->addCoordinatorAsRecipient($this->coordinator);
     }
 }
 

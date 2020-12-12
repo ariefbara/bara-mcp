@@ -11,5 +11,10 @@
         
         <id name="id" type="guid" />
         
+        <one-to-many  field="coordinators" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Coordinator"
+                      mapped-by="program"
+        />
+        
     </entity>
 </doctrine-mapping>
