@@ -3,17 +3,30 @@
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
 use App\Http\Controllers\FormRecordToArrayDataConverter;
-use Query\ {
-    Application\Service\Firm\Program\ViewConsultationSession,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant,
-    Infrastructure\QueryFilter\ConsultationSessionFilter
-};
+use Firm\Application\Service\Coordinator\ChangeConsultationSessionChannel;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession as ConsultationSession2;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Query\Application\Service\Firm\Program\ViewConsultationSession;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 
 class ConsultationSessionController extends AsProgramCoordinatorBaseController
 {
+    
+    public function changeChannel($programId, $consultationSessionId)
+    {
+        $media = $this->stripTagsInputRequest("media");
+        $address = $this->stripTagsInputRequest("address");
+        
+        $this->buildChangeChannelService()
+                ->execute($this->firmId(), $this->personnelId(), $programId, $consultationSessionId, $media, $address);
+        
+        return $this->show($programId, $consultationSessionId);
+    }
+    
     public function showAll($programId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
@@ -35,6 +48,8 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
                 "id" => $consultationSession->getId(),
                 "startTime" => $consultationSession->getStartTime(),
                 "endTime" => $consultationSession->getEndTime(),
+                "media" => $consultationSession->getMedia(),
+                "address" => $consultationSession->getAddress(),
                 "consultationSetup" => [
                     "id" => $consultationSession->getConsultationSetup()->getId(),
                     "name" => $consultationSession->getConsultationSetup()->getName(),
@@ -57,6 +72,7 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
         }
         return $this->listQueryResponse($result);
     }
+    
     public function show($programId, $consultationSessionId)
     {
         $this->authorizedUserIsProgramCoordinator($programId);
@@ -77,6 +93,8 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
             "id" => $consultationSession->getId(),
             "startTime" => $consultationSession->getStartTime(),
             "endTime" => $consultationSession->getEndTime(),
+            "media" => $consultationSession->getMedia(),
+            "address" => $consultationSession->getAddress(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
                 "name" => $consultationSession->getConsultationSetup()->getName(),
@@ -128,5 +146,13 @@ class ConsultationSessionController extends AsProgramCoordinatorBaseController
     {
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
         return new ViewConsultationSession($consultationSessionRepository);
+    }
+    
+    protected function buildChangeChannelService()
+    {
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        
+        return new ChangeConsultationSessionChannel($consultationSessionRepository, $coordinatorRepository);
     }
 }

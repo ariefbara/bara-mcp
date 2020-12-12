@@ -41,6 +41,7 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->group(['prefix' => '/consultation-sessions'], function () use($router) {
             $controller = "ConsultationSessionController";
+            $router->patch("/{consultationSessionId}/change-channel", ["uses" => "$controller@changeChannel"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
         });
@@ -55,6 +56,7 @@ $router->group($personnelAggregate, function () use ($router) {
             $controller = "ParticipantController";
             $router->put("/{participantId}/assign-metric", ["uses" => "$controller@assignMetric"]);
             $router->patch("/{participantId}/evaluate", ["uses" => "$controller@evaluate"]);
+            $router->patch("/{participantId}/qualify", ["uses" => "$controller@qualify"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{participantId}", ["uses" => "$controller@show"]);
         });
@@ -74,6 +76,7 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->group(['prefix' => '/metric-assignment-reports'], function () use($router) {
                 $controller = "MetricAssignmentReportController";
                 $router->patch("/{metricAssignmentReportId}/approve", ["uses" => "$controller@approve"]);
+                $router->patch("/{metricAssignmentReportId}/reject", ["uses" => "$controller@reject"]);
                 $router->get("", ["uses" => "$controller@showAll"]);
                 $router->get("/{metricAssignmentReportId}", ["uses" => "$controller@show"]);
             });
@@ -129,6 +132,15 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{evaluationPlanId}", ["uses" => "$controller@show"]);
         });
+        
+        $router->group(['prefix' => '/activities'], function () use($router) {
+            $controller = "ActivityController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{activityId}", ["uses" => "$controller@show"]);
+        });
+        
+        $router->get("/activities/{activityId}/activity-reports", ["uses" => "ActivityReportController@showAllReportsInActivity"]);
+        $router->get("/activity-reports/{activityReportId}", ["uses" => "ActivityReportController@show"]);
         
     });
     

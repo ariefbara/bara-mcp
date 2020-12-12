@@ -2,15 +2,12 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Query\{
-    Application\Service\Firm\Program\ActivityRepository,
-    Domain\Model\Firm\Program\Activity
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\Program\ActivityRepository;
+use Query\Domain\Model\Firm\Program\Activity;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineActivityRepository extends EntityRepository implements ActivityRepository
 {
@@ -65,6 +62,25 @@ class DoctrineActivityRepository extends EntityRepository implements ActivityRep
             $errorDetail = "not found: activity not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function allActivitiesInProgram(string $firmId, string $programId, int $page, int $pageSize)
+    {
+        $params = [
+            "firmId" => $firmId,
+            "programId" => $programId,
+        ];
+
+        $qb = $this->createQueryBuilder("activity");
+        $qb->select("activity")
+                ->leftJoin("activity.activityType", "activityType")
+                ->leftJoin("activityType.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->leftJoin("program.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

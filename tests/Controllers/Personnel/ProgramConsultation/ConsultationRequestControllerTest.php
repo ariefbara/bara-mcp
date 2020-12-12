@@ -123,6 +123,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         
         $this->offerInput = [
             "startTime" => (new DateTime('+5 hours'))->format('Y-m-d H:i:s'),
+            "media" => "new media",
+            "address" => "new address",
         ];
     }
 
@@ -222,7 +224,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Permintaan Konsultasi",
+            "subject" => "Permintaan Konsultasi",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -297,12 +299,15 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->patch($uri, [], $this->programConsultation->personnel->token)
                 ->seeStatusCode(403);
     }
+    
     public function test_offer()
     {
         $response = [
             "id" => $this->consultationRequest->id,
             "startTime" => $this->offerInput['startTime'],
             "endTime" => (new DateTime($this->offerInput['startTime']))->add(new \DateInterval("PT1H"))->format("Y-m-d H:i:s"),
+            "media" => $this->offerInput['media'],
+            "address" => $this->offerInput['address'],
             "status" => "offered",
         ];
         $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/offer";
@@ -314,6 +319,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
             "id" => $this->consultationRequest->id,
             "startDateTime" => $this->offerInput['startTime'],
             "endDateTime" => (new DateTime($this->offerInput['startTime']))->add(new \DateInterval("PT1H"))->format("Y-m-d H:i:s"),
+            "media" => $this->offerInput['media'],
+            "address" => $this->offerInput['address'],
             "status" => "offered",
         ];
         $this->seeInDatabase("ConsultationRequest", $consultationRequestEntry);
@@ -357,7 +364,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Permintaan Konsultasi",
+            "subject" => "Permintaan Konsultasi",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -501,7 +508,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Jadwal Konsultasi",
+            "subject" => "Jadwal Konsultasi",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -593,6 +600,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
             "id" => $this->consultationRequest->id,
             "startTime" => $this->consultationRequest->startDateTime,
             "endTime" => $this->consultationRequest->endDateTime,
+            "media" => $this->consultationRequest->media,
+            "address" => $this->consultationRequest->address,
             "concluded" => $this->consultationRequest->concluded,
             "status" => $this->consultationRequest->status,
             "consultationSetup" => [
@@ -625,6 +634,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
                     "id" => $this->consultationRequest->id,
                     "startTime" => $this->consultationRequest->startDateTime,
                     "endTime" => $this->consultationRequest->endDateTime,
+                    "media" => $this->consultationRequest->media,
+                    "address" => $this->consultationRequest->address,
                     "concluded" => $this->consultationRequest->concluded,
                     "status" => $this->consultationRequest->status,
                     "consultationSetup" => [
@@ -645,6 +656,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
                     "id" => $this->consultationRequest_concluded->id,
                     "startTime" => $this->consultationRequest_concluded->startDateTime,
                     "endTime" => $this->consultationRequest_concluded->endDateTime,
+                    "media" => $this->consultationRequest_concluded->media,
+                    "address" => $this->consultationRequest_concluded->address,
                     "concluded" => $this->consultationRequest_concluded->concluded,
                     "status" => $this->consultationRequest_concluded->status,
                     "consultationSetup" => [

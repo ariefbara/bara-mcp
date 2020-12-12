@@ -2,21 +2,16 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\Program\ConsultationSetupRepository,
-    Application\Service\Firm\Program\ProgramCompositionId,
-    Domain\Model\Firm\Program\ConsultationSetup
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Firm\Program\ConsultationSetupRepository;
+use Firm\Application\Service\Firm\Program\ProgramCompositionId;
+use Firm\Application\Service\Manager\ConsultationSetupRepository as InterfaceForManager;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 
-class DoctrineConsultationSetupRepository extends EntityRepository implements ConsultationSetupRepository
+class DoctrineConsultationSetupRepository extends EntityRepository implements ConsultationSetupRepository, InterfaceForManager
 {
 
     public function add(ConsultationSetup $consultationSetup): void
@@ -58,6 +53,16 @@ class DoctrineConsultationSetupRepository extends EntityRepository implements Co
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aConsultationSetupOfId(string $consultationSetupId): ConsultationSetup
+    {
+        $consultationSetup = $this->findOneBy(["id" => $consultationSetupId]);
+        if (empty($consultationSetup)) {
+            $errorDetail = "not found: consultation setup not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $consultationSetup;
     }
 
 }

@@ -48,5 +48,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many  field="assignedProfileForms" 
+                      target-entity="Firm\Domain\Model\Firm\Program\ProgramsProfileForm"
+                      mapped-by="program" 
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

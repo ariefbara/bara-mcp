@@ -46,7 +46,6 @@ class UserProgramParticipationTest extends TestBase
         $this->mailMessage->expects($this->any())
                 ->method("prependUrlPath")
                 ->willReturn($this->modifiedMailMessage);
-        
         $this->userProgramParticipation->registerUserAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }
     public function test_registerUserAsMailRecipient_prependUserProgramParticipationToMailMessage()
@@ -60,7 +59,7 @@ class UserProgramParticipationTest extends TestBase
     {
         $this->user->expects($this->once())
                 ->method("registerAsMailRecipient")
-                ->with($this->mailGenerator, $this->modifiedMailMessage);
+                ->with($this->mailGenerator, $this->identicalTo($this->modifiedMailMessage));
         $this->executeRegisterUserAsMailRecipient();
     }
     

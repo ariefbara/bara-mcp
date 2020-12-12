@@ -3,10 +3,10 @@
 namespace Notification\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Notification\Domain\Model\{
-    Firm,
-    Firm\Manager\ManagerMail
-};
+use Notification\Domain\Model\Firm;
+use Notification\Domain\Model\Firm\Manager\ManagerMail;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
+use Notification\Domain\SharedModel\ContainNotificationForAllUser;
 use SharedContext\Domain\ValueObject\MailMessage;
 
 class Manager
@@ -75,5 +75,12 @@ _MESSAGE;
                 $this, $managerMailId, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress,
                 $recipientName);
     }
-
+    
+    public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
+    {
+        $modifiedMail = $mailMessage->appendRecipientFirstNameInGreetings($this->name)
+                ->prependUrlPath("/manager");
+        $mailGenerator->addMail($modifiedMail, $this->email, $this->name);
+    }
+    
 }

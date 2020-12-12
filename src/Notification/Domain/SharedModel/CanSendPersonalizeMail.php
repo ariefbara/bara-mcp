@@ -6,5 +6,5 @@ use SharedContext\Domain\ValueObject\MailMessage;
 
 interface CanSendPersonalizeMail
 {
-    public function addMail(MailMessage $mailMessage, string $recipientMailMessage, string $recipientName): void;
+    public function addMail(MailMessage $mailMessage, string $recipientMailAddress, string $recipientName): void;
 }

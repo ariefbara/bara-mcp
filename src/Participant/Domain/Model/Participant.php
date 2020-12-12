@@ -3,32 +3,27 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Participant\Domain\{
-    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    DependencyModel\Firm\Team,
-    Model\Participant\CompletedMission,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\ConsultationSession,
-    Model\Participant\MetricAssignment,
-    Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\ViewLearningMaterialActivityLog,
-    Model\Participant\Worksheet,
-    Service\MetricAssignmentReportDataProvider
-};
-use Resources\{
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Participant\Domain\DependencyModel\Firm\Client\AssetBelongsToTeamInterface;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant\CompletedMission;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\MetricAssignment;
+use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class Participant extends EntityContainEvents implements AssetBelongsToTeamInterface
@@ -122,7 +117,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
 
     public function submitConsultationRequest(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime, ?TeamMembership $teamMember = null): ConsultationRequest
+            ConsultationRequestData $consultationRequestData, ?TeamMembership $teamMember = null): ConsultationRequest
     {
         if (!$consultationSetup->programEquals($this->program)) {
             $errorDetail = 'forbidden: consultation setup from different program';
@@ -134,7 +129,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             throw RegularException::forbidden($errorDetail);
         }
         $consultationRequest = new ConsultationRequest(
-                $this, $consultationRequestId, $consultationSetup, $consultant, $startTime, $teamMember);
+                $this, $consultationRequestId, $consultationSetup, $consultant, $consultationRequestData, $teamMember);
 
         $this->assertNoProposedConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
@@ -143,10 +138,11 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
     }
 
     public function changeConsultationRequestTime(
-            string $consultationRequestId, DateTimeImmutable $startTime, ?TeamMembership $teamMember = null): void
+            string $consultationRequestId, ConsultationRequestData $consultationRequestData,
+            ?TeamMembership $teamMember = null): void
     {
         $consultationRequest = $this->getConsultationRequestOrDie($consultationRequestId);
-        $consultationRequest->rePropose($startTime, $teamMember);
+        $consultationRequest->rePropose($consultationRequestData, $teamMember);
 
         $this->assertNoProposedConsultationRequestInCollectionConflictedWith($consultationRequest);
         $this->assertNoConsultationSessioninCollectionConflictedWithConsultationRequest($consultationRequest);
@@ -239,9 +235,9 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
     {
         if (isset($this->teamProgramParticipation)) {
             return $this->teamProgramParticipation->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
-        } elseif (isset ($this->clientParticipant)) {
+        } elseif (isset($this->clientParticipant)) {
             return $this->clientParticipant->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
-        } elseif (isset ($this->userParticipant)) {
+        } elseif (isset($this->userParticipant)) {
             return $this->userParticipant->ownAllAttachedFileInfo($metricAssignmentReportDataProvider);
         }
     }

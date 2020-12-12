@@ -26,6 +26,10 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
     protected $clientParticipant;
     protected $participantFeedback_session;
     protected $consultantFeedback_sessionOne;
+    protected $changeChannelInput = [
+        "media" => "new media",
+        "address" => "new address",
+    ];
 
     protected function setUp(): void
     {
@@ -113,6 +117,8 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
             "id" => $this->consultationSessionOne->id,
             "startTime" => $this->consultationSessionOne->startDateTime,
             "endTime" => $this->consultationSessionOne->endDateTime,
+            "media" => $this->consultationSessionOne->media,
+            "address" => $this->consultationSessionOne->address,
             "consultationSetup" => [
                 "id" => $this->consultationSessionOne->consultationSetup->id,
                 "name" => $this->consultationSessionOne->consultationSetup->name,
@@ -169,6 +175,8 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                     "id" => $this->consultationSession->id,
                     "startTime" => $this->consultationSession->startDateTime,
                     "endTime" => $this->consultationSession->endDateTime,
+                    "media" => $this->consultationSession->media,
+                    "address" => $this->consultationSession->address,
                     "consultationSetup" => [
                         "id" => $this->consultationSession->consultationSetup->id,
                         "name" => $this->consultationSession->consultationSetup->name,
@@ -195,6 +203,8 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                     "id" => $this->consultationSessionOne->id,
                     "startTime" => $this->consultationSessionOne->startDateTime,
                     "endTime" => $this->consultationSessionOne->endDateTime,
+                    "media" => $this->consultationSessionOne->media,
+                    "address" => $this->consultationSessionOne->address,
                     "consultationSetup" => [
                         "id" => $this->consultationSessionOne->consultationSetup->id,
                         "name" => $this->consultationSessionOne->consultationSetup->name,
@@ -290,6 +300,27 @@ class ConsultationSessionControllerTest extends AsProgramCoordinatorTestCase
                 ->seeJsonContains($totalResponse)
                 ->seeJsonContains($listResponse)
                 ->seeStatusCode(200);
+    }
+    
+    public function test_changeChannel_200()
+    {
+        $response = [
+            "id" => $this->consultationSession->id,
+            "media" => $this->changeChannelInput["media"],
+            "address" => $this->changeChannelInput["address"],
+        ];
+        
+        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/change-channel";
+        $this->patch($uri, $this->changeChannelInput, $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+        
+        $consultationSessionEntry = [
+            "id" => $this->consultationSession->id,
+            "media" => $this->changeChannelInput["media"],
+            "address" => $this->changeChannelInput["address"],
+        ];
+        $this->seeInDatabase("ConsultationSession", $consultationSessionEntry);
     }
 
 }

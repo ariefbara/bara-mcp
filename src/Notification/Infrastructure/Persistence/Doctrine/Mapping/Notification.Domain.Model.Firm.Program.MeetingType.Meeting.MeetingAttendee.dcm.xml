@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee" 
+            table="Invitee"
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineMeetingAttendeeRepository"
+    >
+        
+        <many-to-one  field="meeting" 
+                      target-entity="Notification\Domain\Model\Firm\Program\MeetingType\Meeting"
+        >
+            <join-column name="Activity_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="anInitiator" type="boolean" nullable="false"/>
+        <field name="cancelled" type="boolean"  nullable="false" />
+        
+        <one-to-one field="managerAttendee" 
+                    target-entity="Notification\Domain\Model\Firm\Manager\ManagerMeetingAttendee"
+                    mapped-by="meetingAttendee"
+        />
+        
+        <one-to-one field="coordinatorAttendee" 
+                    target-entity="Notification\Domain\Model\Firm\Program\Coordinator\CoordinatorMeetingAttendee"
+                    mapped-by="meetingAttendee"
+        />
+        
+        <one-to-one field="consultantAttendee" 
+                    target-entity="Notification\Domain\Model\Firm\Program\Consultant\ConsultantMeetingAttendee"
+                    mapped-by="meetingAttendee"
+        />
+        
+        <one-to-one field="participantAttendee" 
+                    target-entity="Notification\Domain\Model\Firm\Program\Participant\ParticipantMeetingAttendee"
+                    mapped-by="meetingAttendee"
+        />
+        
+        <one-to-many field="mails" 
+                     target-entity="Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\MeetingAttendeeMail" 
+                     mapped-by="meetingAttendee"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="notifications" 
+                     target-entity="Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\MeetingAttendeeNotification" 
+                     mapped-by="meetingAttendee"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

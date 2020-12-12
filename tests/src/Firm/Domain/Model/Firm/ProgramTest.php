@@ -3,19 +3,18 @@
 namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
-    Model\Firm,
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\Consultant,
-    Model\Firm\Program\Coordinator,
-    Model\Firm\Program\EvaluationPlan,
-    Model\Firm\Program\EvaluationPlanData,
-    Model\Firm\Program\Metric,
-    Model\Firm\Program\MetricData,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Registrant,
-    Service\ActivityTypeDataProvider
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\EvaluationPlan;
+use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\Metric;
+use Firm\Domain\Model\Firm\Program\MetricData;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
+use Firm\Domain\Model\Firm\Program\Registrant;
+use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Domain\Event\CommonEvent;
 use Tests\TestBase;
@@ -31,11 +30,14 @@ class ProgramTest extends TestBase
     
     protected $registrant, $registrantId = "registrantId";
     protected $participant;
+    protected $assignedProfileForm;
 
     protected $personnel;
     protected $metricId = "metricId", $metricData;
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
     protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData, $feedbackForm;
+    
+    protected $profileForm;
 
     protected function setUp(): void
     {
@@ -50,6 +52,7 @@ class ProgramTest extends TestBase
         $this->program->coordinators = new ArrayCollection();
         $this->program->registrants = new ArrayCollection();
         $this->program->participants = new ArrayCollection();
+        $this->program->assignedProfileForms = new ArrayCollection();
 
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->program->consultants->add($this->consultant);
@@ -62,6 +65,9 @@ class ProgramTest extends TestBase
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->program->participants->add($this->participant);
         
+        $this->assignedProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->program->assignedProfileForms->add($this->assignedProfileForm);
+        
         $this->personnel = $this->buildMockOfClass(Personnel::class);
         
         $this->metricData = $this->buildMockOfClass(MetricData::class);
@@ -71,8 +77,11 @@ class ProgramTest extends TestBase
         $this->activityTypeDataProvider->expects($this->any())->method("getName")->willReturn("name");
         
         $this->evaluationPlanData = $this->buildMockOfClass(EvaluationPlanData::class);
+        $this->evaluationPlanData->expects($this->any())->method("getInterval")->willReturn(90);
         $this->evaluationPlanData->expects($this->any())->method("getName")->willReturn("name");
         $this->feedbackForm = $this->buildMockOfClass(FeedbackForm::class);
+        
+        $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
     }
 
     protected function getProgramData()
@@ -288,6 +297,45 @@ class ProgramTest extends TestBase
                         $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm));
     }
     
+    protected function executeAssignProfileForm()
+    {
+        return $this->program->assignProfileForm($this->profileForm);
+    }
+    public function test_assignProfileForm_addProgramsProfileFormToCollection()
+    {
+        $this->executeAssignProfileForm();
+        $this->assertEquals(2, $this->program->assignedProfileForms->count());
+        $this->assertInstanceOf(ProgramsProfileForm::class, $this->program->assignedProfileForms->last());
+    }
+    public function test_assignProfileForm_profileFormAlreadyAssigned_enableAssignedProfileForm()
+    {
+        $this->assignedProfileForm->expects($this->once())
+                ->method("correspondWithProfileForm")
+                ->with($this->profileForm)
+                ->willReturn(true);
+        $this->assignedProfileForm->expects($this->once())
+                ->method("enable");
+        $this->executeAssignProfileForm();
+    }
+    public function test_assignProfileForm_profileFormAlreadyAssigned_preventAddNewAssignment()
+    {
+        $this->assignedProfileForm->expects($this->once())
+                ->method("correspondWithProfileForm")
+                ->willReturn(true);
+        $this->executeAssignProfileForm();
+        $this->assertEquals(1, $this->program->assignedProfileForms->count());
+    }
+    public function test_assignProfileForm_returnAssignedProfileFormId()
+    {
+        $this->assignedProfileForm->expects($this->once())
+                ->method("getId")
+                ->willReturn($id = "assignedProfileFormId");
+        $this->assignedProfileForm->expects($this->once())
+                ->method("correspondWithProfileForm")
+                ->willReturn(true);
+        $this->assertEquals($id, $this->executeAssignProfileForm());
+    }
+    
 }
 
 class TestableProgram extends Program
@@ -297,4 +345,5 @@ class TestableProgram extends Program
     public $consultants, $coordinators;
     public $participants, $registrants;
     public $recordedEvents;
+    public $assignedProfileForms;
 }

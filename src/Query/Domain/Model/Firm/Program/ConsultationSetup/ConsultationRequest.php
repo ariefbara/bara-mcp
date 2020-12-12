@@ -2,12 +2,11 @@
 
 namespace Query\Domain\Model\Firm\Program\ConsultationSetup;
 
-use Query\Domain\Model\Firm\Program\ {
-    Consultant,
-    ConsultationSetup,
-    Participant
-};
+use Query\Domain\Model\Firm\Program\Consultant;
+use Query\Domain\Model\Firm\Program\ConsultationSetup;
+use Query\Domain\Model\Firm\Program\Participant;
 use Resources\Domain\ValueObject\DateTimeInterval;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 
 class ConsultationRequest
 {
@@ -41,6 +40,12 @@ class ConsultationRequest
      * @var DateTimeInterval
      */
     protected $startEndTime;
+
+    /**
+     * 
+     * @var ConsultationChannel
+     */
+    protected $channel;
 
     /**
      *
@@ -97,6 +102,16 @@ class ConsultationRequest
     function getEndTimeString(): string
     {
         return $this->startEndTime->getEndTime()->format('Y-m-d H:i:s');
+    }
+
+    public function getMedia(): ?string
+    {
+        return $this->channel->getMedia();
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->channel->getAddress();
     }
 
 }

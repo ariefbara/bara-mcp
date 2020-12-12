@@ -66,7 +66,7 @@ class TeamProgramParticipationTest extends TestBase
     {
         $this->team->expects($this->once())
                 ->method("registerAllActiveMembersAsMailRecipient")
-                ->with($this->mailGenerator, $this->modifiedMailMessage, $this->excludedMember);
+                ->with($this->mailGenerator, $this->identicalTo($this->modifiedMailMessage), $this->excludedMember);
         $this->executeRegisterTeamAsMailRecipient();
     }
 

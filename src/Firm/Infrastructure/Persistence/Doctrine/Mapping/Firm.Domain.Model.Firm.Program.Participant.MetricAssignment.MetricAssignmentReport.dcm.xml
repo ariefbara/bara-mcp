@@ -12,7 +12,8 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="approved" type="boolean" />
+        <field name="approved" type="boolean" nullable="true"/>
+        <field name="note" type="string" length="1024" nullable="true"/>
         <field name="removed" type="boolean" />
         
     </entity>

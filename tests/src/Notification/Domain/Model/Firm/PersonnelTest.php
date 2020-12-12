@@ -19,6 +19,7 @@ class PersonnelTest extends TestBase
     
     protected $mailGenerator;
     protected $mailMessage;
+    protected $modifiedMailMessage;
     
     protected function setUp(): void
     {
@@ -35,6 +36,7 @@ class PersonnelTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
     }
     
     public function test_getFullName_returnNamesGetFullNameResult()
@@ -46,6 +48,9 @@ class PersonnelTest extends TestBase
     
     protected function executeRegisterAsMailRecipient()
     {
+        $this->mailMessage->expects($this->any())
+                ->method("appendRecipientFirstNameInGreetings")
+                ->willReturn($this->modifiedMailMessage);
         $this->personnel->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }
     public function test_registerAsMailRecipient_appendFirstNameInMailMessage()
@@ -60,18 +65,13 @@ class PersonnelTest extends TestBase
     }
     public function test_registerAsMailRecipient_addMailToMailGenerator()
     {
-        $mailMessage = $this->buildMockOfClass(MailMessage::class);
-        $this->mailMessage->expects($this->once())
-                ->method("appendRecipientFirstNameInGreetings")
-                ->willReturn($mailMessage);
-        
         $this->name->expects($this->once())
                 ->method("getFullName")
                 ->willReturn($fullName = "full name");
         
         $this->mailGenerator->expects($this->once())
                 ->method("addMail")
-                ->with($mailMessage, $this->personnel->email, $fullName);
+                ->with($this->identicalTo($this->modifiedMailMessage), $this->personnel->email, $fullName);
         
         $this->executeRegisterAsMailRecipient();
     }

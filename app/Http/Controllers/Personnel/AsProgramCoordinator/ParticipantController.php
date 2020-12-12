@@ -2,28 +2,25 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
-use Firm\ {
-    Application\Service\Coordinator\EvaluateParticipant,
-    Application\Service\Firm\Program\Participant\AssignMetrics,
-    Domain\Model\Firm\Program\Coordinator,
-    Domain\Model\Firm\Program\EvaluationPlan,
-    Domain\Model\Firm\Program\Metric,
-    Domain\Model\Firm\Program\Participant as Participant2,
-    Domain\Model\Firm\Program\Participant\EvaluationData,
-    Domain\Service\MetricAssignmentDataProvider
-};
-use Query\ {
-    Application\Service\Firm\Program\ViewParticipant,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant,
-    Domain\Model\Firm\Program\Participant\Evaluation,
-    Domain\Model\Firm\Program\Participant\MetricAssignment,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
-};
+use Firm\Application\Service\Coordinator\EvaluateParticipant;
+use Firm\Application\Service\Coordinator\QualifyParticipant;
+use Firm\Application\Service\Firm\Program\Participant\AssignMetrics;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\EvaluationPlan;
+use Firm\Domain\Model\Firm\Program\Metric;
+use Firm\Domain\Model\Firm\Program\Participant as Participant2;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
+use Query\Application\Service\Firm\Program\ViewParticipant;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\Evaluation;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
 
 class ParticipantController extends AsProgramCoordinatorBaseController
 {
@@ -38,6 +35,12 @@ class ParticipantController extends AsProgramCoordinatorBaseController
 
         $service->execute(
                 $this->firmId(), $this->personnelId(), $programId, $participantId, $evaluationPlanId, $evaluationData);
+        return $this->show($programId, $participantId);
+    }
+    
+    public function qualify($programId, $participantId)
+    {
+        $this->buildQualifyService()->execute($this->firmId(), $this->personnelId(), $programId, $participantId);
         return $this->show($programId, $participantId);
     }
 
@@ -213,6 +216,13 @@ class ParticipantController extends AsProgramCoordinatorBaseController
         $participantRepository = $this->em->getRepository(Participant2::class);
         $evaluationPlanRepository = $this->em->getRepository(EvaluationPlan::class);
         return new EvaluateParticipant($coordinatorRepository, $participantRepository, $evaluationPlanRepository);
+    }
+    protected function buildQualifyService()
+    {
+        $participantRepository = $this->em->getRepository(Participant2::class);
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        
+        return new QualifyParticipant($participantRepository, $coordinatorRepository);
     }
 
 }

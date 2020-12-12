@@ -19,14 +19,14 @@ class RecordOfTeam implements Record
 
     /**
      *
-     * @var RecordOfClient
+     * @var RecordOfClient|null
      */
     public $creator;
     public $id;
     public $name;
     public $createdTime;
 
-    public function __construct(RecordOfFirm $firm, RecordOfClient $creator, $index)
+    public function __construct(RecordOfFirm $firm, ?RecordOfClient $creator, $index)
     {
         $this->firm = $firm;
         $this->creator = $creator;
@@ -39,7 +39,7 @@ class RecordOfTeam implements Record
     {
         return [
             "Firm_id" => $this->firm->id,
-            "Client_idOfCreator" => $this->creator->id,
+            "Client_idOfCreator" => isset($this->creator)? $this->creator->id: null,
             "id" => $this->id,
             "name" => $this->name,
             "createdTime" => $this->createdTime,

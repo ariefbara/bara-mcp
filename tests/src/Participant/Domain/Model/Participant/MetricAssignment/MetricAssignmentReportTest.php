@@ -56,7 +56,7 @@ class MetricAssignmentReportTest extends TestBase
         $this->assertEquals($this->observationTime, $metricAssignmentReport->observationTime);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $metricAssignmentReport->submitTime);
         $this->assertFalse($metricAssignmentReport->removed);
-        $this->assertFalse($metricAssignmentReport->approved);
+        $this->assertNull($metricAssignmentReport->approved);
         $this->assertInstanceOf(ArrayCollection::class, $metricAssignmentReport->assignmentFieldValues);
     }
     public function test_construct_executeMetricAssignmentsSetActiveAssignmentFieldValuesToMethod()
@@ -87,9 +87,18 @@ class MetricAssignmentReportTest extends TestBase
                 ->method("remove");
         $this->executeUpdate();
     }
-    public function test_update_alreadyApproved_forbidden()
+    public function test_update_alreadyDecidedAsApproved_forbidden()
     {
         $this->metricAssignmentReport->approved = true;
+        $operation = function (){
+            $this->executeUpdate();
+        };
+        $errorDetail = "forbidden: unable to update approved report";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_update_alreadyDecidedAsRejected_forbidden()
+    {
+        $this->metricAssignmentReport->approved = false;
         $operation = function (){
             $this->executeUpdate();
         };

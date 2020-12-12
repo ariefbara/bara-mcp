@@ -2,11 +2,10 @@
 
 namespace Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
 
-use Firm\Domain\Model\Firm\ {
-    Program,
-    Program\AssetInProgram,
-    Program\Participant\MetricAssignment
-};
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\AssetInProgram;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Resources\Exception\RegularException;
 
 class MetricAssignmentReport implements AssetInProgram
 {
@@ -25,9 +24,15 @@ class MetricAssignmentReport implements AssetInProgram
 
     /**
      *
-     * @var bool
+     * @var bool|null
      */
     protected $approved;
+
+    /**
+     *
+     * @var string|null
+     */
+    protected $note;
 
     /**
      *
@@ -47,7 +52,23 @@ class MetricAssignmentReport implements AssetInProgram
     
     public function approve(): void
     {
+        $this->assertUndecided();
         $this->approved = true;
+    }
+    
+    public function reject(?string $note): void
+    {
+        $this->assertUndecided();
+        $this->approved = false;
+        $this->note = $note;
+    }
+    
+    protected function assertUndecided(): void
+    {
+        if ($this->approved !== null) {
+            $errorDetail = "forbidden: unable to alter approval decision";
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
 }

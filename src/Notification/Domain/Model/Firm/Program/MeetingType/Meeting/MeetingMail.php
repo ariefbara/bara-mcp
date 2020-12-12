@@ -4,6 +4,7 @@ namespace Notification\Domain\Model\Firm\Program\MeetingType\Meeting;
 
 use Notification\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Notification\Domain\SharedModel\Mail;
+use SharedContext\Domain\ValueObject\MailMessage;
 
 class MeetingMail
 {
@@ -29,9 +30,9 @@ class MeetingMail
     function __construct(Meeting $meeting, string $id, string $senderMailAddress, string $senderName,
             MailMessage $mailMessage, string $recipientMailAddress, string $recipientName)
     {
-//        $this->meeting = $meeting;
-//        $this->id = $id;
-//        $this->mail = $mail;
+        $this->meeting = $meeting;
+        $this->id = $id;
+        $this->mail = new Mail($id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
     }
 
 }

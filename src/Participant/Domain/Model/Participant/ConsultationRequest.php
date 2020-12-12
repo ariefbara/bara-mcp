@@ -5,23 +5,22 @@ namespace Participant\Domain\Model\Participant;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\{
-    DependencyModel\Firm\Client\AssetBelongsToTeamInterface,
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Team,
-    Model\Participant,
-    Model\Participant\ConsultationRequest\ConsultationRequestActivityLog
-};
-use Resources\{
-    Domain\Event\CommonEvent,
-    Domain\Model\EntityContainEvents,
-    Domain\ValueObject\DateTimeInterval,
-    Exception\RegularException,
-    Uuid
-};
+use Participant\Domain\DependencyModel\Firm\Client\AssetBelongsToTeamInterface;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ConsultationRequest\ConsultationRequestActivityLog;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 
 class ConsultationRequest extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
@@ -57,6 +56,12 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
     protected $startEndTime;
 
     /**
+     * 
+     * @var ConsultationChannel
+     */
+    protected $channel;
+
+    /**
      *
      * @var bool
      */
@@ -79,15 +84,26 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
         return $this->id;
     }
 
+    protected function setStartEndTime(?DateTimeImmutable $startTime): void
+    {
+        $errorDetail = "bad request: consultation request start time is mandatory";
+        ValidationService::build()
+                ->addRule(ValidationRule::notEmpty())
+                ->execute($startTime, $errorDetail);
+        $this->startEndTime = $this->consultationSetup->getSessionStartEndTimeOf($startTime);
+    }
+
     function __construct(
             Participant $participant, $id, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime, ?TeamMembership $teamMember)
+            ConsultationRequestData $consultationRequestData, ?TeamMembership $teamMember)
     {
         $this->participant = $participant;
         $this->id = $id;
         $this->consultationSetup = $consultationSetup;
         $this->consultant = $consultant;
-        $this->startEndTime = $this->consultationSetup->getSessionStartEndTimeOf($startTime);
+        $this->setStartEndTime($consultationRequestData->getStartTime());
+        $this->channel = new ConsultationChannel(
+                $consultationRequestData->getMedia(), $consultationRequestData->getAddress());
         $this->concluded = false;
         $this->status = new ConsultationRequestStatusVO('proposed');
 
@@ -119,11 +135,13 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
         return $this->status->sameValueAs(new ConsultationRequestStatusVO('proposed')) && $this->startEndTime->intersectWith($other->startEndTime);
     }
 
-    public function rePropose(DateTimeImmutable $startTime, ?TeamMembership $teamMember): void
+    public function rePropose(ConsultationRequestData $consultationRequestData, ?TeamMembership $teamMember): void
     {
         $this->assertNotConcluded();
-        $this->startEndTime = $this->consultationSetup->getSessionStartEndTimeOf($startTime);
+        $this->setStartEndTime($consultationRequestData->getStartTime());
         $this->status = new ConsultationRequestStatusVO('proposed');
+        $this->channel = new ConsultationChannel(
+                $consultationRequestData->getMedia(), $consultationRequestData->getAddress());
 
         $this->assertNotConflictedWithConsultantExistingConsultationSession();
 
@@ -161,7 +179,7 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
     {
         return new ConsultationSession(
                 $this->participant, $consultationSessionId, $this->consultationSetup, $this->consultant,
-                $this->startEndTime, $teamMember);
+                $this->startEndTime, $this->channel, $teamMember);
     }
 
     protected function assertNotConcluded(): void

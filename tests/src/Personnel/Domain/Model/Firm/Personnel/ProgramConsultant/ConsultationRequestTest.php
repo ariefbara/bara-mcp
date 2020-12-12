@@ -5,17 +5,14 @@ namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Personnel\Domain\Model\Firm\ {
-    Personnel\ProgramConsultant,
-    Personnel\ProgramConsultant\ConsultationRequest\ConsultationRequestActivityLog,
-    Program\ConsultationSetup,
-    Program\Participant
-};
-use Resources\Domain\ {
-    Event\CommonEvent,
-    ValueObject\DateTimeInterval
-};
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest\ConsultationRequestActivityLog;
+use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
+use Personnel\Domain\Model\Firm\Program\Participant;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 use Tests\TestBase;
 
 class ConsultationRequestTest extends TestBase
@@ -25,6 +22,8 @@ class ConsultationRequestTest extends TestBase
     protected $startEndTime;
     protected $consultationRequest;
     protected $startTime;
+    protected $media = "new media";
+    protected $address = "new address";
     protected $otherConsultationRequest;
     protected $otherSchedule;
 
@@ -32,6 +31,7 @@ class ConsultationRequestTest extends TestBase
     {
         parent::setUp();
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         
         $this->participant = $this->buildMockOfClass(Participant::class);
@@ -43,6 +43,7 @@ class ConsultationRequestTest extends TestBase
         $this->consultationRequest->participant = $this->participant;
         $this->consultationRequest->programConsultant = $this->programConsultant;
         $this->consultationRequest->startEndTime = $this->startEndTime;
+        $this->consultationRequest->channel = $this->channel;
         $this->consultationRequest->status = new ConsultationRequestStatusVO('proposed');
         $this->consultationRequest->consultationRequestActivityLogs = new ArrayCollection();
 
@@ -50,6 +51,11 @@ class ConsultationRequestTest extends TestBase
         $this->otherConsultationRequest = new TestableConsultationRequest();
         $this->otherConsultationRequest->startEndTime = $this->startEndTime;
         $this->otherSchedule = $this->buildMockOfClass(DateTimeInterval::class);
+    }
+    
+    protected function getConsultationRequestData()
+    {
+        return new ConsultationRequestData($this->startTime, $this->media, $this->address);
     }
     
     protected function executeScheduleIntersectWith()
@@ -112,7 +118,7 @@ class ConsultationRequestTest extends TestBase
 
     protected function executeOffer()
     {
-        $this->consultationRequest->offer($this->startTime);
+        $this->consultationRequest->offer($this->getConsultationRequestData());
     }
     public function test_offer_setStatusOffered()
     {
@@ -129,7 +135,7 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    public function test_offer_setStartEndTimeFromConsultationSetup()
+    public function test_offer_changeProperties()
     {
         $this->consultationSetup->expects($this->once())
                 ->method('getSessionStartEndTimeOf')
@@ -137,6 +143,17 @@ class ConsultationRequestTest extends TestBase
                 ->willReturn($this->startEndTime);
         $this->executeOffer();
         $this->assertEquals($this->startEndTime, $this->consultationRequest->startEndTime);
+        $channel = new ConsultationChannel($this->media, $this->address);
+        $this->assertEquals($channel, $this->consultationRequest->channel);
+    }
+    public function test_offer_emptyStartTime_badRequest()
+    {
+        $this->startTime = null;
+        $operation = function (){
+            $this->executeOffer();
+        };
+        $errorDetail = "bad request: consultation request start time is mandatory";
+        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
     }
     public function test_offer_startEndTimeUnavailableInParticipantsSchedule_throwEx()
     {
@@ -240,6 +257,7 @@ class TestableConsultationRequest extends ConsultationRequest
 {
 
     public $consultationSetup, $id = "consultationRequestId", $participant, $programConsultant, $startEndTime, $concluded = false, $status;
+    public $channel;
     public $consultationRequestActivityLogs;
     public $recordedEvents;
 

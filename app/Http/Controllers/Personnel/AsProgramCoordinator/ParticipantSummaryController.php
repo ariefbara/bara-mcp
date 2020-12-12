@@ -49,6 +49,8 @@ class ParticipantSummaryController extends AsProgramCoordinatorBaseController
                 "id" => $participant["participantId"],
                 "name" => $participant["participantName"],
                 "achievement" => $participant["achievement"],
+                "completedMetric" => $participant["completedMetric"],
+                "totalAssignedMetric" => $participant["totalAssignedMetric"],
             ];
         }
         return $this->listQueryResponse($result);

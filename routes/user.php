@@ -107,6 +107,12 @@ $router->group($userAggregate, function () use ($router) {
             $router->post("", ["uses" => "$controller@initiate"]);
         });
         
+        $router->group(['prefix' => '/programs-profile-forms'], function () use($router) {
+            $controller = "ProgramsProfileFormController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
+        });
+        
     });
     
     $programParticipationAggregate = [

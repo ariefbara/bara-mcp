@@ -3,27 +3,24 @@
 namespace Participant\Domain\Model\Participant;
 
 use Config\EventList;
-use Participant\Domain\ {
-    DependencyModel\Firm\Client\TeamMembership,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Team,
-    Model\Participant,
-    Model\Participant\ConsultationSession\ConsultationSessionActivityLog,
-    Model\Participant\ConsultationSession\ParticipantFeedback
-};
-use Resources\Domain\ {
-    Event\CommonEvent,
-    ValueObject\DateTimeInterval
-};
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ConsultationSession\ConsultationSessionActivityLog;
+use Participant\Domain\Model\Participant\ConsultationSession\ParticipantFeedback;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 use Tests\TestBase;
 
 class ConsultationSessionTest extends TestBase
 {
 
     protected $consultationSetup, $participant, $consultant;
-    protected $id = 'consultationSession-id', $startEndTime;
+    protected $id = 'consultationSession-id', $startEndTime, $channel;
     protected $consultationSession;
     protected $consultationRequest;
     protected $participantFeedback;
@@ -39,25 +36,27 @@ class ConsultationSessionTest extends TestBase
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->consultant->expects($this->any())->method("isActive")->willReturn(true);
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
 
         $this->consultationSession = new TestableConsultationSession(
                 $this->participant, 'consultationSession-id', $this->consultationSetup, $this->consultant,
-                $this->startEndTime, $this->teamMember);
+                $this->startEndTime, $this->channel, $this->teamMember);
         $this->consultationSession->consultationSessionActivityLogs->clear();
-        
+
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
 
         $this->participantFeedback = $this->buildMockOfClass(ParticipantFeedback::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
-        
+
         $this->team = $this->buildMockOfClass(Team::class);
     }
 
     protected function executeConstruct()
     {
         return new TestableConsultationSession(
-                $this->participant, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime, $this->teamMember);
+                $this->participant, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime,
+                $this->channel, $this->teamMember);
     }
     public function test_construct_setProperties()
     {
@@ -67,6 +66,7 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals($this->participant, $consultationSession->participant);
         $this->assertEquals($this->consultant, $consultationSession->consultant);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
+        $this->assertEquals($this->channel, $consultationSession->channel);
         $this->assertFalse($consultationSession->cancelled);
     }
     public function test_construct_recordOfferedConsultationSessionAccepetedEvent()
@@ -79,20 +79,22 @@ class ConsultationSessionTest extends TestBase
     {
         $consultationSession = $this->executeConstruct();
         $this->assertEquals(1, $consultationSession->consultationSessionActivityLogs->count());
-        $this->assertInstanceOf(ConsultationSessionActivityLog::class, $consultationSession->consultationSessionActivityLogs->first());
+        $this->assertInstanceOf(ConsultationSessionActivityLog::class,
+                $consultationSession->consultationSessionActivityLogs->first());
     }
     public function test_construct_inactiveConsultant_forbidden()
     {
-        $operation = function (){
+        $operation = function () {
             $consultant = $this->buildMockOfClass(Consultant::class);
             $consultant->expects($this->any())->method("isActive")->willReturn(false);
             return new TestableConsultationSession(
-                $this->participant, $this->id, $this->consultationSetup, $consultant, $this->startEndTime, $this->teamMember);
+                    $this->participant, $this->id, $this->consultationSetup, $consultant, $this->startEndTime, 
+                    $this->channel, $this->teamMember);
         };
         $errorDetail = "forbidden: inactive mentor can't give consultation";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    
+
     public function test_belongsToTeam_returnParticipantBelongsToTeamResult()
     {
         $this->participant->expects($this->once())
@@ -143,25 +145,29 @@ class ConsultationSessionTest extends TestBase
     {
         $this->executeSetParticipantFeedback();
         $this->assertEquals(1, $this->consultationSession->consultationSessionActivityLogs->count());
-        $this->assertInstanceOf(ConsultationSessionActivityLog::class, $this->consultationSession->consultationSessionActivityLogs->first());
+        $this->assertInstanceOf(ConsultationSessionActivityLog::class,
+                $this->consultationSession->consultationSessionActivityLogs->first());
     }
     public function test_setParticipantFeedback_cancelledSession_forbidden()
     {
         $this->consultationSession->cancelled = true;
-        $operation = function (){
+        $operation = function () {
             $this->executeSetParticipantFeedback();
         };
         $errorDetail = "forbidden: can send report on cancelled session";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    
+
 }
 
 class TestableConsultationSession extends ConsultationSession
 {
+
     public $recordedEvents;
     public $consultationSetup, $id, $participant, $consultant, $startEndTime;
+    public $channel;
     public $cancelled = false;
     public $participantFeedback;
     public $consultationSessionActivityLogs;
+
 }

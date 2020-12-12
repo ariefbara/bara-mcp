@@ -40,6 +40,14 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
     });
     
+    $router->group(['prefix' => '/profile-forms'], function () use($router) {
+        $controller = "ProfileFormController";
+        $router->post("", ["uses" => "$controller@create"]);
+        $router->patch("/{profileFormId}", ["uses" => "$controller@update"]);
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{profileFormId}", ["uses" => "$controller@show"]);
+    });
+    
     $router->group(['prefix' => '/personnels'], function () use($router) {
         $controller = "PersonnelController";
         $router->post("", ["uses" => "$controller@add"]);
@@ -162,6 +170,14 @@ $router->group($managerAggregate, function () use ($router) {
             $router->patch("/{evaluationPlanId}/enable", ["uses" => "$controller@enable"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{evaluationPlanId}", ["uses" => "$controller@show"]);
+        });
+        
+        $router->group(['prefix' => '/programs-profile-forms'], function () use($router) {
+            $controller = "ProgramsProfileFormController";
+            $router->post("", ["uses" => "$controller@assign"]);
+            $router->delete("/{programsProfileFormId}", ["uses" => "$controller@disable"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
         });
     });
     

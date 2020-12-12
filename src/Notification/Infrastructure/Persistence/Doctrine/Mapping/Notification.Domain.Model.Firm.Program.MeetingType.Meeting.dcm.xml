@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Notification\Domain\Model\Firm\Program\MeetingType\Meeting" 
+            table="Activity" 
+            repository-class="Notification\Infrastructure\Persistence\Doctrine\Repository\DoctrineMeetingRepository"
+    >
+        
+        <many-to-one  field="meetingType" 
+                      target-entity="Notification\Domain\Model\Firm\Program\MeetingType"
+        >
+            <join-column name="ActivityType_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <field name="name" type="string" length="256" nullable="false"/>
+
+        <embedded name="startEndTime" 
+                  class="Resources\Domain\ValueObject\DateTimeInterval" 
+                  use-column-prefix="false" />        
+        
+        <field name="cancelled" type="boolean" />
+        
+        <one-to-many field="attendees" 
+                     target-entity="Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee" 
+                     mapped-by="meeting"
+        />
+        
+        <one-to-many field="mails" 
+                     target-entity="Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingMail" 
+                     mapped-by="meeting"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="notifications" 
+                     target-entity="Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingNotification" 
+                     mapped-by="meeting"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

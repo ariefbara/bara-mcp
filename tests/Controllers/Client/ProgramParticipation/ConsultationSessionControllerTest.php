@@ -123,6 +123,8 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
             "id" => $this->consultationSession->id,
             "startTime" => $this->consultationSession->startDateTime,
             "endTime" => $this->consultationSession->endDateTime,
+            "media" => $this->consultationSession->media,
+            "address" => $this->consultationSession->address,
             "consultant" => [
                 "id" => $this->consultationSession->consultant->id,
                 "personnel" => [
@@ -147,6 +149,8 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
                     "id" => $this->consultationSession->id,
                     "startTime" => $this->consultationSession->startDateTime,
                     "endTime" => $this->consultationSession->endDateTime,
+                    "media" => $this->consultationSession->media,
+                    "address" => $this->consultationSession->address,
                     "hasParticipantFeedback" => false,
                     "consultationSetup" => [
                         "id" => $this->consultationSession->consultationSetup->id,
@@ -164,6 +168,8 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
                     "id" => $this->consultationSessionOne->id,
                     "startTime" => $this->consultationSessionOne->startDateTime,
                     "endTime" => $this->consultationSessionOne->endDateTime,
+                    "media" => $this->consultationSessionOne->media,
+                    "address" => $this->consultationSessionOne->address,
                     "hasParticipantFeedback" => true,
                     "consultationSetup" => [
                         "id" => $this->consultationSessionOne->consultationSetup->id,

@@ -8,4 +8,6 @@ interface ProgramRepository
 {
 
     public function aProgramOfId(string $programId): Program;
+    
+    public function update(): void;
 }

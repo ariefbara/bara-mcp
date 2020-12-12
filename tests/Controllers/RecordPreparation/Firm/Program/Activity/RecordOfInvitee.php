@@ -17,7 +17,7 @@ class RecordOfInvitee implements Record
     public $activity;
     /**
      *
-     * @var RecordOfActivityParticipant
+     * @var RecordOfActivityParticipant|null
      */
     public $activityParticipant;
     public $id;
@@ -28,7 +28,7 @@ class RecordOfInvitee implements Record
     
     
     function __construct(
-            RecordOfActivity $activity, RecordOfActivityParticipant $activityParticipant, $index)
+            RecordOfActivity $activity, ?RecordOfActivityParticipant $activityParticipant, $index)
     {
         $this->activity = $activity;
         $this->activityParticipant = $activityParticipant;
@@ -43,7 +43,7 @@ class RecordOfInvitee implements Record
     {
         return [
             "Activity_id" => $this->activity->id,
-            "ActivityParticipant_id" => $this->activityParticipant->id,
+            "ActivityParticipant_id" => isset($this->activityParticipant)? $this->activityParticipant->id: null,
             "id" => $this->id,
             "anInitiator" => $this->anInitiator,
             "cancelled" => $this->cancelled,

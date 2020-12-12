@@ -45,23 +45,13 @@ class TeamTest extends TestBase
         $this->member->expects($this->any())
                 ->method("isActiveMemberNotEqualsTo")
                 ->willReturn(true);
-        $this->mailMessage->expects($this->any())
-                ->method("prependUrlPath")
-                ->willReturn($this->modifiedMail);
         $this->team->registerAllActiveMembersAsMailRecipient($this->mailGenerator, $this->mailMessage, $this->excludedMember);
-    }
-    public function test_registerAllActiveMembersAsMailRecipient_prependUrlToMailMessage()
-    {
-        $this->mailMessage->expects($this->once())
-                ->method("prependUrlPath")
-                ->with("/as-team-member/{$this->team->id}");
-        $this->executeRegisterAllActiveMembersAsMailRecipient();
     }
     public function test_registerAllActiveMembersAsMailRecipient_executeAllActiveMemberaRegisterClientAsMailRecipient()
     {
         $this->member->expects($this->once())
                 ->method("registerClientAsMailRecipient")
-                ->with($this->mailGenerator, $this->modifiedMail);
+                ->with($this->mailGenerator, $this->mailMessage);
         $this->executeRegisterAllActiveMembersAsMailRecipient();
     }
     public function test_registerAllActiveMembersAsMailRecipient_memberIsNotSatisfiedActiveMemberNotEqualsToCondition_skipRegisteringThisMember()

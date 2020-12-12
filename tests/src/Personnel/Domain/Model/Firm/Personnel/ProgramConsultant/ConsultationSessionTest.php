@@ -3,18 +3,15 @@
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
 use Config\EventList;
-use Personnel\Domain\Model\Firm\ {
-    Personnel\ProgramConsultant,
-    Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback,
-    Personnel\ProgramConsultant\ConsultationSession\ConsultationSessionActivityLog,
-    Program\ConsultationSetup,
-    Program\Participant
-};
-use Resources\Domain\ {
-    Event\CommonEvent,
-    ValueObject\DateTimeInterval
-};
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedback;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultationSessionActivityLog;
+use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
+use Personnel\Domain\Model\Firm\Program\Participant;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 use Tests\TestBase;
 
 class ConsultationSessionTest extends TestBase
@@ -23,6 +20,7 @@ class ConsultationSessionTest extends TestBase
     protected $participant;
     protected $consultationSetup;
     protected $startEndTime;
+    protected $channel;
     protected $consultationSession;
     protected $id = 'id';
     protected $consultantFeedback;
@@ -36,7 +34,10 @@ class ConsultationSessionTest extends TestBase
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
-        $this->consultationSession = new TestableConsultationSession($this->programConsultant, 'id', $this->participant, $this->consultationSetup, $this->startEndTime);
+        $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
+        $this->consultationSession = new TestableConsultationSession(
+                $this->programConsultant, 'id', $this->participant, $this->consultationSetup, $this->startEndTime, 
+                $this->channel);
         $this->consultationSession->consultationSessionActivityLogs->clear();
         
         $this->consultantFeedback = $this->buildMockOfClass(ConsultantFeedback::class);
@@ -47,7 +48,8 @@ class ConsultationSessionTest extends TestBase
     protected function executeConstruct()
     {
         return new TestableConsultationSession(
-                $this->programConsultant, $this->id, $this->participant, $this->consultationSetup, $this->startEndTime);
+                $this->programConsultant, $this->id, $this->participant, $this->consultationSetup, $this->startEndTime, 
+                $this->channel);
     }
     public function test_construct_setProperties()
     {
@@ -57,6 +59,7 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals($this->participant, $consultationSession->participant);
         $this->assertEquals($this->consultationSetup, $consultationSession->consultationSetup);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
+        $this->assertEquals($this->channel, $consultationSession->channel);
         $this->assertFalse($consultationSession->cancelled);
     }
     public function test_construct_addConsultationSessionActivityLog()
@@ -136,6 +139,7 @@ class TestableConsultationSession extends ConsultationSession
     public $participant;
     public $consultationSetup;
     public $startEndTime;
+    public $channel;
     public $cancelled;
     public $consultantFeedback;
     public $consultationSessionActivityLogs;

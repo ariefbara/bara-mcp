@@ -2,7 +2,10 @@
 
 namespace Notification\Domain\SharedModel;
 
-interface ContainNotificationForManager
+use Notification\Domain\Model\Firm\Manager;
+
+interface ContainNotificationForAllUser extends ContainNotification
 {
+
     public function addManagerRecipient(Manager $manager): void;
 }

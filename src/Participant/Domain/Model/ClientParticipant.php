@@ -3,22 +3,19 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\ {
-    DependencyModel\Firm\Client,
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment,
-    Service\MetricAssignmentReportDataProvider
-};
-use Resources\ {
-    Application\Event\ContainEvents,
-    Exception\RegularException,
-    Uuid
-};
+use Participant\Domain\DependencyModel\Firm\Client;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Resources\Application\Event\ContainEvents;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class ClientParticipant implements ContainEvents
@@ -54,15 +51,16 @@ class ClientParticipant implements ContainEvents
 
     public function proposeConsultation(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime): ConsultationRequest
+            ConsultationRequestData $consultationRequestData): ConsultationRequest
     {
         return $this->participant->submitConsultationRequest(
-                        $consultationRequestId, $consultationSetup, $consultant, $startTime);
+                        $consultationRequestId, $consultationSetup, $consultant, $consultationRequestData);
     }
 
-    public function reproposeConsultationRequest(string $consultationRequestId, DateTimeImmutable $startTime): void
+    public function reproposeConsultationRequest(
+            string $consultationRequestId, ConsultationRequestData $consultationRequestData): void
     {
-        $this->participant->changeConsultationRequestTime($consultationRequestId, $startTime);
+        $this->participant->changeConsultationRequestTime($consultationRequestId, $consultationRequestData);
     }
 
     public function acceptConsultationRequest(string $consultationRequestId): void
@@ -103,7 +101,7 @@ class ClientParticipant implements ContainEvents
         return $this->participant->submitMetricAssignmentReport(
                         $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
     }
-    
+
     public function ownAllAttachedFileInfo(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): bool
     {
         $allFileInfoBelongsToClient = true;

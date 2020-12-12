@@ -34,7 +34,8 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
     protected $assignmentField;
     protected $assignmentFieldOne_removed;
     protected $assignmentFieldTwo;
-    
+    protected $rejectInput = ["note" => "new note"];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -117,6 +118,8 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
             "observationTime" => $this->metricAssignmentReport->observationTime,
             "submitTime" => $this->metricAssignmentReport->submitTime,
             "removed" => $this->metricAssignmentReport->removed,
+            "approved" => $this->metricAssignmentReport->approved,
+            "note" => $this->metricAssignmentReport->note,
             "assignmentFieldValues" => [
                 [
                     "id" => $this->assignmentFieldValue_00->id,
@@ -171,6 +174,7 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
                     "observationTime" => $this->metricAssignmentReport->observationTime,
                     "submitTime" => $this->metricAssignmentReport->submitTime,
                     "approved" => $this->metricAssignmentReport->approved,
+                    "note" => $this->metricAssignmentReport->note,
                     "removed" => $this->metricAssignmentReport->removed,
                     "assignmentFieldValues" => [
                         [
@@ -215,6 +219,7 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
                     "observationTime" => $this->metricAssignmentReportOne->observationTime,
                     "submitTime" => $this->metricAssignmentReportOne->submitTime,
                     "approved" => $this->metricAssignmentReportOne->approved,
+                    "note" => $this->metricAssignmentReportOne->note,
                     "removed" => $this->metricAssignmentReportOne->removed,
                     "assignmentFieldValues" => [
                         [
@@ -292,6 +297,30 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
         $metricAssignmentReportEntry = [
             "id" => $this->metricAssignmentReport->id,
             "approved" => true,
+        ];
+        $this->seeInDatabase("MetricAssignmentReport", $metricAssignmentReportEntry);
+    }
+    
+    public function test_reject_200()
+    {
+        $response = [
+            "id" => $this->metricAssignmentReport->id,
+            "observationTime" => $this->metricAssignmentReport->observationTime,
+            "submitTime" => $this->metricAssignmentReport->submitTime,
+            "approved" => false,
+            "note" => $this->rejectInput["note"],
+            "removed" => $this->metricAssignmentReport->removed,
+        ];
+        
+        $uri = $this->metricAssignmentReportUri . "/{$this->metricAssignmentReport->id}/reject";
+        $this->patch($uri, $this->rejectInput, $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+        
+        $metricAssignmentReportEntry = [
+            "id" => $this->metricAssignmentReport->id,
+            "approved" => false,
+            "note" => $this->rejectInput["note"],
         ];
         $this->seeInDatabase("MetricAssignmentReport", $metricAssignmentReportEntry);
     }

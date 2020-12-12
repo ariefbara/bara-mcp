@@ -159,6 +159,8 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
             "id" => $this->consultationSession->id,
             "startTime" => $this->consultationSession->startDateTime,
             "endTime" => $this->consultationSession->endDateTime,
+            "media" => $this->consultationSession->media,
+            "address" => $this->consultationSession->address,
             "consultationSetup" => [
                 "id" => $this->consultationSession->consultationSetup->id,
                 "name" => $this->consultationSession->consultationSetup->name,
@@ -211,6 +213,8 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                     "id" => $this->consultationSession->id,
                     "startTime" => $this->consultationSession->startDateTime,
                     "endTime" => $this->consultationSession->endDateTime,
+                    "media" => $this->consultationSession->media,
+                    "address" => $this->consultationSession->address,
                     "hasConsultantFeedback" => false,
                     "participant" => [
                         "id" => $this->consultationSession->participant->id,
@@ -226,6 +230,8 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                     "id" => $this->consultationSessionOne->id,
                     "startTime" => $this->consultationSessionOne->startDateTime,
                     "endTime" => $this->consultationSessionOne->endDateTime,
+                    "media" => $this->consultationSessionOne->media,
+                    "address" => $this->consultationSessionOne->address,
                     "hasConsultantFeedback" => true,
                     "participant" => [
                         "id" => $this->consultationSessionOne->participant->id,
@@ -243,58 +249,30 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-
     public function test_showAll_hasMinStartTimeFilter()
     {
         $response = [
             "total" => 1,
-            "list" => [
-                [
-                    "id" => $this->consultationSession->id,
-                    "startTime" => $this->consultationSession->startDateTime,
-                    "endTime" => $this->consultationSession->endDateTime,
-                    "hasConsultantFeedback" => false,
-                    "participant" => [
-                        "id" => $this->consultationSession->participant->id,
-                        "client" => null,
-                        "user" => [
-                            "id" => $this->userParticipant->user->id,
-                            "name" => $this->userParticipant->user->getFullName(),
-                        ],
-                        "team" => null,
-                    ],
-                ],
-            ],
+        ];
+        $consultationSessionResponse = [
+            "id" => $this->consultationSession->id
         ];
         $minStartTimeString = (new DateTime("-12 hours"))->format('Y-m-d H:i:s');
         $uri = $this->consultationSessionUri
                 . "?minStartTime=$minStartTimeString";
 
         $this->get($uri, $this->personnel->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($response);
+                ->seeJsonContains($response)
+                ->seeJsonContains($consultationSessionResponse)
+                ->seeStatusCode(200);
     }
     public function test_showAll_maxStartTimeAndConsultantFeedbackSetFilter()
     {
         $response = [
             "total" => 1,
-            "list" => [
-                [
-                    "id" => $this->consultationSessionOne->id,
-                    "startTime" => $this->consultationSessionOne->startDateTime,
-                    "endTime" => $this->consultationSessionOne->endDateTime,
-                    "hasConsultantFeedback" => true,
-                    "participant" => [
-                        "id" => $this->consultationSessionOne->participant->id,
-                        "client" => null,
-                        "user" => [
-                            "id" => $this->userParticipant->user->id,
-                            "name" => $this->userParticipant->user->getFullName(),
-                        ],
-                        "team" => null,
-                    ],
-                ],
-            ],
+        ];
+        $consultationSessionResponse = [
+            "id" => $this->consultationSessionOne->id
         ];
         $maxEndTimeString = (new DateTime())->format('Y-m-d H:i:s');
         $uri = $this->consultationSessionUri
@@ -302,8 +280,9 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
                 . "&containConsultantFeedback=true";
 
         $this->get($uri, $this->personnel->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($response);
+                ->seeJsonContains($response)
+                ->seeJsonContains($consultationSessionResponse)
+                ->seeStatusCode(200);
     }
 
     public function test_submitReport()

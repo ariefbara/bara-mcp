@@ -3,20 +3,17 @@
 namespace Participant\Domain\Model;
 
 use DateTimeImmutable;
-use Participant\Domain\{
-    DependencyModel\Firm\Program\Consultant,
-    DependencyModel\Firm\Program\ConsultationSetup,
-    DependencyModel\Firm\Program\Mission,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\MetricAssignment\MetricAssignmentReport,
-    Model\Participant\Worksheet,
-    Model\Participant\Worksheet\Comment,
-    Service\MetricAssignmentReportDataProvider
-};
-use Resources\{
-    Application\Event\ContainEvents,
-    Uuid
-};
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Resources\Application\Event\ContainEvents;
+use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class UserParticipant implements ContainEvents
@@ -52,15 +49,16 @@ class UserParticipant implements ContainEvents
 
     public function proposeConsultation(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeImmutable $startTime): ConsultationRequest
+            ConsultationRequestData $consultationRequestData): ConsultationRequest
     {
         return $this->participant->submitConsultationRequest($consultationRequestId, $consultationSetup, $consultant,
-                        $startTime);
+                        $consultationRequestData);
     }
 
-    public function reproposeConsultationRequest(string $consultationRequestId, DateTimeImmutable $startTime): void
+    public function reproposeConsultationRequest(
+            string $consultationRequestId, ConsultationRequestData $consulationRequestData): void
     {
-        $this->participant->changeConsultationRequestTime($consultationRequestId, $startTime);
+        $this->participant->changeConsultationRequestTime($consultationRequestId, $consulationRequestData);
     }
 
     public function acceptConsultationRequest(string $consultationRequestId): void

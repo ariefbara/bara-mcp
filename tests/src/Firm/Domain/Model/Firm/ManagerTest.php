@@ -2,17 +2,18 @@
 
 namespace Firm\Domain\Model\Firm;
 
-use Firm\Domain\ {
-    Model\Firm,
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\Consultant,
-    Model\Firm\Program\Coordinator,
-    Model\Firm\Program\EvaluationPlan,
-    Model\Firm\Program\EvaluationPlanData,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Service\ActivityTypeDataProvider
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\EvaluationPlan;
+use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
+use Firm\Domain\Model\Shared\FormData;
+use Firm\Domain\Service\ActivityTypeDataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
@@ -22,12 +23,11 @@ class ManagerTest extends TestBase
 
     protected $firm;
     protected $id = 'new-id', $name = 'new manager name', $email = 'new_address@email.org', $password = 'password123',
-        $phone = '08112313123';
+            $phone = '08112313123';
     protected $manager;
     protected $program;
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
     protected $activityType;
-    
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $coordinator;
     protected $consultant;
@@ -35,30 +35,41 @@ class ManagerTest extends TestBase
     protected $feedbackForm;
     protected $evaluationPlan;
     protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData;
+    protected $consultationSetup, $consultationSetupName = "new consultation setup name",
+            $sessionDuration = 99, $consultantFeedbackForm;
+    protected $profileFormId = "profileFormId", $formData, $profileForm;
+    protected $programsProfileForm;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->firm = $this->buildMockOfClass(Firm::class);
-        
+
         $managerData = new ManagerData("name", "manager@email.org", "password123", "0823123123123");
         $this->manager = new TestableManager($this->firm, "id", $managerData);
-        
+
         $this->program = $this->buildMockOfClass(Program::class);
         $this->activityTypeDataProvider = $this->buildMockOfClass(ActivityTypeDataProvider::class);
         $this->activityType = $this->buildMockOfClass(ActivityType::class);
-        
+
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
-        
+
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
         $this->feedbackForm = $this->buildMockOfClass(FeedbackForm::class);
+        $this->consultantFeedbackForm = $this->buildMockOfClass(FeedbackForm::class);
         $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
         $this->evaluationPlanData = $this->buildMockOfClass(EvaluationPlanData::class);
+        $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
+        
+        $this->formData = $this->buildMockOfClass(FormData::class);
+        $this->formData->expects($this->any())->method("getName")->willReturn("name");
+        $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
     }
-    
+
     protected function setAssetBelongsToFirm(MockObject $asset): void
     {
         $asset->expects($this->any())
@@ -82,7 +93,7 @@ class ManagerTest extends TestBase
     {
         return new ManagerData($this->name, $this->email, $this->password, $this->phone);
     }
-    
+
     private function executeConstruct()
     {
         return new TestableManager($this->firm, $this->id, $this->getManagerData());
@@ -132,15 +143,15 @@ class ManagerTest extends TestBase
         $this->executeConstruct();
         $this->markAsSuccess();
     }
-    
     protected function executeCreateActivityTypeInProgram()
     {
         $this->program->expects($this->any())
                 ->method("belongsToFirm")
                 ->willReturn(true);
         return $this->manager->createActivityTypeInProgram(
-                $this->program, $this->activityTypeId, $this->activityTypeDataProvider);
+                        $this->program, $this->activityTypeId, $this->activityTypeDataProvider);
     }
+    
     public function test_createActivityTypeInProgram_returnActivityTypeCreatedInProgram()
     {
         $this->program->expects($this->once())
@@ -154,7 +165,7 @@ class ManagerTest extends TestBase
                 ->method("belongsToFirm")
                 ->with($this->firm)
                 ->willReturn(false);
-        $operation = function (){
+        $operation = function () {
             $this->executeCreateActivityTypeInProgram();
         };
         $errorDetail = "forbidden: can only manage asset of same firm";
@@ -163,13 +174,13 @@ class ManagerTest extends TestBase
     public function test_createActivityTypeInProgram_inactiveManager_forbidden()
     {
         $this->manager->removed = true;
-        $operation = function (){
+        $operation = function () {
             $this->executeCreateActivityTypeInProgram();
         };
         $errorDetail = "forbidden: only active manager can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    
+
     protected function executeUpdateActivityType()
     {
         $this->setAssetBelongsToFirm($this->activityType);
@@ -185,11 +196,11 @@ class ManagerTest extends TestBase
     public function test_updateActivityType_unmanagedActivityType_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->activityType);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeUpdateActivityType();
         });
     }
-    
+
     protected function executeDisableActivityType()
     {
         $this->setAssetBelongsToFirm($this->activityType);
@@ -204,11 +215,11 @@ class ManagerTest extends TestBase
     public function test_disableActivityType_unmanagedActivityType_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->activityType);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeDisableActivityType();
         });
     }
-    
+
     protected function executeEnableActivityType()
     {
         $this->setAssetBelongsToFirm($this->activityType);
@@ -223,11 +234,11 @@ class ManagerTest extends TestBase
     public function test_enableActivityType_unmanagedActivityType_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->activityType);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeEnableActivityType();
         });
     }
-    
+
     public function test_canInvolvedInProgram_returnProgramsBelongsToFirmResult()
     {
         $program = $this->buildMockOfClass(Program::class);
@@ -253,7 +264,7 @@ class ManagerTest extends TestBase
                 ->method("isManagerType");
         $this->manager->roleCorrespondWith($activityParticipantType);
     }
-    
+
     public function test_registerAsAttendeeCandidate_setManagerAsAttendeeCandidate()
     {
         $attendee = $this->buildMockOfClass(Attendee::class);
@@ -262,7 +273,7 @@ class ManagerTest extends TestBase
                 ->with($this->manager);
         $this->manager->registerAsAttendeeCandidate($attendee);
     }
-    
+
     protected function executeInitiateMeeting()
     {
         $this->meetingType->expects($this->any())
@@ -280,7 +291,7 @@ class ManagerTest extends TestBase
     public function test_initiateMeeting_inactiveManager_forbidden()
     {
         $this->manager->removed = true;
-        $operation = function (){
+        $operation = function () {
             $this->executeInitiateMeeting();
         };
         $errorDetail = "forbidden: only active manager can make this request";
@@ -292,13 +303,13 @@ class ManagerTest extends TestBase
                 ->method("belongsToFirm")
                 ->with($this->firm)
                 ->willReturn(false);
-        $operation = function (){
+        $operation = function () {
             $this->executeInitiateMeeting();
         };
         $errorDetail = "forbidden: unable to manage meeting type from other firm";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    
+
     protected function executeDisableCoordinator()
     {
         $this->setAssetBelongsToFirm($this->coordinator);
@@ -313,11 +324,11 @@ class ManagerTest extends TestBase
     public function test_disableCoordinator_coordinatorBelongsToDifferentFirm_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->coordinator);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeDisableCoordinator();
         });
     }
-    
+
     protected function executeDisableConsultant()
     {
         $this->setAssetBelongsToFirm($this->consultant);
@@ -332,11 +343,11 @@ class ManagerTest extends TestBase
     public function test_disableConsultant_consultantFromOtherFirm_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->consultant);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeDisableConsultant();
         });
     }
-    
+
     protected function executeDisablePersonnel()
     {
         $this->setAssetBelongsToFirm($this->personnel);
@@ -351,17 +362,17 @@ class ManagerTest extends TestBase
     public function test_disablePersonnel_personnelFromOtherFirm_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->personnel);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeDisablePersonnel();
         });
     }
-    
+
     protected function executeCreateEvaluationPlanInProgram()
     {
         $this->setAssetBelongsToFirm($this->program);
         $this->setAssetBelongsToFirm($this->feedbackForm);
         return $this->manager->createEvaluationPlanInProgram(
-                $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
+                        $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
     }
     public function test_createEvaluationPlanInProgram_returnEvaluationPlanCreatedInProgram()
     {
@@ -373,18 +384,18 @@ class ManagerTest extends TestBase
     public function test_createEvaluationPlanInProgram_programFromDifferentFirm_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->program);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeCreateEvaluationPlanInProgram();
         });
     }
     public function test_createEvaluationPlanInProgram_reportFormFromDifferentFirm_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->feedbackForm);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeCreateEvaluationPlanInProgram();
         });
     }
-    
+
     protected function executeUpdateEvaluationPlan()
     {
         $this->setAssetBelongsToFirm($this->evaluationPlan);
@@ -401,18 +412,18 @@ class ManagerTest extends TestBase
     public function test_updateEvaluationPlan_unmanagerableEvaluationPlan_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->evaluationPlan);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeUpdateEvaluationPlan();
         });
     }
     public function test_updateEvaluationPlan_unmanagerableFeedbackForm_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->feedbackForm);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeUpdateEvaluationPlan();
         });
     }
-    
+
     protected function executeDisableEvaluationPlan()
     {
         $this->setAssetBelongsToFirm($this->evaluationPlan);
@@ -427,11 +438,11 @@ class ManagerTest extends TestBase
     public function test_disableEvaluationPlan_unmanagerableEvaluationPlan_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->evaluationPlan);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeDisableEvaluationPlan();
         });
     }
-    
+
     protected function executeEnableEvaluationPlan()
     {
         $this->setAssetBelongsToFirm($this->evaluationPlan);
@@ -446,11 +457,125 @@ class ManagerTest extends TestBase
     public function test_enableEvaluationPlan_unmanagerableEvaluationPlan_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->evaluationPlan);
-        $this->assertUnmanageableAssetForbiddenError(function (){
+        $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeEnableEvaluationPlan();
         });
     }
 
+    protected function executeUpdateConsultationSetup()
+    {
+        $this->setAssetBelongsToFirm($this->consultationSetup);
+        $this->setAssetBelongsToFirm($this->feedbackForm);
+        $this->setAssetBelongsToFirm($this->consultantFeedbackForm);
+        $this->manager->updateConsultationSetup(
+                $this->consultationSetup, $this->consultationSetupName, $this->sessionDuration, $this->feedbackForm,
+                $this->consultantFeedbackForm);
+    }
+    public function test_updateConsulataionSetup_updateConsultationSetup()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method("update")
+                ->with($this->consultationSetupName, $this->sessionDuration, $this->feedbackForm, $this->consultantFeedbackForm);
+        $this->executeUpdateConsultationSetup();
+    }
+    public function test_updateConsultationSetup_unmanagedConsultationSetup_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->consultationSetup);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateConsultationSetup();
+        });
+    }
+    public function test_updateConsultationSetup_unmanagedParticipantFeedbackForm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->feedbackForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateConsultationSetup();
+        });
+    }
+    public function test_updateConsultationSetup_unmanagedConsultantFeedbackForm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->consultantFeedbackForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateConsultationSetup();
+        });
+    }
+    
+    protected function executeCreateProfileForm()
+    {
+        return $this->manager->createProfileForm($this->profileFormId, $this->formData);
+    }
+    public function test_createProfileForm_returnProfileForm()
+    {
+        $profileForm = new ProfileForm($this->manager->firm, $this->profileFormId, $this->formData);
+        $this->assertEquals($profileForm, $this->executeCreateProfileForm());
+    }
+    
+    protected function executeUpdateProfileForm()
+    {
+        $this->setAssetBelongsToFirm($this->profileForm);
+        $this->manager->updateProfileForm($this->profileForm, $this->formData);
+    }
+    public function test_updateProfileForm_updateProfileForm()
+    {
+        $this->profileForm->expects($this->once())
+                ->method("update")
+                ->with($this->formData);
+        $this->executeUpdateProfileForm();
+    }
+    public function test_updateProfileForm_unmanagedProfileForm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->profileForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeUpdateProfileForm();
+        });
+    }
+    
+    protected function executeAssignProfileFormToProgram()
+    {
+        $this->setAssetBelongsToFirm($this->program);
+        $this->setAssetBelongsToFirm($this->profileForm);
+        $this->manager->assignProfileFormToProgram($this->program, $this->profileForm);
+    }
+    public function test_assignProfileFormToProgram_returnProgramsAssignProfileFormToProgramResult()
+    {
+        $this->program->expects($this->once())
+                ->method("assignProfileForm")
+                ->with($this->profileForm);
+        $this->executeAssignProfileFormToProgram();
+    }
+    public function test_assignProfileFormToProgram_programUnmanaged_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->program);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeAssignProfileFormToProgram();
+        });
+    }
+    public function test_assignProfileFormToProgram_profileFormUnmanaged_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->profileForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeAssignProfileFormToProgram();
+        });
+    }
+    
+    protected function executeDisableProgramsProfileForm()
+    {
+        $this->setAssetBelongsToFirm($this->programsProfileForm);
+        $this->manager->disableProgramsProfileForm($this->programsProfileForm);
+    }
+    public function test_disableProgramsProfileForm_disableProgramsProfileForm()
+    {
+        $this->programsProfileForm->expects($this->once())
+                ->method("disable");
+        $this->executeDisableProgramsProfileForm();
+    }
+    public function test_disableProgramsProfileForm_programsProfileFormUnmanaged_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->programsProfileForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableProgramsProfileForm();
+        });
+    }
 }
 
 class TestableManager extends Manager

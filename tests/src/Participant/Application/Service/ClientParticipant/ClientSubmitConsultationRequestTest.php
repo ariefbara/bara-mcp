@@ -2,15 +2,13 @@
 
 namespace Participant\Application\Service\ClientParticipant;
 
-use DateTimeImmutable;
-use Participant\ {
-    Application\Service\ClientParticipantRepository,
-    Application\Service\Participant\ConsultationRequestRepository,
-    Domain\DependencyModel\Firm\Program\Consultant,
-    Domain\DependencyModel\Firm\Program\ConsultationSetup,
-    Domain\Model\ClientParticipant,
-    Domain\Model\Participant\ConsultationRequest
-};
+use Participant\Application\Service\ClientParticipantRepository;
+use Participant\Application\Service\Participant\ConsultationRequestRepository;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
@@ -24,7 +22,7 @@ class ClientSubmitConsultationRequestTest extends TestBase
     protected $consultantRepository, $consultant;
     protected $dispatcher;
     protected $firmId = 'firmId', $clientId = 'clientId', $programParticipationId = 'programParticipationId',
-            $consultationSetupId = 'consultationSetupId', $consultantId = 'consultantId', $startTime;
+            $consultationSetupId = 'consultationSetupId', $consultantId = 'consultantId', $consultationRequestData;
 
     protected function setUp(): void
     {
@@ -62,20 +60,20 @@ class ClientSubmitConsultationRequestTest extends TestBase
                 $this->consultationRequestRepository, $this->clientParticipantRepository,
                 $this->consultationSetupRepository, $this->consultantRepository, $this->dispatcher);
 
-        $this->startTime = new DateTimeImmutable();
+        $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
     }
 
     protected function execute()
     {
         return $this->service->execute(
                         $this->firmId, $this->clientId, $this->programParticipationId, $this->consultationSetupId,
-                        $this->consultantId, $this->startTime);
+                        $this->consultantId, $this->consultationRequestData);
     }
     public function test_execute_addConsultationRequestFromClientParticipantProposeConsultation()
     {
         $this->clientParticipant->expects($this->once())
                 ->method('proposeConsultation')
-                ->with($this->nextId, $this->consultationSetup, $this->consultant, $this->startTime);
+                ->with($this->nextId, $this->consultationSetup, $this->consultant, $this->consultationRequestData);
         
         $this->consultationRequestRepository->expects($this->once())
                 ->method('add');

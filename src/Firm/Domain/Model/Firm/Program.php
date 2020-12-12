@@ -3,33 +3,28 @@
 namespace Firm\Domain\Model\Firm;
 
 use Config\EventList;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Firm\Domain\{
-    Model\AssetBelongsToFirm,
-    Model\Firm,
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\Consultant,
-    Model\Firm\Program\Coordinator,
-    Model\Firm\Program\EvaluationPlan,
-    Model\Firm\Program\EvaluationPlanData,
-    Model\Firm\Program\Metric,
-    Model\Firm\Program\MetricData,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Registrant,
-    Service\ActivityTypeDataProvider
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\EvaluationPlan;
+use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\Metric;
+use Firm\Domain\Model\Firm\Program\MetricData;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
+use Firm\Domain\Model\Firm\Program\Registrant;
+use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use Resources\{
-    Domain\Event\CommonEvent,
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException,
-    Uuid,
-    ValidationRule,
-    ValidationService
-};
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
 class Program extends EntityContainEvents implements AssetBelongsToFirm
 {
@@ -99,6 +94,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
      * @var ArrayCollection
      */
     protected $registrants;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $assignedProfileForms;
 
     protected function setName(string $name)
     {
@@ -231,6 +232,21 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
     public function createActivityType(string $activityTypeId, ActivityTypeDataProvider $activityTypeDataProvider): ActivityType
     {
         return new ActivityType($this, $activityTypeId, $activityTypeDataProvider);
+    }
+    
+    public function assignProfileForm(ProfileForm $profileForm): string
+    {
+        $p = function (ProgramsProfileForm $assignedProfileForm) use ($profileForm) {
+            return $assignedProfileForm->correspondWithProfileForm($profileForm);
+        };
+        if (!empty($assignedProfileForm = $this->assignedProfileForms->filter($p)->first())) {
+            $assignedProfileForm->enable();
+        } else {
+            $id = Uuid::generateUuid4();
+            $assignedProfileForm = new ProgramsProfileForm($this, $id, $profileForm);
+            $this->assignedProfileForms->add($assignedProfileForm);
+        }
+        return $assignedProfileForm->getId();
     }
 
 }

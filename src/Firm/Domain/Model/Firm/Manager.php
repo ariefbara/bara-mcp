@@ -3,26 +3,25 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Firm\Domain\{
-    Model\AssetBelongsToFirm,
-    Model\Firm,
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\Consultant,
-    Model\Firm\Program\Coordinator,
-    Model\Firm\Program\EvaluationPlan,
-    Model\Firm\Program\EvaluationPlanData,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Service\ActivityTypeDataProvider
-};
-use Resources\{
-    Domain\ValueObject\Password,
-    Exception\RegularException,
-    ValidationRule,
-    ValidationService
-};
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\EvaluationPlan;
+use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
+use Firm\Domain\Model\Shared\FormData;
+use Firm\Domain\Service\ActivityTypeDataProvider;
+use Resources\Domain\ValueObject\Password;
+use Resources\Exception\RegularException;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class Manager implements CanAttendMeeting
@@ -128,19 +127,19 @@ class Manager implements CanAttendMeeting
         }
         return $program->createActivityType($activityTypeId, $activityTypeDataProvider);
     }
-    
+
     public function updateActivityType(ActivityType $activityType, ActivityTypeDataProvider $activityTypeDataProvider): void
     {
         $this->assertAssetBelongsToSameFirm($activityType);
         $activityType->update($activityTypeDataProvider);
     }
-    
+
     public function disableActivityType(ActivityType $activityType): void
     {
         $this->assertAssetBelongsToSameFirm($activityType);
         $activityType->disable();
     }
-    
+
     public function enableActivityType(ActivityType $activityType): void
     {
         $this->assertAssetBelongsToSameFirm($activityType);
@@ -219,6 +218,40 @@ class Manager implements CanAttendMeeting
     {
         $this->assertAssetBelongsToSameFirm($evaluationPlan);
         $evaluationPlan->enable();
+    }
+
+    public function updateConsultationSetup(
+            ConsultationSetup $consultationSetup, string $name, int $sessionDuration,
+            FeedbackForm $participantFeedbackForm, FeedbackForm $consultantFeedbackForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($consultationSetup);
+        $this->assertAssetBelongsToSameFirm($participantFeedbackForm);
+        $this->assertAssetBelongsToSameFirm($consultantFeedbackForm);
+        $consultationSetup->update($name, $sessionDuration, $participantFeedbackForm, $consultantFeedbackForm);
+    }
+    
+    public function createProfileForm(string $profileFormId, FormData $formData): ProfileForm
+    {
+        return new ProfileForm($this->firm, $profileFormId, $formData);
+    }
+    
+    public function updateProfileForm(ProfileForm $profileForm, FormData $formData): void
+    {
+        $this->assertAssetBelongsToSameFirm($profileForm);
+        $profileForm->update($formData);
+    }
+    
+    public function assignProfileFormToProgram(Program $program, ProfileForm $profileForm): string
+    {
+        $this->assertAssetBelongsToSameFirm($program);
+        $this->assertAssetBelongsToSameFirm($profileForm);
+        return $program->assignProfileForm($profileForm);
+    }
+    
+    public function disableProgramsProfileForm(ProgramsProfileForm $programsProfileForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($programsProfileForm);
+        $programsProfileForm->disable();
     }
 
     protected function assertAssetBelongsToSameFirm(AssetBelongsToFirm $asset): void

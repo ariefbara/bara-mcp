@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\ConsultationChannel">
+        
+        <field name="media" type="string" length="16" nullable="true"/>
+        <field name="address" type="string" length="1024" nullable="true"/>
+        
+    </embeddable>
+</doctrine-mapping>

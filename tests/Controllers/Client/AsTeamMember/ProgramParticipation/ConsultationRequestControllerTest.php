@@ -89,9 +89,13 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             "consultationSetupId" => $this->consultationSetup->id,
             "consultantId" => $this->consultant->id,
             "startTime" => (new DateTime('+36 hours'))->format('Y-m-d H:i:s'),
+            "media" => "new media",
+            "address" => "new address",
         ];
         $this->changeTimeInput = [
             "startTime" => (new DateTime('+36 hours'))->format('Y-m-d H:i:s'),
+            "media" => "new media",
+            "address" => "new address",
         ];
     }
     protected function tearDown(): void
@@ -137,6 +141,8 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
                 ],
             ],
             "startTime" => $this->proposeInput['startTime'],
+            "media" => $this->proposeInput['media'],
+            "address" => $this->proposeInput['address'],
             "concluded" => false,
             "status" => 'proposed',
         ];
@@ -150,6 +156,8 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             "Participant_id" => $this->programParticipation->id,
             "Consultant_id" => $this->consultant->id,
             "startDateTime" => $this->proposeInput['startTime'],
+            "media" => $this->proposeInput['media'],
+            "address" => $this->proposeInput['address'],
             "concluded" => false,
             "status" => 'proposed',
         ];
@@ -161,7 +169,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Konsulta: Permintaan Konsultasi",
+            "subject" => "Permintaan Konsultasi",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -276,7 +284,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Konsulta: Permintaan Konsultasi",
+            "subject" => "Permintaan Konsultasi",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -403,7 +411,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Konsulta: Permintaan Konsultasi",
+            "subject" => "Permintaan Konsultasi",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -516,7 +524,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Konsulta: Jadwal Konsultasi",
+            "subject" => "Jadwal Konsultasi",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -645,6 +653,8 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ],
             "startTime" => $this->consultationRequest->startDateTime,
             "endTime" => $this->consultationRequest->endDateTime,
+            "media" => $this->consultationRequest->media,
+            "address" => $this->consultationRequest->address,
             "concluded" => false,
             "status" => $this->consultationRequest->status,
         ];
@@ -672,6 +682,8 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
                     "status" => $this->consultationRequest->status,
                     "startTime" => $this->consultationRequest->startDateTime,
                     "endTime" => $this->consultationRequest->endDateTime,
+                    "media" => $this->consultationRequest->media,
+                    "address" => $this->consultationRequest->address,
                     "concluded" => $this->consultationRequest->concluded,
                     "consultationSetup" => [
                         "id" => $this->consultationRequest->consultationSetup->id,
@@ -690,6 +702,8 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
                     "status" => $this->consultationRequestOne->status,
                     "startTime" => $this->consultationRequestOne->startDateTime,
                     "endTime" => $this->consultationRequestOne->endDateTime,
+                    "media" => $this->consultationRequestOne->media,
+                    "address" => $this->consultationRequestOne->address,
                     "concluded" => $this->consultationRequestOne->concluded,
                     "consultationSetup" => [
                         "id" => $this->consultationRequestOne->consultationSetup->id,

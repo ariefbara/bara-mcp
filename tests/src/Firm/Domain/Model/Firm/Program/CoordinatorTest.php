@@ -3,17 +3,16 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
-    Model\Firm,
-    Model\Firm\Personnel,
-    Model\Firm\Program,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\Participant\EvaluationData,
-    Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Service\MetricAssignmentDataProvider
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Personnel;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
@@ -31,9 +30,10 @@ class CoordinatorTest extends TestBase
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $activityParticipantType;
     protected $attendee;
-    protected $metricAssignmentReport;
+    protected $metricAssignmentReport, $note = "new note";
     protected $firm;
     protected $evaluationPlan, $evaluationData;
+    protected $consultationSession, $media = "new media", $address = "new Address";
 
     protected function setUp(): void
     {
@@ -64,6 +64,8 @@ class CoordinatorTest extends TestBase
         
         $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
         $this->evaluationData = $this->buildMockOfClass(EvaluationData::class);
+        
+        $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
     }
     
     protected function setAssetBelongsToProgram($asset)
@@ -271,6 +273,33 @@ class CoordinatorTest extends TestBase
         });
     }
     
+    protected function executeRejectMetricAssignmentReport()
+    {
+        $this->setAssetBelongsToProgram($this->metricAssignmentReport);
+        $this->coordinator->rejectMetricAssignmentReport($this->metricAssignmentReport, $this->note);
+    }
+    public function test_rejectMetricAssignmentReport_rejectReport()
+    {
+        $this->metricAssignmentReport->expects($this->once())
+                ->method("reject")
+                ->with($this->note);
+        $this->executeRejectMetricAssignmentReport();
+    }
+    public function test_rejectMetricAssignmentReport_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeRejectMetricAssignmentReport();
+        });
+    }
+    public function test_rejectMetricAssignmentReport_metricAssignmentReportDoesntBelongsToProgram_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->metricAssignmentReport);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeRejectMetricAssignmentReport();
+        });
+    }
+    
     public function test_belongsToFirm_returnProgramsBelongsToFirmResult()
     {
         $this->program->expects($this->once())
@@ -311,6 +340,58 @@ class CoordinatorTest extends TestBase
         $this->setAssetNotBelongsToProgram($this->evaluationPlan);
         $this->assertAssetNotBelongsToProgramForbiddenError(function (){
             $this->executeEvaluateParticipant();
+        });
+    }
+    
+    protected function executeQualifyParticipant()
+    {
+        $this->setAssetBelongsToProgram($this->participant);
+        $this->coordinator->qualifyParticipant($this->participant);
+    }
+    public function test_qualifyParticipant_qualifyParticipant()
+    {
+        $this->participant->expects($this->once())->method("qualify");
+        $this->executeQualifyParticipant();
+    }
+    public function test_qualifyParticipant_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeQualifyParticipant();
+        });
+    }
+    public function test_qualifyParticipant_unmanageableParticipant_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->participant);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeQualifyParticipant();
+        });
+    }
+    
+    protected function executeChangeConsultationSessionChannel()
+    {
+        $this->setAssetBelongsToProgram($this->consultationSession);
+        $this->coordinator->changeConsultationSessionChannel($this->consultationSession, $this->media, $this->address);
+    }
+    public function test_changeConsultationSessionChannel_changeConsultationSessionChannel()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("changeChannel")
+                ->with($this->media, $this->address);
+        $this->executeChangeConsultationSessionChannel();
+    }
+    public function test_changeConsultationSessionChannel_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeChangeConsultationSessionChannel();
+        });
+    }
+    public function test_changeConsultationSessionChannel_unmanageableConsultationSession_forbidden()
+    {
+        $this->setAssetNotBelongsToProgram($this->consultationSession);
+        $this->assertAssetNotBelongsToProgramForbiddenError(function (){
+            $this->executeChangeConsultationSessionChannel();
         });
     }
 

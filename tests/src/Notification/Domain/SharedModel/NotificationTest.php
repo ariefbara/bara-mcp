@@ -2,14 +2,14 @@
 
 namespace Notification\Domain\SharedModel;
 
-use Notification\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Personnel,
-    Model\User,
-    SharedModel\Notification\ClientNotificationRecipient,
-    SharedModel\Notification\PersonnelNotificationRecipient,
-    SharedModel\Notification\UserNotificationRecipient
-};
+use Notification\Domain\Model\Firm\Client;
+use Notification\Domain\Model\Firm\Manager;
+use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\Model\User;
+use Notification\Domain\SharedModel\Notification\ClientNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\ManagerNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\PersonnelNotificationRecipient;
+use Notification\Domain\SharedModel\Notification\UserNotificationRecipient;
 use Tests\TestBase;
 
 class NotificationTest extends TestBase
@@ -21,6 +21,7 @@ class NotificationTest extends TestBase
     protected $user;
     protected $client;
     protected $personnel;
+    protected $manager;
 
     protected function setUp(): void
     {
@@ -30,6 +31,7 @@ class NotificationTest extends TestBase
         $this->user = $this->buildMockOfClass(User::class);
         $this->client = $this->buildMockOfClass(Client::class);
         $this->personnel = $this->buildMockOfClass(Personnel::class);
+        $this->manager = $this->buildMockOfClass(Manager::class);
     }
     
     public function test_construct_setProperties()
@@ -56,6 +58,12 @@ class NotificationTest extends TestBase
         $this->notification->addPersonnelRecipient($this->personnel);
         $this->assertInstanceOf(PersonnelNotificationRecipient::class, $this->notification->personnelNotificationRecipients->first());
     }
+    
+    public function test_addManagerRecipient_addManagerRecipientNotification()
+    {
+        $this->notification->addManagerRecipient($this->manager);
+        $this->assertInstanceOf(ManagerNotificationRecipient::class, $this->notification->managerNotificationRecipients->first());
+    }
 }
 
 class TestableNotification extends Notification
@@ -65,4 +73,5 @@ class TestableNotification extends Notification
     public $userNotificationRecipients;
     public $clientNotificationRecipients;
     public $personnelNotificationRecipients;
+    public $managerNotificationRecipients;
 }

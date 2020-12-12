@@ -47,7 +47,7 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
     
     /**
      *
-     * @var bool
+     * @var bool|null
      */
     protected $approved;
 
@@ -72,7 +72,7 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
         $this->observationTime = $observationTime;
         $this->submitTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->removed = false;
-        $this->approved = false;
+        $this->approved = null;
 
         $this->assignmentFieldValues = new ArrayCollection();
         $this->metricAssignment->setActiveAssignmentFieldValuesTo($this, $metricAssignmentReportDataProvider);
@@ -80,7 +80,7 @@ class MetricAssignmentReport implements AssetBelongsToTeamInterface
 
     public function update(MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): void
     {
-        if ($this->approved) {
+        if ($this->approved !== null) {
             $errorDetail = "forbidden: unable to update approved report";
             throw RegularException::forbidden($errorDetail);
         }
