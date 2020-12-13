@@ -46,7 +46,7 @@ class Coordinator
     }
 
     public function registerAsMailRecipient(
-            CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltPrependUrlPath): void
+            CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltPrependUrlPath = false): void
     {
         if (!$haltPrependUrlPath) {
             $mailMessage = $mailMessage->prependUrlPath("/coordinators/{$this->id}");

@@ -2,21 +2,21 @@
 
 namespace Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 
-use Firm\Domain\Model\Firm\ {
-    Manager,
-    Program\ActivityType\ActivityParticipant,
-    Program\Consultant,
-    Program\Coordinator,
-    Program\MeetingType\CanAttendMeeting,
-    Program\MeetingType\Meeting,
-    Program\MeetingType\Meeting\Attendee\ConsultantAttendee,
-    Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
-    Program\MeetingType\Meeting\Attendee\ManagerAttendee,
-    Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
-    Program\MeetingType\MeetingData,
-    Program\Participant,
-    Team
-};
+use Config\EventList;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Team;
+use Resources\Domain\Event\CommonEvent;
 use Tests\TestBase;
 
 class AttendeeTest extends TestBase
@@ -41,6 +41,7 @@ class AttendeeTest extends TestBase
         $this->attendeeSetup = $this->buildMockOfClass(ActivityParticipant::class);
         $this->user = $this->buildMockOfInterface(CanAttendMeeting::class);
         $this->attendee = new TestableAttendee($this->meeting, "id", $this->attendeeSetup, $this->user);
+        $this->attendee->recordedEvents = [];
         
         $this->managerAttendee = $this->buildMockOfClass(ManagerAttendee::class);
         $this->coordinatorAttendee = $this->buildMockOfClass(CoordinatorAttendee::class);
@@ -80,6 +81,12 @@ class AttendeeTest extends TestBase
         $this->user->expects($this->once())
                 ->method("registerAsAttendeeCandidate");
         $this->executeConstruct();
+    }
+    public function test_construct_recordMeetingInvitationSentEvent()
+    {
+        $attendee = $this->executeConstruct();
+        $event = new CommonEvent(EventList::MEETING_INVITATION_SENT, $attendee->id);
+        $this->assertEquals($event, $attendee->recordedEvents[0]);
     }
     
     public function test_belongsToTeam_returnParticipantBelongsToTeamResult()
@@ -136,28 +143,67 @@ class AttendeeTest extends TestBase
         $errorDetail = "forbidden: only active meeting initiator can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+    public function test_updateMeeting_collectMeetingRecordedEvents()
+    {
+        $this->attendee->anInitiator = true;
+        $this->meeting->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn($recordedEvents = ['array contain event lists']);
+        $this->executeUpdateMeeting();
+        $this->assertEquals($recordedEvents, $this->attendee->recordedEvents);
+        
+    }
     
+    protected function executeCancel()
+    {
+        $this->attendee->cancel();
+    }
     public function test_cancel_setCancelledTrue()
     {
         $this->attendee->anInitiator = false;
-        $this->attendee->cancel();
+        $this->executeCancel();
         $this->assertTrue($this->attendee->cancelled);
     }
     public function test_cancel_anInitiator_forbidden()
     {
         $this->attendee->anInitiator = true;
         $operation = function (){
-            $this->attendee->cancel();
+            $this->executeCancel();
         };
         $errorDetail = "forbidden: cannot cancel invitationt to initiator";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+    public function test_cancel_recordMeetingInvitationCancelledEvent()
+    {
+        $this->executeCancel();
+        $event = new CommonEvent(EventList::MEETING_INVITATION_CANCELLED, $this->attendee->id);
+        $this->assertEquals($event, $this->attendee->recordedEvents[0]);
+    }
     
+    protected function executeReinvite()
+    {
+        $this->attendee->reinvite();
+    }
     public function test_reinvite_setCancelledFalse()
     {
         $this->attendee->cancelled = true;
-        $this->attendee->reinvite();
+        $this->executeReinvite();
         $this->assertFalse($this->attendee->cancelled);
+    }
+    public function test_reinvite_invitationStillValid_forbidden()
+    {
+        $operation = function (){
+            $this->executeReinvite();
+        };
+        $errorDetail = "forbidden: user already receive inivitation";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_reinvite_recordMeetingInvitationSentEvent()
+    {
+        $this->attendee->cancelled = true;
+        $event = new CommonEvent(EventList::MEETING_INVITATION_SENT, $this->attendee->id);
+        $this->executeReinvite();
+        $this->assertEquals($event, $this->attendee->recordedEvents[0]);
     }
     
     public function test_correspondWithUser_aManagerAttendee_returnManagerAttendeesManagerEqualsResult()
@@ -255,6 +301,15 @@ class AttendeeTest extends TestBase
         $errorDetail = "forbidden: only active meeting initiator can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+    public function test_inviteUserToAttendMeeting_collectMeetingsRecordedEvents()
+    {
+        $this->attendee->anInitiator = true;
+        $this->meeting->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn($recordedEvents = ['array contain event lists']);
+        $this->executeInviteUserToAttendMeeting();
+        $this->assertEquals($recordedEvents, $this->attendee->recordedEvents);
+    }
     
     protected function executeCancelInvitation()
     {
@@ -328,4 +383,5 @@ class TestableAttendee extends Attendee
     public $coordinatorAttendee;
     public $consultantAttendee;
     public $participantAttendee;
+    public $recordedEvents;
 }

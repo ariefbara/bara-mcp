@@ -1,18 +1,18 @@
 <?php
 
-namespace Query\Domain\Model\Firm\Program\MeetingType\Meeting;
+namespace Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee;
 
-use Query\Domain\Model\Firm\Program\Activity;
+use Query\Domain\Model\Firm\Program\Activity\Invitee;
 use Query\Domain\SharedModel\Notification;
 
-class MeetingNotification
+class MeetingAttendeeNotification
 {
 
     /**
      * 
-     * @var Activity
+     * @var Invitee
      */
-    protected $meeting;
+    protected $meetingAttendee;
 
     /**
      * 
@@ -26,9 +26,9 @@ class MeetingNotification
      */
     protected $notification;
 
-    function getMeeting(): Activity
+    function getMeetingAttendee(): Invitee
     {
-        return $this->meeting;
+        return $this->meetingAttendee;
     }
 
     function getId(): string
@@ -40,7 +40,7 @@ class MeetingNotification
     {
         
     }
-    
+
     public function getMessage(): string
     {
         return $this->notification->getMessage();

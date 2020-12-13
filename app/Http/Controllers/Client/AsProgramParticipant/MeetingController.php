@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Client\AsProgramParticipant;
 
-use Firm\ {
-    Application\Service\Client\ProgramParticipant\InitiateMeeting,
-    Domain\Model\Firm\Program\ActivityType,
-    Domain\Model\Firm\Program\ClientParticipant,
-    Domain\Model\Firm\Program\MeetingType\Meeting,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
-use Query\ {
-    Application\Service\Firm\Program\ViewActivity,
-    Domain\Model\Firm\Program\Activity
-};
+use Config\EventList;
+use Firm\Application\Service\Client\ProgramParticipant\InitiateMeeting;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ClientParticipant;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Notification\Application\Listener\MeetingCreatedListener;
+use Notification\Application\Service\GenerateMeetingCreatedNotification;
+use Notification\Domain\Model\Firm\Program\MeetingType\Meeting as Meeting2;
+use Query\Application\Service\Firm\Program\ViewActivity;
+use Query\Domain\Model\Firm\Program\Activity;
+use Resources\Application\Event\Dispatcher;
 
 class MeetingController extends AsProgramParticipantBaseController
 {
@@ -58,7 +59,16 @@ class MeetingController extends AsProgramParticipantBaseController
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
         $activityTypeRepository = $this->em->getRepository(ActivityType::class);
         
-        return new InitiateMeeting($meetingRepository, $clientParticipantRepository, $activityTypeRepository);
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(EventList::MEETING_CREATED, $this->buildMeetingCreatedListener());
+        return new InitiateMeeting($meetingRepository, $clientParticipantRepository, $activityTypeRepository, $dispatcher);
+    }
+    protected function buildMeetingCreatedListener()
+    {
+        $meetingRepository = $this->em->getRepository(Meeting2::class);
+        $generateMeetingCreaterNotification = new GenerateMeetingCreatedNotification($meetingRepository);
+        $sendImmediateMail = $this->buildSendImmediateMail();
+        return new MeetingCreatedListener($generateMeetingCreaterNotification, $sendImmediateMail);
     }
 
     protected function buildViewService()

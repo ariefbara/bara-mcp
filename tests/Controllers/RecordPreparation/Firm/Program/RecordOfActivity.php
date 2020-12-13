@@ -24,7 +24,7 @@ class RecordOfActivity implements Record
     public $startDateTime;
     public $endDateTime;
     
-    function __construct(RecordOfActivityType $activityType, $index)
+    function __construct(?RecordOfActivityType $activityType, $index)
     {
         $this->activityType = $activityType;
         $this->id = "activity-$index-id";

@@ -3,10 +3,10 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfProgram,
-    Record
-};
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
 
 class RecordOfParticipant implements Record
 {
@@ -17,9 +17,10 @@ class RecordOfParticipant implements Record
     public $program;
     public $id, $enrolledTime, $active = true, $note = null;
 
-    function __construct(RecordOfProgram $program, $index)
+    function __construct(?RecordOfProgram $program, $index)
     {
-        $this->program = $program;
+        $firm = new RecordOfFirm($index);
+        $this->program = isset($program)? $program: new RecordOfProgram($firm, $index);
         $this->id = "participant-$index-id";
         $this->enrolledTime = (new DateTime())->format('Y-m-d H:i:s');
         $this->active = true;
@@ -36,5 +37,9 @@ class RecordOfParticipant implements Record
             "note" => $this->note,
         ];
     }
-
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("Participant")->insert($this->toArrayForDbEntry());
+    }
 }

@@ -2,11 +2,11 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Team;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfParticipant,
-    Firm\RecordOfTeam,
-    Record
-};
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfTeamProgramParticipation implements Record
 {
@@ -22,11 +22,12 @@ class RecordOfTeamProgramParticipation implements Record
     public $participant;
     public $id;
     
-    public function __construct(RecordOfTeam $team, RecordOfParticipant $participant)
+    public function __construct(?RecordOfTeam $team, ?RecordOfParticipant $participant, $index = 999)
     {
-        $this->team = $team;
-        $this->participant = $participant;
-        $this->id = $participant->id;
+        $this->team = isset($team)? $team: new RecordOfTeam(null, null, $index);
+        $program = new RecordOfProgram($this->team->firm, $index);
+        $this->participant = isset($participant)? $participant: new RecordOfParticipant($program, $index);
+        $this->id = $this->participant->id;
     }
 
     public function toArrayForDbEntry()
@@ -36,6 +37,11 @@ class RecordOfTeamProgramParticipation implements Record
             "Participant_id" => $this->participant->id,
             "id" => $this->id,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("TeamParticipant")->insert($this->toArrayForDbEntry());
     }
 
 }

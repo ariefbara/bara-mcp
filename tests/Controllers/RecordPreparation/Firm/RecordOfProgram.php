@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm;
 
+use Illuminate\Database\Connection;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use Tests\Controllers\RecordPreparation\{
-    Record,
-    RecordOfFirm
-};
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
 
 class RecordOfProgram implements Record
 {
@@ -18,9 +17,9 @@ class RecordOfProgram implements Record
     public $firm;
     public $id, $name, $description, $participantTypes, $published = false, $removed = false;
 
-    public function __construct(RecordOfFirm $firm, $index)
+    public function __construct(?RecordOfFirm $firm, $index)
     {
-        $this->firm = $firm;
+        $this->firm = isset($firm)? $firm: new RecordOfFirm($index);
         $this->id = "program-$index";
         $this->name = "program $index name";
         $this->description = "program $index description";
@@ -39,6 +38,11 @@ class RecordOfProgram implements Record
             "participantTypes" => $this->participantTypes,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("Firm")->insert($this->toArrayForDbEntry());
     }
 
 }

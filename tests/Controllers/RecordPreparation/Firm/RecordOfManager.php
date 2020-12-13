@@ -3,12 +3,12 @@
 namespace Tests\Controllers\RecordPreparation\Firm;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    JwtHeaderTokenGenerator,
-    Record,
-    RecordOfFirm,
-    TestablePassword
-};
+use DateTimeImmutable;
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\JwtHeaderTokenGenerator;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
+use Tests\Controllers\RecordPreparation\TestablePassword;
 
 class RecordOfManager implements Record
 {
@@ -23,20 +23,21 @@ class RecordOfManager implements Record
     public $rawPassword;
     public $token;
     
-    public function __construct(RecordOfFirm $firm, $index, $email, $rawPassword)
+    public function __construct(?RecordOfFirm $firm, $index)
     {
-        $this->firm = $firm;
+        $this->rawPassword = "Password123";
+        
+        $this->firm = isset($firm)? $firm: new RecordOfFirm($index);
         $this->id = "manager-$index-id";
         $this->name = "manager $index name";
-        $this->email = $email;
-        $this->password = (new TestablePassword($rawPassword))->getHashedPassword();
+        $this->email = "manager@email.org";
+        $this->password = (new TestablePassword($this->rawPassword))->getHashedPassword();
         $this->phone = "";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');
         $this->resetPasswordCode = "string-represent-reset-token";
-        $this->resetPasswordCodeExpiredTime = (new \DateTimeImmutable("+8 hours"))->format("Y-m-d H:i:s");
+        $this->resetPasswordCodeExpiredTime = (new DateTimeImmutable("+8 hours"))->format("Y-m-d H:i:s");
         $this->removed = false;
         
-        $this->rawPassword = $rawPassword;
         $data = [
             "firmId" => $this->firm->id,
             "managerId" => $this->id,
@@ -58,6 +59,16 @@ class RecordOfManager implements Record
             "resetPasswordCodeExpiredTime" => $this->resetPasswordCodeExpiredTime,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("Manager")->insert($this->toArrayForDbEntry());
+    }
+    
+    public static function truncateTable(Connection $connection): void
+    {
+        $connection->table("Manager")->truncate();
     }
 
 }

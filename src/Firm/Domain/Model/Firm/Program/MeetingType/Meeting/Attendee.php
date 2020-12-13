@@ -2,24 +2,25 @@
 
 namespace Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 
-use Firm\Domain\Model\Firm\ {
-    Manager,
-    Program\ActivityType\ActivityParticipant,
-    Program\Consultant,
-    Program\Coordinator,
-    Program\MeetingType\CanAttendMeeting,
-    Program\MeetingType\Meeting,
-    Program\MeetingType\Meeting\Attendee\ConsultantAttendee,
-    Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
-    Program\MeetingType\Meeting\Attendee\ManagerAttendee,
-    Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
-    Program\MeetingType\MeetingData,
-    Program\Participant,
-    Team
-};
+use Config\EventList;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Team;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainCommonEvents;
 use Resources\Exception\RegularException;
 
-class Attendee
+class Attendee extends EntityContainCommonEvents
 {
 
     /**
@@ -101,6 +102,9 @@ class Attendee
         $this->cancelled = false;
 
         $user->registerAsAttendeeCandidate($this);
+        
+        $event = new CommonEvent(EventList::MEETING_INVITATION_SENT, $this->id);
+        $this->recordEvent($event);
     }
     
     public function belongsToTeam(Team $team): bool
@@ -117,12 +121,14 @@ class Attendee
     {
         $this->assertInitiator();
         $this->meeting->update($meetingData);
+        $this->recordedEvents = $this->meeting->pullRecordedEvents();
     }
 
     public function inviteUserToAttendMeeting(CanAttendMeeting $user): void
     {
         $this->assertInitiator();
         $this->meeting->inviteUser($user);
+        $this->recordedEvents = $this->meeting->pullRecordedEvents();
     }
 
     public function cancelInvitationTo(Attendee $attendee): void
@@ -142,11 +148,21 @@ class Attendee
             throw RegularException::forbidden($errorDetail);
         }
         $this->cancelled = true;
+        
+        $event = new CommonEvent(EventList::MEETING_INVITATION_CANCELLED, $this->id);
+        $this->recordEvent($event);
     }
 
     public function reinvite(): void
     {
+        if (!$this->cancelled) {
+            $errorDetail = "forbidden: user already receive inivitation";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->cancelled = false;
+        
+        $event = new CommonEvent(EventList::MEETING_INVITATION_SENT, $this->id);
+        $this->recordEvent($event);
     }
 
     public function correspondWithUser(CanAttendMeeting $user): bool

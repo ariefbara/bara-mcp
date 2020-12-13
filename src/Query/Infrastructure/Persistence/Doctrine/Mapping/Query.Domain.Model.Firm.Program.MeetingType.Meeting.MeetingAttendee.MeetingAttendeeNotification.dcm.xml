@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\MeetingAttendeeNotification" 
+            table="MeetingAttendeeNotification" 
+    >
+        
+        <many-to-one  field="meetingAttendee" 
+                      target-entity="Query\Domain\Model\Firm\Program\Activity\Invitee"
+                      inversed-by="notifications"
+        >
+            <join-column name="MeetingAttendee_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="notification" 
+                    target-entity="Query\Domain\SharedModel\Notification"
+                    inversed-by="meetingAttendeeNotification"
+        >
+            <join-column name="Notification_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

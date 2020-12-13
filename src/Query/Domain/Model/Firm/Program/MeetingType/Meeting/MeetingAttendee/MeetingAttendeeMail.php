@@ -1,18 +1,17 @@
 <?php
 
-namespace Query\Domain\Model\Firm\Program\MeetingType\Meeting;
+namespace Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee;
 
-use Query\Domain\Model\Firm\Program\Activity;
+use Query\Domain\Model\Firm\Program\Activity\Invitee;
 use Query\Domain\SharedModel\Mail;
 
-class MeetingMail
+class MeetingAttendeeMail
 {
-
     /**
      * 
-     * @var Activity
+     * @var Invitee
      */
-    protected $meeting;
+    protected $meetingAttendee;
 
     /**
      * 
@@ -25,10 +24,9 @@ class MeetingMail
      * @var Mail
      */
     protected $mail;
-
+    
     protected function __construct()
     {
         
     }
-
 }

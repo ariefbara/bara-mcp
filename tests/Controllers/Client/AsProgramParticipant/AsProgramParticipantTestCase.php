@@ -44,6 +44,7 @@ class AsProgramParticipantTestCase extends ClientTestCase
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
 
         $client = new RecordOfClient($firm, 999);
+        $client->email = "purnama.adi+clientParticipant@gmail.com";
         $clientOne = new RecordOfClient($firm, 998);
         $client->activated = true;
         $clientOne->activated = true;

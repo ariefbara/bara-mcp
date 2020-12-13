@@ -114,7 +114,7 @@ _MESSAGE;
         $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
         
         $id = Uuid::generateUuid4();
-        $message = "perubahan jadwal meeting";
+        $message = "meeting schedule changed";
         $meetingNotification = new MeetingNotification($this, $id, $message);
         
         $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);

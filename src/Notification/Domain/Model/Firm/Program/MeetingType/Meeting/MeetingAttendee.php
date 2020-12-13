@@ -142,28 +142,6 @@ _MESSAGE;
         $this->registerUserAsMailRecipient($this, $mailMessage);
         $this->registerUserAsNotificationRecipient($meetingAttendeeNotification);
     }
-    
-    public function addMeetingCreatedNotification(): void
-    {
-        $subject = "Jadwal Meeting";
-        $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Anda telah berhasi membuat jadwal meeting di waktu:
-    {$this->meeting->getscheduleInIndonesianFormat()}.
-Untuk mengundang/membatalkan peserta meeting serta mengubah jadwal, kunjungi tautan berikut
-_MESSAGE;
-        $domain = $this->meeting->getFirmDomain();
-        $urlPath = "/meeting-invitations/{$this->id}";
-        $logoPath = $this->meeting->getFirmLogoPath();
-        
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-        $this->registerUserAsMailRecipient($this, $mailMessage);
-    }
-    
-    public function addMeetingScheduleChangedNotification(): void
-    {
-        
-    }
 
     public function registerAsMeetingMailRecipient(CanSendPersonalizeMail $meeting, MailMessage $mailMessage): void
     {

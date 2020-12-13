@@ -1,9 +1,9 @@
 <?php
 
-namespace Query\Domain\Model\Firm\Client;
+namespace Query\Domain\Model\Firm\Manager;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Manager;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionNotification;
 use Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\MeetingAttendeeNotification;
@@ -11,26 +11,26 @@ use Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingNotification;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification;
 use Query\Domain\SharedModel\Notification;
 
-class ClientNotificationRecipient
+class ManagerNotificationRecipient
 {
 
     /**
      *
-     * @var Client
+     * @var Manager
      */
-    protected $client;
-
-    /**
-     *
-     * @var Notification
-     */
-    protected $notification;
+    protected $manager;
 
     /**
      *
      * @var string
      */
     protected $id;
+
+    /**
+     *
+     * @var Notification
+     */
+    protected $notification;
 
     /**
      *
@@ -44,17 +44,17 @@ class ClientNotificationRecipient
      */
     protected $notifiedTime;
 
-    public function getClient(): Client
+    function getManager(): Manager
     {
-        return $this->client;
+        return $this->manager;
     }
 
-    public function getId(): string
+    function getId(): string
     {
         return $this->id;
     }
 
-    public function isRead(): bool
+    function getRead(): bool
     {
         return $this->read;
     }
@@ -78,7 +78,7 @@ class ClientNotificationRecipient
     {
         return $this->notification->getConsultationRequestNotification();
     }
-    
+
     public function getConsultationSessionNotification(): ?ConsultationSessionNotification
     {
         return $this->notification->getConsultationSessionNotification();
@@ -88,12 +88,12 @@ class ClientNotificationRecipient
     {
         return $this->notification->getCommentNotification();
     }
-    
+
     public function getMeetingNotification(): ?MeetingNotification
     {
         return $this->notification->getMeetingNotification();
     }
-    
+
     public function getMeetingAttendeeNotification(): ?MeetingAttendeeNotification
     {
         return $this->notification->getMeetingAttendeeNotification();

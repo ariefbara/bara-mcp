@@ -178,6 +178,27 @@ class TimeIntervalTest extends TestBase
         $this->assertFalse($this->executeIsUpcoming());
     }
     
+    protected function executeSameValueAs()
+    {
+        return $this->vo->sameValueAs($this->other);
+    }
+    public function test_sameValueAs_sameStarAndEndTime_returnTrue()
+    {
+        $this->other->startTime = $this->startTime;
+        $this->other->endTime = $this->endTime;
+        $this->assertTrue($this->executeSameValueAs());
+    }
+    public function test_sameValueAs_differentStartTime_returnFalse()
+    {
+        $this->other->endTime = $this->endTime;
+        $this->assertFalse($this->executeSameValueAs());
+    }
+    public function test_sameValueAs_differentEndTime_returnFalse()
+    {
+        $this->other->startTime = $this->startTime;
+        $this->assertFalse($this->executeSameValueAs());
+    }
+    
 }
 
 class TestableTimeInterval extends TimeInterval{

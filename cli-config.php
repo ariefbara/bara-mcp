@@ -35,7 +35,7 @@ $generateProxyPath = [
 
 $doctrineConfig = Setup::createXMLMetadataConfiguration($generateDbPath, $isDevMode);
 //$doctrineConfig = Setup::createXMLMetadataConfiguration($generateProxyPath, false);
-$doctrineConfig->setProxyDir(__DIR__ . DIRECTORY_SEPARATOR . "proxy");
+$doctrineConfig->setProxyDir(dirname(__DIR__) . DIRECTORY_SEPARATOR . "mcp_proxy");
 
  $conn = array(
     'driver' => 'pdo_mysql',
