@@ -3,6 +3,8 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 use Firm\Domain\Model\Firm\Program;
 use Resources\Exception\RegularException;
 
@@ -56,6 +58,12 @@ class Registrant
      * @var TeamRegistrant|null
      */
     protected $teamRegistrant;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $profiles;
 
     protected function __construct()
     {
@@ -84,14 +92,22 @@ class Registrant
     public function createParticipant(string $participantId): Participant
     {
         if (isset($this->userRegistrant)) {
-            return $this->userRegistrant->createParticipant($this->program, $participantId);
+            $participant = $this->userRegistrant->createParticipant($this->program, $participantId);
         }
         if (isset($this->clientRegistrant)) {
-            return $this->clientRegistrant->createParticipant($this->program, $participantId);
+            $participant = $this->clientRegistrant->createParticipant($this->program, $participantId);
         }
         if (isset($this->teamRegistrant)) {
-            return $this->teamRegistrant->createParticipant($this->program, $participantId);
+            $participant = $this->teamRegistrant->createParticipant($this->program, $participantId);
         }
+        
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq("removed", false));
+        foreach ($this->profiles->matching($criteria)->getIterator() as $profile) {
+            $profile->transferToParticipant($participant);
+        }
+        
+        return $participant;
     }
 
     public function correspondWithUser(string $userId): bool

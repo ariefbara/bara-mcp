@@ -4,17 +4,17 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
-    Model\Firm\Program,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\Participant\Evaluation,
-    Model\Firm\Program\Participant\EvaluationData,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Model\Firm\Team,
-    Service\MetricAssignmentDataProvider
-};
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
@@ -35,6 +35,7 @@ class ParticipantTest extends TestBase
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $team;
     protected $evaluationPlan, $coordinator, $evaluationData;
+    protected $programsProfileForm, $formRecord;
 
     protected function setUp(): void
     {
@@ -75,6 +76,9 @@ class ParticipantTest extends TestBase
         $this->evaluationData = $this->buildMockOfClass(EvaluationData::class);
         $this->evaluationData->expects($this->any())->method("getStatus")->willReturn("pass");
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
+        
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->formRecord = $this->buildMockOfClass(FormRecord::class);
     }
 
     public function test_participantForUser_setProperties()
@@ -336,6 +340,16 @@ class ParticipantTest extends TestBase
         $this->participant->disable();
         $this->assertFalse($this->participant->active);
     }
+    
+    public function test_addProfile_addProfileToCollection()
+    {
+        $this->formRecord->expects($this->once())
+                ->method("getId")->willReturn($formRecordId = "formRecordId");
+        $profile = new ParticipantProfile($this->participant, $formRecordId, $this->programsProfileForm, $this->formRecord);
+        
+        $this->participant->addProfile($this->programsProfileForm, $this->formRecord);
+        $this->assertEquals($profile, $this->participant->profiles->first());
+    }
 }
 
 class TestableParticipant extends Participant
@@ -351,6 +365,7 @@ class TestableParticipant extends Participant
     public $teamParticipant;
     public $metricAssignment;
     public $evaluations;
+    public $profiles;
 
     public function __construct(Program $program, string $id)
     {

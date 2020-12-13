@@ -4,23 +4,20 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\{
-    Model\Firm\Program,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\Participant\Evaluation,
-    Model\Firm\Program\Participant\EvaluationData,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Model\Firm\Team,
-    Service\MetricAssignmentDataProvider
-};
-use Resources\{
-    DateTimeImmutableBuilder,
-    Exception\RegularException,
-    Uuid
-};
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
+use Resources\DateTimeImmutableBuilder;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class Participant implements AssetInProgram, CanAttendMeeting
@@ -85,6 +82,12 @@ class Participant implements AssetInProgram, CanAttendMeeting
      * @var ArrayCollection
      */
     protected $evaluations;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $profiles;
 
     public function getId(): string
     {
@@ -98,6 +101,8 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->active = true;
         $this->note = null;
+        
+        $this->profiles = new ArrayCollection();
     }
 
     public function belongsToProgram(Program $program): bool
@@ -222,6 +227,13 @@ class Participant implements AssetInProgram, CanAttendMeeting
     public function belongsToTeam(Team $team): bool
     {
         return isset($this->teamParticipant) ? $this->teamParticipant->belongsToTeam($team) : false;
+    }
+    
+    public function addProfile(ProgramsProfileForm $programsProfileForm, FormRecord $formRecord): void
+    {
+        $id = $formRecord->getId();
+        $profile = new Participant\ParticipantProfile($this, $id, $programsProfileForm, $formRecord);
+        $this->profiles->add($profile);
     }
 
 }
