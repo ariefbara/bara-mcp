@@ -201,6 +201,9 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->post("", ["uses" => "$controller@initiate"]);
         });
         
+        $router->get("/participant/{participantId}/metric-assignment-reports", ["uses" => "MetricAssignmentReportController@showAll"]);
+        $router->get("/metric-assignment-reports/{metricAssignmentReportId}", ["uses" => "MetricAssignmentReportController@show"]);
+        
     });
     
     $programConsultationAggregate = [
