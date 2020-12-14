@@ -18,7 +18,7 @@ use Resources\ {
 class DoctrineUserParticipantRepository extends EntityRepository implements ProgramParticipationRepository
 {
 
-    public function all(string $userId, int $page, int $pageSize)
+    public function all(string $userId, int $page, int $pageSize, ?bool $activeStatus)
     {
         $params = [
             'userId' => $userId,
@@ -29,6 +29,12 @@ class DoctrineUserParticipantRepository extends EntityRepository implements Prog
                 ->leftJoin('userParticipant.user', 'user')
                 ->andWhere($qb->expr()->eq('user.id', ':userId'))
                 ->setParameters($params);
+        
+        if (isset($activeStatus)) {
+            $qb->leftJoin("userParticipant.participant", "participant")
+                    ->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

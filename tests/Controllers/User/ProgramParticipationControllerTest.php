@@ -178,4 +178,14 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
+    public function test_showAll_applyActiveStatusFilter_200()
+    {
+        $totalResponse = ["total" => 1];
+        $programParticipationResponse = ["id" => $this->programParticipation->id];
+        $uri = $this->programParticipationUri . "?activeStatus=true";
+        $this->get($uri, $this->user->token)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($programParticipationResponse)
+                ->seeStatusCode(200);
+    }
 }
