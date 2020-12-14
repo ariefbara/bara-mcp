@@ -2,13 +2,12 @@
 
 namespace Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee;
 
-use Firm\ {
-    Application\Service\Client\AsTeamMember\TeamMemberRepository,
-    Application\Service\Firm\Program\CoordinatorRepository,
-    Domain\Model\Firm\Program\Coordinator,
-    Domain\Model\Firm\Team\Member,
-    Domain\Service\MeetingAttendeeBelongsToTeamFinder
-};
+use Firm\Application\Service\Client\AsTeamMember\TeamMemberRepository;
+use Firm\Application\Service\Firm\Program\CoordinatorRepository;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Team\Member;
+use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class InviteCoordinatorToAttendMeetingTest extends TestBase
@@ -16,6 +15,7 @@ class InviteCoordinatorToAttendMeetingTest extends TestBase
     protected $teamMemberRepository, $teamMember;
     protected $meetingAttendeeBelongsToTeamFinder;
     protected $coordinator, $coordinatorRepository;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $clientId = "clientId", $teamId = "teamId", $meetingId = "meetingId", $coordinatorId = "coordinatorId";
 
@@ -39,8 +39,10 @@ class InviteCoordinatorToAttendMeetingTest extends TestBase
                 ->with($this->coordinatorId)
                 ->willReturn($this->coordinator);
         
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
         $this->service = new InviteCoordinatorToAttendMeeting(
-                $this->teamMemberRepository, $this->meetingAttendeeBelongsToTeamFinder, $this->coordinatorRepository);
+                $this->teamMemberRepository, $this->meetingAttendeeBelongsToTeamFinder, $this->coordinatorRepository, $this->dispatcher);
     }
     
     protected function execute()
@@ -58,6 +60,13 @@ class InviteCoordinatorToAttendMeetingTest extends TestBase
     {
         $this->teamMemberRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchTeamMember()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->teamMember);
         $this->execute();
     }
 }

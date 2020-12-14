@@ -2,11 +2,10 @@
 
 namespace Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee;
 
-use Firm\{
-    Application\Service\Client\AsTeamMember\TeamMemberRepository,
-    Domain\Model\Firm\Program\MeetingType\MeetingData,
-    Domain\Service\MeetingAttendeeBelongsToTeamFinder
-};
+use Firm\Application\Service\Client\AsTeamMember\TeamMemberRepository;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Resources\Application\Event\Dispatcher;
 
 class UpdateMeeting
 {
@@ -23,19 +22,29 @@ class UpdateMeeting
      */
     protected $meetingAttendeeBelongsToTeamFinder;
 
-    function __construct(TeamMemberRepository $teamMemberRepository,
-            MeetingAttendeeBelongsToTeamFinder $meetingAttendeeBelongsToTeamFinder)
+    /**
+     * 
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
+    function __construct(
+            TeamMemberRepository $teamMemberRepository,
+            MeetingAttendeeBelongsToTeamFinder $meetingAttendeeBelongsToTeamFinder, Dispatcher $dispatcher)
     {
         $this->teamMemberRepository = $teamMemberRepository;
         $this->meetingAttendeeBelongsToTeamFinder = $meetingAttendeeBelongsToTeamFinder;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
             string $firmId, string $clientId, string $teamId, string $meetingId, MeetingData $meetingData): void
     {
-        $this->teamMemberRepository->aTeamMemberCorrespondWithTeam($firmId, $clientId, $teamId)
-                ->updateMeeting($this->meetingAttendeeBelongsToTeamFinder, $meetingId, $meetingData);
+        $teamMember = $this->teamMemberRepository->aTeamMemberCorrespondWithTeam($firmId, $clientId, $teamId);
+        $teamMember->updateMeeting($this->meetingAttendeeBelongsToTeamFinder, $meetingId, $meetingData);
         $this->teamMemberRepository->update();
+        
+        $this->dispatcher->dispatch($teamMember);
     }
 
 }
