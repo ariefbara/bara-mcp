@@ -6,6 +6,7 @@ use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\AssetInProgram;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup;
+use Firm\Domain\Model\Firm\Program\Participant;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
 
@@ -29,6 +30,12 @@ class ConsultationSession implements AssetInProgram
      * @var Consultant
      */
     protected $consultant;
+
+    /**
+     *
+     * @var Participant
+     */
+    protected $participant;
 
     /**
      *
@@ -63,7 +70,7 @@ class ConsultationSession implements AssetInProgram
     {
         if (!$this->cancelled && $this->startEndTime->isUpcoming()) {
             $this->cancelled = true;
-            $this->note = "inactive consultant";
+            $this->note = "disabled by system";
         }
     }
     

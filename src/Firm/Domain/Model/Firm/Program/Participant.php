@@ -12,6 +12,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\DateTimeImmutableBuilder;
@@ -88,6 +89,24 @@ class Participant implements AssetInProgram, CanAttendMeeting
      * @var ArrayCollection
      */
     protected $profiles;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $meetingInvitations;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $consultationRequests;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $consultationSessions;
 
     public function getId(): string
     {
@@ -155,7 +174,21 @@ class Participant implements AssetInProgram, CanAttendMeeting
     
     public function disable(): void
     {
+        if (!$this->active) {
+            $errorDetail = "forbidden: unable to disable inactive participant";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->active = false;
+        
+        foreach ($this->consultationSessions->getIterator() as $consultationSession) {
+            $consultationSession->disableUpcomingSession();
+        }
+        foreach ($this->consultationRequests->getIterator() as $consultationRequest) {
+            $consultationRequest->disableUpcomingRequest();
+        }
+        foreach ($this->meetingInvitations->getIterator() as $meetingInvitation) {
+            $meetingInvitation->disableValidInvitation();
+        }
     }
 
     public function reenroll(): void
@@ -232,7 +265,7 @@ class Participant implements AssetInProgram, CanAttendMeeting
     public function addProfile(ProgramsProfileForm $programsProfileForm, FormRecord $formRecord): void
     {
         $id = $formRecord->getId();
-        $profile = new Participant\ParticipantProfile($this, $id, $programsProfileForm, $formRecord);
+        $profile = new ParticipantProfile($this, $id, $programsProfileForm, $formRecord);
         $this->profiles->add($profile);
     }
 

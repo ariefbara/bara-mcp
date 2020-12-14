@@ -5,7 +5,10 @@ namespace Firm\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
@@ -23,6 +26,9 @@ class ParticipantTest extends TestBase
 
     protected $program;
     protected $participant;
+    protected $consultationRequest;
+    protected $consultationSession;
+    protected $invitation;
     protected $inactiveParticipant;
     protected $clientParticipant;
     protected $userParticipant;
@@ -43,6 +49,16 @@ class ParticipantTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
 
         $this->participant = new TestableParticipant($this->program, 'id');
+        $this->participant->consultationRequests = new ArrayCollection();
+        $this->participant->consultationSessions = new ArrayCollection();
+        $this->participant->meetingInvitations = new ArrayCollection();
+        
+        $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
+        $this->participant->consultationRequests->add($this->consultationRequest);
+        $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
+        $this->participant->consultationSessions->add($this->consultationSession);
+        $this->invitation = $this->buildMockOfClass(ParticipantAttendee::class);
+        $this->participant->meetingInvitations->add($this->invitation);
         
         $this->participant->evaluations = new ArrayCollection();
         
@@ -335,10 +351,41 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
-    public function test_disable_setInactive()
+    protected function executeDisable()
     {
         $this->participant->disable();
+    }
+    public function test_disable_setInactive()
+    {
+        $this->executeDisable();
         $this->assertFalse($this->participant->active);
+    }
+    public function test_disable_alreadyInactive_forbidden()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeDisable();
+        };
+        $errorDetail = "forbidden: unable to disable inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_disable_disableUpcomingConsultationSession()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("disableUpcomingSession");
+        $this->executeDisable();
+    }
+    public function test_disable_disableUpcomingConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("disableUpcomingRequest");
+        $this->executeDisable();
+    }
+    public function test_disable_disableValidInvitation()
+    {
+        $this->invitation->expects($this->once())
+                ->method("disableValidInvitation");
+        $this->executeDisable();
     }
     
     public function test_addProfile_addProfileToCollection()
@@ -366,6 +413,9 @@ class TestableParticipant extends Participant
     public $metricAssignment;
     public $evaluations;
     public $profiles;
+    public $meetingInvitations;
+    public $consultationRequests;
+    public $consultationSessions;
 
     public function __construct(Program $program, string $id)
     {

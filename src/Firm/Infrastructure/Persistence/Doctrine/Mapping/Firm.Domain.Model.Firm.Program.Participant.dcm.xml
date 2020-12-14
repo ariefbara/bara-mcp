@@ -58,5 +58,20 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many  field="meetingInvitations" 
+                      target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee"
+                      mapped-by="participant"
+        />
+        
+        <one-to-many  field="consultationRequests" 
+                      target-entity="Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest"
+                      mapped-by="participant"
+        />
+        
+        <one-to-many  field="consultationSessions" 
+                      target-entity="Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession"
+                      mapped-by="participant"
+        />
+        
     </entity>
 </doctrine-mapping>

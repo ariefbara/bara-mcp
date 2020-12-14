@@ -2,10 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfProgram,
-    Record
-};
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfActivityType implements Record
 {
@@ -38,6 +37,11 @@ class RecordOfActivityType implements Record
             "description" => $this->description,
             "disabled" => $this->disabled,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("ActivityType")->insert($this->toArrayForDbEntry());
     }
 
 }

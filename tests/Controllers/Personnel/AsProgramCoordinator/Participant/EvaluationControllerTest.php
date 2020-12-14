@@ -2,7 +2,12 @@
 
 namespace Tests\Controllers\Personnel\AsProgramCoordinator\Participant;
 
+use DateTimeImmutable;
 use Tests\Controllers\Personnel\AsProgramCoordinator\ParticipantTestCase;
+use Tests\Controllers\RecordPreparation\Firm\Program\Activity\RecordOfInvitee;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfActivityInvitation;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfEvaluation;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfEvaluationPlan;
 
@@ -59,7 +64,7 @@ class EvaluationControllerTest extends ParticipantTestCase
             "Participant_id" => $this->participant->id,
             "c_status" => $this->evaluateInput["status"],
             "extendDays" => null,
-            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "submitTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
             "Coordinator_id" => $this->coordinator->id,
             "EvaluationPlan_id" => $this->evaluationPlan->id,
         ];
@@ -67,6 +72,7 @@ class EvaluationControllerTest extends ParticipantTestCase
     }
     public function test_evaluate_fail_disableParticipant_200()
     {
+$this->disableExceptionHandling();
         $this->evaluateInput["status"] = "fail";
         
         $uri = $this->evaluationUri;
@@ -83,11 +89,85 @@ class EvaluationControllerTest extends ParticipantTestCase
             "Participant_id" => $this->participant->id,
             "c_status" => $this->evaluateInput["status"],
             "extendDays" => null,
-            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "submitTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
             "Coordinator_id" => $this->coordinator->id,
             "EvaluationPlan_id" => $this->evaluationPlan->id,
         ];
         $this->seeInDatabase("Evaluation", $evaluationEntry);
+    }
+    public function test_evaluate_fail_disableMeetingInvitation()
+    {
+        $this->connection->table("Activity")->truncate();
+        $this->connection->table("ActivityType")->truncate();
+        $this->connection->table("Invitee")->truncate();
+        $this->connection->table("ParticipantInvitee")->truncate();
+        
+        $meetingInvitation = new RecordOfInvitee(null, null, 0);
+        $meetingInvitation->persistSelf($this->connection);
+        $meetingInvitation->activity->persistSelf($this->connection);
+        $meetingInvitation->activity->activityType->program = $this->coordinator->program;
+        $meetingInvitation->activity->activityType->persistSelf($this->connection);
+        $participantMeetingInvitation = new RecordOfActivityInvitation($this->participant, $meetingInvitation);
+        $this->connection->table("ParticipantInvitee")->insert($participantMeetingInvitation->toArrayForDbEntry());
+        
+        $uri = $this->evaluationUri;
+        $this->evaluateInput["status"] = "fail";
+        $this->post($uri, $this->evaluateInput, $this->coordinator->personnel->token)
+                ->seeStatusCode(200);
+        
+        $invitationEntry = [
+            "id" => $meetingInvitation->id,
+            "cancelled" => true,
+        ];
+        $this->seeInDatabase("Invitee", $invitationEntry);
+        
+        $this->connection->table("Activity")->truncate();
+        $this->connection->table("ActivityType")->truncate();
+        $this->connection->table("Invitee")->truncate();
+        $this->connection->table("ParticipantInvitee")->truncate();
+    }
+    public function test_evaluate_fail_cancelUpcomingRequest()
+    {
+        $this->connection->table("ConsultationRequest")->truncate();
+        $consultationRequest = new RecordOfConsultationRequest(null, $this->participant, null, 0);
+        $consultationRequest->startDateTime = (new \DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
+        $consultationRequest->endDateTime = (new \DateTimeImmutable("+25 hours"))->format("Y-m-d H:i:s");
+        $this->connection->table("ConsultationRequest")->insert($consultationRequest->toArrayForDbEntry());
+        
+        $uri = $this->evaluationUri;
+        $this->evaluateInput["status"] = "fail";
+        $this->post($uri, $this->evaluateInput, $this->coordinator->personnel->token)
+                ->seeStatusCode(200);
+        
+        $consultationRequestEntry = [
+            "id" => $consultationRequest->id,
+            "concluded" => true,
+            "status" => "disabled by system",
+        ];
+        $this->seeInDatabase("ConsultationRequest", $consultationRequestEntry);
+        
+        $this->connection->table("ConsultationRequest")->truncate();
+    }
+    public function test_evaluate_fail_cancelUpcomingSession()
+    {
+        $this->connection->table("ConsultationSession")->truncate();
+        $consultationSession = new RecordOfConsultationSession(null, $this->participant, null, 0);
+        $consultationSession->startDateTime = (new \DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
+        $consultationSession->endDateTime = (new \DateTimeImmutable("+25 hours"))->format("Y-m-d H:i:s");
+        $this->connection->table("ConsultationSession")->insert($consultationSession->toArrayForDbEntry());
+        
+        $uri = $this->evaluationUri;
+        $this->evaluateInput["status"] = "fail";
+        $this->post($uri, $this->evaluateInput, $this->coordinator->personnel->token)
+                ->seeStatusCode(200);
+        
+        $consultationSessionEntry = [
+            "id" => $consultationSession->id,
+            "cancelled" => true,
+            "note" => "disabled by system",
+        ];
+        $this->seeInDatabase("ConsultationSession", $consultationSessionEntry);
+        $this->connection->table("ConsultationSession")->truncate();
     }
     public function test_evaluate_extend_200()
     {
@@ -108,7 +188,7 @@ class EvaluationControllerTest extends ParticipantTestCase
             "Participant_id" => $this->participant->id,
             "c_status" => $this->evaluateInput["status"],
             "extendDays" => 99,
-            "submitTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "submitTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
             "Coordinator_id" => $this->coordinator->id,
             "EvaluationPlan_id" => $this->evaluationPlan->id,
         ];
