@@ -56,6 +56,21 @@ class EvaluationResultTest extends TestBase
         $this->evaluationResult->status = "pass";
         $this->assertFalse($this->evaluationResult->isFail());
     }
+    
+    public function test_isComplete_failStatus_returnTrue()
+    {
+        $this->assertTrue($this->evaluationResult->isCompleted());
+    }
+    public function test_isComplete_extendStatus_returnFalse()
+    {
+        $this->evaluationResult->status = "extend";
+        $this->assertFalse($this->evaluationResult->isCompleted());
+    }
+    public function test_isComplete_passStatus_returnTrue()
+    {
+        $this->evaluationResult->status = "pass";
+        $this->assertTrue($this->evaluationResult->isCompleted());
+    }
 }
 
 class TestableEvaluationResult extends EvaluationResult

@@ -157,6 +157,13 @@ class Participant implements AssetInProgram, CanAttendMeeting
             $errorDetail = "forbidden: unable to evaluate inactive participant";
             throw RegularException::forbidden($errorDetail);
         }
+        $p = function (Evaluation $evaluation) use($evaluationPlan){
+            return $evaluation->isCompletedEvaluationForPlan($evaluationPlan);
+        };
+        if (!empty($this->evaluations->filter($p)->count())) {
+            $errorDetail = "forbidden: participant already completed evaluation for this plan";
+            throw RegularException::forbidden($errorDetail);
+        }
         $id = Uuid::generateUuid4();
         $evaluation = new Evaluation($this, $id, $evaluationPlan, $evaluationData, $coordinator);
         $this->evaluations->add($evaluation);

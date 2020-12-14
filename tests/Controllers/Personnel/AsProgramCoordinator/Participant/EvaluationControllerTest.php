@@ -70,6 +70,13 @@ class EvaluationControllerTest extends ParticipantTestCase
         ];
         $this->seeInDatabase("Evaluation", $evaluationEntry);
     }
+    public function test_evaluate_alreadyReceiveCompletedEvaluationForSamePlan_403()
+    {
+        $this->evaluateInput["evaluationPlanId"] = $this->evaluationOne->evaluationPlan->id;
+        $uri = $this->evaluationUri;
+        $this->post($uri, $this->evaluateInput, $this->coordinator->personnel->token)
+                ->seeStatusCode(403);
+    }
     public function test_evaluate_fail_disableParticipant_200()
     {
 $this->disableExceptionHandling();

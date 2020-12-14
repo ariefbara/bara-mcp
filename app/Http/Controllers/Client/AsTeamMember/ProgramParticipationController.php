@@ -39,7 +39,7 @@ class ProgramParticipationController extends AsTeamMemberBaseController
         $this->authorizeClientIsActiveTeamMember($teamId);
         
         $service = $this->buildViewService();
-        $activeStatus = $this->stripTagQueryRequest("activeStatus");
+        $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
         $teamProgramParticipations = $service->showAll($teamId, $this->getPage(), $this->getPageSize(), $activeStatus);
         
         $result = [];

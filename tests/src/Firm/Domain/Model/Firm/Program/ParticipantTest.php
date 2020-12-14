@@ -40,6 +40,7 @@ class ParticipantTest extends TestBase
     protected $metric;
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $team;
+    protected $evaluation;
     protected $evaluationPlan, $coordinator, $evaluationData;
     protected $programsProfileForm, $formRecord;
 
@@ -88,6 +89,8 @@ class ParticipantTest extends TestBase
         
         $this->team = $this->buildMockOfClass(Team::class);
         
+        $this->evaluation = $this->buildMockOfClass(Evaluation::class);
+        $this->participant->evaluations->add($this->evaluation);
         $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
         $this->evaluationData = $this->buildMockOfClass(EvaluationData::class);
         $this->evaluationData->expects($this->any())->method("getStatus")->willReturn("pass");
@@ -318,7 +321,7 @@ class ParticipantTest extends TestBase
     public function test_receiveEvaluation_addEvaluationToCollection()
     {
         $this->executeReceiveEvaluation();
-        $this->assertEquals(1, $this->participant->evaluations->count());
+        $this->assertEquals(2, $this->participant->evaluations->count());
         $this->assertInstanceOf(Evaluation::class, $this->participant->evaluations->last());
     }
     public function test_receiveEvaluation_inactiveParticipant_forbidden()
@@ -328,6 +331,18 @@ class ParticipantTest extends TestBase
             $this->executeReceiveEvaluation();
         };
         $errorDetail = "forbidden: unable to evaluate inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_receiveEvaluation_alreadyReceiveConcludedEvaluationForSamePlan_forbidden()
+    {
+        $this->evaluation->expects($this->once())
+                ->method("isCompletedEvaluationForPlan")
+                ->with($this->evaluationPlan)
+                ->willReturn(true);
+        $operation = function (){
+            $this->executeReceiveEvaluation();
+        };
+        $errorDetail = "forbidden: participant already completed evaluation for this plan";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     

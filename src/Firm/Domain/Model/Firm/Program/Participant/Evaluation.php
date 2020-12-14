@@ -64,5 +64,10 @@ class Evaluation
             $this->participant->disable();
         }
     }
+    
+    public function isCompletedEvaluationForPlan(EvaluationPlan $evaluationPlan): bool
+    {
+        return $this->evaluationResult->isCompleted() && $this->evaluationPlan === $evaluationPlan;
+    }
 
 }

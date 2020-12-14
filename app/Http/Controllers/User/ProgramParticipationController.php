@@ -33,7 +33,7 @@ class ProgramParticipationController extends UserBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $activeStatus = $this->stripTagQueryRequest("activeStatus");
+        $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
         $programParticipations = $service->showAll($this->userId(), $this->getPage(), $this->getPageSize(), $activeStatus);
         
         $result = [];
