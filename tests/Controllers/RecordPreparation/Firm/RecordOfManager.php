@@ -30,7 +30,7 @@ class RecordOfManager implements Record
         $this->firm = isset($firm)? $firm: new RecordOfFirm($index);
         $this->id = "manager-$index-id";
         $this->name = "manager $index name";
-        $this->email = "manager@email.org";
+        $this->email = "purnama.adi+manager$index@gmail.com";
         $this->password = (new TestablePassword($this->rawPassword))->getHashedPassword();
         $this->phone = "";
         $this->joinTime = (new DateTime())->format('Y-m-d H:i:s');

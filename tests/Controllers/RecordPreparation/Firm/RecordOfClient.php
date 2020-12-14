@@ -29,7 +29,7 @@ class RecordOfClient implements Record
         $this->id = "client-$index-id";
         $this->firstName = "client-$index-first_name";
         $this->lastName = 'last_name';
-        $this->email = "client_$index@barapraja.com";
+        $this->email = "purnama.adi+client$index@gmail.com";
         $this->activationCode = bin2hex(random_bytes(32));
         $this->activationCodeExpiredTime = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
         $this->resetPasswordCode = bin2hex(random_bytes(32));

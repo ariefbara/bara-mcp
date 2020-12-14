@@ -2,18 +2,18 @@
 
 namespace Firm\Application\Service\Manager;
 
-use Firm\ {
-    Application\Service\Firm\Program\CoordinatorRepository,
-    Application\Service\Manager\AttendeeRepository,
-    Domain\Model\Firm\Program\Coordinator,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee
-};
+use Firm\Application\Service\Firm\Program\CoordinatorRepository;
+use Firm\Application\Service\Manager\AttendeeRepository;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class InviteCoordinatorToAttendMeetingTest extends TestBase
 {
     protected $attendeeRepository, $attendee;
     protected $coordinator, $coordinatorRepository;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $managerId = "managerId", $meetingId = "meetingId", $coordinatorId = "coordinatorId";
 
@@ -34,7 +34,9 @@ class InviteCoordinatorToAttendMeetingTest extends TestBase
                 ->with($this->coordinatorId)
                 ->willReturn($this->coordinator);
         
-        $this->service = new InviteCoordinatorToAttendMeeting($this->attendeeRepository, $this->coordinatorRepository);
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
+        $this->service = new InviteCoordinatorToAttendMeeting($this->attendeeRepository, $this->coordinatorRepository, $this->dispatcher);
     }
     
     protected function execute()
@@ -52,6 +54,13 @@ class InviteCoordinatorToAttendMeetingTest extends TestBase
     {
         $this->attendeeRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchAttendee()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->attendee);
         $this->execute();
     }
 }

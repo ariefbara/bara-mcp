@@ -32,7 +32,7 @@ class RecordOfPersonnel implements Record
         $this->id = "personnel-$index-id";
         $this->firstName = "personnel $index firstname";
         $this->lastName = "personnel $index lastname";
-        $this->email = "personnel_$index@barapraja.com";
+        $this->email = "purnama.adi+personnel$index@gmail.com";
         $this->password = (new TestablePassword($this->rawPassword))->getHashedPassword();
         $this->phone = "";
         $this->bio = "personnel $index bio";

@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Manager;
 
-use Firm\ {
-    Application\Service\Manager\InitiateMeeting,
-    Domain\Model\Firm\Manager,
-    Domain\Model\Firm\Program\ActivityType,
-    Domain\Model\Firm\Program\MeetingType\Meeting,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
-use Query\ {
-    Application\Service\Firm\ViewActivity,
-    Domain\Model\Firm\Program\Activity
-};
+use Config\EventList;
+use Firm\Application\Service\Manager\InitiateMeeting;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Notification\Application\Listener\MeetingCreatedListener;
+use Notification\Application\Service\GenerateMeetingCreatedNotification;
+use Notification\Domain\Model\Firm\Program\MeetingType\Meeting as Meeting2;
+use Query\Application\Service\Firm\ViewActivity;
+use Query\Domain\Model\Firm\Program\Activity;
+use Resources\Application\Event\Dispatcher;
 
 class MeetingController extends ManagerBaseController
 {
@@ -57,8 +58,18 @@ class MeetingController extends ManagerBaseController
         $meetingRepository = $this->em->getRepository(Meeting::class);
         $managerRepository = $this->em->getRepository(Manager::class);
         $activityTypeRepository = $this->em->getRepository(ActivityType::class);
+        $dispatcher = new Dispatcher();
+        $this->addMeetingCreatedListenerToDispatcher($dispatcher);
         
-        return new InitiateMeeting($meetingRepository, $managerRepository, $activityTypeRepository);
+        return new InitiateMeeting($meetingRepository, $managerRepository, $activityTypeRepository, $dispatcher);
+    }
+    protected function addMeetingCreatedListenerToDispatcher(Dispatcher $dispatcher): void
+    {
+        $meetingRepository = $this->em->getRepository(Meeting2::class);
+        $generateMeetingCreaterNotification = new GenerateMeetingCreatedNotification($meetingRepository);
+        $sendImmediateMail = $this->buildSendImmediateMail();
+        $listener =  new MeetingCreatedListener($generateMeetingCreaterNotification, $sendImmediateMail);
+        $dispatcher->addListener(EventList::MEETING_CREATED, $listener);
     }
 
     protected function buildViewService()
