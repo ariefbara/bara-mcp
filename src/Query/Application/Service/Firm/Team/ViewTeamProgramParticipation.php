@@ -25,10 +25,10 @@ class ViewTeamProgramParticipation
      * @param int $pageSize
      * @return TeamProgramParticipation[]
      */
-    public function showAll(string $teamId, int $page, int $pageSize)
+    public function showAll(string $teamId, int $page, int $pageSize, ?bool $activeStatus)
     {
         return $this->teamProgramParticipationRepository->allTeamProgramParticipationsBelongsToTeam($teamId, $page,
-                        $pageSize);
+                        $pageSize, $activeStatus);
     }
 
     public function showById(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation

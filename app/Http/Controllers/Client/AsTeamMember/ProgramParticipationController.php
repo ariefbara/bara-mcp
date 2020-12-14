@@ -39,7 +39,8 @@ class ProgramParticipationController extends AsTeamMemberBaseController
         $this->authorizeClientIsActiveTeamMember($teamId);
         
         $service = $this->buildViewService();
-        $teamProgramParticipations = $service->showAll($teamId, $this->getPage(), $this->getPageSize());
+        $activeStatus = $this->stripTagQueryRequest("activeStatus");
+        $teamProgramParticipations = $service->showAll($teamId, $this->getPage(), $this->getPageSize(), $activeStatus);
         
         $result = [];
         $result["total"] = count($teamProgramParticipations);
