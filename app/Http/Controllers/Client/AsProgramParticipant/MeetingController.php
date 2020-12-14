@@ -60,17 +60,17 @@ class MeetingController extends AsProgramParticipantBaseController
         $activityTypeRepository = $this->em->getRepository(ActivityType::class);
         
         $dispatcher = new Dispatcher();
-        $dispatcher->addListener(EventList::MEETING_CREATED, $this->buildMeetingCreatedListener());
+        $this->addMeetingCreatedListenerToDispatcher($dispatcher);
         return new InitiateMeeting($meetingRepository, $clientParticipantRepository, $activityTypeRepository, $dispatcher);
     }
-    protected function buildMeetingCreatedListener()
+    protected function addMeetingCreatedListenerToDispatcher(Dispatcher $dispatcher): void
     {
         $meetingRepository = $this->em->getRepository(Meeting2::class);
         $generateMeetingCreaterNotification = new GenerateMeetingCreatedNotification($meetingRepository);
         $sendImmediateMail = $this->buildSendImmediateMail();
-        return new MeetingCreatedListener($generateMeetingCreaterNotification, $sendImmediateMail);
+        $listener =  new MeetingCreatedListener($generateMeetingCreaterNotification, $sendImmediateMail);
+        $dispatcher->addListener(EventList::MEETING_CREATED, $listener);
     }
-
     protected function buildViewService()
     {
         $activityRepository = $this->em->getRepository(Activity::class);

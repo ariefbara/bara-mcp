@@ -40,7 +40,7 @@
         />
         
         <unique-constraints>
-            <unique-constraint columns="email" name="personnel_email_idx" />
+            <unique-constraint columns="Firm_id,email" name="personnel_email_idx" />
         </unique-constraints>
         
     </entity>

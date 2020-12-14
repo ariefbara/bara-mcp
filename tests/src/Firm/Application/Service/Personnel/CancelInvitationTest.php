@@ -3,12 +3,14 @@
 namespace Firm\Application\Service\Personnel;
 
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class CancelInvitationTest extends TestBase
 {
     protected $attendeeRepository, $initiator, $attendee;
     protected $consultant, $consultantRepository;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $meetingId = "meetingId", $attendeeId = "attendeeId";
 
@@ -27,7 +29,9 @@ class CancelInvitationTest extends TestBase
                 ->with($this->attendeeId)
                 ->willReturn($this->attendee);
         
-        $this->service = new CancelInvitation($this->attendeeRepository);
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
+        $this->service = new CancelInvitation($this->attendeeRepository, $this->dispatcher);
     }
     
     protected function execute()
@@ -45,6 +49,13 @@ class CancelInvitationTest extends TestBase
     {
         $this->attendeeRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchAttendee()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->attendee);
         $this->execute();
     }
 }

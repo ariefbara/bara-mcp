@@ -2,17 +2,17 @@
 
 namespace Firm\Application\Service\Personnel;
 
-use Firm\ {
-    Application\Service\Firm\ManagerRepository,
-    Domain\Model\Firm\Manager,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee
-};
+use Firm\Application\Service\Firm\ManagerRepository;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class InviteManagerToAttendMeetingTest extends TestBase
 {
     protected $attendeeRepository, $attendee;
     protected $manager, $managerRepository;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $meetingId = "meetingId", $managerId = "managerId";
 
@@ -33,7 +33,9 @@ class InviteManagerToAttendMeetingTest extends TestBase
                 ->with($this->managerId)
                 ->willReturn($this->manager);
         
-        $this->service = new InviteManagerToAttendMeeting($this->attendeeRepository, $this->managerRepository);
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
+        $this->service = new InviteManagerToAttendMeeting($this->attendeeRepository, $this->managerRepository, $this->dispatcher);
     }
     
     protected function execute()
@@ -51,6 +53,13 @@ class InviteManagerToAttendMeetingTest extends TestBase
     {
         $this->attendeeRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchAttendee()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->attendee);
         $this->execute();
     }
 }

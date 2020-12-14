@@ -68,14 +68,18 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $program = $activityType->program;
 
         $personnel = new RecordOfPersonnel($firm, 0);
+        $personnel->email = "purnama.adi+personnel@gmail.com";
         $personnelOne = new RecordOfPersonnel($firm, 1);
+        $personnelOne->email = "purnama.adi+personnelOne@gmail.com";
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
         $this->connection->table("Personnel")->insert($personnelOne->toArrayForDbEntry());
 
         $client = new RecordOfClient($firm, 0);
+        $client->email = "purnama.adi+client@gmail.com";
         $this->connection->table("Client")->insert($client->toArrayForDbEntry());
 
         $user = new RecordOfUser(0);
+        $user->email = "purnama.adi+user@gmail.com";
         $this->connection->table("User")->insert($user->toArrayForDbEntry());
 
         $team = new RecordOfTeam($firm, $client, 0);
@@ -84,7 +88,9 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("Team")->insert($teamOne->toArrayForDbEntry());
 
         $manager = new RecordOfManager($firm, 0, "manager@email.org", "Password123");
+        $manager->email = "purnama.adi+manager@gmail.com";
         $this->managerOne = new RecordOfManager($firm, 1, "managerOne@email.org", "Password123");
+        $this->managerOne->email = "purnama.adi+managerOne@gmail.com";
         $this->connection->table("Manager")->insert($manager->toArrayForDbEntry());
         $this->connection->table("Manager")->insert($this->managerOne->toArrayForDbEntry());
 
@@ -107,14 +113,14 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("Participant")->insert($participantTwo->toArrayForDbEntry());
         $this->connection->table("Participant")->insert($this->participantThree->toArrayForDbEntry());
 
-        $this->clientParticipant = new RecordOfClientParticipant($client, $participant);
+        $this->clientParticipant = new RecordOfClientParticipant($client, $this->participantThree);
         $this->connection->table("ClientParticipant")->insert($this->clientParticipant->toArrayForDbEntry());
 
         $this->userParticipant = new RecordOfUserParticipant($user, $participantOne);
         $this->connection->table("UserParticipant")->insert($this->userParticipant->toArrayForDbEntry());
 
         $this->teamParticipant = new RecordOfTeamProgramParticipation($team, $participantTwo);
-        $this->teamParticipantThree = new RecordOfTeamProgramParticipation($teamOne, $this->participantThree);
+        $this->teamParticipantThree = new RecordOfTeamProgramParticipation($teamOne, $participant);
         $this->connection->table("TeamParticipant")->insert($this->teamParticipant->toArrayForDbEntry());
         $this->connection->table("TeamParticipant")->insert($this->teamParticipantThree->toArrayForDbEntry());
 
@@ -371,13 +377,12 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     
     public function test_cancelInvitation_200()
     {
-$this->disableExceptionHandling();
-        $uri = $this->attendeeUri . "/cancel-invitation/{$this->teamParticipantAttendee->invitee->id}";
+        $uri = $this->attendeeUri . "/cancel-invitation/{$this->userParticipantAttendee->invitee->id}";
         $this->patch($uri, [], $this->personnel->token)
                 ->seeStatusCode(200);
         
         $inviteeEntry = [
-            "id" => $this->teamParticipantAttendee->invitee->id,
+            "id" => $this->userParticipantAttendee->invitee->id,
             "cancelled" => true,
         ];
         $this->seeInDatabase("Invitee", $inviteeEntry);
