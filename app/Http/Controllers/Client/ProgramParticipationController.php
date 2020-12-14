@@ -32,7 +32,9 @@ class ProgramParticipationController extends ClientBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $programParticipations = $service->showAll($this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize());
+        $activeStatus = $this->stripTagQueryRequest("activeStatus");
+        $programParticipations = $service->showAll(
+                $this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize(), $activeStatus);
         
         $result = [];
         $result['total'] = count($programParticipations);

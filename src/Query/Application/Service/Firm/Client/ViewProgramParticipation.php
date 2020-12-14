@@ -26,9 +26,9 @@ class ViewProgramParticipation
      * @param int $pageSize
      * @return UserParticipant[]
      */
-    public function showAll(string $firmId, string $clientId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $clientId, int $page, int $pageSize, ?bool $activeStatus)
     {
-        return $this->programParticipationRepository->all($firmId, $clientId, $page, $pageSize);
+        return $this->programParticipationRepository->all($firmId, $clientId, $page, $pageSize, $activeStatus);
     }
     
     public function showById(string $firmId, string $clientId, string $programParticipationId): ClientParticipant
