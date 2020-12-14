@@ -179,6 +179,7 @@ class Participant implements AssetInProgram, CanAttendMeeting
             throw RegularException::forbidden($errorDetail);
         }
         $this->active = false;
+        $this->note = "fail";
         
         foreach ($this->consultationSessions->getIterator() as $consultationSession) {
             $consultationSession->disableUpcomingSession();

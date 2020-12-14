@@ -355,10 +355,11 @@ class ParticipantTest extends TestBase
     {
         $this->participant->disable();
     }
-    public function test_disable_setInactive()
+    public function test_disable_setInactiveAndNote()
     {
         $this->executeDisable();
         $this->assertFalse($this->participant->active);
+        $this->assertEquals("fail", $this->participant->note);
     }
     public function test_disable_alreadyInactive_forbidden()
     {

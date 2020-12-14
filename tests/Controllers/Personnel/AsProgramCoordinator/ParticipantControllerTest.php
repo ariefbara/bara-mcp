@@ -407,6 +407,35 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->get($this->participantUri, $this->removedCoordinator->personnel->token)
                 ->seeStatusCode(403);
     }
+    public function test_showAll_noteFilterSet()
+    {
+        $this->participantOne_client->note = "fail";
+        $this->participantOne_client->active = false;
+        $this->participantTwo_team->note = "completed";
+        $this->participantTwo_team->active = false;
+        $this->connection->table("Participant")->truncate();
+        $this->connection->table("Participant")->insert($this->participantOne_client->toArrayForDbEntry());
+        $this->connection->table("Participant")->insert($this->participantTwo_team->toArrayForDbEntry());
+        
+        $uri = $this->participantUri . "?note=fail";
+        $totalResponse = ["total" => 1];
+        $participantOneResponse = [
+            "id" => $this->participantOne_client->id,
+        ];
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($participantOneResponse);
+        
+        $uri = $this->participantUri . "?note=completed";
+        $participantTwoResponse = [
+            "id" => $this->participantTwo_team->id,
+        ];
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($participantTwoResponse);
+    }
     
     public function test_assignMetric_200()
     {
