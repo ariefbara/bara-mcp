@@ -2,13 +2,13 @@
 
 namespace Firm\Application\Service\Personnel\ProgramConsultant;
 
-use Firm\ {
-    Application\Service\Firm\Program\ActivityTypeRepository,
-    Application\Service\Personnel\MeetingRepository,
-    Domain\Model\Firm\Program\ActivityType,
-    Domain\Model\Firm\Program\Consultant,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
+use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
+use Firm\Application\Service\Personnel\MeetingRepository;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class InitiateMeetingTest extends TestBase
@@ -16,6 +16,7 @@ class InitiateMeetingTest extends TestBase
     protected $meetingRepository, $nextId = "nextId";
     protected $activityTypeRepository, $activityType;
     protected $programConsultantRepository, $programConsultant;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $programId = "programId", $meetingTypeId = "meetingTypeId";
     protected $meetingData;
@@ -42,8 +43,10 @@ class InitiateMeetingTest extends TestBase
                 ->with($this->firmId, $this->personnelId, $this->programId)
                 ->willReturn($this->programConsultant);
         
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
         $this->service = new InitiateMeeting(
-                $this->meetingRepository, $this->programConsultantRepository, $this->activityTypeRepository);
+                $this->meetingRepository, $this->programConsultantRepository, $this->activityTypeRepository, $this->dispatcher);
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
@@ -64,5 +67,17 @@ class InitiateMeetingTest extends TestBase
     public function test_execute_returnNextId()
     {
         $this->assertEquals($this->nextId, $this->execute());
+    }
+    public function test_execute_dispatchMeeting()
+    {
+        $meeting = $this->buildMockOfClass(Meeting::class);
+        $this->programConsultant->expects($this->once())
+                ->method("initiateMeeting")
+                ->willReturn($meeting);
+        
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($meeting);
+        $this->execute();
     }
 }

@@ -2,11 +2,10 @@
 
 namespace Firm\Application\Service\Personnel\ProgramConsultant;
 
-use Firm\ {
-    Application\Service\Firm\Program\ActivityTypeRepository,
-    Application\Service\Personnel\MeetingRepository,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
+use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
+use Firm\Application\Service\Personnel\MeetingRepository;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Resources\Application\Event\Dispatcher;
 
 class InitiateMeeting
 {
@@ -29,13 +28,20 @@ class InitiateMeeting
      */
     protected $activityTypeRepository;
 
+    /**
+     * 
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
     function __construct(
             MeetingRepository $meetingRepository, ProgramConsultantRepository $programConsultantRepository,
-            ActivityTypeRepository $activityTypeRepository)
+            ActivityTypeRepository $activityTypeRepository, Dispatcher $dispatcher)
     {
         $this->meetingRepository = $meetingRepository;
         $this->programConsultantRepository = $programConsultantRepository;
         $this->activityTypeRepository = $activityTypeRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
@@ -47,6 +53,8 @@ class InitiateMeeting
                 ->aConsultantCorrespondWithProgram($firmId, $personnelId, $programId)
                 ->initiateMeeting($id, $meetingType, $meetingData);
         $this->meetingRepository->add($meeting);
+        
+        $this->dispatcher->dispatch($meeting);
         return $id;
     }
 
