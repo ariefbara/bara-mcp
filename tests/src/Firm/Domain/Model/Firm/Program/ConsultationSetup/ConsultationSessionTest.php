@@ -40,7 +40,7 @@ class ConsultationSessionTest extends TestBase
     {
         $this->executeDisableUpcomingSession();
         $this->assertTrue($this->consultationSession->cancelled);
-        $this->assertEquals("inactive consultant", $this->consultationSession->note);
+        $this->assertEquals("disabled by system", $this->consultationSession->note);
     }
     public function test_disableUpcomingSession_alreadyCancelled_nop()
     {

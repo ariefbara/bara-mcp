@@ -20,7 +20,9 @@ class ProgramControllerTest extends FirmTestCase
         $this->connection->table('Program')->truncate();
         
         $this->program = new RecordOfProgram($this->firm, 0);
+        $this->program->published = true;
         $this->programOne = new RecordOfProgram($this->firm, 1);
+        $this->programOne->published = true;
         $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
         $this->connection->table('Program')->insert($this->programOne->toArrayForDbEntry());
     }

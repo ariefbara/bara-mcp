@@ -174,7 +174,7 @@ class CommentControllerTest extends WorksheetTestCase
                 ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Konsulta: Komentar Worksheet",
+            "subject" => "Komentar Worksheet",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];

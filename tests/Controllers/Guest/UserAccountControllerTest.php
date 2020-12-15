@@ -200,7 +200,7 @@ $this->disableExceptionHandling();
         $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
                 ->seeStatusCode(200);
         $mailEntry = [
-            "subject" => "Konsulta: Aktivasi Akun",
+            "subject" => "Aktivasi Akun",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

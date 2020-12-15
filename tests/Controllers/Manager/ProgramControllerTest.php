@@ -64,7 +64,7 @@ class ProgramControllerTest extends ProgramTestCase
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
             "participantTypes" => $this->programInput['participantTypes'],
-            "published" => false,
+            "published" => $this->program->published,
         ];
         
         $uri = "{$this->programUri}/{$this->program->id}/update";
@@ -77,7 +77,7 @@ class ProgramControllerTest extends ProgramTestCase
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
             "participantTypes" => "client,user",
-            "published" => false,
+            "published" => $this->program->published,
             "removed" => false,
         ];
         $this->seeInDatabase('Program', $programmeRecord);

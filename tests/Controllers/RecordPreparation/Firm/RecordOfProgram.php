@@ -15,7 +15,7 @@ class RecordOfProgram implements Record
      * @var RecordOfFirm
      */
     public $firm;
-    public $id, $name, $description, $participantTypes, $published = false, $removed = false;
+    public $id, $name, $description, $participantTypes, $published = true, $removed = false;
 
     public function __construct(?RecordOfFirm $firm, $index)
     {

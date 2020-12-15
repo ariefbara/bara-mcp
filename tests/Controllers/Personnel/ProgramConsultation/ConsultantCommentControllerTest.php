@@ -251,7 +251,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Komentar Worksheet",
+            "subject" => "Komentar Worksheet",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -289,7 +289,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientOneNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Komentar Worksheet",
+            "subject" => "Komentar Worksheet",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -328,7 +328,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("UserNotificationRecipient", $userNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Komentar Worksheet",
+            "subject" => "Komentar Worksheet",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -408,7 +408,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Komentar Worksheet",
+            "subject" => "Komentar Worksheet",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -446,7 +446,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientOneNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Komentar Worksheet",
+            "subject" => "Komentar Worksheet",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -485,7 +485,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("UserNotificationRecipient", $userNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Konsulta: Komentar Worksheet",
+            "subject" => "Komentar Worksheet",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

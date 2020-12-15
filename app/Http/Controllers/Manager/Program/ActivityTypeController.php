@@ -97,7 +97,6 @@ class ActivityTypeController extends ManagerBaseController
     
     public function showAllInitableActivityType($programId)
     {
-echo "HERE";
         $this->authorizedUserIsFirmManager();
         $service = $this->buildViewService();
         $activityTypes = $service->showAll(

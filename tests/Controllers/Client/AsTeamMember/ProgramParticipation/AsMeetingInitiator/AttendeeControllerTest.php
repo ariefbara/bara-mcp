@@ -194,107 +194,19 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     
     public function test_showAll_200()
     {
-        $response = [
-            "total" => 6,
-            "list" => [
-                [
-                    "id" => $this->managerAttendee->invitee->id,
-                    "willAttend" => $this->managerAttendee->invitee->willAttend,
-                    "attended" => $this->managerAttendee->invitee->attended,
-                    "manager" => [
-                        "id" => $this->managerAttendee->manager->id,
-                        "name" => $this->managerAttendee->manager->name,
-                    ],
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => null,
-                ],
-                [
-                    "id" => $this->coordinatorAttendee->invitee->id,
-                    "willAttend" => $this->coordinatorAttendee->invitee->willAttend,
-                    "attended" => $this->coordinatorAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => [
-                         "id" => $this->coordinatorAttendee->coordinator->id,
-                        "personnel" => [
-                             "id" => $this->coordinatorAttendee->coordinator->personnel->id,
-                             "name" => $this->coordinatorAttendee->coordinator->personnel->getFullName(),
-                        ],
-                    ],
-                    "consultant" => null,
-                    "participant" => null,
-                ],
-                [
-                    "id" => $this->consultantAttendee->invitee->id,
-                    "willAttend" => $this->consultantAttendee->invitee->willAttend,
-                    "attended" => $this->consultantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => [
-                        "id" => $this->consultantAttendee->consultant->id,
-                        "personnel" => [
-                            "id" => $this->consultantAttendee->consultant->personnel->id,
-                            "name" => $this->consultantAttendee->consultant->personnel->getFullName(),
-                        ],
-                    ],
-                    "participant" => null,
-                ],
-                [
-                    "id" => $this->clientParticipantAttendee->invitee->id,
-                    "willAttend" => $this->clientParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->clientParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->clientParticipantAttendee->participant->id,
-                        "user" => null,
-                        "client" => [
-                            "id" => $this->clientParticipant->client->id,
-                            "name" => $this->clientParticipant->client->getFullName(),
-                        ],
-                        "team" => null,
-                    ],
-                ],
-                [
-                    "id" => $this->userParticipantAttendee->invitee->id,
-                    "willAttend" => $this->userParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->userParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->userParticipantAttendee->participant->id,
-                        "user" => [
-                            "id" => $this->userParticipant->user->id,
-                            "name" => $this->userParticipant->user->getFullName(),
-                        ],
-                        "client" => null,
-                        "team" => null,
-                    ],
-                ],
-                [
-                    "id" => $this->teamParticipantAttendee->invitee->id,
-                    "willAttend" => $this->teamParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->teamParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->teamParticipantAttendee->participant->id,
-                        "user" => null,
-                        "client" => null,
-                        "team" => [
-                            "id" => $this->teamParticipant->team->id,
-                            "name" => $this->teamParticipant->team->name,
-                        ], 
-                    ],
-                ],
-            ],
+        $totalResponse = ["total" => 6];
+        $listReponse = [
+            "id" => $this->managerAttendee->invitee->id,
+            "id" => $this->coordinatorAttendee->invitee->id,
+            "id" => $this->consultantAttendee->invitee->id,
+            "id" => $this->clientParticipantAttendee->invitee->id,
+            "id" => $this->userParticipantAttendee->invitee->id,
+            "id" => $this->teamParticipantAttendee->invitee->id,
         ];
         
         $this->get($this->attendeeUri, $this->teamMember->client->token)
-                ->seeJsonContains($response)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($listReponse)
                 ->seeStatusCode(200);
     }
     

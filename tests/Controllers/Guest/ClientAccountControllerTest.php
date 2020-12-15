@@ -179,6 +179,7 @@ class ClientAccountControllerTest extends ControllerTestCase
     
     public function test_generateActivationCode()
     {
+$this->disableExceptionHandling();
         $this->inactiveClient->activationCode = null;
         $this->inactiveClient->activationCodeExpiredTime = null;
         $this->connection->table('Client')->truncate();
@@ -205,7 +206,7 @@ class ClientAccountControllerTest extends ControllerTestCase
         $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
                 ->seeStatusCode(200);
         $mailEntry = [
-            "subject" => "Konsulta: Aktivasi Akun",
+            "subject" => "Aktivasi Akun",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -250,7 +251,7 @@ class ClientAccountControllerTest extends ControllerTestCase
         $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
                 ->seeStatusCode(200);
         $mailEntry = [
-            "subject" => "Konsulta: Reset Password",
+            "subject" => "Reset Password",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

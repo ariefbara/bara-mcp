@@ -369,30 +369,25 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
     
     public function test_showAllMetricAchievement_200()
     {
-        $reponse = [
-            "total" => 3,
-            "list" => [
-                [
-                    "id" => $this->clientParticipant->participant->id,
-                    "name" => $this->clientParticipant->client->getFullName(),
-                    "achievement" => "55",
-                ],
-                [
-                    "id" => $this->teamParticipant->participant->id,
-                    "name" => $this->teamParticipant->team->name,
-                    "achievement" => null,
-                ],
-                [
-                    "id" => $this->userParticipant->participant->id,
-                    "name" => $this->userParticipant->user->getFullName(),
-                    "achievement" => "45",
-                ],
-            ],
+        $total = ["total" => 3];
+        $list = [
+            "id" => $this->clientParticipant->participant->id,
+            "id" => $this->teamParticipant->participant->id,
+            "id" => $this->userParticipant->participant->id,
+        ];
+        $detail = [
+            "id" => $this->clientParticipant->participant->id,
+            "name" => $this->clientParticipant->client->getFullName(),
+            "achievement" => "105",
+            "completedMetric" => "1",
+            "totalAssignedMetric" => "2",
         ];
         
         $uri = $this->asProgramCoordinatorUri . "/participant-achievement-summary";
         $this->get($uri, $this->coordinator->personnel->token)
-                ->seeJsonContains($reponse)
+                ->seeJsonContains($total)
+                ->seeJsonContains($list)
+                ->seeJsonContains($detail)
                 ->seeStatusCode(200);
     }
     public function test_showAllMetric_pageSizeApplied()
@@ -403,7 +398,9 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
                 [
                     "id" => $this->clientParticipant->participant->id,
                     "name" => $this->clientParticipant->client->getFullName(),
-                    "achievement" => "55",
+                    "achievement" => "105",
+                    "completedMetric" => "1",
+                    "totalAssignedMetric" => "2",
                 ],
             ],
         ];
@@ -422,11 +419,15 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
                     "id" => $this->userParticipant->participant->id,
                     "name" => $this->userParticipant->user->getFullName(),
                     "achievement" => "45",
+                    "completedMetric" => "0",
+                    "totalAssignedMetric" => "2",
                 ],
                 [
                     "id" => $this->teamParticipant->participant->id,
                     "name" => $this->teamParticipant->team->name,
                     "achievement" => null,
+                    "completedMetric" => null,
+                    "totalAssignedMetric" => null,
                 ],
             ],
         ];
