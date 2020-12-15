@@ -367,6 +367,25 @@ class ManagerTest extends TestBase
         });
     }
 
+    protected function executeEnablePersonnel()
+    {
+        $this->setAssetBelongsToFirm($this->personnel);
+        $this->manager->enablePersonnel($this->personnel);
+    }
+    public function test_enablePersonnel_enablePersonnel()
+    {
+        $this->personnel->expects($this->once())
+                ->method("enable");
+        $this->executeEnablePersonnel();
+    }
+    public function test_enablePersonnel_personnelFromOtherFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->personnel);
+        $this->assertUnmanageableAssetForbiddenError(function () {
+            $this->executeEnablePersonnel();
+        });
+    }
+
     protected function executeCreateEvaluationPlanInProgram()
     {
         $this->setAssetBelongsToFirm($this->program);

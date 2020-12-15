@@ -191,6 +191,12 @@ class Manager implements CanAttendMeeting
         $this->assertAssetBelongsToSameFirm($personnel);
         $personnel->disable();
     }
+    
+    public function enablePersonnel(Personnel $personnel): void
+    {
+        $this->assertAssetBelongsToSameFirm($personnel);
+        $personnel->enable();
+    }
 
     public function createEvaluationPlanInProgram(
             Program $program, string $evaluationPlanId, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): EvaluationPlan

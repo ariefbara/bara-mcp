@@ -144,6 +144,23 @@ class PersonnelControllerTest extends ManagerTestCase
                 ->seeStatusCode(403);
     }
     
+    public function test_enable_200()
+    {
+        $response = [
+            "id" => $this->personnelOne_disable->id,
+        ];
+        $uri = $this->uri . "/{$this->personnelOne_disable->id}/enable";
+        $this->patch($uri, [], $this->manager->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+        
+        $personnelEntry = [
+            "id" => $this->personnelOne_disable->id,
+            "active" => true,
+        ];
+        $this->seeInDatabase("Personnel", $personnelEntry);
+    }
+    
     public function test_show()
     {
         $response = [

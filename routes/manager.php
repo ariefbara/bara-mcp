@@ -52,6 +52,7 @@ $router->group($managerAggregate, function () use ($router) {
         $controller = "PersonnelController";
         $router->post("", ["uses" => "$controller@add"]);
         $router->patch("/{personnelId}", ["uses" => "$controller@update"]);
+        $router->patch("/{personnelId}/enable", ["uses" => "$controller@enable"]);
         $router->delete("/{personnelId}", ["uses" => "$controller@disable"]);
         $router->get("/{personnelId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);

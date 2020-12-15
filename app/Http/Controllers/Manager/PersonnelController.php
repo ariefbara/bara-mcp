@@ -2,18 +2,15 @@
 
 namespace App\Http\Controllers\Manager;
 
-use Firm\ {
-    Application\Service\Firm\PersonnelAdd,
-    Application\Service\Manager\DisablePersonnel,
-    Domain\Model\Firm,
-    Domain\Model\Firm\Manager,
-    Domain\Model\Firm\Personnel,
-    Domain\Model\Firm\PersonnelData
-};
-use Query\ {
-    Application\Service\Firm\PersonnelView,
-    Domain\Model\Firm\Personnel as Personnel2
-};
+use Firm\Application\Service\Firm\PersonnelAdd;
+use Firm\Application\Service\Manager\DisablePersonnel;
+use Firm\Application\Service\Manager\EnablePersonnel;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Personnel;
+use Firm\Domain\Model\Firm\PersonnelData;
+use Query\Application\Service\Firm\PersonnelView;
+use Query\Domain\Model\Firm\Personnel as Personnel2;
 
 class PersonnelController extends ManagerBaseController
 {
@@ -35,6 +32,12 @@ class PersonnelController extends ManagerBaseController
         $this->buildDisableService()
                 ->execute($this->firmId(), $this->managerId(), $personnelId);
         return $this->commandOkResponse();
+    }
+    public function enable($personnelId)
+    {
+        $this->buildEnableService()
+                ->execute($this->firmId(), $this->managerId(), $personnelId);
+        return $this->show($personnelId);
     }
 
     public function show($personnelId)
@@ -98,6 +101,12 @@ class PersonnelController extends ManagerBaseController
         $personnelRepository = $this->em->getRepository(Personnel::class);
         $managerRepository = $this->em->getRepository(Manager::class);
         return new DisablePersonnel($personnelRepository, $managerRepository);
+    }
+    protected function buildEnableService()
+    {
+        $personnelRepository = $this->em->getRepository(Personnel::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        return new EnablePersonnel($personnelRepository, $managerRepository);
     }
 
 }

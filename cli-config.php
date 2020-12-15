@@ -13,7 +13,6 @@ $generateDbPath = array(
     BASE_PATH . "/resources/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Query/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
-    
 );
 
 $generateProxyPath = [
