@@ -106,14 +106,14 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("Participant")->insert($participantTwo->toArrayForDbEntry());
         $this->connection->table("Participant")->insert($this->participantThree->toArrayForDbEntry());
 
-        $this->clientParticipant = new RecordOfClientParticipant($client, $participant);
+        $this->clientParticipant = new RecordOfClientParticipant($client, $this->participantThree);
         $this->connection->table("ClientParticipant")->insert($this->clientParticipant->toArrayForDbEntry());
 
         $this->userParticipant = new RecordOfUserParticipant($user, $participantOne);
         $this->connection->table("UserParticipant")->insert($this->userParticipant->toArrayForDbEntry());
 
         $this->teamParticipant = new RecordOfTeamProgramParticipation($team, $participantTwo);
-        $this->teamParticipantThree = new RecordOfTeamProgramParticipation($teamOne, $this->participantThree);
+        $this->teamParticipantThree = new RecordOfTeamProgramParticipation($teamOne, $participant);
         $this->connection->table("TeamParticipant")->insert($this->teamParticipant->toArrayForDbEntry());
         $this->connection->table("TeamParticipant")->insert($this->teamParticipantThree->toArrayForDbEntry());
 
@@ -370,13 +370,12 @@ $this->disableExceptionHandling();
     
     public function test_cancelInvitation_200()
     {
-$this->disableExceptionHandling();
-        $uri = $this->attendeeUri . "/cancel-invitation/{$this->teamParticipantAttendee->invitee->id}";
+        $uri = $this->attendeeUri . "/cancel-invitation/{$this->coordinatorAttendee->invitee->id}";
         $this->patch($uri, [], $this->programParticipation->user->token)
                 ->seeStatusCode(200);
         
         $inviteeEntry = [
-            "id" => $this->teamParticipantAttendee->invitee->id,
+            "id" => $this->coordinatorAttendee->invitee->id,
             "cancelled" => true,
         ];
         $this->seeInDatabase("Invitee", $inviteeEntry);
