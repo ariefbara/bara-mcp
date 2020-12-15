@@ -51,7 +51,8 @@ class PersonnelController extends ManagerBaseController
     {
         $this->authorizedUserIsFirmManager();
         $service = $this->buildViewService();
-        $personnels = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize());
+        $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
+        $personnels = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize(), $activeStatus);
         return $this->commonIdNameListQueryResponse($personnels);
     }
 

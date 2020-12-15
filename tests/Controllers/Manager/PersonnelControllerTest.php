@@ -14,7 +14,7 @@ use Tests\Controllers\ {
 class PersonnelControllerTest extends ManagerTestCase
 {
     protected $uri;
-    protected $personnel, $personnelOne;
+    protected $personnel, $personnelOne_disable;
     protected $program;
     protected $inactiveCoordinator;
     protected $inactiveMentor;
@@ -39,9 +39,10 @@ class PersonnelControllerTest extends ManagerTestCase
         $this->connection->table("Consultant")->truncate();
         
         $this->personnel = new RecordOfPersonnel($this->firm, 0, 'personnel@email.org', 'password123');
-        $this->personnelOne = new RecordOfPersonnel($this->firm, 1, 'personnel_one@email.org', 'password123');
+        $this->personnelOne_disable = new RecordOfPersonnel($this->firm, 1, 'personnel_one@email.org', 'password123');
+        $this->personnelOne_disable->active = false;
         $this->connection->table('Personnel')->insert($this->personnel->toArrayForDbEntry());
-        $this->connection->table('Personnel')->insert($this->personnelOne->toArrayForDbEntry());
+        $this->connection->table('Personnel')->insert($this->personnelOne_disable->toArrayForDbEntry());
         
         $this->program = new RecordOfProgram($this->manager->firm, 0);
         $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
@@ -175,14 +176,27 @@ class PersonnelControllerTest extends ManagerTestCase
                     "name" => $this->personnel->getFullName(),
                 ],
                 [
-                    "id" => $this->personnelOne->id,
-                    "name" => $this->personnelOne->getFullName(),
+                    "id" => $this->personnelOne_disable->id,
+                    "name" => $this->personnelOne_disable->getFullName(),
                 ],
             ],
         ];
         $this->get($this->uri, $this->manager->token)
             ->seeStatusCode(200)
             ->seeJsonContains($response);
+    }
+    public function test_showAll_activeStatusFilterSet()
+    {
+        $totalResponse = ["total" => 1];
+        $personnelResponse = [
+            "id" => $this->personnel->id,
+        ];
+        
+        $uri = $this->uri . "?activeStatus=true";
+        $this->get($uri, $this->manager->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($personnelResponse);
     }
     public function test_showAll_userNotManager_error401()
     {

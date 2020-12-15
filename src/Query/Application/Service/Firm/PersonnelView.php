@@ -30,9 +30,9 @@ class PersonnelView
      * @param int $pageSize
      * @return Personnel[]
      */
-    public function showAll(string $firmId, int $page, int $pageSize)
+    public function showAll(string $firmId, int $page, int $pageSize, ?bool $activeStatus)
     {
-        return $this->personnelRepository->all($firmId, $page, $pageSize);
+        return $this->personnelRepository->all($firmId, $page, $pageSize, $activeStatus);
     }
 
 }
