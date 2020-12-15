@@ -20,13 +20,15 @@ class DoctrineCoordinatorNotificationRepository extends EntityRepository impleme
         
         $qb = $this->createQueryBuilder("coordinatorNotification");
         $qb->select("coordinatorNotification")
+                ->andWhere($qb->expr()->eq("coordinatorNotification.read", "false"))
                 ->leftJoin("coordinatorNotification.coordinator", "coordinator")
                 ->andWhere($qb->expr()->eq("coordinator.id", ":coordinatorId"))
                 ->leftJoin("coordinator.personnel", "personnel")
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
                 ->leftJoin("personnel.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
-                ->setParameters($params);
+                ->setParameters($params)
+                ->orderBy("coordinatorNotification.notifiedTime", "DESC");
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

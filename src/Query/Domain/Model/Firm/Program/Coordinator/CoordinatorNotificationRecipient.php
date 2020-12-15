@@ -60,16 +60,21 @@ class CoordinatorNotificationRecipient
         return $this->read;
     }
 
-    function getNotifiedTimeString(): string
-    {
-        return $this->notifiedTime->format("Y-m-d H:i:s");
-    }
-
     protected function __construct()
     {
         
     }
+    
+    public function getNotifiedTimeString(): string
+    {
+        return $this->notifiedTime->format("Y-m-d H:i:s");
+    }
 
+    public function getMessage(): string
+    {
+        return $this->notification->getMessage();
+    }
+    
     public function getConsultationSessionNotification(): ?ConsultationSessionNotification
     {
         return $this->notification->getConsultationSessionNotification();

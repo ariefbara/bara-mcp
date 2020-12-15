@@ -327,6 +327,11 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{participantId}/{evaluationPlanId}", ["uses" => "$controller@show"]);
         });
+        
+        $router->group(['prefix' => '/notifications'], function () use($router) {
+            $controller = "NotificationController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+        });
     });
     
     $asMeetingInitiatorAggregate = [

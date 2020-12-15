@@ -2,7 +2,7 @@
 <doctrine-mapping>
     <entity name="Query\Domain\Model\Firm\Program\Coordinator\CoordinatorNotificationRecipient" 
             table="CoordinatorNotificationRecipient" 
-            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineCoordinatorNotificationRecipientRepository"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineCoordinatorNotificationRepository"
     >
         
         <many-to-one  field="coordinator" 
