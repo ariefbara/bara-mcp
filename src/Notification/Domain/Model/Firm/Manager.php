@@ -6,8 +6,8 @@ use DateTimeImmutable;
 use Notification\Domain\Model\Firm;
 use Notification\Domain\Model\Firm\Manager\ManagerMail;
 use Notification\Domain\SharedModel\CanSendPersonalizeMail;
-use Notification\Domain\SharedModel\ContainNotificationForAllUser;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class Manager
 {
@@ -55,17 +55,11 @@ class Manager
 
     public function createResetPasswordMail(string $managerMailId): ManagerMail
     {
-        $subject = "Konsulta: reset password";
-        $greetings = "Hi $this->name";
-        $mainMessage = <<<_MESSAGE
-Permintaan reset password akun telah kami terima, kunjungi tautan di bawah untuk menyelesaikan proses reset password.
-_MESSAGE;
         $domain = $this->firm->getDomain();
         $urlPath = "/manager-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
         $recipientMailAddress = $this->email;

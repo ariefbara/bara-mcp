@@ -3,13 +3,12 @@
 namespace Notification\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Notification\Domain\ {
-    Model\Firm,
-    Model\Firm\Personnel\PersonnelMail,
-    SharedModel\CanSendPersonalizeMail
-};
+use Notification\Domain\Model\Firm;
+use Notification\Domain\Model\Firm\Personnel\PersonnelMail;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Resources\Domain\ValueObject\PersonName;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class Personnel
 {
@@ -69,18 +68,13 @@ class Personnel
 
     public function createResetPasswordMail(string $personnelMailId): PersonnelMail
     {
-        $subject = "Konsulta: Reset Password";
-        $greetings = "Hi {$this->name->getFirstName()}";
-        $mainMessage = <<<_MESSAGE
-Permintaan reset password akun telah kami terima, kunjungi tautan di bawah untuk menyelesaikan proses reset password.
-_MESSAGE;
         $domain = $this->firm->getDomain();
         $urlPath = "/personnel-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->getFullName();
         

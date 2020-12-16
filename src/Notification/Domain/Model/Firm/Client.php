@@ -3,13 +3,12 @@
 namespace Notification\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Notification\Domain\{
-    Model\Firm,
-    Model\Firm\Client\ClientMail,
-    SharedModel\CanSendPersonalizeMail
-};
+use Notification\Domain\Model\Firm;
+use Notification\Domain\Model\Firm\Client\ClientMail;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Resources\Domain\ValueObject\PersonName;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class Client
 {
@@ -81,16 +80,13 @@ class Client
 
     public function createActivationMail(string $clientMailId): ClientMail
     {
-        $senderMailAddress = $this->firm->getMailSenderAddress();
-        $senderName = $this->firm->getMailSenderName();
-        $subject = "Aktivasi Akun";
-        $greetings = "Hi {$this->name->getFirstName()}";
-        $mainMessage = "Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:";
         $domain = $this->firm->getDomain();
         $urlPath = "/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
-
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        
+        $senderMailAddress = $this->firm->getMailSenderAddress();
+        $senderName = $this->firm->getMailSenderName();
+        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
 
@@ -101,16 +97,13 @@ class Client
 
     public function createResetPasswordMail(string $clientMailId): ClientMail
     {
-        $senderMailAddress = $this->firm->getMailSenderAddress();
-        $senderName = $this->firm->getMailSenderName();
-        $subject = "Reset Password";
-        $greetings = "Hi {$this->name->getFirstName()}";
-        $mainMessage = "Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:";
         $domain = $this->firm->getDomain();
         $urlPath = "/client-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
-
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        
+        $senderMailAddress = $this->firm->getMailSenderAddress();
+        $senderName = $this->firm->getMailSenderName();
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
 

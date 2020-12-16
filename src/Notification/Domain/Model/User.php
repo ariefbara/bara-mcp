@@ -4,12 +4,11 @@ namespace Notification\Domain\Model;
 
 use Config\BaseConfig;
 use DateTimeImmutable;
-use Notification\Domain\ {
-    Model\User\UserMail,
-    SharedModel\CanSendPersonalizeMail
-};
+use Notification\Domain\Model\User\UserMail;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Resources\Domain\ValueObject\PersonName;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class User
 {
@@ -75,16 +74,13 @@ class User
 
     public function createActivationMail(string $userMailId): UserMail
     {
-        $subject = "Aktivasi Akun";
-        $greetings = "Hi {$this->name->getFirstName()}";
-        $mainMessage = "Akun konsulta kamu berhasil dibuat, kunjungi tautan berikut untuk melakukan aktivasi:";
-        $domain = "http://konsulta.id";
-        $urlPath = "/user-account/activate/{$this->email}/{$this->activationCode}";
+        $domain = BaseConfig::KONSULTA_MAIN_URL;
+        $urlPath = "/user-account/activate/{$this->email}/{$this->activationCode}}";
         $logoPath = BaseConfig::KONSULTA_LOGO_PATH;
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
         
         $senderMailAddress = BaseConfig::MAIL_SENDER_ADDRESS;
         $senderName = BaseConfig::MAIL_SENDER_NAME;
+        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
         
@@ -94,16 +90,13 @@ class User
 
     public function createResetPasswordMail(string $userMailId): UserMail
     {
-        $subject = "Reset Password";
-        $greetings = "Hi {$this->name->getFirstName()}";
-        $mainMessage = "Permintaan reset password akun telah diterima, kunjungi tautan berikut untuk menyelesaikan proses reset password akun:";
-        $domain = "http://konsulta.id";
+        $domain = BaseConfig::KONSULTA_MAIN_URL;
         $urlPath = "/user-account/reset-password/{$this->email}/{$this->resetPasswordCode}";
         $logoPath = BaseConfig::KONSULTA_LOGO_PATH;
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
         
         $senderMailAddress = BaseConfig::MAIL_SENDER_ADDRESS;
         $senderName = BaseConfig::MAIL_SENDER_NAME;
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
         
