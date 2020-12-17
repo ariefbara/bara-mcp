@@ -18,7 +18,19 @@ class MeetingType
      * @var string
      */
     protected $id;
+    
+    /**
+     *
+     * @var string
+     */
+    protected $name;
+    
+    function getName(): string
+    {
+        return $this->name;
+    }
 
+    
     protected function __construct()
     {
         

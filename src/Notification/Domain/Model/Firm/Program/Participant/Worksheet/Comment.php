@@ -3,16 +3,16 @@
 namespace Notification\Domain\Model\Firm\Program\Participant\Worksheet;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\ {
-    Model\Firm\Program\Consultant\ConsultantComment,
-    Model\Firm\Program\Participant\Worksheet,
-    Model\Firm\Program\Participant\Worksheet\Comment\CommentMail,
-    Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification,
-    SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification
-};
+use Notification\Domain\Model\Firm\Program\Consultant\ConsultantComment;
+use Notification\Domain\Model\Firm\Program\Participant\Worksheet;
+use Notification\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentMail;
+use Notification\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
+use Notification\Domain\SharedModel\ContainNotification;
 use Resources\Uuid;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
+use SharedContext\Domain\ValueObject\NotificationMessageBuilder;
 
 class Comment implements CanSendPersonalizeMail
 {
@@ -34,6 +34,12 @@ class Comment implements CanSendPersonalizeMail
      * @var string
      */
     protected $id;
+    
+    /**
+     *
+     * @var string
+     */
+    protected $message = null;
 
     /**
      *
@@ -60,21 +66,23 @@ class Comment implements CanSendPersonalizeMail
 
     public function generateNotificationsForRepliedConsultantComment(): void
     {
-        $subject = "Komentar Worksheet";
-        $greetings = "Hi Konsultan";
-        $mainMessage = "Partisipan {$this->worksheet->getParticipantName()} telah membalas komentar";
+        $participantName = $this->worksheet->getParticipantName();
+        $missionName = $this->worksheet->getMissionName();
+        $worksheetName = $this->worksheet->getName();
+        $message = $this->message;
         $domain = $this->worksheet->getFirmDomain();
-        $urlPath = "/worksheets/{$this->worksheet->getId()}/comments/{$this->id}";
+        $urlPath = "/participant/{$this->worksheet->getParticipantId()}/worksheet/{$this->worksheet->getId()}";
         $logoPath = $this->worksheet->getFirmLogoPath();
         
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildWorksheetCommentMailMessageForMentor(
+                $participantName, $missionName, $worksheetName, $message, $domain, $urlPath, $logoPath);
         
         $this->parent->registerConsultantAsMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();
-        $message = "partisipan {$this->worksheet->getParticipantName()} telah membalas komentar";
+        $message = NotificationMessageBuilder::buildWorksheetCommentNotificationForMentor($participantName);
 
-        $commentNotification = new Comment\CommentNotification($this, $id, $message);
+        $commentNotification = new CommentNotification($this, $id, $message);
         $this->parent->registerConsultantAsNotificationRecipient($commentNotification);
 
         $this->commentNotifications->add($commentNotification);
@@ -82,18 +90,20 @@ class Comment implements CanSendPersonalizeMail
 
     public function generateNotificationsTriggeredByConsultant(): void
     {
-        $subject = "Komentar Worksheet";
-        $greetings = "Hi Participan";
-        $mainMessage = "Konsultant {$this->consultantComment->getConsultantName()} telah memberi komentar di worksheet.";
-        $domain = $this->worksheet->getFirmDomain();
-        $urlPath = "/comments/{$this->id}";
+        $mentorName = $this->consultantComment->getConsultantName();
+        $missionName = $this->worksheet->getMissionName();
+        $worksheetName = $this->worksheet->getName();
+        $message = $this->message;
+        $domain = $this->$this->worksheet->getFirmDomain();
+        $urlPath = "";
         $logoPath = $this->worksheet->getFirmLogoPath();
         
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildWorksheetCommentMailMessageForParticipant(
+                $mentorName, $missionName, $worksheetName, $message, $domain, $urlPath, $logoPath);
         $this->worksheet->registerParticipantAsMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();
-        $message = "comment submitted";
+        $message = NotificationMessageBuilder::buildWorksheetCommentNotificationForParticipant($mentorName);
 
         $commentNotification = new CommentNotification($this, $id, $message);
         $this->worksheet->registerParticipantAsNotificationRecipient($commentNotification);

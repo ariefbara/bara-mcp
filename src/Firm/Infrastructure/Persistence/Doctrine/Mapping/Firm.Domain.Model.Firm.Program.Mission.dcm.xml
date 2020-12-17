@@ -15,11 +15,13 @@
         >
             <join-column name="parent_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
         <field name="description" type="text" nullable="true"/>
         <field name="published" type="boolean"/>
         <field name="position" type="string" length="256" nullable="true"/>
+        
         <many-to-one  field="worksheetForm" 
                       target-entity="Firm\Domain\Model\Firm\WorksheetForm"
         >

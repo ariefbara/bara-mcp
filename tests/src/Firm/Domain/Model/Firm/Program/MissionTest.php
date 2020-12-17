@@ -3,10 +3,9 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\Firm\{
-    Program,
-    WorksheetForm
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\WorksheetForm;
 use Tests\TestBase;
 
 class MissionTest extends TestBase
@@ -16,6 +15,7 @@ class MissionTest extends TestBase
     protected $worksheetForm;
     protected $mission;
     protected $id = 'mission-id', $name = 'new mission name', $description = 'new mission description', $position = 'mission positioin';
+    protected $firm;
 
     protected function setUp(): void
     {
@@ -28,6 +28,7 @@ class MissionTest extends TestBase
         $this->mission->branches = new ArrayCollection();
 
         $this->participant = $this->buildMockOfClass(Participant::class);
+        $this->firm = $this->buildMockOfClass(Firm::class);
     }
 
     protected function executeCreateRoot()
@@ -89,7 +90,6 @@ class MissionTest extends TestBase
     {
         $this->mission->update($this->name, $this->description, $this->position);
     }
-
     public function test_update_changeProperties()
     {
         $this->executeUpdate();
@@ -97,7 +97,6 @@ class MissionTest extends TestBase
         $this->assertEquals($this->description, $this->mission->description);
         $this->assertEquals($this->position, $this->mission->position);
     }
-
     public function test_update_emptyName_throwEx()
     {
         $this->name = '';
@@ -107,7 +106,6 @@ class MissionTest extends TestBase
         $errorDetail = "bad request: mission name is required";
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
-
     public function test_update_alreadyPublished_processNormally()
     {
         $this->mission->published = true;
@@ -119,13 +117,11 @@ class MissionTest extends TestBase
     {
         $this->mission->publish();
     }
-
     public function test_publish_setPublishedFlagTrue()
     {
         $this->executePublish();
         $this->assertTrue($this->mission->published);
     }
-
     public function test_publish_alreadyPublished_throwError()
     {
         $this->mission->published = true;
@@ -134,6 +130,34 @@ class MissionTest extends TestBase
         };
         $errorDetail = "forbidden: request only valid for non published mission";
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    
+    protected function executeChangeWorksheetForm()
+    {
+        $this->mission->worksheetForm = null;
+        $this->mission->changeWorksheetForm($this->worksheetForm);
+    }
+    public function test_changeWorksheetForm_setWorksheetForm()
+    {
+        $this->executeChangeWorksheetForm();
+        $this->assertEquals($this->worksheetForm, $this->mission->worksheetForm);
+    }
+    public function test_changeWorksheetForm_publishedMission_forbidden()
+    {
+        $this->mission->published = true;
+        $operation = function (){
+            $this->executeChangeWorksheetForm();
+        };
+        $errorDetail = "forbidden: can only change worksheet form of unpublished mission";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_belongsToFirm_returnProgramsBelongsToFirmResult()
+    {
+        $this->program->expects($this->once())
+                ->method("belongsToFirm")
+                ->with($this->firm);
+        $this->mission->belongsToFirm($this->firm);
     }
 
 }

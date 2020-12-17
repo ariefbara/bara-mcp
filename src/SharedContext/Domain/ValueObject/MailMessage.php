@@ -88,6 +88,12 @@ class MailMessage
         return new static($this->subject, $this->greetings, $this->mainMessage, $this->domain, $urlPath, $this->logoPath);
     }
 
+    public function appendUrlPath(string $urlPath): self
+    {
+        $urlPath = $this->urlPath . $urlPath;
+        return new static($this->subject, $this->greetings, $this->mainMessage, $this->domain, $urlPath, $this->logoPath);
+    }
+
     public function getTextMessage(): string
     {
         return <<<_MESSAGE

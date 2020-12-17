@@ -52,7 +52,7 @@ class UserProgramParticipationTest extends TestBase
     {
         $this->mailMessage->expects($this->once())
                 ->method("prependUrlPath")
-                ->with("/program-participations/{$this->userProgramParticipation->id}");
+                ->with("/participation/{$this->userProgramParticipation->id}");
         $this->executeRegisterUserAsMailRecipient();
     }
     public function test_registerUserAsMailRecipient_registerUserAsMailRecipient()

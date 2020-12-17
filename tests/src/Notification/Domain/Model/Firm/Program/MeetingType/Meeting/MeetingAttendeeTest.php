@@ -22,6 +22,7 @@ class MeetingAttendeeTest extends TestBase
     protected $consultantAttendee;
     protected $participantAttendee;
     protected $mailMessage;
+    protected $haltPrependUrlPath = false;
     protected $meetingNotification;
     protected $recipientMailAddress = "recipient@email.org", $recipientName = "recipient name";
 
@@ -152,7 +153,7 @@ class MeetingAttendeeTest extends TestBase
     
     protected function executeRegisterAsMeetingMailRecipient()
     {
-        $this->meetingAttendee->registerAsMeetingMailRecipient($this->meeting, $this->mailMessage);
+        $this->meetingAttendee->registerAsMeetingMailRecipient($this->meeting, $this->mailMessage, $this->haltPrependUrlPath);
     }
     public function test_registerAsMeetingMailRecipient_preventMailMessageUrlPath()
     {
@@ -171,6 +172,13 @@ class MeetingAttendeeTest extends TestBase
         $this->managerAttendee->expects($this->once())
                 ->method("registerAsMailRecipient")
                 ->with($this->meeting, $this->identicalTo($modifiedMailMessage));
+        $this->executeRegisterAsMeetingMailRecipient();
+    }
+    public function test_registerAsMeetingMailRecipient_prepentUrlPrepend()
+    {
+        $this->haltPrependUrlPath = true;
+        $this->mailMessage->expects($this->never())
+                ->method("prependUrlPath");
         $this->executeRegisterAsMeetingMailRecipient();
     }
     

@@ -2,7 +2,7 @@
 
 namespace Notification\Application\Service;
 
-use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class GenerateNotificationWhenConsultationRequestSubmitted
 {
@@ -20,7 +20,7 @@ class GenerateNotificationWhenConsultationRequestSubmitted
     public function execute(string $consultationRequestId): void
     {
         $this->consultationRequestRepository->ofId($consultationRequestId)
-                ->createNotificationTriggeredByParticipant(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+                ->createNotificationTriggeredByParticipant(MailMessageBuilder::CONSULTATION_REQUESTED);
         $this->consultationRequestRepository->update();
     }
 

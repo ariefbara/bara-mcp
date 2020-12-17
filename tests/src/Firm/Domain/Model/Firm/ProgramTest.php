@@ -150,10 +150,23 @@ class ProgramTest extends TestBase
         $this->assertTrue($this->program->published);
     }
 
+    protected function executeRemove()
+    {
+        $this->program->remove();
+    }
     public function test_remove_setRemovedFlagTrue()
     {
         $this->program->remove();
         $this->assertTrue($this->program->removed);
+    }
+    public function test_remove_publishedProgram_forbidden()
+    {
+        $this->program->published = true;
+        $operation = function (){
+            $this->executeRemove();
+        };
+        $errorDetail = "forbidden: can only remove unpublished program";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
     protected function executeAssignPersonnelAsConsultant()

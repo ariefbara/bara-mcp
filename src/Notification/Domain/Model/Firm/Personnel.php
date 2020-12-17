@@ -61,7 +61,8 @@ class Personnel
 
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $modifiedMailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName());
+        $modifiedMailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName())
+                ->prependUrlPath("/personnel");
 
         $mailGenerator->addMail($modifiedMailMessage, $this->email, $this->name->getFullName());
     }
@@ -72,9 +73,9 @@ class Personnel
         $urlPath = "/personnel-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
-        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->getFullName();
         

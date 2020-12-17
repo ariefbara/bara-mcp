@@ -11,6 +11,7 @@ use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
@@ -39,6 +40,8 @@ class ManagerTest extends TestBase
             $sessionDuration = 99, $consultantFeedbackForm;
     protected $profileFormId = "profileFormId", $formData, $profileForm;
     protected $programsProfileForm;
+    protected $mission;
+    protected $worksheetForm;
 
     protected function setUp(): void
     {
@@ -68,6 +71,9 @@ class ManagerTest extends TestBase
         $this->formData->expects($this->any())->method("getName")->willReturn("name");
         $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
         $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        
+        $this->mission = $this->buildMockOfClass(Mission::class);
+        $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -593,6 +599,53 @@ class ManagerTest extends TestBase
         $this->setAssetDoesntBelongsToFirm($this->programsProfileForm);
         $this->assertUnmanageableAssetForbiddenError(function (){
             $this->executeDisableProgramsProfileForm();
+        });
+    }
+    
+    protected function executeRemoveProgram()
+    {
+        $this->setAssetBelongsToFirm($this->program);
+        $this->manager->removeProgram($this->program);
+    }
+    public function test_removeProgram_removeProgram()
+    {
+        $this->program->expects($this->once())
+                ->method("remove");
+        $this->executeRemoveProgram();
+    }
+    public function test_removeProgram_unamangedProgram_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->program);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeRemoveProgram();
+        });
+    }
+    
+    protected function executeChangeMissionsWorksheetForm()
+    {
+        $this->setAssetBelongsToFirm($this->mission);
+        $this->setAssetBelongsToFirm($this->worksheetForm);
+        $this->manager->changeMissionsWorksheetForm($this->mission, $this->worksheetForm);
+    }
+    public function test_changeMissionsWorkshetForm_changeMissionsWorksheetForm()
+    {
+        $this->mission->expects($this->once())
+                ->method("changeWorksheetForm")
+                ->with($this->worksheetForm);
+        $this->executeChangeMissionsWorksheetForm();
+    }
+    public function test_changeMissionWorksheetForm_unamanagedMission_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->mission);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeChangeMissionsWorksheetForm();
+        });
+    }
+    public function test_changeMissionWorksheetForm_unamanagedWorksheetForm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->worksheetForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeChangeMissionsWorksheetForm();
         });
     }
 }

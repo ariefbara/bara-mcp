@@ -2,11 +2,9 @@
 
 namespace Notification\Domain\Model\Firm\Program\Consultant;
 
-use Notification\Domain\ {
-    Model\Firm\Program\Consultant,
-    SharedModel\CanSendPersonalizeMail,
-    SharedModel\ContainNotification
-};
+use Notification\Domain\Model\Firm\Program\Consultant;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
+use Notification\Domain\SharedModel\ContainNotification;
 use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
@@ -36,7 +34,7 @@ class ConsultantCommentTest extends TestBase
     public function test_registerConsultantAsMailRecipient_executeConsultantsRegisterMailRecipient()
     {
         $this->consultant->expects($this->once())
-                ->method("registerMailRecipient")
+                ->method("registerAsCommentMailRecipient")
                 ->with($this->mailGenerator, $this->mailMessage);
         $this->consultantComment->registerConsultantAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }

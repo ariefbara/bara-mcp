@@ -2,7 +2,7 @@
 
 namespace Notification\Application\Service;
 
-use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class GenerateNotificationWhenConsultationRequestTimeChanged
 {
@@ -20,7 +20,7 @@ class GenerateNotificationWhenConsultationRequestTimeChanged
     public function execute(string $consultationRequestId): void
     {
         $this->consultationRequestRepository->ofId($consultationRequestId)
-                ->createNotificationTriggeredByParticipant(ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT);
+                ->createNotificationTriggeredByParticipant(MailMessageBuilder::CONSULTATION_SCHEDULE_CHANGED);
         $this->consultationRequestRepository->update();
     }
 

@@ -71,10 +71,13 @@ class Client
         return $this->name->getFullName();
     }
 
-    public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
+    public function registerAsMailRecipient(
+            CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltUrlPrepend = false): void
     {
         $modifiedMailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName());
-
+        if (!$haltUrlPrepend) {
+            $modifiedMailMessage = $modifiedMailMessage->prependUrlPath("/client");
+        }
         $mailGenerator->addMail($modifiedMailMessage, $this->email, $this->name->getFullName());
     }
 
@@ -84,9 +87,9 @@ class Client
         $urlPath = "/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
+        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
-        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
 
@@ -101,9 +104,9 @@ class Client
         $urlPath = "/client-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
-        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
 

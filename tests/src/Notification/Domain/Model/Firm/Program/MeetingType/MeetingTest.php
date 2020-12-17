@@ -143,6 +143,13 @@ class MeetingTest extends TestBase
         $this->meetingType->expects($this->once())->method("getFirmMailSenderName");
         $this->meeting->getFirmMailSenderName();
     }
+    
+    public function test_getMeetingTypeName_returnMeetingTypeName()
+    {
+        $this->meetingType->expects($this->once())
+                ->method("getName");
+        $this->meeting->getMeetingTypeName();
+    }
 }
 
 class TestableMeeting extends Meeting

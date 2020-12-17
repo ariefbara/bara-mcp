@@ -15,6 +15,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
@@ -258,6 +259,19 @@ class Manager implements CanAttendMeeting
     {
         $this->assertAssetBelongsToSameFirm($programsProfileForm);
         $programsProfileForm->disable();
+    }
+    
+    public function removeProgram(Program $program): void
+    {
+        $this->assertAssetBelongsToSameFirm($program);
+        $program->remove();
+    }
+    
+    public function changeMissionsWorksheetForm(Mission $mission, WorksheetForm $worksheetForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($mission);
+        $this->assertAssetBelongsToSameFirm($worksheetForm);
+        $mission->changeWorksheetForm($worksheetForm);
     }
 
     protected function assertAssetBelongsToSameFirm(AssetBelongsToFirm $asset): void

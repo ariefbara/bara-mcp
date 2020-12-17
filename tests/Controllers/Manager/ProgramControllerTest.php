@@ -118,19 +118,19 @@ class ProgramControllerTest extends ProgramTestCase
     
     public function test_remove()
     {
-        $uri = "{$this->programUri}/{$this->program->id}";
+        $uri = "{$this->programUri}/{$this->programOne->id}";
         $this->delete($uri, [], $this->manager->token)
             ->seeStatusCode(200);
         
         $programmeRecord = [
-            "id" => $this->program->id,
+            "id" => $this->programOne->id,
             "removed" => true,
         ];
         $this->seeInDatabase('Program', $programmeRecord);
     }
-    public function test_remove_userNotManager_error401()
+    public function test_remove_userNotManager_error403()
     {
-        $uri = "{$this->programUri}/{$this->program->id}";
+        $uri = "{$this->programUri}/{$this->programOne->id}";
         $this->delete($uri, [], $this->removedManager->token)
             ->seeStatusCode(401);
     }

@@ -12,9 +12,10 @@ use Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\M
 use Notification\Domain\Model\Firm\Program\Participant\ParticipantMeetingAttendee;
 use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Notification\Domain\SharedModel\ContainNotificationForAllUser;
-use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Uuid;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
+use SharedContext\Domain\ValueObject\NotificationMessageBuilder;
 
 class MeetingAttendee implements CanSendPersonalizeMail
 {
@@ -89,6 +90,11 @@ class MeetingAttendee implements CanSendPersonalizeMail
         return $this->cancelled;
     }
 
+    function getId(): string
+    {
+        return $this->id;
+    }
+
     protected function __construct()
     {
         
@@ -96,21 +102,23 @@ class MeetingAttendee implements CanSendPersonalizeMail
 
     public function addInvitationSentNotification(): void
     {
-        $subject = "Undangan Meeting";
-        $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Anda telah menerima undangan meeting pada waktu:
-    {$this->meeting->getscheduleInIndonesianFormat()}
-Kunjungi link berikut untuk melihat detail.
-_MESSAGE;
+        $state = MailMessageBuilder::MEETING_INVITATION_SENT;
+        
+        $meetingType = $this->meeting->getMeetingTypeName();
+        $meetingName = $this->meeting->getName();
+        $meetingDescription = $this->meeting->getDescription();
+        $timeDescription = $this->meeting->getscheduleInIndonesianFormat();
+        $location = $this->meeting->getLocation();
         $domain = $this->meeting->getFirmDomain();
-        $urlPath = "/meeting-invitations/{$this->id}";
+        $urlPath = "/invitation/{$this->id}";
         $logoPath = $this->meeting->getFirmLogoPath();
 
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
+                        $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location, $domain,
+                        $urlPath, $logoPath);
 
         $id = Uuid::generateUuid4();
-        $message = "meeting invitation received";
+        $message = NotificationMessageBuilder::buildMeetingNotification($state);
         $meetingAttendeeNotification = new MeetingAttendeeNotification($this, $id, $message);
         $this->notifications->add($meetingAttendeeNotification);
 
@@ -120,22 +128,23 @@ _MESSAGE;
 
     public function addInvitationCancelledNotification(): void
     {
-        $subject = "Undangan Meeting Dibatalkan";
-        $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Undangan meeting pada waktu:
-    {$this->meeting->getscheduleInIndonesianFormat()}
-telah dibatalkan.
-Kunjungi link berikut untuk melihat detail.
-_MESSAGE;
+        $state = MailMessageBuilder::MEETING_INVITATION_CANCELLED;
+        
+        $meetingType = $this->meeting->getMeetingTypeName();
+        $meetingName = $this->meeting->getName();
+        $meetingDescription = $this->meeting->getDescription();
+        $timeDescription = $this->meeting->getscheduleInIndonesianFormat();
+        $location = $this->meeting->getLocation();
         $domain = $this->meeting->getFirmDomain();
-        $urlPath = "/meeting-invitations/{$this->id}";
+        $urlPath = "/invitation/{$this->id}";
         $logoPath = $this->meeting->getFirmLogoPath();
 
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
+                        $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location, $domain,
+                        $urlPath, $logoPath);
 
         $id = Uuid::generateUuid4();
-        $message = "meeting invitation has been cancelled";
+        $message = NotificationMessageBuilder::buildMeetingNotification($state);
         $meetingAttendeeNotification = new MeetingAttendeeNotification($this, $id, $message);
         $this->notifications->add($meetingAttendeeNotification);
 
@@ -143,10 +152,13 @@ _MESSAGE;
         $this->registerUserAsNotificationRecipient($meetingAttendeeNotification);
     }
 
-    public function registerAsMeetingMailRecipient(CanSendPersonalizeMail $meeting, MailMessage $mailMessage): void
+    public function registerAsMeetingMailRecipient(
+            CanSendPersonalizeMail $meeting, MailMessage $mailMessage, ?bool $haltPrependUrlPath = false): void
     {
-        $modifiedMailMessage = $mailMessage->prependUrlPath("/invitations/{$this->id}");
-        $this->registerUserAsMailRecipient($meeting, $modifiedMailMessage);
+        if (!$haltPrependUrlPath) {
+            $mailMessage = $mailMessage->prependUrlPath("/invitations/{$this->id}");
+        }
+        $this->registerUserAsMailRecipient($meeting, $mailMessage);
     }
 
     public function registerAsMeetingNotificationRecipient(MeetingNotification $meetingNotification): void

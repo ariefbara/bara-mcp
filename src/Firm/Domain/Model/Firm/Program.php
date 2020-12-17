@@ -145,6 +145,10 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
 
     public function remove(): void
     {
+        if ($this->published) {
+            $errorDetail = "forbidden: can only remove unpublished program";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->removed = true;
     }
 

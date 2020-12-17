@@ -2,7 +2,7 @@
 
 namespace Notification\Domain\Model\Firm\Program;
 
-use Notification\Domain\ {
+use Notification\Domain\{
     Model\Firm\Client\ClientProgramParticipation,
     Model\Firm\Program,
     Model\Firm\Team\Member,
@@ -46,6 +46,11 @@ class Participant
      */
     protected $userParticipant;
 
+    function getId(): string
+    {
+        return $this->id;
+    }
+
     protected function __construct()
     {
         
@@ -68,7 +73,7 @@ class Participant
     {
         return $this->program->getFirmDomain();
     }
-    
+
     public function getFirmLogoPath(): ?string
     {
         return $this->program->getFirmLogoPath();
@@ -85,8 +90,13 @@ class Participant
     }
 
     public function registerMailRecipient(
-            CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?Member $excludedMember = null): void
+            CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?Member $excludedMember = null,
+            ?bool $haltPrependUrlPath = false): void
     {
+        $mailMessage = $mailMessage->appendRecipientFirstNameInGreetings("participant");
+        if (!$haltPrependUrlPath) {
+            $mailMessage = $mailMessage->prependUrlPath("/program/{$this->program->getId()}");
+        }
         if (isset($this->teamParticipant)) {
             $this->teamParticipant->registerTeamMembersAsMailRecipient($mailGenerator, $mailMessage, $excludedMember);
         }

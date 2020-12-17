@@ -2,15 +2,11 @@
 
 namespace Notification\Application\Listener\Firm\Team;
 
-use Notification\ {
-    Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember,
-    Application\Service\SendImmediateMail,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest
-};
-use Resources\Application\Event\ {
-    Event,
-    Listener
-};
+use Notification\Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember;
+use Notification\Application\Service\SendImmediateMail;
+use Resources\Application\Event\Event;
+use Resources\Application\Event\Listener;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class MemberChangedConsultationRequestTimeListener implements Listener
 {
@@ -45,7 +41,7 @@ class MemberChangedConsultationRequestTimeListener implements Listener
     {
         $memberId = $event->getMemberId();
         $consultationRequestId = $event->getId();
-        $state = ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT;
+        $state = MailMessageBuilder::CONSULTATION_SCHEDULE_CHANGED;
         $this->generateConsultationRequestNotificationTriggeredByTeamMember
                 ->execute($memberId, $consultationRequestId, $state);
     }

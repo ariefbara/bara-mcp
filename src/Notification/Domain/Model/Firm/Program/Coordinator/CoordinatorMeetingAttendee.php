@@ -36,6 +36,7 @@ class CoordinatorMeetingAttendee
     
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
+        $mailMessage->prependUrlPath("/as-coordinator/{$this->coordinator->getProgramId()}");
         $this->coordinator->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
 

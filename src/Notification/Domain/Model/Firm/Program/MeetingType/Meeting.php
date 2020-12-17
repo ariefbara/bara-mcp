@@ -11,6 +11,8 @@ use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Uuid;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
+use SharedContext\Domain\ValueObject\NotificationMessageBuilder;
 
 class Meeting implements CanSendPersonalizeMail
 {
@@ -35,9 +37,21 @@ class Meeting implements CanSendPersonalizeMail
 
     /**
      *
+     * @var string|null
+     */
+    protected $description;
+
+    /**
+     *
      * @var DateTimeInterval
      */
     protected $startEndTime;
+
+    /**
+     *
+     * @var string|null
+     */
+    protected $location;
 
     /**
      *
@@ -63,6 +77,21 @@ class Meeting implements CanSendPersonalizeMail
      */
     protected $notifications;
 
+    function getName(): string
+    {
+        return $this->name;
+    }
+
+    function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
     protected function __construct()
     {
         
@@ -70,81 +99,83 @@ class Meeting implements CanSendPersonalizeMail
 
     public function addMeetingCreatedNotification(): void
     {
-        $subject = "Jadwal Meeting";
-        $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Anda telah berhasi membuat jadwal meeting di waktu:
-    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-Untuk mengundang/membatalkan peserta meeting serta mengubah jadwal, kunjungi:
-_MESSAGE;
+        $state = MailMessageBuilder::MEETING_CREATED;
+
+        $meetingType = $this->meetingType->getName();
+        $meetingName = $this->name;
+        $meetingDescription = $this->description;
+        $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
+        $location = $this->location;
         $domain = $this->meetingType->getFirmDomain();
-        $urlPath = "";
         $logoPath = $this->meetingType->getFirmLogoPath();
-        
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-        
+
         $id = Uuid::generateUuid4();
-        $message = "meeting berhasil dibuat";
-        $meetingNotification = new MeetingNotification($this, $id, $message);
-        
+        $message = NotificationMessageBuilder::buildMeetingNotification($state);
+        $notification = new MeetingNotification($this, $id, $message);
+
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("anInitiator", true))
                 ->andWhere(Criteria::expr()->eq("cancelled", false));
         $initiator = $this->attendees->matching($criteria)->first();
         if (!empty($initiator)) {
-            $initiator->registerAsMeetingMailRecipient($this, $mailMessage);
-            $initiator->registerAsMeetingNotificationRecipient($meetingNotification);
-            $this->notifications->add($meetingNotification);
+            $urlPath = "/meeting/{$this->id}/attendee/{$initiator->getId()}";
+            $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
+                            $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location,
+                            $domain, $urlPath, $logoPath);
+
+            $initiator->registerAsMeetingMailRecipient($this, $mailMessage, $haltPrependUrlPath = true);
+            $initiator->registerAsMeetingNotificationRecipient($notification);
+            $this->notifications->add($notification);
         }
     }
 
     public function addMeetingScheduleChangedNotification(): void
     {
-        $subject = "Perubahan Jadwal Meeting";
-        $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Jadwal Meeting {$this->name} telah berubah menjadi:
-    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-Kunjungi link berikut untuk melihat detail meeting.
-_MESSAGE;
+        $state = MailMessageBuilder::MEETING_SCHEDULE_CHANGED;
+
+        $meetingType = $this->meetingType->getName();
+        $meetingName = $this->name;
+        $meetingDescription = $this->description;
+        $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
+        $location = $this->location;
         $domain = $this->meetingType->getFirmDomain();
         $urlPath = "";
         $logoPath = $this->meetingType->getFirmLogoPath();
-        
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-        
+
+        $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
+                        $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location, $domain,
+                        $urlPath, $logoPath);
+
         $id = Uuid::generateUuid4();
-        $message = "meeting schedule changed";
-        $meetingNotification = new MeetingNotification($this, $id, $message);
-        
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-        
+        $message = NotificationMessageBuilder::buildMeetingNotification($state);
+
+        $notification = New MeetingNotification($this, $id, $message);
+
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("cancelled", false));
         foreach ($this->attendees->matching($criteria)->getIterator() as $attendee) {
             $attendee->registerAsMeetingMailRecipient($this, $mailMessage);
-            $attendee->registerAsMeetingNotificationRecipient($meetingNotification);
+            $attendee->registerAsMeetingNotificationRecipient($notification);
         }
-        $this->notifications->add($meetingNotification);
+        $this->notifications->add($notification);
     }
 
-    public function addMail(MailMessage $mailMessage, string $recipientMailAddress,
-            string $recipientName): void
+    public function addMail(MailMessage $mailMessage, string $recipientMailAddress, string $recipientName): void
     {
         $id = Uuid::generateUuid4();
         $senderMailAddress = $this->meetingType->getFirmMailSenderAddress();
         $senderName = $this->meetingType->getFirmMailSenderName();
-        
+
         $meetingMail = new MeetingMail(
                 $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
         $this->mails->add($meetingMail);
     }
-    
+
     public function getscheduleInIndonesianFormat(): string
     {
         return $this->startEndTime->getTimeDescriptionInIndonesianFormat();
     }
-    
+
     public function getFirmDomain(): string
     {
         return $this->meetingType->getFirmDomain();
@@ -163,6 +194,11 @@ _MESSAGE;
     public function getFirmMailSenderName(): string
     {
         return $this->meetingType->getFirmMailSenderName();
+    }
+
+    public function getMeetingTypeName(): string
+    {
+        return $this->meetingType->getName();
     }
 
 }

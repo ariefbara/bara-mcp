@@ -74,7 +74,7 @@ class ProgramTest extends TestBase
         $modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
         $this->mailMessage->expects($this->once())
                 ->method("PrependUrlPath")
-                ->with("/as-program-coordinator/{$this->program->id}")
+                ->with("/program-coordinator/{$this->program->id}")
                 ->willReturn($modifiedMailMessage);
         $this->coordinator->expects($this->once())
                 ->method("registerAsMailRecipient")

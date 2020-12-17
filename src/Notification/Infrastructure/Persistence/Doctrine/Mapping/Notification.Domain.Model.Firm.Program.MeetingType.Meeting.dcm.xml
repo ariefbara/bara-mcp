@@ -14,6 +14,8 @@
         <id name="id" type="guid" />
         
         <field name="name" type="string" length="256" nullable="false"/>
+        <field name="description" type="string" length="1024" nullable="true"/>
+        <field name="location" type="string" length="1024" nullable="true"/>
 
         <embedded name="startEndTime" 
                   class="Resources\Domain\ValueObject\DateTimeInterval" 

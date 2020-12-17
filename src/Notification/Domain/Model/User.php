@@ -67,7 +67,8 @@ class User
 
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $modifiedMailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName());
+        $modifiedMailMessage = $mailMessage->appendRecipientFirstNameInGreetings($this->name->getFirstName())
+                ->prependUrlPath("/user");
 
         $mailGenerator->addMail($modifiedMailMessage, $this->email, $this->name->getFullName());
     }
@@ -78,9 +79,9 @@ class User
         $urlPath = "/user-account/activate/{$this->email}/{$this->activationCode}}";
         $logoPath = BaseConfig::KONSULTA_LOGO_PATH;
         
+        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
         $senderMailAddress = BaseConfig::MAIL_SENDER_ADDRESS;
         $senderName = BaseConfig::MAIL_SENDER_NAME;
-        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
         
@@ -94,9 +95,9 @@ class User
         $urlPath = "/user-account/reset-password/{$this->email}/{$this->resetPasswordCode}";
         $logoPath = BaseConfig::KONSULTA_LOGO_PATH;
         
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $senderMailAddress = BaseConfig::MAIL_SENDER_ADDRESS;
         $senderName = BaseConfig::MAIL_SENDER_NAME;
-        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
         $recipientMailAddress = $this->email;
         $recipientName = $this->name->getFullName();
         

@@ -48,8 +48,9 @@ class Coordinator
     public function registerAsMailRecipient(
             CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltPrependUrlPath = false): void
     {
+        $mailMessage = $mailMessage->appendRecipientFirstNameInGreetings("coordinator");
         if (!$haltPrependUrlPath) {
-            $mailMessage = $mailMessage->prependUrlPath("/coordinators/{$this->id}");
+            $mailMessage = $mailMessage->prependUrlPath("/program-coordinator/{$this->program->getId()}");
         }
         $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
@@ -57,6 +58,11 @@ class Coordinator
     public function registerAsNotificationRecipient(ContainNotification $notification): void
     {
         $notification->addPersonnelRecipient($this->personnel);
+    }
+    
+    public function getProgramId(): string
+    {
+        return $this->program->getId();
     }
 
 }

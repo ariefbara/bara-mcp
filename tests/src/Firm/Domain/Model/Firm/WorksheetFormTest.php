@@ -2,11 +2,9 @@
 
 namespace Firm\Domain\Model\Firm;
 
-use Firm\Domain\Model\ {
-    Firm,
-    Shared\Form,
-    Shared\FormData
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Shared\Form;
+use Firm\Domain\Model\Shared\FormData;
 use Tests\TestBase;
 
 class WorksheetFormTest extends TestBase
@@ -49,6 +47,16 @@ class WorksheetFormTest extends TestBase
     {
         $this->worksheetForm->remove();
         $this->assertTrue($this->worksheetForm->removed);
+    }
+    
+    public function test_belongsToFirm_sameFirm_returnTrue()
+    {
+        $this->assertTrue($this->worksheetForm->belongsToFirm($this->worksheetForm->firm));
+    }
+    public function test_belongsToFirm_differentFirm_returnFalse()
+    {
+        $firm = $this->buildMockOfClass(Firm::class);
+        $this->assertFalse($this->worksheetForm->belongsToFirm($firm));
     }
 }
 

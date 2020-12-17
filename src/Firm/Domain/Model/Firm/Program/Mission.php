@@ -3,17 +3,15 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\Firm\ {
-    Program,
-    WorksheetForm
-};
-use Resources\ {
-    Exception\RegularException,
-    ValidationRule,
-    ValidationService
-};
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\WorksheetForm;
+use Resources\Exception\RegularException;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
-class Mission
+class Mission implements AssetBelongsToFirm
 {
 
     /**
@@ -120,6 +118,15 @@ class Mission
         $this->assertUnpublished();
         $this->published = true;
     }
+    
+    public function changeWorksheetForm(WorksheetForm $worksheetForm): void
+    {
+        if ($this->published) {
+            $errorDetail = "forbidden: can only change worksheet form of unpublished mission";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $this->worksheetForm = $worksheetForm;
+    }
 
     protected function assertUnpublished(): void
     {
@@ -127,6 +134,11 @@ class Mission
             $errorDetail = "forbidden: request only valid for non published mission";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+
+    public function belongsToFirm(Firm $firm): bool
+    {
+        return $this->program->belongsToFirm($firm);
     }
 
 }
