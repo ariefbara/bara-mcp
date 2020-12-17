@@ -2,10 +2,11 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfProgram,
-    Record
-};
+use DateTimeImmutable;
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
 
 class RecordOfActivity implements Record
 {
@@ -24,18 +25,20 @@ class RecordOfActivity implements Record
     public $startDateTime;
     public $endDateTime;
     
-    function __construct(RecordOfActivityType $activityType, $index)
+    function __construct(?RecordOfActivityType $activityType, $index)
     {
-        $this->activityType = $activityType;
+        $firm = new RecordOfFirm($index);
+        $program = new RecordOfProgram($firm, $index);
+        $this->activityType = isset($activityType)? $activityType: new RecordOfActivityType($program, $index);
         $this->id = "activity-$index-id";
         $this->name = "activity $index name";
         $this->description = "activity $index description";
         $this->location = "activity $index location";
         $this->note = "activity $index note";
         $this->cancelled = false;
-        $this->createdTime = (new \DateTimeImmutable())->format("Y-m-d H:i:s");
-        $this->startDateTime = (new \DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
-        $this->endDateTime = (new \DateTimeImmutable("+28 hours"))->format("Y-m-d H:i:s");
+        $this->createdTime = (new DateTimeImmutable())->format("Y-m-d H:i:s");
+        $this->startDateTime = (new DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
+        $this->endDateTime = (new DateTimeImmutable("+28 hours"))->format("Y-m-d H:i:s");
     }
     
     public function toArrayForDbEntry()
@@ -52,6 +55,11 @@ class RecordOfActivity implements Record
             "startDateTime" => $this->startDateTime,
             "endDateTime" => $this->endDateTime,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("Activity")->insert($this->toArrayForDbEntry());
     }
 
 }

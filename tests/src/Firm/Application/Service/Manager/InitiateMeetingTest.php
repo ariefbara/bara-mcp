@@ -2,13 +2,13 @@
 
 namespace Firm\Application\Service\Manager;
 
-use Firm\ {
-    Application\Service\Firm\Program\ActivityTypeRepository,
-    Application\Service\Firm\Program\MeetingType\MeetingRepository,
-    Domain\Model\Firm\Manager,
-    Domain\Model\Firm\Program\ActivityType,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
+use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
+use Firm\Application\Service\Firm\Program\MeetingType\MeetingRepository;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class InitiateMeetingTest extends TestBase
@@ -16,6 +16,7 @@ class InitiateMeetingTest extends TestBase
     protected $meetingRepository, $nextId = "nextId";
     protected $activityTypeRepository, $activityType;
     protected $managerRepository, $manager;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $managerId = "managerId", $meetingTypeId = "meetingTypeId";
     protected $meetingData;
@@ -42,8 +43,10 @@ class InitiateMeetingTest extends TestBase
                 ->with($this->firmId, $this->managerId)
                 ->willReturn($this->manager);
         
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
         $this->service = new InitiateMeeting(
-                $this->meetingRepository, $this->managerRepository, $this->activityTypeRepository);
+                $this->meetingRepository, $this->managerRepository, $this->activityTypeRepository, $this->dispatcher);
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
@@ -64,5 +67,16 @@ class InitiateMeetingTest extends TestBase
     public function test_execute_returnNextId()
     {
         $this->assertEquals($this->nextId, $this->execute());
+    }
+    public function test_execute_dispatcheMeeting()
+    {
+        $meeting = $this->buildMockOfClass(Meeting::class);
+        $this->manager->expects($this->once())
+                ->method("initiateMeeting")
+                ->willReturn($meeting);
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($meeting);
+        $this->execute();
     }
 }

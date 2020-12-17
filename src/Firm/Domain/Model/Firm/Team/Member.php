@@ -2,20 +2,19 @@
 
 namespace Firm\Domain\Model\Firm\Team;
 
-use Firm\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\TeamParticipant,
-    Model\Firm\Team,
-    Service\MeetingAttendeeBelongsToTeamFinder
-};
+use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\TeamParticipant;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Resources\Domain\Model\EntityContainCommonEvents;
 use Resources\Exception\RegularException;
 
-class Member
+class Member extends EntityContainCommonEvents
 {
 
     /**
@@ -68,16 +67,20 @@ class Member
             MeetingAttendeeBelongsToTeamFinder $meetingAttendeeFinder, string $meetingId, MeetingData $meetingData): void
     {
         $this->assertActive();
-        $meetingAttendeeFinder->execute($this->team, $meetingId)
-                ->updateMeeting($meetingData);
+        $meeting = $meetingAttendeeFinder->execute($this->team, $meetingId);
+        $meeting->updateMeeting($meetingData);
+        
+        $this->recordedEvents = $meeting->pullRecordedEvents();
     }
 
     public function inviteUserToAttendMeeting(
             MeetingAttendeeBelongsToTeamFinder $meetingAttendeeFinder, string $meetingId, CanAttendMeeting $user): void
     {
         $this->assertActive();
-        $meetingAttendeeFinder->execute($this->team, $meetingId)
-                ->inviteUserToAttendMeeting($user);
+        $meeting = $meetingAttendeeFinder->execute($this->team, $meetingId);
+        $meeting->inviteUserToAttendMeeting($user);
+        
+        $this->recordedEvents = $meeting->pullRecordedEvents();
     }
     
     public function cancelInvitation(

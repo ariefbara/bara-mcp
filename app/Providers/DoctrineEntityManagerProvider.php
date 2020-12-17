@@ -21,7 +21,7 @@ class DoctrineEntityManagerProvider extends ServiceProvider
         BASE_PATH . "/src/Notification/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/Team/Infrastructure/Persistence/Doctrine/Mapping",
-        BASE_PATH . "/src/ActivityCreator/Infrastructure/Persistence/Doctrine/Mapping",
+//        BASE_PATH . "/src/ActivityCreator/Infrastructure/Persistence/Doctrine/Mapping",
         BASE_PATH . "/src/ActivityInvitee/Infrastructure/Persistence/Doctrine/Mapping",
     ];
 
@@ -42,7 +42,8 @@ class DoctrineEntityManagerProvider extends ServiceProvider
                     ];
 
                 $config = Setup::createXMLMetadataConfiguration(self::PATH, env('DOCTRINE_IS_DEV_MODE'));
-                $config->setProxyDir(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "proxy");
+//                $config->setProxyDir(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "proxy");
+                $config->setProxyDir(dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . "mcp_proxy");
                 return EntityManager::create($connection, $config);
             });
     }

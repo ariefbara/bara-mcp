@@ -8,6 +8,7 @@ use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Event\EventTriggeredByTeamMember;
 use Participant\Domain\Model\Participant;
@@ -18,6 +19,7 @@ use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Model\Registrant\RegistrantProfile;
 use Participant\Domain\Model\TeamProgramParticipation;
 use Participant\Domain\Model\TeamProgramRegistration;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -218,6 +220,23 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($metricAssignmentReport);
         $metricAssignmentReport->update($metricAssignmentReportDataProvider);
+    }
+
+    public function submitRegistrantProfile(
+            TeamProgramRegistration $programRegistration, ProgramsProfileForm $programsProfileForm,
+            FormRecordData $formRecordData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($programRegistration);
+        $programRegistration->submitProfile($programsProfileForm, $formRecordData);
+    }
+
+    public function removeRegistrantProfile(
+            TeamProgramRegistration $programRegistration, RegistrantProfile $registrantProfile): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($programRegistration);
+        $programRegistration->removeProfile($registrantProfile);
     }
 
 }

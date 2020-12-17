@@ -39,5 +39,9 @@
                      mapped-by="personnel"
         />
         
+        <unique-constraints>
+            <unique-constraint columns="Firm_id,email" name="personnel_email_idx" />
+        </unique-constraints>
+        
     </entity>
 </doctrine-mapping>

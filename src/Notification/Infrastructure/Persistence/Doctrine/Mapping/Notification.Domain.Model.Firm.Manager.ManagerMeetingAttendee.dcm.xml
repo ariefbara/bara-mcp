@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
-    <entity name="Notification\Domain\Model\Firm\Manager" 
-            table="ManagerMeetingAttendee"
+    <entity name="Notification\Domain\Model\Firm\Manager\ManagerMeetingAttendee" 
+            table="ManagerInvitee"
     >
         
         <many-to-one  field="manager" 

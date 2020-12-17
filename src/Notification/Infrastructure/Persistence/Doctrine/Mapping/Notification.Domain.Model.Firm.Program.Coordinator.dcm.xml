@@ -10,6 +10,7 @@
         </many-to-one>
         
         <id name="id" type="guid" />
+        <field name="active" type="boolean" />
         
     	<many-to-one  field="personnel" 
                       target-entity="Notification\Domain\Model\Firm\Personnel"

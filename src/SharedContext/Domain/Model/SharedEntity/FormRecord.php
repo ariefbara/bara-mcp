@@ -3,15 +3,15 @@
 namespace SharedContext\Domain\Model\SharedEntity;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ {
+use Doctrine\Common\Collections\{
     ArrayCollection,
     Criteria
 };
-use Resources\ {
+use Resources\{
     DateTimeImmutableBuilder,
     Uuid
 };
-use SharedContext\Domain\Model\SharedEntity\ {
+use SharedContext\Domain\Model\SharedEntity\{
     Form\AttachmentField,
     Form\IntegerField,
     Form\MultiSelectField,
@@ -83,6 +83,11 @@ class FormRecord
      * @var ArrayCollection
      */
     protected $attachmentFieldRecords;
+
+    function getId(): string
+    {
+        return $this->id;
+    }
 
     public function __construct(Form $form, string $id, FormRecordData $formRecordData)
     {

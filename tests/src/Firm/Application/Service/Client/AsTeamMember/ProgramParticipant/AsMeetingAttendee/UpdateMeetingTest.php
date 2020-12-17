@@ -2,18 +2,18 @@
 
 namespace Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee;
 
-use Firm\ {
-    Application\Service\Client\AsTeamMember\TeamMemberRepository,
-    Domain\Model\Firm\Program\MeetingType\MeetingData,
-    Domain\Model\Firm\Team\Member,
-    Domain\Service\MeetingAttendeeBelongsToTeamFinder
-};
+use Firm\Application\Service\Client\AsTeamMember\TeamMemberRepository;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Team\Member;
+use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class UpdateMeetingTest extends TestBase
 {
     protected $teamMemberRepository, $teamMember;
     protected $meetingAttendeeBelongsToTeamFinder;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $clientId = "clientId", $teamId = "teamId", $meetingId = "meetingId";
     protected $meetingData;
@@ -31,7 +31,9 @@ class UpdateMeetingTest extends TestBase
         
         $this->meetingAttendeeBelongsToTeamFinder = $this->buildMockOfClass(MeetingAttendeeBelongsToTeamFinder::class);
         
-        $this->service = new UpdateMeeting($this->teamMemberRepository, $this->meetingAttendeeBelongsToTeamFinder);
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
+        $this->service = new UpdateMeeting($this->teamMemberRepository, $this->meetingAttendeeBelongsToTeamFinder, $this->dispatcher);
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
@@ -51,6 +53,13 @@ class UpdateMeetingTest extends TestBase
     {
         $this->teamMemberRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchTeamMember()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->teamMember);
         $this->execute();
     }
 }

@@ -31,5 +31,10 @@
                     mapped-by="registrant"
         />
         
+        <one-to-many  field="profiles" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Registrant\RegistrantProfile"
+                      mapped-by="registrant"
+        />
+        
     </entity>
 </doctrine-mapping>

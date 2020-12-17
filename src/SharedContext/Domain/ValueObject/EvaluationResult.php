@@ -53,5 +53,10 @@ class EvaluationResult
     {
         return $this->status === "fail";
     }
+    
+    public function isCompleted(): bool
+    {
+        return $this->status !== "extend";
+    }
 
 }

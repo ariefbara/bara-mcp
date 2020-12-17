@@ -3,13 +3,13 @@
 namespace Query\Domain\Model\Firm\Client;
 
 use DateTimeImmutable;
-use Query\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification,
-    Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionNotification,
-    Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification,
-    SharedModel\Notification
-};
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestNotification;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionNotification;
+use Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\MeetingAttendeeNotification;
+use Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingNotification;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentNotification;
+use Query\Domain\SharedModel\Notification;
 
 class ClientNotificationRecipient
 {
@@ -87,6 +87,16 @@ class ClientNotificationRecipient
     public function getCommentNotification(): ?CommentNotification
     {
         return $this->notification->getCommentNotification();
+    }
+    
+    public function getMeetingNotification(): ?MeetingNotification
+    {
+        return $this->notification->getMeetingNotification();
+    }
+    
+    public function getMeetingAttendeeNotification(): ?MeetingAttendeeNotification
+    {
+        return $this->notification->getMeetingAttendeeNotification();
     }
 
 }

@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfPersonnel,
-    Firm\RecordOfProgram,
-    Record
-};
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfConsultant implements Record
 {
@@ -23,10 +22,10 @@ class RecordOfConsultant implements Record
     public $id;
     public $active;
     
-    function __construct(RecordOfProgram $program, RecordOfPersonnel $personnel, $index)
+    function __construct(?RecordOfProgram $program, ?RecordOfPersonnel $personnel, $index)
     {
-        $this->program = $program;
-        $this->personnel = $personnel;
+        $this->program = isset($program)? $program: new RecordOfProgram(null, $index);
+        $this->personnel = isset($personnel)? $personnel: new RecordOfPersonnel($this->program->firm, $index);
         $this->id = "consultant-$index";
         $this->active = true;
     }
@@ -40,6 +39,16 @@ class RecordOfConsultant implements Record
             "Personnel_id" => $this->personnel->id,
             "active" => $this->active,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("Consultant")->insert($this->toArrayForDbEntry());
+    }
+    
+    public static function truncateTable(Connection $connection): void
+    {
+        $connection->table("Consultant")->truncate();
     }
 
 }

@@ -2,18 +2,13 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\Firm\Program\RegistrantRepository,
-    Domain\Model\Firm\Program\Registrant
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\Program\RegistrantRepository;
+use Query\Domain\Model\Firm\Client\ClientRegistrant;
+use Query\Domain\Model\Firm\Program\Registrant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineRegistrantRepository extends EntityRepository implements RegistrantRepository
 {
@@ -32,7 +27,7 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($parameters);
-        
+
         if (isset($concludedStatus)) {
             $qb->andWhere($qb->expr()->eq("registrant.concluded", ":concludedStatus"))
                     ->setParameter("concludedStatus", $concludedStatus);

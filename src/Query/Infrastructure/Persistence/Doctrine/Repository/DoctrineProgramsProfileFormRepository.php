@@ -39,7 +39,8 @@ class DoctrineProgramsProfileFormRepository extends EntityRepository implements 
         }
     }
 
-    public function allProgramsProfileFormsInProgram(string $firmId, string $programId, int $page, int $pageSize)
+    public function allProgramsProfileFormsInProgram(
+            string $firmId, string $programId, int $page, int $pageSize, ?bool $enableOnly = true)
     {
         $params = [
             "firmId" => $firmId,
@@ -53,6 +54,10 @@ class DoctrineProgramsProfileFormRepository extends EntityRepository implements 
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
+        
+        if ($enableOnly) {
+            $qb->andWhere($qb->expr()->eq("programsProfileForm.disabled", "false"));
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

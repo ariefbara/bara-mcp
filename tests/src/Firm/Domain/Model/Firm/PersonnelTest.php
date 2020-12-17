@@ -136,6 +136,25 @@ class PersonnelTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
+    protected function executeEnable()
+    {
+        $this->personnel->enable();
+    }
+    public function test_enable_setActiveTrue()
+    {
+        $this->personnel->active = false;
+        $this->executeEnable();
+        $this->assertTrue($this->personnel->active);
+    }
+    public function test_enable_alreadyActive_forbidden()
+    {
+        $operation = function (){
+            $this->executeEnable();
+        };
+        $errorDetail = "forbidden: personnel already active";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
     public function test_belongsToFirm_sameFirm_returnTrue()
     {
         $this->assertTrue($this->personnel->belongsToFirm($this->personnel->firm));

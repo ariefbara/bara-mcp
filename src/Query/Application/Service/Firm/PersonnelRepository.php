@@ -9,7 +9,7 @@ interface PersonnelRepository
 
     public function ofId(string $firmId, string $personnelId): Personnel;
 
-    public function all(string $firmId, int $page, int $pageSize);
+    public function all(string $firmId, int $page, int $pageSize, ?bool $activeStatus);
 
     public function ofEmail(string $firmIdentifier, string $email): Personnel;
 }

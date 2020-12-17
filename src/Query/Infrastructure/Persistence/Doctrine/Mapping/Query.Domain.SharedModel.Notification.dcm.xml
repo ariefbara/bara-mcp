@@ -22,5 +22,15 @@
                     mapped-by="notification"
         />
         
+        <one-to-one field="meetingNotification" 
+                    target-entity="Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingNotification"
+                    mapped-by="notification"
+        />
+        
+        <one-to-one field="meetingAttendeeNotification" 
+                    target-entity="Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\MeetingAttendeeNotification"
+                    mapped-by="notification"
+        />
+        
     </entity>
 </doctrine-mapping>

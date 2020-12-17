@@ -46,5 +46,10 @@ class ParticipantAttendee
     {
         return $this->participant->belongsToTeam($team);
     }
+    
+    public function disableValidInvitation(): void
+    {
+        $this->attendee->disableValidInvitation();
+    }
 
 }

@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation\AsMeetingInitiator;
 
-use Firm\ {
-    Application\Service\Client\ProgramParticipant\UpdateMeeting,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
-use Query\ {
-    Application\Service\Firm\ViewActivity,
-    Domain\Model\Firm\Program\Activity
-};
+use Config\EventList;
+use Firm\Application\Service\Client\ProgramParticipant\UpdateMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Notification\Application\Listener\MeetingScheduleChangedListener;
+use Notification\Application\Service\GenerateMeetingScheduleChangedNotification;
+use Notification\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Query\Application\Service\Firm\ViewActivity;
+use Query\Domain\Model\Firm\Program\Activity;
+use Resources\Application\Event\Dispatcher;
 
 class MeetingController extends AsMeetingInitiatorBaseController
 {
@@ -51,8 +52,18 @@ class MeetingController extends AsMeetingInitiatorBaseController
 
     protected function buildUpdateService()
     {
-        $meetingAttendaceRepository = $this->em->getRepository(Attendee::class);
-        return new UpdateMeeting($meetingAttendaceRepository);
+        $attendeeRepository = $this->em->getRepository(Attendee::class);
+        $dispatcher = new Dispatcher();
+        $this->addMeetingScheduleChangedListener($dispatcher);
+        return new UpdateMeeting($attendeeRepository, $dispatcher);
+    }
+    protected function addMeetingScheduleChangedListener(Dispatcher $dispatcher): void
+    {
+        $meetingRepository = $this->em->getRepository(Meeting::class);
+        $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
+        $listener = new MeetingScheduleChangedListener(
+                $generateMeetingScheduleChangeNotification, $this->buildSendImmediateMail());
+        $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);
     }
 
     protected function buildViewService()

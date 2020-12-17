@@ -178,7 +178,7 @@ class ConsultantControllerTest extends ProgramTestCase
         $consultationRequestEntry = [
             "id" => $this->consultationRequest->id,
             "concluded" => true,
-            "status" => "inactive consultant",
+            "status" => "disabled by system",
         ];
         $this->seeInDatabase("ConsultationRequest", $consultationRequestEntry);
     }
@@ -191,7 +191,7 @@ class ConsultantControllerTest extends ProgramTestCase
         $consultationSessionEntry = [
             "id" => $this->consultationSession->id,
             "cancelled" => true,
-            "note" => "inactive consultant",
+            "note" => "disabled by system",
         ];
         $this->seeInDatabase("ConsultationSession", $consultationSessionEntry);
     }

@@ -4,17 +4,20 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
-    Model\Firm\Program,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\Participant\Evaluation,
-    Model\Firm\Program\Participant\EvaluationData,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Model\Firm\Team,
-    Service\MetricAssignmentDataProvider
-};
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
@@ -23,6 +26,9 @@ class ParticipantTest extends TestBase
 
     protected $program;
     protected $participant;
+    protected $consultationRequest;
+    protected $consultationSession;
+    protected $invitation;
     protected $inactiveParticipant;
     protected $clientParticipant;
     protected $userParticipant;
@@ -34,7 +40,9 @@ class ParticipantTest extends TestBase
     protected $metric;
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $team;
+    protected $evaluation;
     protected $evaluationPlan, $coordinator, $evaluationData;
+    protected $programsProfileForm, $formRecord;
 
     protected function setUp(): void
     {
@@ -42,6 +50,16 @@ class ParticipantTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
 
         $this->participant = new TestableParticipant($this->program, 'id');
+        $this->participant->consultationRequests = new ArrayCollection();
+        $this->participant->consultationSessions = new ArrayCollection();
+        $this->participant->meetingInvitations = new ArrayCollection();
+        
+        $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
+        $this->participant->consultationRequests->add($this->consultationRequest);
+        $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
+        $this->participant->consultationSessions->add($this->consultationSession);
+        $this->invitation = $this->buildMockOfClass(ParticipantAttendee::class);
+        $this->participant->meetingInvitations->add($this->invitation);
         
         $this->participant->evaluations = new ArrayCollection();
         
@@ -71,10 +89,15 @@ class ParticipantTest extends TestBase
         
         $this->team = $this->buildMockOfClass(Team::class);
         
+        $this->evaluation = $this->buildMockOfClass(Evaluation::class);
+        $this->participant->evaluations->add($this->evaluation);
         $this->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
         $this->evaluationData = $this->buildMockOfClass(EvaluationData::class);
         $this->evaluationData->expects($this->any())->method("getStatus")->willReturn("pass");
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
+        
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->formRecord = $this->buildMockOfClass(FormRecord::class);
     }
 
     public function test_participantForUser_setProperties()
@@ -298,7 +321,7 @@ class ParticipantTest extends TestBase
     public function test_receiveEvaluation_addEvaluationToCollection()
     {
         $this->executeReceiveEvaluation();
-        $this->assertEquals(1, $this->participant->evaluations->count());
+        $this->assertEquals(2, $this->participant->evaluations->count());
         $this->assertInstanceOf(Evaluation::class, $this->participant->evaluations->last());
     }
     public function test_receiveEvaluation_inactiveParticipant_forbidden()
@@ -308,6 +331,18 @@ class ParticipantTest extends TestBase
             $this->executeReceiveEvaluation();
         };
         $errorDetail = "forbidden: unable to evaluate inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_receiveEvaluation_alreadyReceiveConcludedEvaluationForSamePlan_forbidden()
+    {
+        $this->evaluation->expects($this->once())
+                ->method("isCompletedEvaluationForPlan")
+                ->with($this->evaluationPlan)
+                ->willReturn(true);
+        $operation = function (){
+            $this->executeReceiveEvaluation();
+        };
+        $errorDetail = "forbidden: participant already completed evaluation for this plan";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
@@ -331,10 +366,52 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
-    public function test_disable_setInactive()
+    protected function executeDisable()
     {
         $this->participant->disable();
+    }
+    public function test_disable_setInactiveAndNote()
+    {
+        $this->executeDisable();
         $this->assertFalse($this->participant->active);
+        $this->assertEquals("fail", $this->participant->note);
+    }
+    public function test_disable_alreadyInactive_forbidden()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeDisable();
+        };
+        $errorDetail = "forbidden: unable to disable inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_disable_disableUpcomingConsultationSession()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("disableUpcomingSession");
+        $this->executeDisable();
+    }
+    public function test_disable_disableUpcomingConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("disableUpcomingRequest");
+        $this->executeDisable();
+    }
+    public function test_disable_disableValidInvitation()
+    {
+        $this->invitation->expects($this->once())
+                ->method("disableValidInvitation");
+        $this->executeDisable();
+    }
+    
+    public function test_addProfile_addProfileToCollection()
+    {
+        $this->formRecord->expects($this->once())
+                ->method("getId")->willReturn($formRecordId = "formRecordId");
+        $profile = new ParticipantProfile($this->participant, $formRecordId, $this->programsProfileForm, $this->formRecord);
+        
+        $this->participant->addProfile($this->programsProfileForm, $this->formRecord);
+        $this->assertEquals($profile, $this->participant->profiles->first());
     }
 }
 
@@ -351,6 +428,10 @@ class TestableParticipant extends Participant
     public $teamParticipant;
     public $metricAssignment;
     public $evaluations;
+    public $profiles;
+    public $meetingInvitations;
+    public $consultationRequests;
+    public $consultationSessions;
 
     public function __construct(Program $program, string $id)
     {

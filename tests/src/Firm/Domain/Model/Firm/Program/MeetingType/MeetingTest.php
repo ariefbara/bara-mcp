@@ -2,17 +2,15 @@
 
 namespace Firm\Domain\Model\Firm\Program\MeetingType;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\Firm\Program\ {
-    ActivityType,
-    ActivityType\ActivityParticipant,
-    MeetingType\Meeting\Attendee
-};
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Domain\ValueObject\DateTimeInterval
-};
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use Tests\TestBase;
 
 class MeetingTest extends TestBase
@@ -37,6 +35,7 @@ class MeetingTest extends TestBase
                 "location", "note");
 
         $this->meeting = new TestableMeeting($this->meetingType, "id", $meetingData, $this->user);
+        $this->meeting->recordedEvents = [];
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->meeting->startEndTime = $this->startEndTime;
         
@@ -110,6 +109,12 @@ class MeetingTest extends TestBase
                 ->with($this->anything(), $this->user);
         $this->executeConstruct();
     }
+    public function test_construct_recordEvent()
+    {
+        $meeting = $this->executeConstruct();
+        $event = new CommonEvent(EventList::MEETING_CREATED, $meeting->id);
+        $this->assertEquals($event, $meeting->recordedEvents[0]);
+    }
     
     protected function executeUpdate()
     {
@@ -126,6 +131,21 @@ class MeetingTest extends TestBase
 
         $this->assertEquals($this->location, $this->meeting->location);
         $this->assertEquals($this->note, $this->meeting->note);
+    }
+    public function test_update_recordMeetingScheduleChangedEvent()
+    {
+        $event = new CommonEvent(EventList::MEETING_SCHEDULE_CHANGED, $this->meeting->id);
+        $this->executeUpdate();
+        $this->assertEquals($event, $this->meeting->recordedEvents[0]);
+    }
+    public function test_update_sameSchedule_preventEventPublishing()
+    {
+        $this->startEndTime->expects($this->once())
+                ->method("sameValueAs")
+                ->with($this->equalTo(new DateTimeInterval($this->startTime, $this->endTime)))
+                ->willReturn(true);
+        $this->executeUpdate();
+        $this->assertEquals([], $this->meeting->recordedEvents);
     }
     
     public function test_setInitiator_setUserAsAttendeeWithIntiatorRole()
@@ -170,6 +190,17 @@ class MeetingTest extends TestBase
         $this->executeAddAttendee();
         $this->assertEquals(1, $this->meeting->attendees->count());
     }
+    public function test_addAttendee_collectAttendeeRecordedEvents()
+    {
+        $this->attendee->expects($this->once())
+                ->method("correspondWithUser")
+                ->willReturn(true);
+        $this->attendee->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn($recordedEvents = ["array represent event list"]);
+        $this->executeAddAttendee();
+        $this->assertEquals($recordedEvents, $this->meeting->recordedEvents);
+    }
     
     public function test_isUpcoming_returnStartEndTimeAfterResult()
     {
@@ -193,5 +224,7 @@ class TestableMeeting extends Meeting
     public $cancelled;
     public $createdTime;
     public $attendees;
+    
+    public $recordedEvents;
 
 }

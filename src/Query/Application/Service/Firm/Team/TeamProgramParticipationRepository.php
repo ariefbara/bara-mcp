@@ -8,5 +8,5 @@ interface TeamProgramParticipationRepository
 {
     public function aTeamProgramParticipationBelongsToTeam(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation;
     
-    public function allTeamProgramParticipationsBelongsToTeam(string $teamId, int $page, int $pageSize);
+    public function allTeamProgramParticipationsBelongsToTeam(string $teamId, int $page, int $pageSize, ?bool $activeStatus);
 }

@@ -13,7 +13,6 @@ $generateDbPath = array(
     BASE_PATH . "/resources/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Query/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
-    
 );
 
 $generateProxyPath = [
@@ -35,7 +34,7 @@ $generateProxyPath = [
 
 $doctrineConfig = Setup::createXMLMetadataConfiguration($generateDbPath, $isDevMode);
 //$doctrineConfig = Setup::createXMLMetadataConfiguration($generateProxyPath, false);
-$doctrineConfig->setProxyDir(__DIR__ . DIRECTORY_SEPARATOR . "proxy");
+$doctrineConfig->setProxyDir(dirname(__DIR__) . DIRECTORY_SEPARATOR . "mcp_proxy");
 
  $conn = array(
     'driver' => 'pdo_mysql',

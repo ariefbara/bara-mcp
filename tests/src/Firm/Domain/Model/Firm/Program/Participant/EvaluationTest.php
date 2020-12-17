@@ -2,11 +2,9 @@
 
 namespace Firm\Domain\Model\Firm\Program\Participant;
 
-use Firm\Domain\Model\Firm\Program\ {
-    Coordinator,
-    EvaluationPlan,
-    Participant
-};
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\EvaluationPlan;
+use Firm\Domain\Model\Firm\Program\Participant;
 use Resources\DateTimeImmutableBuilder;
 use SharedContext\Domain\ValueObject\EvaluationResult;
 use Tests\TestBase;
@@ -18,6 +16,7 @@ class EvaluationTest extends TestBase
     protected $evaluationPlan;
     protected $coordinator;
     protected $evaluation;
+    protected $evaluationResult;
     protected $id = "newId", $fail = true;
     protected $status = "extend", $extendDays = 90;
 
@@ -30,6 +29,9 @@ class EvaluationTest extends TestBase
         $evaluationData = new EvaluationData("pass", null);
         $this->evaluation = new TestableEvaluation(
                 $this->participant, "id", $this->evaluationPlan, $evaluationData, $this->coordinator);
+        
+        $this->evaluationResult = $this->buildMockOfClass(EvaluationResult::class);
+        $this->evaluation->evaluationResult = $this->evaluationResult;
     }
 
     protected function getEvaluationData()
@@ -61,6 +63,30 @@ class EvaluationTest extends TestBase
         $this->participant->expects($this->once())
                 ->method("disable");
         $this->executeConstruct();
+    }
+    
+    protected function executeIsCompletedEvaluationForPlan()
+    {
+        $this->evaluationResult->expects($this->once())
+                ->method("isCompleted")
+                ->willReturn(true);
+        return $this->evaluation->isCompletedEvaluationForPlan($this->evaluationPlan);
+    }
+    public function test_isCompletedEvaluationForPlan_completeResultOfSamePlan_returnTrue()
+    {
+        $this->assertTrue($this->executeIsCompletedEvaluationForPlan());
+    }
+    public function test_isCompletedEvaluationForPlan_incompleteResult_returnFalse()
+    {
+        $this->evaluationResult->expects($this->once())
+                ->method("isCompleted")
+                ->willReturn(false);
+        $this->assertFalse($this->executeIsCompletedEvaluationForPlan());
+    }
+    public function test_isCompletedEvaluationForPlan_differentPlan_returnFalse()
+    {
+        $this->evaluation->evaluationPlan = $this->buildMockOfClass(EvaluationPlan::class);
+        $this->assertFalse($this->executeIsCompletedEvaluationForPlan());
     }
 
 }

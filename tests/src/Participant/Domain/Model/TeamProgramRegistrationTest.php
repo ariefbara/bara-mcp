@@ -2,11 +2,12 @@
 
 namespace Participant\Domain\Model;
 
-use Participant\Domain\DependencyModel\Firm\ {
-    Program,
-    Team
-};
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
+use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Registrant\RegistrantProfile;
 use Query\Domain\Model\Firm\ParticipantTypes;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
 class TeamProgramRegistrationTest extends TestBase
@@ -18,7 +19,9 @@ class TeamProgramRegistrationTest extends TestBase
     protected $programRegistration;
     
     protected $id = "newTeamProgramRegistrationId";
-    
+    protected $programsProfileForm, $formRecordData;
+    protected $registrantProfile;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -31,6 +34,10 @@ class TeamProgramRegistrationTest extends TestBase
         $this->teamProgramRegistration = new TestableTeamProgramRegistration($this->team, "id", $this->program);
         $this->programRegistration = $this->buildMockOfClass(ProgramRegistration::class);
         $this->teamProgramRegistration->programRegistration = $this->programRegistration;
+        
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        $this->registrantProfile = $this->buildMockOfClass(RegistrantProfile::class);
     }
     
     protected function executeConstruct()
@@ -84,6 +91,22 @@ class TeamProgramRegistrationTest extends TestBase
     {
         $team = $this->buildMockOfClass(Team::class);
         $this->assertFalse($this->teamProgramRegistration->belongsToTeam($team));
+    }
+    
+    public function test_submitProfile_submitRegistrantProfile()
+    {
+        $this->programRegistration->expects($this->once())
+                ->method("submitProfile")
+                ->with($this->programsProfileForm, $this->formRecordData);
+        $this->teamProgramRegistration->submitProfile($this->programsProfileForm, $this->formRecordData);
+    }
+    
+    public function test_removeProfile_removeRegistrantProfile()
+    {
+        $this->programRegistration->expects($this->once())
+                ->method("removeProfile")
+                ->with($this->registrantProfile);
+        $this->teamProgramRegistration->removeProfile($this->registrantProfile);
     }
 }
 

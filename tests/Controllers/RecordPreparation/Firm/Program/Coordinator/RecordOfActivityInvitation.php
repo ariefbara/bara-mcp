@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Coordinator;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\Program\Activity\RecordOfInvitee,
-    Firm\Program\RecordOfCoordinator,
-    Record
-};
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\Firm\Program\Activity\RecordOfInvitee;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfActivityInvitation implements Record
 {
@@ -24,10 +23,10 @@ class RecordOfActivityInvitation implements Record
     public $invitee;
     public $id;
 
-    function __construct(RecordOfCoordinator $coordinator, RecordOfInvitee $invitee)
+    function __construct(?RecordOfCoordinator $coordinator, ?RecordOfInvitee $invitee, $index = 1)
     {
-        $this->coordinator = $coordinator;
-        $this->invitee = $invitee;
+        $this->coordinator = isset($coordinator)? $coordinator: new RecordOfCoordinator(null, null, $index);
+        $this->invitee = isset($invitee)? $invitee: new RecordOfInvitee(null, null, $index);
         $this->id = $this->invitee->id;
     }
 
@@ -38,6 +37,11 @@ class RecordOfActivityInvitation implements Record
             "Invitee_id" => $this->invitee->id,
             "id" => $this->id,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("CoordinatorInvitee")->insert($this->toArrayForDbEntry());
     }
 
 }

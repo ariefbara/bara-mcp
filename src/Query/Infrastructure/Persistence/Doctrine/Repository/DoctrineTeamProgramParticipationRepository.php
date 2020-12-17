@@ -43,7 +43,7 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         }
     }
 
-    public function allTeamProgramParticipationsBelongsToTeam(string $teamId, int $page, int $pageSize)
+    public function allTeamProgramParticipationsBelongsToTeam(string $teamId, int $page, int $pageSize, ?bool $activeStatus)
     {
         $params = [
             "teamId" => $teamId,
@@ -54,6 +54,12 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
                 ->leftJoin("teamProgramParticipation.team", "team")
                 ->andWhere($qb->expr()->eq("team.id", ":teamId"))
                 ->setParameters($params);
+        
+        if (isset($activeStatus)) {
+            $qb->leftJoin("teamProgramParticipation.programParticipation", "participant")
+                    ->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

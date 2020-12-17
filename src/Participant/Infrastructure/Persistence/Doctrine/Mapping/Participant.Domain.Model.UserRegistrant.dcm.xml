@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\UserRegistrant" 
+            table="UserRegistrant" 
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserRegistrantRepository" 
+    >
+        
+        <field name="userId" column="User_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        
+        <one-to-one field="registrant" 
+                    target-entity="Participant\Domain\Model\ProgramRegistration"
+        >
+            <join-column name="Registrant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -3,11 +3,10 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Team;
 
 use DateTimeImmutable;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfClient,
-    Firm\RecordOfTeam,
-    Record
-};
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfMember implements Record
 {
@@ -29,10 +28,10 @@ class RecordOfMember implements Record
     public $active;
     public $joinTime;
 
-    public function __construct(RecordOfTeam $team, RecordOfClient $client, $index)
+    public function __construct(?RecordOfTeam $team, ?RecordOfClient $client, $index)
     {
-        $this->team = $team;
-        $this->client = $client;
+        $this->team = isset($team)? $team: new RecordOfTeam(null, null, $index);
+        $this->client = isset($client)? $client: new RecordOfClient($this->team->firm, $index);
         $this->id = "member-$index-id";
         $this->position = "member $index position";
         $this->anAdmin = true;
@@ -51,6 +50,11 @@ class RecordOfMember implements Record
             "active" => $this->active,
             "joinTime" => $this->joinTime,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("T_Member")->insert($this->toArrayForDbEntry());
     }
 
 }

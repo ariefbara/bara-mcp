@@ -36,5 +36,11 @@ abstract class TimeInterval
         return $this->getStartTimeStamp() > (new \DateTimeImmutable())->getTimestamp();
     }
     
+    public function sameValueAs(TimeInterval $other): bool
+    {
+        return $this->getStartTimeStamp() === $other->getStartTimeStamp() 
+                && $this->getEndTimeStamp() === $other->getEndTimeStamp();
+    }
+    
 }
 

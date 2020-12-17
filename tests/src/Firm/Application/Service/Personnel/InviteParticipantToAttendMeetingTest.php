@@ -2,17 +2,17 @@
 
 namespace Firm\Application\Service\Personnel;
 
-use Firm\ {
-    Application\Service\Firm\Program\ParticipantRepository,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Domain\Model\Firm\Program\Participant
-};
+use Firm\Application\Service\Firm\Program\ParticipantRepository;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class InviteParticipantToAttendMeetingTest extends TestBase
 {
     protected $attendeeRepository, $attendee;
     protected $participant, $participantRepository;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $meetingId = "meetingId", $participantId = "participantId";
 
@@ -33,7 +33,9 @@ class InviteParticipantToAttendMeetingTest extends TestBase
                 ->with($this->participantId)
                 ->willReturn($this->participant);
         
-        $this->service = new InviteParticipantToAttendMeeting($this->attendeeRepository, $this->participantRepository);
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
+        $this->service = new InviteParticipantToAttendMeeting($this->attendeeRepository, $this->participantRepository, $this->dispatcher);
     }
     
     protected function execute()

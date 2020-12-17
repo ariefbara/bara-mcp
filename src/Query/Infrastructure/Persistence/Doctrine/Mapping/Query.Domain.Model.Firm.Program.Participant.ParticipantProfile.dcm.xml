@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\ParticipantProfile" 
+            table="ParticipantProfile"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantProfileRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="programsProfileForm" 
+                      target-entity="Query\Domain\Model\Firm\Program\ProgramsProfileForm"
+        >
+            <join-column name="ProgramsProfileForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="formRecord" 
+                    target-entity="Query\Domain\Model\Shared\FormRecord"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

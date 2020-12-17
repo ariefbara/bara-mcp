@@ -2,15 +2,15 @@
 
 namespace Firm\Application\Service\Personnel;
 
-use Firm\Domain\Model\Firm\Program\MeetingType\ {
-    Meeting\Attendee,
-    MeetingData
-};
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 
 class UpdateMeetingTest extends TestBase
 {
     protected $attendeeRepository, $attendee;
+    protected $dispatcher;
     protected $service;
     protected $firmId = "firmId", $personnelId = "personnelId", $meetingId = "meetingId";
     protected $meetingData;
@@ -25,7 +25,9 @@ class UpdateMeetingTest extends TestBase
                 ->with($this->firmId, $this->personnelId, $this->meetingId)
                 ->willReturn($this->attendee);
         
-        $this->service = new UpdateMeeting($this->attendeeRepository);
+        $this->dispatcher = $this->buildMockOfClass(Dispatcher::class);
+        
+        $this->service = new UpdateMeeting($this->attendeeRepository, $this->dispatcher);
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
     }
@@ -45,6 +47,13 @@ class UpdateMeetingTest extends TestBase
     {
         $this->attendeeRepository->expects($this->once())
                 ->method("update");
+        $this->execute();
+    }
+    public function test_execute_dispatchAttendee()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method("dispatch")
+                ->with($this->attendee);
         $this->execute();
     }
 }

@@ -31,7 +31,7 @@ class RecordOfConsultationRequest implements Record
     public $media, $address;
     
     function __construct(
-            RecordOfConsultationSetup $consultationSetup, RecordOfParticipant $participant, RecordOfConsultant $consultant, $index)
+            ?RecordOfConsultationSetup $consultationSetup, ?RecordOfParticipant $participant, ?RecordOfConsultant $consultant, $index)
     {
         $this->consultationSetup = $consultationSetup;
         $this->participant = $participant;
@@ -49,9 +49,9 @@ class RecordOfConsultationRequest implements Record
     public function toArrayForDbEntry()
     {
         return [
-            "ConsultationSetup_id" => $this->consultationSetup->id,
-            "Participant_id" => $this->participant->id,
-            "Consultant_id" => $this->consultant->id,
+            "ConsultationSetup_id" => isset($this->consultationSetup)? $this->consultationSetup->id: null,
+            "Participant_id" => isset($this->participant)? $this->participant->id: null,
+            "Consultant_id" => isset($this->consultant)? $this->consultant->id: null,
             "id" => $this->id,
             "startDateTime" => $this->startDateTime,
             "endDateTime" => $this->endDateTime,

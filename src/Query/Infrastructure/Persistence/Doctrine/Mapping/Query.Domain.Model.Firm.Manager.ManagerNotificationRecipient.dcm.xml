@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Manager\ManagerNotificationRecipient" 
+            table="ManagerNotificationRecipient" 
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineManagerNotificationRecipientRepository"
+    >
+        
+        <many-to-one  field="manager" 
+                      target-entity="Query\Domain\Model\Firm\Manager"
+        >
+            <join-column name="Manager_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="read" column="readStatus" type="boolean" />
+        <field name="notifiedTime" type="datetime_immutable" nullable="false"/>
+        
+        <many-to-one  field="notification" 
+                      target-entity="Query\Domain\SharedModel\Notification"
+        >
+            <join-column name="Notification_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

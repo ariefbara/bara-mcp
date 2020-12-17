@@ -55,6 +55,13 @@ class ParticipantAttendeeTest extends TestBase
                 ->with($this->team);
         $this->participantAttendee->belongsToTeam($this->team);
     }
+    
+    public function test_disableValidInvitation_disableValidInvitation()
+    {
+        $this->attendee->expects($this->once())
+                ->method("disableValidInvitation");
+        $this->participantAttendee->disableValidInvitation();
+    }
 }
 
 class TestableParticipantAttendee extends ParticipantAttendee

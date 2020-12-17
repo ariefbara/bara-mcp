@@ -3,18 +3,16 @@
 namespace Notification\Domain\Model\Firm\Program\Participant;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\{
-    Model\Firm\Program\Consultant,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionMail,
-    Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionNotification,
-    Model\Firm\Team\Member,
-    SharedModel\CanSendPersonalizeMail
-};
-use Resources\{
-    Domain\ValueObject\DateTimeInterval,
-    Uuid
-};
+use Notification\Domain\Model\Firm\Program\Consultant;
+use Notification\Domain\Model\Firm\Program\ConsultationSetup;
+use Notification\Domain\Model\Firm\Program\Participant;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionMail;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionNotification;
+use Notification\Domain\Model\Firm\Team\Member;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
+use Notification\Domain\SharedModel\ContainNotificationforCoordinator;
+use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\Uuid;
 use SharedContext\Domain\ValueObject\MailMessage;
 
 class ConsultationSession implements CanSendPersonalizeMail
@@ -37,6 +35,12 @@ class ConsultationSession implements CanSendPersonalizeMail
      * @var Consultant
      */
     protected $consultant;
+    
+    /**
+     * 
+     * @var ConsultationSetup
+     */
+    protected $consultationSetup;
 
     /**
      *
@@ -86,6 +90,8 @@ _MESSAGE;
         $this->consultant->registerNotificationRecipient($consultationSessionNotification);
 
         $this->consultationSessionNotifications->add($consultationSessionNotification);
+        
+        $this->notifyAllProgramsCoordinator($consultationSessionNotification);
     }
 
     public function addAcceptNotificationTriggeredByParticipant(): void
@@ -113,6 +119,8 @@ _MESSAGE;
         $this->consultant->registerNotificationRecipient($consultationSessionNotification);
 
         $this->consultationSessionNotifications->add($consultationSessionNotification);
+        
+        $this->notifyAllProgramsCoordinator($consultationSessionNotification);
     }
 
     public function addAcceptNotificationTriggeredByConsultant(): void
@@ -140,6 +148,28 @@ _MESSAGE;
         $this->participant->registerNotificationRecipient($consultationSessionNotification);
 
         $this->consultationSessionNotifications->add($consultationSessionNotification);
+        
+        $this->notifyAllProgramsCoordinator($consultationSessionNotification);
+    }
+    
+    protected function notifyAllProgramsCoordinator(ContainNotificationforCoordinator $notification): void
+    {
+        $subject = "Jadwal Konsultasi";
+        $greetings = "Hi Coordinator";
+        $mainMessage = <<<_MESSAGE
+Ada jadwal konsultasi baru yang telah disepakati di program antara peserta {$this->participant->getName()} dengan Mentor {$this->consultant->getPersonnelFullName()} di waktu:
+    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
+    
+Untuk melihat detail jadwal konsultasi ini, kunjungi:
+_MESSAGE;
+        $domain = $this->participant->getFirmDomain();
+        $urlPath = "/consultation-sessions/{$this->id}";
+        $logoPath = $this->participant->getFirmLogoPath();
+        
+        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $this->consultationSetup->registerAllCoordinatorsAsMailRecipient($this, $mailMessage);
+        
+        $this->consultationSetup->registerAllCoordinatorsAsNotificationRecipient($notification);
     }
 
     public function addMail(MailMessage $mailMessage, string $recipientMailAddress, string $recipientName): void

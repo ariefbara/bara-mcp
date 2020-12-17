@@ -35,5 +35,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many field="coordinatorNotificationRecipients" 
+                     target-entity="Notification\Domain\SharedModel\Notification\CoordinatorNotificationRecipient" 
+                     mapped-by="notification"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

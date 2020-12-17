@@ -2,20 +2,15 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Participant\ {
-    Application\Service\TeamProgramRegistrationRepository,
-    Domain\Model\TeamProgramRegistration
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\Client\AsTeamMember\TeamRegistrantRepository;
+use Participant\Application\Service\TeamProgramRegistrationRepository;
+use Participant\Domain\Model\TeamProgramRegistration;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 
-class DoctrineTeamProgramRegistrationRepository extends EntityRepository implements TeamProgramRegistrationRepository
+class DoctrineTeamProgramRegistrationRepository extends EntityRepository implements TeamProgramRegistrationRepository, TeamRegistrantRepository
 {
     
     public function add(TeamProgramRegistration $teamProgramRegistration): void

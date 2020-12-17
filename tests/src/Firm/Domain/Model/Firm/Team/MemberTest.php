@@ -117,6 +117,14 @@ class MemberTest extends TestBase
             $this->executeUpdateMeeting();
         });
     }
+    public function test_updateMeeting_collectEventsFromAttendee()
+    {
+        $this->attendee->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn($recordedEvents = ["array represent recorded event list"]);
+        $this->executeUpdateMeeting();
+        $this->assertEquals($recordedEvents, $this->member->recordedEvents);
+    }
     
     protected function executeInviteUserToAttendMeeting()
     {
@@ -135,6 +143,14 @@ class MemberTest extends TestBase
         $this->assertInactiveMemberForbiddenError(function (){
             $this->executeInviteUserToAttendMeeting();
         });
+    }
+    public function test_inviteUserToAttendMeeting_collectEventsFromAttendee()
+    {
+        $this->attendee->expects($this->once())
+                ->method("pullRecordedEvents")
+                ->willReturn($recordedEvents = ["array represent recorded event list"]);
+        $this->executeInviteUserToAttendMeeting();
+        $this->assertEquals($recordedEvents, $this->member->recordedEvents);
     }
     
     protected function executeCancelInvitation()
@@ -165,6 +181,7 @@ class TestableMember extends Member
      public $client;
      public $anAdmin;
      public $active = true;
+     public $recordedEvents;
      
      function __construct()
      {

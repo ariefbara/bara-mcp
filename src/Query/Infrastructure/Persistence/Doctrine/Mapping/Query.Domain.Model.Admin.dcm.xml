@@ -11,6 +11,10 @@
                   class="Resources\Domain\ValueObject\Password"
                   use-column-prefix='false' />
         <field name="removed" type="boolean" />
+        
+        <unique-constraints>
+            <unique-constraint columns="email" name="admin_email_idx" />
+        </unique-constraints>
 
     </entity>
 </doctrine-mapping>

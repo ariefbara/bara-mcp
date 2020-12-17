@@ -142,6 +142,9 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/activities/{activityId}/activity-reports", ["uses" => "ActivityReportController@showAllReportsInActivity"]);
         $router->get("/activity-reports/{activityReportId}", ["uses" => "ActivityReportController@show"]);
         
+        $router->get("/registrants/{registrantId}/registrant-profiles", ["uses" => "RegistrantProfileController@showAll"]);
+        $router->get("/registrant-profiles/{registrantProfileId}", ["uses" => "RegistrantProfileController@show"]);
+        
     });
     
     $asProgramConsultantAggregate = [
@@ -200,6 +203,9 @@ $router->group($personnelAggregate, function () use ($router) {
             $controller = "MeetingController";
             $router->post("", ["uses" => "$controller@initiate"]);
         });
+        
+        $router->get("/participant/{participantId}/metric-assignment-reports", ["uses" => "MetricAssignmentReportController@showAll"]);
+        $router->get("/metric-assignment-reports/{metricAssignmentReportId}", ["uses" => "MetricAssignmentReportController@show"]);
         
     });
     
@@ -320,6 +326,11 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->put("/{participantId}/{evaluationPlanId}", ["uses" => "$controller@submit"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{participantId}/{evaluationPlanId}", ["uses" => "$controller@show"]);
+        });
+        
+        $router->group(['prefix' => '/notifications'], function () use($router) {
+            $controller = "NotificationController";
+            $router->get("", ["uses" => "$controller@showAll"]);
         });
     });
     

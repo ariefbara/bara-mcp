@@ -2,23 +2,22 @@
 
 namespace Firm\Domain\Model\Firm\Program\MeetingType;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\Firm\Program\ {
-    ActivityType,
-    ActivityType\ActivityParticipant,
-    MeetingType\Meeting\Attendee
-};
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Domain\ValueObject\DateTimeInterval,
-    Exception\RegularException,
-    Uuid,
-    ValidationRule,
-    ValidationService
-};
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainCommonEvents;
+use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
-class Meeting
+class Meeting extends EntityContainCommonEvents
 {
 
     /**
@@ -118,10 +117,19 @@ class Meeting
         $this->attendees = new ArrayCollection();
         
         $this->meetingType->setUserAsInitiatorInMeeting($this, $initiator);
+        
+        $commonEvent = new CommonEvent(EventList::MEETING_CREATED, $this->id);
+        $this->recordEvent($commonEvent);
     }
 
     public function update(MeetingData $meetingData): void
     {
+        $newSchedule = new DateTimeInterval($meetingData->getStartTime(), $meetingData->getEndTime());
+        if (!$this->startEndTime->sameValueAs($newSchedule)) {
+            $commonEvent = new CommonEvent(EventList::MEETING_SCHEDULE_CHANGED, $this->id);
+            $this->recordEvent($commonEvent);
+        }
+        
         $this->setName($meetingData->getName());
         $this->description = $meetingData->getDescription();
         $this->setStartEndTime($meetingData->getStartTime(), $meetingData->getEndTime());
@@ -150,6 +158,8 @@ class Meeting
             $attendee = new Attendee($this, $id, $attendeeSetup, $user);
             $this->attendees->add($attendee);
         }
+        
+        $this->recordedEvents = $attendee->pullRecordedEvents();
     }
     
     protected function findAttendeeCorrespondWithUser(CanAttendMeeting $user): ?Attendee

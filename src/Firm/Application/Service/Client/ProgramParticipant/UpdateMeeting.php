@@ -3,6 +3,7 @@
 namespace Firm\Application\Service\Client\ProgramParticipant;
 
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Resources\Application\Event\Dispatcher;
 
 class UpdateMeeting
 {
@@ -13,17 +14,26 @@ class UpdateMeeting
      */
     protected $attendeeRepository;
 
-    function __construct(AttendeeRepository $attendeeRepository)
+    /**
+     * 
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
+    function __construct(AttendeeRepository $attendeeRepository, Dispatcher $dispatcher)
     {
         $this->attendeeRepository = $attendeeRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(string $firmId, string $clientId, string $meetingId, MeetingData $meetingData): void
     {
-        $this->attendeeRepository
-                ->anAttendeeBelongsToClientParticipantCorrespondWithMeeting($firmId, $clientId, $meetingId)
-                ->updateMeeting($meetingData);
+        $attendee = $this->attendeeRepository
+                ->anAttendeeBelongsToClientParticipantCorrespondWithMeeting($firmId, $clientId, $meetingId);
+        $attendee->updateMeeting($meetingData);
         $this->attendeeRepository->update();
+        
+        $this->dispatcher->dispatch($attendee);
     }
 
 }

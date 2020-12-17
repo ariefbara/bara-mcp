@@ -4,23 +4,21 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\{
-    Model\Firm\Program,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\Participant\Evaluation,
-    Model\Firm\Program\Participant\EvaluationData,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Model\Firm\Team,
-    Service\MetricAssignmentDataProvider
-};
-use Resources\{
-    DateTimeImmutableBuilder,
-    Exception\RegularException,
-    Uuid
-};
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
+use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
+use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Service\MetricAssignmentDataProvider;
+use Resources\DateTimeImmutableBuilder;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class Participant implements AssetInProgram, CanAttendMeeting
@@ -85,6 +83,30 @@ class Participant implements AssetInProgram, CanAttendMeeting
      * @var ArrayCollection
      */
     protected $evaluations;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $profiles;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $meetingInvitations;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $consultationRequests;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $consultationSessions;
 
     public function getId(): string
     {
@@ -98,6 +120,8 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->active = true;
         $this->note = null;
+        
+        $this->profiles = new ArrayCollection();
     }
 
     public function belongsToProgram(Program $program): bool
@@ -133,6 +157,13 @@ class Participant implements AssetInProgram, CanAttendMeeting
             $errorDetail = "forbidden: unable to evaluate inactive participant";
             throw RegularException::forbidden($errorDetail);
         }
+        $p = function (Evaluation $evaluation) use($evaluationPlan){
+            return $evaluation->isCompletedEvaluationForPlan($evaluationPlan);
+        };
+        if (!empty($this->evaluations->filter($p)->count())) {
+            $errorDetail = "forbidden: participant already completed evaluation for this plan";
+            throw RegularException::forbidden($errorDetail);
+        }
         $id = Uuid::generateUuid4();
         $evaluation = new Evaluation($this, $id, $evaluationPlan, $evaluationData, $coordinator);
         $this->evaluations->add($evaluation);
@@ -150,7 +181,22 @@ class Participant implements AssetInProgram, CanAttendMeeting
     
     public function disable(): void
     {
+        if (!$this->active) {
+            $errorDetail = "forbidden: unable to disable inactive participant";
+            throw RegularException::forbidden($errorDetail);
+        }
         $this->active = false;
+        $this->note = "fail";
+        
+        foreach ($this->consultationSessions->getIterator() as $consultationSession) {
+            $consultationSession->disableUpcomingSession();
+        }
+        foreach ($this->consultationRequests->getIterator() as $consultationRequest) {
+            $consultationRequest->disableUpcomingRequest();
+        }
+        foreach ($this->meetingInvitations->getIterator() as $meetingInvitation) {
+            $meetingInvitation->disableValidInvitation();
+        }
     }
 
     public function reenroll(): void
@@ -222,6 +268,13 @@ class Participant implements AssetInProgram, CanAttendMeeting
     public function belongsToTeam(Team $team): bool
     {
         return isset($this->teamParticipant) ? $this->teamParticipant->belongsToTeam($team) : false;
+    }
+    
+    public function addProfile(ProgramsProfileForm $programsProfileForm, FormRecord $formRecord): void
+    {
+        $id = $formRecord->getId();
+        $profile = new ParticipantProfile($this, $id, $programsProfileForm, $formRecord);
+        $this->profiles->add($profile);
     }
 
 }

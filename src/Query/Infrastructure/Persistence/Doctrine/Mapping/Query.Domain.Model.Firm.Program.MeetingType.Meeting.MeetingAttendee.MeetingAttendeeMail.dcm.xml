@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee\MeetingAttendeeMail" 
+            table="MeetingAttendeeMail" 
+    >
+        
+        <many-to-one  field="meetingAttendee" 
+                      target-entity="Query\Domain\Model\Firm\Program\Activity\Invitee"
+        >
+            <join-column name="MeetingAttendee_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="mail" 
+                    target-entity="Query\Domain\SharedModel\Mail"
+        >
+            <join-column name="Mail_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

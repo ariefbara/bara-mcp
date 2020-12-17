@@ -3,6 +3,8 @@
 namespace Tests\Controllers\Client\ProgramParticipation\AsMeetingInitiator;
 
 use DateTimeImmutable;
+use Tests\Controllers\MailChecker;
+use Tests\Controllers\NotificationChecker;
 
 class MeetingControllerTest extends AsMeetingInitiatorTestCase
 {
@@ -53,5 +55,15 @@ class MeetingControllerTest extends AsMeetingInitiatorTestCase
             "note" => $this->updateInput["note"],
         ];
         $this->seeInDatabase("Activity", $meetingEntry);
+    }
+    public function test_update_sendMailAndNotification()
+    {
+        $uri = $this->asMeetingInitiatorUri . "/update-meeting";
+        $this->patch($uri, $this->updateInput, $this->programParticipation->client->token);
+        
+        (new MailChecker())->checkMailExist($subject = "Perubahan Jadwal Meeting", $this->client->email);
+        (new NotificationChecker())
+                ->checkNotificationExist($message = "meeting schedule changed")
+                ->checkClientNotificationExist($this->client->id);
     }
 }

@@ -2,54 +2,44 @@
 
 namespace Tests\Controllers\Client\ProgramParticipation\AsMeetingInitiator;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\Client\RecordOfClientParticipant,
-    Firm\Manager\RecordOfActivityInvitation,
-    Firm\Program\Activity\RecordOfInvitee,
-    Firm\Program\ActivityType\RecordOfActivityParticipant,
-    Firm\Program\Consultant\RecordOfActivityInvitation as RecordOfActivityInvitation3,
-    Firm\Program\Coordinator\RecordOfActivityInvitation as RecordOfActivityInvitation2,
-    Firm\Program\Participant\RecordOfActivityInvitation as RecordOfActivityInvitation4,
-    Firm\Program\RecordOfConsultant,
-    Firm\Program\RecordOfCoordinator,
-    Firm\Program\RecordOfParticipant,
-    Firm\RecordOfClient,
-    Firm\RecordOfManager,
-    Firm\RecordOfPersonnel,
-    Firm\RecordOfTeam,
-    Firm\Team\RecordOfTeamProgramParticipation,
-    RecordOfUser,
-    User\RecordOfUserParticipant
-};
+use Tests\Controllers\MailChecker;
+use Tests\Controllers\NotificationChecker;
+use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfActivityInvitation;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfManager;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfMember;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
 
 class AttendeeControllerTest extends AsMeetingInitiatorTestCase
 {
-
     protected $attendeeUri;
-    protected $clientParticipant;
-    protected $userParticipant;
-    protected $teamParticipant;
-    protected $managerAttendee;
-    protected $coordinatorAttendee;
-    protected $consultantAttendee;
-    protected $clientParticipantAttendee;
-    protected $userParticipantAttendee;
-    protected $teamParticipantAttendee;
     
+    /** @var RecordOfManager */
     protected $managerOne;
+    /** @var RecordOfCoordinator */
     protected $coordinatorOne;
+    /** @var RecordOfConsultant */
     protected $consultantOne;
-    protected $participantThree;
-    
-    protected $inviteManagerInput;
-    protected $inviteCoordinatorInput;
-    protected $inviteConsultantInput;
-    protected $inviteParticipantInput;
+    /** @var RecordOfTeamProgramParticipation */
+    protected $teamParticipantOne;
+    /** @var RecordOfMember */
+    protected $teamMemberOne;
+    /** @var RecordOfActivityInvitation */
+    protected $coordinatorAttendee;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->attendeeUri = $this->asMeetingInitiatorUri . "/attendees";
+        $this->connection->table("Mail")->truncate();
+        $this->connection->table("MeetingMail")->truncate();
+        $this->connection->table("MailRecipient")->truncate();
+        
+        $this->connection->table("Notification")->truncate();
+        $this->connection->table("MeetingAttendeeNotification")->truncate();
+/*
         $this->connection->table("Manager")->truncate();
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("User")->truncate();
@@ -170,41 +160,86 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->inviteParticipantInput = [
             "participantId" => $this->participantThree->id,
         ];
+ * 
+ */
+    }
+    protected function setManagerUp()
+    {
+        RecordOfManager::truncateTable($this->connection);
+        $firm = $this->programParticipation->participant->program->firm;
+        $this->managerOne = new RecordOfManager($firm, 999);
+        $this->managerOne->email = "purnama.adi+manager@gmail.com";
+        $this->managerOne->persistSelf($this->connection);
+        
+        $this->inviteManagerInput = [
+            "managerId" => $this->managerOne->id,
+        ];
+    }
+    protected function tearManagerDown()
+    {
+        RecordOfManager::truncateTable($this->connection);
+    }
+    protected function setCoordinatorUp()
+    {
+        RecordOfCoordinator::truncateTable($this->connection);
+        $this->connection->table("Personnel")->truncate();
+        $program = $this->programParticipation->participant->program;
+        $this->coordinatorOne = new RecordOfCoordinator($program, null, 1);
+        $this->coordinatorOne->personnel->email = "purnama.adi+coordinator@gmail.com";
+        
+        $this->coordinatorOne->persistSelf($this->connection);
+        $this->coordinatorOne->personnel->persistSelf($this->connection);
+        
+        $this->inviteCoordinatorInput = [
+            "coordinatorId" => $this->coordinatorOne->id,
+        ];
+    }
+    protected function tearCoordinatorDown()
+    {
+        RecordOfCoordinator::truncateTable($this->connection);
+        RecordOfPersonnel::truncateTable($this->connection);
+    }
+    protected function clearConslutantDependency()
+    {
+        $this->connection->table("Personnel")->truncate();
+        $this->connection->table("Consultant")->truncate();
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table("Manager")->truncate();
-        $this->connection->table("Personnel")->truncate();
-        $this->connection->table("User")->truncate();
-        $this->connection->table("Team")->truncate();
-        $this->connection->table("Coordinator")->truncate();
-        $this->connection->table("Consultant")->truncate();
-        $this->connection->table("UserParticipant")->truncate();
-        $this->connection->table("TeamParticipant")->truncate();
-        $this->connection->table("ManagerInvitee")->truncate();
+        $this->connection->table("Mail")->truncate();
+        $this->connection->table("MeetingMail")->truncate();
+        $this->connection->table("MailRecipient")->truncate();
+        
+        $this->connection->table("Notification")->truncate();
+        $this->connection->table("MeetingAttendeeNotification")->truncate();
+    }
+    protected function setCoordinatorInviteeUp()
+    {
         $this->connection->table("CoordinatorInvitee")->truncate();
-        $this->connection->table("ConsultantInvitee")->truncate();
+        $this->connection->table("Coordinator")->truncate();
+        $this->connection->table("Personnel")->truncate();
+        $this->connection->table("PersonnelNotificationRecipient")->truncate();
+        
+        $this->coordinatorAttendee = new RecordOfActivityInvitation(null, null, 1);
+        $this->coordinatorAttendee->invitee->activity = $this->meeting;
+        $this->coordinatorAttendee->coordinator->personnel->email = "purnama.adi+coordinator@gmail.com";
+        
+        
+        $this->coordinatorAttendee->persistSelf($this->connection);
+        $this->coordinatorAttendee->invitee->persistSelf($this->connection);
+        $this->coordinatorAttendee->coordinator->persistSelf($this->connection);
+        $this->coordinatorAttendee->coordinator->personnel->persistSelf($this->connection);
     }
     
     public function test_showAll_200()
     {
+        $this->setCoordinatorInviteeUp();
+        
         $response = [
-            "total" => 6,
+            "total" => 1,
             "list" => [
-                [
-                    "id" => $this->managerAttendee->invitee->id,
-                    "willAttend" => $this->managerAttendee->invitee->willAttend,
-                    "attended" => $this->managerAttendee->invitee->attended,
-                    "manager" => [
-                        "id" => $this->managerAttendee->manager->id,
-                        "name" => $this->managerAttendee->manager->name,
-                    ],
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => null,
-                ],
                 [
                     "id" => $this->coordinatorAttendee->invitee->id,
                     "willAttend" => $this->coordinatorAttendee->invitee->willAttend,
@@ -220,72 +255,6 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
                     "consultant" => null,
                     "participant" => null,
                 ],
-                [
-                    "id" => $this->consultantAttendee->invitee->id,
-                    "willAttend" => $this->consultantAttendee->invitee->willAttend,
-                    "attended" => $this->consultantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => [
-                        "id" => $this->consultantAttendee->consultant->id,
-                        "personnel" => [
-                            "id" => $this->consultantAttendee->consultant->personnel->id,
-                            "name" => $this->consultantAttendee->consultant->personnel->getFullName(),
-                        ],
-                    ],
-                    "participant" => null,
-                ],
-                [
-                    "id" => $this->clientParticipantAttendee->invitee->id,
-                    "willAttend" => $this->clientParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->clientParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->clientParticipantAttendee->participant->id,
-                        "user" => null,
-                        "client" => [
-                            "id" => $this->clientParticipant->client->id,
-                            "name" => $this->clientParticipant->client->getFullName(),
-                        ],
-                        "team" => null,
-                    ],
-                ],
-                [
-                    "id" => $this->userParticipantAttendee->invitee->id,
-                    "willAttend" => $this->userParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->userParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->userParticipantAttendee->participant->id,
-                        "user" => [
-                            "id" => $this->userParticipant->user->id,
-                            "name" => $this->userParticipant->user->getFullName(),
-                        ],
-                        "client" => null,
-                        "team" => null,
-                    ],
-                ],
-                [
-                    "id" => $this->teamParticipantAttendee->invitee->id,
-                    "willAttend" => $this->teamParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->teamParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->teamParticipantAttendee->participant->id,
-                        "user" => null,
-                        "client" => null,
-                        "team" => [
-                            "id" => $this->teamParticipant->team->id,
-                            "name" => $this->teamParticipant->team->name,
-                        ], 
-                    ],
-                ],
             ],
         ];
         
@@ -296,91 +265,224 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     
     public function test_show_200()
     {
+        $this->setCoordinatorInviteeUp();
         $response = [
-            "id" => $this->teamParticipantAttendee->invitee->id,
-            "willAttend" => $this->teamParticipantAttendee->invitee->willAttend,
-            "attended" => $this->teamParticipantAttendee->invitee->attended,
+            "id" => $this->coordinatorAttendee->invitee->id,
+            "willAttend" => $this->coordinatorAttendee->invitee->willAttend,
+            "attended" => $this->coordinatorAttendee->invitee->attended,
             "manager" => null,
-            "coordinator" => null,
-            "consultant" => null,
-            "participant" => [
-                "id" => $this->teamParticipantAttendee->participant->id,
-                "user" => null,
-                "client" => null,
-                "team" => [
-                    "id" => $this->teamParticipant->team->id,
-                    "name" => $this->teamParticipant->team->name,
-                ], 
+            "coordinator" => [
+                 "id" => $this->coordinatorAttendee->coordinator->id,
+                "personnel" => [
+                     "id" => $this->coordinatorAttendee->coordinator->personnel->id,
+                     "name" => $this->coordinatorAttendee->coordinator->personnel->getFullName(),
+                ],
             ],
+            "consultant" => null,
+            "participant" => null,
         ];
-        $uri = $this->attendeeUri . "/{$this->teamParticipantAttendee->invitee->id}";
+        $uri = $this->attendeeUri . "/{$this->coordinatorAttendee->invitee->id}";
         $this->get($uri, $this->programParticipation->client->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }
     
+    protected function executeInviteManager()
+    {
+        $this->setManagerCanBeInvited();
+        $this->setManagerUp();
+        $mailChecker = new MailChecker();
+        $notificationChecker = new NotificationChecker();
+        
+        $uri = $this->attendeeUri . "/invite-manager";
+        $this->put($uri, $this->inviteManagerInput, $this->programParticipation->client->token);
+    }
     public function test_inviteManager_200()
     {
-        $uri = $this->attendeeUri . "/invite-manager";
-        $this->put($uri, $this->inviteManagerInput, $this->programParticipation->client->token)
-                ->seeStatusCode(200);
+        $this->executeInviteManager();
         
+        $this->seeStatusCode(200);
         $managerInviteeEntry = [
             "Manager_id" => $this->managerOne->id,
         ];
         $this->seeInDatabase("ManagerInvitee", $managerInviteeEntry);
     }
+    public function test_inviteManager_sendMailAndNotfication_200()
+    {
+        $this->executeInviteManager();
+        (new MailChecker())->checkMailExist($subject = "undangan meeting", $this->managerOne->email);
+        (new NotificationChecker())
+                ->checkNotificationExist($message = "meeting invitation received")
+                ->checkManagerNotificationExist($this->managerOne->id);
+    }
     
+    protected function executeInviteCoordinator()
+    {
+        $this->setCoordinatorCanBeInvited();
+        $this->setCoordinatorUp();
+        $mailChecker = new MailChecker();
+        $notificationChecker = new NotificationChecker();
+        
+        $uri = $this->attendeeUri . "/invite-coordinator";
+        $this->put($uri, $this->inviteCoordinatorInput, $this->programParticipation->client->token);
+    }
     public function test_inviteCoordinator_200()
     {
-$this->disableExceptionHandling();
-        $uri = $this->attendeeUri . "/invite-coordinator";
-        $this->put($uri, $this->inviteCoordinatorInput, $this->programParticipation->client->token)
-                ->seeStatusCode(200);
+        $this->executeInviteCoordinator();
+        $this->seeStatusCode(200);
         
         $coordinatorInviteeEntry = [
             "Coordinator_id" => $this->coordinatorOne->id,
         ];
         $this->seeInDatabase("CoordinatorInvitee", $coordinatorInviteeEntry);
     }
+    public function test_inviteCoordinator_sendMailAndNotification()
+    {
+        $this->executeInviteCoordinator();
+        
+        (new MailChecker())->checkMailExist($subject = "undangan meeting", $this->coordinatorOne->personnel->email);
+        (new NotificationChecker())
+                ->checkNotificationExist($message = "meeting invitation received")
+                ->checkPersonnelNotificationExist($this->coordinatorOne->personnel->id);
+    }
     
+    
+    protected function executeInviteConslutant()
+    {
+        $this->connection->table("Consultant")->truncate();
+        $this->connection->table("Personnel")->truncate();
+        
+        $this->connection->table("Mail")->truncate();
+        $this->connection->table("MeetingMail")->truncate();
+        $this->connection->table("MailRecipient")->truncate();
+        
+        $this->connection->table("Notification")->truncate();
+        $this->connection->table("MeetingAttendeeNotification")->truncate();
+        $this->connection->table("PersonnelNotificationRecipient")->truncate();
+        
+        $this->consultantOne = new RecordOfConsultant($this->programParticipation->participant->program, null, 1);
+        $this->consultantOne->personnel->email = "purnama.adi+consultant@gmail.com";
+        $this->consultantOne->persistSelf($this->connection);
+        $this->consultantOne->personnel->persistSelf($this->connection);
+        
+        
+        $this->setConsultantCanBeInvited();
+        $uri = $this->attendeeUri . "/invite-consultant";
+        $input = ["consultantId" => $this->consultantOne->id];
+        $this->put($uri, $input, $this->programParticipation->client->token);
+
+    }
     public function test_inviteConsultant_200()
     {
-        $uri = $this->attendeeUri . "/invite-consultant";
-        $this->put($uri, $this->inviteConsultantInput, $this->programParticipation->client->token)
-                ->seeStatusCode(200);
+        $this->executeInviteConslutant();
+        $this->seeStatusCode(200);
         
         $consultantInviteeEntry = [
             "Consultant_id" => $this->consultantOne->id,
         ];
         $this->seeInDatabase("ConsultantInvitee", $consultantInviteeEntry);
     }
+    public function test_inviteConsultant_sendMailAndNotification()
+    {
+        $this->executeInviteConslutant();
+        $this->seeStatusCode(200);
+        
+        (new MailChecker())->checkMailExist($subject = "undangan meeting", $this->consultantOne->personnel->email);
+        (new NotificationChecker())
+                ->checkNotificationExist($message = "meeting invitation received")
+                ->checkPersonnelNotificationExist($this->consultantOne->personnel->id);
+        
+    }
     
+    protected function executeInviteParticipant()
+    {
+        $this->setParticipantCanBeInvited();
+        $this->connection->table("TeamParticipant")->truncate();
+        $this->connection->table("Team")->truncate();
+        $this->connection->table("T_Member")->truncate();
+        $this->connection->table("ClientNotificationRecipient")->truncate();
+        
+        $program = $this->programParticipation->participant->program;
+        $firm = $program->firm;
+        
+        $this->teamParticipantOne = new RecordOfTeamProgramParticipation(null, null, 1);
+        $this->teamParticipantOne->persistSelf($this->connection);
+        $this->teamParticipantOne->team->firm = $firm;
+        $this->teamParticipantOne->team->persistSelf($this->connection);
+        $this->teamParticipantOne->participant->program = $program;
+        $this->teamParticipantOne->participant->persistSelf($this->connection);
+        
+        $this->teamMemberOne = new RecordOfMember($this->teamParticipantOne->team, null, 1);
+        $this->teamMemberOne->persistSelf($this->connection);
+        $this->teamMemberOne->client->email = "purnama.adi+teamMemberOne@gmail.com";
+        $this->teamMemberOne->client->firm = $firm;
+        $this->teamMemberOne->client->persistSelf($this->connection);
+        
+
+        $uri = $this->attendeeUri . "/invite-participant";
+        $input = ["participantId" => $this->teamParticipantOne->participant->id];
+        $this->put($uri, $input, $this->programParticipation->client->token);
+    }
     public function test_inviteParticipant_200()
     {
-        $uri = $this->attendeeUri . "/invite-participant";
-        $this->put($uri, $this->inviteParticipantInput, $this->programParticipation->client->token)
-                ->seeStatusCode(200);
+        $this->executeInviteParticipant();
+        $this->seeStatusCode(200);
         
         $participantInviteeEntry = [
-            "Participant_id" => $this->participantThree->id,
+            "Participant_id" => $this->teamParticipantOne->participant->id,
         ];
         $this->seeInDatabase("ParticipantInvitee", $participantInviteeEntry);
     }
+    public function test_inviteParticipant_sendEmailAndNotification()
+    {
+        $this->executeInviteParticipant();
+        
+        (new MailChecker())->checkMailExist($subject = "Undangan Meeting", $recipientEmail = $this->teamMemberOne->client->email);
+        (new NotificationChecker())
+                ->checkNotificationExist($message = "meeting invitation received")
+                ->checkClientNotificationExist($this->teamMemberOne->client->id);
+    }
     
+    protected function executeCancelInvitation()
+    {
+        $this->connection->table("CoordinatorInvitee")->truncate();
+        $this->connection->table("Coordinator")->truncate();
+        $this->connection->table("Personnel")->truncate();
+        $this->connection->table("PersonnelNotificationRecipient")->truncate();
+        
+        $this->coordinatorAttendee = new RecordOfActivityInvitation(null, null, 1);
+        $this->coordinatorAttendee->invitee->activity = $this->meeting;
+        $this->coordinatorAttendee->coordinator->personnel->email = "purnama.adi+coordinator@gmail.com";
+        
+        
+        $this->coordinatorAttendee->persistSelf($this->connection);
+        $this->coordinatorAttendee->invitee->persistSelf($this->connection);
+        $this->coordinatorAttendee->coordinator->persistSelf($this->connection);
+        $this->coordinatorAttendee->coordinator->personnel->persistSelf($this->connection);
+
+        $uri = $this->attendeeUri . "/cancel-invitation/{$this->coordinatorAttendee->invitee->id}";
+        $this->patch($uri, [], $this->programParticipation->client->token);
+    }
     public function test_cancelInvitation_200()
     {
-$this->disableExceptionHandling();
-        $uri = $this->attendeeUri . "/cancel-invitation/{$this->teamParticipantAttendee->invitee->id}";
-        $this->patch($uri, [], $this->programParticipation->client->token)
-                ->seeStatusCode(200);
+        $this->executeCancelInvitation();
+        $this->seeStatusCode(200);
         
         $inviteeEntry = [
-            "id" => $this->teamParticipantAttendee->invitee->id,
+            "id" => $this->coordinatorAttendee->invitee->id,
             "cancelled" => true,
         ];
         $this->seeInDatabase("Invitee", $inviteeEntry);
+    }
+    public function test_cancelInvitation_sendEmailAndNotification()
+    {
+        $this->executeCancelInvitation();
         
+        (new MailChecker())->checkMailExist(
+                $subject = "Undangan Meeting Dibatalkan", $recipientEmail = $this->coordinatorAttendee->coordinator->personnel->email);
+        (new NotificationChecker())
+                ->checkNotificationExist($message = "meeting invitation has been cancelled")
+                ->checkPersonnelNotificationExist($this->coordinatorAttendee->coordinator->personnel->id);
     }
 
 }

@@ -22,5 +22,9 @@
         <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true"/>
         <field name="removed" type="boolean" />
         
+        <unique-constraints>
+            <unique-constraint columns="Firm_id,email" name="manager_email_idx" />
+        </unique-constraints>
+        
     </entity>
 </doctrine-mapping>

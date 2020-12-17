@@ -3,6 +3,7 @@
 namespace Firm\Application\Service\Client\ProgramParticipant;
 
 use Firm\Application\Service\Firm\ManagerRepository;
+use Resources\Application\Event\Dispatcher;
 
 class InviteManagerToAttendMeeting
 {
@@ -19,19 +20,29 @@ class InviteManagerToAttendMeeting
      */
     protected $managerRepository;
 
-    function __construct(AttendeeRepository $attendeeRepository, ManagerRepository $managerRepository)
+    /**
+     * 
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
+    function __construct(
+            AttendeeRepository $attendeeRepository, ManagerRepository $managerRepository, Dispatcher $dispatcher)
     {
         $this->attendeeRepository = $attendeeRepository;
         $this->managerRepository = $managerRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(string $firmId, string $clientId, string $meetingId, string $toInviteManagerId): void
     {
         $manager = $this->managerRepository->aManagerOfId($toInviteManagerId);
-        $this->attendeeRepository
-                ->anAttendeeBelongsToClientParticipantCorrespondWithMeeting($firmId, $clientId, $meetingId)
-                ->inviteUserToAttendMeeting($manager);
+        $attendee = $this->attendeeRepository
+                ->anAttendeeBelongsToClientParticipantCorrespondWithMeeting($firmId, $clientId, $meetingId);
+        $attendee->inviteUserToAttendMeeting($manager);
         $this->attendeeRepository->update();
+        
+        $this->dispatcher->dispatch($attendee);
     }
 
 }

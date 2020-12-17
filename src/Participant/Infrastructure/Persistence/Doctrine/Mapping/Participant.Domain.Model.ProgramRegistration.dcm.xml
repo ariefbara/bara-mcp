@@ -15,5 +15,12 @@
         <field name="registeredTime" type="datetime_immutable" nullable="true"/>
         <field name="note" type="string" length="256" nullable="true"/>
         
+        <one-to-many field="profiles" 
+                     target-entity="Participant\Domain\Model\Registrant\RegistrantProfile" 
+                     mapped-by="registrant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

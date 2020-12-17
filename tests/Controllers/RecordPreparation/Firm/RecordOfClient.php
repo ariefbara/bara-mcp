@@ -3,12 +3,11 @@
 namespace Tests\Controllers\RecordPreparation\Firm;
 
 use DateTimeImmutable;
-use Tests\Controllers\RecordPreparation\ {
-    JwtHeaderTokenGenerator,
-    Record,
-    RecordOfFirm,
-    TestablePassword
-};
+use Illuminate\Database\Connection;
+use Tests\Controllers\RecordPreparation\JwtHeaderTokenGenerator;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
+use Tests\Controllers\RecordPreparation\TestablePassword;
 
 class RecordOfClient implements Record
 {
@@ -23,14 +22,14 @@ class RecordOfClient implements Record
     public $rawPassword;
     public $token;
     
-    public function __construct(RecordOfFirm $firm, $index)
+    public function __construct(?RecordOfFirm $firm, $index)
     {
         
-        $this->firm = $firm;
+        $this->firm = isset($firm)? $firm: new RecordOfFirm($index);
         $this->id = "client-$index-id";
         $this->firstName = "client-$index-first_name";
         $this->lastName = 'last_name';
-        $this->email = "client_$index@barapraja.com";
+        $this->email = "purnama.adi+client$index@gmail.com";
         $this->activationCode = bin2hex(random_bytes(32));
         $this->activationCodeExpiredTime = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
         $this->resetPasswordCode = bin2hex(random_bytes(32));
@@ -69,6 +68,11 @@ class RecordOfClient implements Record
             "resetPasswordCode" => $this->resetPasswordCode,
             "resetPasswordCodeExpiredTime" => $this->resetPasswordCodeExpiredTime,
         ];
+    }
+    
+    public function persistSelf(Connection $connection): void
+    {
+        $connection->table("Client")->insert($this->toArrayForDbEntry());
     }
 
 }

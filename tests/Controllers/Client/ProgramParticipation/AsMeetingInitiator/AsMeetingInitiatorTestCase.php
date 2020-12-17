@@ -67,4 +67,28 @@ class AsMeetingInitiatorTestCase extends ProgramParticipationTestCase
         $this->connection->table("Invitee")->truncate();
         $this->connection->table("ParticipantInvitee")->truncate();
     }
+    protected function setManagerCanBeInvited()
+    {
+        $activityParticipant = new RecordOfActivityParticipant($this->meeting->activityType, null, 998);
+        $activityParticipant->participantType = "manager";
+        $this->connection->table("ActivityParticipant")->insert($activityParticipant->toArrayForDbEntry());
+    }
+    protected function setCoordinatorCanBeInvited()
+    {
+        $activityParticipant = new RecordOfActivityParticipant($this->meeting->activityType, null, 998);
+        $activityParticipant->participantType = "coordinator";
+        $this->connection->table("ActivityParticipant")->insert($activityParticipant->toArrayForDbEntry());
+    }
+    protected function setConsultantCanBeInvited()
+    {
+        $activityParticipant = new RecordOfActivityParticipant($this->meeting->activityType, null, 998);
+        $activityParticipant->participantType = "consultant";
+        $this->connection->table("ActivityParticipant")->insert($activityParticipant->toArrayForDbEntry());
+    }
+    protected function setParticipantCanBeInvited()
+    {
+        $activityParticipant = new RecordOfActivityParticipant($this->meeting->activityType, null, 998);
+        $activityParticipant->participantType = "participant";
+        $this->connection->table("ActivityParticipant")->insert($activityParticipant->toArrayForDbEntry());
+    }
 }

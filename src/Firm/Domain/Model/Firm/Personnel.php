@@ -143,6 +143,15 @@ class Personnel implements AssetBelongsToFirm
 
         $this->active = false;
     }
+    
+    public function enable(): void
+    {
+        if ($this->active) {
+            $errorDetail = "forbidden: personnel already active";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $this->active = true;
+    }
 
     public function belongsToFirm(Firm $firm): bool
     {

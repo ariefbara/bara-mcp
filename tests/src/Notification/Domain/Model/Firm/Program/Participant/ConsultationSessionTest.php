@@ -3,13 +3,12 @@
 namespace Notification\Domain\Model\Firm\Program\Participant;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Notification\Domain\Model\Firm\ {
-    Program\Consultant,
-    Program\Participant,
-    Program\Participant\ConsultationSession\ConsultationSessionMail,
-    Program\Participant\ConsultationSession\ConsultationSessionNotification,
-    Team\Member
-};
+use Notification\Domain\Model\Firm\Program\Consultant;
+use Notification\Domain\Model\Firm\Program\ConsultationSetup;
+use Notification\Domain\Model\Firm\Program\Participant;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionMail;
+use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionNotification;
+use Notification\Domain\Model\Firm\Team\Member;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
@@ -18,6 +17,7 @@ class ConsultationSessionTest extends TestBase
 {
 
     protected $consultationSession;
+    protected $consultationSetup;
     protected $participant, $participantName = "participant name",
             $firmDomain = "firm@domain.com", $firmMailSenderAddress = "firm@domain.org", $firmMailSenderName = "firm name";
     protected $consultant, $consultantName = "consultant name";
@@ -46,6 +46,9 @@ class ConsultationSessionTest extends TestBase
         $this->consultationSession->startEndTime = $this->startEndTime;
         $this->consultationSession->consultationSessionMails = new ArrayCollection();
         $this->consultationSession->consultationSessionNotifications = new ArrayCollection();
+        
+        $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
+        $this->consultationSession->consultationSetup = $this->consultationSetup;
 
         $this->urlPath = "/consultation-requests/{$this->consultationSession->id}";
 
@@ -86,6 +89,19 @@ class ConsultationSessionTest extends TestBase
                 ->method("registerNotificationRecipient");
         $this->executeAddAcceptNotificationTriggeredByTeamMember();
     }
+    public function test_addAcceptNotificationTriggeredByTeamMember_registerAllCoordinatorsAsMailRecipient()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method("registerAllCoordinatorsAsMailRecipient")
+                ->with($this->consultationSession);
+        $this->executeAddAcceptNotificationTriggeredByTeamMember();
+    }
+    public function test_addAcceptNotificationTriggeredByTeamMember_registerAllCoordinatorNotificationRecipient()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method("registerAllCoordinatorsAsNotificationRecipient");
+        $this->executeAddAcceptNotificationTriggeredByTeamMember();
+    }
     public function test_addAcceptNotificationTriggeredByTeamMember_addNotification()
     {
         $this->executeAddAcceptNotificationTriggeredByTeamMember();
@@ -121,6 +137,15 @@ class ConsultationSessionTest extends TestBase
         $this->executeAddAcceptNotificationTriggeredByParticipant();
         $this->assertInstanceOf(ConsultationSessionNotification::class, $this->consultationSession->consultationSessionNotifications->first());
     }
+    public function test_addAcceptNotificationTriggeredByParticipant_registerAllCoordinatorsAsMailRecipientAndNotificationRecipient()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method("registerAllCoordinatorsAsMailRecipient")
+                ->with($this->consultationSession);
+        $this->consultationSetup->expects($this->once())
+                ->method("registerAllCoordinatorsAsNotificationRecipient");
+        $this->executeAddAcceptNotificationTriggeredByParticipant();
+    }
     
     protected function executeAddAcceptNotificationTriggeredByConsultant()
     {
@@ -152,6 +177,15 @@ class ConsultationSessionTest extends TestBase
         $this->consultationSession->addAcceptNotificationTriggeredByConsultant();
         $this->assertInstanceOf(ConsultationSessionNotification::class, $this->consultationSession->consultationSessionNotifications->first());
     }
+    public function test_addAcceptNotificationTriggeredByConsultant_registerAllCoordinatorsAsMailRecipientAndNotificationRecipient()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method("registerAllCoordinatorsAsMailRecipient")
+                ->with($this->consultationSession);
+        $this->consultationSetup->expects($this->once())
+                ->method("registerAllCoordinatorsAsNotificationRecipient");
+        $this->executeAddAcceptNotificationTriggeredByConsultant();
+    }
     
     public function test_addMail_addConsultationRequestMailNotCollection()
     {
@@ -169,6 +203,7 @@ class TestableConsultationSession extends ConsultationSession
     public $participant;
     public $id;
     public $consultant;
+    public $consultationSetup;
     public $startEndTime;
     public $consultationSessionMails;
     public $consultationSessionNotifications;

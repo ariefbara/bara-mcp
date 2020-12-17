@@ -23,6 +23,7 @@ class FindClientByEmailControllerTest extends AsTeamMemberTestCase
         $this->connection->table("Firm")->insert($otherFirm->toArrayForDbEntry());
         
         $this->client = new RecordOfClient($firm, 0);
+        $this->client->email = "purnama.adi@gmail.com";
         $this->clientOne_fromOtherFirm = new RecordOfClient($otherFirm, 1);
         $this->connection->table("Client")->insert($this->client->toArrayForDbEntry());
         $this->connection->table("Client")->insert($this->clientOne_fromOtherFirm->toArrayForDbEntry());

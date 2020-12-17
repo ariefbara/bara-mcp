@@ -2,11 +2,10 @@
 
 namespace Firm\Application\Service\Client\ProgramParticipant;
 
-use Firm\{
-    Application\Service\Firm\Program\ActivityTypeRepository,
-    Application\Service\Firm\Program\MeetingType\MeetingRepository,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
+use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
+use Firm\Application\Service\Firm\Program\MeetingType\MeetingRepository;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Resources\Application\Event\Dispatcher;
 
 class InitiateMeeting
 {
@@ -29,18 +28,24 @@ class InitiateMeeting
      */
     protected $activityTypeRepository;
 
+    /**
+     * 
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
     function __construct(
             MeetingRepository $meetingRepository, ClientParticipantRepository $clientParticipantRepository,
-            ActivityTypeRepository $activityTypeRepository)
+            ActivityTypeRepository $activityTypeRepository, Dispatcher $dispatcher)
     {
         $this->meetingRepository = $meetingRepository;
         $this->clientParticipantRepository = $clientParticipantRepository;
         $this->activityTypeRepository = $activityTypeRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
-            string $firmId, string $clientId, string $programId, string $activityTypeId,
-            MeetingData $meetingData): string
+            string $firmId, string $clientId, string $programId, string $activityTypeId, MeetingData $meetingData): string
     {
         $id = $this->meetingRepository->nextIdentity();
         $meetingType = $this->activityTypeRepository->ofId($activityTypeId);
@@ -48,6 +53,9 @@ class InitiateMeeting
                 ->aClientParticipantCorrespondWithProgram($firmId, $clientId, $programId)
                 ->initiateMeeting($id, $meetingType, $meetingData);
         $this->meetingRepository->add($meeting);
+        
+        $this->dispatcher->dispatch($meeting);
+        
         return $id;
     }
 

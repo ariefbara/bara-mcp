@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Personnel\AsMeetingInitiator;
 
-use Firm\ {
-    Application\Service\Personnel\UpdateMeeting,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
-use Query\ {
-    Application\Service\Firm\ViewActivity,
-    Domain\Model\Firm\Program\Activity
-};
+use Config\EventList;
+use Firm\Application\Service\Personnel\UpdateMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Notification\Application\Listener\MeetingScheduleChangedListener;
+use Notification\Application\Service\GenerateMeetingScheduleChangedNotification;
+use Notification\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Query\Application\Service\Firm\ViewActivity;
+use Query\Domain\Model\Firm\Program\Activity;
+use Resources\Application\Event\Dispatcher;
 
 class MeetingController extends AsMeetinginitiatorBaseController
 {
@@ -52,7 +53,17 @@ class MeetingController extends AsMeetinginitiatorBaseController
     protected function buildUpdateService()
     {
         $meetingAttendaceRepository = $this->em->getRepository(Attendee::class);
-        return new UpdateMeeting($meetingAttendaceRepository);
+        $dispatcher = new Dispatcher();
+        $this->addMeetingScheduleChangedListener($dispatcher);
+        return new UpdateMeeting($meetingAttendaceRepository, $dispatcher);
+    }
+    protected function addMeetingScheduleChangedListener(Dispatcher $dispatcher): void
+    {
+        $meetingRepository = $this->em->getRepository(Meeting::class);
+        $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
+        $listener = new MeetingScheduleChangedListener(
+                $generateMeetingScheduleChangeNotification, $this->buildSendImmediateMail());
+        $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);
     }
 
     protected function buildViewService()

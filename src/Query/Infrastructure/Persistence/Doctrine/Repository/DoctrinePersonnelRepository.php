@@ -37,14 +37,18 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
         }
     }
 
-    public function all(string $firmId, int $page, int $pageSize)
+    public function all(string $firmId, int $page, int $pageSize, ?bool $activeStatus)
     {
         $qb = $this->createQueryBuilder('personnel');
         $qb->select('personnel')
-                ->andWhere($qb->expr()->eq('personnel.active', 'true'))
                 ->leftJoin('personnel.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameter('firmId', $firmId);
+        
+        if (isset($activeStatus)) {
+            $qb->andWhere($qb->expr()->eq("personnel.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

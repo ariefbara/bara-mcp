@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation\AsMeetingInitiator;
 
-use Firm\ {
-    Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee\UpdateMeeting,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Domain\Model\Firm\Program\MeetingType\MeetingData,
-    Domain\Model\Firm\Team\Member,
-    Domain\Service\MeetingAttendeeBelongsToTeamFinder
-};
-use Query\ {
-    Application\Service\Firm\ViewActivity,
-    Domain\Model\Firm\Program\Activity
-};
+use Config\EventList;
+use Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee\UpdateMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Team\Member;
+use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Notification\Application\Listener\MeetingScheduleChangedListener;
+use Notification\Application\Service\GenerateMeetingScheduleChangedNotification;
+use Notification\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Query\Application\Service\Firm\ViewActivity;
+use Query\Domain\Model\Firm\Program\Activity;
+use Resources\Application\Event\Dispatcher;
 
 class MeetingController extends AsMeetingInitiatorBaseController
 {
@@ -56,7 +57,18 @@ class MeetingController extends AsMeetingInitiatorBaseController
         $teamMemberRepository = $this->em->getRepository(Member::class);
         $meetingAttendeeRepository = $this->em->getRepository(Attendee::class);
         $meetingAttendeeBelongsToTeamFinder = new MeetingAttendeeBelongsToTeamFinder($meetingAttendeeRepository);
-        return new UpdateMeeting($teamMemberRepository, $meetingAttendeeBelongsToTeamFinder);
+        $dispatcher = new Dispatcher();
+        $this->addMeetingScheduleChangedListener($dispatcher);
+        
+        return new UpdateMeeting($teamMemberRepository, $meetingAttendeeBelongsToTeamFinder, $dispatcher);
+    }
+    protected function addMeetingScheduleChangedListener(Dispatcher $dispatcher): void
+    {
+        $meetingRepository = $this->em->getRepository(Meeting::class);
+        $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
+        $listener = new MeetingScheduleChangedListener(
+                $generateMeetingScheduleChangeNotification, $this->buildSendImmediateMail());
+        $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);
     }
 
     protected function buildViewService()

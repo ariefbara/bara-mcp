@@ -3,15 +3,18 @@
 namespace Tests\Controllers\Personnel\AsProgramCoordinator;
 
 use DateTimeImmutable;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Client\RecordOfClientRegistrant,
-    Firm\Program\RecordOfRegistrant,
-    Firm\RecordOfClient,
-    Firm\RecordOfTeam,
-    Firm\Team\RecordOfTeamProgramRegistration,
-    RecordOfUser,
-    User\RecordOfUserRegistrant
-};
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\Program\Registrant\RecordOfRegistrantProfile;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramRegistration;
+use Tests\Controllers\RecordPreparation\RecordOfUser;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
+use Tests\Controllers\RecordPreparation\User\RecordOfUserRegistrant;
 
 class RegistrantControllerTest extends AsProgramCoordinatorTestCase
 {
@@ -33,6 +36,7 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table('Team')->truncate();
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('Participant')->truncate();
+        $this->connection->table('ParticipantProfile')->truncate();
         $this->connection->table('UserRegistrant')->truncate();
         $this->connection->table('UserParticipant')->truncate();
         $this->connection->table('ClientRegistrant')->truncate();
@@ -77,6 +81,7 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table('Team')->truncate();
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('Participant')->truncate();
+        $this->connection->table('ParticipantProfile')->truncate();
         $this->connection->table('UserRegistrant')->truncate();
         $this->connection->table('UserParticipant')->truncate();
         $this->connection->table('ClientRegistrant')->truncate();
@@ -108,6 +113,45 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
             "concluded" => true,
         ];
         $this->seeInDatabase("Registrant", $registrantEntry);
+    }
+    public function test_accept_transferProfiles()
+    {
+        $program = $this->coordinator->program;
+        
+        $form = new RecordOfForm(0);
+        $profileForm = new RecordOfProfileForm($program->firm, $form);
+        $programsProfileForm = new RecordOfProgramsProfileForm($program, $profileForm, 0);
+        $formRecord = new RecordOfFormRecord($form, 0);
+        $registrantProfile = new RecordOfRegistrantProfile($this->registrantOne_client, $programsProfileForm, $formRecord);
+        
+        $this->connection->table("Form")->truncate();
+        $this->connection->table("ProfileForm")->truncate();
+        $this->connection->table("ProgramsProfileForm")->truncate();
+        $this->connection->table("FormRecord")->truncate();
+        $this->connection->table("RegistrantProfile")->truncate();
+        
+        $this->connection->table("Form")->insert($form->toArrayForDbEntry());
+        $this->connection->table("ProfileForm")->insert($profileForm->toArrayForDbEntry());
+        $this->connection->table("ProgramsProfileForm")->insert($programsProfileForm->toArrayForDbEntry());
+        $this->connection->table("FormRecord")->insert($formRecord->toArrayForDbEntry());
+        $this->connection->table("RegistrantProfile")->insert($registrantProfile->toArrayForDbEntry());
+        
+        $uri = $this->registrantUri . "/{$this->registrantOne_client->id}/accept";
+        $this->patch($uri, [], $this->coordinator->personnel->token)
+                ->seeStatusCode(200);
+        
+        $participantProfileEntry = [
+            "ProgramsProfileForm_id" => $programsProfileForm->id,
+            "FormRecord_id" => $formRecord->id,
+            "removed" => false,
+        ];
+        $this->seeInDatabase("ParticipantProfile", $participantProfileEntry);
+        
+        $this->connection->table("Form")->truncate();
+        $this->connection->table("ProfileForm")->truncate();
+        $this->connection->table("ProgramsProfileForm")->truncate();
+        $this->connection->table("FormRecord")->truncate();
+        $this->connection->table("RegistrantProfile")->truncate();
     }
     public function test_accept_registrationFromUser_persistUserParticipant()
     {

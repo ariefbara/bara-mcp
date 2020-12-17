@@ -2,13 +2,16 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Registrant\RegistrantProfile;
 use Tests\TestBase;
 
 class RegistrantTest extends TestBase
 {
 
     protected $registrant;
+    protected $profile;
     protected $program;
     protected $userRegistrant;
     protected $clientRegistrant;
@@ -24,6 +27,10 @@ class RegistrantTest extends TestBase
     {
         parent::setUp();
         $this->registrant = new TestableRegistrant();
+        
+        $this->profile = $this->buildMockOfClass(RegistrantProfile::class);
+        $this->registrant->profiles = new ArrayCollection();
+        $this->registrant->profiles->add($this->profile);
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->registrant->program = $this->program;
@@ -110,6 +117,21 @@ class RegistrantTest extends TestBase
                 ->with($this->program, $this->participantId);
         $this->executeCreateParticipant();
     }
+    public function test_createParticipant_transferAllProfileToParticipant()
+    {
+        $this->profile->expects($this->once())
+                ->method("transferToParticipant");
+        $this->executeCreateParticipant();
+    }
+    public function test_createParticipant_preventTransferRemovedProfile()
+    {
+        $this->profile->expects($this->once())
+                ->method("isRemoved")
+                ->willReturn(true);
+        $this->profile->expects($this->never())
+                ->method("transferToParticipant");
+        $this->executeCreateParticipant();
+    }
     
     public function test_correspondWithUser_returnUserRegistrantUserIdEqualsResult()
     {
@@ -162,6 +184,7 @@ class TestableRegistrant extends Registrant
     public $userRegistrant;
     public $clientRegistrant;
     public $teamRegistrant;
+    public $profiles;
     
     function __construct()
     {

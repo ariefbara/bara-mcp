@@ -3,6 +3,7 @@
 namespace Firm\Application\Service\Client\ProgramParticipant;
 
 use Firm\Application\Service\Firm\Program\ConsultantRepository;
+use Resources\Application\Event\Dispatcher;
 
 class InviteConsultantToAttendMeeting
 {
@@ -19,20 +20,29 @@ class InviteConsultantToAttendMeeting
      */
     protected $consultantRepository;
 
-    function __construct(
-            AttendeeRepository $attendeeRepository, ConsultantRepository $consultantRepository)
+    /**
+     * 
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
+    function __construct(AttendeeRepository $attendeeRepository, ConsultantRepository $consultantRepository,
+            Dispatcher $dispatcher)
     {
         $this->attendeeRepository = $attendeeRepository;
         $this->consultantRepository = $consultantRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(string $firmId, string $clientId, string $meetingId, string $consultantId): void
     {
         $consultant = $this->consultantRepository->aConsultantOfId($consultantId);
-        $this->attendeeRepository
-                ->anAttendeeBelongsToClientParticipantCorrespondWithMeeting($firmId, $clientId, $meetingId)
-                ->inviteUserToAttendMeeting($consultant);
+        $attendee = $this->attendeeRepository
+                ->anAttendeeBelongsToClientParticipantCorrespondWithMeeting($firmId, $clientId, $meetingId);
+        $attendee->inviteUserToAttendMeeting($consultant);
         $this->attendeeRepository->update();
+        
+        $this->dispatcher->dispatch($attendee);
     }
 
 }

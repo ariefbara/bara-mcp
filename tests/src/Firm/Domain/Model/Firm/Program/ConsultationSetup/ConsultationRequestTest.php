@@ -29,7 +29,7 @@ class ConsultationRequestTest extends TestBase
     {
         $this->executeDisableUpcomingRequest();
         $this->assertTrue($this->consultationRequest->concluded);
-        $this->assertEquals("inactive consultant", $this->consultationRequest->status);
+        $this->assertEquals("disabled by system", $this->consultationRequest->status);
     }
     public function test_disableUpcomingRequest_alreadyConcluded_nop()
     {

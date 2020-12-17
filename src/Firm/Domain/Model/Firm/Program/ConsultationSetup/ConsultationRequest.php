@@ -2,10 +2,9 @@
 
 namespace Firm\Domain\Model\Firm\Program\ConsultationSetup;
 
-use Firm\Domain\Model\Firm\Program\{
-    Consultant,
-    ConsultationSetup
-};
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup;
+use Firm\Domain\Model\Firm\Program\Participant;
 use Resources\Domain\ValueObject\DateTimeInterval;
 
 class ConsultationRequest
@@ -28,6 +27,12 @@ class ConsultationRequest
      * @var Consultant
      */
     protected $consultant;
+    
+    /**
+     *
+     * @var Participant
+     */
+    protected $participant;
 
     /**
      *
@@ -56,7 +61,7 @@ class ConsultationRequest
     {
         if (!$this->concluded && $this->startEndTime->isUpcoming()) {
             $this->concluded = true;
-            $this->status = "inactive consultant";
+            $this->status = "disabled by system";
         }
     }
 

@@ -2,11 +2,10 @@
 
 namespace Firm\Application\Service\Manager;
 
-use Firm\ {
-    Application\Service\Firm\Program\ActivityTypeRepository,
-    Application\Service\Firm\Program\MeetingType\MeetingRepository,
-    Domain\Model\Firm\Program\MeetingType\MeetingData
-};
+use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
+use Firm\Application\Service\Firm\Program\MeetingType\MeetingRepository;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Resources\Application\Event\Dispatcher;
 
 class InitiateMeeting
 {
@@ -29,13 +28,19 @@ class InitiateMeeting
      */
     protected $activityTypeRepository;
 
-    function __construct(
-            MeetingRepository $meetingRepository, ManagerRepository $managerRepository,
-            ActivityTypeRepository $activityTypeRepository)
+    /**
+     * 
+     * @var Dispatcher
+     */
+    protected $dispatcher;
+
+    function __construct(MeetingRepository $meetingRepository, ManagerRepository $managerRepository,
+            ActivityTypeRepository $activityTypeRepository, Dispatcher $dispatcher)
     {
         $this->meetingRepository = $meetingRepository;
         $this->managerRepository = $managerRepository;
         $this->activityTypeRepository = $activityTypeRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     public function execute(
@@ -46,6 +51,8 @@ class InitiateMeeting
         $meeting = $this->managerRepository->aManagerInFirm($firmId, $managerId)
                 ->initiateMeeting($id, $meetingType, $meetingData);
         $this->meetingRepository->add($meeting);
+        
+        $this->dispatcher->dispatch($meeting);
         return $id;
     }
 

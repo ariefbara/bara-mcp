@@ -66,14 +66,18 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $firm = $program->firm;
 
         $personnel = new RecordOfPersonnel($firm, 0);
+        $personnel->email = "purnama.adi+personnel@gmail.com";
         $personnelOne = new RecordOfPersonnel($firm, 1);
+        $personnelOne->email = "purnama.adi+personnelOne@gmail.com";
         $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
         $this->connection->table("Personnel")->insert($personnelOne->toArrayForDbEntry());
 
         $client = new RecordOfClient($firm, 0);
+        $client->email = "purnama.adi+clientZero@gmail.com";
         $this->connection->table("Client")->insert($client->toArrayForDbEntry());
 
         $user = new RecordOfUser(0);
+        $user->email = "purnama.adi+user@gmail.com";
         $this->connection->table("User")->insert($user->toArrayForDbEntry());
 
         $team = new RecordOfTeam($firm, $client, 0);
@@ -82,7 +86,9 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("Team")->insert($teamOne->toArrayForDbEntry());
 
         $manager = new RecordOfManager($firm, 0, "manager@email.org", "Password123");
+        $manager->email = "purnama.adi+manager@gmail.com";
         $this->managerOne = new RecordOfManager($firm, 1, "managerOne@email.org", "Password123");
+        $this->managerOne->email = "purnama.adi+managerOne@gmail.com";
         $this->connection->table("Manager")->insert($manager->toArrayForDbEntry());
         $this->connection->table("Manager")->insert($this->managerOne->toArrayForDbEntry());
 
@@ -105,14 +111,14 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("Participant")->insert($participantTwo->toArrayForDbEntry());
         $this->connection->table("Participant")->insert($this->participantThree->toArrayForDbEntry());
 
-        $this->clientParticipant = new RecordOfClientParticipant($client, $participant);
+        $this->clientParticipant = new RecordOfClientParticipant($client, $this->participantThree);
         $this->connection->table("ClientParticipant")->insert($this->clientParticipant->toArrayForDbEntry());
 
         $this->userParticipant = new RecordOfUserParticipant($user, $participantOne);
         $this->connection->table("UserParticipant")->insert($this->userParticipant->toArrayForDbEntry());
 
         $this->teamParticipant = new RecordOfTeamProgramParticipation($team, $participantTwo);
-        $this->teamParticipantThree = new RecordOfTeamProgramParticipation($teamOne, $this->participantThree);
+        $this->teamParticipantThree = new RecordOfTeamProgramParticipation($teamOne, $participant);
         $this->connection->table("TeamParticipant")->insert($this->teamParticipant->toArrayForDbEntry());
         $this->connection->table("TeamParticipant")->insert($this->teamParticipantThree->toArrayForDbEntry());
 
@@ -188,107 +194,19 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     
     public function test_showAll_200()
     {
-        $response = [
-            "total" => 6,
-            "list" => [
-                [
-                    "id" => $this->managerAttendee->invitee->id,
-                    "willAttend" => $this->managerAttendee->invitee->willAttend,
-                    "attended" => $this->managerAttendee->invitee->attended,
-                    "manager" => [
-                        "id" => $this->managerAttendee->manager->id,
-                        "name" => $this->managerAttendee->manager->name,
-                    ],
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => null,
-                ],
-                [
-                    "id" => $this->coordinatorAttendee->invitee->id,
-                    "willAttend" => $this->coordinatorAttendee->invitee->willAttend,
-                    "attended" => $this->coordinatorAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => [
-                         "id" => $this->coordinatorAttendee->coordinator->id,
-                        "personnel" => [
-                             "id" => $this->coordinatorAttendee->coordinator->personnel->id,
-                             "name" => $this->coordinatorAttendee->coordinator->personnel->getFullName(),
-                        ],
-                    ],
-                    "consultant" => null,
-                    "participant" => null,
-                ],
-                [
-                    "id" => $this->consultantAttendee->invitee->id,
-                    "willAttend" => $this->consultantAttendee->invitee->willAttend,
-                    "attended" => $this->consultantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => [
-                        "id" => $this->consultantAttendee->consultant->id,
-                        "personnel" => [
-                            "id" => $this->consultantAttendee->consultant->personnel->id,
-                            "name" => $this->consultantAttendee->consultant->personnel->getFullName(),
-                        ],
-                    ],
-                    "participant" => null,
-                ],
-                [
-                    "id" => $this->clientParticipantAttendee->invitee->id,
-                    "willAttend" => $this->clientParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->clientParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->clientParticipantAttendee->participant->id,
-                        "user" => null,
-                        "client" => [
-                            "id" => $this->clientParticipant->client->id,
-                            "name" => $this->clientParticipant->client->getFullName(),
-                        ],
-                        "team" => null,
-                    ],
-                ],
-                [
-                    "id" => $this->userParticipantAttendee->invitee->id,
-                    "willAttend" => $this->userParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->userParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->userParticipantAttendee->participant->id,
-                        "user" => [
-                            "id" => $this->userParticipant->user->id,
-                            "name" => $this->userParticipant->user->getFullName(),
-                        ],
-                        "client" => null,
-                        "team" => null,
-                    ],
-                ],
-                [
-                    "id" => $this->teamParticipantAttendee->invitee->id,
-                    "willAttend" => $this->teamParticipantAttendee->invitee->willAttend,
-                    "attended" => $this->teamParticipantAttendee->invitee->attended,
-                    "manager" => null,
-                    "coordinator" => null,
-                    "consultant" => null,
-                    "participant" => [
-                        "id" => $this->teamParticipantAttendee->participant->id,
-                        "user" => null,
-                        "client" => null,
-                        "team" => [
-                            "id" => $this->teamParticipant->team->id,
-                            "name" => $this->teamParticipant->team->name,
-                        ], 
-                    ],
-                ],
-            ],
+        $totalResponse = ["total" => 6];
+        $listReponse = [
+            "id" => $this->managerAttendee->invitee->id,
+            "id" => $this->coordinatorAttendee->invitee->id,
+            "id" => $this->consultantAttendee->invitee->id,
+            "id" => $this->clientParticipantAttendee->invitee->id,
+            "id" => $this->userParticipantAttendee->invitee->id,
+            "id" => $this->teamParticipantAttendee->invitee->id,
         ];
         
         $this->get($this->attendeeUri, $this->teamMember->client->token)
-                ->seeJsonContains($response)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($listReponse)
                 ->seeStatusCode(200);
     }
     
@@ -368,12 +286,12 @@ $this->disableExceptionHandling();
     
     public function test_cancelInvitation_200()
     {
-        $uri = $this->attendeeUri . "/cancel-invitation/{$this->teamParticipantAttendee->invitee->id}";
+        $uri = $this->attendeeUri . "/cancel-invitation/{$this->userParticipantAttendee->invitee->id}";
         $this->patch($uri, [], $this->teamMember->client->token)
                 ->seeStatusCode(200);
         
         $inviteeEntry = [
-            "id" => $this->teamParticipantAttendee->invitee->id,
+            "id" => $this->userParticipantAttendee->invitee->id,
             "cancelled" => true,
         ];
         $this->seeInDatabase("Invitee", $inviteeEntry);

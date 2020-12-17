@@ -29,8 +29,8 @@ class ParticipantController extends AsProgramParticipantBaseController
 
         $service = $this->buildViewService();
         $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
-        $participants = $service->showAll(
-                $firmId, $programId, $this->getPage(), $this->getPageSize(), $activeStatus);
+        $note = $this->stripTagQueryRequest("note");
+        $participants = $service->showAll($firmId, $programId, $this->getPage(), $this->getPageSize(), $activeStatus, $note);
 
         $result = [];
         $result['total'] = count($participants);
