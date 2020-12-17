@@ -31,8 +31,6 @@ class ConsultantTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
-        $this->modifiedUrl = $this->buildMockOfClass(MailMessage::class);
-        $this->modifiedGreetings = $this->buildMockOfClass(MailMessage::class);
         
         $this->notification = $this->buildMockOfClass(ContainNotification::class);
     }
@@ -46,71 +44,25 @@ class ConsultantTest extends TestBase
     
     protected function executeRegisterMailRecipient()
     {
-        $this->mailMessage->expects($this->any())
-                ->method("prependUrlPath")
-                ->willReturn($this->modifiedUrl);
-        $this->modifiedUrl->expects($this->any())
-                ->method("appendRecipientFirstNameInGreetings")
-                ->willReturn($this->modifiedGreetings);
         $this->consultant->registerMailRecipient($this->mailGenerator, $this->mailMessage);
-    }
-    public function test_registerMailRecipient_prependConsultantPathToMailMessageUrlPath()
-    {
-        $this->program->expects($this->once())
-                ->method("getId")
-                ->willReturn($programId = "programId");
-        $this->mailMessage->expects($this->once())
-                ->method("prependUrlPath")
-                ->with("/program-consultant/{$programId}");
-        $this->executeRegisterMailRecipient();
-    }
-    public function test_registerMailRecipient_appendConsultantSalutationInGreetings()
-    {
-        $this->modifiedUrl->expects($this->once())
-                ->method("appendRecipientFirstNameInGreetings")
-                ->with("mentor");
-        $this->executeRegisterMailRecipient();
     }
     public function test_registerMailRecipient_registerPersonnelAsRecipientOnModifiedMail()
     {
         $this->personnel->expects($this->once())
                 ->method("registerAsMailRecipient")
-                ->with($this->mailGenerator, $this->identicalTo($this->modifiedGreetings));
+                ->with($this->mailGenerator, $this->anything());
         $this->executeRegisterMailRecipient();
     }
     
     protected function executeRegisterAsCommentMailRecipient()
     {
-        $this->mailMessage->expects($this->any())
-                ->method("prependUrlPath")
-                ->willReturn($this->modifiedUrl);
-        $this->modifiedUrl->expects($this->any())
-                ->method("appendRecipientFirstNameInGreetings")
-                ->willReturn($this->modifiedGreetings);
         $this->consultant->registerAsCommentMailRecipient($this->mailGenerator, $this->mailMessage);
     }
     public function test_registerAsCommentMailRecipient_registerPersonnelAsMailRecipient()
     {
         $this->personnel->expects($this->once())
                 ->method("registerAsMailRecipient")
-                ->with($this->mailGenerator, $this->identicalTo($this->modifiedGreetings));
-        $this->executeRegisterAsCommentMailRecipient();
-    }
-    public function test_registerAsCommentMailRecipient_prependConsulationUrl()
-    {
-        $this->program->expects($this->once())
-                ->method("getId")
-                ->willReturn($programId = "programId");
-        $this->mailMessage->expects($this->once())
-                ->method("prependUrlPath")
-                ->with("/consultation/{$this->consultant->id}/program/{$programId}");
-        $this->executeRegisterAsCommentMailRecipient();
-    }
-    public function test_registerAsCommentMailRecipient_prependMentorSalutation()
-    {
-        $this->modifiedUrl->expects($this->once())
-                ->method("appendRecipientFirstNameInGreetings")
-                ->with("mentor");
+                ->with($this->mailGenerator, $this->anything());
         $this->executeRegisterAsCommentMailRecipient();
     }
     

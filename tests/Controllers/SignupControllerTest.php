@@ -22,7 +22,7 @@ class SignupControllerTest extends ControllerTestCase
     protected $userSignupInput = [
             "firstName" => 'adi',
             "lastName" => 'purnama',
-            "email" => 'adi@barapraja.com',
+            "email" => 'purnama.adi+user@gmail.com',
             "password" => 'newPwd123',
     ];
 
@@ -51,7 +51,7 @@ class SignupControllerTest extends ControllerTestCase
             "firmIdentifier" => $this->firm->identifier,
             "firstName" => 'adi',
             "lastName" => 'purnama',
-            "email" => 'purnama.adi@gmail.com',
+            "email" => 'purnama.adi+client@gmail.com',
             "password" => 'newPwd123',
         ];
     }
@@ -104,7 +104,7 @@ class SignupControllerTest extends ControllerTestCase
             ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Konsulta: Aktivasi Akun",
+            "subject" => "Activate Account",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -152,7 +152,7 @@ class SignupControllerTest extends ControllerTestCase
             ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Konsulta: Aktivasi Akun",
+            "subject" => "Activate Account",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

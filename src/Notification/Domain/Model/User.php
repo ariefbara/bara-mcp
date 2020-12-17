@@ -79,7 +79,8 @@ class User
         $urlPath = "/user-account/activate/{$this->email}/{$this->activationCode}}";
         $logoPath = BaseConfig::KONSULTA_LOGO_PATH;
         
-        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath)
+                ->appendRecipientFirstNameInGreetings($this->name->getFirstName());
         $senderMailAddress = BaseConfig::MAIL_SENDER_ADDRESS;
         $senderName = BaseConfig::MAIL_SENDER_NAME;
         $recipientMailAddress = $this->email;
@@ -95,7 +96,8 @@ class User
         $urlPath = "/user-account/reset-password/{$this->email}/{$this->resetPasswordCode}";
         $logoPath = BaseConfig::KONSULTA_LOGO_PATH;
         
-        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath)
+                ->appendRecipientFirstNameInGreetings($this->name->getFirstName());
         $senderMailAddress = BaseConfig::MAIL_SENDER_ADDRESS;
         $senderName = BaseConfig::MAIL_SENDER_NAME;
         $recipientMailAddress = $this->email;

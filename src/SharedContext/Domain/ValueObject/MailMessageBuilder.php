@@ -30,7 +30,7 @@ _MESSAGE;
     
     public static function buildAccountResetPasswordMailMessage(?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
-        $subject = "Activate Account";
+        $subject = "Your Account Recovery Is Ready";
         $greetings = "Hi";
         $mainMessage = <<<_MESSAGE
 We received a request to reset your password.
@@ -207,7 +207,7 @@ _MESSAGE;
         $mainMessage = <<<_MESSAGE
 {$introductionMessage}
     type: {$meetingType}
-    meeting: {$meetingName}: {$meetingDescription}
+    meeting: {$meetingName} - {$meetingDescription}
     schedule: {$timeDescription}
     location: {$location}
     

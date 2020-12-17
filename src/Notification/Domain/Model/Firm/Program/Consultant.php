@@ -39,13 +39,13 @@ class Consultant
         return $this->personnel->getFullName();
     }
 
-    public function registerMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltPrependUrl): void
+    public function registerMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltPrependUrl = false): void
     {
         $mailMessage  = $mailMessage->appendRecipientFirstNameInGreetings("mentor");
         if (!$haltPrependUrl) {
             $mailMessage = $mailMessage->prependUrlPath("/program-consultant/{$this->program->getId()}");
         }
-        $this->personnel->registerAsMailRecipient($mailGenerator, $modifiedMailMessage);
+        $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
 
     public function registerNotificationRecipient(ContainNotification $notification): void

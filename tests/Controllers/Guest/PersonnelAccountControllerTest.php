@@ -29,7 +29,6 @@ class PersonnelAccountControllerTest extends ControllerTestCase
         $this->connection->table("Firm")->insert($firm->toArrayForDbEntry());
         
         $this->personnel = new RecordOfPersonnel($firm, 0);
-        $this->personnel->email = "purnama.adi@gmail.com";
         $this->connection->table("Personnel")->insert($this->personnel->toArrayForDbEntry());
         
         $this->resetPasswordInput = [

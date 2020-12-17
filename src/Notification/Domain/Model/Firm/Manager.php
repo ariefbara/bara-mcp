@@ -60,6 +60,7 @@ class Manager
         $logoPath = $this->firm->getLogoPath();
         
         $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
+        $mailMessage = $mailMessage->appendRecipientFirstNameInGreetings("Manager {$this->name}");
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
         $recipientMailAddress = $this->email;
@@ -73,7 +74,7 @@ class Manager
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
         $modifiedMail = $mailMessage->appendRecipientFirstNameInGreetings($this->name)
-                ->prependUrlPath("/firm");
+                ->prependUrlPath("/firm/meeting");
         $mailGenerator->addMail($modifiedMail, $this->email, $this->name);
     }
     

@@ -94,7 +94,7 @@ class Comment implements CanSendPersonalizeMail
         $missionName = $this->worksheet->getMissionName();
         $worksheetName = $this->worksheet->getName();
         $message = $this->message;
-        $domain = $this->$this->worksheet->getFirmDomain();
+        $domain = $this->worksheet->getFirmDomain();
         $urlPath = "";
         $logoPath = $this->worksheet->getFirmLogoPath();
         

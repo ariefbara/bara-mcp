@@ -27,7 +27,7 @@ class ManagerAccountControllerTest extends ControllerTestCase
         $firm = new RecordOfFirm(0);
         $this->connection->table("Firm")->insert($firm->toArrayForDbEntry());
         
-        $this->manager = new RecordOfManager($firm, 0, "purnama.adi@gmail.com", "password123");
+        $this->manager = new RecordOfManager($firm, 0);
         $this->connection->table("Manager")->insert($this->manager->toArrayForDbEntry());
         
         $this->resetPasswordInput = [

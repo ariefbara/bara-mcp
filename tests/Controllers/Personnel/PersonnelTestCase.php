@@ -34,9 +34,8 @@ class PersonnelTestCase extends ControllerTestCase
         $firm = new RecordOfFirm(999, 'firm_identifier');
         $this->connection->table('Firm')->insert($firm->toArrayForDbEntry());
 
-        $this->personnel = new RecordOfPersonnel($firm, 999, 'adi@barapraja.com', 'password123');
-        $this->personnel->email = "purnama.adi+personnel@gmail.com";
-        $this->removedPersonnel = new RecordOfPersonnel($firm, 'removed', 'removed_personnel@email.org', 'password123');
+        $this->personnel = new RecordOfPersonnel($firm, 999);
+        $this->removedPersonnel = new RecordOfPersonnel($firm, 'removed');
         $this->removedPersonnel->active = false;
         $this->connection->table('Personnel')->insert($this->personnel->toArrayForDbEntry());
         $this->connection->table('Personnel')->insert($this->removedPersonnel->toArrayForDbEntry());

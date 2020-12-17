@@ -87,7 +87,8 @@ class Client
         $urlPath = "/client-account/activate/{$this->email}/{$this->activationCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
-        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildAccountActivationMailMessage($domain, $urlPath, $logoPath)
+                ->appendRecipientFirstNameInGreetings($this->name->getFirstName());
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
         $recipientMailAddress = $this->email;
@@ -104,7 +105,8 @@ class Client
         $urlPath = "/client-account/reset-password/{$this->email}/{$this->resetPasswordCode}/{$this->firm->getIdentifier()}";
         $logoPath = $this->firm->getLogoPath();
         
-        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath);
+        $mailMessage = MailMessageBuilder::buildAccountResetPasswordMailMessage($domain, $urlPath, $logoPath)
+                ->appendRecipientFirstNameInGreetings($this->name->getFirstName());
         $senderMailAddress = $this->firm->getMailSenderAddress();
         $senderName = $this->firm->getMailSenderName();
         $recipientMailAddress = $this->email;

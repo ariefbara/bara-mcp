@@ -248,7 +248,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Rejected",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -388,7 +388,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Schedule Changed",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -532,7 +532,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Jadwal Konsultasi",
+            "subject" => "Consultation Scheduled",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
