@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Client;
 
-use Client\ {
+use Client\{
     Application\Service\Client\QuitTeamMembership,
     Domain\Model\Client\TeamMembership
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Client\ViewTeamMembership,
     Domain\Model\Firm\Team\Member
 };
@@ -31,17 +31,20 @@ class TeamMembershipController extends ClientBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $teamMemberships = $service->showAll($this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize());
+        $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
         
+        $teamMemberships = $service
+                ->showAll($this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize(), $activeStatus);
+
         $result = [];
         $result["total"] = count($teamMemberships);
         foreach ($teamMemberships as $teamMembership) {
             $result["list"][] = $this->arrayDataOfTeamMembership($teamMembership);
         }
-        
+
         return $this->listQueryResponse($result);
     }
-    
+
     protected function arrayDataOfTeamMembership(Member $teamMembership): array
     {
         return [
@@ -56,11 +59,13 @@ class TeamMembershipController extends ClientBaseController
             ],
         ];
     }
+
     protected function buildViewService()
     {
         $teamMembershipRepository = $this->em->getRepository(Member::class);
         return new ViewTeamMembership($teamMembershipRepository);
     }
+
     protected function buildQuitService()
     {
         $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);

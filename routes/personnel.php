@@ -22,6 +22,9 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
+    $router->get("/team/{teamId}/members", ["uses" => "TeamMemberController@showAll"]);
+    $router->get("team-members/{teamMemberId}", ["uses" => "TeamMemberController@show"]);
+    
     $asProgramCoordinatorAggregate = [
         'prefix' => '/as-program-coordinator/{programId}',
         'namespace' => 'AsProgramCoordinator',

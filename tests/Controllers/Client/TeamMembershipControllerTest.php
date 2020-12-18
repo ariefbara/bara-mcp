@@ -81,35 +81,39 @@ class TeamMembershipControllerTest extends ClientTestCase
     
     public function test_showAll_200()
     {
-        $response = [
-            "total" => 2,
-            "list" => [
-                [
-                    "id" => $this->teamMembership->id,
-                    "position" => $this->teamMembership->position,
-                    "anAdmin" => $this->teamMembership->anAdmin,
-                    "active" => $this->teamMembership->active,
-                    "joinTime" => $this->teamMembership->joinTime,
-                    "team" => [
-                        "id" => $this->teamMembership->team->id,
-                        "name" => $this->teamMembership->team->name,
-                    ],
-                ],
-                [
-                    "id" => $this->teamMembershipOne_inactive->id,
-                    "position" => $this->teamMembershipOne_inactive->position,
-                    "anAdmin" => $this->teamMembershipOne_inactive->anAdmin,
-                    "active" => $this->teamMembershipOne_inactive->active,
-                    "joinTime" => $this->teamMembershipOne_inactive->joinTime,
-                    "team" => [
-                        "id" => $this->teamMembershipOne_inactive->team->id,
-                        "name" => $this->teamMembershipOne_inactive->team->name,
-                    ],
-                ],
+        $totalResponse = ["total" => 2];
+        $listResponse = [
+            "id" => $this->teamMembership->id,
+            "id" => $this->teamMembershipOne_inactive->id,
+        ];
+        $detailResponse = [
+            "id" => $this->teamMembership->id,
+            "position" => $this->teamMembership->position,
+            "anAdmin" => $this->teamMembership->anAdmin,
+            "active" => $this->teamMembership->active,
+            "joinTime" => $this->teamMembership->joinTime,
+            "team" => [
+                "id" => $this->teamMembership->team->id,
+                "name" => $this->teamMembership->team->name,
             ],
         ];
         $this->get($this->teamMembershipUri, $this->client->token)
-                ->seeJsonContains($response)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($listResponse)
+                ->seeJsonContains($detailResponse)
+                ->seeStatusCode(200);
+    }
+    public function test_showAll_activeStatusFilterSet_200()
+    {
+        $totalResponse = ["total" => 1];
+        $listResponse = [
+            "id" => $this->teamMembership->id,
+        ];
+        
+        $uri = $this->teamMembershipUri . "?activeStatus=true";
+        $this->get($uri, $this->client->token)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($listResponse)
                 ->seeStatusCode(200);
     }
 }
