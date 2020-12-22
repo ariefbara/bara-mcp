@@ -3,6 +3,7 @@
 namespace Notification\Application\Service;
 
 use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 use Tests\TestBase;
 
 class GenerateNotificationWhenConsultationRequestTimeChangedTest extends TestBase
@@ -33,7 +34,7 @@ class GenerateNotificationWhenConsultationRequestTimeChangedTest extends TestBas
     {
         $this->consultationRequest->expects($this->once())
                 ->method("createNotificationTriggeredByParticipant")
-                ->with(ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT);
+                ->with(MailMessageBuilder::CONSULTATION_SCHEDULE_CHANGED);
         $this->execute();
     }
     public function test_execute_updateRepository()

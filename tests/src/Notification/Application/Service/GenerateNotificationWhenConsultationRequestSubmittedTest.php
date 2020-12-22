@@ -3,6 +3,7 @@
 namespace Notification\Application\Service;
 
 use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 use Tests\TestBase;
 
 class GenerateNotificationWhenConsultationRequestSubmittedTest extends TestBase
@@ -33,7 +34,7 @@ class GenerateNotificationWhenConsultationRequestSubmittedTest extends TestBase
     {
         $this->consultationRequest->expects($this->once())
                 ->method("createNotificationTriggeredByParticipant")
-                ->with(ConsultationRequest::SUBMITTED_BY_PARTICIPANT);
+                ->with(MailMessageBuilder::CONSULTATION_REQUESTED);
         $this->execute();
     }
     public function test_execute_updateRepository()

@@ -3,6 +3,7 @@
 namespace Notification\Application\Service;
 
 use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 use Tests\TestBase;
 
 class GenerateNotificationWhenConsultationRequestRejectedTest extends TestBase
@@ -33,7 +34,7 @@ class GenerateNotificationWhenConsultationRequestRejectedTest extends TestBase
     {
         $this->consultationRequest->expects($this->once())
                 ->method("createNotificationTriggeredByConsultant")
-                ->with(ConsultationRequest::REJECTED_BY_CONSULTANT);
+                ->with(MailMessageBuilder::CONSULTATION_REJECTED);
         $this->execute();
     }
     public function test_execute_updateRepository()

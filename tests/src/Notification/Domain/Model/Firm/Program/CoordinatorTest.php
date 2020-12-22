@@ -3,6 +3,7 @@
 namespace Notification\Domain\Model\Firm\Program;
 
 use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\Model\Firm\Program;
 use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Notification\Domain\SharedModel\ContainNotificationForAllUser;
 use SharedContext\Domain\ValueObject\MailMessage;
@@ -24,6 +25,7 @@ class CoordinatorTest extends TestBase
         $this->coordinator = new TestableCoordinator();
         $this->personnel = $this->buildMockOfClass(Personnel::class);
         $this->coordinator->personnel = $this->personnel;
+        $this->coordinator->program = $this->buildMockOfClass(Program::class);
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->notification = $this->buildMockOfInterface(ContainNotificationForAllUser::class);
@@ -46,7 +48,7 @@ class CoordinatorTest extends TestBase
     {
         $this->modifiedGreetings->expects($this->once())
                 ->method("prependUrlPath")
-                ->with("/coordinators/{$this->coordinator->id}");
+                ->with("/program-coordinator/{$this->coordinator->id}");
         $this->executeRegisterAsMailRecipient();
     }
     public function test_registerAsMailRecipient_registerPersonnelAsMailRecipient()

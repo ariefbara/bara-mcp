@@ -123,14 +123,14 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->teamMember->client->token)
             ->seeStatusCode(403);
     }
-    public function test_register_removedProgram_403()
+    public function test_register_removedProgram_404()
     {
         $this->connection->table('Program')->truncate();
         $this->program->removed = true;
         $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
         
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->teamMember->client->token)
-            ->seeStatusCode(403);
+            ->seeStatusCode(404);
     }
     public function test_register_alreadyRegistedInProgram_403()
     {

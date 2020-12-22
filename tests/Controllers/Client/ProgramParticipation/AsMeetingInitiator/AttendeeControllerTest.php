@@ -310,7 +310,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     public function test_inviteManager_sendMailAndNotfication_200()
     {
         $this->executeInviteManager();
-        (new MailChecker())->checkMailExist($subject = "undangan meeting", $this->managerOne->email);
+        (new MailChecker())->checkMailExist($subject = "Meeting Invitation", $this->managerOne->email);
         (new NotificationChecker())
                 ->checkNotificationExist($message = "meeting invitation received")
                 ->checkManagerNotificationExist($this->managerOne->id);
@@ -340,7 +340,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     {
         $this->executeInviteCoordinator();
         
-        (new MailChecker())->checkMailExist($subject = "undangan meeting", $this->coordinatorOne->personnel->email);
+        (new MailChecker())->checkMailExist($subject = "Meeting Invitation", $this->coordinatorOne->personnel->email);
         (new NotificationChecker())
                 ->checkNotificationExist($message = "meeting invitation received")
                 ->checkPersonnelNotificationExist($this->coordinatorOne->personnel->id);
@@ -387,7 +387,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->executeInviteConslutant();
         $this->seeStatusCode(200);
         
-        (new MailChecker())->checkMailExist($subject = "undangan meeting", $this->consultantOne->personnel->email);
+        (new MailChecker())->checkMailExist($subject = "Meeting Invitation", $this->consultantOne->personnel->email);
         (new NotificationChecker())
                 ->checkNotificationExist($message = "meeting invitation received")
                 ->checkPersonnelNotificationExist($this->consultantOne->personnel->id);
@@ -437,7 +437,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     {
         $this->executeInviteParticipant();
         
-        (new MailChecker())->checkMailExist($subject = "Undangan Meeting", $recipientEmail = $this->teamMemberOne->client->email);
+        (new MailChecker())->checkMailExist($subject = "Meeting Invitation", $recipientEmail = $this->teamMemberOne->client->email);
         (new NotificationChecker())
                 ->checkNotificationExist($message = "meeting invitation received")
                 ->checkClientNotificationExist($this->teamMemberOne->client->id);
@@ -479,9 +479,9 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->executeCancelInvitation();
         
         (new MailChecker())->checkMailExist(
-                $subject = "Undangan Meeting Dibatalkan", $recipientEmail = $this->coordinatorAttendee->coordinator->personnel->email);
+                $subject = "Meeting Invitation Cancelled", $recipientEmail = $this->coordinatorAttendee->coordinator->personnel->email);
         (new NotificationChecker())
-                ->checkNotificationExist($message = "meeting invitation has been cancelled")
+                ->checkNotificationExist($message = "meeting invitation cancelled")
                 ->checkPersonnelNotificationExist($this->coordinatorAttendee->coordinator->personnel->id);
     }
 

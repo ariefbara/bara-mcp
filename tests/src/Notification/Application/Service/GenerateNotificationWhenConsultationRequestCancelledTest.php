@@ -3,6 +3,7 @@
 namespace Notification\Application\Service;
 
 use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 use Tests\TestBase;
 
 class GenerateNotificationWhenConsultationRequestCancelledTest extends TestBase
@@ -32,7 +33,7 @@ class GenerateNotificationWhenConsultationRequestCancelledTest extends TestBase
     {
         $this->consultationRequest->expects($this->once())
                 ->method("createNotificationTriggeredByParticipant")
-                ->with(ConsultationRequest::CANCELLED_BY_PARTICIPANT);
+                ->with(MailMessageBuilder::CONSULTATION_CANCELLED);
         $this->execute();
     }
     public function test_execute_updateRepository()

@@ -2,11 +2,9 @@
 
 namespace Notification\Application\Listener\Firm\Team;
 
-use Notification\ {
-    Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember,
-    Application\Service\SendImmediateMail,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest
-};
+use Notification\Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember;
+use Notification\Application\Service\SendImmediateMail;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 use Tests\TestBase;
 
 class MemberCancelledConsultationRequestListenerTest extends TestBase
@@ -34,7 +32,7 @@ class MemberCancelledConsultationRequestListenerTest extends TestBase
     {
         $this->generateConsultationRequestNotificationTriggeredByTeamMember->expects($this->once())
                 ->method("execute")
-                ->with($this->memberId, $this->id, ConsultationRequest::CANCELLED_BY_PARTICIPANT);
+                ->with($this->memberId, $this->id, MailMessageBuilder::CONSULTATION_CANCELLED);
         $this->listener->handle($this->event);
     }
     public function test_handle_sendImmediateMail()
