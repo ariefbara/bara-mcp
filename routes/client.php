@@ -487,6 +487,14 @@ $router->group($clientAggregate, function () use ($router) {
                     $router->get("/{attendeeId}", ["uses" => "$controller@show"]);
                 });
             });
+            
+            $router->group(['prefix' => '/profiles'], function () use($router) {
+                $controller = "ProfileController";
+                $router->put("/{programsProfileFormId}", ["uses" => "$controller@submit"]);
+                $router->delete("/{programsProfileFormId}", ["uses" => "$controller@remove"]);
+                $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+            });
         });
         
         $programRegistrationAggregate = [

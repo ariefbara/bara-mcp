@@ -2,17 +2,15 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Participant\{
-    Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository,
-    Domain\Model\TeamProgramParticipation
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\Client\AsTeamMember\TeamParticipantRepository;
+use Participant\Application\Service\Firm\Client\TeamMembership\TeamProgramParticipationRepository;
+use Participant\Domain\Model\TeamProgramParticipation;
 use Resources\Exception\RegularException;
 
-class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository
+class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository,
+        TeamParticipantRepository
 {
 
     public function ofId(string $teamProgramParticipationId): TeamProgramParticipation

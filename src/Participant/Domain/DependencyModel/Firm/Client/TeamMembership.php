@@ -16,6 +16,7 @@ use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
@@ -237,6 +238,23 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($programRegistration);
         $programRegistration->removeProfile($registrantProfile);
+    }
+
+    public function submitParticipantProfile(
+            TeamProgramParticipation $teamParticipant, ProgramsProfileForm $programsProfileForm,
+            FormRecordData $formRecordData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->submitProfile($programsProfileForm, $formRecordData);
+    }
+
+    public function removeParticipantProfile(TeamProgramParticipation $teamParticipant,
+            ParticipantProfile $participantProfile): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->removeProfile($participantProfile);
     }
 
 }

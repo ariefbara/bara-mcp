@@ -15,6 +15,7 @@ use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Model\Registrant\RegistrantProfile;
@@ -46,6 +47,7 @@ class TeamMembershipTest extends TestBase
     protected $observationTime;
     protected $programRegistration;
     protected $programsProfileForm, $registrantProfile;
+    protected $participantProfile;
 
     protected function setUp(): void
     {
@@ -83,6 +85,8 @@ class TeamMembershipTest extends TestBase
         $this->programRegistration = $this->buildMockOfClass(TeamProgramRegistration::class);
         $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
         $this->registrantProfile = $this->buildMockOfClass(RegistrantProfile::class);
+        
+        $this->participantProfile = $this->buildMockOfClass(ParticipantProfile::class);
     }
 
     protected function setAssetsNotBelongsToTeam($asset)
@@ -642,6 +646,61 @@ class TeamMembershipTest extends TestBase
         $this->setAssetsNotBelongsToTeam($this->programRegistration);
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
             $this->executeRemoveRegistrantProfile();
+        });
+    }
+    
+    protected function executeSubmitParticipantProfile()
+    {
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
+        $this->teamMembership->submitParticipantProfile(
+                $this->teamProgramParticipation, $this->programsProfileForm, $this->formRecordData);
+    }
+    public function test_submitParticipantProfile_submitProfileInProgramParticipation()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("submitProfile")
+                ->with($this->programsProfileForm, $this->formRecordData);
+        $this->executeSubmitParticipantProfile();
+    }
+    public function test_submitParticipantProfile_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertInactiveTeamMembershipForbiddenError(function (){
+            $this->executeSubmitParticipantProfile();
+        });
+    }
+    public function test_submitParticipantProfile_programParticipationNotFromSameTeam()
+    {
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeSubmitParticipantProfile();
+        });
+    }
+    
+    protected function executeRemoveParticipantProfile()
+    {
+        $this->setAssetsBelongsToTeam($this->teamProgramParticipation);
+        $this->teamMembership->removeParticipantProfile($this->teamProgramParticipation, $this->participantProfile);
+    }
+    public function test_removeParticipantProfile_removeProfileInTeamParticipant()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method("removeProfile")
+                ->with($this->participantProfile);
+        $this->executeRemoveParticipantProfile();
+    }
+    public function test_removeParticipantProfile_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertInactiveTeamMembershipForbiddenError(function (){
+            $this->executeRemoveParticipantProfile();
+        });
+    }
+    public function test_removeParticipantProfile_teamParticipantNotFromSameTeam_forbidden()
+    {
+        $this->setAssetsNotBelongsToTeam($this->teamProgramParticipation);
+        $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
+            $this->executeRemoveParticipantProfile();
         });
     }
 }
