@@ -50,7 +50,6 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('Comment')->insert($this->commentOne->toArrayForDbEntry());
 
         $personnel = new RecordOfPersonnel($firm, 0);
-        $personnel->email = "adi@barapraja.com";
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
         $consultant = new RecordOfConsultant($program, $personnel, 0);

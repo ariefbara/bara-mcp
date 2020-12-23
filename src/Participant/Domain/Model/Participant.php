@@ -11,6 +11,7 @@ use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\CompletedMission;
 use Participant\Domain\Model\Participant\ConsultationRequest;
@@ -18,6 +19,7 @@ use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -94,6 +96,12 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      * @var ArrayCollection
      */
     protected $completedMissions;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $profiles;
 
     protected function __construct()
     {
@@ -219,7 +227,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
     }
 
     public function submitMetricAssignmentReport(
-            string $metricAssignmentReportId, ?\DateTimeImmutable $observationTime,
+            string $metricAssignmentReportId, ?DateTimeImmutable $observationTime,
             MetricAssignmentReportDataProvider $metricAssignmentReportDataProvider): MetricAssignmentReport
     {
         $this->assertActive();
@@ -284,6 +292,36 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             $errorDetail = "forbidden: only active program participant can make this request";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+    
+    public function submitProfile(ProgramsProfileForm $programsProfileForm, FormRecordData $formRecordData): void
+    {
+        $this->assertActive();
+        if (!$programsProfileForm->programEquals($this->program)) {
+            $errorDetail = "forbidden: unable to submit profile from other program's profile template";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
+        $p = function (ParticipantProfile $profile) use ($programsProfileForm){
+            return $profile->anActiveProfileCorrespondWithProgramsProfileForm($programsProfileForm);
+        };
+        if (!empty($profile = $this->profiles->filter($p)->first())) {
+            $profile->update($formRecordData);
+        } else {
+            $id = Uuid::generateUuid4();
+            $participantProfile = new ParticipantProfile($this, $id, $programsProfileForm, $formRecordData);
+            $this->profiles->add($participantProfile);
+        }
+    }
+    
+    public function removeProfile(ParticipantProfile $participantProfile): void
+    {
+        $this->assertActive();
+        if (!$participantProfile->belongsToParticipant($this)) {
+            $errorDetail = "forbidden: can only remove owned profile";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $participantProfile->remove();
     }
 
 }

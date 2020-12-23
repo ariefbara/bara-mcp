@@ -7,9 +7,11 @@ use Participant\Domain\DependencyModel\Firm\Client;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -109,6 +111,16 @@ class ClientParticipant implements ContainEvents
             $allFileInfoBelongsToClient = $allFileInfoBelongsToClient && $fileInfo->belongsToClient($this->client);
         }
         return $allFileInfoBelongsToClient;
+    }
+    
+    public function submitProfile(ProgramsProfileForm $programsProfileForm, FormRecordData $formRecordData): void
+    {
+        $this->participant->submitProfile($programsProfileForm, $formRecordData);
+    }
+    
+    public function removeProfile(ParticipantProfile $participantProfile): void
+    {
+        $this->participant->removeProfile($participantProfile);
     }
 
     protected function assertAllAttachedFileBelongsToClient(

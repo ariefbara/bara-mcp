@@ -2,12 +2,15 @@
 
 namespace Participant\Domain\Model;
 
+use DateTimeImmutable;
 use Participant\Domain\DependencyModel\Firm\Client;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -28,6 +31,8 @@ class ClientParticipantTest extends TestBase
     protected $comment;
     protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime, $metricAssignmentReportDataProvider;
     protected $fileInfo;
+    protected $programsProfileForm;
+    protected $participantProfile;
 
     protected function setUp(): void
     {
@@ -52,9 +57,12 @@ class ClientParticipantTest extends TestBase
 
         $this->comment = $this->buildMockOfClass(Comment::class);
         
-        $this->observationTime = new \DateTimeImmutable();
+        $this->observationTime = new DateTimeImmutable();
         $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
+        
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->participantProfile = $this->buildMockOfClass(ParticipantProfile::class);
     }
 
     public function test_quit_quitParticipant()
@@ -202,6 +210,22 @@ class ClientParticipantTest extends TestBase
                 ->method("iterateAllAttachedFileInfo")
                 ->willReturn([$this->fileInfo, $this->fileInfo]);
         $this->assertFalse($this->clientParticipant->ownAllAttachedFileInfo($this->metricAssignmentReportDataProvider));
+    }
+    
+    public function test_submitProfile_submitProfileInParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method("submitProfile")
+                ->with($this->programsProfileForm, $this->formRecordData);
+        $this->clientParticipant->submitProfile($this->programsProfileForm, $this->formRecordData);
+    }
+    
+    public function test_removeProfile_removeProfileInParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method("removeProfile")
+                ->with($this->participantProfile);
+        $this->clientParticipant->removeProfile($this->participantProfile);
     }
 
 }

@@ -2,18 +2,21 @@
 
 namespace Participant\Domain\Model;
 
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\CompletedMission;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -42,6 +45,8 @@ class ParticipantTest extends TestBase
     protected $team;
     protected $teamMember;
     protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime, $metricAssignmentReportDataProvider;
+    
+    protected $programsProfileForm, $profile;
 
     protected function setUp(): void
     {
@@ -52,6 +57,7 @@ class ParticipantTest extends TestBase
         $this->participant->consultationRequests = new ArrayCollection();
         $this->participant->consultationSessions = new ArrayCollection();
         $this->participant->completedMissions = new ArrayCollection();
+        $this->participant->profiles = new ArrayCollection();
         
         $this->teamProgramParticipation = $this->buildMockOfClass(TeamProgramParticipation::class);
         $this->participant->teamProgramParticipation = $this->teamProgramParticipation;
@@ -79,7 +85,7 @@ class ParticipantTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
-        $this->consultationRequestData->expects($this->any())->method("getStartTime")->willReturn(new \DateTimeImmutable());
+        $this->consultationRequestData->expects($this->any())->method("getStartTime")->willReturn(new DateTimeImmutable());
 
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->mission->expects($this->any())->method("isRootMission")->willReturn(true);
@@ -91,8 +97,12 @@ class ParticipantTest extends TestBase
         
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
         
-        $this->observationTime = new \DateTimeImmutable();
+        $this->observationTime = new DateTimeImmutable();
         $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
+        
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->profile = $this->buildMockOfClass(ParticipantProfile::class);
+        $this->participant->profiles->add($this->profile);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -517,6 +527,91 @@ class ParticipantTest extends TestBase
         $this->executeOwnAllAttachedFileInfo();
     }
     
+    protected function executeSubmitProfile()
+    {
+        $this->programsProfileForm->expects($this->any())->method("programEquals")->willReturn(true);
+        $this->participant->submitProfile($this->programsProfileForm, $this->formRecordData);
+    }
+    public function test_execute_addProfileToCollection()
+    {
+        $this->executeSubmitProfile();
+        $this->assertEquals(2, $this->participant->profiles->count());
+        $this->assertInstanceOf(ParticipantProfile::class, $this->participant->profiles->last());
+    }
+    public function test_executeSubmitProfile_programsProfileFormFromDifferentProgram_forbidden()
+    {
+        $this->programsProfileForm->expects($this->once())
+                ->method("programEquals")
+                ->with($this->program)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeSubmitProfile();
+        };
+        $errorDetail = "forbidden: unable to submit profile from other program's profile template";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_executeSubmitProfile_anActiveProfileCorrespondToSameProgramsProfileFormAlreadyExist_updateExistingProfile()
+    {
+        $this->profile->expects($this->once())
+                ->method("anActiveProfileCorrespondWithProgramsProfileForm")
+                ->with($this->programsProfileForm)
+                ->willReturn(true);
+        
+        $this->profile->expects($this->once())
+                ->method("update")
+                ->with($this->formRecordData);
+        
+        $this->executeSubmitProfile();
+    }
+    public function test_execute_updateOccured_preventAddNewProfile()
+    {
+        $this->profile->expects($this->once())
+                ->method("anActiveProfileCorrespondWithProgramsProfileForm")
+                ->willReturn(true);
+        $this->executeSubmitProfile();
+        $this->assertEquals(1, $this->participant->profiles->count());
+    }
+    public function test_executeSubmitProfile_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertOperationCauseInactiveParticipantForbiddenError(function (){
+            $this->executeSubmitProfile();
+        });
+    }
+    
+    protected function executeRemoveProfile()
+    {
+        $this->profile->expects($this->any())
+                ->method("belongsToParticipant")
+                ->willReturn(true);
+        $this->participant->removeProfile($this->profile);
+    }
+    public function test_removeProfile_removeParticipantProfile()
+    {
+        $this->profile->expects($this->once())
+                ->method("remove");
+        $this->executeRemoveProfile();
+    }
+    public function test_removeProfile_profileDoesntBelongToParticipant_forbidden()
+    {
+        $this->profile->expects($this->once())
+                ->method("belongsToParticipant")
+                ->with($this->participant)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeRemoveProfile();
+        };
+        $errorDetail = "forbidden: can only remove owned profile";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_removeProfile_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertOperationCauseInactiveParticipantForbiddenError(function (){
+            $this->executeRemoveProfile();
+        });
+    }
+    
 }
 
 class TestableParticipant extends Participant
@@ -533,6 +628,7 @@ class TestableParticipant extends Participant
     public $userParticipant;
     public $metricAssignment;
     public $completedMissions;
+    public $profiles;
 
     function __construct()
     {

@@ -52,5 +52,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many  field="profiles" 
+                      target-entity="Participant\Domain\Model\Participant\ParticipantProfile"
+                      mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

@@ -20,13 +20,10 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Domain/Model/Firm/Manager.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/SharedContext/Domain/ValueObject/MailMessageBuilder.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/SharedContext/Domain/ValueObject/MailMessage.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/AsMeetingInitiator/MeetingControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/AsProgramCoordinator/MeetingControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/AsMeetingInitiator/AttendeeControllerTest.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/SignupControllerTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Participant/Domain/Model/Participant/ParticipantProfile.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Participant/Domain/Model/ProgramRegistration.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Participant/Domain/Model/Participant.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Participant/Domain/Model/ClientParticipant.php</file>
         </group>
     </open-files>
 </project-private>
