@@ -148,6 +148,9 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/registrants/{registrantId}/registrant-profiles", ["uses" => "RegistrantProfileController@showAll"]);
         $router->get("/registrant-profiles/{registrantProfileId}", ["uses" => "RegistrantProfileController@show"]);
         
+        $router->get("/participants/{participantId}/participant-profiles", ["uses" => "ParticipantProfileController@showAll"]);
+        $router->get("/participant-profiles/{participantProfileId}", ["uses" => "ParticipantProfileController@show"]);
+        
     });
     
     $asProgramConsultantAggregate = [
