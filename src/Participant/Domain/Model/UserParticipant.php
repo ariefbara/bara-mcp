@@ -6,9 +6,11 @@ use DateTimeImmutable;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -108,6 +110,16 @@ class UserParticipant implements ContainEvents
     {
         return $this->participant->submitMetricAssignmentReport(
                         $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
+    }
+    
+    public function submitProfile(ProgramsProfileForm $programProfileForm, FormRecordData $formRecordData): void
+    {
+        $this->participant->submitProfile($programProfileForm, $formRecordData);
+    }
+    
+    public function removeProfile(ParticipantProfile $profile): void
+    {
+        $this->participant->removeProfile($profile);
     }
 
 }

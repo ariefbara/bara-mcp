@@ -2,16 +2,17 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\Client\ParticipantProfileRepository as InterfaceForClient;
 use Query\Application\Service\Firm\Program\ParticipantProfileRepository;
+use Query\Application\Service\User\ParticipantProfileRepository as InterfaceForUser;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantProfile;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineParticipantProfileRepository extends EntityRepository implements ParticipantProfileRepository, InterfaceForClient
+class DoctrineParticipantProfileRepository extends BelongsToParticipantEntityRepository
+        implements ParticipantProfileRepository, InterfaceForClient, InterfaceForUser
 {
 
     public function aParticipantProfileInProgram(string $firmId, string $programId, string $participantProfileId): ParticipantProfile
@@ -128,9 +129,51 @@ class DoctrineParticipantProfileRepository extends EntityRepository implements P
                 ->leftJoin("participantProfile.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
-        
+    }
+
+    public function aParticipantProfileBelongsToUserCorrespondWithProgramsProfileForm(string $userId,
+            string $programParticipationId, string $programsProfileFormId): ParticipantProfile
+    {
+        $params = [
+            "userId" => $userId,
+            "programParticipationId" => $programParticipationId,
+            "programsProfileFormId" => $programsProfileFormId,
+        ];
+        $qb = $this->createQueryBuilder("participantProfile");
+        $qb->select("participantProfile")
+                ->andWhere($qb->expr()->eq("participantProfile.removed", "false"))
+                ->leftJoin("participantProfile.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $this->getUserParticipantIdDQL()))
+                ->leftJoin("participantProfile.programsProfileForm", "programsProfileForm")
+                ->andWhere($qb->expr()->eq("programsProfileForm.id", ":programsProfileFormId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: participant profile not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allParticipantProfilesBelongsToUser(
+            string $userId, string $programParticipationId, int $page, int $pageSize)
+    {
+        $params = [
+            "userId" => $userId,
+            "programParticipationId" => $programParticipationId,
+        ];
+        $qb = $this->createQueryBuilder("participantProfile");
+        $qb->select("participantProfile")
+                ->andWhere($qb->expr()->eq("participantProfile.removed", "false"))
+                ->leftJoin("participantProfile.participant", "participant")
+                ->andWhere($qb->expr()->in("participant.id", $this->getUserParticipantIdDQL()))
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

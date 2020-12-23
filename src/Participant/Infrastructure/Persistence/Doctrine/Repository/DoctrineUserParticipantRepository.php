@@ -2,17 +2,14 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Participant\ {
-    Application\Service\UserParticipantRepository,
-    Domain\Model\UserParticipant
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\UserParticipantRepository;
+use Participant\Application\Service\User\UserParticipantRepository as InterfaceForUser;
+use Participant\Domain\Model\UserParticipant;
 use Resources\Exception\RegularException;
 
-class DoctrineUserParticipantRepository extends EntityRepository implements UserParticipantRepository
+class DoctrineUserParticipantRepository extends EntityRepository implements UserParticipantRepository, InterfaceForUser
 {
     
     public function ofId(string $userId, string $userParticipantId): UserParticipant
@@ -40,6 +37,19 @@ class DoctrineUserParticipantRepository extends EntityRepository implements User
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aUserParticipant(string $userId, string $programParticipationId): UserParticipant
+    {
+        $userParticipant = $this->findOneBy([
+            "id" => $programParticipationId,
+            "userId" => $userId
+        ]);
+        if (empty($userParticipant)) {
+            $errorDetail = "not found: user participant not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $userParticipant;
     }
 
 }
