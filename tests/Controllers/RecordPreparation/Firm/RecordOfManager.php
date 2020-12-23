@@ -25,7 +25,7 @@ class RecordOfManager implements Record
     
     public function __construct(?RecordOfFirm $firm, $index)
     {
-        $this->rawPassword = "Password123";
+        $this->rawPassword = "Bismill4h";
         
         $this->firm = isset($firm)? $firm: new RecordOfFirm($index);
         $this->id = "manager-$index-id";

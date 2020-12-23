@@ -63,7 +63,7 @@ class LoginControllerTest extends ControllerTestCase
         $this->firm = new RecordOfFirm(0, 'identifier');
         $this->connection->table('Firm')->insert($this->firm->toArrayForDbEntry());
 
-        $this->manager = new RecordOfManager($this->firm, 0, 'manager@email.org', 'password123');
+        $this->manager = new RecordOfManager($this->firm, 0);
         $this->connection->table('Manager')->insert($this->manager->toArrayForDbEntry());
         $this->managerLoginRequest = [
             "firmIdentifier" => $this->firm->identifier,
@@ -160,6 +160,7 @@ class LoginControllerTest extends ControllerTestCase
             "id" => $this->manager->id,
             "name" => $this->manager->name,
         ];
+echo $this->manager->password;
         $this->post($this->managerLoginUri, $this->managerLoginRequest)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);

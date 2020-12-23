@@ -90,25 +90,11 @@ class AttachmentFieldRecordTest extends TestBase
 
     function test_setAttachedFiles_containAttachedFilesReferToFileInfoNoLongerAttached_removeThisObsoleteAttachedFiles()
     {
-        $nonAttachedFileInfo = new TestableFileInfo();
-        $this->attachedFile->expects($this->atLeastOnce())
-                ->method('getFileInfo')
-                ->willReturn($nonAttachedFileInfo);
         $this->attachedFile->expects($this->once())
-                ->method('remove');
-        $this->executeSetAttachedFiles();
-    }
-
-    function test_setAttachedFiles_attachedFilesReferToObsoleteFileInfoAlreadyRemoved_ignoreRemovingThisAttachedFile()
-    {
-        $nonAttachedFileInfo = new TestableFileInfo();
-        $this->attachedFile->expects($this->atLeastOnce())
-                ->method('getFileInfo')
-                ->willReturn($nonAttachedFileInfo);
-        $this->attachedFile->expects($this->atLeastOnce())
-                ->method('isRemoved')
+                ->method("isUnremovedAttachmentOfFileNotIncludedIn")
+                ->with($this->fileInfoList)
                 ->willReturn(true);
-        $this->attachedFile->expects($this->never())
+        $this->attachedFile->expects($this->once())
                 ->method('remove');
         $this->executeSetAttachedFiles();
     }
