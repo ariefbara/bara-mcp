@@ -55,5 +55,10 @@ class MeetingType
     {
         return $this->program->getFirmMailSenderName();
     }
+    
+    public function getProgramId(): string
+    {
+        return $this->program->getId();
+    }
 
 }

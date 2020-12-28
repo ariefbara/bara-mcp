@@ -36,7 +36,7 @@ class ParticipantMeetingAttendee
     
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $this->participant->registerMailRecipient($mailGenerator, $mailMessage);
+        $this->participant->registerMailRecipient($mailGenerator, $mailMessage, null, $haltPrependUrlPath = false);
     }
 
     public function registerAsNotificationRecipient(ContainNotification $notification): void
