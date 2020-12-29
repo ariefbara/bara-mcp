@@ -156,7 +156,7 @@ class MeetingAttendee implements CanSendPersonalizeMail
             CanSendPersonalizeMail $meeting, MailMessage $mailMessage, ?bool $haltPrependUrlPath = false): void
     {
         if (!$haltPrependUrlPath) {
-            $mailMessage = $mailMessage->prependUrlPath("/invitations/{$this->id}");
+            $mailMessage = $mailMessage->prependUrlPath("/invitation/{$this->id}");
         }
         $this->registerUserAsMailRecipient($meeting, $mailMessage);
     }

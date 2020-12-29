@@ -24,6 +24,9 @@ class MeetingControllerTest extends AsProgramParticipantTestCase
         $this->connection->table("Activity")->truncate();
         $this->connection->table("Invitee")->truncate();
         $this->connection->table("ParticipantInvitee")->truncate();
+        $this->connection->table("MeetingMail")->truncate();
+        $this->connection->table("Mail")->truncate();
+        $this->connection->table("MailRecipient")->truncate();
         
         $program = $this->programParticipation->participant->program;
         

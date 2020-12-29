@@ -54,6 +54,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("Client")->truncate();
         $this->connection->table("User")->truncate();
         $this->connection->table("Team")->truncate();
+        $this->connection->table("T_Member")->truncate();
         $this->connection->table("Coordinator")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Participant")->truncate();
@@ -83,6 +84,9 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $teamOne = new RecordOfTeam($firm, $client, 1);
         $this->connection->table("Team")->insert($team->toArrayForDbEntry());
         $this->connection->table("Team")->insert($teamOne->toArrayForDbEntry());
+        
+        $member = new \Tests\Controllers\RecordPreparation\Firm\Team\RecordOfMember($team, $client, 0);
+        $this->connection->table("T_Member")->insert($member->toArrayForDbEntry());
 
         $manager = new RecordOfManager($firm, 0);
         $this->managerOne = new RecordOfManager($firm, 1);
@@ -180,6 +184,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("User")->truncate();
         $this->connection->table("Personnel")->truncate();
         $this->connection->table("Team")->truncate();
+        $this->connection->table("T_Member")->truncate();
         $this->connection->table("Coordinator")->truncate();
         $this->connection->table("Consultant")->truncate();
         $this->connection->table("Participant")->truncate();
@@ -335,7 +340,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
                 ->seeStatusCode(403);
     }
     
-    public function test_inviteParticipant_200()
+    public function test_inviteClientParticipant_200()
     {
         $uri = $this->attendeeUri . "/invite-participant";
         $this->put($uri, $this->inviteParticipantInput, $this->manager->token)
@@ -343,6 +348,36 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         
         $participantInviteeEntry = [
             "Participant_id" => $this->participantThree->id,
+        ];
+        $this->seeInDatabase("ParticipantInvitee", $participantInviteeEntry);
+    }
+    public function test_inviteUserParticipant_200()
+    {
+        $this->connection->table("ClientParticipant")->truncate();
+        $userParticipant = new RecordOfUserParticipant($this->userParticipant->user, $this->participantThree);
+        $this->connection->table("UserParticipant")->insert($userParticipant->toArrayForDbEntry());
+        
+        $uri = $this->attendeeUri . "/invite-participant";
+        $this->put($uri, $this->inviteParticipantInput, $this->manager->token)
+                ->seeStatusCode(200);
+        
+        $participantInviteeEntry = [
+            "Participant_id" => $this->inviteParticipantInput["participantId"],
+        ];
+        $this->seeInDatabase("ParticipantInvitee", $participantInviteeEntry);
+    }
+    public function test_inviteTeamParticipant_200()
+    {
+        $this->connection->table("ClientParticipant")->truncate();
+        $teamParticipant = new RecordOfTeamProgramParticipation($this->teamParticipant->team, $this->participantThree);
+        $this->connection->table("TeamParticipant")->insert($teamParticipant->toArrayForDbEntry());
+        
+        $uri = $this->attendeeUri . "/invite-participant";
+        $this->put($uri, $this->inviteParticipantInput, $this->manager->token)
+                ->seeStatusCode(200);
+        
+        $participantInviteeEntry = [
+            "Participant_id" => $this->inviteParticipantInput["participantId"],
         ];
         $this->seeInDatabase("ParticipantInvitee", $participantInviteeEntry);
     }

@@ -41,6 +41,12 @@ class MeetingTypeTest extends TestBase
         $this->program->expects($this->once())->method("getFirmMailSenderName");
         $this->meetingType->getFirmMailSenderName();
     }
+    
+    public function test_getProgramId_returnProgramsGetIdResult()
+    {
+        $this->program->expects($this->once())->method("getId");
+        $this->meetingType->getProgramId();
+    }
 }
 
 class TestableMeetingType extends MeetingType

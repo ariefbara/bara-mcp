@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramConsultant;
 
-use Query\ {
-    Application\Service\Firm\Program\ViewParticipant,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
-};
+use Query\Application\Service\Firm\Program\ViewParticipant;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
 
 class ParticipantController extends AsProgramConsultantBaseController
 {
@@ -50,6 +52,7 @@ class ParticipantController extends AsProgramConsultantBaseController
             "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
             "client" => $this->arrayDataOfClient($participant->getClientParticipant()),
             "team" => $this->arrayDataOfTeam($participant->getTeamParticipant()),
+            "metricAssignment" => $this->arrayDataOfMetricAssignment($participant->getMetricAssignment()),
         ];
     }
 
@@ -74,6 +77,61 @@ class ParticipantController extends AsProgramConsultantBaseController
         return empty($teamParticipant) ? null : [
             "id" => $teamParticipant->getTeam()->getId(),
             "name" => $teamParticipant->getTeam()->getName(),
+        ];
+    }
+    protected function arrayDataOfMetricAssignment(?MetricAssignment $metricAssignment): ?array
+    {
+        if (empty($metricAssignment)) {
+            return null;
+        }
+        $assignmentFields = [];
+        foreach ($metricAssignment->iterateNonRemovedAssignmentFields() as $assignmentField) {
+            $assignmentFields[] = $this->arrayDataOfAssignmentField($assignmentField);
+        }
+        return empty($metricAssignment) ? null : [
+            "startDate" => $metricAssignment->getStartDateString(),
+            "endDate" => $metricAssignment->getEndDateString(),
+            "assignmentFields" => $assignmentFields,
+            "lastMetricAssignmentReport" => $this->arrayDataOfMetricAssignmentReport(
+                    $metricAssignment->getLastApprovedMetricAssignmentReports()),
+        ];
+    }
+    protected function arrayDataOfAssignmentField(?AssignmentField $assignmentField): array
+    {
+        return [
+            "id" => $assignmentField->getId(),
+            "target" => $assignmentField->getTarget(),
+            "metric" => [
+                "id" => $assignmentField->getMetric()->getId(),
+                "name" => $assignmentField->getMetric()->getName(),
+            ],
+        ];
+    }
+
+    protected function arrayDataOfMetricAssignmentReport(?MetricAssignmentReport $metricAssignmentReport): ?array
+    {
+        if (empty($metricAssignmentReport)) {
+            return null;
+        }
+        $assignmentFieldValues = [];
+        foreach ($metricAssignmentReport->iterateNonremovedAssignmentFieldValues() as $assignmentFieldValue) {
+            $assignmentFieldValues[] = $this->arrayDataOfAssignmentFieldValue($assignmentFieldValue);
+        }
+        return [
+            "id" => $metricAssignmentReport->getId(),
+            "observationTime" => $metricAssignmentReport->getObservationTimeString(),
+            "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
+            "removed" => $metricAssignmentReport->isRemoved(),
+            "assignmentFieldValues" => $assignmentFieldValues,
+        ];
+    }
+
+    protected function arrayDataOfAssignmentFieldValue(AssignmentFieldValue $assignmentFieldValue): array
+    {
+        return [
+            "id" => $assignmentFieldValue->getId(),
+            "value" => $assignmentFieldValue->getValue(),
+            "assignmentFieldId" => $assignmentFieldValue->getAssignmentField()->getId(),
         ];
     }
 
