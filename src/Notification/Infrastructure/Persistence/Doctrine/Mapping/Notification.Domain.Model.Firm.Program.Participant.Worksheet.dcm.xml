@@ -11,6 +11,13 @@
         </many-to-one>
         
         <id name="id" type="guid" />
+        <field name="name" type="string" length="256" nullable="false"/>
+        
+        <many-to-one  field="mission" 
+                      target-entity="Notification\Domain\Model\Firm\Program\Mission"
+        >
+            <join-column name="Mission_id" referenced-column-name="id" />
+        </many-to-one>
         
     </entity>
 </doctrine-mapping>

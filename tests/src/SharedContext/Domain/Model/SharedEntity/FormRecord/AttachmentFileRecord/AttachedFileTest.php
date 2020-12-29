@@ -13,7 +13,8 @@ class AttachedFileTest extends TestBase
     protected $attachmentFieldRecord, $fileInfo;
     protected $attachedFile;
     protected $id = 'attached-file-id';
-    
+    protected $fileInfoList = [];
+
     protected function setUp(): void {
         parent::setUp();
         $this->attachmentFieldRecord = $this->buildMockOfClass(AttachmentFieldRecord::class);
@@ -32,6 +33,25 @@ class AttachedFileTest extends TestBase
     function test_remove_setRemovedStatusTrue() {
         $this->attachedFile->remove();
         $this->assertTrue($this->attachedFile->removed);
+    }
+    
+    protected function executeIsUnremovedAttachmentOfFileNotIncludedIn()
+    {
+        return $this->attachedFile->isUnremovedAttachmentOfFileNotIncludedIn($this->fileInfoList);
+    }
+    public function test_isUnremovedAttachmentOfFileNotIncludedIn_unremovedAttachedFileWithFileInfoNotExistInList_returnTrue()
+    {
+        $this->assertTrue($this->executeIsUnremovedAttachmentOfFileNotIncludedIn());
+    }
+    public function test_isUnremovedAttachmentOfFileNotIncludedIn_alreadyRemoved_returnFalse()
+    {
+        $this->attachedFile->removed = true;
+        $this->assertFalse($this->executeIsUnremovedAttachmentOfFileNotIncludedIn());
+    }
+    public function test_isUnremovedAttachmentOfFileNotIncludedIn_fileInfoExistInListt_returnTrue()
+    {
+        $this->fileInfoList[] = $this->fileInfo;
+        $this->assertFalse($this->executeIsUnremovedAttachmentOfFileNotIncludedIn());
     }
 }
 

@@ -2,22 +2,17 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Auth\Firm\Client\TeamMembershipRepository,
-    Application\Auth\Firm\Team\MemberRepository as InterfaceForAuthorization,
-    Application\Service\Firm\Team\MemberRepository,
-    Domain\Model\Firm\Team\Member
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Auth\Firm\Client\TeamMembershipRepository;
+use Query\Application\Auth\Firm\Team\MemberRepository as InterfaceForAuthorization;
+use Query\Application\Service\Firm\Program\TeamMemberRepository;
+use Query\Application\Service\Firm\Team\MemberRepository;
+use Query\Domain\Model\Firm\Team\Member;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository
+class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository, TeamMemberRepository
 {
 
     public function aTeamMembershipOfClient(string $firmId, string $clientId, string $teamMembershipId): Member
@@ -46,7 +41,7 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
         }
     }
 
-    public function allTeamMembershipsOfClient(string $firmId, string $clientId, int $page, int $pageSize)
+    public function allTeamMembershipsOfClient(string $firmId, string $clientId, int $page, int $pageSize, ?bool $activeStatus)
     {
         $params = [
             "firmId" => $firmId,
@@ -60,6 +55,11 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
                 ->leftJoin("client.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
+        
+        if (isset($activeStatus)) {
+            $qb->andWhere($qb->expr()->eq("teamMembership.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
@@ -203,6 +203,52 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
             $errorDetail = "not found: team member not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function aTeamMemberInFirm(string $firmId, string $teamMemberId): Member
+    {
+        $params = [
+            "firmId" => $firmId,
+            "teamMemberId" => $teamMemberId,
+        ];
+        
+        $qb = $this->createQueryBuilder("teamMember");
+        $qb->select("teamMember")
+                ->andWhere($qb->expr()->eq("teamMember.id", ":teamMemberId"))
+                ->leftJoin("teamMember.team", "team")
+                ->leftJoin("team.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: team member not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function allMembersOfTeam(string $firmId, string $teamId, int $page, int $pageSize, ?bool $activeStatus)
+    {
+        $params = [
+            "firmId" => $firmId,
+            "teamId" => $teamId,
+        ];
+        
+        $qb = $this->createQueryBuilder("teamMember");
+        $qb->select("teamMember")
+                ->leftJoin("teamMember.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
+                ->leftJoin("team.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->setParameters($params);
+        
+        if (isset($activeStatus)) {
+            $qb->andWhere($qb->expr()->eq("teamMember.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

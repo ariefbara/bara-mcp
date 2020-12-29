@@ -10,6 +10,7 @@ use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\Consu
 use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession\ConsultationSessionNotification;
 use Notification\Domain\Model\Firm\Team\Member;
 use Resources\Domain\ValueObject\DateTimeInterval;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 use SharedContext\Domain\ValueObject\MailMessage;
 use Tests\TestBase;
 
@@ -22,6 +23,7 @@ class ConsultationSessionTest extends TestBase
             $firmDomain = "firm@domain.com", $firmMailSenderAddress = "firm@domain.org", $firmMailSenderName = "firm name";
     protected $consultant, $consultantName = "consultant name";
     protected $startEndTime, $timeDescription = 'time description';
+    protected $channel;
     protected $member, $memberName = "client full name";
     protected $mailMessage, $recipientMailAddress = "recipient@email.org", $recipientName = "recipient name";
     protected $subject = "Konsulta: Jadwal Konsultasi", $participantGreetings = "Hi Partisipan",
@@ -39,11 +41,13 @@ class ConsultationSessionTest extends TestBase
 
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->startEndTime->expects($this->any())->method("getTimeDescriptionInIndonesianFormat")->willReturn($this->timeDescription);
+        $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
 
         $this->consultationSession = new TestableConsultationSession();
         $this->consultationSession->participant = $this->participant;
         $this->consultationSession->consultant = $this->consultant;
         $this->consultationSession->startEndTime = $this->startEndTime;
+        $this->consultationSession->channel = $this->channel;
         $this->consultationSession->consultationSessionMails = new ArrayCollection();
         $this->consultationSession->consultationSessionNotifications = new ArrayCollection();
         
@@ -205,6 +209,7 @@ class TestableConsultationSession extends ConsultationSession
     public $consultant;
     public $consultationSetup;
     public $startEndTime;
+    public $channel;
     public $consultationSessionMails;
     public $consultationSessionNotifications;
     

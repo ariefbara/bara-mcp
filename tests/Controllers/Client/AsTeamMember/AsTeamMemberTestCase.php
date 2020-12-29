@@ -39,7 +39,6 @@ class AsTeamMemberTestCase extends ClientTestCase
         
         $client = new RecordOfClient($firm, "inactiveMember");
         $clientOne = new RecordOfClient($firm, "nonAdmin");
-        $clientOne->email = "go.on.apur@gmail.com";
         $this->connection->table("Client")->insert($client->toArrayForDbEntry());
         $this->connection->table("Client")->insert($clientOne->toArrayForDbEntry());
         

@@ -17,7 +17,7 @@ class MissionControllerTest extends MissionTestCase
         "description" => "new mission description",
         "position" => "new mission position",
     ];
-
+    protected $changeWorksheetFormInput;
 
     protected function setUp(): void
     {
@@ -47,6 +47,9 @@ class MissionControllerTest extends MissionTestCase
             "position" => 'new mission position',
             "worksheetFormId" => $this->worksheetFormTwo->id,
         ];
+        $this->changeWorksheetFormInput = [
+            "worksheetFormId" => $this->worksheetFormTwo->id,
+        ];
     }
     protected function tearDown(): void
     {
@@ -55,7 +58,6 @@ class MissionControllerTest extends MissionTestCase
     
     public function test_addRoot()
     {
-$this->disableExceptionHandling();
         $this->connection->table('Mission')->truncate();
         
         $response = [
@@ -208,6 +210,29 @@ $this->disableExceptionHandling();
         $uri = $this->missionUri . "/{$this->publishedMission->id}/update";
         $this->patch($uri, $this->updateMissionInput, $this->manager->token)
             ->seeStatusCode(200);
+    }
+    
+    public function test_changeWorksheetForm_200()
+    {
+$this->disableExceptionHandling();
+        $response = [
+            "id" => $this->mission->id,
+            "worksheetForm" => [
+                "id" => $this->worksheetFormTwo->id,
+                "name" => $this->worksheetFormTwo->form->name,
+            ],
+        ];
+        
+        $uri = $this->missionUri . "/{$this->mission->id}/change-worksheet-form";
+        $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+        
+        $missionEntry = [
+            "id" => $this->mission->id,
+            "worksheetForm_id" => $this->changeWorksheetFormInput["worksheetFormId"],
+        ];
+        $this->seeInDatabase("Mission", $missionEntry);
     }
     
     public function test_publish()

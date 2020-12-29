@@ -19,7 +19,6 @@ class MemberTest extends TestBase
     
     protected $mailGenerator;
     protected $mailMessage;
-    protected $modifiedMailMessage;
     protected $notification;
     protected $excludedMember;
 
@@ -37,7 +36,6 @@ class MemberTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
-        $this->modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
         $this->notification = $this->buildMockOfInterface(ContainNotification::class);
         
         $this->excludedMember = new TestableMember();
@@ -53,23 +51,13 @@ class MemberTest extends TestBase
     
     protected function executeRegisterClientAsMailRecipient()
     {
-        $this->mailMessage->expects($this->any())
-                ->method("prependUrlPath")
-                ->willReturn($this->modifiedMailMessage);
         $this->member->registerClientAsMailRecipient($this->mailGenerator, $this->mailMessage);
-    }
-    public function test_registerClientAsMailRecipient_mofidyMessageUrlPath()
-    {
-        $this->mailMessage->expects($this->once())
-                ->method("prependUrlPath")
-                ->with("/as-team-member/{$this->teamId}");
-        $this->executeRegisterClientAsMailRecipient();
     }
     public function test_registerClientAsMailRecipient_executeClientRegisterAsMailRecipient()
     {
         $this->client->expects($this->once())
                 ->method("registerAsMailRecipient")
-                ->with($this->mailGenerator, $this->identicalTo($this->modifiedMailMessage));
+                ->with($this->mailGenerator, $this->identicalTo($this->mailMessage), $haltPrependUrl = true);
         $this->executeRegisterClientAsMailRecipient();
     }
     

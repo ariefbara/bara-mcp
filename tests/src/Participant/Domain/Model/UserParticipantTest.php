@@ -6,8 +6,10 @@ use DateTimeImmutable;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -27,6 +29,7 @@ class UserParticipantTest extends TestBase
     protected $comment;
     protected $metricAssignmentReportDataProvider, $fileInfo;
     protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime;
+    protected $programsProfileForm, $profile;
 
     protected function setUp(): void
     {
@@ -49,6 +52,9 @@ class UserParticipantTest extends TestBase
         $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
         $this->observationTime = new DateTimeImmutable();
+        
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->profile = $this->buildMockOfClass(ParticipantProfile::class);
     }
 
     public function test_quit_quitParticipant()
@@ -176,6 +182,22 @@ class UserParticipantTest extends TestBase
                 ->with($this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
         $this->userParticipant->submitMetricAssignmentReport(
                 $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
+    }
+    
+    public function test_sumbmitProfile_submitProfileInParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method("submitProfile")
+                ->with($this->programsProfileForm, $this->formRecordData);
+        $this->userParticipant->submitProfile($this->programsProfileForm, $this->formRecordData);
+    }
+    
+    public function test_removeProfile_removeProfileInParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method("removeProfile")
+                ->with($this->profile);
+        $this->userParticipant->removeProfile($this->profile);
     }
 
 }

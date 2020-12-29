@@ -3,20 +3,18 @@
 namespace App\Http\Controllers\Manager\Program;
 
 use App\Http\Controllers\Manager\ManagerBaseController;
-use Firm\ {
-    Application\Service\Firm\Program\MissionAddBranch,
-    Application\Service\Firm\Program\MissionAddRoot,
-    Application\Service\Firm\Program\MissionPublish,
-    Application\Service\Firm\Program\MissionUpdate,
-    Application\Service\Firm\Program\ProgramCompositionId,
-    Domain\Model\Firm\Program,
-    Domain\Model\Firm\Program\Mission,
-    Domain\Model\Firm\WorksheetForm
-};
-use Query\ {
-    Application\Service\Firm\Program\ViewMission,
-    Domain\Model\Firm\Program\Mission as Mission2
-};
+use Firm\Application\Service\Firm\Program\MissionAddBranch;
+use Firm\Application\Service\Firm\Program\MissionAddRoot;
+use Firm\Application\Service\Firm\Program\MissionPublish;
+use Firm\Application\Service\Firm\Program\MissionUpdate;
+use Firm\Application\Service\Firm\Program\ProgramCompositionId;
+use Firm\Application\Service\Manager\ChangeMissionWorksheetForm;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\WorksheetForm;
+use Query\Application\Service\Firm\Program\ViewMission;
+use Query\Domain\Model\Firm\Program\Mission as Mission2;
 
 class MissionController extends ManagerBaseController
 {
@@ -66,6 +64,15 @@ class MissionController extends ManagerBaseController
         $position = $this->stripTagsInputRequest('position');
         
         $service->execute($programCompositionId, $missionId, $name, $description, $position);
+        return $this->show($programId, $missionId);
+    }
+    
+    public function changeWorksheetForm($programId, $missionId)
+    {
+        $worksheetFormId = $this->stripTagsInputRequest("worksheetFormId");
+        $this->buildChangeChangeWorksheetFormService()
+                ->execute($this->firmId(), $this->managerId(), $missionId, $worksheetFormId);
+        
         return $this->show($programId, $missionId);
     }
     
@@ -159,6 +166,14 @@ class MissionController extends ManagerBaseController
     {
         $missionRepository = $this->em->getRepository(Mission2::class);
         return new ViewMission($missionRepository);
+    }
+    protected function buildChangeChangeWorksheetFormService()
+    {
+        $missionRepository = $this->em->getRepository(Mission::class);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        $worksheetFormRepository = $this->em->getRepository(WorksheetForm::class);
+        
+        return new ChangeMissionWorksheetForm($missionRepository, $managerRepository, $worksheetFormRepository);
     }
 
 }

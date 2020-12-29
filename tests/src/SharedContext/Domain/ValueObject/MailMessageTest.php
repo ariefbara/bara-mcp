@@ -55,6 +55,16 @@ class MailMessageTest extends TestBase
                 $newMessage, $this->mailMessage->prependUrlPath($this->urlPath));
     }
 
+    public function test_appendUrlPath_returnNewMailMessageWithModifiedUrlPath()
+    {
+        $urlPath = $this->mailMessage->urlPath . $this->urlPath;
+        $newMessage = new TestableMailMessage(
+                $this->mailMessage->subject, $this->mailMessage->greetings, $this->mailMessage->mainMessage,
+                $this->mailMessage->domain, $urlPath, $this->logoPath);
+        $this->assertEquals(
+                $newMessage, $this->mailMessage->appendUrlPath($this->urlPath));
+    }
+
     public function test_getTextMessage_returnTextMessage()
     {
         $textMessage = <<<_MESSAGE

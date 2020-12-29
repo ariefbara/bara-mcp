@@ -17,7 +17,8 @@ class ClientTest extends TestBase
     protected $client;
     protected $name;
     protected $mailGenerator;
-    protected $mailMessage, $modifiedMail;
+    protected $mailMessage, $modifiedGreetings, $modifiedUrl;
+    protected $haltPrependUrl = false;
     protected $clientMailId = "clientMailId";
 
     protected function setUp(): void
@@ -31,7 +32,9 @@ class ClientTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
-        $this->modifiedMail = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedGreetings = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedUrl = $this->buildMockOfClass(MailMessage::class);
+        
     }
     
     public function test_getName_returnFullName()
@@ -44,9 +47,22 @@ class ClientTest extends TestBase
     {
         $this->mailMessage->expects($this->any())
                 ->method("appendRecipientFirstNameInGreetings")
-                ->willReturn($this->modifiedMail);
+                ->willReturn($this->modifiedGreetings);
+        $this->modifiedGreetings->expects($this->any())
+                ->method("prependUrlPath")
+                ->willReturn($this->modifiedUrl);
         
-        $this->client->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
+        $this->client->registerAsMailRecipient($this->mailGenerator, $this->mailMessage, $this->haltPrependUrl);
+    }
+    public function test_registerAsMailRecipient_addMailInMailGenerator()
+    {
+        $this->name->expects($this->once())
+                ->method("getFullName")
+                ->willReturn($fullName = "full name");
+        $this->mailGenerator->expects($this->once())
+                ->method("addMail")
+                ->with($this->identicalTo($this->modifiedUrl), $this->client->email, $fullName);
+        $this->executeRegisterAsMailRecipient();
     }
     public function test_registerAsMailRecipient_modifiedMailMessageGreetings()
     {
@@ -60,14 +76,18 @@ class ClientTest extends TestBase
         
         $this->executeRegisterAsMailRecipient();
     }
-    public function test_registerAsMailRecipient_addMailInMailGenerator()
+    public function test_registerAsMailRecipient_prependUrlPathToMailMessage()
     {
-        $this->name->expects($this->once())
-                ->method("getFullName")
-                ->willReturn($fullName = "full name");
-        $this->mailGenerator->expects($this->once())
-                ->method("addMail")
-                ->with($this->identicalTo($this->modifiedMail), $this->client->email, $fullName);
+        $this->modifiedGreetings->expects($this->once())
+                ->method("prependUrlPath")
+                ->with("/client");
+        $this->executeRegisterAsMailRecipient();
+    }
+    public function test_registerAsMailRecipient_haltPrevendUrlTrue_haltPrependUrlPath()
+    {
+        $this->haltPrependUrl = true;
+        $this->modifiedGreetings->expects($this->never())
+                ->method("prependUrlPath");
         $this->executeRegisterAsMailRecipient();
     }
     

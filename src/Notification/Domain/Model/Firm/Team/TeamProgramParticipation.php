@@ -44,7 +44,7 @@ class TeamProgramParticipation
     public function registerTeamMembersAsMailRecipient(
             CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?Member $excludedMember): void
     {
-        $modifiedMailMessage = $mailMessage->prependUrlPath("/program-participations/{$this->id}");
+        $modifiedMailMessage = $mailMessage->prependUrlPath("/participation/{$this->id}");
         $this->team->registerAllActiveMembersAsMailRecipient($mailGenerator, $modifiedMailMessage, $excludedMember);
     }
 

@@ -2,7 +2,7 @@
 
 namespace Notification\Application\Service;
 
-use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class GenerateNotificationWhenConsultationRequestCancelled
 {
@@ -20,7 +20,7 @@ class GenerateNotificationWhenConsultationRequestCancelled
     public function execute(string $consultationRequestId): void
     {
         $this->consultationRequestRepository->ofId($consultationRequestId)
-                ->createNotificationTriggeredByParticipant(ConsultationRequest::CANCELLED_BY_PARTICIPANT);
+                ->createNotificationTriggeredByParticipant(MailMessageBuilder::CONSULTATION_CANCELLED);
         $this->consultationRequestRepository->update();
     }
 }

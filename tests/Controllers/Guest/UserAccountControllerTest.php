@@ -27,9 +27,7 @@ class UserAccountControllerTest extends ControllerTestCase
         $this->connection->table('User')->truncate();
 
         $this->activeUser = new RecordOfUser(0);
-        $this->activeUser->email = 'purnama.adi@gmail.com';
         $this->inactiveUser = new RecordOfUser(1);
-        $this->inactiveUser->email = 'adi@barapraja.com';
         $this->inactiveUser->activated = false;
         $this->connection->table('User')->insert($this->activeUser->toArrayForDbEntry());
         $this->connection->table('User')->insert($this->inactiveUser->toArrayForDbEntry());
@@ -200,7 +198,7 @@ $this->disableExceptionHandling();
         $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
                 ->seeStatusCode(200);
         $mailEntry = [
-            "subject" => "Aktivasi Akun",
+            "subject" => "Activate Account",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -247,7 +245,7 @@ $this->disableExceptionHandling();
         $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
                 ->seeStatusCode(200);
         $mailEntry = [
-            "subject" => "Konsulta: Reset Password",
+            "subject" => "Your Account Recovery Is Ready",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

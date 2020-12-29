@@ -22,7 +22,8 @@ class ParticipantTest extends TestBase
     protected $clientParticipant;
     protected $userParticipant;
     
-    protected $mailGenerator, $mailMessage, $excludedMember;
+    protected $mailGenerator, $mailMessage, $modifiedGreetings, $modifiedUrl, $excludedMember;
+    protected $haltPrependUrlPath = false;
     protected $notification;
 
     protected function setUp(): void
@@ -41,6 +42,8 @@ class ParticipantTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedGreetings = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedUrl = $this->buildMockOfClass(MailMessage::class);
         $this->excludedMember = $this->buildMockOfClass(Member::class);
         
         $this->notification = $this->buildMockOfInterface(ContainNotification::class);
@@ -112,13 +115,19 @@ class ParticipantTest extends TestBase
     
     protected function executeRegisterMailRecipient()
     {
-        $this->participant->registerMailRecipient($this->mailGenerator, $this->mailMessage, $this->excludedMember);
+        $this->mailMessage->expects($this->any())
+                ->method("appendRecipientFirstNameInGreetings")
+                ->willReturn($this->modifiedGreetings);
+        $this->modifiedGreetings->expects($this->any())
+                ->method("prependUrlPath")
+                ->willReturn($this->modifiedUrl);
+        $this->participant->registerMailRecipient($this->mailGenerator, $this->mailMessage, $this->excludedMember, $this->haltPrependUrlPath);
     }
     public function test_registerMailRecipient_teamParticipant_registerTeamMembersAsMailRecipient()
     {
         $this->teamParticipant->expects($this->once())
                 ->method("registerTeamMembersAsMailRecipient")
-                ->with($this->mailGenerator, $this->mailMessage, $this->excludedMember);
+                ->with($this->mailGenerator, $this->identicalTo($this->modifiedUrl), $this->excludedMember);
         $this->executeRegisterMailRecipient();
     }
     public function test_registerMailRecipient_clientParticipant_registerClientAsMailRecipient()
@@ -126,7 +135,7 @@ class ParticipantTest extends TestBase
         $this->setAsClientParticipant();
         $this->clientParticipant->expects($this->once())
                 ->method("registerClientAsMailRecipient")
-                ->with($this->mailGenerator, $this->mailMessage);
+                ->with($this->mailGenerator, $this->identicalTo($this->modifiedUrl));
         $this->executeRegisterMailRecipient();
     }
     public function test_registerMailRecipient_userParticipant_registerUserAsMailRecipient()
@@ -134,7 +143,31 @@ class ParticipantTest extends TestBase
         $this->setAsUserParticipant();
         $this->userParticipant->expects($this->once())
                 ->method("registerUserAsMailRecipient")
-                ->with($this->mailGenerator, $this->mailMessage);
+                ->with($this->mailGenerator, $this->identicalTo($this->modifiedUrl));
+        $this->executeRegisterMailRecipient();
+    }
+    public function test_registerMailRecipient_addParticipantTextToGreetings()
+    {
+        $this->mailMessage->expects($this->once())
+                ->method("appendRecipientFirstNameInGreetings")
+                ->with("participant");
+        $this->executeRegisterMailRecipient();
+    }
+    public function test_registerMailRecipient_addProgramToUrl()
+    {
+        $this->program->expects($this->once())
+                ->method("getId")
+                ->willReturn($programId = "programId");
+        $this->modifiedGreetings->expects($this->once())
+                ->method("prependUrlPath")
+                ->with("/program/{$programId}");
+        $this->executeRegisterMailRecipient();
+    }
+    public function test_registerMailRecipient_haltPrependUrlPath_dontPrependProgramPath()
+    {
+        $this->haltPrependUrlPath = true;
+        $this->modifiedGreetings->expects($this->never())
+                ->method("prependUrlPath");
         $this->executeRegisterMailRecipient();
     }
     

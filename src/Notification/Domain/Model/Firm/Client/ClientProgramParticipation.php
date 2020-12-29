@@ -42,7 +42,7 @@ class ClientProgramParticipation
     
     public function registerClientAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $modifiedMailMessage = $mailMessage->prependUrlPath("/program-participations/{$this->id}");
+        $modifiedMailMessage = $mailMessage->prependUrlPath("/participation/{$this->id}");
         $this->client->registerAsMailRecipient($mailGenerator, $modifiedMailMessage);
     }
     

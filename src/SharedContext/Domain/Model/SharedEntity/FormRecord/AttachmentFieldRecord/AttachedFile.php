@@ -56,5 +56,10 @@ class AttachedFile
     {
         $this->removed = true;
     }
+    
+    public function isUnremovedAttachmentOfFileNotIncludedIn(array $fileInfoList): bool 
+    {
+        return !$this->removed && !in_array($this->fileInfo, $fileInfoList);
+    }
 
 }

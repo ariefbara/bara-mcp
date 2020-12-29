@@ -2,13 +2,12 @@
 
 namespace Firm\Domain\Model\Firm;
 
-use Firm\Domain\Model\ {
-    Firm,
-    Shared\Form,
-    Shared\FormData
-};
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Shared\Form;
+use Firm\Domain\Model\Shared\FormData;
 
-class WorksheetForm
+class WorksheetForm implements AssetBelongsToFirm
 {
 
     /**
@@ -51,6 +50,11 @@ class WorksheetForm
     public function remove(): void
     {
         $this->removed = true;
+    }
+
+    public function belongsToFirm(Firm $firm): bool
+    {
+        return $this->firm === $firm;
     }
 
 }

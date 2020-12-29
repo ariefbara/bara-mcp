@@ -79,9 +79,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->connection->table('Participant')->insert($this->participant->toArrayForDbEntry());
         
         $this->client = new RecordOfClient($firm, 0);
-        $this->client->email = "purnama.adi@gmail.com";
         $this->clientOne = new RecordOfClient($firm, 1);
-        $this->clientOne->email = "go.on.apur@gmail.com";
         $this->connection->table('Client')->insert($this->client->toArrayForDbEntry());
         $this->connection->table('Client')->insert($this->clientOne->toArrayForDbEntry());
         
@@ -164,7 +162,6 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->connection->table("ClientParticipant")->truncate();
         
         $user = new RecordOfUser(0);
-        $user->email = "adi@barapraja.com";
         $this->connection->table("User")->insert($user->toArrayForDbEntry());
         
         $this->userParticipant = new RecordOfUserParticipant($user, $this->participant);
@@ -239,11 +236,6 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->post($uri, $this->submitNewRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201);
         
-        $notificationEntry = [
-            "message" => "comment submitted",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $clientNotificationRecipientEntry = [
             "Client_id" => $this->clientParticipant->client->id,
             "readStatus" => false,
@@ -251,7 +243,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Komentar Worksheet",
+            "subject" => "New Comment",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -272,11 +264,6 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->post($uri, $this->submitNewRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201);
         
-        $notificationEntry = [
-            "message" => "comment submitted",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $clientNotificationRecipientEntry = [
             "Client_id" => $this->client->id,
             "readStatus" => false,
@@ -289,7 +276,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientOneNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Komentar Worksheet",
+            "subject" => "New Comment",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -316,11 +303,6 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->post($uri, $this->submitNewRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201);
         
-        $notificationEntry = [
-            "message" => "comment submitted",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $userNotificationRecipientEntry = [
             "User_id" => $this->userParticipant->user->id,
             "readStatus" => false,
@@ -328,7 +310,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("UserNotificationRecipient", $userNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Komentar Worksheet",
+            "subject" => "New Comment",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -396,11 +378,6 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->post($uri, $this->submitReplyRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201);
         
-        $notificationEntry = [
-            "message" => "comment submitted",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $clientNotificationRecipientEntry = [
             "Client_id" => $this->clientParticipant->client->id,
             "readStatus" => false,
@@ -408,7 +385,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Komentar Worksheet",
+            "subject" => "New Comment",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -429,11 +406,6 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->post($uri, $this->submitReplyRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201);
         
-        $notificationEntry = [
-            "message" => "comment submitted",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $clientNotificationRecipientEntry = [
             "Client_id" => $this->client->id,
             "readStatus" => false,
@@ -446,7 +418,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientOneNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Komentar Worksheet",
+            "subject" => "New Comment",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -473,11 +445,6 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->post($uri, $this->submitReplyRequest, $this->programConsultation->personnel->token)
                 ->seeStatusCode(201);
         
-        $notificationEntry = [
-            "message" => "comment submitted",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $userNotificationRecipientEntry = [
             "User_id" => $this->userParticipant->user->id,
             "readStatus" => false,
@@ -485,7 +452,7 @@ class ConsultantCommentControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("UserNotificationRecipient", $userNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Komentar Worksheet",
+            "subject" => "New Comment",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

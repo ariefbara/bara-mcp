@@ -88,7 +88,7 @@ class MeetingControllerTest extends ManagerTestCase
             "location" => $this->initiateInput["location"],
             "note" => $this->initiateInput["note"],
             "cancelled" => false,
-            "createdTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+//            "createdTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("Activity", $meetingEntry);
     }

@@ -13,7 +13,10 @@ use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Notification\Domain\SharedModel\ContainNotificationforCoordinator;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Uuid;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 use SharedContext\Domain\ValueObject\MailMessage;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
+use SharedContext\Domain\ValueObject\NotificationMessageBuilder;
 
 class ConsultationSession implements CanSendPersonalizeMail
 {
@@ -35,7 +38,7 @@ class ConsultationSession implements CanSendPersonalizeMail
      * @var Consultant
      */
     protected $consultant;
-    
+
     /**
      * 
      * @var ConsultationSetup
@@ -47,6 +50,12 @@ class ConsultationSession implements CanSendPersonalizeMail
      * @var DateTimeInterval
      */
     protected $startEndTime;
+
+    /**
+     * 
+     * @var ConsultationChannel
+     */
+    protected $channel;
 
     /**
      *
@@ -67,109 +76,131 @@ class ConsultationSession implements CanSendPersonalizeMail
 
     public function addAcceptNotificationTriggeredByTeamMember(Member $teamMember): void
     {
-        $subject = "Jadwal Konsultasi";
-        $greetings = "Hi Partisipan";
-        $mainMessage = <<<_MESSAGE
-Anggota {$teamMember->getClientFullName()} dari tim {$this->participant->getName()} telah menyetujui usulan jadwal Konsultasi dari {$this->consultant->getPersonnelFullName()} di waktu:
-    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-Untuk melihat detail konsultasi kunjungi;
-_MESSAGE;
+        $state = MailMessageBuilder::CONSULTATION_ACCEPTED_BY_PARTICIPANT;
+
+        $mentorName = $this->consultant->getPersonnelFullName();
+        $memberName = $teamMember->getClientFullName();
+        $teamName = $this->participant->getName();
+        $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
+        $media = $this->channel->getMedia();
+        $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation-sessions/$this->id";
+        $urlPath = "/consultation/{$this->id}/detail";
         $logoPath = $this->participant->getFirmLogoPath();
 
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-
-        $this->participant->registerMailRecipient($this, $mailMessage);
-        $this->consultant->registerMailRecipient($this, $this->buildMailMessageForConsultant());
+        $participantMailMessage = MailMessageBuilder::buildConsultationMailMessageForTeamMember(
+                        $state, $mentorName, $memberName, $teamName, $timeDescription, $media, $location, $domain,
+                        $urlPath, $logoPath);
+        $this->participant->registerMailRecipient($this, $participantMailMessage);
+        
 
         $id = Uuid::generateUuid4();
-        $message = "anggota {$teamMember->getClientFullName()} dari tim {$this->participant->getName()} telah menyetujui jadwal konsultasi";
+        $message = NotificationMessageBuilder::buildConsultationNotificationMessageForTeamMember(
+                        $state, $mentorName, $memberName, $teamName);
         $consultationSessionNotification = new ConsultationSessionNotification($this, $id, $message);
         $this->participant->registerNotificationRecipient($consultationSessionNotification, $teamMember);
-        $this->consultant->registerNotificationRecipient($consultationSessionNotification);
-
         $this->consultationSessionNotifications->add($consultationSessionNotification);
-        
-        $this->notifyAllProgramsCoordinator($consultationSessionNotification);
+
+        $this->sendMailToMentor($state);
+        $this->notifyMentor($state);
+        $this->notifyAllProgramsCoordinator();
     }
 
     public function addAcceptNotificationTriggeredByParticipant(): void
     {
-        $subject = "Jadwal Konsultasi";
-        $greetings = "Hi Partisipan";
-        $mainMessage = <<<_MESSAGE
-Jadwal Konsultasi bersama konsultan {$this->consultant->getPersonnelFullName()} telah disetujui di waktu:
-    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-
-Untuk melihat detail konsultasi kunjungi;
-_MESSAGE;
-        $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation-sessions/$this->id";
-        $logoPath = $this->participant->getFirmLogoPath();
-
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-
-        $this->participant->registerMailRecipient($this, $mailMessage);
-        $this->consultant->registerMailRecipient($this, $this->buildMailMessageForConsultant());
-
-        $id = Uuid::generateUuid4();
-        $message = "Partisipan {$this->participant->getName()} telah menyetujui usulan jadwal konsultasi";
-        $consultationSessionNotification = new ConsultationSessionNotification($this, $id, $message);
-        $this->consultant->registerNotificationRecipient($consultationSessionNotification);
-
-        $this->consultationSessionNotifications->add($consultationSessionNotification);
+        $state = MailMessageBuilder::CONSULTATION_ACCEPTED_BY_PARTICIPANT;
         
-        $this->notifyAllProgramsCoordinator($consultationSessionNotification);
+        $mentorName = $this->consultant->getPersonnelFullName();
+        $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
+        $media = $this->channel->getMedia();
+        $location = $this->channel->getAddress();
+        $domain = $this->participant->getFirmDomain();
+        $urlPath = "/consultation/{$this->id}/detail";
+        $logoPath = $this->participant->getFirmLogoPath();
+        
+        $mailMessage = MailMessageBuilder::buildConsultationMailMessageForParticipant(
+                $state, $mentorName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
+        
+        $this->participant->registerMailRecipient($this, $mailMessage);
+        
+        
+        $this->sendMailToMentor($state);
+        $this->notifyMentor($state);
+        $this->notifyAllProgramsCoordinator();
     }
 
     public function addAcceptNotificationTriggeredByConsultant(): void
     {
-        $subject = "Jadwal Konsultasi";
-        $greetings = "Hi Partisipan";
-        $mainMessage = <<<_MESSAGE
-Konsultan {$this->consultant->getPersonnelFullName()} telah menyetujui permintaan konsultasi di waktu:
-    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-
-Untuk melihat detail konsultasi kunjungi;
-_MESSAGE;
+        $state = MailMessageBuilder::CONSULTATION_ACCEPTED_BY_MENTOR;
+        
+        $mentorName = $this->consultant->getPersonnelFullName();
+        $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
+        $media = $this->channel->getMedia();
+        $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation-sessions/$this->id";
+        $urlPath = "/consultation/{$this->id}/detail";
         $logoPath = $this->participant->getFirmLogoPath();
-
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-
+        
+        $mailMessage = MailMessageBuilder::buildConsultationMailMessageForParticipant(
+                $state, $mentorName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
         $this->participant->registerMailRecipient($this, $mailMessage);
-        $this->consultant->registerMailRecipient($this, $this->buildMailMessageForConsultant());
+        
+        $id = Uuid::generateUuid4();
+        $message = NotificationMessageBuilder::buildConsultationNotificationMessageForParticipant($state, $mentorName);
+        $notification = new ConsultationSessionNotification($this, $id, $message);
+        $this->participant->registerNotificationRecipient($notification);
+        $this->consultationSessionNotifications->add($notification);
+        
+        $this->sendMailToMentor($state);
+        $this->notifyAllProgramsCoordinator();
+    }
+
+    protected function sendMailToMentor(int $state): void
+    {
+        $participantName = $this->participant->getName();
+        $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
+        $media = $this->channel->getMedia();
+        $location = $this->channel->getAddress();
+        $domain = $this->participant->getFirmDomain();
+        $urlPath = "/session/{$this->id}/detail";
+        $logoPath = $this->participant->getFirmLogoPath();
+        
+        $mailMessage = MailMessageBuilder::buildConsultationMailMessageForMentor(
+                $state, $participantName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
+        $this->consultant->registerMailRecipient($this, $mailMessage);
+    }
+    protected function notifyMentor(int $state): void
+    {
+        $participantName = $this->participant->getName();
+        $id = Uuid::generateUuid4();
+        $message = NotificationMessageBuilder::buildConsultationNotificationMessageForMentor($state, $participantName);
+        $consultationSessionNotification = new ConsultationSessionNotification($this, $id, $message);
+        $this->consultant->registerNotificationRecipient($consultationSessionNotification);
+        $this->consultationSessionNotifications->add($consultationSessionNotification);
+    }
+
+    protected function notifyAllProgramsCoordinator(): void
+    {
+        $mentorName = $this->consultant->getPersonnelFullName();
+        $participantName = $this->participant->getName();
+        $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
+        $media = $this->channel->getMedia();
+        $location = $this->channel->getAddress();
+        $domain = $this->participant->getFirmDomain();
+        $urlPath = "/session/{$this->id}/detail";
+        $logoPath = $this->participant->getFirmLogoPath();
+        
+        $mailMessage = MailMessageBuilder::buildConsultationMailMessageForCoordinator(
+                $mentorName, $participantName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
+        
+        $this->consultationSetup->registerAllCoordinatorsAsMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();
-        $message = "Jadwal Konsultasi Disepakati";
-        $consultationSessionNotification = new ConsultationSessionNotification($this, $id, $message);
-        $this->participant->registerNotificationRecipient($consultationSessionNotification);
-
-        $this->consultationSessionNotifications->add($consultationSessionNotification);
-        
-        $this->notifyAllProgramsCoordinator($consultationSessionNotification);
-    }
-    
-    protected function notifyAllProgramsCoordinator(ContainNotificationforCoordinator $notification): void
-    {
-        $subject = "Jadwal Konsultasi";
-        $greetings = "Hi Coordinator";
-        $mainMessage = <<<_MESSAGE
-Ada jadwal konsultasi baru yang telah disepakati di program antara peserta {$this->participant->getName()} dengan Mentor {$this->consultant->getPersonnelFullName()} di waktu:
-    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-    
-Untuk melihat detail jadwal konsultasi ini, kunjungi:
-_MESSAGE;
-        $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation-sessions/{$this->id}";
-        $logoPath = $this->participant->getFirmLogoPath();
-        
-        $mailMessage = new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
-        $this->consultationSetup->registerAllCoordinatorsAsMailRecipient($this, $mailMessage);
-        
+        $message = NotificationMessageBuilder::buildConsultationNotificationMessageForCoordinator(
+                $mentorName, $participantName);
+        $notification = new ConsultationSessionNotification($this, $id, $message);
         $this->consultationSetup->registerAllCoordinatorsAsNotificationRecipient($notification);
+        $this->consultationSessionNotifications->add($notification);
     }
 
     public function addMail(MailMessage $mailMessage, string $recipientMailAddress, string $recipientName): void
@@ -181,22 +212,6 @@ _MESSAGE;
         $consultationSessionMail = new ConsultationSessionMail(
                 $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
         $this->consultationSessionMails->add($consultationSessionMail);
-    }
-
-    protected function buildMailMessageForConsultant(): MailMessage
-    {
-        $subject = "Jadwal Konsultasi";
-        $greetings = "Hi Konsultan";
-        $mainMessage = <<<_MESSAGE
-Partisipan {$this->participant->getName()} telah menyetujui usulan Konsultasi di waktu:
-    {$this->startEndTime->getTimeDescriptionInIndonesianFormat()}.
-
-Untuk melihat detail konsultasi kunjungi;
-_MESSAGE;
-        $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation-sessions/$this->id";
-        $logoPath = $this->participant->getFirmLogoPath();
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
     }
 
 }

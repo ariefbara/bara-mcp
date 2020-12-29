@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers\Manager;
 
-use Firm\ {
-    Application\Service\Firm\ProgramAdd,
-    Application\Service\Firm\ProgramPublish,
-    Application\Service\Firm\ProgramRemove,
-    Application\Service\Firm\ProgramUpdate,
-    Domain\Model\Firm,
-    Domain\Model\Firm\Program,
-    Domain\Model\Firm\ProgramData
-};
-use Query\ {
-    Application\Service\Firm\ProgramView,
-    Domain\Model\Firm\Program as Program2
-};
+use Firm\Application\Service\Firm\ProgramAdd;
+use Firm\Application\Service\Firm\ProgramPublish;
+use Firm\Application\Service\Firm\ProgramUpdate;
+use Firm\Application\Service\Manager\RemoveProgram;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\ProgramData;
+use Query\Application\Service\Firm\ProgramView;
+use Query\Domain\Model\Firm\Program as Program2;
 
 class ProgramController extends ManagerBaseController
 {
@@ -53,11 +50,7 @@ class ProgramController extends ManagerBaseController
 
     public function remove($programId)
     {
-        $this->authorizedUserIsFirmManager();
-        
-        $service = $this->buildRemoveService();
-        $service->execute($this->firmId(), $programId);
-        
+        $this->buildRemoveService()->execute($this->firmId(), $this->managerId(), $programId);
         return $this->commandOkResponse();
     }
 
@@ -135,7 +128,9 @@ class ProgramController extends ManagerBaseController
     protected function buildRemoveService()
     {
         $programRepository = $this->em->getRepository(Program::class);
-        return new ProgramRemove($programRepository);
+        $managerRepository = $this->em->getRepository(Manager::class);
+        
+        return new RemoveProgram($programRepository, $managerRepository);
     }
 
     protected function buildViewService()

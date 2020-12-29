@@ -2,12 +2,10 @@
 
 namespace Notification\Domain\Model\Firm\Program;
 
-use Notification\Domain\ {
-    Model\Firm\Personnel,
-    Model\Firm\Program,
-    SharedModel\canSendPersonalizeMail,
-    SharedModel\ContainNotification
-};
+use Notification\Domain\Model\Firm\Personnel;
+use Notification\Domain\Model\Firm\Program;
+use Notification\Domain\SharedModel\CanSendPersonalizeMail;
+use Notification\Domain\SharedModel\ContainNotification;
 use SharedContext\Domain\ValueObject\MailMessage;
 
 class Consultant
@@ -41,15 +39,30 @@ class Consultant
         return $this->personnel->getFullName();
     }
 
-    public function registerMailRecipient(canSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
+    public function registerMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage, ?bool $haltPrependUrl = false): void
     {
-        $modifiedMailMessage = $mailMessage->prependUrlPath("/program-consultations/{$this->id}");
-        $this->personnel->registerAsMailRecipient($mailGenerator, $modifiedMailMessage);
+        $mailMessage  = $mailMessage->appendRecipientFirstNameInGreetings("mentor");
+        if (!$haltPrependUrl) {
+            $mailMessage = $mailMessage->prependUrlPath("/program-consultant/{$this->program->getId()}");
+        }
+        $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
 
     public function registerNotificationRecipient(ContainNotification $notification): void
     {
         $notification->addPersonnelRecipient($this->personnel);
+    }
+    
+    public function registerAsCommentMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
+    {
+        $mailMessage = $mailMessage->prependUrlPath("/consultation/{$this->id}/program/{$this->program->getId()}")
+                ->appendRecipientFirstNameInGreetings("mentor");
+        $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
+    }
+    
+    public function getProgramId(): string
+    {
+        return $this->program->getId();
     }
 
 }

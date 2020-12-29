@@ -38,7 +38,7 @@ class ConsultantComment
 
     public function registerConsultantAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $this->consultant->registerMailRecipient($mailGenerator, $mailMessage);
+        $this->consultant->registerAsCommentMailRecipient($mailGenerator, $mailMessage);
     }
 
     public function registerConsultantAsNotificationRecipient(ContainNotification $notification): void

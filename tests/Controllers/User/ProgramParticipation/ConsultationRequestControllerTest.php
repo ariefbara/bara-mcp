@@ -55,6 +55,9 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('PersonnelNotificationRecipient')->truncate();
         $this->connection->table('UserNotificationRecipient')->truncate();
         
+        $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
+        
         $program = $this->programParticipation->participant->program;
         $firm = $program->firm;
 
@@ -72,7 +75,6 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSetup')->insert($this->consultationSetup->toArrayForDbEntry());
         
         $personnel = new RecordOfPersonnel($firm, 0);
-        $personnel->email = "adi@barapraja.com";
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
         $this->consultant = new RecordOfConsultant($program, $personnel, 0);
@@ -136,6 +138,9 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSessionNotification')->truncate();
         $this->connection->table('PersonnelNotificationRecipient')->truncate();
         $this->connection->table('UserNotificationRecipient')->truncate();
+        
+        $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
     }
     
     public function test_submit_201()
@@ -183,7 +188,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "New Consultation Request",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -264,7 +269,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Schedule Changed",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -356,7 +361,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Cancelled",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -434,7 +439,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Jadwal Konsultasi",
+            "subject" => "Consultation Scheduled",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];

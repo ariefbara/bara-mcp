@@ -24,6 +24,7 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
         
         $qb = $this->createQueryBuilder("program");
         $qb->select("program")
+                ->andWhere($qb->expr()->eq("program.removed", "false"))
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->andWhere($qb->expr()->eq("program.firmId", ":firmId"))
                 ->setParameters($params)

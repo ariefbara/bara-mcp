@@ -38,10 +38,8 @@ class ClientAccountControllerTest extends ControllerTestCase
         $this->connection->table('Firm')->insert($this->firm->toArrayForDbEntry());
 
         $this->inactiveClient = new RecordOfClient($this->firm, 0);
-        $this->inactiveClient->email = 'purnama.adi@gmail.com';
         $this->inactiveClient->activated = false;
         $this->activeClient = new RecordOfClient($this->firm, 1);
-        $this->activeClient->email = 'adi@barapraja.com';
         $this->connection->table('Client')->insert($this->inactiveClient->toArrayForDbEntry());
         $this->connection->table('Client')->insert($this->activeClient->toArrayForDbEntry());
         
@@ -206,7 +204,7 @@ $this->disableExceptionHandling();
         $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
                 ->seeStatusCode(200);
         $mailEntry = [
-            "subject" => "Aktivasi Akun",
+            "subject" => "Activate Account",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -251,7 +249,7 @@ $this->disableExceptionHandling();
         $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
                 ->seeStatusCode(200);
         $mailEntry = [
-            "subject" => "Reset Password",
+            "subject" => "Your Account Recovery Is Ready",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

@@ -35,7 +35,8 @@ class ConsultantMeetingAttendee
     
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $this->consultant->registerMailRecipient($mailGenerator, $mailMessage);
+        $mailMessage = $mailMessage->prependUrlPath("/as-consultant/{$this->consultant->getProgramId()}");
+        $this->consultant->registerMailRecipient($mailGenerator, $mailMessage, $haltPrependUrl = true);
     }
 
     public function registerAsNotificationRecipient(ContainNotification $notification): void

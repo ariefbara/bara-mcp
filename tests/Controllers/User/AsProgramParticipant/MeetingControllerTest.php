@@ -65,7 +65,6 @@ class MeetingControllerTest extends AsProgramParticipantTestCase
             "location" => $this->initiateInput["location"],
             "note" => $this->initiateInput["note"],
             "cancelled" => false,
-            "createdTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
         ];
         
         $this->post($this->meetingUri, $this->initiateInput, $this->programParticipation->user->token)
@@ -81,7 +80,6 @@ class MeetingControllerTest extends AsProgramParticipantTestCase
             "location" => $this->initiateInput["location"],
             "note" => $this->initiateInput["note"],
             "cancelled" => false,
-            "createdTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("Activity", $meetingEntry);
     }

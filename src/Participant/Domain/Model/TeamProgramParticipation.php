@@ -9,10 +9,12 @@ use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Resources\Application\Event\ContainEvents;
@@ -118,6 +120,16 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
     {
         return $this->programParticipation->submitMetricAssignmentReport(
                         $metricAssignmentReportId, $observationTime, $metricAssignmentReportDataProvider);
+    }
+    
+    public function submitProfile(ProgramsProfileForm $programsProfileForm, FormRecordData $formRecordData): void
+    {
+        $this->programParticipation->submitProfile($programsProfileForm, $formRecordData);
+    }
+    
+    public function removeProfile(ParticipantProfile $profile): void
+    {
+        $this->programParticipation->removeProfile($profile);
     }
 
 }

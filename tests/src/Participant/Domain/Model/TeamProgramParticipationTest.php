@@ -8,10 +8,12 @@ use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Participant\Domain\SharedModel\FileInfo;
@@ -33,6 +35,7 @@ class TeamProgramParticipationTest extends TestBase
     protected $teamMember;
     protected $metricAssignmentReportDataProvider, $fileInfo;
     protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime;
+    protected $programsProfileForm, $profile;
 
     protected function setUp(): void
     {
@@ -61,6 +64,9 @@ class TeamProgramParticipationTest extends TestBase
         $this->metricAssignmentReportDataProvider = $this->buildMockOfClass(MetricAssignmentReportDataProvider::class);
         $this->fileInfo = $this->buildMockOfClass(FileInfo::class);
         $this->observationTime = new DateTimeImmutable();
+        
+        $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
+        $this->profile = $this->buildMockOfClass(ParticipantProfile::class);
     }
     
     public function test_belongsToTeam_sameTeam_returnTrue()
@@ -183,6 +189,21 @@ class TeamProgramParticipationTest extends TestBase
                 $this->metricAssignmentReportId, $this->observationTime, $this->metricAssignmentReportDataProvider);
     }
     
+    public function test_submitProfile_submitProfileInParticipant()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method("submitProfile")
+                ->with($this->programsProfileForm, $this->formRecordData);
+        $this->teamProgramParticipation->submitProfile($this->programsProfileForm, $this->formRecordData);
+    }
+    
+    public function test_removeProfile_removeProfileInParticipant()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method("removeProfile")
+                ->with($this->profile);
+        $this->teamProgramParticipation->removeProfile($this->profile);
+    }
 }
 
 class TestableTeamProgramParticipation extends TeamProgramParticipation

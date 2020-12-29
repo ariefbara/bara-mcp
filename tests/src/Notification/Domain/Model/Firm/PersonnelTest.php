@@ -18,8 +18,7 @@ class PersonnelTest extends TestBase
     protected $name;
     
     protected $mailGenerator;
-    protected $mailMessage;
-    protected $modifiedMailMessage;
+    protected $mailMessage, $modifiedGreetings, $modifiedUrl;
     
     protected function setUp(): void
     {
@@ -36,7 +35,8 @@ class PersonnelTest extends TestBase
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);
-        $this->modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedGreetings = $this->buildMockOfClass(MailMessage::class);
+        $this->modifiedUrl = $this->buildMockOfClass(MailMessage::class);
     }
     
     public function test_getFullName_returnNamesGetFullNameResult()
@@ -50,7 +50,10 @@ class PersonnelTest extends TestBase
     {
         $this->mailMessage->expects($this->any())
                 ->method("appendRecipientFirstNameInGreetings")
-                ->willReturn($this->modifiedMailMessage);
+                ->willReturn($this->modifiedGreetings);
+        $this->modifiedGreetings->expects($this->any())
+                ->method("prependUrlPath")
+                ->willReturn($this->modifiedUrl);
         $this->personnel->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }
     public function test_registerAsMailRecipient_appendFirstNameInMailMessage()
@@ -63,6 +66,13 @@ class PersonnelTest extends TestBase
                 ->with($firstName);
         $this->executeRegisterAsMailRecipient();
     }
+    public function test_registerAsMailRecipient_prependPersonnelUrl()
+    {
+        $this->modifiedGreetings->expects($this->once())
+                ->method("prependUrlPath")
+                ->with("/personnel");
+        $this->executeRegisterAsMailRecipient();
+    }
     public function test_registerAsMailRecipient_addMailToMailGenerator()
     {
         $this->name->expects($this->once())
@@ -71,7 +81,7 @@ class PersonnelTest extends TestBase
         
         $this->mailGenerator->expects($this->once())
                 ->method("addMail")
-                ->with($this->identicalTo($this->modifiedMailMessage), $this->personnel->email, $fullName);
+                ->with($this->identicalTo($this->modifiedUrl), $this->personnel->email, $fullName);
         
         $this->executeRegisterAsMailRecipient();
     }

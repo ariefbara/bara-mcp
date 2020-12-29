@@ -2,7 +2,7 @@
 
 namespace Notification\Application\Service;
 
-use Notification\Domain\Model\Firm\Program\Participant\ConsultationRequest;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 
 class GenerateNotificationWhenConsultationRequestRejected
 {
@@ -20,7 +20,7 @@ class GenerateNotificationWhenConsultationRequestRejected
     public function execute(string $consultationRequestId): void
     {
         $this->consultationRequestRepository->ofId($consultationRequestId)
-                ->createNotificationTriggeredByConsultant(ConsultationRequest::REJECTED_BY_CONSULTANT);
+                ->createNotificationTriggeredByConsultant(MailMessageBuilder::CONSULTATION_REJECTED);
         $this->consultationRequestRepository->update();
     }
 

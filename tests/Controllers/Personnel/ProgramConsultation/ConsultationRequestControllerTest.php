@@ -236,11 +236,6 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->patch($uri, [], $this->programConsultation->personnel->token)
                 ->seeStatusCode(200);
         
-        $notificationEntry = [
-            "message" => "consultation request rejected",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $clientNotificationRecipientEntry = [
             "Client_id" => $this->clientParticipant->client->id,
             "readStatus" => false,
@@ -248,7 +243,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Rejected",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -376,11 +371,6 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->patch($uri, $this->offerInput, $this->programConsultation->personnel->token)
                 ->seeStatusCode(200);
         
-        $notificationEntry = [
-            "message" => "consultation request offered",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $clientNotificationRecipientEntry = [
             "Client_id" => $this->clientParticipant->client->id,
             "readStatus" => false,
@@ -388,7 +378,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Schedule Changed",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         
@@ -520,11 +510,6 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->patch($uri, [], $this->programConsultation->personnel->token)
                 ->seeStatusCode(200);
         
-        $notificationEntry = [
-            "message" => "Jadwal Konsultasi Disepakati",
-        ];
-        $this->seeInDatabase("Notification", $notificationEntry);
-        
         $clientNotificationRecipientEntry = [
             "Client_id" => $this->clientParticipant->client->id,
             "readStatus" => false,
@@ -532,7 +517,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
         
         $mailEntry = [
-            "subject" => "Jadwal Konsultasi",
+            "subject" => "Consultation Scheduled",
         ];
         $this->seeInDatabase("Mail", $mailEntry);
         

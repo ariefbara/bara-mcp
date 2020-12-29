@@ -23,12 +23,17 @@ class Program
      * @var string
      */
     protected $id;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $coordinators;
+
+    function getId(): string
+    {
+        return $this->id;
+    }
 
     protected function __construct()
     {
@@ -58,14 +63,14 @@ class Program
     public function registerAllCoordinatorsAsMailRecipient(
             CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $mailMessage = $mailMessage->prependUrlPath("/as-program-coordinator/{$this->id}");
+        $mailMessage = $mailMessage->prependUrlPath("/program-coordinator/{$this->id}");
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("active", true));
         foreach ($this->coordinators->matching($criteria)->getIterator() as $coordinator) {
-            $coordinator->registerAsMailRecipient($mailGenerator, $mailMessage, $prependUrlPath = true);
+            $coordinator->registerAsMailRecipient($mailGenerator, $mailMessage, $haltPrependUrlPath = true);
         }
     }
-    
+
     public function registerAllCoordiantorsAsNotificationRecipient(ContainNotificationforCoordinator $notification): void
     {
         $criteria = Criteria::create()

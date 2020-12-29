@@ -182,7 +182,7 @@ class WorksheetController_containAttachmentFieldTest extends WorksheetTestCase
                 ->seeStatusCode(400);
     }
 
-    public function test_addRoot_fieldRecordInputOptionNotFound_error404()
+    public function test_addRoot_FileInfoNotFound_error404()
     {
         $this->worksheetInput['attachmentFieldRecords'][1]['fileInfoIdList'] = ['non-existing-file-info'];
         $this->post($this->worksheetUri, $this->worksheetInput, $this->client->token)
@@ -254,8 +254,6 @@ class WorksheetController_containAttachmentFieldTest extends WorksheetTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($this->worksheet->formRecordResponse);
     }
-    
-    
     
     
     public function test_update_updateExistingFieldRecord()
@@ -340,7 +338,7 @@ class WorksheetController_containAttachmentFieldTest extends WorksheetTestCase
         $this->seeInDatabase('AttachedFile', $attachedFileTwoOneEntry);
     }
 
-    public function test_updateremoveFieldRecordReferToRemovedField()
+    public function test_updateRemoveFieldRecordReferToRemovedField()
     {
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->patch($uri, $this->worksheetInput, $this->client->token)
@@ -353,6 +351,24 @@ class WorksheetController_containAttachmentFieldTest extends WorksheetTestCase
     }
     public function test_update_removeExistingAttachedFileNoLongerSelected()
     {
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->patch($uri, $this->worksheetInput, $this->client->token)
+                ->seeStatusCode(200);
+        $attahedFileOneThreeEntry = [
+            "id" => $this->attachedFileOneThree->id,
+            "removed" => true,
+        ];
+        $this->seeInDatabase("AttachedFile", $attahedFileOneThreeEntry);
+    }
+    public function test_update_emptyAttachmentFieldRecords()
+    {
+        $this->connection->table('AttachmentField')->truncate();
+        $this->fieldTwo_required->mandatory = false;
+        $this->connection->table('AttachmentField')->insert($this->fieldOne->toArrayForDbEntry());
+        $this->connection->table('AttachmentField')->insert($this->fieldTwo_required->toArrayForDbEntry());
+        $this->connection->table('AttachmentField')->insert($this->fieldThree_removed->toArrayForDbEntry());
+        
+        $this->worksheetInput['attachmentFieldRecords'] = [];
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->patch($uri, $this->worksheetInput, $this->client->token)
                 ->seeStatusCode(200);

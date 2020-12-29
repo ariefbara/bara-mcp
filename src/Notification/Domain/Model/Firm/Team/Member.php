@@ -49,8 +49,7 @@ class Member
 
     public function registerClientAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $modifiedMailMessage = $mailMessage->prependUrlPath("/as-team-member/{$this->team->getId()}");
-        $this->client->registerAsMailRecipient($mailGenerator, $modifiedMailMessage);
+        $this->client->registerAsMailRecipient($mailGenerator, $mailMessage, $haltUrlPrepend = true);
     }
 
     public function registerClientAsNotificationRecipient(ContainNotification $notification): void

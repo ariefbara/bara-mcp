@@ -97,7 +97,7 @@ class MeetingControllerTest extends AsProgramParticipantTestCase
             "location" => $this->initiateInput["location"],
             "note" => $this->initiateInput["note"],
             "cancelled" => false,
-            "createdTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
+//            "createdTime" => (new \DateTimeImmutable())->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("Activity", $meetingEntry);
     }
@@ -126,7 +126,6 @@ class MeetingControllerTest extends AsProgramParticipantTestCase
                 ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Jadwal Meeting",
             "senderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "senderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -141,7 +140,7 @@ class MeetingControllerTest extends AsProgramParticipantTestCase
         $this->seeInDatabase("MailRecipient", $mailRecipient);
         
         $notificationEntry = [
-            "message" => "meeting berhasil dibuat"
+            "message" => "new meeting scheduled"
         ];
         $this->seeInDatabase("Notification", $notificationEntry);
         

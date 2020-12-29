@@ -50,7 +50,6 @@ class CommentControllerTest extends WorksheetTestCase
         $this->connection->table('Comment')->insert($this->commentOne->toArrayForDbEntry());
 
         $personnel = new RecordOfPersonnel($firm, 0);
-        $personnel->email = "adi@barapraja.com";
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
         $consultant = new RecordOfConsultant($program, $personnel, 0);
@@ -164,7 +163,6 @@ class CommentControllerTest extends WorksheetTestCase
                 ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Komentar Worksheet",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];

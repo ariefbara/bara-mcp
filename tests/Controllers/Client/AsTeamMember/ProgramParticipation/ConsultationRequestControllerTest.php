@@ -3,16 +3,15 @@
 namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use DateTime;
-use Tests\Controllers\ {
-    Client\AsTeamMember\ProgramParticipationTestCase,
-    RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest,
-    RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession,
-    RecordPreparation\Firm\Program\RecordOfConsultant,
-    RecordPreparation\Firm\Program\RecordOfConsultationSetup,
-    RecordPreparation\Firm\RecordOfFeedbackForm,
-    RecordPreparation\Firm\RecordOfPersonnel,
-    RecordPreparation\Shared\RecordOfForm
-};
+use Tests\Controllers\Client\AsTeamMember\ProgramParticipationTestCase;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class ConsultationRequestControllerTest extends ProgramParticipationTestCase
 {
@@ -21,6 +20,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
     protected $consultationRequest, $consultationRequestOne;
     protected $consultationSession;
     protected $consultationSetup, $consultant;
+    protected $otherMember;
     protected $proposeInput;
     protected $changeTimeInput;
 
@@ -51,6 +51,9 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('PersonnelNotificationRecipient')->truncate();
         $this->connection->table('ClientNotificationRecipient')->truncate();
         
+        $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
+        
         $program = $this->programParticipation->participant->program;
         $firm = $program->firm;
 
@@ -68,7 +71,6 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationSetup')->insert($this->consultationSetup->toArrayForDbEntry());
         
         $personnel = new RecordOfPersonnel($firm, 0);
-        $personnel->email = "adi@barapraja.com";
         $this->connection->table('Personnel')->insert($personnel->toArrayForDbEntry());
         
         $this->consultant = new RecordOfConsultant($program, $personnel, 0);
@@ -122,6 +124,9 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ConsultationRequestNotification')->truncate();
         $this->connection->table('PersonnelNotificationRecipient')->truncate();
         $this->connection->table('ClientNotificationRecipient')->truncate();
+        
+        $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
     }
     
     public function test_submit_201()
@@ -169,7 +174,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(201);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "New Consultation Request",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -284,7 +289,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Schedule Changed",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -411,7 +416,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Permintaan Konsultasi",
+            "subject" => "Consultation Request Cancelled",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -524,7 +529,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             ->seeStatusCode(200);
         
         $mailEntry = [
-            "subject" => "Jadwal Konsultasi",
+            "subject" => "Consultation Scheduled",
             "SenderMailAddress" => $this->programParticipation->participant->program->firm->mailSenderAddress,
             "SenderName" => $this->programParticipation->participant->program->firm->mailSenderName,
         ];
@@ -634,6 +639,31 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
             "TeamMember_id" => $this->teamMember->id,
         ];
         $this->seeInDatabase("TeamMemberActivityLog", $teammMemberActivityLog);
+    }
+    public function test_accept_sendNotificationToCoordinator()
+    {
+        $program = $this->programParticipation->participant->program;
+        $personnel = new RecordOfPersonnel($program->firm, "coordinatorOne");
+        $this->connection->table("Personnel")->insert($personnel->toArrayForDbEntry());
+        $coordinator = new RecordOfCoordinator($program, $personnel, 1);
+        $this->connection->table("Coordinator")->insert($coordinator->toArrayForDbEntry());
+        
+        $uri = $this->consultationRequestUri . "/{$this->consultationRequest->id}/accept";
+        $this->patch($uri, [], $this->client->token)
+            ->seeStatusCode(200);
+        
+        $consultantMailRecipientEntry = [
+            "recipientMailAddress" => $coordinator->personnel->email,
+            "recipientName" => $coordinator->personnel->getFullName(),
+            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $consultantMailRecipientEntry);
+        
+        $coordinatorNotificationEntry = [
+            "Coordinator_id" => $coordinator->id,
+        ];
+        $this->seeInDatabase("CoordinatorNotificationRecipient", $coordinatorNotificationEntry);
     }
     
     public function test_show()

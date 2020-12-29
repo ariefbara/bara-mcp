@@ -88,6 +88,12 @@ class MailMessage
         return new static($this->subject, $this->greetings, $this->mainMessage, $this->domain, $urlPath, $this->logoPath);
     }
 
+    public function appendUrlPath(string $urlPath): self
+    {
+        $urlPath = $this->urlPath . $urlPath;
+        return new static($this->subject, $this->greetings, $this->mainMessage, $this->domain, $urlPath, $this->logoPath);
+    }
+
     public function getTextMessage(): string
     {
         return <<<_MESSAGE
@@ -102,13 +108,19 @@ _MESSAGE;
     public function getHtmlMessage(): string
     {
         $doc = new \DOMDocument();
-        $doc->loadHTMLFile(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HtmlMailTemplate.html',
+        $doc->loadHTMLFile(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'EmailTemplate.html',
                 LIBXML_NOWARNING | LIBXML_NOERROR);
         
+        $firmDomain = $doc->createTextNode($this->domain);
+        $headerSubject = $doc->createTextNode($this->subject);
+        $messageSubject = $doc->createTextNode($this->subject);
         $greetingText = $doc->createTextNode($this->greetings);
         $mainMessageText = $doc->createTextNode($this->mainMessage);
 //        $logoPath = empty($this->logoPath)? null: "app.innov.id/bara-mcp/public/storage/app" . $this->logoPath;
 //        $doc->getElementById("firm_logo")->setAttribute("src", urlencode($logoPath));
+        $doc->getElementById("firm_domain")->appendChild($firmDomain);
+        $doc->getElementById("header_subject")->appendChild($headerSubject);
+        $doc->getElementById("message_subject")->appendChild($messageSubject);
         $doc->getElementById("greeting")->appendChild($greetingText);
         $doc->getElementById("main_message")->appendChild($mainMessageText);
         $doc->getElementById("shortcut_link")->setAttribute("href", $this->domain . $this->urlPath);

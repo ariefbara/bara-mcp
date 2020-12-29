@@ -2,21 +2,16 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Firm\{
-    Application\Service\Firm\Program\MissionRepository,
-    Application\Service\Firm\Program\ProgramCompositionId,
-    Domain\Model\Firm\Program\Mission
-};
-use Resources\{
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Firm\Program\MissionRepository;
+use Firm\Application\Service\Firm\Program\ProgramCompositionId;
+use Firm\Application\Service\Manager\MissionRepository as InterfaceForManager;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 
-class DoctrineMissionRepository extends EntityRepository implements MissionRepository
+class DoctrineMissionRepository extends EntityRepository implements MissionRepository, InterfaceForManager
 {
 
     public function add(Mission $mission): void
@@ -57,6 +52,18 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aMissionOfId(string $missionId): Mission
+    {
+        $mission = $this->findOneBy([
+            "id" => $missionId,
+        ]);
+        if (empty($mission)) {
+            $errorDetail = "not found: mission not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $mission;
     }
 
 }

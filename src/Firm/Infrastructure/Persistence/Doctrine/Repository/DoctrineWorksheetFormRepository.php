@@ -2,20 +2,15 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\WorksheetFormRepository,
-    Domain\Model\Firm\WorksheetForm
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Firm\WorksheetFormRepository;
+use Firm\Application\Service\Manager\WorksheetFormRepository as InterfaceForManager;
+use Firm\Domain\Model\Firm\WorksheetForm;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 
-class DoctrineWorksheetFormRepository extends EntityRepository implements WorksheetFormRepository
+class DoctrineWorksheetFormRepository extends EntityRepository implements WorksheetFormRepository, InterfaceForManager
 {
 
     public function add(WorksheetForm $worksheetForm): void
@@ -56,6 +51,16 @@ class DoctrineWorksheetFormRepository extends EntityRepository implements Worksh
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aWorksheetFormOfId(string $worksheetFormId): WorksheetForm
+    {
+        $worksheetForm = $this->findOneBy(["id" => $worksheetFormId]);
+        if (empty($worksheetForm)) {
+            $errorDetail = "not found: worksheet form not found";
+            throw RegularException::notFound($errorDetail);
+        }
+        return $worksheetForm;
     }
 
 }

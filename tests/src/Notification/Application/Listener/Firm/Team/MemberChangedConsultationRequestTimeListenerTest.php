@@ -2,11 +2,9 @@
 
 namespace Notification\Application\Listener\Firm\Team;
 
-use Notification\ {
-    Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember,
-    Application\Service\SendImmediateMail,
-    Domain\Model\Firm\Program\Participant\ConsultationRequest
-};
+use Notification\Application\Service\GenerateConsultationRequestNotificationTriggeredByTeamMember;
+use Notification\Application\Service\SendImmediateMail;
+use SharedContext\Domain\ValueObject\MailMessageBuilder;
 use Tests\TestBase;
 
 class MemberChangedConsultationRequestTimeListenerTest extends TestBase
@@ -32,7 +30,7 @@ class MemberChangedConsultationRequestTimeListenerTest extends TestBase
     {
         $this->generateConsultationRequestNotificationTriggeredByTeamMember->expects($this->once())
                 ->method("execute")
-                ->with($this->memberId, $this->id, ConsultationRequest::TIME_CHANGED_BY_PARTICIPANT);
+                ->with($this->memberId, $this->id, MailMessageBuilder::CONSULTATION_SCHEDULE_CHANGED);
         $this->listener->handle($this->event);
     }
     public function test_handle_sendImmediateMail()

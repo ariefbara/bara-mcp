@@ -58,7 +58,7 @@ class TeamProgramParticipationTest extends TestBase
     {
         $this->mailMessage->expects($this->once())
                 ->method("prependUrlPath")
-                ->with("/program-participations/{$this->teamProgramParticipation->id}");
+                ->with("/participation/{$this->teamProgramParticipation->id}");
         $this->executeRegisterTeamAsMailRecipient();
     }
 

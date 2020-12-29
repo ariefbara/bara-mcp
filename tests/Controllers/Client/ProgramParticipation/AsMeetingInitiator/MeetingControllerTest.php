@@ -61,9 +61,9 @@ class MeetingControllerTest extends AsMeetingInitiatorTestCase
         $uri = $this->asMeetingInitiatorUri . "/update-meeting";
         $this->patch($uri, $this->updateInput, $this->programParticipation->client->token);
         
-        (new MailChecker())->checkMailExist($subject = "Perubahan Jadwal Meeting", $this->client->email);
+        (new MailChecker())->checkMailExist($subject = "Meeting Schedule Changed", $this->client->email);
         (new NotificationChecker())
-                ->checkNotificationExist($message = "meeting schedule changed")
+                ->checkNotificationExist($message = "meeting scheduled changed")
                 ->checkClientNotificationExist($this->client->id);
     }
 }

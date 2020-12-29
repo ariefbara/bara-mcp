@@ -84,7 +84,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("Team")->insert($teamOne->toArrayForDbEntry());
 
         $manager = new RecordOfManager($firm, 0);
-        $this->managerOne = new RecordOfManager($firm, 1, "managerOne@email.org");
+        $this->managerOne = new RecordOfManager($firm, 1);
         $this->connection->table("Manager")->insert($manager->toArrayForDbEntry());
         $this->connection->table("Manager")->insert($this->managerOne->toArrayForDbEntry());
 
