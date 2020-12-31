@@ -63,11 +63,11 @@ class Program
     public function registerAllCoordinatorsAsMailRecipient(
             CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $mailMessage = $mailMessage->prependUrlPath("/program-coordinator/{$this->id}");
+        $mailMessage = $mailMessage->prependUrlPath("/program/{$this->id}");
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("active", true));
         foreach ($this->coordinators->matching($criteria)->getIterator() as $coordinator) {
-            $coordinator->registerAsMailRecipient($mailGenerator, $mailMessage, $haltPrependUrlPath = true);
+            $coordinator->registerAsMailRecipient($mailGenerator, $mailMessage, $haltPrependUrlPath = false);
         }
     }
 

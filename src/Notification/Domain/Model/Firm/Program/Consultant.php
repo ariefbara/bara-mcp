@@ -43,7 +43,7 @@ class Consultant
     {
         $mailMessage  = $mailMessage->appendRecipientFirstNameInGreetings("mentor");
         if (!$haltPrependUrl) {
-            $mailMessage = $mailMessage->prependUrlPath("/program-consultant/{$this->program->getId()}");
+            $mailMessage = $mailMessage->prependUrlPath("/program-consultant/{$this->id}/program/{$this->program->getId()}");
         }
         $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
