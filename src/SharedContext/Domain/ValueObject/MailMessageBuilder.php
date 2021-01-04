@@ -172,7 +172,7 @@ class MailMessageBuilder
             "media: {$media}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildMeetingMailMessage(
@@ -222,7 +222,7 @@ class MailMessageBuilder
             "worksheet: {$missionName} - {$worksheetName}",
             "message: {$message}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildWorksheetCommentMailMessageForMentor(
@@ -237,7 +237,7 @@ class MailMessageBuilder
             "worksheet: {$missionName} - {$worksheetName}",
             "message: {$message}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
 }

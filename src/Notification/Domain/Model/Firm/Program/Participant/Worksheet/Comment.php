@@ -71,7 +71,7 @@ class Comment implements CanSendPersonalizeMail
         $worksheetName = $this->worksheet->getName();
         $message = $this->message;
         $domain = $this->worksheet->getFirmDomain();
-        $urlPath = "/participant/{$this->worksheet->getParticipantId()}/worksheet/{$this->worksheet->getId()}";
+        $urlPath = "/participant/{$this->worksheet->getParticipantId()}/worksheet/{$this->worksheet->getId()}/{$this->id}";
         $logoPath = $this->worksheet->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildWorksheetCommentMailMessageForMentor(
@@ -95,7 +95,7 @@ class Comment implements CanSendPersonalizeMail
         $worksheetName = $this->worksheet->getName();
         $message = $this->message;
         $domain = $this->worksheet->getFirmDomain();
-        $urlPath = "";
+        $urlPath = "/{$this->id}";
         $logoPath = $this->worksheet->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildWorksheetCommentMailMessageForParticipant(
