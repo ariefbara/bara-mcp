@@ -207,7 +207,7 @@ class MailMessageBuilder
             "schedule: {$timeDescription}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildWorksheetCommentMailMessageForParticipant(

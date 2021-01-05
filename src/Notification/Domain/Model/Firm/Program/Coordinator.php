@@ -50,7 +50,7 @@ class Coordinator
     {
         $mailMessage = $mailMessage->appendRecipientFirstNameInGreetings("coordinator");
         if (!$haltPrependUrlPath) {
-            $mailMessage = $mailMessage->prependUrlPath("/as-coordinator/{$this->id}");
+            $mailMessage = $mailMessage->prependUrlPath("/as-coordinator/{$this->id}/program/{$this->program->getId()}");
         }
         $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }

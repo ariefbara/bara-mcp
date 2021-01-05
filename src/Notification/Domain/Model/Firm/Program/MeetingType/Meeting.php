@@ -77,6 +77,11 @@ class Meeting implements CanSendPersonalizeMail
      */
     protected $notifications;
 
+    function getId(): string
+    {
+        return $this->id;
+    }
+
     function getName(): string
     {
         return $this->name;
@@ -139,7 +144,7 @@ class Meeting implements CanSendPersonalizeMail
         $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
         $location = $this->location;
         $domain = $this->meetingType->getFirmDomain();
-        $urlPath = "";
+        $urlPath = "/meeting/{$this->id}";
         $logoPath = $this->meetingType->getFirmLogoPath();
 
         $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
@@ -154,7 +159,7 @@ class Meeting implements CanSendPersonalizeMail
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("cancelled", false));
         foreach ($this->attendees->matching($criteria)->getIterator() as $attendee) {
-            $attendee->registerAsMeetingMailRecipient($this, $mailMessage);
+            $attendee->registerAsMeetingMailRecipient($this, $mailMessage, $haltPrependUrlPath = true);
             $attendee->registerAsMeetingNotificationRecipient($notification);
         }
         $this->notifications->add($notification);

@@ -110,7 +110,8 @@ class MeetingAttendee implements CanSendPersonalizeMail
         $timeDescription = $this->meeting->getscheduleInIndonesianFormat();
         $location = $this->meeting->getLocation();
         $domain = $this->meeting->getFirmDomain();
-        $urlPath = "/invitation/{$this->id}";
+//        $urlPath = "/invitation/{$this->id}";
+        $urlPath = "/meeting/{$this->meeting->getId()}";
         $logoPath = $this->meeting->getFirmLogoPath();
 
         $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
@@ -136,7 +137,8 @@ class MeetingAttendee implements CanSendPersonalizeMail
         $timeDescription = $this->meeting->getscheduleInIndonesianFormat();
         $location = $this->meeting->getLocation();
         $domain = $this->meeting->getFirmDomain();
-        $urlPath = "/invitation/{$this->id}";
+//        $urlPath = "/invitation/{$this->id}";
+        $urlPath = "/meeting/{$this->meeting->getId()}";
         $logoPath = $this->meeting->getFirmLogoPath();
 
         $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
