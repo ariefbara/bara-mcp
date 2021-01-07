@@ -101,6 +101,11 @@ class Meeting implements CanSendPersonalizeMail
     {
         
     }
+    
+    public function getProgramId(): string
+    {
+        return $this->meetingType->getProgramId();
+    }
 
     public function addMeetingCreatedNotification(): void
     {
@@ -123,12 +128,12 @@ class Meeting implements CanSendPersonalizeMail
                 ->andWhere(Criteria::expr()->eq("cancelled", false));
         $initiator = $this->attendees->matching($criteria)->first();
         if (!empty($initiator)) {
-            $urlPath = "/meeting/{$this->id}/attendee/{$initiator->getId()}";
+            $urlPath = "/meeting/{$this->id}";
             $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
                             $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location,
                             $domain, $urlPath, $logoPath);
 
-            $initiator->registerAsMeetingMailRecipient($this, $mailMessage, $haltPrependUrlPath = true);
+            $initiator->registerAsMeetingMailRecipient($this, $mailMessage);
             $initiator->registerAsMeetingNotificationRecipient($notification);
             $this->notifications->add($notification);
         }
@@ -144,7 +149,7 @@ class Meeting implements CanSendPersonalizeMail
         $timeDescription = $this->startEndTime->getTimeDescriptionInIndonesianFormat();
         $location = $this->location;
         $domain = $this->meetingType->getFirmDomain();
-        $urlPath = "/meeting/{$this->id}";
+        $urlPath = "";
         $logoPath = $this->meetingType->getFirmLogoPath();
 
         $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
@@ -159,7 +164,7 @@ class Meeting implements CanSendPersonalizeMail
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("cancelled", false));
         foreach ($this->attendees->matching($criteria)->getIterator() as $attendee) {
-            $attendee->registerAsMeetingMailRecipient($this, $mailMessage, $haltPrependUrlPath = true);
+            $attendee->registerAsMeetingMailRecipient($this, $mailMessage);
             $attendee->registerAsMeetingNotificationRecipient($notification);
         }
         $this->notifications->add($notification);

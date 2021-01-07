@@ -36,6 +36,7 @@ class ManagerMeetingAttendee
     
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
+        $mailMessage = $mailMessage->prependUrlPath("/program/{$this->meetingAttendee->getProgramId()}");
         $this->manager->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
 
