@@ -2,28 +2,24 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\Firm\Program\Participant\ParticipantInvitationRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant\ParticipantInvitation,
-    Domain\Model\Firm\Program\Participant\ParticipantInvitee,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
+use Query\Application\Service\Firm\Program\Participant\ParticipantInvitationRepository;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineParticipantInviteeRepository extends EntityRepository implements ParticipantInvitationRepository
 {
 
     public function allInvitationsForClientParticipant(
-            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize)
+            string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
+            ?TimeIntervalFilter $timeIntervalFilter)
     {
         $params = [
             "firmId" => $firmId,
@@ -47,7 +43,8 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
                 ->leftJoin("participantInvitation.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
-
+        
+        $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -85,7 +82,8 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
     }
 
     public function allInvitationsForUserParticipant(
-            string $userId, string $programParticipationId, int $page, int $pageSize)
+            string $userId, string $programParticipationId, int $page, int $pageSize,
+            ?TimeIntervalFilter $timeIntervalFilter)
     {
         $params = [
             "userId" => $userId,
@@ -107,6 +105,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
 
+        $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -141,14 +140,15 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
     }
 
     public function allInvitationsForTeamParticipant(
-            string $firmId, string $teamId, string $programParticipationId, int $page, int $pageSize)
+            string $firmId, string $teamId, string $programParticipationId, int $page, int $pageSize,
+            ?TimeIntervalFilter $timeIntervalFilter)
     {
         $params = [
             "firmId" => $firmId,
             "teamId" => $teamId,
             "programParticipationId" => $programParticipationId,
         ];
-        
+
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("t_participant.id")
                 ->from(TeamProgramParticipation::class, "programParticipation")
@@ -166,6 +166,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
 
+        $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -176,7 +177,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
             "teamId" => $teamId,
             "invitationId" => $invitationId,
         ];
-        
+
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("t_participant.id")
                 ->from(TeamProgramParticipation::class, "programParticipation")
@@ -199,6 +200,23 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
         } catch (NoResultException $ex) {
             $errorDetail = "not found: invitation not found";
             throw RegularException::notFound($errorDetail);
+        }
+    }
+    
+    protected function applyTimeIntervalFilter(QueryBuilder $qb, ?TimeIntervalFilter $timeIntervalFilter): void
+    {
+        if (!isset($timeIntervalFilter)) {
+            return;
+        }
+        $qb->leftJoin("participantInvitation.invitee", "invitee")
+                ->leftJoin("invitee.activity", "activity");
+        if (!is_null($timeIntervalFilter->getFrom())) {
+            $qb->andWhere($qb->expr()->gte("activity.startEndTime.startDateTime", ":from"))
+                    ->setParameter("from", $timeIntervalFilter->getFrom());
+        }
+        if (!is_null($timeIntervalFilter->getTo())) {
+            $qb->andWhere($qb->expr()->lte("activity.startEndTime.startDateTime", ":to"))
+                    ->setParameter("to", $timeIntervalFilter->getTo());
         }
     }
 

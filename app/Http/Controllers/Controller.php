@@ -7,11 +7,10 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
-use Notification\ {
-    Application\Service\SendImmediateMail,
-    Domain\SharedModel\Mail\Recipient,
-    Infrastructure\MailManager\SwiftMailSender
-};
+use Notification\Application\Service\SendImmediateMail;
+use Notification\Domain\SharedModel\Mail\Recipient;
+use Notification\Infrastructure\MailManager\SwiftMailSender;
+use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
 use Swift_Mailer;
 use Swift_SmtpTransport;
 use function env;
@@ -45,6 +44,7 @@ class Controller extends BaseController
         }
         return strip_tags($this->request->input($label));
     }
+
     protected function integerOfInputRequest($label): ?int
     {
         if ($this->request->input($label) === null) {
@@ -52,6 +52,7 @@ class Controller extends BaseController
         }
         return (int) $this->request->input($label);
     }
+
     protected function filterBooleanOfInputRequest($label): ?bool
     {
         if ($this->request->input($label) === null) {
@@ -59,6 +60,7 @@ class Controller extends BaseController
         }
         return filter_var($this->request->input($label), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
+
     protected function dateTimeImmutableOfInputRequest($label): ?DateTimeImmutable
     {
         if ($this->request->input($label) === null) {
@@ -66,7 +68,7 @@ class Controller extends BaseController
         }
         return new DateTimeImmutable($this->request->input($label));
     }
-    
+
     protected function stripTagQueryRequest($label): ?string
     {
         if ($this->request->query($label) === null) {
@@ -74,6 +76,7 @@ class Controller extends BaseController
         }
         return strip_tags($this->request->query($label));
     }
+
     protected function integerOfQueryRequest($label): ?int
     {
         if ($this->request->query($label) === null) {
@@ -81,6 +84,7 @@ class Controller extends BaseController
         }
         return (int) $this->request->query($label);
     }
+
     protected function filterBooleanOfQueryRequest($label): ?bool
     {
         if ($this->request->query($label) === null) {
@@ -88,6 +92,7 @@ class Controller extends BaseController
         }
         return filter_var($this->request->query($label), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
     }
+
     protected function dateTimeImmutableOfQueryRequest($label): ?DateTimeImmutable
     {
         if ($this->request->query($label) === null) {
@@ -100,14 +105,17 @@ class Controller extends BaseController
     {
         return isset($var) ? strip_tags($var) : null;
     }
+
     protected function integerOfVariable($var): ?int
     {
         return isset($var) ? (int) $var : null;
     }
+
     protected function floatOfVariable($var): ?float
     {
         return isset($var) ? (float) $var : null;
     }
+
     protected function filterBooleanOfVariable($var): ?bool
     {
         return isset($var) ? filter_var($var, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
@@ -185,7 +193,7 @@ class Controller extends BaseController
         $safeSize = $pageSize > 100 ? 100 : $pageSize;
         return empty($safeSize) ? 25 : $safeSize;
     }
-    
+
     protected function buildSendImmediateMail(): SendImmediateMail
     {
         $recipientRepository = $this->em->getRepository(Recipient::class);
@@ -196,6 +204,13 @@ class Controller extends BaseController
         $vendor = new Swift_Mailer($transport);
         $mailSender = new SwiftMailSender($vendor);
         return new SendImmediateMail($recipientRepository, $mailSender);
+    }
+
+    protected function getTimeIntervalFilter()
+    {
+        return (new TimeIntervalFilter)
+                        ->setFrom($this->dateTimeImmutableOfQueryRequest("from"))
+                        ->setTo($this->dateTimeImmutableOfQueryRequest("to"));
     }
 
 }

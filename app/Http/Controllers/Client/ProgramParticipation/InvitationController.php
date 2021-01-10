@@ -2,31 +2,31 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use ActivityInvitee\ {
+use ActivityInvitee\{
     Application\Service\ClientParticipant\SubmitReport,
     Domain\Model\ParticipantInvitee as ParticipantInvitee2
 };
-use App\Http\Controllers\ {
+use App\Http\Controllers\{
     Client\ClientBaseController,
     FormRecordDataBuilder,
     FormRecordToArrayDataConverter,
     FormToArrayDataConverter
 };
-use Query\ {
+use Query\{
     Application\Service\Firm\Client\ProgramParticipation\ViewInvitationForClientParticipant,
     Domain\Model\Firm\FeedbackForm,
     Domain\Model\Firm\Program\Activity\Invitee\InviteeReport,
     Domain\Model\Firm\Program\ActivityType,
     Domain\Model\Firm\Program\Participant\ParticipantInvitee
 };
-use SharedContext\Domain\ {
+use SharedContext\Domain\{
     Model\SharedEntity\FileInfo,
     Service\FileInfoBelongsToClientFinder
 };
 
 class InvitationController extends ClientBaseController
 {
-    
+
     public function submitReport($programParticipationId, $invitationId)
     {
         $service = $this->buildSubmitReportService();
@@ -35,7 +35,7 @@ class InvitationController extends ClientBaseController
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
 
         $service->execute($this->firmId(), $this->clientId(), $invitationId, $formRecordData);
-        
+
         return $this->show($programParticipationId, $invitationId);
     }
 
@@ -51,7 +51,8 @@ class InvitationController extends ClientBaseController
     {
         $service = $this->buildViewService();
         $invitations = $service->showAll(
-                $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize());
+                $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize(),
+                $this->getTimeIntervalFilter());
 
         $result = [];
         $result["total"] = count($invitations);
@@ -100,6 +101,7 @@ class InvitationController extends ClientBaseController
             ],
         ];
     }
+
     protected function arrayDataOfActivityType(ActivityType $activityType): array
     {
         return [
@@ -111,6 +113,7 @@ class InvitationController extends ClientBaseController
             ],
         ];
     }
+
     protected function arrayDataOfReportForm(?FeedbackForm $reportForm): ?array
     {
         if (!isset($reportForm)) {
@@ -120,9 +123,10 @@ class InvitationController extends ClientBaseController
         $reportFormData["id"] = $reportForm->getId();
         return $reportFormData;
     }
+
     protected function arrayDataOfReport(?InviteeReport $report): ?array
     {
-        return isset($report)? (new FormRecordToArrayDataConverter())->convert($report): null;
+        return isset($report) ? (new FormRecordToArrayDataConverter())->convert($report) : null;
     }
 
     protected function buildViewService()
@@ -130,7 +134,7 @@ class InvitationController extends ClientBaseController
         $participantInvitationRepository = $this->em->getRepository(ParticipantInvitee::class);
         return new ViewInvitationForClientParticipant($participantInvitationRepository);
     }
-    
+
     protected function buildSubmitReportService()
     {
         $activityInvitationRepository = $this->em->getRepository(ParticipantInvitee2::class);
