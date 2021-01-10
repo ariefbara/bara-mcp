@@ -133,6 +133,10 @@ class WorksheetController extends ClientBaseController
                 "description" => $worksheet->getMission()->getWorksheetForm()->getDescription(),
             ],
         ];
+        foreach ($worksheet->getActiveChildren() as $childWorksheet) {
+            $data["children"][] = $this->arrayDataOfChildWorksheet($childWorksheet);
+        }
+        
         return $data;
     }
 
@@ -144,6 +148,13 @@ class WorksheetController extends ClientBaseController
             'id' => $parentWorksheet->getId(),
             'name' => $parentWorksheet->getName(),
             "parent" => $parent,
+        ];
+    }
+    protected function arrayDataOfChildWorksheet(Worksheet $childWorksheet): array
+    {
+        return [
+            "id" => $childWorksheet->getId(),
+            "name" => $childWorksheet->getName(),
         ];
     }
 

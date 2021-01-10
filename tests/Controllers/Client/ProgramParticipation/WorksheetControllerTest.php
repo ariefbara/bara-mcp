@@ -290,19 +290,30 @@ class WorksheetControllerTest extends WorksheetTestCase
         $worksheetTwo->parent = $this->worksheetOne;
         $this->connection->table('Worksheet')->insert($worksheetTwo->toArrayForDbEntry());
         
-        $this->worksheetResponse['id'] = $this->worksheet->id;
-        $this->worksheetResponse['name'] = $this->worksheet->name;
+        $this->worksheetResponse['id'] = $this->worksheetOne->id;
+        $this->worksheetResponse['name'] = $this->worksheetOne->name;
+        $this->worksheetResponse['mission'] = [
+            'id' => $this->worksheetOne->mission->id,
+            'name' => $this->worksheetOne->mission->name,
+            "worksheetForm" => [
+                'id' => $this->worksheetOne->mission->worksheetForm->id,
+                'name' => $this->worksheetOne->mission->worksheetForm->form->name,
+                'description' => $this->worksheetOne->mission->worksheetForm->form->description,
+            ],
+        ];
         $this->worksheetResponse['parent'] = [
-            'id' => $worksheetTwo->parent->id,
-            'name' => $worksheetTwo->parent->name,
-            'parent' => [
-                'id' => $worksheetTwo->parent->parent->id,
-                'name' => $worksheetTwo->parent->parent->name,
-                'parent' => null,
+            'id' => $this->worksheetOne->parent->id,
+            'name' => $this->worksheetOne->parent->name,
+            'parent' => null,
+        ];
+        $this->worksheetResponse["children"] = [
+            [
+                "id" => $worksheetTwo->id,
+                "name" => $worksheetTwo->name,
             ],
         ];
         
-        $uri = $this->worksheetUri . "/{$worksheetTwo->id}";
+        $uri = $this->worksheetUri . "/{$this->worksheetOne->id}";
         $this->get($uri, $this->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($this->worksheetResponse);

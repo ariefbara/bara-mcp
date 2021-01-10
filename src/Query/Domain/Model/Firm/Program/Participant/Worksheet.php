@@ -2,12 +2,12 @@
 
 namespace Query\Domain\Model\Firm\Program\Participant;
 
-use Query\Domain\Model\{
-    Firm\Program\Mission,
-    Firm\Program\Participant,
-    Shared\ContainFormRecordInterface,
-    Shared\FormRecord
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Query\Domain\Model\Firm\Program\Mission;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Shared\ContainFormRecordInterface;
+use Query\Domain\Model\Shared\FormRecord;
 
 class Worksheet implements ContainFormRecordInterface
 {
@@ -54,6 +54,12 @@ class Worksheet implements ContainFormRecordInterface
      */
     protected $removed = false;
 
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $children;
+
     function getParticipant(): Participant
     {
         return $this->participant;
@@ -93,7 +99,7 @@ class Worksheet implements ContainFormRecordInterface
     {
         ;
     }
-    
+
     public function getSubmitTimeString(): string
     {
         return $this->formRecord->getSubmitTimeString();
@@ -127,6 +133,16 @@ class Worksheet implements ContainFormRecordInterface
     public function getUnremovedTextAreaFieldRecords()
     {
         return $this->formRecord->getUnremovedTextAreaFieldRecords();
+    }
+    
+    /**
+     * @return Worksheet[]
+     */
+    public function getActiveChildren()
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq("removed", false));
+        return $this->children->matching($criteria)->getIterator();
     }
 
 }
