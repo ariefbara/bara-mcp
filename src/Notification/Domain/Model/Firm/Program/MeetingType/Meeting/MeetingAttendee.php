@@ -99,6 +99,11 @@ class MeetingAttendee implements CanSendPersonalizeMail
     {
         
     }
+    
+    public function getProgramId(): string
+    {
+        return $this->meeting->getProgramId();
+    }
 
     public function addInvitationSentNotification(): void
     {
@@ -153,11 +158,9 @@ class MeetingAttendee implements CanSendPersonalizeMail
     }
 
     public function registerAsMeetingMailRecipient(
-            CanSendPersonalizeMail $meeting, MailMessage $mailMessage, ?bool $haltPrependUrlPath = false): void
+            CanSendPersonalizeMail $meeting, MailMessage $mailMessage): void
     {
-        if (!$haltPrependUrlPath) {
-            $mailMessage = $mailMessage->prependUrlPath("/invitation/{$this->id}");
-        }
+        $mailMessage = $mailMessage->appendUrlPath("/invitation/{$this->id}");
         $this->registerUserAsMailRecipient($meeting, $mailMessage);
     }
 

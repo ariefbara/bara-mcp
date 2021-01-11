@@ -77,6 +77,11 @@ class Meeting implements CanSendPersonalizeMail
      */
     protected $notifications;
 
+    function getId(): string
+    {
+        return $this->id;
+    }
+
     function getName(): string
     {
         return $this->name;
@@ -95,6 +100,11 @@ class Meeting implements CanSendPersonalizeMail
     protected function __construct()
     {
         
+    }
+    
+    public function getProgramId(): string
+    {
+        return $this->meetingType->getProgramId();
     }
 
     public function addMeetingCreatedNotification(): void
@@ -118,12 +128,12 @@ class Meeting implements CanSendPersonalizeMail
                 ->andWhere(Criteria::expr()->eq("cancelled", false));
         $initiator = $this->attendees->matching($criteria)->first();
         if (!empty($initiator)) {
-            $urlPath = "/meeting/{$this->id}/attendee/{$initiator->getId()}";
+            $urlPath = "/meeting/{$this->id}";
             $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
                             $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location,
                             $domain, $urlPath, $logoPath);
 
-            $initiator->registerAsMeetingMailRecipient($this, $mailMessage, $haltPrependUrlPath = true);
+            $initiator->registerAsMeetingMailRecipient($this, $mailMessage);
             $initiator->registerAsMeetingNotificationRecipient($notification);
             $this->notifications->add($notification);
         }

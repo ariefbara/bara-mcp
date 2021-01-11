@@ -74,7 +74,7 @@ class Manager
     public function registerAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
         $modifiedMail = $mailMessage->appendRecipientFirstNameInGreetings($this->name)
-                ->prependUrlPath("/firm/meeting");
+                ->prependUrlPath("/firm");
         $mailGenerator->addMail($modifiedMail, $this->email, $this->name);
     }
     

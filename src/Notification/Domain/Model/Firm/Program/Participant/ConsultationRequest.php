@@ -76,7 +76,7 @@ class ConsultationRequest implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation";
+        $urlPath = "/consultation-request/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForTeamMember(
                         $state, $mentorName, $memberName, $teamName, $timeDescription, $media, $location, $domain,
@@ -102,7 +102,7 @@ class ConsultationRequest implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation";
+        $urlPath = "/consultation-request/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForParticipant(
@@ -124,7 +124,7 @@ class ConsultationRequest implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/session";
+        $urlPath = "/consultation-request/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForMentor(

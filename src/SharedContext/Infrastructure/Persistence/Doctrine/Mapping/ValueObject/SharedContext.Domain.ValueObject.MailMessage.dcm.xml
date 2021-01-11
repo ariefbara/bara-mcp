@@ -4,10 +4,15 @@
         
         <field name="subject" type="string" length="256" nullable="false"/>
         <field name="greetings" type="string" length="256" nullable="true"/>
-        <field name="mainMessage" type="text" nullable="true"/>
+        <field name="mainMessage" type="simple_array" nullable="true"/>
         <field name="domain" type="string" length="256" nullable="true"/>
         <field name="urlPath" type="string" length="1024" nullable="true"/>
         <field name="logoPath" type="string" length="1024" nullable="true"/>
+        <field name="showLink" type="boolean">
+            <options>
+                <option name="default">1</option>
+            </options>
+        </field>
         
     </embeddable>
 </doctrine-mapping>

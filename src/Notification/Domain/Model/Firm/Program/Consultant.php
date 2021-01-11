@@ -43,7 +43,7 @@ class Consultant
     {
         $mailMessage  = $mailMessage->appendRecipientFirstNameInGreetings("mentor");
         if (!$haltPrependUrl) {
-            $mailMessage = $mailMessage->prependUrlPath("/program-consultant/{$this->program->getId()}");
+            $mailMessage = $mailMessage->prependUrlPath("/program-consultant/{$this->id}/program/{$this->program->getId()}");
         }
         $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }
@@ -55,7 +55,7 @@ class Consultant
     
     public function registerAsCommentMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $mailMessage = $mailMessage->prependUrlPath("/consultation/{$this->id}/program/{$this->program->getId()}")
+        $mailMessage = $mailMessage->prependUrlPath("/as-consultant/{$this->id}/program/{$this->program->getId()}")
                 ->appendRecipientFirstNameInGreetings("mentor");
         $this->personnel->registerAsMailRecipient($mailGenerator, $mailMessage);
     }

@@ -14,13 +14,14 @@ class MailMessageTest extends TestBase
     protected $mainMessage = "new main message";
     protected $domain = "new-domain.com";
     protected $urlPath = "/new-entity/newEntityId";
+    protected $showLink = true;
     protected $recipientFirstName = "adi";
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->mailMessage = new TestableMailMessage("subject", "greetings", "main message", "domain.com",
-                "/entity/entityId", "http://path/to/logo.jpg");
+                "/entity/entityId", "http://path/to/logo.jpg", false);
     }
 
     public function test_construct_setProperties()
@@ -33,6 +34,7 @@ class MailMessageTest extends TestBase
         $this->assertEquals($this->domain, $mailMessage->domain);
         $this->assertEquals($this->urlPath, $mailMessage->urlPath);
         $this->assertEquals($this->logoPath, $mailMessage->logoPath);
+        $this->assertEquals($this->showLink, $mailMessage->showLink);
     }
 
     public function test_appendRecipientFirstNameInGreetings_returnNewMailMessageWithModifiedGreetings()
@@ -40,7 +42,7 @@ class MailMessageTest extends TestBase
         $greetings = $this->mailMessage->greetings . " $this->recipientFirstName";
         $newMessage = new TestableMailMessage(
                 $this->mailMessage->subject, $greetings, $this->mailMessage->mainMessage, $this->mailMessage->domain,
-                $this->mailMessage->urlPath, $this->logoPath);
+                $this->mailMessage->urlPath, $this->logoPath, $this->mailMessage->showLink);
         $this->assertEquals(
                 $newMessage, $this->mailMessage->appendRecipientFirstNameInGreetings($this->recipientFirstName));
     }
@@ -50,7 +52,7 @@ class MailMessageTest extends TestBase
         $urlPath = $this->urlPath . $this->mailMessage->urlPath;
         $newMessage = new TestableMailMessage(
                 $this->mailMessage->subject, $this->mailMessage->greetings, $this->mailMessage->mainMessage,
-                $this->mailMessage->domain, $urlPath, $this->logoPath);
+                $this->mailMessage->domain, $urlPath, $this->logoPath, $this->mailMessage->showLink);
         $this->assertEquals(
                 $newMessage, $this->mailMessage->prependUrlPath($this->urlPath));
     }
@@ -60,7 +62,7 @@ class MailMessageTest extends TestBase
         $urlPath = $this->mailMessage->urlPath . $this->urlPath;
         $newMessage = new TestableMailMessage(
                 $this->mailMessage->subject, $this->mailMessage->greetings, $this->mailMessage->mainMessage,
-                $this->mailMessage->domain, $urlPath, $this->logoPath);
+                $this->mailMessage->domain, $urlPath, $this->logoPath, $this->mailMessage->showLink);
         $this->assertEquals(
                 $newMessage, $this->mailMessage->appendUrlPath($this->urlPath));
     }
@@ -103,4 +105,5 @@ class TestableMailMessage extends MailMessage
     public $domain;
     public $urlPath;
     public $logoPath;
+    public $showLink;
 }

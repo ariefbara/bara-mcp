@@ -87,8 +87,9 @@ class Worksheet
 
     public function registerParticipantAsMailRecipient(CanSendPersonalizeMail $mailGenerator, MailMessage $mailMessage): void
     {
-        $mailMessage = $mailMessage->prependUrlPath("/worksheets/{$this->id}");
-        $this->participant->registerMailRecipient($mailGenerator, $mailMessage);
+        $mailMessage = $mailMessage->prependUrlPath("/worksheet/{$this->id}");
+        $this->participant->registerMailRecipient($mailGenerator, $mailMessage, null, $haltPrependUrlPath = true);
+//        $this->participant->registerMailRecipient($mailGenerator, $mailMessage);
     }
 
     public function registerParticipantAsNotificationRecipient(ContainNotification $notification): void

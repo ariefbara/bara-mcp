@@ -85,7 +85,7 @@ class ConsultationSession implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation/{$this->id}/detail";
+        $urlPath = "/consultation-session/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
 
         $participantMailMessage = MailMessageBuilder::buildConsultationMailMessageForTeamMember(
@@ -115,7 +115,7 @@ class ConsultationSession implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation/{$this->id}/detail";
+        $urlPath = "/consultation-session/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForParticipant(
@@ -138,7 +138,7 @@ class ConsultationSession implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/consultation/{$this->id}/detail";
+        $urlPath = "/consultation-session/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForParticipant(
@@ -162,7 +162,7 @@ class ConsultationSession implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/session/{$this->id}/detail";
+        $urlPath = "/consultation-session/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForMentor(
@@ -187,7 +187,7 @@ class ConsultationSession implements CanSendPersonalizeMail
         $media = $this->channel->getMedia();
         $location = $this->channel->getAddress();
         $domain = $this->participant->getFirmDomain();
-        $urlPath = "/session/{$this->id}/detail";
+        $urlPath = "/consultation-session/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
         
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForCoordinator(

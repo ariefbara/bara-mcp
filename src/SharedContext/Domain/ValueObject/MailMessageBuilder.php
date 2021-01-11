@@ -20,11 +20,10 @@ class MailMessageBuilder
     {
         $subject = "Activate Account";
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Your new account is almost ready. 
-Visit the following link to activate your account.
-_MESSAGE;
-        
+        $mainMessage = [
+            "Your new account is almost ready.", 
+            "Visit the following link to activate your account.", 
+        ];
         return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
     }
     
@@ -32,13 +31,12 @@ _MESSAGE;
     {
         $subject = "Your Account Recovery Is Ready";
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-We received a request to reset your password.
-Visit the following link to change your password.
-
-Ignore this message if you never made this request.
-_MESSAGE;
-        
+        $mainMessage = [
+            "We received a request to reset your password.",
+            "Visit the following link to change your password.",
+            "",
+            "Ignore this message if you never made this request.",
+        ];
         return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
     }
 
@@ -49,38 +47,38 @@ _MESSAGE;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
                 $subject = "New Consultation Request";
-                $introductionMessage = "Participant {$participantName} requested new consultation";
+                $introductionMessage = "Participant requested new consultation";
                 break;
             case self::CONSULTATION_SCHEDULE_CHANGED:
                 $subject = "Consultation Request Schedule Changed";
-                $introductionMessage = "Participant {$participantName} changed consultation request schedule";
+                $introductionMessage = "Participant changed consultation request schedule";
                 break;
             case self::CONSULTATION_CANCELLED:
                 $subject = "Consultation Request Cancelled";
-                $introductionMessage = "Participant {$participantName} cancelled consultation request";
+                $introductionMessage = "Participant cancelled consultation request";
                 break;
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
-                $introductionMessage = "You accepted consultation schedule with participant {$participantName}";
+                $introductionMessage = "You accepted consultation schedule";
                 break;
             case self::CONSULTATION_ACCEPTED_BY_PARTICIPANT:
                 $subject = "Consultation Scheduled";
-                $introductionMessage = "Participant {$participantName} accepted consultation schedule suggestion";
+                $introductionMessage = "Participant accepted consultation schedule suggestion";
                 break;
             default:
                 break;
         }
 
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-{$introductionMessage}
-    schedule: {$timeDescription}
-    media: {$media}
-    location: {$location}
-    
-You can view consultation detail or give response in the following link
-_MESSAGE;
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mainMessage = [
+            $introductionMessage,
+            "participant: {$participantName}",
+            "schedule: {$timeDescription}",
+            "media: {$media}",
+            "location: {$location}",
+        ];
+
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildConsultationMailMessageForTeamMember(
@@ -90,39 +88,38 @@ _MESSAGE;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
                 $subject = "New Consultation Request";
-                $introductionMessage = "Partner {$memberName} requested new consultation to mentor {$mentorName}";
+                $introductionMessage = "Partner {$memberName} requested new consultation";
                 break;
             case self::CONSULTATION_SCHEDULE_CHANGED:
                 $subject = "Consultation Request Schedule Changed";
-                $introductionMessage = "Partner {$memberName} changed consultation request schedule to mentor {$mentorName}";
+                $introductionMessage = "Partner {$memberName} changed consultation request schedule";
                 break;
             case self::CONSULTATION_CANCELLED:
                 $subject = "Consultation Request Cancelled";
-                $introductionMessage = "Partner {$memberName} cancelled consultation request to mentor {$mentorName}";
+                $introductionMessage = "Partner {$memberName} cancelled consultation request";
                 break;
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
-                $introductionMessage = "Mentor {$mentorName} accepted consultation request from your team";
+                $introductionMessage = "Mentor accepted consultation request from your team";
                 break;
             case self::CONSULTATION_ACCEPTED_BY_PARTICIPANT:
                 $subject = "Consultation Scheduled";
-                $introductionMessage = "Your team has scheduled a consultation with mentor {$mentorName}";
+                $introductionMessage = "Your team has scheduled a consultation";
                 break;
             default:
                 break;
         }
 
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-{$introductionMessage}
-    team: {$teamName}
-    schedule: {$timeDescription}
-    media: {$media}
-    location: {$location}
-    
-You can view consultation detail or give response in the following link
-_MESSAGE;
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mainMessage = [
+            $introductionMessage,
+            "mentor: {$mentorName}",
+            "team: {$teamName}",
+            "schedule: {$timeDescription}",
+            "media: {$media}",
+            "location: {$location}",
+        ];
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
     }
 
     public static function buildConsultationMailMessageForParticipant(
@@ -132,34 +129,33 @@ _MESSAGE;
         switch ($state) {
             case self::CONSULTATION_SCHEDULE_CHANGED:
                 $subject = "Consultation Request Schedule Changed";
-                $introductionMessage = "Mentor {$mentorName} offered consultation schedule";
+                $introductionMessage = "Mentor offered consultation schedule";
                 break;
             case self::CONSULTATION_REJECTED:
                 $subject = "Consultation Request Rejected";
-                $introductionMessage = "Mentor {$mentorName} rejected consultation request";
+                $introductionMessage = "Mentor rejected consultation request";
                 break;
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
-                $introductionMessage = "Mentor {$mentorName} accepted consultation request";
+                $introductionMessage = "Mentor accepted consultation request";
                 break;
             case self::CONSULTATION_ACCEPTED_BY_PARTICIPANT:
                 $subject = "Consultation Scheduled";
-                $introductionMessage = "You accepted consultation offered by mentor {$mentorName}";
+                $introductionMessage = "You accepted consultation offered by mentor";
                 break;
             default:
                 break;
         }
 
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-{$introductionMessage}
-    schedule: {$timeDescription}
-    media: {$media}
-    location: {$location}
-    
-You can view consultation detail or give response in the following link
-_MESSAGE;
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mainMessage = [
+            $introductionMessage,
+            "mentor: {$mentorName}",
+            "schedule: {$timeDescription}",
+            "media: {$media}",
+            "location: {$location}",
+        ];
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
     
     public static function buildConsultationMailMessageForCoordinator(
@@ -168,15 +164,15 @@ _MESSAGE;
     {
         $subject = "Consultation Scheduled";
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-A new consultation between participant {$participantName} and mentor {$mentorName} has been scheduled
-    schedule: {$timeDescription}
-    media: {$media}
-    location: {$location}
-    
-You can view consultation detail or give response in the following link
-_MESSAGE;
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mainMessage = [
+            "A new consultation session scheduled",
+            "participant: {$participantName}",
+            "mentor: {$mentorName}",
+            "schedule: {$timeDescription}",
+            "media: {$media}",
+            "location: {$location}",
+        ];
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildMeetingMailMessage(
@@ -204,16 +200,14 @@ _MESSAGE;
                 break;
         }
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-{$introductionMessage}
-    type: {$meetingType}
-    meeting: {$meetingName} - {$meetingDescription}
-    schedule: {$timeDescription}
-    location: {$location}
-    
-You can view consultation detail or give response in the following link
-_MESSAGE;
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mainMessage = [
+            $introductionMessage,
+            "type: {$meetingType}",
+            "meeting: {$meetingName} - {$meetingDescription}",
+            "schedule: {$timeDescription}",
+            "location: {$location}",
+        ];
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildWorksheetCommentMailMessageForParticipant(
@@ -222,15 +216,13 @@ _MESSAGE;
     {
         $subject = "New Comment";
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Mentor {$mentorName} commented on your worksheet
-    worksheet: {$missionName} - {$worksheetName}
-    message: {$message}
-    
-You can view comment detail in the following link
-_MESSAGE;
-
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mainMessage = [
+            "Mentor commented on your worksheet",
+            "mentor: {$mentorName}",
+            "worksheet: {$missionName} - {$worksheetName}",
+            "message: {$message}",
+        ];
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildWorksheetCommentMailMessageForMentor(
@@ -239,15 +231,13 @@ _MESSAGE;
     {
         $subject = "Comment Replied";
         $greetings = "Hi";
-        $mainMessage = <<<_MESSAGE
-Participant {$participantName} replied to your comment
-    worksheet: {$missionName} - {$worksheetName}
-    message: {$message}
-    
-You can view comment detail in the following link
-_MESSAGE;
-
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath);
+        $mainMessage = [
+            "Participant replied to your comment",
+            "participant: {$participantName}",
+            "worksheet: {$missionName} - {$worksheetName}",
+            "message: {$message}",
+        ];
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
 }
