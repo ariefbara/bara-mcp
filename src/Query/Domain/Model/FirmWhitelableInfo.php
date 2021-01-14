@@ -12,33 +12,33 @@ class FirmWhitelableInfo
 
     /**
      *
-     * @var string
+     * @var string|null
      */
     protected $url;
 
     /**
      *
-     * @var string
+     * @var string|null
      */
     protected $mailSenderAddress;
 
     /**
      *
-     * @var string
+     * @var string|null
      */
     protected $mailSenderName;
 
-    public function getUrl(): string
+    public function getUrl(): ?string
     {
         return $this->url;
     }
 
-    public function getMailSenderAddress(): string
+    public function getMailSenderAddress(): ?string
     {
         return $this->mailSenderAddress;
     }
 
-    public function getMailSenderName(): string
+    public function getMailSenderName(): ?string
     {
         return $this->mailSenderName;
     }

@@ -42,6 +42,7 @@ class ManagerTest extends TestBase
     protected $programsProfileForm;
     protected $mission;
     protected $worksheetForm;
+    protected $clientCVForm;
 
     protected function setUp(): void
     {
@@ -74,6 +75,7 @@ class ManagerTest extends TestBase
         
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
+        $this->clientCVForm = $this->buildMockOfClass(ClientCVForm::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -646,6 +648,38 @@ class ManagerTest extends TestBase
         $this->setAssetDoesntBelongsToFirm($this->worksheetForm);
         $this->assertUnmanageableAssetForbiddenError(function (){
             $this->executeChangeMissionsWorksheetForm();
+        });
+    }
+    
+    protected function executeAssignClientCVForm()
+    {
+        return $this->manager->assignClientCVForm($this->profileForm);
+    }
+    public function test_assigneClientCVForm_returnFirmsAssignClientCVFormResult()
+    {
+        $this->firm->expects($this->once())
+                ->method("assignClientCVForm")
+                ->with($this->profileForm)
+                ->willReturn($id = "clientCVFormId");
+        $this->assertEquals($id, $this->executeAssignClientCVForm());
+    }
+    
+    protected function executeDisableClientCVForm()
+    {
+        $this->setAssetBelongsToFirm($this->clientCVForm);
+        $this->manager->disableClientCVForm($this->clientCVForm);
+    }
+    public function test_disableClientCVForm_disableClientCVForm()
+    {
+        $this->clientCVForm->expects($this->once())
+                ->method("disable");
+        $this->executeDisableClientCVForm();
+    }
+    public function test_disalbeClientCVForm_clientCVFormNotFromSameFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->clientCVForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableClientCVForm();
         });
     }
 }

@@ -65,7 +65,7 @@ class RegistrantProfile implements ContainFormRecordInterface
         
     }
 
-    public function getSubmitTimeString(): string
+    public function getSubmitTimeString(): ?string
     {
         return $this->formRecord->getSubmitTimeString();
     }

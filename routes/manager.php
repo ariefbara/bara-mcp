@@ -74,6 +74,14 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/client-cv-forms'], function () use($router) {
+        $controller = "ClientCVFormController";
+        $router->post("", ["uses" => "$controller@assign"]);
+        $router->delete("/{clientCVFormId}", ["uses" => "$controller@disable"]);
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{clientCVFormId}", ["uses" => "$controller@show"]);
+    });
+    
     $programAggregate = [
         'prefix' => '/programs/{programId}',
         'namespace' => 'Program',

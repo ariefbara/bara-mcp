@@ -281,5 +281,16 @@ class Manager implements CanAttendMeeting
             throw RegularException::forbidden($errorDetail);
         }
     }
+    
+    public function assignClientCVForm(ProfileForm $profileForm): string
+    {
+        return $this->firm->assignClientCVForm($profileForm);
+    }
+    
+    public function disableClientCVForm(ClientCVForm $clientCVForm)
+    {
+        $this->assertAssetBelongsToSameFirm($clientCVForm);
+        $clientCVForm->disable();
+    }
 
 }

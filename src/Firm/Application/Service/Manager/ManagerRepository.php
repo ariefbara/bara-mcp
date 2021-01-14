@@ -8,4 +8,6 @@ interface ManagerRepository
 {
 
     public function aManagerInFirm(string $firmId, string $managerId): Manager;
+    
+    public function update(): void;
 }
