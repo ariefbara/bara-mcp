@@ -51,6 +51,12 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/client-cv-forms'], function () use($router) {
+        $controller = "ClientCVFormController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{clientCVFormId}", ["uses" => "$controller@show"]);
+    });
+    
     $router->group(['prefix' => '/cv'], function () use($router) {
         $controller = "ClientCVController";
         $router->put("/{clientCVFormId}", ["uses" => "$controller@submit"]);
