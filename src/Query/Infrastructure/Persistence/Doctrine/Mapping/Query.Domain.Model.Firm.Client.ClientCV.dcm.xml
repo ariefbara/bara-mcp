@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Client\ClientCV" 
+            table="ClientCV"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientCVRepository"
+    >
+        
+        <many-to-one  field="client" 
+                      target-entity="Query\Domain\Model\Firm\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="removed" type="boolean" />
+        
+        <many-to-one  field="clientCVForm" 
+                      target-entity="Query\Domain\Model\Firm\ClientCVForm"
+        >
+            <join-column name="ClientCVForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="formRecord" 
+                    target-entity="Query\Domain\Model\Shared\FormRecord"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

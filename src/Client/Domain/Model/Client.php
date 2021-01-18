@@ -2,27 +2,26 @@
 
 namespace Client\Domain\Model;
 
-use Client\Domain\ {
-    Event\ClientResetPasswordCodeGenerated,
-    Model\Client\ClientFileInfo,
-    Model\Client\ProgramParticipation,
-    Model\Client\ProgramRegistration
-};
+use Client\Domain\DependencyModel\Firm\ClientCVForm;
+use Client\Domain\Model\Client\ClientCV;
+use Client\Domain\Model\Client\ClientFileInfo;
+use Client\Domain\Model\Client\ProgramParticipation;
+use Client\Domain\Model\Client\ProgramRegistration;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\Firm;
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Domain\Event\CommonEvent,
-    Domain\Model\EntityContainEvents,
-    Domain\ValueObject\Password,
-    Domain\ValueObject\PersonName,
-    Exception\RegularException,
-    ValidationRule,
-    ValidationService
-};
+use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\PersonName;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class Client extends EntityContainEvents
 {
@@ -105,6 +104,12 @@ class Client extends EntityContainEvents
      */
     protected $programParticipations;
     
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $clientCVs;
+
     protected function setEmail(string $email): void
     {
         $errorDetail = 'bad request: invalid email format';
@@ -217,11 +222,41 @@ class Client extends EntityContainEvents
         $this->assertNoActiveParticipationInSameProgram($program);
         return new ProgramRegistration($this, $programRegistrationId, $program);
     }
+    
+    public function submitCV(ClientCVForm $clientCVForm, FormRecordData $formRecordData): void
+    {
+        $this->assertAccountActive();
+        if (!$clientCVForm->belongsToFirm($this->firmId)) {
+            $errorDetail = "forbidden: can only use asset in same firm";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
+        $p = function (ClientCV $clientCV) use ($clientCVForm) {
+            return $clientCV->isActiveCVCorrespondWithClientCVForm($clientCVForm);
+        };
+        if (!empty($clientCV = $this->clientCVs->filter($p)->first())) {
+            $clientCV->update($formRecordData);
+        } else {
+            $id = Uuid::generateUuid4();
+            $clientCV = new ClientCV($this, $id, $clientCVForm, $formRecordData);
+            $this->clientCVs->add($clientCV);
+        }
+    }
+    
+    public function removeCV(ClientCV $clientCV): void
+    {
+        $this->assertAccountActive();
+        if (!$clientCV->belongsToClient($this)) {
+            $errorDetail = "forbidden: can only manage owned asset";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $clientCV->remove();
+    }
 
     protected function assertAccountActive(): void
     {
         if (!$this->activated) {
-            $errorDetail = 'forbidden: only active client can  make this request';
+            $errorDetail = 'forbidden: only active client can make this request';
             throw RegularException::forbidden($errorDetail);
         }
     }

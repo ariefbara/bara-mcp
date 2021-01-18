@@ -2,27 +2,24 @@
 
 namespace Client\Dommain\Model;
 
-use Client\Domain\ {
-    Event\ClientActivationCodeGenerated,
-    Event\ClientResetPasswordCodeGenerated,
-    Model\Client,
-    Model\Client\ClientFileInfo,
-    Model\Client\ProgramParticipation,
-    Model\Client\ProgramRegistration,
-    Model\ClientData,
-    Model\ProgramInterface
-};
+use Client\Domain\DependencyModel\Firm\ClientCVForm;
+use Client\Domain\Model\Client;
+use Client\Domain\Model\Client\ClientCV;
+use Client\Domain\Model\Client\ClientFileInfo;
+use Client\Domain\Model\Client\ProgramParticipation;
+use Client\Domain\Model\Client\ProgramRegistration;
+use Client\Domain\Model\ClientData;
+use Client\Domain\Model\ProgramInterface;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\Firm;
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Domain\Event\CommonEvent,
-    Domain\ValueObject\Password,
-    Domain\ValueObject\PersonName
-};
+use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\PersonName;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
 class ClientTest extends TestBase
@@ -42,6 +39,8 @@ class ClientTest extends TestBase
     protected $program;
     
     protected $clientFileInfoId = 'clientFileInfoId', $fileInfoData;
+    protected $clientCVForm, $clientCV;
+    protected $formRecordData;
 
     protected function setUp(): void
     {
@@ -72,6 +71,18 @@ class ClientTest extends TestBase
         
         $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
         $this->fileInfoData->expects($this->any())->method('getName')->willReturn('docs.pdf');
+        
+        $this->clientCVForm = $this->buildMockOfClass(ClientCVForm::class);
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        $this->clientCV = $this->buildMockOfClass(ClientCV::class);
+        
+        $this->client->clientCVs = new ArrayCollection();
+        $this->client->clientCVs->add($this->clientCV);
+    }
+    protected function assertInactiveClientForbiddenError(callable $operation): void
+    {
+        $errorDetail = "forbidden: only active client can make this request";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function getClientData()
@@ -129,7 +140,7 @@ class ClientTest extends TestBase
         $operation = function (){
             $this->executeUpdateProfile();
         };
-        $errorDetail = 'forbidden: only active client can  make this request';
+        $errorDetail = 'forbidden: only active client can make this request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     
@@ -164,7 +175,7 @@ class ClientTest extends TestBase
         $operation = function (){
             $this->executeChangePassword();
         };
-        $errorDetail = 'forbidden: only active client can  make this request';
+        $errorDetail = 'forbidden: only active client can make this request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     
@@ -268,7 +279,7 @@ class ClientTest extends TestBase
         $operation = function (){
             $this->executeResetPassword();
         };
-        $errorDetail = 'forbidden: only active client can  make this request';
+        $errorDetail = 'forbidden: only active client can make this request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     
@@ -321,7 +332,7 @@ class ClientTest extends TestBase
         $operation = function (){
             $this->executeGenerateResetPasswordCode();
         };
-        $errorDetail = 'forbidden: only active client can  make this request';
+        $errorDetail = 'forbidden: only active client can make this request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     public function test_generateResetPasswordCode_storeClientResetPasswordCodeGeneratedEvent()
@@ -351,7 +362,7 @@ class ClientTest extends TestBase
         $operation = function (){
             $this->executeRegisterToProgram();
         };
-        $errorDetail = 'forbidden: only active client can  make this request';
+        $errorDetail = 'forbidden: only active client can make this request';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     public function test_registerToProgram_haveUnconcludedRegistrationToSameProgram_forbiddenError()
@@ -396,6 +407,90 @@ class ClientTest extends TestBase
         $clientFileInfo = new ClientFileInfo($this->client, $this->clientFileInfoId, $this->fileInfoData);
         $this->assertEquals($clientFileInfo, $this->client->createClientFileInfo($this->clientFileInfoId, $this->fileInfoData));
     }
+    
+    protected function executeSubmitCV()
+    {
+        $this->clientCVForm->expects($this->any())
+                ->method("belongsToFirm")
+                ->willReturn(true);
+        return $this->client->submitCV($this->clientCVForm, $this->formRecordData);
+    }
+    public function test_submitCV_addClientCVToCollection()
+    {
+        $this->executeSubmitCV();
+        $this->assertEquals(2, $this->client->clientCVs->count());
+        $this->assertInstanceOf(ClientCV::class, $this->client->clientCVs->last());
+    }
+    public function test_submitCV_alredyHasCVCorrespondWithSameForm_updateExistingCV()
+    {
+        $this->clientCV->expects($this->once())
+                ->method("isActiveCVCorrespondWithClientCVForm")
+                ->with($this->clientCVForm)
+                ->willReturn(true);
+        $this->clientCV->expects($this->once())
+                ->method("update")
+                ->with($this->formRecordData);
+        $this->executeSubmitCV();
+    }
+    public function test_submitCV_alreadyHasCVCorrespondWithSameForm_preventAddNewCV()
+    {
+        $this->clientCV->expects($this->once())
+                ->method("isActiveCVCorrespondWithClientCVForm")
+                ->willReturn(true);
+        $this->executeSubmitCV();
+        $this->assertEquals(1, $this->client->clientCVs->count());
+    }
+    public function test_submitCV_inactiveAccount_forbidden()
+    {
+        $this->client->activated = false;
+        $this->assertInactiveClientForbiddenError(function (){
+            $this->executeSubmitCV();
+        });
+    }
+    public function test_submitCV_clientCVFormNotFromSameFirm_forbidden()
+    {
+        $this->clientCVForm->expects($this->once())
+                ->method("belongsToFirm")
+                ->with($this->client->firmId)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeSubmitCV();
+        };
+        $errorDetail = "forbidden: can only use asset in same firm";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    protected function executeRemoveCV()
+    {
+        $this->clientCV->expects($this->any())
+                ->method("belongsToClient")
+                ->willReturn(true);
+        $this->client->removeCV($this->clientCV);
+    }
+    public function test_removeCV_removeCV()
+    {
+        $this->clientCV->expects($this->once())->method("remove");
+        $this->executeRemoveCV();
+    }
+    public function test_removeCV_inactiveClient()
+    {
+        $this->client->activated = false;
+        $this->assertInactiveClientForbiddenError(function (){
+            $this->executeRemoveCV();
+        });
+    }
+    public function test_removeCv_CVNotBelongsToClient_forbidden()
+    {
+        $this->clientCV->expects($this->once())
+                ->method("belongsToClient")
+                ->with($this->client)
+                ->willReturn(false);
+        $operation = function (){
+            $this->executeRemoveCV();
+        };
+        $errorDetail = "forbidden: can only manage owned asset";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
 }
 
 class TestableClient extends Client
@@ -413,6 +508,7 @@ class TestableClient extends Client
     public $activated;
     public $programRegistrations;
     public $programParticipations;
+    public $clientCVs;
     
     public $recordedEvents;
     

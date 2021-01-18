@@ -28,6 +28,12 @@
                      target-entity="Client\Domain\Model\Client\ProgramRegistration" 
                      mapped-by="client"
         />
+        <one-to-many  field="clientCVs" 
+                      target-entity="Client\Domain\Model\Client\ClientCV"
+                      mapped-by="client"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
         
     </entity>
 </doctrine-mapping>

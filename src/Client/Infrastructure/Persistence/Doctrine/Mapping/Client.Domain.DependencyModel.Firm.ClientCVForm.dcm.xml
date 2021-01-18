@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\DependencyModel\Firm\ClientCVForm" 
+            table="ClientCVForm"
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientCVFormRepository"
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" />
+        <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        
+        <many-to-one  field="profileForm" 
+                      target-entity="Client\Domain\DependencyModel\Firm\ProfileForm"
+        >
+            <join-column name="ProfileForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>
