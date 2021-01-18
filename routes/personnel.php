@@ -22,6 +22,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/client-cvs'], function () use($router) {
+        $controller = "ClientCVController";
+        $router->get("/{clientId}", ["uses" => "$controller@showAll"]);
+        $router->get("/{clientId}/{clientCVFormId}", ["uses" => "$controller@show"]);
+    });
+    
     $router->get("/team/{teamId}/members", ["uses" => "TeamMemberController@showAll"]);
     $router->get("team-members/{teamMemberId}", ["uses" => "TeamMemberController@show"]);
     
