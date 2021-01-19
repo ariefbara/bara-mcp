@@ -33,11 +33,11 @@ class SubmitReport
 
     public function execute(
             string $firmId, string $clientId, string $teamMembershipId, string $consultationSessionId,
-            FormRecordData $formRecordData): void
+            FormRecordData $formRecordData, ?int $mentorRating): void
     {
         $consultationSession = $this->consultationSessionRepository->ofId($consultationSessionId);
         $this->teamMembershipRepository->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
-                ->submitConsultationSessionReport($consultationSession, $formRecordData);
+                ->submitConsultationSessionReport($consultationSession, $formRecordData, $mentorRating);
         $this->consultationSessionRepository->update();
     }
 

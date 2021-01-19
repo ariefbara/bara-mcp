@@ -2,27 +2,22 @@
 
 namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation;
 
-use App\Http\Controllers\{
-    Client\TeamMembership\TeamMembershipBaseController,
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter,
-    FormToArrayDataConverter
-};
-use Participant\{
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ConsultationSession\SubmitReport,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\Model\Participant\ConsultationSession as ConsultationSession2,
-    Domain\Service\TeamFileInfoFinder
-};
-use Query\{
-    Application\Service\Firm\Team\ProgramParticipation\ViewConsultationSession,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
-    Infrastructure\QueryFilter\ConsultationSessionFilter
-};
+use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ConsultationSession\SubmitReport;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\Model\Participant\ConsultationSession as ConsultationSession2;
+use Participant\Domain\Service\TeamFileInfoFinder;
+use Query\Application\Service\Firm\Team\ProgramParticipation\ViewConsultationSession;
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ParticipantFeedback;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
-class ConsultationSessionController extends \App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController
+class ConsultationSessionController extends AsTeamMemberBaseController
 {
 
     public function submitReport($teamId, $teamProgramParticipationId, $consultationSessionId)
@@ -32,9 +27,10 @@ class ConsultationSessionController extends \App\Http\Controllers\Client\AsTeamM
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
         $fileInfoFinder = new TeamFileInfoFinder($fileInfoRepository, $teamId);
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
+        $mentorRating = $this->stripTagsInputRequest("mentorRating");
 
         $service->execute(
-                $this->firmId(), $this->clientId(), $teamId, $consultationSessionId, $formRecordData);
+                $this->firmId(), $this->clientId(), $teamId, $consultationSessionId, $formRecordData, $mentorRating);
 
         return $this->show($teamId, $teamProgramParticipationId, $consultationSessionId);
     }
@@ -89,8 +85,6 @@ class ConsultationSessionController extends \App\Http\Controllers\Client\AsTeamM
 
     protected function arrayDataOfConsultationSession(ConsultationSession $consultationSession)
     {
-        $participantFeedback = empty($consultationSession->getParticipantFeedback()) ? null :
-                (new FormRecordToArrayDataConverter())->convert($consultationSession->getParticipantFeedback());
         return [
             "id" => $consultationSession->getId(),
             "startTime" => $consultationSession->getStartTime(),
@@ -110,15 +104,23 @@ class ConsultationSessionController extends \App\Http\Controllers\Client\AsTeamM
                     "name" => $consultationSession->getConsultant()->getPersonnel()->getName()
                 ],
             ],
-            "participantFeedback" => $participantFeedback,
+            "participantFeedback" => $this->arrayDataOfParticipantFeedback($consultationSession->getParticipantFeedback()),
         ];
     }
-
     protected function arrayDataOfFeedbackForm(FeedbackForm $feedbackForm): array
     {
         $data = (new FormToArrayDataConverter())->convert($feedbackForm);
         $data['id'] = $feedbackForm->getId();
         return $data;
+    }
+    protected function arrayDataOfParticipantFeedback(?ParticipantFeedback $participantFeedback): ?array
+    {
+        if (empty($participantFeedback)) {
+            return null;
+        }
+        $result = (new FormRecordToArrayDataConverter())->convert($participantFeedback);
+        $result["mentorRating"] = $participantFeedback->getMentorRating();
+        return $result;
     }
 
     protected function buildViewService()

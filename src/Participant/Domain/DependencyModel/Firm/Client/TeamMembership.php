@@ -177,11 +177,11 @@ class TeamMembership extends EntityContainEvents
     }
 
     public function submitConsultationSessionReport(
-            ConsultationSession $consultationSession, FormRecordData $formRecordData): void
+            ConsultationSession $consultationSession, FormRecordData $formRecordData, ?int $mentorRating): void
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($consultationSession);
-        $consultationSession->setParticipantFeedback($formRecordData, $this);
+        $consultationSession->setParticipantFeedback($formRecordData, $mentorRating, $this);
     }
 
     public function submitNewCommentInWorksheet(Worksheet $worksheet, string $commentId, string $message): Comment

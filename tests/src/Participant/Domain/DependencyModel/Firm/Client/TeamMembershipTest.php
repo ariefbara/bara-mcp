@@ -39,7 +39,7 @@ class TeamMembershipTest extends TestBase
     protected $consultationRequest, $consultationRequestId = "consultatioNRequestId";
     protected $consultationSetup, $consultant;
     protected $consultationRequestData;
-    protected $consultationSession;
+    protected $consultationSession, $mentorRating = 4;
     protected $comment, $commentId = "commentId", $commentMessage = "comment message";
     protected $event;
     protected $participant, $logId = "logId", $learningMaterialId = "learningMaterialId";
@@ -443,13 +443,13 @@ class TeamMembershipTest extends TestBase
     protected function executeSubmitConsultationSessionReport()
     {
         $this->setAssetsBelongsToTeam($this->consultationSession);
-        $this->teamMembership->submitConsultationSessionReport($this->consultationSession, $this->formRecordData);
+        $this->teamMembership->submitConsultationSessionReport($this->consultationSession, $this->formRecordData, $this->mentorRating);
     }
     public function test_submitConsultationSessionReport_executeTeamProgramParticipationSubmitConsultationReportMethod()
     {
         $this->consultationSession->expects($this->once())
                 ->method("setParticipantFeedback")
-                ->with($this->formRecordData, $this->teamMembership);
+                ->with($this->formRecordData, $this->mentorRating, $this->teamMembership);
         $this->executeSubmitConsultationSessionReport();
     }
     public function test_submitConsultationSessionReport_inactiveMember_forbiddenError()

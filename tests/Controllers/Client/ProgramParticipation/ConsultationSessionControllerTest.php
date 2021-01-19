@@ -86,6 +86,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ParticipantFeedback')->insert($this->participantFeedbackOne->toArrayForDbEntry());
 
         $this->participantFeedbackInput = [
+            "mentorRating" => 3,
             "stringFieldRecords" => [
                 [
                     "fieldId" => $stringField->id,
@@ -210,7 +211,6 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
 
     public function test_submitReport_200()
     {
-$this->disableExceptionHandling();
         $this->connection->table("StringField")->truncate();
         $this->connection->table("StringFieldRecord")->truncate();
         $this->participantFeedbackInput["stringFieldRecords"] = [];
@@ -242,6 +242,7 @@ $this->disableExceptionHandling();
                 ],
             ],
             "participantFeedback" => [
+                "mentorRating" => $this->participantFeedbackInput["mentorRating"],
                 "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
                 "stringFieldRecords" => [],
                 "integerFieldRecords" => [],
@@ -258,6 +259,7 @@ $this->disableExceptionHandling();
 
         $participantFeedbackEntry = [
             "ConsultationSession_id" => $this->consultationSession->id,
+            "mentorRating" => $this->participantFeedbackInput["mentorRating"],
         ];
         $this->seeInDatabase("ParticipantFeedback", $participantFeedbackEntry);
 
@@ -307,6 +309,7 @@ $this->disableExceptionHandling();
                 ],
             ],
             "participantFeedback" => [
+                "mentorRating" => $this->participantFeedbackInput["mentorRating"],
                 "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
                 "stringFieldRecords" => [
                     [

@@ -2,23 +2,18 @@
 
 namespace App\Http\Controllers\User\ProgramParticipation;
 
-use App\Http\Controllers\ {
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter,
-    FormToArrayDataConverter,
-    User\UserBaseController
-};
-use Participant\ {
-    Application\Service\UserParticipant\ConsultationSession\SubmitFeedback,
-    Domain\Model\Participant\ConsultationSession as ConsultationSession2,
-    Domain\Service\UserFileInfoFinder
-};
-use Query\ {
-    Application\Service\User\ProgramParticipation\ViewConsultationSession,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
-    Infrastructure\QueryFilter\ConsultationSessionFilter
-};
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use App\Http\Controllers\User\UserBaseController;
+use Participant\Application\Service\UserParticipant\ConsultationSession\SubmitFeedback;
+use Participant\Domain\Model\Participant\ConsultationSession as ConsultationSession2;
+use Participant\Domain\Service\UserFileInfoFinder;
+use Query\Application\Service\User\ProgramParticipation\ViewConsultationSession;
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ParticipantFeedback;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ConsultationSessionController extends UserBaseController
@@ -28,7 +23,9 @@ class ConsultationSessionController extends UserBaseController
     {
         $service = $this->buildSetParticipantFeedbackService();
         $formRecordData = $this->getFormRecordData();
-        $service->execute($this->userId(), $programParticipationId, $consultationSessionId, $formRecordData);
+        $mentorRating = $this->stripTagsInputRequest("mentorRating");
+        
+        $service->execute($this->userId(), $programParticipationId, $consultationSessionId, $formRecordData, $mentorRating);
 
         return $this->show($programParticipationId, $consultationSessionId);
     }
@@ -87,8 +84,6 @@ class ConsultationSessionController extends UserBaseController
 
     protected function arrayDataOfConsultationSession(ConsultationSession $consultationSession)
     {
-        $participantFeedback = empty($consultationSession->getParticipantFeedback()) ? null :
-                (new FormRecordToArrayDataConverter())->convert($consultationSession->getParticipantFeedback());
         return [
             "id" => $consultationSession->getId(),
             "startTime" => $consultationSession->getStartTime(),
@@ -108,15 +103,23 @@ class ConsultationSessionController extends UserBaseController
                     "name" => $consultationSession->getConsultant()->getPersonnel()->getName()
                 ],
             ],
-            "participantFeedback" => $participantFeedback,
+            "participantFeedback" => $this->arrayDataOfParticipantFeedback($consultationSession->getParticipantFeedback()),
         ];
     }
-
     protected function arrayDataOfFeedbackForm(FeedbackForm $feedbackForm): array
     {
         $data = (new FormToArrayDataConverter())->convert($feedbackForm);
         $data['id'] = $feedbackForm->getId();
         return $data;
+    }
+    protected function arrayDataOfParticipantFeedback(?ParticipantFeedback $participantFeedback): ?array
+    {
+        if (empty($participantFeedback)) {
+            return null;
+        }
+        $result = (new FormRecordToArrayDataConverter())->convert($participantFeedback);
+        $result["mentorRating"] = $participantFeedback->getMentorRating();
+        return $result;
     }
 
     protected function buildViewService()

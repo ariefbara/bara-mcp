@@ -24,7 +24,7 @@ class SubmitReportTest extends TestBase
     protected $teamMembershipRepository, $teamMembership;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
             $consultationSessionId = "consultationSessionId";
-    protected $formRecordData;
+    protected $formRecordData, $mentorRating = 4;
 
     protected function setUp(): void
     {
@@ -53,14 +53,14 @@ class SubmitReportTest extends TestBase
     {
         $this->service->execute(
                 $this->firmId, $this->clientId, $this->teamMembershipId, $this->consultationSessionId,
-                $this->formRecordData);
+                $this->formRecordData, $this->mentorRating);
     }
 
     public function test_execute_executeTeamMembershipSubmitConsultationReportMethod()
     {
         $this->teamMembership->expects($this->once())
                 ->method("submitConsultationSessionReport")
-                ->with($this->consultationSession, $this->formRecordData);
+                ->with($this->consultationSession, $this->formRecordData, $this->mentorRating);
         $this->execute();
     }
 

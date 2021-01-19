@@ -22,11 +22,11 @@ class ParticipantFeedbackSet
 
     public function execute(
             string $firmId, string $clientId, string $programId, string $consultationSessionId,
-            FormRecordData $formRecordData): void
+            FormRecordData $formRecordData, ?int $mentorRating): void
     {
         $this->consultationSessionRepository
                 ->aConsultationSessionOfClientParticipant($firmId, $clientId, $programId, $consultationSessionId)
-                ->setParticipantFeedback($formRecordData);
+                ->setParticipantFeedback($formRecordData, $mentorRating);
         $this->consultationSessionRepository->update();
     }
 

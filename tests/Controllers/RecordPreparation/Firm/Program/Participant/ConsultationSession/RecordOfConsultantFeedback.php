@@ -23,12 +23,14 @@ class RecordOfConsultantFeedback implements Record
      */
     public $formRecord;
     public $id;
+    public $participantRating;
 
     function __construct(RecordOfConsultationSession $consultationSession, RecordOfFormRecord $formRecord)
     {
         $this->consultationSession = $consultationSession;
         $this->formRecord = $formRecord;
         $this->id = $formRecord->id;
+        $this->participantRating = 2;
     }
 
     public function toArrayForDbEntry()
@@ -37,6 +39,7 @@ class RecordOfConsultantFeedback implements Record
             "ConsultationSession_id" => $this->consultationSession->id,
             "FormRecord_id" => $this->formRecord->id,
             "id" => $this->id,
+            "participantRating" => $this->participantRating,
         ];
     }
 

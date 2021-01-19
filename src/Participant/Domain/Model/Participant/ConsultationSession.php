@@ -111,18 +111,19 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
         return !$this->cancelled && $consultationRequest->scheduleIntersectWith($this->startEndTime);
     }
 
-    public function setParticipantFeedback(FormRecordData $formRecordData, ?TeamMembership $teamMember = null): void
+    public function setParticipantFeedback(
+            FormRecordData $formRecordData, ?int $mentorRating, ?TeamMembership $teamMember = null): void
     {
         if ($this->cancelled) {
             $errorDetail = "forbidden: can send report on cancelled session";
             throw RegularException::forbidden($errorDetail);
         }
         if (!empty($this->participantFeedback)) {
-            $this->participantFeedback->update($formRecordData);
+            $this->participantFeedback->update($formRecordData, $mentorRating);
         } else {
             $id = Uuid::generateUuid4();
             $formRecord = $this->consultationSetup->createFormRecordForParticipantFeedback($id, $formRecordData);
-            $this->participantFeedback = new ParticipantFeedback($this, $id, $formRecord);
+            $this->participantFeedback = new ParticipantFeedback($this, $id, $formRecord, $mentorRating);
         }
         $this->addActivityLog("submitted consultation report", $teamMember);
     }

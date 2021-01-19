@@ -2,26 +2,21 @@
 
 namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
-use App\Http\Controllers\ {
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter,
-    FormToArrayDataConverter,
-    Personnel\PersonnelBaseController
-};
-use DateTimeImmutable;
-use Personnel\ {
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedbackSet,
-    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession,
-    Domain\Service\PersonnelFileInfoFinder
-};
-use Query\ {
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession as ConsultationSession2,
-    Domain\Model\User\UserParticipant,
-    Infrastructure\QueryFilter\ConsultationSessionFilter
-};
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use App\Http\Controllers\Personnel\PersonnelBaseController;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSession\ConsultantFeedbackSet;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Service\PersonnelFileInfoFinder;
+use Query\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionView;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession as ConsultationSession2;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultantFeedback;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ConsultationSessionController extends PersonnelBaseController
@@ -34,9 +29,10 @@ class ConsultationSessionController extends PersonnelBaseController
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
         $fileInfoFinder = new PersonnelFileInfoFinder($fileInfoRepository, $this->firmId(), $this->personnelId());
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
+        $participantRating = $this->stripTagsInputRequest("participantRating");
         
         $service->execute(
-                $this->firmId(), $this->personnelId(), $programConsultationId, $consultationSessionId, $formRecordData);
+                $this->firmId(), $this->personnelId(), $programConsultationId, $consultationSessionId, $formRecordData, $participantRating);
 
         return $this->show($programConsultationId, $consultationSessionId);
     }
@@ -88,8 +84,6 @@ class ConsultationSessionController extends PersonnelBaseController
 
     protected function arrayDataOfConsultationSession(ConsultationSession2 $consultationSession): array
     {
-        $consultantFeedbackData = empty($consultationSession->getConsultantFeedback()) ? null :
-                (new FormRecordToArrayDataConverter())->convert($consultationSession->getConsultantFeedback());
         return [
             "id" => $consultationSession->getId(),
             "startTime" => $consultationSession->getStartTime(),
@@ -108,7 +102,7 @@ class ConsultationSessionController extends PersonnelBaseController
                 "user" => $this->arrayDataOfUser($consultationSession->getParticipant()->getUserParticipant()),
                 "team" => $this->arrayDataOfTeam($consultationSession->getParticipant()->getTeamParticipant()),
             ],
-            "consultantFeedback" => $consultantFeedbackData,
+            "consultantFeedback" => $this->arrayDataOfConsultantFeedback($consultationSession->getConsultantFeedback()),
         ];
     }
     protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
@@ -125,19 +119,27 @@ class ConsultationSessionController extends PersonnelBaseController
             "name" => $userParticipant->getUser()->getFullName(),
         ];
     }
-    protected function arrayDataOfTeam(?\Query\Domain\Model\Firm\Team\TeamProgramParticipation $teamParticipant): ?array
+    protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
     {
         return empty($teamParticipant)? null: [
             "id" => $teamParticipant->getTeam()->getId(),
             "name" => $teamParticipant->getTeam()->getName(),
         ];
     }
-
     protected function arrayDataOfFeedbackForm(FeedbackForm $feedbackForm): array
     {
         $data = (new FormToArrayDataConverter())->convert($feedbackForm);
         $data['id'] = $feedbackForm->getId();
         return $data;
+    }
+    protected function arrayDataOfConsultantFeedback(?ConsultantFeedback $consultantFeedback): ?array
+    {
+        if (empty($consultantFeedback)) {
+            return null;
+        }
+        $result = (new FormRecordToArrayDataConverter())->convert($consultantFeedback);
+        $result["participantRating"] = $consultantFeedback->getParticipantRating();
+        return $result;
     }
 
     protected function buildSetConsultantFeedbackService()

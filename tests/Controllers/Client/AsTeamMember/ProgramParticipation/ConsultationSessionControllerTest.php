@@ -88,6 +88,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ParticipantFeedback')->insert($this->participantFeedbackOne->toArrayForDbEntry());
 
         $this->participantFeedbackInput = [
+            "mentorRating" => 3,
             "stringFieldRecords" => [
                 [
                     "fieldId" => $stringField->id,
@@ -308,6 +309,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
                 ],
             ],
             "participantFeedback" => [
+                "mentorRating" => $this->participantFeedbackInput["mentorRating"],
                 "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
                 "stringFieldRecords" => [],
                 "integerFieldRecords" => [],
@@ -324,6 +326,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
 
         $participantFeedbackEntry = [
             "ConsultationSession_id" => $this->consultationSession->id,
+            "mentorRating" => $this->participantFeedbackInput["mentorRating"],
         ];
         $this->seeInDatabase("ParticipantFeedback", $participantFeedbackEntry);
 
@@ -373,6 +376,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
                 ],
             ],
             "participantFeedback" => [
+                "mentorRating" => $this->participantFeedbackInput["mentorRating"],
                 "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
                 "stringFieldRecords" => [
                     [
