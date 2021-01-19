@@ -61,6 +61,8 @@ class InvitationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("ActivityParticipant")->insert($activityParticipantThree->toArrayForDbEntry());
         
         $activity = new RecordOfActivity($activityType, 0);
+        $activity->startDateTime = (new \DateTimeImmutable("+72 hours"))->format("Y-m-d H:i:s");
+        $activity->endDateTime = (new \DateTimeImmutable("+73 hours"))->format("Y-m-d H:i:s");
         $activityOne = new RecordOfActivity($activityType, 1);
         $activityTwo = new RecordOfActivity($activityType, 2);
         $activityThree = new RecordOfActivity($activityType, 3);
@@ -318,5 +320,21 @@ class InvitationControllerTest extends ProgramParticipationTestCase
         $this->get($this->invitationUri, $this->programParticipation->user->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
+    }
+    public function test_showAll_timeIntervalFilterSet()
+    {
+        $uri = $this->invitationUri
+                . "?from=" . (new \DateTimeImmutable("+70 hours"))->format("Y-m-d H:i:s")
+                . "&to=" . (new \DateTimeImmutable("+75 hours"))->format("Y-m-d H:i:s");
+        $totalResponse = ["total" => 1];
+        $listResponse = [
+            "id" => $this->invitation->id,
+        ];
+        
+        $this->get($uri, $this->programParticipation->user->token)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($listResponse)
+                ->seeStatusCode(200);
+                
     }
 }
