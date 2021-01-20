@@ -44,6 +44,7 @@ class MailMessageBuilder
             int $state, ?string $participantName, ?string $timeDescription, ?string $media, ?string $location,
             ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
+        $showLink = true;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
                 $subject = "New Consultation Request";
@@ -56,6 +57,7 @@ class MailMessageBuilder
             case self::CONSULTATION_CANCELLED:
                 $subject = "Consultation Request Cancelled";
                 $introductionMessage = "Participant cancelled consultation request";
+                $showLink = false;
                 break;
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
@@ -78,13 +80,14 @@ class MailMessageBuilder
             "location: {$location}",
         ];
 
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink);
     }
 
     public static function buildConsultationMailMessageForTeamMember(
             int $state, ?string $mentorName, ?string $memberName, ?string $teamName, ?string $timeDescription,
             ?string $media, ?string $location, ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
+        $showLink = true;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
                 $subject = "New Consultation Request";
@@ -97,6 +100,7 @@ class MailMessageBuilder
             case self::CONSULTATION_CANCELLED:
                 $subject = "Consultation Request Cancelled";
                 $introductionMessage = "Partner {$memberName} cancelled consultation request";
+                $showLink = false;
                 break;
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
@@ -119,13 +123,14 @@ class MailMessageBuilder
             "media: {$media}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink);
     }
 
     public static function buildConsultationMailMessageForParticipant(
             int $state, ?string $mentorName, ?string $timeDescription, ?string $media, ?string $location,
             ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
+        $showLink = true;
         switch ($state) {
             case self::CONSULTATION_SCHEDULE_CHANGED:
                 $subject = "Consultation Request Schedule Changed";
@@ -134,6 +139,7 @@ class MailMessageBuilder
             case self::CONSULTATION_REJECTED:
                 $subject = "Consultation Request Rejected";
                 $introductionMessage = "Mentor rejected consultation request";
+                $showLink = false;
                 break;
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
@@ -155,7 +161,7 @@ class MailMessageBuilder
             "media: {$media}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink);
     }
     
     public static function buildConsultationMailMessageForCoordinator(
