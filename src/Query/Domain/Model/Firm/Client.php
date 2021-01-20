@@ -93,9 +93,9 @@ class Client
         return $this->email;
     }
 
-    public function getSignupTime(): DateTimeImmutable
+    public function getSignupTimeString(): ?string
     {
-        return $this->signupTime;
+        return isset($this->signupTime)? $this->signupTime->format("Y-m-d H:i:s"): null;
     }
 
     public function isActivated(): bool

@@ -11,7 +11,7 @@ interface ClientRepository
 
     public function ofId(string $firmId, string $clientId): Client;
 
-    public function all(string $firmId, int $page, int $pageSize);
+    public function all(string $firmId, int $page, int $pageSize, ?bool $activatedStatus);
     
     public function aClientByEmail(string $firmId, string $email): Client;
 }

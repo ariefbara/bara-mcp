@@ -82,6 +82,12 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{clientCVFormId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/clients'], function () use($router) {
+        $controller = "ClientController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{clientId}", ["uses" => "$controller@show"]);
+    });
+    
     $programAggregate = [
         'prefix' => '/programs/{programId}',
         'namespace' => 'Program',

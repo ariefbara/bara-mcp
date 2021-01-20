@@ -20,7 +20,7 @@ use Resources\ {
 class DoctrineClientRepository extends EntityRepository implements ClientRepository, InterfaceForDomainService, InterfaceForAuthorization
 {
     
-    public function all(string $firmId, int $page, int $pageSize)
+    public function all(string $firmId, int $page, int $pageSize, ?bool $activatedStatus)
     {
         $params = [
             'firmId' => $firmId,
@@ -31,6 +31,11 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
+        
+        if (isset($activatedStatus)) {
+            $qb->andWhere($qb->expr()->eq("client.activated", ":activatedStatus"))
+                    ->setParameter("activatedStatus", $activatedStatus);
+        }
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
