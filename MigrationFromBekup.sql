@@ -1,3 +1,4 @@
+-- SET FOREIGN_KEY_CHECKS = 0;
 
 -- INSERT INTO bara_mcp.Admin (id, name, email, password, removed)
 -- SELECT id, name, email, password, removed FROM bara_bekup.SysAdmin;
@@ -66,7 +67,7 @@ INSERT INTO bara_mcp.Firm (id, name, identifier, suspended)
 SELECT id, name, identifier, suspended FROM bara_bekup.Incubator;
 
 INSERT INTO bara_mcp.Personnel (Firm_id, id, firstName, email, password, phone, joinTime, active, bio)
-SELECT Incubator_id, id, name, email, password, phone, joinTime, NOT removed FROM bara_bekup.Personnel;
+SELECT Incubator_id, id, name, email, password, phone, joinTime, NOT `removed`, NULL FROM bara_bekup.Personnel;
 
 INSERT INTO bara_mcp.Manager (Firm_id, id, removed, name, email, password, phone, joinTime)
 SELECT A.Incubator_id, A.id, A.removed, P.name, P.email, P.password, P.phone, P.joinTime
@@ -108,18 +109,18 @@ SELECT FN.Personnel_id, FN.id, FN.Notification_id, N.isRead, N.notifiedTime
 FROM bara_bekup.PersonnelNotification FN LEFT JOIN bara_bekup.Notification N ON FN.Notification_id = N.id;
 
 INSERT INTO bara_mcp.Coordinator (Program_id, id, Personnel_id, active)
-SELECT Program_id, id, Personnel_id, NOT removed FROM bara_bekup.Coordinator;
+SELECT Program_id, id, Personnel_id, NOT `removed` FROM bara_bekup.Coordinator;
 
 INSERT INTO bara_mcp.Consultant (Program_id, id, Personnel_id, active)
-SELECT Program_id, id, Personnel_id, NOT removed FROM bara_bekup.Mentor;
+SELECT Program_id, id, Personnel_id, NOT `removed` FROM bara_bekup.Mentor;
 
 INSERT INTO bara_mcp.ConsultationSetup (Program_id, id, name, sessionDuration, FeedbackForm_idForParticipant, FeedbackForm_idForConsultant, removed)
 SELECT Program_id, id, name, sessionDuration, MentoringFeedbackForm_idForParticipant, MentoringFeedbackForm_idForMentor, removed FROM bara_bekup.Mentoring;
 
-SET FOREIGN_KEY_CHECKS=0;
+-- SET FOREIGN_KEY_CHECKS=0;
 INSERT INTO bara_mcp.Mission (Program_id, id, parent_id, name, description, position, published, WorksheetForm_id)
 SELECT Program_id, id, previousMission_id, name, description, position, published, WorksheetForm_id FROM bara_bekup.Mission;
-SET FOREIGN_KEY_CHECKS=1;
+-- SET FOREIGN_KEY_CHECKS=1;
 
 INSERT INTO bara_mcp.Participant (Program_id, id, enrolledTime, active, note)
 SELECT Program_id, id, acceptedTime, active, note FROM bara_bekup.Participant;
@@ -156,24 +157,24 @@ INSERT INTO bara_mcp.ConsultationSession (ConsultationSetup_id, id, startDateTim
 SELECT Mentoring_id, id, startDateTime, endDateTime, Participant_id, Mentor_id, FALSE FROM bara_bekup.Schedule;
 
 INSERT INTO bara_mcp.ConsultationRequestNotification (ConsultationRequest_id, id, Notification_id)
-SELECT NegotiateSchedule_id, id, FounderNotification_id FROM bara_bekup.FounderNegotiateScheduleNotification
+SELECT NegotiateSchedule_id, id, FounderNotification_id FROM bara_bekup.FounderNegotiateScheduleNotification;
 
 INSERT INTO bara_mcp.ConsultationRequestNotification (ConsultationRequest_id, id, Notification_id)
-SELECT NegotiateSchedule_id, id, PersonnelNotification_id FROM bara_bekup.PersonnelNegotiateScheduleNotification
+SELECT NegotiateSchedule_id, id, PersonnelNotification_id FROM bara_bekup.PersonnelNegotiateScheduleNotification;
 
 INSERT INTO bara_mcp.ConsultationSessionNotification (ConsultationSession_id, id, Notification_id)
-SELECT Schedule_id, id, FounderNotification_id FROM bara_bekup.FounderScheduleNotification
+SELECT Schedule_id, id, FounderNotification_id FROM bara_bekup.FounderScheduleNotification;
 
 INSERT INTO bara_mcp.ConsultationSessionNotification (ConsultationSession_id, id, Notification_id)
-SELECT Schedule_id, id, PersonnelNotification_id FROM bara_bekup.PersonnelScheduleNotification
+SELECT Schedule_id, id, PersonnelNotification_id FROM bara_bekup.PersonnelScheduleNotification;
 
 INSERT INTO bara_mcp.ConsultantFeedback (ConsultationSession_id, id, FormRecord_id)
-SELECT Schedule_id, id, FormRecord_id FROM bara_bekup.MentorMentoringReport
+SELECT Schedule_id, id, FormRecord_id FROM bara_bekup.MentorMentoringReport;
 
 INSERT INTO bara_mcp.ParticipantFeedback (ConsultationSession_id, id, FormRecord_id)
-SELECT Schedule_id, id, FormRecord_id FROM bara_bekup.ParticipantMentoringReport
+SELECT Schedule_id, id, FormRecord_id FROM bara_bekup.ParticipantMentoringReport;
 
-SET FOREIGN_KEY_CHECKS = 0;
+-- SET FOREIGN_KEY_CHECKS = 0;
 INSERT INTO bara_mcp.Worksheet (Participant_id, id, parent_id, name, removed, FormRecord_id, Mission_id)
 SELECT _a.Participant_id, _b.id, _c.parentId, _b.name, _a.removed, _b.FormRecord_id, _a.Mission_id
 FROM bara_bekup.Journal _a
@@ -184,15 +185,15 @@ LEFT JOIN (
     LEFT JOIN bara_bekup.Worksheet __b ON __a.Worksheet_id = __b.id
 )_c ON _c.journalId = _a.parentJournal_id
 ON DUPLICATE KEY UPDATE FormRecord_id = _b.FormRecord_id;
-SET FOREIGN_KEY_CHECKS = 1;
+-- SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO bara_mcp.LearningMaterial (Mission_id, id, name, content, removed)
 SELECT Mission_id, id, name, content, removed FROM bara_bekup.LearningMaterial;
 
-SET FOREIGN_KEY_CHECKS = 0;
+-- SET FOREIGN_KEY_CHECKS = 0;
 INSERT INTO bara_mcp.Comment (Worksheet_id, id, message, submitTime, removed, parent_id)
 SELECT Journal_id, id, message, submitTime, removed, parentComment_id FROM bara_bekup.Comment;
-SET FOREIGN_KEY_CHECKS = 1;
+-- SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO bara_mcp.CommentNotification (Comment_id, id, Notification_id)
 SELECT Comment_id, id, FounderNotification_id FROM bara_bekup.CommentFounderNotification;
@@ -202,6 +203,8 @@ SELECT Team_id, id, position, joinTime, NOT `removed`, Founder_id, true FROM bar
 
 INSERT INTO bara_mcp.TeamFileInfo (Team_id, id, removed, FileInfo_id)
 SELECT Team_id, id, removed, FileInfo_id FROM bara_bekup.TeamFileInfo;
+
+-- SET FOREIGN_KEY_CHECKS = 1;
 
 -- Skipped Data:
 -- SysAdmin
