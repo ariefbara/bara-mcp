@@ -21,6 +21,7 @@ class ConsultantSummaryController extends AsProgramCoordinatorBaseController
             $result["list"][] = [
                 "id" => $consultantSummary["id"],
                 "name" => $consultantSummary["name"],
+                "mentorRating" => $consultantSummary["mentorRating"],
                 "consultationRequest" => [
                     "total" => $consultantSummary["consultationRequestCount"],
                     "unconcluded" => $consultantSummary["unconcludedConsultationRequestCount"],

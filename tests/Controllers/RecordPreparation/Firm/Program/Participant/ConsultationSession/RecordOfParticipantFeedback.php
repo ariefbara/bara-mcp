@@ -25,19 +25,19 @@ class RecordOfParticipantFeedback implements Record
     public $id;
     public $mentorRating;
 
-    function __construct(RecordOfConsultationSession $consultationSession, RecordOfFormRecord $formRecord)
+    function __construct(?RecordOfConsultationSession $consultationSession, ?RecordOfFormRecord $formRecord, $index)
     {
         $this->consultationSession = $consultationSession;
         $this->formRecord = $formRecord;
-        $this->id = $formRecord->id;
+        $this->id = isset($formRecord)? $formRecord->id: "participantFeedback-$index-id";
         $this->mentorRating = 1;
     }
 
     public function toArrayForDbEntry()
     {
         return [
-            "ConsultationSession_id" => $this->consultationSession->id,
-            "FormRecord_id" => $this->formRecord->id,
+            "ConsultationSession_id" => isset($this->consultationSession)? $this->consultationSession->id: null,
+            "FormRecord_id" => isset($this->formRecord)? $this->formRecord->id: null,
             "id" => $this->id,
             "mentorRating" => $this->mentorRating,
         ];

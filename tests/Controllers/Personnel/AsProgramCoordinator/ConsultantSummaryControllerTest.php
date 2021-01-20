@@ -2,23 +2,23 @@
 
 namespace Tests\Controllers\Personnel\AsProgramCoordinator;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\Consultant\RecordOfConsultantComment,
-    Firm\Program\Participant\RecordOfConsultationRequest,
-    Firm\Program\Participant\RecordOfConsultationSession,
-    Firm\Program\Participant\RecordOfWorksheet,
-    Firm\Program\Participant\Worksheet\RecordOfComment,
-    Firm\Program\RecordOfConsultant,
-    Firm\Program\RecordOfConsultationSetup,
-    Firm\Program\RecordOfMission,
-    Firm\Program\RecordOfParticipant,
-    Firm\RecordOfFeedbackForm,
-    Firm\RecordOfPersonnel,
-    Firm\RecordOfProgram,
-    Firm\RecordOfWorksheetForm,
-    Shared\RecordOfForm,
-    Shared\RecordOfFormRecord
-};
+use DateTime;
+use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantComment;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\ConsultationSession\RecordOfParticipantFeedback;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfWorksheet;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfWorksheetForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
 {
@@ -39,6 +39,9 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
     protected $consultationSession_00;
     protected $consultationSession_01;
     protected $consultationSession_02;
+    protected $participantFeedback_00;
+    protected $participantFeedback_01;
+    protected $participantFeedback_02;
     
     protected $consultationRequest_14_accepted;
     protected $consultationSession_10;
@@ -47,6 +50,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
     protected $consultationRequest_22_rejected;
     protected $consultationRequest_24_accepted;
     protected $consultationSession_20;
+    protected $participantFeedback_20;
     
     protected $consultationRequest_30_proposed;
     protected $consultationRequest_31_offered;
@@ -55,11 +59,14 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
     protected $consultationRequest_35_accepted;
     protected $consultationSession_30;
     protected $consultationSession_31;
+    protected $participantFeedback_30;
+    protected $participantFeedback_31;
     
     protected $consultationRequest_40_proposed;
     protected $consultationRequest_42_rejected;
     protected $consultationRequest_43_accepted;
     protected $consultationSession_40;
+    protected $participantFeedback_40;
     
     protected $consultantComment_00;
     protected $consultantComment_01;
@@ -98,6 +105,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("Comment")->truncate();
         $this->connection->table("ConsultationRequest")->truncate();
         $this->connection->table("ConsultationSession")->truncate();
+        $this->connection->table("ParticipantFeedback")->truncate();
         $this->connection->table("ConsultantComment")->truncate();
         
         $program = $this->coordinator->program;
@@ -258,47 +266,47 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("Worksheet")->insert($worksheetOne->toArrayForDbEntry());
         
         $comment_00 = new RecordOfComment($worksheet, "_00");
-        $comment_00->submitTime = (new \DateTime("-8 days"))->format("Y-m-d H:i:s");
+        $comment_00->submitTime = (new DateTime("-8 days"))->format("Y-m-d H:i:s");
         $comment_01 = new RecordOfComment($worksheet, "_01");
-        $comment_01->submitTime = (new \DateTime("-12 hours"))->format("Y-m-d H:i:s");
+        $comment_01->submitTime = (new DateTime("-12 hours"))->format("Y-m-d H:i:s");
         $comment_02 = new RecordOfComment($worksheet, "_02");
-        $comment_02->submitTime = (new \DateTime("-24 hours"))->format("Y-m-d H:i:s");
+        $comment_02->submitTime = (new DateTime("-24 hours"))->format("Y-m-d H:i:s");
         $comment_03 = new RecordOfComment($worksheet, "_03");
-        $comment_03->submitTime = (new \DateTime("-48 hours"))->format("Y-m-d H:i:s");
+        $comment_03->submitTime = (new DateTime("-48 hours"))->format("Y-m-d H:i:s");
         $this->connection->table("Comment")->insert($comment_00->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_01->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_02->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_03->toArrayForDbEntry());
         
         $comment_10 = new RecordOfComment($worksheet, "_10");
-        $comment_10->submitTime = (new \DateTime("-11 days"))->format("Y-m-d H:i:s");
+        $comment_10->submitTime = (new DateTime("-11 days"))->format("Y-m-d H:i:s");
         $comment_11 = new RecordOfComment($worksheet, "_11");
-        $comment_11->submitTime = (new \DateTime("-4 hours"))->format("Y-m-d H:i:s");
+        $comment_11->submitTime = (new DateTime("-4 hours"))->format("Y-m-d H:i:s");
         $comment_12 = new RecordOfComment($worksheet, "_12");
-        $comment_12->submitTime = (new \DateTime("-4 days"))->format("Y-m-d H:i:s");
+        $comment_12->submitTime = (new DateTime("-4 days"))->format("Y-m-d H:i:s");
         $this->connection->table("Comment")->insert($comment_10->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_11->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_12->toArrayForDbEntry());
         
         $comment_20 = new RecordOfComment($worksheet, "_20");
-        $comment_20->submitTime = (new \DateTime("-18 days"))->format("Y-m-d H:i:s");
+        $comment_20->submitTime = (new DateTime("-18 days"))->format("Y-m-d H:i:s");
         $comment_21 = new RecordOfComment($worksheet, "_21");
-        $comment_21->submitTime = (new \DateTime("-8 hours"))->format("Y-m-d H:i:s");
+        $comment_21->submitTime = (new DateTime("-8 hours"))->format("Y-m-d H:i:s");
         $this->connection->table("Comment")->insert($comment_20->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_21->toArrayForDbEntry());
         
         $comment_30 = new RecordOfComment($worksheet, "_30");
-        $comment_30->submitTime = (new \DateTime("-15 days"))->format("Y-m-d H:i:s");
+        $comment_30->submitTime = (new DateTime("-15 days"))->format("Y-m-d H:i:s");
         $this->connection->table("Comment")->insert($comment_30->toArrayForDbEntry());
         
         $comment_40 = new RecordOfComment($worksheet, "_40");
-        $comment_40->submitTime = (new \DateTime("-17 days"))->format("Y-m-d H:i:s");
+        $comment_40->submitTime = (new DateTime("-17 days"))->format("Y-m-d H:i:s");
         $comment_41 = new RecordOfComment($worksheet, "_41");
-        $comment_41->submitTime = (new \DateTime("-2 hours"))->format("Y-m-d H:i:s");
+        $comment_41->submitTime = (new DateTime("-2 hours"))->format("Y-m-d H:i:s");
         $comment_42 = new RecordOfComment($worksheet, "_42");
-        $comment_42->submitTime = (new \DateTime("-5 days"))->format("Y-m-d H:i:s");
+        $comment_42->submitTime = (new DateTime("-5 days"))->format("Y-m-d H:i:s");
         $comment_43 = new RecordOfComment($worksheet, "_43");
-        $comment_43->submitTime = (new \DateTime("-2 days"))->format("Y-m-d H:i:s");
+        $comment_43->submitTime = (new DateTime("-2 days"))->format("Y-m-d H:i:s");
         $this->connection->table("Comment")->insert($comment_40->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_41->toArrayForDbEntry());
         $this->connection->table("Comment")->insert($comment_42->toArrayForDbEntry());
@@ -337,6 +345,27 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("ConsultantComment")->insert($this->consultantComment_42->toArrayForDbEntry());
         $this->connection->table("ConsultantComment")->insert($this->consultantComment_43->toArrayForDbEntry());
         
+        $this->participantFeedback_00 = new RecordOfParticipantFeedback($this->consultationSession_00, null, "00");
+        $this->participantFeedback_00->mentorRating = 2;
+        $this->participantFeedback_01 = new RecordOfParticipantFeedback($this->consultationSession_01, null, "01");
+        $this->participantFeedback_01->mentorRating = 2;
+        $this->participantFeedback_02 = new RecordOfParticipantFeedback($this->consultationSession_02, null, "02");
+        $this->participantFeedback_02->mentorRating = 5;
+        $this->participantFeedback_20 = new RecordOfParticipantFeedback($this->consultationSession_20, null, "20");
+        $this->participantFeedback_20->mentorRating = 2;
+        $this->participantFeedback_30 = new RecordOfParticipantFeedback($this->consultationSession_30, null, "30");
+        $this->participantFeedback_30->mentorRating = 3;
+        $this->participantFeedback_31 = new RecordOfParticipantFeedback($this->consultationSession_31, null, "31");
+        $this->participantFeedback_31->mentorRating = 4;
+        $this->participantFeedback_40 = new RecordOfParticipantFeedback($this->consultationSession_40, null, "40");
+        $this->participantFeedback_40->mentorRating = 4;
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_00->toArrayForDbEntry());
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_01->toArrayForDbEntry());
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_02->toArrayForDbEntry());
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_20->toArrayForDbEntry());
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_30->toArrayForDbEntry());
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_31->toArrayForDbEntry());
+        $this->connection->table("ParticipantFeedback")->insert($this->participantFeedback_40->toArrayForDbEntry());
     }
     protected function tearDown(): void
     {
@@ -355,6 +384,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("ConsultationSession")->truncate();
         $this->connection->table("Comment")->truncate();
         $this->connection->table("ConsultantComment")->truncate();
+        $this->connection->table("ParticipantFeedback")->truncate();
     }
     public function test_showAll_200()
     {
@@ -376,6 +406,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
                 "lastSevenDaysCount" => "3",
                 "lastSubmitTime" => $this->consultantComment_01->comment->submitTime,
             ],
+            "mentorRating" => "3.0000",
         ];
         $listConsultantOneResponse = [
             "id" => $this->consultantOne->id,
@@ -392,6 +423,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
                 "lastSevenDaysCount" => "2",
                 "lastSubmitTime" => $this->consultantComment_11->comment->submitTime,
             ],
+            "mentorRating" => null,
         ];
         $listConsultantThreeResponse = [
             "id" => $this->consultantThree->id,
@@ -408,6 +440,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
                 "lastSevenDaysCount" => null,
                 "lastSubmitTime" => $this->consultantComment_30->comment->submitTime,
             ],
+            "mentorRating" => "3.5000",
         ];
         
         $this->get($this->consultantSummaryUri, $this->coordinator->personnel->token)
@@ -437,6 +470,7 @@ class ConsultantSummaryControllerTest extends AsProgramCoordinatorTestCase
                         "lastSevenDaysCount" => "2",
                         "lastSubmitTime" => $this->consultantComment_11->comment->submitTime,
                     ],
+                    "mentorRating" => null,
                 ],
             ],
         ];

@@ -27,6 +27,7 @@ class DoctrineParticipantSummaryRepository implements ParticipantSummaryReposito
 SELECT 
     _b.participantId, 
     COALESCE(_c.userName, _d.clientName, _e.teamName) participantName, 
+    _b.participantRating,
     _b.totalCompletedMission,
     _a.totalMission,
     _b.lastCompletedTime,
@@ -44,6 +45,7 @@ LEFT JOIN (
         __a.totalCompletedMission, 
         __a.lastCompletedTime, 
         __a.Mission_id lastMissionId, 
+        __b.participantRating,
         Mission.name lastMissionName,
         Participant.Program_id programId
     FROM Participant
@@ -56,6 +58,12 @@ LEFT JOIN (
         )___a
         LEFT JOIN CompletedMission CM ON CM.completedTime = ___a.lastCompletedTime AND CM.Participant_id = ___a.Participant_id
     )__a ON __a.Participant_id = Participant.id
+    LEFT JOIN (
+        SELECT ConsultationSession.Participant_id, AVG(ConsultantFeedback.participantRating) participantRating
+        FROM ConsultantFeedback
+        LEFT JOIN ConsultationSession ON ConsultationSession.id = ConsultantFeedback.ConsultationSession_id
+        GROUP BY Participant_id
+    )__b ON __b.Participant_id = Participant.id
     LEFT JOIN Mission ON Mission.id = __a.Mission_id
     WHERE Participant.active = true
 )_b ON _b.programId = _a.programId
