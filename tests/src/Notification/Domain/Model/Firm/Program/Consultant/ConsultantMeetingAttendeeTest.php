@@ -30,7 +30,7 @@ class ConsultantMeetingAttendeeTest extends TestBase
     public function test_registerAsMailRecipient_registerConsultantAsMailRecipient()
     {
         $this->consultant->expects($this->once())
-                ->method("registerMailRecipient");
+                ->method("registerAsCommentMailRecipient");
         $this->consultantMeetingAttendee->registerAsMailRecipient($this->mailGenerator, $this->mailMessage);
     }
     

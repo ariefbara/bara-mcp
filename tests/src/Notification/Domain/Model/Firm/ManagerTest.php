@@ -57,7 +57,7 @@ class ManagerTest extends TestBase
     {
         $this->modifiedGreetingMailMessage->expects($this->once())
                 ->method("prependUrlPath")
-                ->with("/firm/meeting");
+                ->with("/firm");
         $this->executeRegisterAsMailRecipient();
     }
     public function test_registerAsMailRegister_addMailInMailGenerator()

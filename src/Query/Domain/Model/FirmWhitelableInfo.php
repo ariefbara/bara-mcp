@@ -2,10 +2,9 @@
 
 namespace Query\Domain\Model;
 
-use Resources\ {
-    ValidationRule,
-    ValidationService
-};
+use Config\BaseConfig;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
 class FirmWhitelableInfo
 {
@@ -28,19 +27,19 @@ class FirmWhitelableInfo
      */
     protected $mailSenderName;
 
-    public function getUrl(): ?string
+    public function getUrl(): string
     {
-        return $this->url;
+        return isset($this->url)? $this->url: BaseConfig::KONSULTA_MAIN_URL;
     }
 
-    public function getMailSenderAddress(): ?string
+    public function getMailSenderAddress(): string
     {
-        return $this->mailSenderAddress;
+        return isset($this->mailSenderAddress)? $this->mailSenderAddress: BaseConfig::MAIL_SENDER_ADDRESS;
     }
 
-    public function getMailSenderName(): ?string
+    public function getMailSenderName(): string
     {
-        return $this->mailSenderName;
+        return isset($this->mailSenderName)? $this->mailSenderName: BaseConfig::MAIL_SENDER_NAME;
     }
 
     protected function setUrl(string $url): void

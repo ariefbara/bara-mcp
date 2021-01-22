@@ -282,6 +282,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->connection->table("StringFieldRecord")->truncate();
         $this->participantFeedbackInput["stringFieldRecords"] = [];
         
+        $submitTime = (new \DateTime())->format("Y-m-d H:i:s");
         $response = [
             "id" => $this->consultationSession->id,
             "startTime" => $this->consultationSession->startDateTime,
@@ -331,7 +332,7 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->seeInDatabase("ParticipantFeedback", $participantFeedbackEntry);
 
         $formRecordEntry = [
-            "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
+            "submitTime" => $submitTime,
         ];
         $this->seeInDatabase("FormRecord", $formRecordEntry);
     }

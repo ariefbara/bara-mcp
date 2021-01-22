@@ -160,7 +160,7 @@ class LoginControllerTest extends ControllerTestCase
             "id" => $this->manager->id,
             "name" => $this->manager->name,
         ];
-echo $this->manager->password;
+//echo $this->manager->password;
         $this->post($this->managerLoginUri, $this->managerLoginRequest)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);

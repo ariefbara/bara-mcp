@@ -47,8 +47,7 @@ class CoordinatorTest extends TestBase
     public function test_registerAsMailRecipient_prependCoordinatorUriToMessage()
     {
         $this->modifiedGreetings->expects($this->once())
-                ->method("prependUrlPath")
-                ->with("/program-coordinator/{$this->coordinator->id}");
+                ->method("prependUrlPath");
         $this->executeRegisterAsMailRecipient();
     }
     public function test_registerAsMailRecipient_registerPersonnelAsMailRecipient()

@@ -74,11 +74,11 @@ class ProgramTest extends TestBase
         $modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
         $this->mailMessage->expects($this->once())
                 ->method("PrependUrlPath")
-                ->with("/program-coordinator/{$this->program->id}")
+                ->with("/program/{$this->program->id}")
                 ->willReturn($modifiedMailMessage);
         $this->coordinator->expects($this->once())
                 ->method("registerAsMailRecipient")
-                ->with($this->mailGenerator, $this->identicalTo($modifiedMailMessage), $prependUrlPath = true);
+                ->with($this->mailGenerator, $this->identicalTo($modifiedMailMessage), $prependUrlPath = false);
         $this->executeRegisterAllCoordinatorsAsMailRecipient();
     }
     public function test_registerAllCoordinatorAsMailRecipient_ignoreSendNotificationToInactiveCoordinator()

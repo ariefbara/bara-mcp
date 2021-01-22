@@ -25,7 +25,7 @@ class RecordOfParticipantFeedback implements Record
     public $id;
     public $mentorRating;
 
-    function __construct(?RecordOfConsultationSession $consultationSession, ?RecordOfFormRecord $formRecord, $index)
+    function __construct(?RecordOfConsultationSession $consultationSession, ?RecordOfFormRecord $formRecord, $index = null)
     {
         $this->consultationSession = $consultationSession;
         $this->formRecord = $formRecord;
