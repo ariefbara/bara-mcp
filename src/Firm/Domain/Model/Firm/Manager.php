@@ -282,15 +282,27 @@ class Manager implements CanAttendMeeting
         }
     }
     
-    public function assignClientCVForm(ProfileForm $profileForm): string
+    public function createBioForm(string $bioFormId, FormData $formData): BioForm
     {
-        return $this->firm->assignClientCVForm($profileForm);
+        return new BioForm($this->firm, $bioFormId, $formData);
     }
     
-    public function disableClientCVForm(ClientCVForm $clientCVForm)
+    public function updateBioForm(BioForm $bioForm, FormData $formData): void
     {
-        $this->assertAssetBelongsToSameFirm($clientCVForm);
-        $clientCVForm->disable();
+        $this->assertAssetBelongsToSameFirm($bioForm);
+        $bioForm->update($formData);
+    }
+    
+    public function disableBioForm(BioForm $bioForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($bioForm);
+        $bioForm->disable();
+    }
+    
+    public function enableBioForm(BioForm $bioForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($bioForm);
+        $bioForm->enable();
     }
 
 }

@@ -22,10 +22,10 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
-    $router->group(['prefix' => '/client-cvs'], function () use($router) {
-        $controller = "ClientCVController";
+    $router->group(['prefix' => '/client-bios'], function () use($router) {
+        $controller = "ClientBioController";
         $router->get("/{clientId}", ["uses" => "$controller@showAll"]);
-        $router->get("/{clientId}/{clientCVFormId}", ["uses" => "$controller@show"]);
+        $router->get("/{clientId}/{bioFormId}", ["uses" => "$controller@show"]);
     });
     
     $router->get("/team/{teamId}/members", ["uses" => "TeamMemberController@showAll"]);

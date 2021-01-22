@@ -21,12 +21,5 @@
         
         <field name="displaySetting" type="string" length="256" nullable="true"/>
         
-        <one-to-many field="clientCVForms" 
-                     target-entity="Firm\Domain\Model\Firm\ClientCVForm" 
-                     mapped-by="firm"
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-many>
-        
     </entity>
 </doctrine-mapping>

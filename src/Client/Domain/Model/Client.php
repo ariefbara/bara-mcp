@@ -2,8 +2,8 @@
 
 namespace Client\Domain\Model;
 
-use Client\Domain\DependencyModel\Firm\ClientCVForm;
-use Client\Domain\Model\Client\ClientCV;
+use Client\Domain\DependencyModel\Firm\BioForm;
+use Client\Domain\Model\Client\ClientBio;
 use Client\Domain\Model\Client\ClientFileInfo;
 use Client\Domain\Model\Client\ProgramParticipation;
 use Client\Domain\Model\Client\ProgramRegistration;
@@ -108,7 +108,7 @@ class Client extends EntityContainEvents
      * 
      * @var ArrayCollection
      */
-    protected $clientCVs;
+    protected $clientBios;
 
     protected function setEmail(string $email): void
     {
@@ -223,34 +223,34 @@ class Client extends EntityContainEvents
         return new ProgramRegistration($this, $programRegistrationId, $program);
     }
     
-    public function submitCV(ClientCVForm $clientCVForm, FormRecordData $formRecordData): void
+    public function submitBio(BioForm $bioForm, FormRecordData $formRecordData): void
     {
         $this->assertAccountActive();
-        if (!$clientCVForm->belongsToFirm($this->firmId)) {
+        if (!$bioForm->belongsToFirm($this->firmId)) {
             $errorDetail = "forbidden: can only use asset in same firm";
             throw RegularException::forbidden($errorDetail);
         }
         
-        $p = function (ClientCV $clientCV) use ($clientCVForm) {
-            return $clientCV->isActiveCVCorrespondWithClientCVForm($clientCVForm);
+        $p = function (ClientBio $clientBio) use ($bioForm) {
+            return $clientBio->isActiveBioCorrespondWithForm($bioForm);
         };
-        if (!empty($clientCV = $this->clientCVs->filter($p)->first())) {
-            $clientCV->update($formRecordData);
+        if (!empty($clientBio = $this->clientBios->filter($p)->first())) {
+            $clientBio->update($formRecordData);
         } else {
             $id = Uuid::generateUuid4();
-            $clientCV = new ClientCV($this, $id, $clientCVForm, $formRecordData);
-            $this->clientCVs->add($clientCV);
+            $clientBio = new ClientBio($this, $id, $bioForm, $formRecordData);
+            $this->clientBios->add($clientBio);
         }
     }
     
-    public function removeCV(ClientCV $clientCV): void
+    public function removeBio(ClientBio $clientBio): void
     {
         $this->assertAccountActive();
-        if (!$clientCV->belongsToClient($this)) {
+        if (!$clientBio->belongsToClient($this)) {
             $errorDetail = "forbidden: can only manage owned asset";
             throw RegularException::forbidden($errorDetail);
         }
-        $clientCV->remove();
+        $clientBio->remove();
     }
 
     protected function assertAccountActive(): void

@@ -42,7 +42,7 @@ class ManagerTest extends TestBase
     protected $programsProfileForm;
     protected $mission;
     protected $worksheetForm;
-    protected $clientCVForm;
+    protected $bioForm, $bioFormId = "bioFormId";
 
     protected function setUp(): void
     {
@@ -75,7 +75,7 @@ class ManagerTest extends TestBase
         
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
-        $this->clientCVForm = $this->buildMockOfClass(ClientCVForm::class);
+        $this->bioForm = $this->buildMockOfClass(BioForm::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -651,35 +651,70 @@ class ManagerTest extends TestBase
         });
     }
     
-    protected function executeAssignClientCVForm()
+    protected function executeCreateBioForm()
     {
-        return $this->manager->assignClientCVForm($this->profileForm);
+        return $this->manager->createBioForm($this->bioFormId, $this->formData);
     }
-    public function test_assigneClientCVForm_returnFirmsAssignClientCVFormResult()
+    public function test_createBioForm_returnBioForm()
     {
-        $this->firm->expects($this->once())
-                ->method("assignClientCVForm")
-                ->with($this->profileForm)
-                ->willReturn($id = "clientCVFormId");
-        $this->assertEquals($id, $this->executeAssignClientCVForm());
+        $this->assertInstanceOf(BioForm::class, $this->executeCreateBioForm());
     }
     
-    protected function executeDisableClientCVForm()
+    protected function executeUpdateBioForm()
     {
-        $this->setAssetBelongsToFirm($this->clientCVForm);
-        $this->manager->disableClientCVForm($this->clientCVForm);
+        $this->setAssetBelongsToFirm($this->bioForm);
+        $this->manager->updateBioForm($this->bioForm, $this->formData);
     }
-    public function test_disableClientCVForm_disableClientCVForm()
+    public function test_updateBioForm_updateBioForm()
     {
-        $this->clientCVForm->expects($this->once())
-                ->method("disable");
-        $this->executeDisableClientCVForm();
+        $this->bioForm->expects($this->once())
+                ->method("update")
+                ->with($this->formData);
+        $this->executeUpdateBioForm();
     }
-    public function test_disalbeClientCVForm_clientCVFormNotFromSameFirm_forbidden()
+    public function test_updateBioForm_bioFormNotInSameFirm_forbiddenError()
     {
-        $this->setAssetDoesntBelongsToFirm($this->clientCVForm);
+        $this->setAssetDoesntBelongsToFirm($this->bioForm);
         $this->assertUnmanageableAssetForbiddenError(function (){
-            $this->executeDisableClientCVForm();
+            $this->executeUpdateBioForm();
+        });
+    }
+    
+    protected function executeDisableBioForm()
+    {
+        $this->setAssetBelongsToFirm($this->bioForm);
+        $this->manager->disableBioForm($this->bioForm);
+    }
+    public function test_disableBioForm_disableBioForm()
+    {
+        $this->bioForm->expects($this->once())
+                ->method("disable");
+        $this->executeDisableBioForm();
+    }
+    public function test_disableBioForm_bioFormFromDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->bioForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeDisableBioForm();
+        });
+    }
+    
+    protected function executeEnableBioForm()
+    {
+        $this->setAssetBelongsToFirm($this->bioForm);
+        $this->manager->enableBioForm($this->bioForm);
+    }
+    public function test_enableBioForm_enableBioForm()
+    {
+        $this->bioForm->expects($this->once())
+                ->method("enable");
+        $this->executeEnableBioForm();
+    }
+    public function test_enableBioForm_bioFormFromDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->bioForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeEnableBioForm();
         });
     }
 }

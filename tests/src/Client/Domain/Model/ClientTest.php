@@ -2,9 +2,9 @@
 
 namespace Client\Dommain\Model;
 
-use Client\Domain\DependencyModel\Firm\ClientCVForm;
+use Client\Domain\DependencyModel\Firm\BioForm;
 use Client\Domain\Model\Client;
-use Client\Domain\Model\Client\ClientCV;
+use Client\Domain\Model\Client\ClientBio;
 use Client\Domain\Model\Client\ClientFileInfo;
 use Client\Domain\Model\Client\ProgramParticipation;
 use Client\Domain\Model\Client\ProgramRegistration;
@@ -39,7 +39,7 @@ class ClientTest extends TestBase
     protected $program;
     
     protected $clientFileInfoId = 'clientFileInfoId', $fileInfoData;
-    protected $clientCVForm, $clientCV;
+    protected $bioForm, $clientBio;
     protected $formRecordData;
 
     protected function setUp(): void
@@ -72,12 +72,12 @@ class ClientTest extends TestBase
         $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
         $this->fileInfoData->expects($this->any())->method('getName')->willReturn('docs.pdf');
         
-        $this->clientCVForm = $this->buildMockOfClass(ClientCVForm::class);
+        $this->bioForm = $this->buildMockOfClass(BioForm::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
-        $this->clientCV = $this->buildMockOfClass(ClientCV::class);
+        $this->clientBio = $this->buildMockOfClass(ClientBio::class);
         
-        $this->client->clientCVs = new ArrayCollection();
-        $this->client->clientCVs->add($this->clientCV);
+        $this->client->clientBios = new ArrayCollection();
+        $this->client->clientBios->add($this->clientBio);
     }
     protected function assertInactiveClientForbiddenError(callable $operation): void
     {
@@ -408,85 +408,85 @@ class ClientTest extends TestBase
         $this->assertEquals($clientFileInfo, $this->client->createClientFileInfo($this->clientFileInfoId, $this->fileInfoData));
     }
     
-    protected function executeSubmitCV()
+    protected function executeSubmitBio()
     {
-        $this->clientCVForm->expects($this->any())
+        $this->bioForm->expects($this->any())
                 ->method("belongsToFirm")
                 ->willReturn(true);
-        return $this->client->submitCV($this->clientCVForm, $this->formRecordData);
+        return $this->client->submitBio($this->bioForm, $this->formRecordData);
     }
-    public function test_submitCV_addClientCVToCollection()
+    public function test_submitBio_addClientBioToCollection()
     {
-        $this->executeSubmitCV();
-        $this->assertEquals(2, $this->client->clientCVs->count());
-        $this->assertInstanceOf(ClientCV::class, $this->client->clientCVs->last());
+        $this->executeSubmitBio();
+        $this->assertEquals(2, $this->client->clientBios->count());
+        $this->assertInstanceOf(ClientBio::class, $this->client->clientBios->last());
     }
-    public function test_submitCV_alredyHasCVCorrespondWithSameForm_updateExistingCV()
+    public function test_submitBio_alredyHasBioCorrespondWithSameForm_updateExistingBio()
     {
-        $this->clientCV->expects($this->once())
-                ->method("isActiveCVCorrespondWithClientCVForm")
-                ->with($this->clientCVForm)
+        $this->clientBio->expects($this->once())
+                ->method("isActiveBioCorrespondWithForm")
+                ->with($this->bioForm)
                 ->willReturn(true);
-        $this->clientCV->expects($this->once())
+        $this->clientBio->expects($this->once())
                 ->method("update")
                 ->with($this->formRecordData);
-        $this->executeSubmitCV();
+        $this->executeSubmitBio();
     }
-    public function test_submitCV_alreadyHasCVCorrespondWithSameForm_preventAddNewCV()
+    public function test_submitBio_alreadyHasBioCorrespondWithSameForm_preventAddNewBio()
     {
-        $this->clientCV->expects($this->once())
-                ->method("isActiveCVCorrespondWithClientCVForm")
+        $this->clientBio->expects($this->once())
+                ->method("isActiveBioCorrespondWithForm")
                 ->willReturn(true);
-        $this->executeSubmitCV();
-        $this->assertEquals(1, $this->client->clientCVs->count());
+        $this->executeSubmitBio();
+        $this->assertEquals(1, $this->client->clientBios->count());
     }
-    public function test_submitCV_inactiveAccount_forbidden()
+    public function test_submitBio_inactiveAccount_forbidden()
     {
         $this->client->activated = false;
         $this->assertInactiveClientForbiddenError(function (){
-            $this->executeSubmitCV();
+            $this->executeSubmitBio();
         });
     }
-    public function test_submitCV_clientCVFormNotFromSameFirm_forbidden()
+    public function test_submitBio_bioFormNotFromSameFirm_forbidden()
     {
-        $this->clientCVForm->expects($this->once())
+        $this->bioForm->expects($this->once())
                 ->method("belongsToFirm")
                 ->with($this->client->firmId)
                 ->willReturn(false);
         $operation = function (){
-            $this->executeSubmitCV();
+            $this->executeSubmitBio();
         };
         $errorDetail = "forbidden: can only use asset in same firm";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
-    protected function executeRemoveCV()
+    protected function executeRemoveBio()
     {
-        $this->clientCV->expects($this->any())
+        $this->clientBio->expects($this->any())
                 ->method("belongsToClient")
                 ->willReturn(true);
-        $this->client->removeCV($this->clientCV);
+        $this->client->removeBio($this->clientBio);
     }
-    public function test_removeCV_removeCV()
+    public function test_removeBio_removeBio()
     {
-        $this->clientCV->expects($this->once())->method("remove");
-        $this->executeRemoveCV();
+        $this->clientBio->expects($this->once())->method("remove");
+        $this->executeRemoveBio();
     }
-    public function test_removeCV_inactiveClient()
+    public function test_removeBio_inactiveClient()
     {
         $this->client->activated = false;
         $this->assertInactiveClientForbiddenError(function (){
-            $this->executeRemoveCV();
+            $this->executeRemoveBio();
         });
     }
-    public function test_removeCv_CVNotBelongsToClient_forbidden()
+    public function test_removeBio_bioNotBelongsToClient_forbidden()
     {
-        $this->clientCV->expects($this->once())
+        $this->clientBio->expects($this->once())
                 ->method("belongsToClient")
                 ->with($this->client)
                 ->willReturn(false);
         $operation = function (){
-            $this->executeRemoveCV();
+            $this->executeRemoveBio();
         };
         $errorDetail = "forbidden: can only manage owned asset";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
@@ -508,7 +508,7 @@ class TestableClient extends Client
     public $activated;
     public $programRegistrations;
     public $programParticipations;
-    public $clientCVs;
+    public $clientBios;
     
     public $recordedEvents;
     

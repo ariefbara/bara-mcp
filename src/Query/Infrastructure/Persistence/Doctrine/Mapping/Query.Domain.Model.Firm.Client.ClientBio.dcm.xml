@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Client\ClientBio" 
+            table="ClientBio"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientBioRepository"
+    >
+        
+        
+        <many-to-one  field="client" 
+                      target-entity="Query\Domain\Model\Firm\Client"
+        >
+            <join-column name="Client_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="bioForm" 
+                      target-entity="Query\Domain\Model\Firm\BioForm"
+        >
+            <join-column name="BioForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="formRecord" association-key="true" />
+        <one-to-one field="formRecord" 
+                    target-entity="Query\Domain\Model\Shared\FormRecord"
+        >
+            <join-column name="id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

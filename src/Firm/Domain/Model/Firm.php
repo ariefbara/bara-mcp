@@ -3,7 +3,7 @@
 namespace Firm\Domain\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\Firm\ClientCVForm;
+use Firm\Domain\Model\Firm\BioForm;
 use Firm\Domain\Model\Firm\FirmFileInfo;
 use Firm\Domain\Model\Firm\ProfileForm;
 use Query\Domain\Model\FirmWhitelableInfo;
@@ -55,12 +55,6 @@ class Firm
      */
     protected $suspended = false;
 
-    /**
-     * 
-     * @var ArrayCollection
-     */
-    protected $clientCVForms;
-
     function getId(): string
     {
         return $this->id;
@@ -80,22 +74,6 @@ class Firm
     {
         $this->logo = $logo;
         $this->displaySetting = $displaySetting;
-    }
-
-    public function assignClientCVForm(ProfileForm $profileForm): string
-    {
-        $p = function (ClientCVForm $clientCVForm) use ($profileForm) {
-            return $clientCVForm->correspondWithProfileForm($profileForm);
-        };
-        if (!empty($clientCVForm = $this->clientCVForms->filter($p)->first())) {
-            $clientCVForm->enable();
-            $id = $clientCVForm->getId();
-        } else {
-            $id = Uuid::generateUuid4();
-            $clientCVForm = new ClientCVForm($this, $id, $profileForm);
-            $this->clientCVForms->add($clientCVForm);
-        }
-        return $id;
     }
 
 }

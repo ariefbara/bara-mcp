@@ -74,12 +74,14 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
-    $router->group(['prefix' => '/client-cv-forms'], function () use($router) {
-        $controller = "ClientCVFormController";
-        $router->post("", ["uses" => "$controller@assign"]);
-        $router->delete("/{clientCVFormId}", ["uses" => "$controller@disable"]);
+    $router->group(['prefix' => '/bio-forms'], function () use($router) {
+        $controller = "BioFormController";
+        $router->post("", ["uses" => "$controller@create"]);
+        $router->patch("/{bioFormId}/update", ["uses" => "$controller@update"]);
+        $router->patch("/{bioFormId}/disable", ["uses" => "$controller@disable"]);
+        $router->patch("/{bioFormId}/enable", ["uses" => "$controller@enable"]);
         $router->get("", ["uses" => "$controller@showAll"]);
-        $router->get("/{clientCVFormId}", ["uses" => "$controller@show"]);
+        $router->get("/{bioFormId}", ["uses" => "$controller@show"]);
     });
     
     $router->group(['prefix' => '/clients'], function () use($router) {
@@ -88,10 +90,10 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{clientId}", ["uses" => "$controller@show"]);
     });
     
-    $router->group(['prefix' => '/client-cvs'], function () use($router) {
-        $controller = "ClientCVController";
+    $router->group(['prefix' => '/client-bios'], function () use($router) {
+        $controller = "ClientBioController";
         $router->get("/{clientId}", ["uses" => "$controller@showAll"]);
-        $router->get("/{clientId}/{clientCVFormId}", ["uses" => "$controller@show"]);
+        $router->get("/{clientId}/{bioFormId}", ["uses" => "$controller@show"]);
     });
     
     $programAggregate = [
