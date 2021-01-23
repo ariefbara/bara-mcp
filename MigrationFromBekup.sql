@@ -79,11 +79,12 @@ SELECT Incubator_id, id, name, email, password, signupTime, activated, activatio
 INSERT INTO bara_mcp.FeedbackForm (Firm_id, id, Form_id, removed)
 SELECT Incubator_id, id, Form_id, removed FROM bara_bekup.MentoringFeedbackForm;
 
--- INSERT INTO bara_mcp.ProfileForm (Firm_id, id, Form_id)
--- SELECT Incubator_id, id, Form_id FROM bara_bekup.ProfileForm;
+INSERT INTO bara_mcp.BioForm (Firm_id, id, disabled)
+SELECT Incubator_id, id, false FROM bara_bekup.ProfileForm;
 
-INSERT INTO bara_mcp.ProfileForm (Firm_id, id, Form_id)
-SELECT Incubator_id, id, Form_id FROM bara_bekup.TeamProfileForm;
+INSERT INTO bara_mcp.ClientBio (Client_id, id, BioForm_id, removed)
+SELECT Founder_id, id, ProfileForm_id, removed FROM bara_bekup.Profile;
+
 
 INSERT INTO bara_mcp.Program (Firm_id, id, name, description, published, removed, participantTypes)
 SELECT Incubator_id, id, name, description, published, removed, 'team' as participantTypes FROM bara_bekup.Program;
@@ -174,7 +175,6 @@ SELECT Schedule_id, id, FormRecord_id FROM bara_bekup.MentorMentoringReport;
 INSERT INTO bara_mcp.ParticipantFeedback (ConsultationSession_id, id, FormRecord_id)
 SELECT Schedule_id, id, FormRecord_id FROM bara_bekup.ParticipantMentoringReport;
 
--- SET FOREIGN_KEY_CHECKS = 0;
 INSERT INTO bara_mcp.Worksheet (Participant_id, id, parent_id, name, removed, FormRecord_id, Mission_id)
 SELECT _a.Participant_id, _b.id, _c.parentId, _b.name, _a.removed, _b.FormRecord_id, _a.Mission_id
 FROM bara_bekup.Journal _a
@@ -185,15 +185,12 @@ LEFT JOIN (
     LEFT JOIN bara_bekup.Worksheet __b ON __a.Worksheet_id = __b.id
 )_c ON _c.journalId = _a.parentJournal_id
 ON DUPLICATE KEY UPDATE FormRecord_id = _b.FormRecord_id;
--- SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO bara_mcp.LearningMaterial (Mission_id, id, name, content, removed)
 SELECT Mission_id, id, name, content, removed FROM bara_bekup.LearningMaterial;
 
--- SET FOREIGN_KEY_CHECKS = 0;
 INSERT INTO bara_mcp.Comment (Worksheet_id, id, message, submitTime, removed, parent_id)
 SELECT Journal_id, id, message, submitTime, removed, parentComment_id FROM bara_bekup.Comment;
--- SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO bara_mcp.CommentNotification (Comment_id, id, Notification_id)
 SELECT Comment_id, id, FounderNotification_id FROM bara_bekup.CommentFounderNotification;
@@ -208,17 +205,17 @@ SELECT Team_id, id, removed, FileInfo_id FROM bara_bekup.TeamFileInfo;
 
 -- Skipped Data:
 -- SysAdmin
--- [Founder]ProfileForm
 
--- Untransfered Data
--- MemberComment
+-- Truncated Table:
+-- LastTeamMembership
 -- MemberCandidate
 -- MemberCandidateNotification
+-- MemberComment
 -- ParticipantNotification
--- MentorComment
+-- TeamProfileForm
 -- TeamProfile
--- [Founder]Profile
--- TeamProfile
+
+-- Untransfered Data
 -- Mentor.introduction
 -- Journal.id, Journal.Worksheet_id, Journal.createdTime, Journal.lastChangedTime, Journal.reviewed
 -- Worksheet.removed, Worksheet.Team_id, Worksheet.WorksheetForm_id, Worksheet.createdTime, Worksheet.lastUpdatedTime
