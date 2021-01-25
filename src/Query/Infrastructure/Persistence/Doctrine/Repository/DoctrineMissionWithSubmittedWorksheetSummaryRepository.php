@@ -29,8 +29,11 @@ class DoctrineMissionWithSubmittedWorksheetSummaryRepository implements Interfac
     {
         $offset = $pageSize * ($page - 1);
         $statement = <<<_STATEMENT
-SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet
+SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet, 
+    WorksheetForm.id worksheetFormId, Form.name worksheetFormName
 FROM Mission M
+LEFT JOIN WorksheetForm ON WorksheetForm.id = M.WorksheetForm_id
+LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
 LEFT JOIN (
     SELECT Participant.id participantId, Participant.Program_id
     FROM TeamParticipant
@@ -82,8 +85,11 @@ _STATEMENT;
     {
         $offset = $pageSize * ($page - 1);
         $statement = <<<_STATEMENT
-SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet
+SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet,
+    WorksheetForm.id worksheetFormId, Form.name worksheetFormName
 FROM Mission M
+LEFT JOIN WorksheetForm ON WorksheetForm.id = M.WorksheetForm_id
+LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
 LEFT JOIN (
     SELECT Participant.id participantId, Participant.Program_id
     FROM ClientParticipant
@@ -117,8 +123,11 @@ _STATEMENT;
     {
         $offset = $pageSize * ($page - 1);
         $statement = <<<_STATEMENT
-SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet
+SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet,
+    WorksheetForm.id worksheetFormId, Form.name worksheetFormName
 FROM Mission M
+LEFT JOIN WorksheetForm ON WorksheetForm.id = M.WorksheetForm_id
+LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
 LEFT JOIN (
     SELECT Participant.id participantId, Participant.Program_id
     FROM UserParticipant
