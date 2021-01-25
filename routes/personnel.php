@@ -148,6 +148,12 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{activityId}", ["uses" => "$controller@show"]);
         });
         
+        $router->group(['prefix' => '/missions'], function () use($router) {
+            $controller = "MissionController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{missionId}", ["uses" => "$controller@show"]);
+        });
+        
         $router->get("/activities/{activityId}/activity-reports", ["uses" => "ActivityReportController@showAllReportsInActivity"]);
         $router->get("/activity-reports/{activityReportId}", ["uses" => "ActivityReportController@show"]);
         
@@ -214,6 +220,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->group(['prefix' => '/meetings'], function () use($router) {
             $controller = "MeetingController";
             $router->post("", ["uses" => "$controller@initiate"]);
+        });
+        
+        $router->group(['prefix' => '/missions'], function () use($router) {
+            $controller = "MissionController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{missionId}", ["uses" => "$controller@show"]);
         });
         
         $router->get("/participant/{participantId}/metric-assignment-reports", ["uses" => "MetricAssignmentReportController@showAll"]);
