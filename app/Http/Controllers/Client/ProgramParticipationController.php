@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers\Client;
 
-use Participant\ {
-    Application\Service\ClientQuitParticipation,
-    Domain\Model\ClientParticipant as ClientParticipant2
-};
-use Query\ {
-    Application\Service\Firm\Client\ViewProgramParticipation,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant\MetricAssignment,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField
-};
+use Participant\Application\Service\ClientQuitParticipation;
+use Participant\Domain\Model\ClientParticipant as ClientParticipant2;
+use Query\Application\Service\Firm\Client\ViewProgramParticipation;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue;
 
 class ProgramParticipationController extends ClientBaseController
 {
@@ -83,6 +81,8 @@ class ProgramParticipationController extends ClientBaseController
             "startDate" => $metricAssignment->getStartDateString(),
             "endDate" => $metricAssignment->getEndDateString(),
             "assignmentFields" => $assignmentFields,
+            'lastMetricAssignmentReport' => $this->arrayDataOfMetricAssignmentReport(
+                    $metricAssignment->getLastApprovedMetricAssignmentReports()),
         ];
     }
     protected function arrayDataOfAssignmentField(AssignmentField $assignmentField): array
@@ -97,6 +97,32 @@ class ProgramParticipationController extends ClientBaseController
                 "maxValue" => $assignmentField->getMetric()->getMaxValue(),
                 "higherIsBetter" => $assignmentField->getMetric()->getHigherIsBetter(),
             ],
+        ];
+    }
+    protected function arrayDataOfMetricAssignmentReport(?MetricAssignmentReport $metricAssignmentReport): ?array
+    {
+        if (empty($metricAssignmentReport)) {
+            return null;
+        }
+        $assignmentFieldValues = [];
+        foreach ($metricAssignmentReport->iterateNonremovedAssignmentFieldValues() as $assignmentFieldValue) {
+            $assignmentFieldValues[] = $this->arrayDataOfAssignmentFieldValue($assignmentFieldValue);
+        }
+        return [
+            "id" => $metricAssignmentReport->getId(),
+            "observationTime" => $metricAssignmentReport->getObservationTimeString(),
+            "submitTime" => $metricAssignmentReport->getSubmitTimeString(),
+            "removed" => $metricAssignmentReport->isRemoved(),
+            "assignmentFieldValues" => $assignmentFieldValues,
+        ];
+    }
+
+    protected function arrayDataOfAssignmentFieldValue(AssignmentFieldValue $assignmentFieldValue): array
+    {
+        return [
+            "id" => $assignmentFieldValue->getId(),
+            "value" => $assignmentFieldValue->getValue(),
+            "assignmentFieldId" => $assignmentFieldValue->getAssignmentField()->getId(),
         ];
     }
 
