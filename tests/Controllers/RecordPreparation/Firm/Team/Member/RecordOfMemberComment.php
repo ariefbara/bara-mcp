@@ -12,12 +12,12 @@ class RecordOfMemberComment implements Record
      * 
      * @var RecordOfMember|null
      */
-    protected $member;
+    public $member;
     /**
      * 
      * @var RecordOfComment
      */
-    protected $comment;
+    public $comment;
     
     public function __construct(?RecordOfMember $member, RecordOfComment $comment)
     {

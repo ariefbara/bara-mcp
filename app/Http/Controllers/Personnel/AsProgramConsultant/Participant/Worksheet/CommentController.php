@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Personnel\AsProgramConsultant\Participant\Worksheet;
 
 use App\Http\Controllers\Personnel\AsProgramConsultant\AsProgramConsultantBaseController;
-use Query\ {
-    Application\Service\Firm\Program\Participant\Worksheet\ViewComment,
-    Domain\Model\Firm\Program\Consultant\ConsultantComment,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment
-};
+use Query\Application\Service\Firm\Program\Participant\Worksheet\ViewComment;
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantComment;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+use Query\Domain\Model\Firm\Team\Member\MemberComment;
 
 class CommentController extends AsProgramConsultantBaseController
 {
@@ -47,6 +46,7 @@ class CommentController extends AsProgramConsultantBaseController
             "removed" => $comment->isRemoved(),
             "consultant" => $this->arrayDataOfConsultant($comment->getConsultantComment()),
             "parent" => $this->arrayDataOfparentComment($comment->getParent()),
+            'member' => $this->arrayDataOfMember($comment->getMemberComment()),
         ];
     }
 
@@ -61,9 +61,9 @@ class CommentController extends AsProgramConsultantBaseController
             "submitTime" => $parentComment->getSubmitTimeString(),
             "removed" => $parentComment->isRemoved(),
             "consultant" => $this->arrayDataOfConsultant($parentComment->getConsultantComment()),
+            'member' => $this->arrayDataOfMember($parentComment->getMemberComment()),
         ];
     }
-
     protected function arrayDataOfConsultant(?ConsultantComment $consultantComment): ?array
     {
         if (empty($consultantComment)) {
@@ -74,6 +74,16 @@ class CommentController extends AsProgramConsultantBaseController
             "personnel" => [
                 "id" => $consultantComment->getConsultant()->getPersonnel()->getId(),
                 "name" => $consultantComment->getConsultant()->getPersonnel()->getName(),
+            ],
+        ];
+    }
+    protected function arrayDataOfMember(?MemberComment $memberComment): ?array
+    {
+        return empty($memberComment)? null : [
+            'id' => $memberComment->getMember()->getId(),
+            'client' => [
+                'id' => $memberComment->getMember()->getClient()->getId(),
+                'name' => $memberComment->getMember()->getClient()->getFullName(),
             ],
         ];
     }
