@@ -4,23 +4,21 @@ namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Query\Domain\ {
-    Event\LearningMaterialViewedByParticipantEvent,
-    Model\Firm\Client\ClientParticipant,
-    Model\Firm\Program,
-    Model\Firm\Program\Mission\LearningMaterial,
-    Model\Firm\Program\Participant\Evaluation,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Model\Firm\Program\Participant\Worksheet,
-    Model\Firm\Team\TeamProgramParticipation,
-    Model\User\UserParticipant,
-    Service\Firm\Program\Participant\WorksheetFinder,
-    Service\LearningMaterialFinder
-};
-use Resources\ {
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException
-};
+use Doctrine\Common\Collections\Criteria;
+use Query\Domain\Event\LearningMaterialViewedByParticipantEvent;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant\Evaluation;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
+use Query\Domain\Service\LearningMaterialFinder;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
 
 class Participant extends EntityContainEvents
 {
@@ -193,10 +191,15 @@ class Participant extends EntityContainEvents
     
     public function getLastEvaluation(): ?Evaluation
     {
-        $criteria = \Doctrine\Common\Collections\Criteria::create()
+        $criteria = Criteria::create()
                 ->orderBy(["submitTime" => "DESC"]);
         $evaluation = $this->evaluations->matching($criteria)->first();
         return empty($evaluation)? null: $evaluation;
+    }
+    
+    public function viewSummary(DataFinder $dataFinder): array
+    {
+        return $dataFinder->summaryOfParticipant($this->id);
     }
 
 }

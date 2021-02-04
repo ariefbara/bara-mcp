@@ -71,6 +71,7 @@ $router->group($clientAggregate, function () use ($router) {
     ];
     $router->group($programParticipationAggregate, function () use ($router) {
         
+        $router->get('/summary', ['uses' => "SummaryController@show"]);
         $router->get('/activity-logs', ['uses' => "ActivityLogController@showAll"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
@@ -392,6 +393,8 @@ $router->group($clientAggregate, function () use ($router) {
             'namespace' => 'ProgramParticipation',
         ];
         $router->group($teamProgramParticipationAggregate, function () use ($router) {
+            
+            $router->get('/summary', ['uses' => "SummaryController@show"]);
             
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";

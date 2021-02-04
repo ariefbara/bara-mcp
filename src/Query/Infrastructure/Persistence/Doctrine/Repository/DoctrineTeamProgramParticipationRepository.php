@@ -2,22 +2,16 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Query\{
-    Application\Service\Firm\Team\TeamProgramParticipationRepository,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Service\TeamProgramParticipationRepository as InterfaceForDomainService
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\Client\AsTeamMember\AsProgramParticipant\TeamProgramParticipationRepository as TeamProgramParticipationRepository2;
+use Query\Application\Service\Firm\Team\TeamProgramParticipationRepository;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Service\TeamProgramParticipationRepository as InterfaceForDomainService;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository,
-        InterfaceForDomainService
+class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository, InterfaceForDomainService, TeamProgramParticipationRepository2
 {
 
     public function aTeamProgramParticipationBelongsToTeam(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation
@@ -87,6 +81,18 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
             $errorDetail = "not found: team program participation not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function ofId(string $programParticipationId): TeamProgramParticipation
+    {
+        $teamProgramParticipation = $this->findOneBy([
+            'id' => $programParticipationId,
+        ]);
+        
+        if (empty($teamProgramParticipation)) {
+            throw RegularException::notFound('not found: program participation not found');
+        }
+        return $teamProgramParticipation;
     }
 
 }

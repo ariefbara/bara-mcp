@@ -30,7 +30,7 @@ class RecordOfMission implements Record
     public $worksheetForm;
     public $id, $name, $description, $published = false, $position;
 
-    function __construct(RecordOfProgram $program, RecordOfWorksheetForm $worksheetForm, $index,
+    function __construct(?RecordOfProgram $program, ?RecordOfWorksheetForm $worksheetForm, $index,
         ?RecordOfMission $parent)
     {
         $this->program = $program;
@@ -45,9 +45,9 @@ class RecordOfMission implements Record
     public function toArrayForDbEntry()
     {
         return [
-            "Program_id" => $this->program->id,
+            "Program_id" => isset($this->program)? $this->program->id: null,
             "parent_id" => empty($this->parent)? null: $this->parent->id,
-            "WorksheetForm_id" => $this->worksheetForm->id,
+            "WorksheetForm_id" => isset($this->worksheetForm) ? $this->worksheetForm->id: null,
             "id" => $this->id,
             "name" => $this->name,
             "description" => $this->description,

@@ -2,16 +2,15 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
-use Query\Domain\ {
-    Model\Firm\Program,
-    Model\Firm\Program\Mission\LearningMaterial,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Model\Firm\Program\Participant\Worksheet,
-    Model\Firm\Team,
-    Service\Firm\Program\Participant\WorksheetFinder,
-    Service\LearningMaterialFinder
-};
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Team;
+use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
+use Query\Domain\Service\LearningMaterialFinder;
 use Resources\Application\Event\ContainEvents;
 
 class TeamProgramParticipation implements ContainEvents
@@ -48,6 +47,11 @@ class TeamProgramParticipation implements ContainEvents
     protected function __construct()
     {
         
+    }
+    
+    public function teamEquals(Team $team): bool
+    {
+        return $this->team === $team;
     }
 
     public function getProgram(): Program
@@ -105,6 +109,11 @@ class TeamProgramParticipation implements ContainEvents
     public function pullRecordedEvents(): array
     {
         return $this->programParticipation->pullRecordedEvents();
+    }
+    
+    public function viewSummary(DataFinder $dataFinder): array
+    {
+        return $this->programParticipation->viewSummary($dataFinder);
     }
 
 }

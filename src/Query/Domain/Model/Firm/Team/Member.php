@@ -3,31 +3,28 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
-use Query\ {
-    Domain\Event\LearningMaterialViewedByTeamMemberEvent,
-    Domain\Model\Firm\Client,
-    Domain\Model\Firm\Program,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
-    Domain\Model\Firm\Program\Mission\LearningMaterial,
-    Domain\Model\Firm\Program\Participant\Worksheet,
-    Domain\Model\Firm\Team,
-    Domain\Service\Firm\ClientFinder,
-    Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder,
-    Domain\Service\Firm\Program\Participant\ConsultationSessionFinder,
-    Domain\Service\Firm\Program\Participant\WorksheetFinder,
-    Domain\Service\Firm\ProgramFinder,
-    Domain\Service\Firm\Team\TeamFileInfoFinder,
-    Domain\Service\Firm\Team\TeamProgramParticipationFinder,
-    Domain\Service\Firm\Team\TeamProgramRegistrationFinder,
-    Domain\Service\LearningMaterialFinder,
-    Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2,
-    Infrastructure\QueryFilter\ConsultationRequestFilter,
-    Infrastructure\QueryFilter\ConsultationSessionFilter
-};
-use Resources\ {
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException
-};
+use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Team;
+use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\ClientFinder;
+use Query\Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder;
+use Query\Domain\Service\Firm\Program\Participant\ConsultationSessionFinder;
+use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
+use Query\Domain\Service\Firm\ProgramFinder;
+use Query\Domain\Service\Firm\Team\TeamFileInfoFinder;
+use Query\Domain\Service\Firm\Team\TeamProgramParticipationFinder;
+use Query\Domain\Service\Firm\Team\TeamProgramRegistrationFinder;
+use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
 
 class Member extends EntityContainEvents
 {
@@ -277,6 +274,19 @@ class Member extends EntityContainEvents
         }
         
         return $learningMaterial;
+    }
+    
+    public function viewSummaryOfProgramParticipation(TeamProgramParticipation $teamProgramParticipation, DataFinder $dataFinder): array
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamProgramParticipation);
+        return $teamProgramParticipation->viewSummary($dataFinder);
+    }
+    protected function assertTeamOwnedProgramParticipation(TeamProgramParticipation $teamProgramParticipation): void
+    {
+        if (! $teamProgramParticipation->teamEquals($this->team)) {
+            throw RegularException::forbidden('forbidden: can only manage asset of your team');
+        }
     }
 
 }

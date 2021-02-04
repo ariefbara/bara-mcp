@@ -2,14 +2,13 @@
 
 namespace Query\Domain\Model\Firm\Client;
 
-use Query\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Program,
-    Model\Firm\Program\Mission\LearningMaterial,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Service\LearningMaterialFinder
-};
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\LearningMaterialFinder;
 use Resources\Application\Event\ContainEvents;
 
 class ClientParticipant implements ContainEvents
@@ -81,6 +80,11 @@ class ClientParticipant implements ContainEvents
     public function pullRecordedEvents(): array
     {
         return $this->participant->pullRecordedEvents();
+    }
+    
+    public function viewSummary(DataFinder $dataFinder): array
+    {
+        return $this->participant->viewSummary($dataFinder);
     }
 
 }
