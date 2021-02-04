@@ -3,10 +3,9 @@
 namespace Query\Domain\Model;
 
 use DateTimeImmutable;
-use Resources\Domain\ValueObject\{
-    Password,
-    PersonName
-};
+use Query\Domain\Service\DataFinder;
+use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\PersonName;
 
 class User
 {
@@ -114,6 +113,11 @@ class User
     public function getLastName(): string
     {
         return $this->personName->getLastName();
+    }
+    
+    public function viewAllActiveProgramParticipationSummary(DataFinder $dataFinder, int $page, int $pageSize): array
+    {
+        return $dataFinder->summaryOfAllUserProgramParticipations($this->id, $page, $pageSize);
     }
 
 }

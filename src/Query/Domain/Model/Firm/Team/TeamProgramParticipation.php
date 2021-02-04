@@ -115,5 +115,5 @@ class TeamProgramParticipation implements ContainEvents
     {
         return $this->programParticipation->viewSummary($dataFinder);
     }
-
+    
 }

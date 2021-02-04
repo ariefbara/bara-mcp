@@ -11,6 +11,7 @@ $router->group($userAggregate, function () use ($router) {
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
+    $router->get('/active-program-participation-summaries', ['uses' => "ActiveProgramParticipationSummaryController@showAll"]);
     
     $router->group(['prefix' => '/programs'], function () use($router) {
         $controller = "ProgramController";

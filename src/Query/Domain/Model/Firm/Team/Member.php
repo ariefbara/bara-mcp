@@ -288,5 +288,11 @@ class Member extends EntityContainEvents
             throw RegularException::forbidden('forbidden: can only manage asset of your team');
         }
     }
+    
+    public function viewAllActiveProgramParticipationSummary(DataFinder $dataFinder, int $page, int $pageSize): array
+    {
+        $this->assertActive();
+        return $dataFinder->summaryOfAllTeamProgramParticipations($this->team->getId(), $page, $pageSize);
+    }
 
 }
