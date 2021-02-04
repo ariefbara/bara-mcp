@@ -3,6 +3,7 @@
 namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMember\MemberComment;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
@@ -473,12 +474,14 @@ class TeamMembershipTest extends TestBase
         return $this->teamMembership->submitNewCommentInWorksheet($this->worksheet, $this->commentId,
                         $this->commentMessage);
     }
-    public function test_submitNewCommentInWorksheet_returnWorksheetCreateCommentResult()
+    public function test_submitNewCommentInWorksheet_returnMemberComment()
     {
         $this->worksheet->expects($this->once())
                 ->method("createComment")
-                ->with($this->commentId, $this->commentMessage, $this->teamMembership);
-        $this->executeSubmitNewCommentInWorksheet();
+                ->with($this->commentId, $this->commentMessage, $this->teamMembership)
+                ->willReturn($this->comment);
+        $memberComment = new TeamMember\MemberComment($this->teamMembership, $this->comment);
+        $this->assertEquals($memberComment, $this->executeSubmitNewCommentInWorksheet());
     }
     public function test_submitNewCommentInWorksheet_worksheetDoesntBelongsToTeam_forbiddenError()
     {
@@ -505,13 +508,14 @@ class TeamMembershipTest extends TestBase
                 ->willReturn(true);
         return $this->teamMembership->replyComment($this->comment, $this->commentId, $this->commentMessage);
     }
-    public function test_replyComment_returnCommentCreateReplyResult()
+    public function test_replyComment_returnMemberComment()
     {
         $this->comment->expects($this->once())
                 ->method("createReply")
                 ->with($this->commentId, $this->commentMessage, $this->teamMembership)
                 ->willReturn($reply = $this->buildMockOfClass(Comment::class));
-        $this->assertEquals($reply, $this->executeReplyComment());
+        $memberComment = new MemberComment($this->teamMembership, $reply);
+        $this->assertEquals($memberComment, $this->executeReplyComment());
     }
     public function test_replyComment_commentDoesntBelongsToTeam_forbiddenError()
     {

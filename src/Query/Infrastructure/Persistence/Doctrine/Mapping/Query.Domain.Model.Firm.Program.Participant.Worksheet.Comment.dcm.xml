@@ -27,5 +27,10 @@
                     mapped-by="comment"
         />
         
+        <one-to-one field="memberComment" 
+                    target-entity="Query\Domain\Model\Firm\Team\Member\MemberComment"
+                    mapped-by="comment"
+        />
+        
     </entity>
 </doctrine-mapping>

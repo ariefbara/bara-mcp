@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Team\Member\MemberComment" 
+            table="MemberComment"
+    >
+        
+        <many-to-one  field="member" 
+                      target-entity="Query\Domain\Model\Firm\Team\Member"
+        >
+            <join-column name="Member_id" referenced-column-name="id" />
+        </many-to-one>
+        
+	<id name="comment" association-key="true" />
+        <one-to-one field="comment" 
+                    target-entity="Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment"
+                    inversed-by="memberComment"
+        >
+            <join-column name="id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

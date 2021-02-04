@@ -4,6 +4,7 @@ namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
 use Participant\Domain\DependencyModel\Firm\Client;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMember\MemberComment;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
@@ -184,18 +185,18 @@ class TeamMembership extends EntityContainEvents
         $consultationSession->setParticipantFeedback($formRecordData, $mentorRating, $this);
     }
 
-    public function submitNewCommentInWorksheet(Worksheet $worksheet, string $commentId, string $message): Comment
+    public function submitNewCommentInWorksheet(Worksheet $worksheet, string $commentId, string $message): MemberComment
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($worksheet);
-        return $worksheet->createComment($commentId, $message, $this);
+        return new MemberComment($this, $worksheet->createComment($commentId, $message, $this));
     }
 
-    public function replyComment(Comment $comment, string $replyId, string $message): Comment
+    public function replyComment(Comment $comment, string $replyId, string $message): MemberComment
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($comment);
-        return $comment->createReply($replyId, $message, $this);
+        return new MemberComment($this, $comment->createReply($replyId, $message, $this));
     }
 
     public function logViewLearningMaterialActivity(

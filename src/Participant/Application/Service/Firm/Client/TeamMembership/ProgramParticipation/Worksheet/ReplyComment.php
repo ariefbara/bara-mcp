@@ -2,10 +2,8 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet;
 
-use Participant\Application\Service\{
-    Firm\Client\TeamMembershipRepository,
-    Participant\Worksheet\CommentRepository
-};
+use Participant\Application\Service\Firm\Client\TeamMembershipRepository;
+use Participant\Application\Service\Participant\Worksheet\CommentRepository;
 use Resources\Application\Event\Dispatcher;
 
 class ReplyComment
@@ -13,9 +11,9 @@ class ReplyComment
 
     /**
      *
-     * @var CommentRepository
+     * @var MemberCommentRepository
      */
-    protected $commentRepository;
+    protected $memberCommentRepository;
 
     /**
      *
@@ -24,32 +22,39 @@ class ReplyComment
     protected $teamMembershipRepository;
 
     /**
+     * 
+     * @var CommentRepository
+     */
+    protected $commentRepository;
+
+    /**
      *
      * @var Dispatcher
      */
     protected $dispatcher;
 
-    public function __construct(CommentRepository $commentRepository,
-            TeamMembershipRepository $teamMembershipRepository, Dispatcher $dispatcher)
+    public function __construct(MemberCommentRepository $memberCommentRepository,
+            TeamMembershipRepository $teamMembershipRepository, CommentRepository $commentRepository,
+            Dispatcher $dispatcher)
     {
-        $this->commentRepository = $commentRepository;
+        $this->memberCommentRepository = $memberCommentRepository;
         $this->teamMembershipRepository = $teamMembershipRepository;
+        $this->commentRepository = $commentRepository;
         $this->dispatcher = $dispatcher;
     }
 
     public function execute(
-            string $firmId, string $clientId, string $teamMembershipId, string $teamProgramParticipationId,
-            string $worksheetId, string $commentId, string $message): string
+            string $firmId, string $clientId, string $teamId, string $teamProgramParticipationId,
+            string $commentId, string $message): string
     {
-        $comment = $this->commentRepository
-                ->aCommentBelongsToTeamParticipant($teamProgramParticipationId, $worksheetId, $commentId);
-        $id = $this->commentRepository->nextIdentity();
+        $id = $this->memberCommentRepository->nextIdentity();
+        $comment = $this->commentRepository->ofId($commentId);
 
         $reply = $this->teamMembershipRepository
-                ->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
+                ->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamId)
                 ->replyComment($comment, $id, $message);
-        $this->commentRepository->add($reply);
-        
+        $this->memberCommentRepository->add($reply);
+
         $this->dispatcher->dispatch($reply);
 
         return $id;

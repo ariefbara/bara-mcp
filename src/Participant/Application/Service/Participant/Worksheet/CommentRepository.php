@@ -21,4 +21,6 @@ interface CommentRepository
             string $teamProgramParticipationId, string $worksheetId, string $commentId): Comment;
 
     public function update(): void;
+    
+    public function ofId(string $commentId): Comment;
 }

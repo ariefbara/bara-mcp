@@ -2,21 +2,15 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Participant\ {
-    Application\Service\Participant\Worksheet\CommentRepository,
-    Domain\Model\ClientParticipant,
-    Domain\Model\Participant\Worksheet\Comment,
-    Domain\Model\TeamProgramParticipation,
-    Domain\Model\UserParticipant
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\Participant\Worksheet\CommentRepository;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\Participant\Worksheet\Comment;
+use Participant\Domain\Model\TeamProgramParticipation;
+use Participant\Domain\Model\UserParticipant;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
 
 class DoctrineCommentRepository extends EntityRepository implements CommentRepository
 {
@@ -145,6 +139,16 @@ class DoctrineCommentRepository extends EntityRepository implements CommentRepos
             $errorDetail = "not found: comment not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function ofId(string $commentId): Comment
+    {
+        $comment = $this->findOneBy(['id' => $commentId]);
+        
+        if (empty($comment)) {
+            throw RegularException::notFound('not found: comment not found');
+        }
+        return $comment;
     }
 
 }

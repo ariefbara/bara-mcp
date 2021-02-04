@@ -4,23 +4,19 @@ namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation\Workshee
 
 use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
 use Config\EventList;
-use Notification\ {
-    Application\Listener\Firm\Program\Participant\ConsultantCommentRepliedByParticipantListener,
-    Application\Service\GenerateConsultantCommentRepliedByParticipantNotification,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment as Comment3
-};
-use Participant\ {
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet\ReplyComment,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet\SubmitNewComment,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\Model\Participant\Worksheet,
-    Domain\Model\Participant\Worksheet\Comment as Comment2
-};
-use Query\ {
-    Application\Service\Firm\Team\ProgramParticipation\Worksheet\ViewComment,
-    Domain\Model\Firm\Program\Consultant\ConsultantComment,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment
-};
+use Notification\Application\Listener\Firm\Program\Participant\ConsultantCommentRepliedByParticipantListener;
+use Notification\Application\Service\GenerateConsultantCommentRepliedByParticipantNotification;
+use Notification\Domain\Model\Firm\Program\Participant\Worksheet\Comment as Comment3;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet\ReplyComment;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet\SubmitNewComment;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMember\MemberComment as MemberComment2;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\Model\Participant\Worksheet;
+use Participant\Domain\Model\Participant\Worksheet\Comment as Comment2;
+use Query\Application\Service\Firm\Team\ProgramParticipation\Worksheet\ViewComment;
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantComment;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+use Query\Domain\Model\Firm\Team\Member\MemberComment;
 use Resources\Application\Event\Dispatcher;
 
 class CommentController extends AsTeamMemberBaseController
@@ -44,8 +40,7 @@ class CommentController extends AsTeamMemberBaseController
         $service = $this->buildReplyService();
         $message = $this->stripTagsInputRequest("message");
         $replyId = $service->execute(
-                $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $worksheetId,
-                $commentId, $message);
+                $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $commentId, $message);
 
         $viewService = $this->buildViewService();
         $reply = $viewService->showById($teamId, $replyId);
@@ -87,6 +82,7 @@ class CommentController extends AsTeamMemberBaseController
             'removed' => $comment->isRemoved(),
             "parent" => $this->arrayDataOfParentComment($comment->getParent()),
             "consultantComment" => $this->arrayDataOfConsultantComment($comment->getConsultantComment()),
+            "member" => $this->arrayDataOfMember($comment->getMemberComment()),
         ];
     }
 
@@ -114,6 +110,16 @@ class CommentController extends AsTeamMemberBaseController
             ],
         ];
     }
+    protected function arrayDataOfMember(?MemberComment $memberComment): ?array
+    {
+        return empty($memberComment)? null : [
+            'id' => $memberComment->getMember()->getId(),
+            'client' => [
+                'id' => $memberComment->getMember()->getClient()->getId(),
+                'name' => $memberComment->getMember()->getClient()->getFullName(),
+            ],
+        ];
+    }
 
     protected function buildViewService()
     {
@@ -123,21 +129,22 @@ class CommentController extends AsTeamMemberBaseController
 
     protected function buildSubmitService()
     {
-        $commentRepository = $this->em->getRepository(Comment2::class);
+        $memberCommentRepository = $this->em->getRepository(MemberComment2::class);
         $worksheetRepository = $this->em->getRepository(Worksheet::class);
         $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
-
-        return new SubmitNewComment($commentRepository, $worksheetRepository, $teamMembershipRepository);
+        return new SubmitNewComment($memberCommentRepository, $worksheetRepository, $teamMembershipRepository);
     }
 
     protected function buildReplyService()
     {
-        $commentRepository = $this->em->getRepository(Comment2::class);
+        
+        $memberCommentRepository = $this->em->getRepository(MemberComment2::class);
         $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
+        $commentRepository = $this->em->getRepository(Comment2::class);
         $dispatcher = new Dispatcher();
         $dispatcher->addListener(
                 EventList::COMMENT_FROM_CONSULTANT_REPLIED, $this->buildConsultantCommentRepliedByParticipantListener());
-        return new ReplyComment($commentRepository, $teamMembershipRepository, $dispatcher);
+        return new ReplyComment($memberCommentRepository, $teamMembershipRepository, $commentRepository, $dispatcher);
     }
 
     protected function buildConsultantCommentRepliedByParticipantListener()
