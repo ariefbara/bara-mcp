@@ -25,6 +25,9 @@ $router->group($guestAggregate, function () use ($router) {
         $router->get("/{id}", ["uses" => "$controller@show"]);
     });
     
+    $router->get('/programs/{programId}/consultants', ['uses' => "ConsultantController@showAll"]);
+    $router->get('/consultants/{id}', ['uses' => "ConsultantController@show"]);
+    
     $router->group(['prefix' => '/client-account'], function () use($router) {
         $controller = "ClientAccountController";
         $router->patch("/activate", ["uses" => "$controller@activate"]);

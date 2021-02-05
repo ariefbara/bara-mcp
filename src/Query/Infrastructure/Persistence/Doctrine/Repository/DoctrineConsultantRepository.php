@@ -2,21 +2,16 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Auth\Firm\Program\ConsultantRepository as InterfaceForAuthorization,
-    Application\Service\Firm\Program\ConsultantRepository,
-    Domain\Model\Firm\Program\Consultant
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Auth\Firm\Program\ConsultantRepository as InterfaceForAuthorization;
+use Query\Application\Service\Firm\Program\ConsultantRepository;
+use Query\Application\Service\ConsultantRepository as InterfaceForGuest;
+use Query\Domain\Model\Firm\Program\Consultant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization
+class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization, InterfaceForGuest
 {
 
     public function aProgramConsultationOfPersonnel(string $firmId, string $personnelId, string $programConsultationId): Consultant
@@ -132,6 +127,35 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
             $errorDetail = 'not found: consultant not found';
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function allActiveConsultantInProgram(string $programId, int $page, int $pageSize)
+    {
+        $params = [
+            'programId' => $programId,
+        ];
+
+        $qb = $this->createQueryBuilder('consultant');
+        $qb->select('consultant')
+                ->andWhere($qb->expr()->eq('consultant.active', 'true'))
+                ->leftJoin('consultant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function anActiveConsultant(string $id): Consultant
+    {
+        $consultant = $this->findOneBy([
+            'id' => $id,
+            'active' => true,
+            
+        ]);
+        if (empty($consultant)) {
+            throw RegularException::notFound('not found: consultant not found');
+        }
+        return $consultant;
     }
 
 }
