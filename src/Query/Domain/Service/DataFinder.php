@@ -341,5 +341,5 @@ _STATEMENT;
         $result = $query->fetchAll(PDO::FETCH_ASSOC);
         return $result[0]["total"];
     }
-
+    
 }

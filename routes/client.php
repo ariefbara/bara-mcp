@@ -11,6 +11,7 @@ $router->group($clientAggregate, function () use ($router) {
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     $router->get('/active-program-participation-summaries', ['uses' => "ActiveProgramParticipationSummaryController@showAll"]);
+    $router->get('/active-team-program-participation-summaries', ['uses' => "ActiveTeamProgramParticipationSummaryController@showAll"]);
     
     $router->group(['prefix' => '/create-team'], function () use($router) {
         $controller = "CreateTeamController";

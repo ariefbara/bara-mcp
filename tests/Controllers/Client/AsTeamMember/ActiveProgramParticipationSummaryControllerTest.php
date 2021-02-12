@@ -148,7 +148,6 @@ class ActiveProgramParticipationSummaryControllerTest extends AsTeamMemberTestCa
     
     public function test_showAll_200()
     {
-$this->disableExceptionHandling();
         $this->get($this->activeProgramParticipationSummaryUri, $this->teamMember->client->token);
         $this->seeStatusCode(200);
         
