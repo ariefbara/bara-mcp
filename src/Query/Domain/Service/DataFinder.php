@@ -29,7 +29,11 @@ SELECT
     _b.totalMission,
     _a.lastCompletedTime,
     _a.lastMissionId,
-    _a.lastMissionName
+    _a.lastMissionName,
+    _a.achievement,
+    _a.completedMetric,
+    _a.totalAssignedMetric,
+    _a.reportId
 FROM (
     SELECT 
         Participant.id participantId , 
@@ -37,6 +41,10 @@ FROM (
         __a.lastCompletedTime, 
         __a.Mission_id lastMissionId, 
         __b.participantRating,
+        __c.reportId,
+        __c.achievement,
+        __c.completedMetric,
+        __c.totalAssignedMetric,
         Mission.name lastMissionName,
         Participant.Program_id programId
     FROM Participant
@@ -55,6 +63,32 @@ FROM (
         LEFT JOIN ConsultationSession ON ConsultationSession.id = ConsultantFeedback.ConsultationSession_id
         GROUP BY Participant_id
     )__b ON __b.Participant_id = Participant.id
+    LEFT JOIN (
+        SELECT MetricAssignment.Participant_id,
+            __c_b.id reportId,
+            SUM(__c_d.inputValue/__c_c.target)/COUNT(__c_c.target) achievement,
+            SUM(CASE WHEN __c_d.inputValue >= __c_c.target THEN 1 ELSE 0 END) completedMetric,
+            COUNT(__c_c.target) totalAssignedMetric
+        FROM (
+            SElECT MetricAssignment_id, MAX(observationTime) observationTime
+            FROM MetricAssignmentReport
+            WHERE approved = true AND removed = false
+            GROUP BY MetricAssignment_id
+        )__c_a INNER JOIN MetricAssignmentReport __c_b USING (MetricAssignment_id, observationTime)
+        LEFT JOIN MetricAssignment ON MetricAssignment.id = __c_b.MetricAssignment_id
+        LEFT JOIN (
+            SELECT id, `target`, MetricAssignment_id
+            FROM AssignmentField
+            WHERE removed = false
+        )__c_c ON __c_c.MetricAssignment_id = __c_b.MetricAssignment_id
+        LEFT JOIN (
+            SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id
+            FROM AssignmentFieldValue
+            WHERE removed = false
+        )__c_d ON __c_d.MetricAssignmentReport_id = __c_b.id AND __c_d.AssignmentField_id = __c_c.id
+        WHERE __c_b.approved = true AND __c_b.removed = false
+        GROUP BY reportId
+    )__c ON __c.Participant_id = Participant.id
     LEFT JOIN Mission ON Mission.id = __a.Mission_id
     WHERE Participant.active = true
         AND Participant.id = :participantId
