@@ -207,7 +207,6 @@ class SummaryControllerTest extends ProgramParticipationTestCase
     
     public function test_show_200()
     {
-$this->disableExceptionHandling();
         $this->get($this->summaryUri, $this->programParticipation->client->token);
         $this->seeStatusCode(200);
         
