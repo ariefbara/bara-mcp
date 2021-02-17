@@ -42,6 +42,7 @@ class ProgramControllerTest extends ControllerTestCase
             'id' => $this->programOne->id,
             'name' => $this->programOne->name,
             'description' => $this->programOne->description,
+            'participantTypes' => explode(',', $this->programOne->participantTypes),
             'firm' => [
                 'id' => $this->programOne->firm->id,
                 'name' => $this->programOne->firm->name,
@@ -52,7 +53,6 @@ class ProgramControllerTest extends ControllerTestCase
     
     public function test_showAll_200()
     {
-$this->disableExceptionHandling();
         $this->get($this->programUri);
         $this->seeStatusCode(200);
         
@@ -62,6 +62,7 @@ $this->disableExceptionHandling();
             'id' => $this->programOne->id,
             'name' => $this->programOne->name,
             'description' => $this->programOne->description,
+            'participantTypes' => explode(',', $this->programOne->participantTypes),
             'firm' => [
                 'id' => $this->programOne->firm->id,
                 'name' => $this->programOne->firm->name,
