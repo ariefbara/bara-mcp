@@ -63,7 +63,7 @@ class ProgramControllerTest extends ClientTestCase
     public function test_showAll_200_returnProgramContainClientPartipantType()
     {
         $response = [
-            "total" => 2,
+            "total" => 4,
             "list" => [
                 [
                     "id" => $this->program->id,
@@ -78,6 +78,20 @@ class ProgramControllerTest extends ClientTestCase
                     "published" => $this->programOne_forClientType->published,
                     "participantTypes" => explode(",", $this->programOne_forClientType->participantTypes),
                     "removed" => $this->programOne_forClientType->removed,
+                ],
+                [
+                    "id" => $this->programTwo_forUserType->id,
+                    "name" => $this->programTwo_forUserType->name,
+                    "published" => $this->programTwo_forUserType->published,
+                    "participantTypes" => explode(",", $this->programTwo_forUserType->participantTypes),
+                    "removed" => $this->programTwo_forUserType->removed,
+                ],
+                [
+                    "id" => $this->programThree_forTeamType->id,
+                    "name" => $this->programThree_forTeamType->name,
+                    "published" => $this->programThree_forTeamType->published,
+                    "participantTypes" => explode(",", $this->programThree_forTeamType->participantTypes),
+                    "removed" => $this->programThree_forTeamType->removed,
                 ],
             ],
         ];

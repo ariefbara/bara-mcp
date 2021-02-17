@@ -19,8 +19,9 @@ class ProgramController extends ClientBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $programs = $service->showAll(
-                $this->firmId(), $this->getPage(), $this->getPageSize(), ParticipantTypes::CLIENT_TYPE);
+        $programs = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize());
+//        $programs = $service->showAll(
+//                $this->firmId(), $this->getPage(), $this->getPageSize(), ParticipantTypes::CLIENT_TYPE);
         
         $result = [];
         $result["total"] = count($programs);
