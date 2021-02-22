@@ -42,11 +42,11 @@ class ActiveTeamProgramRegistrationController extends ClientBaseController
         foreach ($teamProgramRegistrations as $teamProgramRegistration) {
             $result[] = [
                 'id' => $teamProgramRegistration->getId(),
+                'registeredTime' => $teamProgramRegistration->getRegisteredTimeString(),
                 'program' => [
                     'id' => $teamProgramRegistration->getProgram()->getId(),
                     'name' => $teamProgramRegistration->getProgram()->getName(),
                 ],
-                'registeredTime' => $teamProgramRegistration->getRegisteredTimeString(),
             ];
         }
         return $result;

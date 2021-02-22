@@ -40,6 +40,11 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
     });
     
+    $router->group(['prefix' => '/active-team-program-registrations'], function () use($router) {
+        $controller = "ActiveTeamProgramRegistrationController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+    });
+    
     $router->group(['prefix' => '/program-participations'], function () use($router) {
         $controller = "ProgramParticipationController";
         $router->patch("/{programParticipationId}/quit", ["uses" => "$controller@quit"]);

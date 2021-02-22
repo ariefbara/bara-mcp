@@ -32,8 +32,9 @@ class DoctrineTeamProgramRegistrationRepository extends EntityRepository impleme
                 ->setParameters($params);
 
         if (isset($concludedStatus)) {
-            $qb->andWhere($qb->expr()->eq("teamProgramRegistration.concluded", ":concludedStatus"))
-                    ->setParameter("concludedStatus", $concludedStatus);
+            $qb->leftJoin('teamProgramRegistration.programRegistration', 'registrant')
+                ->andWhere($qb->expr()->eq("registrant.concluded", ":concludedStatus"))
+                ->setParameter("concludedStatus", $concludedStatus);
         }
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
