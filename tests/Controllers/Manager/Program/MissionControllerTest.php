@@ -2,16 +2,19 @@
 
 namespace Tests\Controllers\Manager\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfMission,
-    Firm\RecordOfWorksheetForm,
-    Shared\RecordOfForm
-};
+use Tests\Controllers\RecordPreparation\Firm\Program\Mission\RecordOfLearningMaterial;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfWorksheetForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class MissionControllerTest extends MissionTestCase
 {
     protected $missionOne, $publishedMission;
     protected $missionInput, $worksheetFormTwo;
+    protected $missionOneLearningMaterialOne;
+    protected $missionOneLearningMaterialTwo_removed;
+    protected $missionOneLearningMaterialThree;
+    protected $publishedMissionLearningMaterialOne;
     protected $updateMissionInput = [
         "name" => "new mission name",
         "description" => "new mission description",
@@ -22,6 +25,7 @@ class MissionControllerTest extends MissionTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->connection->table('LearningMaterial')->truncate();
         
         $formOne = new RecordOfForm('form-worksheet-form-1');
         $this->connection->table('Form')->insert($formOne->toArrayForDbEntry());
@@ -41,6 +45,16 @@ class MissionControllerTest extends MissionTestCase
         $this->worksheetFormTwo = new RecordOfWorksheetForm($this->firm, $formTwo);
         $this->connection->table('WorksheetForm')->insert($this->worksheetFormTwo->toArrayForDbEntry());
         
+        $this->missionOneLearningMaterialOne = new RecordOfLearningMaterial($this->missionOne, '11');
+        $this->missionOneLearningMaterialTwo_removed = new RecordOfLearningMaterial($this->missionOne, '12');
+        $this->missionOneLearningMaterialTwo_removed->removed = true;
+        $this->missionOneLearningMaterialThree = new RecordOfLearningMaterial($this->missionOne, '13');
+        $this->publishedMissionLearningMaterialOne = new RecordOfLearningMaterial($this->publishedMission, '21');
+        $this->connection->table('LearningMaterial')->insert($this->missionOneLearningMaterialOne->toArrayForDbEntry());
+        $this->connection->table('LearningMaterial')->insert($this->missionOneLearningMaterialTwo_removed->toArrayForDbEntry());
+        $this->connection->table('LearningMaterial')->insert($this->missionOneLearningMaterialThree->toArrayForDbEntry());
+        $this->connection->table('LearningMaterial')->insert($this->publishedMissionLearningMaterialOne->toArrayForDbEntry());
+        
         $this->missionInput = [
             "name" => 'new mission name',
             "description" => 'new mission description',
@@ -54,6 +68,7 @@ class MissionControllerTest extends MissionTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table('LearningMaterial')->truncate();
     }
     
     public function test_addRoot()
@@ -339,8 +354,52 @@ $this->disableExceptionHandling();
             ],
         ];
         $this->get($this->missionUri, $this->manager->token)
-            ->seeStatusCode(200)
-            ->seeJsonContains($response);
+            ->seeStatusCode(200);
+        $totalResponse = ['total' => 3];
+        $this->seeJsonContains($totalResponse);
+        
+        $missionOneResponse = [
+            "parent" => [
+                "id" => $this->mission->id,
+                "name" => $this->mission->name,
+            ],
+            "id" => $this->missionOne->id,
+            "name" => $this->missionOne->name,
+            "description" => $this->missionOne->description,
+            "position" => $this->missionOne->position,
+            "worksheetForm" => [
+                "id" => $this->missionOne->worksheetForm->id,
+                "name" => $this->missionOne->worksheetForm->form->name,
+            ],
+            'learningMaterials' => [
+                [
+                    'id' => $this->missionOneLearningMaterialOne->id,
+                    'name' => $this->missionOneLearningMaterialOne->name,
+                ],
+                [
+                    'id' => $this->missionOneLearningMaterialThree->id,
+                    'name' => $this->missionOneLearningMaterialThree->name,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($missionOneResponse);
+        
+        $publishedMissionResponse = [
+            'id' => $this->publishedMission->id,
+            'learningMaterials' => [
+                [
+                    'id' => $this->publishedMissionLearningMaterialOne->id,
+                    'name' => $this->publishedMissionLearningMaterialOne->name,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($publishedMissionResponse);
+        
+        $missionResponse = [
+            'id' => $this->mission->id,
+        ];
+        $this->seeJsonContains($missionResponse);
+        
         
     }
     public function test_showAll_userNotManager_error401()

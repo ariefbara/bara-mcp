@@ -13,6 +13,7 @@ use Firm\Domain\Model\Firm\Manager;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\WorksheetForm;
+use Query\Application\Service\Firm\Program\Mission\ViewLearningMaterial;
 use Query\Application\Service\Firm\Program\ViewMission;
 use Query\Domain\Model\Firm\Program\Mission as Mission2;
 
@@ -33,7 +34,7 @@ class MissionController extends ManagerBaseController
         
         $viewService = $this->buildViewService();
         $mission = $viewService->showById($this->firmId(), $programId, $missionId);
-        return $this->commandCreatedResponse($this->arrayDataOfMission($mission));
+        return $this->commandCreatedResponse($this->arrayDataOfMission($mission, $programId));
     }
 
     public function addBranch($programId, $missionId)
@@ -51,7 +52,7 @@ class MissionController extends ManagerBaseController
         
         $viewService = $this->buildViewService();
         $mission = $viewService->showById($this->firmId(), $programId, $branchId);
-        return $this->commandCreatedResponse($this->arrayDataOfMission($mission));
+        return $this->commandCreatedResponse($this->arrayDataOfMission($mission, $programId));
     }
 
     public function update($programId, $missionId)
@@ -89,7 +90,7 @@ class MissionController extends ManagerBaseController
     {
         $service = $this->buildViewService();
         $mission = $service->showById($this->firmId(), $programId, $missionId);
-        return $this->singleQueryResponse($this->arrayDataOfMission($mission));
+        return $this->singleQueryResponse($this->arrayDataOfMission($mission, $programId));
     }
 
     public function showAll($programId)
@@ -100,24 +101,21 @@ class MissionController extends ManagerBaseController
         $result = [];
         $result['total'] = count($missions);
         foreach ($missions as $mission) {
-            $parentData = empty($mission->getParent())? null: 
-                [
-                  "id" => $mission->getParent()->getId(),  
-                  "name" => $mission->getParent()->getName(),  
-                ];
-            $result['list'][] = [
-                "parent" => $parentData,
-                "id" => $mission->getId(),
-                "name" => $mission->getName(),
-                "position" => $mission->getPosition(),
-                "published" => $mission->isPublished(),
-            ];
+            $result['list'][] = $this->arrayDataOfMission($mission, $programId);
         }
         return $this->listQueryResponse($result);
     }
     
-    protected function arrayDataOfMission(Mission2 $mission): array
+    protected function arrayDataOfMission(Mission2 $mission, string $programId): array
     {
+        $learningMaterialRepository = $this->em->getRepository(Mission2\LearningMaterial::class);
+        $learningMaterials = (new ViewLearningMaterial($learningMaterialRepository))
+                ->showAll($this->firmId(), $programId, $mission->getId(), 1, 100);
+        $learningMaterialResult = [];
+        foreach ($learningMaterials as $learningMaterial) {
+            $learningMaterialResult[] = $this->arrayDataOfLearningMaterial($learningMaterial);
+        }
+        
         $parentData = empty($mission->getParent())? null: 
             [
               "id" => $mission->getParent()->getId(),  
@@ -134,6 +132,14 @@ class MissionController extends ManagerBaseController
                 "id" => $mission->getWorksheetForm()->getId(),
                 "name" => $mission->getWorksheetForm()->getName(),
             ],
+            'learningMaterials' => $learningMaterialResult,
+        ];
+    }
+    protected function arrayDataOfLearningMaterial(Mission2\LearningMaterial $learningMaterial): array
+    {
+        return [
+            'id' => $learningMaterial->getId(),
+            'name' => $learningMaterial->getName(),
         ];
     }
     
