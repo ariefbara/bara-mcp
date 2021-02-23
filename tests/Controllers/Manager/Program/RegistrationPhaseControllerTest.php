@@ -144,10 +144,14 @@ class RegistrationPhaseControllerTest extends ProgramTestCase
                 [
                     "id" => $this->registrationPhase->id,
                     "name" => $this->registrationPhase->name,
+                    "startDate" => $this->registrationPhase->startDate,
+                    "endDate" => $this->registrationPhase->endDate,
                 ],
                 [
                     "id" => $this->registrationPhaseOne->id,
                     "name" => $this->registrationPhaseOne->name,
+                    "startDate" => $this->registrationPhaseOne->startDate,
+                    "endDate" => $this->registrationPhaseOne->endDate,
                 ],
             ],
         ];

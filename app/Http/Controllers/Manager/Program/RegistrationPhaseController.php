@@ -64,7 +64,13 @@ class RegistrationPhaseController extends ManagerBaseController
         $service = $this->buildViewService();
         $programCompositionId = new ProgramCompositionId($this->firmId(), $programId);
         $registrationPhases = $service->showAll($programCompositionId, $this->getPage(), $this->getPageSize());
-        return $this->commonIdNameListQueryResponse($registrationPhases);
+        
+        $result = [];
+        $result['total'] = count($registrationPhases);
+        foreach ($registrationPhases as $registrationPhase) {
+            $result['list'][] = $this->arrayDataOfRegistrationPhase($registrationPhase);
+        }
+        return $this->listQueryResponse($result);
     }
     
     protected function getRegistrationPhaseData()
