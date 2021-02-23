@@ -72,6 +72,12 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("/{bioFormId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/{memberId}/team-member-activity-logs'], function () use($router) {
+        $controller = "TeamMemberActivityLogController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{id}", ["uses" => "$controller@show"]);
+    });
+    
     $programParticipationAggregate = [
         'prefix' => '/program-participations/{programParticipationId}',
         'namespace' => 'ProgramParticipation',

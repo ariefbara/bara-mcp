@@ -3,6 +3,7 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
+use Query\Application\Service\Firm\Client\AsTeamMember\TeamMemberActivityLogRepository;
 use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
@@ -10,6 +11,7 @@ use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team;
+use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\ClientFinder;
 use Query\Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder;
@@ -293,6 +295,18 @@ class Member extends EntityContainEvents
     {
         $this->assertActive();
         return $dataFinder->summaryOfAllTeamProgramParticipations($this->team->getId(), $page, $pageSize);
+    }
+    
+    public function viewAllSelfActivityLogs(
+            TeamMemberActivityLogRepository $teamMemberActivityLogRepository, int $page, int $pageSize)
+    {
+        return $teamMemberActivityLogRepository->allActivityLogsOfTeamMember($this->id, $page, $pageSize);
+    }
+    
+    public function viewSelfActivityLog(
+            TeamMemberActivityLogRepository $teamMemberActivityLogRepository, string $teamMemberActivityLogId): TeamMemberActivityLog
+    {
+        return $teamMemberActivityLogRepository->anActivityLogOfTeamMember($this->id, $teamMemberActivityLogId);
     }
 
 }
