@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Bara\Domain\Model\WorksheetForm" 
+            table="WorksheetForm" 
+            repository-class="Bara\Infrastructure\Persistence\Doctrine\Repository\DoctrineWorksheetFormRepository" 
+    >
+        
+        <field name="firmId" column="Firm_id" type="guid" nullable="true" />
+        <id name="id" type="guid" />
+        
+        <one-to-one field="form" 
+                    target-entity="Firm\Domain\Model\Shared\Form"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Form_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

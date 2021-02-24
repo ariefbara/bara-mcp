@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation;
 
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 
 class RecordOfFirm implements Record
@@ -40,6 +41,11 @@ class RecordOfFirm implements Record
             "FirmFileInfo_idOfLogo" => empty($this->logo)? null: $this->logo->id,
             "displaySetting" => $this->displaySetting,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('Firm')->insert($this->toArrayForDbEntry());
     }
 
 }

@@ -2,12 +2,11 @@
 
 namespace Bara\Domain\Model;
 
-use Resources\{
-    Domain\ValueObject\Password,
-    Exception\RegularException,
-    ValidationRule,
-    ValidationService
-};
+use Firm\Domain\Model\Shared\FormData;
+use Resources\Domain\ValueObject\Password;
+use Resources\Exception\RegularException;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
 class Admin
 {
@@ -64,6 +63,18 @@ class Admin
         $this->password = new Password($password);
         $this->removed = false;
     }
+    protected function assertActive(): void
+    {
+        if ($this->removed) {
+            throw RegularException::forbidden('forbidden: only active admin can make this request');
+        }
+    }
+    protected function assertAssetIsGlobalAsset(GlobalAsset $asset): void
+    {
+        if (! $asset->isGlobalAsset()) {
+            throw RegularException::forbidden('forbidden: can only manage global asset');
+        }
+    }
 
     public function updateProfile(AdminData $adminData): void
     {
@@ -88,6 +99,24 @@ class Admin
     public function remove(): void
     {
         $this->removed = true;
+    }
+    
+    public function createWorksheetForm(string $worksheetFormId, FormData $formData): WorksheetForm
+    {
+        $this->assertActive();
+        return new WorksheetForm($worksheetFormId, $formData);
+    }
+    public function updateWorksheetForm(WorksheetForm $worksheetForm, FormData $formData): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsGlobalAsset($worksheetForm);
+        $worksheetForm->update($formData);
+    }
+    public function removeWorksheetForm(WorksheetForm $worksheetForm): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsGlobalAsset($worksheetForm);
+        $worksheetForm->remove();
     }
 
 }
