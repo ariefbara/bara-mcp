@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program;
@@ -11,7 +12,7 @@ use Resources\Exception\RegularException;
 use Resources\ValidationRule;
 use Resources\ValidationService;
 
-class Mission implements AssetBelongsToFirm
+class Mission implements AssetBelongsToFirm, ManageableByFirm
 {
 
     /**
@@ -78,39 +79,29 @@ class Mission implements AssetBelongsToFirm
         $this->name = $name;
     }
 
-    protected function __construct(
-            Program $program, string $id, string $name, ?string $description, WorksheetForm $worksheetForm,
-            ?string $position)
+    public function __construct(Program $program, string $id, WorksheetForm $worksheetForm, MissionData $missionData)
     {
         $this->program = $program;
         $this->id = $id;
-        $this->setName($name);
-        $this->description = $description;
-        $this->position = $position;
+        $this->setName($missionData->getName());
+        $this->description = $missionData->getDescription();
+        $this->position = $missionData->getPosition();
         $this->worksheetForm = $worksheetForm;
         $this->published = false;
     }
 
-    public static function createRoot(
-            Program $program, string $id, string $name, ?string $description, WorksheetForm $worksheetForm,
-            ?string $position): self
+    public function createBranch(string $id, WorksheetForm $worksheetForm, MissionData $missionData): self
     {
-        return new static($program, $id, $name, $description, $worksheetForm, $position);
-    }
-
-    public function createBranch(
-            string $id, string $name, ?string $description, WorksheetForm $worksheetForm, ?string $position): self
-    {
-        $branch = new static($this->program, $id, $name, $description, $worksheetForm, $position);
+        $branch = new static($this->program, $id, $worksheetForm, $missionData);
         $branch->parent = $this;
         return $branch;
     }
 
-    public function update(string $name, ?string $description, ?string $position): void
+    public function update(MissionData $missionData): void
     {
-        $this->setName($name);
-        $this->description = $description;
-        $this->position = $position;
+        $this->setName($missionData->getName());
+        $this->description = $missionData->getDescription();
+        $this->position = $missionData->getPosition();
     }
 
     public function publish(): void
@@ -139,6 +130,11 @@ class Mission implements AssetBelongsToFirm
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->program->belongsToFirm($firm);
+    }
+
+    public function isManageableByFirm(Firm $firm): bool
+    {
+        return $this->program->isManageableByFirm($firm);
     }
 
 }

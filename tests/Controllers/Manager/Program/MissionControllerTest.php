@@ -9,6 +9,7 @@ use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class MissionControllerTest extends MissionTestCase
 {
+    protected $globalWorksheetForm;
     protected $missionOne, $publishedMission;
     protected $missionInput, $worksheetFormTwo;
     protected $missionOneLearningMaterialOne;
@@ -28,10 +29,14 @@ class MissionControllerTest extends MissionTestCase
         $this->connection->table('LearningMaterial')->truncate();
         
         $formOne = new RecordOfForm('form-worksheet-form-1');
+        $formTwo = new RecordOfForm('form-worksheet-form-2');
         $this->connection->table('Form')->insert($formOne->toArrayForDbEntry());
+        $this->connection->table('Form')->insert($formTwo->toArrayForDbEntry());
         
         $worksheetFormOne = new RecordOfWorksheetForm($this->firm, $formOne);
+        $this->globalWorksheetForm = new RecordOfWorksheetForm(null, $formTwo);
         $this->connection->table('WorksheetForm')->insert($worksheetFormOne->toArrayForDbEntry());
+        $this->connection->table('WorksheetForm')->insert($this->globalWorksheetForm->toArrayForDbEntry());
         
         $this->missionOne = new RecordOfMission($this->program, $worksheetFormOne, 1, $this->mission);
         $this->publishedMission = new RecordOfMission($this->program, $worksheetFormOne, 2, $this->mission);
@@ -127,6 +132,24 @@ class MissionControllerTest extends MissionTestCase
         $this->post($this->missionUri, $this->missionInput, $this->manager->token)
             ->seeStatusCode(404);
     }
+    public function test_addRoot_globalWorksheetForm_201()
+    {
+        $this->missionInput['worksheetFormId'] = $this->globalWorksheetForm->id;
+        
+        $this->post($this->missionUri, $this->missionInput, $this->manager->token)
+            ->seeStatusCode(201);
+        
+        $missionRecord = [
+            "Program_id" => $this->program->id,
+            "parent_id" => null,
+            "WorksheetForm_id" => $this->globalWorksheetForm->id,
+            "name" => $this->missionInput['name'],
+            "description" => $this->missionInput['description'],
+            "position" => $this->missionInput['position'],
+            "published" => false,
+        ];
+        $this->seeInDatabase('Mission', $missionRecord);
+    }
     
     public function test_addBranch()
     {
@@ -154,6 +177,24 @@ class MissionControllerTest extends MissionTestCase
             "Program_id" => $this->program->id,
             "parent_id" => $this->missionOne->id,
             "WorksheetForm_id" => $this->worksheetFormTwo->id,
+            "name" => $this->missionInput['name'],
+            "description" => $this->missionInput['description'],
+            "position" => $this->missionInput['position'],
+            "published" => false,
+        ];
+        $this->seeInDatabase('Mission', $missionRecord);
+    }
+    public function test_addBranch_useGlobalWorksheetForm_201()
+    {
+        $this->missionInput['worksheetFormId'] = $this->globalWorksheetForm->id;
+        $uri = $this->missionUri . "/{$this->missionOne->id}";
+        $this->post($uri, $this->missionInput, $this->manager->token)
+            ->seeStatusCode(201);
+        
+        $missionRecord = [
+            "Program_id" => $this->program->id,
+            "parent_id" => $this->missionOne->id,
+            "WorksheetForm_id" => $this->globalWorksheetForm->id,
             "name" => $this->missionInput['name'],
             "description" => $this->missionInput['description'],
             "position" => $this->missionInput['position'],
@@ -242,6 +283,19 @@ $this->disableExceptionHandling();
         $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
+        
+        $missionEntry = [
+            "id" => $this->mission->id,
+            "worksheetForm_id" => $this->changeWorksheetFormInput["worksheetFormId"],
+        ];
+        $this->seeInDatabase("Mission", $missionEntry);
+    }
+    public function test_changeWorksheetForm_useGlobalWorksheetForm_200()
+    {
+        $this->changeWorksheetFormInput['worksheetFormId'] = $this->globalWorksheetForm->id;
+        $uri = $this->missionUri . "/{$this->mission->id}/change-worksheet-form";
+        $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token)
+                ->seeStatusCode(200);
         
         $missionEntry = [
             "id" => $this->mission->id,

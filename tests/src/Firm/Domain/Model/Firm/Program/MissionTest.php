@@ -23,23 +23,26 @@ class MissionTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
         $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
 
-        $this->mission = TestableMission::createRoot(
-                        $this->program, 'id', 'name', 'description', $this->worksheetForm, 'position');
+        $missionData = new MissionData('name', 'description', 'position');
+        $this->mission = new TestableMission($this->program, 'id', $this->worksheetForm, $missionData);
         $this->mission->branches = new ArrayCollection();
 
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->firm = $this->buildMockOfClass(Firm::class);
     }
-
-    protected function executeCreateRoot()
+    protected function getMissionData()
     {
-        return TestableMission::createRoot($this->program, $this->id, $this->name, $this->description,
-                        $this->worksheetForm, $this->position);
+        return new MissionData($this->name, $this->description, $this->position);
+    }
+
+    protected function executeConstruct()
+    {
+        return new TestableMission($this->program, $this->id, $this->worksheetForm, $this->getMissionData());
     }
 
     public function test_construct_setProperties()
     {
-        $mission = $this->executeCreateRoot();
+        $mission = $this->executeConstruct();
         $this->assertEquals($this->program, $mission->program);
         $this->assertNull($mission->parent);
         $this->assertEquals($this->id, $mission->id);
@@ -49,12 +52,11 @@ class MissionTest extends TestBase
         $this->assertEquals($this->worksheetForm, $mission->worksheetForm);
         $this->assertFalse($mission->published);
     }
-
-    public function test_createRoot_emptyName_throwEx()
+    public function test_construct_emptyName_throwEx()
     {
         $this->name = '';
         $operation = function () {
-            $this->executeCreateRoot();
+            $this->executeConstruct();
         };
         $errorDetail = "bad request: mission name is required";
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
@@ -62,10 +64,8 @@ class MissionTest extends TestBase
 
     protected function executeCreateBranch()
     {
-        return $this->mission->createBranch($this->id, $this->name, $this->description, $this->worksheetForm,
-                        $this->position);
+        return $this->mission->createBranch($this->id, $this->worksheetForm, $this->getMissionData());
     }
-
     public function test_createBranch_createBranchMission()
     {
         $branchMission = $this->executeCreateBranch();
@@ -77,18 +77,9 @@ class MissionTest extends TestBase
         $this->assertEquals($this->position, $branchMission->position);
     }
 
-    public function test_createBranch_alreadyContainBranch_createNormally()
-    {
-        $nextMission = $this->buildMockOfClass(Mission::class);
-        $this->mission->branches->add($nextMission);
-
-        $this->executeCreateBranch();
-        $this->markAsSuccess();
-    }
-
     protected function executeUpdate()
     {
-        $this->mission->update($this->name, $this->description, $this->position);
+        $this->mission->update($this->getMissionData());
     }
     public function test_update_changeProperties()
     {
@@ -105,12 +96,6 @@ class MissionTest extends TestBase
         };
         $errorDetail = "bad request: mission name is required";
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
-    }
-    public function test_update_alreadyPublished_processNormally()
-    {
-        $this->mission->published = true;
-        $this->executeUpdate();
-        $this->markAsSuccess();
     }
 
     protected function executePublish()
@@ -160,6 +145,14 @@ class MissionTest extends TestBase
         $this->mission->belongsToFirm($this->firm);
     }
 
+    public function test_isManageableByFirm_returnProgramsIsManageableByFirmResult()
+    {
+        $firm = $this->buildMockOfClass(Firm::class);
+        $this->program->expects($this->once())
+                ->method('isManageableByFirm')
+                ->with($firm);
+        $this->mission->isManageableByFirm($firm);
+    }
 }
 
 class TestableMission extends Mission

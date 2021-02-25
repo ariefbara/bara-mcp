@@ -40,7 +40,7 @@ class ManagerTest extends TestBase
             $sessionDuration = 99, $consultantFeedbackForm;
     protected $profileFormId = "profileFormId", $formData, $profileForm;
     protected $programsProfileForm;
-    protected $mission;
+    protected $mission, $missionId = 'missionId';
     protected $worksheetForm;
     protected $bioForm, $bioFormId = "bioFormId";
 
@@ -620,34 +620,6 @@ class ManagerTest extends TestBase
         $this->setAssetDoesntBelongsToFirm($this->program);
         $this->assertUnmanageableAssetForbiddenError(function (){
             $this->executeRemoveProgram();
-        });
-    }
-    
-    protected function executeChangeMissionsWorksheetForm()
-    {
-        $this->setAssetBelongsToFirm($this->mission);
-        $this->setAssetBelongsToFirm($this->worksheetForm);
-        $this->manager->changeMissionsWorksheetForm($this->mission, $this->worksheetForm);
-    }
-    public function test_changeMissionsWorkshetForm_changeMissionsWorksheetForm()
-    {
-        $this->mission->expects($this->once())
-                ->method("changeWorksheetForm")
-                ->with($this->worksheetForm);
-        $this->executeChangeMissionsWorksheetForm();
-    }
-    public function test_changeMissionWorksheetForm_unamanagedMission_forbidden()
-    {
-        $this->setAssetDoesntBelongsToFirm($this->mission);
-        $this->assertUnmanageableAssetForbiddenError(function (){
-            $this->executeChangeMissionsWorksheetForm();
-        });
-    }
-    public function test_changeMissionWorksheetForm_unamanagedWorksheetForm_forbidden()
-    {
-        $this->setAssetDoesntBelongsToFirm($this->worksheetForm);
-        $this->assertUnmanageableAssetForbiddenError(function (){
-            $this->executeChangeMissionsWorksheetForm();
         });
     }
     

@@ -58,6 +58,21 @@ class WorksheetFormTest extends TestBase
         $firm = $this->buildMockOfClass(Firm::class);
         $this->assertFalse($this->worksheetForm->belongsToFirm($firm));
     }
+    
+    public function test_isManageableByFirm_sameFirm_returnTrue()
+    {
+        $this->assertTrue($this->worksheetForm->isManageableByFirm($this->firm));
+    }
+    public function test_isManageableByFirm_differentFirm_returnFalse()
+    {
+        $firm = $this->buildMockOfClass(Firm::class);
+        $this->assertFalse($this->worksheetForm->isManageableByFirm($firm));
+    }
+    public function test_isManageableByFirm_emptyFirm_returnTrue()
+    {
+        $this->worksheetForm->firm = null;
+        $this->assertTrue($this->worksheetForm->isManageableByFirm($this->firm));
+    }
 }
 
 class TestableWorksheetForm extends WorksheetForm{
