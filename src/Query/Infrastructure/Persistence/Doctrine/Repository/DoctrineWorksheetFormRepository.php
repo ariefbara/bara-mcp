@@ -22,7 +22,11 @@ class DoctrineWorksheetFormRepository extends EntityRepository implements Worksh
         $qb->select('worksheetForm')
                 ->andWhere($qb->expr()->eq('worksheetForm.removed', "false"))
                 ->leftJoin('worksheetForm.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
+                ->andWhere($qb->expr()->orX(
+                        $qb->expr()->eq('firm.id', ':firmId'),
+                        $qb->expr()->isNull('firm.id'),
+                ))
+//                ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -39,7 +43,11 @@ class DoctrineWorksheetFormRepository extends EntityRepository implements Worksh
                 ->andWhere($qb->expr()->eq('worksheetForm.id', ":worksheetFormId"))
                 ->andWhere($qb->expr()->eq('worksheetForm.removed', "false"))
                 ->leftJoin('worksheetForm.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
+                ->andWhere($qb->expr()->orX(
+                        $qb->expr()->eq('firm.id', ':firmId'),
+                        $qb->expr()->isNull('firm.id'),
+                ))
+//                ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
 

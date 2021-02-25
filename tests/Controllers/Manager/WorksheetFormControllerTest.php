@@ -16,6 +16,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
      */
     protected $worksheetForm;
     protected $worksheetFormOne;
+    protected $globalWorksheetForm;
     protected $worksheetFormInput = [
         "name" => 'new worksheet form name',
         "description" => 'new worksheet form description',
@@ -54,13 +55,17 @@ class WorksheetFormControllerTest extends ManagerTestCase
         
         $form = new RecordOfForm(0);
         $formOne = new RecordOfForm(1);
+        $formTwo = new RecordOfForm(2);
         $this->connection->table("Form")->insert($form->toArrayForDbEntry());
         $this->connection->table("Form")->insert($formOne->toArrayForDbEntry());
+        $this->connection->table("Form")->insert($formTwo->toArrayForDbEntry());
         
         $this->worksheetForm = new RecordOfWorksheetForm($this->firm, $form);
         $this->worksheetFormOne = new RecordOfWorksheetForm($this->firm, $formOne);
+        $this->globalWorksheetForm = new RecordOfWorksheetForm(null, $formTwo);
         $this->connection->table("WorksheetForm")->insert($this->worksheetForm->toArrayForDbEntry());
         $this->connection->table("WorksheetForm")->insert($this->worksheetFormOne->toArrayForDbEntry());
+        $this->connection->table("WorksheetForm")->insert($this->globalWorksheetForm->toArrayForDbEntry());
         
         $this->worksheetFormResponse["name"] = $this->worksheetFormInput["name"];
         $this->worksheetFormResponse["description"] = $this->worksheetFormInput["description"];
@@ -203,6 +208,24 @@ class WorksheetFormControllerTest extends ManagerTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
+    public function test_show_globalWorksheetForm_200()
+    {
+        $response = [
+            "id" => $this->globalWorksheetForm->id,
+            "name" => $this->globalWorksheetForm->form->name,
+            "description" => $this->globalWorksheetForm->form->description,
+            "stringFields" => [],
+            "integerFields" => [],
+            "textAreaFields" => [],
+            "attachmentFields" => [],
+            "singleSelectFields" => [],
+            "multiSelectFields" => [],
+        ];
+        $uri = $this->worksheetFormUri . "/{$this->globalWorksheetForm->id}";
+        $this->get($uri, $this->manager->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($response);
+    }
     public function test_show_userNotManager_error401()
     {
         $uri = $this->worksheetFormUri . "/{$this->worksheetForm->id}";
@@ -212,9 +235,8 @@ class WorksheetFormControllerTest extends ManagerTestCase
     
     public function test_showAll()
     {
-$this->disableExceptionHandling();
         $response = [
-            "total" => 2, 
+            "total" => 3, 
             "list" => [
                 [
                     "id" => $this->worksheetForm->id,
@@ -223,6 +245,10 @@ $this->disableExceptionHandling();
                 [
                     "id" => $this->worksheetFormOne->id,
                     "name" => $this->worksheetFormOne->form->name,
+                ],
+                [
+                    "id" => $this->globalWorksheetForm->id,
+                    "name" => $this->globalWorksheetForm->form->name,
                 ],
             ],
         ];
