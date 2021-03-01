@@ -5,12 +5,14 @@ namespace Query\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Event\LearningMaterialViewedByParticipantEvent;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant\Evaluation;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
@@ -200,6 +202,15 @@ class Participant extends EntityContainEvents
     public function viewSummary(DataFinder $dataFinder): array
     {
         return $dataFinder->summaryOfParticipant($this->id);
+    }
+    
+    public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
+    {
+        return $okrPeriodRepository->anOKRPeriodBelongsToParticipant($this->id, $okrPeriodId);
+    }
+    public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
+    {
+        return $okrPeriodRepository->allOKRPeriodsBelongsToParticipant($this->id, $page, $pageSize);
     }
 
 }

@@ -58,6 +58,10 @@
         >
             <cascade><cascade-persist /></cascade>
         </one-to-many>
+        <one-to-many  field="okrPeriods" 
+                      target-entity="Participant\Domain\Model\Participant\OKRPeriod"
+                      mapped-by="participant"
+        />
         
     </entity>
 </doctrine-mapping>

@@ -4,11 +4,13 @@ namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
 use Query\Application\Service\Firm\Client\AsTeamMember\TeamMemberActivityLogRepository;
+use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
@@ -307,6 +309,19 @@ class Member extends EntityContainEvents
             TeamMemberActivityLogRepository $teamMemberActivityLogRepository, string $teamMemberActivityLogId): TeamMemberActivityLog
     {
         return $teamMemberActivityLogRepository->anActivityLogOfTeamMember($this->id, $teamMemberActivityLogId);
+    }
+    
+    public function viewOKRPeriodOfTeamParticipant(
+            OKRPeriodRepository $okrPeriodRepository, TeamProgramParticipation $teamParticipant, $okrPeriodId): OKRPeriod
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
+    }
+    public function viewAllOKRPeriodsOfTeamParticipant(
+            OKRPeriodRepository $okrPeriodRepository, TeamProgramParticipation $teamParticipant, int $page, int $pageSize)
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
     }
 
 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant\OKRPeriod\Objective\KeyResult" 
+            table="KeyResult"
+    >
+        
+        <many-to-one  field="objective" 
+                      target-entity="Participant\Domain\Model\Participant\OKRPeriod\Objective"
+                      inversed-by="keyResults"
+        >
+            <join-column name="Objective_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="label" class="SharedContext\Domain\ValueObject\Label" use-column-prefix="false" />
+        <field name="target" type="integer" nullable="false"/>
+        <field name="weight" type="smallint" nullable="false" />
+        <field name="disabled" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

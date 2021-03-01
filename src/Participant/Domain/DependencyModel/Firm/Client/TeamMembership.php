@@ -17,6 +17,8 @@ use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
@@ -61,7 +63,6 @@ class TeamMembership extends EntityContainEvents
     {
         
     }
-
     protected function assertAssetBelongsToTeam(AssetBelongsToTeamInterface $assetBelongsToTeam): void
     {
         if (!$assetBelongsToTeam->belongsToTeam($this->team)) {
@@ -69,7 +70,6 @@ class TeamMembership extends EntityContainEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
-
     protected function assertActive(): void
     {
         if (!$this->active) {
@@ -256,6 +256,27 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($teamParticipant);
         $teamParticipant->removeProfile($participantProfile);
+    }
+    
+    public function createOKRPeriodInTeamParticipant(
+            TeamProgramParticipation $teamParticipant, string $okrPeriodId, OKRPeriodData $okrPeriodData): OKRPeriod
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        return $teamParticipant->createOKRPeriod($okrPeriodId, $okrPeriodData);
+    }
+    public function updateOKRPeriod(
+            TeamProgramParticipation $teamParticipant, OKRPeriod $okrPeriod, OKRPeriodData $okrPeriodData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->updateOKRPeriod($okrPeriod, $okrPeriodData);
+    }
+    public function cancelOKRPeriod(TeamProgramParticipation $teamParticipant, OKRPeriod $okrPeriod): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->cancelOKRPeriod($okrPeriod);
     }
 
 }

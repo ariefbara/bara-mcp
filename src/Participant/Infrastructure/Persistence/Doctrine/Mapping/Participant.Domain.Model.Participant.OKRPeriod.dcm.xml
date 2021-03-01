@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant\OKRPeriod" 
+            table="OKRPeriod"
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineOKRPeriodRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Participant\Domain\Model\Participant"
+                      inversed-by="okrPeriods"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="label" class="SharedContext\Domain\ValueObject\Label" use-column-prefix="false" />
+        <embedded name="period" class="Resources\Domain\ValueObject\DateInterval" use-column-prefix="false" />
+        <embedded name="approvalStatus" class="SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus" use-column-prefix="false" />
+        <field name="cancelled" type="boolean" />
+            
+        <one-to-many  field="objectives" 
+                      target-entity="Participant\Domain\Model\Participant\OKRPeriod\Objective"
+                      mapped-by="okrPeriod"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

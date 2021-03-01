@@ -14,6 +14,8 @@ use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -130,6 +132,19 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
     public function removeProfile(ParticipantProfile $profile): void
     {
         $this->programParticipation->removeProfile($profile);
+    }
+    
+    public function createOKRPeriod(string $okrPeriodId, OKRPeriodData $okrPeriodData): OKRPeriod
+    {
+        return $this->programParticipation->createOKRPeriod($okrPeriodId, $okrPeriodData);
+    }
+    public function updateOKRPeriod(OKRPeriod $okrPeriod, OKRPeriodData $okrPeriodData): void
+    {
+        $this->programParticipation->updateOKRPeriod($okrPeriod, $okrPeriodData);
+    }
+    public function cancelOKRPeriod(OKRPeriod $okrPeriod): void
+    {
+        $this->programParticipation->cancelOKRPeriod($okrPeriod);
     }
 
 }

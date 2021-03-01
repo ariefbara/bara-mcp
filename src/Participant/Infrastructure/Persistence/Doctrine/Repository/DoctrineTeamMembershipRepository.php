@@ -43,4 +43,9 @@ class DoctrineTeamMembershipRepository extends EntityRepository implements TeamM
         return $this->findOneBy(["id" => $teamMembershipId]);
     }
 
+    public function update(): void
+    {
+        $this->getEntityManager()->flush();
+    }
+
 }

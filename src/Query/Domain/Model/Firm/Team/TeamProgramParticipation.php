@@ -2,10 +2,12 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
+use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Service\DataFinder;
@@ -114,6 +116,15 @@ class TeamProgramParticipation implements ContainEvents
     public function viewSummary(DataFinder $dataFinder): array
     {
         return $this->programParticipation->viewSummary($dataFinder);
+    }
+    
+    public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
+    {
+        return $this->programParticipation->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
+    }
+    public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
+    {
+        return $this->programParticipation->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
     }
     
 }

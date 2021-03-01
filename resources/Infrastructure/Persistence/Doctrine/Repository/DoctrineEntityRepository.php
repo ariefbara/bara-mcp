@@ -26,14 +26,12 @@ class DoctrineEntityRepository extends EntityRepository
         $em->flush();
     }
     
-    protected function findOneById(string $id)
+    protected function findOneByIdOrDie(string $id, string $entityName)
     {
         $entity = $this->findOneBy([
             "id" => $id,
         ]);
         if (empty($entity)) {
-            $entityName = strtolower(preg_match_all('/(?:^|[A-Z])[a-z]+/', $this->getEntityName()));
-            
             $errorDetail = "not found: $entityName not found";
             throw RegularException::notFound($errorDetail);
         }

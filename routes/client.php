@@ -526,6 +526,15 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
                 $router->get("", ["uses" => "$controller@showAll"]);
             });
+            
+            $router->group(['prefix' => '/okr-periods'], function () use($router) {
+                $controller = "OKRPeriodController";
+                $router->post("", ["uses" => "$controller@create"]);
+                $router->patch("/{okrPeriodId}", ["uses" => "$controller@update"]);
+                $router->delete("/{okrPeriodId}", ["uses" => "$controller@cancel"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{okrPeriodId}", ["uses" => "$controller@show"]);
+            });
         });
         
         $programRegistrationAggregate = [

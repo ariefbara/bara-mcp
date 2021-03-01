@@ -8,11 +8,12 @@ use Query\Application\Auth\Firm\Client\TeamMembershipRepository;
 use Query\Application\Auth\Firm\Team\MemberRepository as InterfaceForAuthorization;
 use Query\Application\Service\Firm\Program\TeamMemberRepository;
 use Query\Application\Service\Firm\Team\MemberRepository;
+use Query\Application\Service\TeamMember\TeamMemberRepository as TeamMemberRepository2;
 use Query\Domain\Model\Firm\Team\Member;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository, TeamMemberRepository
+class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository, TeamMemberRepository, TeamMemberRepository2
 {
 
     public function aTeamMembershipOfClient(string $firmId, string $clientId, string $teamMembershipId): Member
@@ -249,6 +250,58 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
                     ->setParameter("activeStatus", $activeStatus);
         }
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aTeamMemberOfClient(string $firmId, string $clientId, string $memberId): Member
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            'memberId' => $memberId,
+        ];
+        
+        $qb = $this->createQueryBuilder('t_member');
+        $qb->select('t_member')
+                ->andWhere($qb->expr()->eq('t_member.id', ':memberId'))
+                ->leftJoin('t_member.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: team member not found');
+        }
+    }
+
+    public function aTeamMemberOfClientCorrespondWithTeam(string $firmId, string $clientId, string $teamId): Member
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            'teamId' => $teamId,
+        ];
+        
+        $qb = $this->createQueryBuilder('t_member');
+        $qb->select('t_member')
+                ->leftJoin('t_member.team', 'team')
+                ->andWhere($qb->expr()->eq('team.id', ':teamId'))
+                ->leftJoin('t_member.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: team member not found');
+        }
+        
     }
 
 }
