@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Participant\OKRPeriod" 
+            table="OKRPeriod"
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineOKRPeriodRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="approvalStatus" class="SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus" use-column-prefix="false" />
+        <field name="cancelled" type="boolean" />
+            
+    </entity>
+</doctrine-mapping>

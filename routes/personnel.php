@@ -163,6 +163,10 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/participants/{participantId}/participant-profiles", ["uses" => "ParticipantProfileController@showAll"]);
         $router->get("/participant-profiles/{participantProfileId}", ["uses" => "ParticipantProfileController@show"]);
         
+        $router->patch("/okr-periods/{okrPeriodId}/approve", ["uses" => "OKRPeriodController@approve"]);
+        $router->patch("/okr-periods/{okrPeriodId}/reject", ["uses" => "OKRPeriodController@reject"]);
+        $router->get("/okr-periods/{okrPeriodId}", ["uses" => "OKRPeriodController@show"]);
+        $router->get("/participants/{participantId}/okr-periods", ["uses" => "OKRPeriodController@showAllBelongsToParticipant"]);
     });
     
     $asProgramConsultantAggregate = [

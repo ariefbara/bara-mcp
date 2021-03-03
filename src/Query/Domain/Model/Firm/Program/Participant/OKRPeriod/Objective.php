@@ -102,7 +102,7 @@ class Objective
     public function getLastApprovedProgressReport(): ?ObjectiveProgressReport
     {
         $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('status', OKRPeriodApprovalStatus::APPROVED))
+                ->andWhere(Criteria::expr()->eq('approvalStatus.value', OKRPeriodApprovalStatus::APPROVED))
                 ->orderBy(['reportDate' => Criteria::DESC]);
         
         $progressReport = $this->objectiveProgressReports->matching($criteria)->first();

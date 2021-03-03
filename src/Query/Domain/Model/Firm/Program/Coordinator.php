@@ -2,10 +2,11 @@
 
 namespace Query\Domain\Model\Firm\Program;
 
-use Query\Domain\Model\Firm\{
-    Personnel,
-    Program
-};
+use Query\Application\Service\Coordinator\OKRPeriodRepository;
+use Query\Domain\Model\Firm\Personnel;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
+use Resources\Exception\RegularException;
 
 class Coordinator
 {
@@ -57,6 +58,25 @@ class Coordinator
     protected function __construct()
     {
         ;
+    }
+    protected function assertActive()
+    {
+        if (! $this->active) {
+            throw RegularException::forbidden('forbidden: only active coordinator can make this request');
+        }
+    }
+    
+    public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
+    {
+        $this->assertActive();
+        return $okrPeriodRepository->anOKRPeriodInProgram($this->program->getId(), $okrPeriodId);
+    }
+    public function viewAllOKRPeriodBelongsToParticipant(
+            OKRPeriodRepository $okrPeriodRepository, string $participantId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $okrPeriodRepository->allOKRPeriodsBelongsToParticipantInProgram(
+                $this->program->getId(), $participantId, $page, $pageSize);
     }
 
 }

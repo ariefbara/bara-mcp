@@ -14,6 +14,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Firm\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -77,6 +78,27 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->personnel = $personnel;
         $this->active = true;
     }
+    
+    protected function assertActive()
+    {
+        if (!$this->active) {
+            $errorDetail = "forbidden: only active coordinator can make this request";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+    protected function assertAssetBelongsProgram(AssetInProgram $asset): void
+    {
+        if (!$asset->belongsToProgram($this->program)) {
+            $errorDetail = "forbidden: unable to manage asset of other program";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
+    protected function assertAssetManageable(AssetInProgram $asset, string $assetName): void
+    {
+        if (!$asset->belongsToProgram($this->program)) {
+            throw RegularException::forbidden("forbidden: unable to manage $assetName");
+        }
+    }
 
     public function disable(): void
     {
@@ -120,21 +142,6 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $metricAssignmentReport->reject($note);
     }
 
-    protected function assertActive()
-    {
-        if (!$this->active) {
-            $errorDetail = "forbidden: only active coordinator can make this request";
-            throw RegularException::forbidden($errorDetail);
-        }
-    }
-
-    protected function assertAssetBelongsProgram(AssetInProgram $asset): void
-    {
-        if (!$asset->belongsToProgram($this->program)) {
-            $errorDetail = "forbidden: unable to manage asset of other program";
-            throw RegularException::forbidden($errorDetail);
-        }
-    }
 
     public function canInvolvedInProgram(Program $program): bool
     {
@@ -182,6 +189,19 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->program->belongsToFirm($firm);
+    }
+    
+    public function approveOKRPeriod(OKRPeriod $okrPeriod): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($okrPeriod, 'okr period');
+        $okrPeriod->approve();
+    }
+    public function rejectOKRPeriod(OKRPeriod $okrPeriod): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($okrPeriod, 'okr period');
+        $okrPeriod->reject();
     }
 
 }

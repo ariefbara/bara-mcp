@@ -42,6 +42,42 @@ class OKRPeriodApprovalStatusTest extends TestBase
         $this->approvalStatus->value = TestableOKRPeriodApprovalStatus::APPROVED;
         $this->assertTrue($this->approvalStatus->isApproved());
     }
+    
+    protected function executeApprove()
+    {
+        return $this->approvalStatus->approve();
+    }
+    public function test_approve_returnApprovedApprovalStatus()
+    {
+        $approvalStatus = $this->executeApprove();
+        $this->assertEquals($approvalStatus->value, OKRPeriodApprovalStatus::APPROVED);
+    }
+    public function test_approve_alreadyConcluded_forbidden()
+    {
+        $this->approvalStatus->value = OKRPeriodApprovalStatus::APPROVED;
+        $operation = function (){
+            $this->executeApprove();
+        };
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', 'forbidden: approval status already concluded');
+    }
+    
+    protected function executeReject()
+    {
+        return $this->approvalStatus->reject();
+    }
+    public function test_reject_returnRejectedApprovalStatus()
+    {
+        $approvalStatus = $this->executeReject();
+        $this->assertEquals($approvalStatus->value, OKRPeriodApprovalStatus::REJECTED);
+    }
+    public function test_reject_alreadyConcluded_forbidden()
+    {
+        $this->approvalStatus->value = OKRPeriodApprovalStatus::APPROVED;
+        $operation = function (){
+            $this->executeReject();
+        };
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', 'forbidden: approval status already concluded');
+    }
 }
 
 class TestableOKRPeriodApprovalStatus extends OKRPeriodApprovalStatus
