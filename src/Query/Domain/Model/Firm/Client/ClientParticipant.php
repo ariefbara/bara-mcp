@@ -2,11 +2,13 @@
 
 namespace Query\Domain\Model\Firm\Client;
 
+use Query\Application\Service\Participant\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\LearningMaterialFinder;
 use Resources\Application\Event\ContainEvents;
@@ -85,6 +87,15 @@ class ClientParticipant implements ContainEvents
     public function viewSummary(DataFinder $dataFinder): array
     {
         return $this->participant->viewSummary($dataFinder);
+    }
+    
+    public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
+    {
+        return $this->participant->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
+    }
+    public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
+    {
+        return $this->participant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
     }
 
 }

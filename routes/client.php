@@ -191,6 +191,12 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
         });
         
+        $router->post('/okr-periods', ['uses' => "OKRPeriodController@create"]);
+        $router->get('/okr-periods', ['uses' => "OKRPeriodController@showAll"]);
+        $router->patch('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@update"]);
+        $router->delete('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@cancel"]);
+        $router->get('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@show"]);
+        
     });
     
     $programRegistrationAggregate = [

@@ -4,13 +4,15 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Coordinator\OKRPeriodRepository as InterfaceForCoordinator;
+use Query\Application\Service\Participant\OKRPeriodRepository as OKRPeriodRepository2;
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineOKRPeriodRepository extends DoctrineEntityRepository implements OKRPeriodRepository, InterfaceForCoordinator
+class DoctrineOKRPeriodRepository extends DoctrineEntityRepository implements OKRPeriodRepository, InterfaceForCoordinator,
+        OKRPeriodRepository2
 {
 
     public function allOKRPeriodsBelongsToParticipant(string $participantId, int $page, int $pageSize)
@@ -23,7 +25,7 @@ class DoctrineOKRPeriodRepository extends DoctrineEntityRepository implements OK
                 ->leftJoin('okrPeriod.participant', 'participant')
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
                 ->setParameters($params);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -40,7 +42,7 @@ class DoctrineOKRPeriodRepository extends DoctrineEntityRepository implements OK
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -62,7 +64,7 @@ class DoctrineOKRPeriodRepository extends DoctrineEntityRepository implements OK
                 ->leftJoin('participant.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameters($params);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -80,7 +82,7 @@ class DoctrineOKRPeriodRepository extends DoctrineEntityRepository implements OK
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {

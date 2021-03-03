@@ -11,6 +11,8 @@ use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
@@ -132,6 +134,19 @@ class ClientParticipant implements ContainEvents
                 throw RegularException::forbidden($errorDetail);
             }
         }
+    }
+    
+    public function createOKRPeriod(string $okrPeriodId, OKRPeriodData $okrPeriodData): OKRPeriod
+    {
+        return $this->participant->createOKRPeriod($okrPeriodId, $okrPeriodData);
+    }
+    public function updateOKRPeriod(OKRPeriod $okrPeriod, OKRPeriodData $okrPeriodData): void
+    {
+        $this->participant->updateOKRPeriod($okrPeriod, $okrPeriodData);
+    }
+    public function cancelOKRPeriod(OKRPeriod $okrPeriod): void
+    {
+        $this->participant->cancelOKRPeriod($okrPeriod);
     }
 
 }

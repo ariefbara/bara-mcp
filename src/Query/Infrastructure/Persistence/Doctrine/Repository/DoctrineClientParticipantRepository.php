@@ -2,20 +2,15 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Query\{
-    Application\Service\Firm\Client\ProgramParticipationRepository,
-    Domain\Model\Firm\Client\ClientParticipant
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Client\AsProgramParticipant\ClientParticipantRepository;
+use Query\Application\Service\Firm\Client\ProgramParticipationRepository;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineClientParticipantRepository extends EntityRepository implements ProgramParticipationRepository
+class DoctrineClientParticipantRepository extends EntityRepository implements ProgramParticipationRepository, ClientParticipantRepository
 {
 
     public function all(string $firmId, string $clientId, int $page, int $pageSize, ?bool $activeStatus)
@@ -90,6 +85,31 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
         } catch (NoResultException $ex) {
             $errorDetail = "not found: client program participation not found";
             throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aClientParticipant(string $firmId, string $clientId, string $participantId): ClientParticipant
+    {
+        $params = [
+            'firmId' => $firmId,
+            'clientId' => $clientId,
+            'participantId' => $participantId,
+        ];
+        
+        $qb = $this->createQueryBuilder('clientParticipant');
+        $qb->select('clientParticipant')
+                ->andWhere($qb->expr()->eq('clientParticipant.id', ':participantId'))
+                ->leftJoin('clientParticipant.client', 'client')
+                ->andWhere($qb->expr()->eq('client.id', ':clientId'))
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: client participant not found');
         }
     }
 
