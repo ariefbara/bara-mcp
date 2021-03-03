@@ -3,6 +3,7 @@
 namespace Participant\Domain\Model\Participant\OKRPeriod\Objective;
 
 use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriod\ObjectiveData;
 use SharedContext\Domain\ValueObject\Label;
 use SharedContext\Domain\ValueObject\LabelData;
@@ -17,6 +18,7 @@ class KeyResultTest extends TestBase
     protected $weight = 25;
     protected $keyResult;
     protected $objectiveData;
+    protected $objectiveProgressReport, $objectiveProgressReportData, $keyResultProgressReportData;
 
     protected function setUp(): void
     {
@@ -29,6 +31,9 @@ class KeyResultTest extends TestBase
         $this->keyResult->label = null;
         
         $this->objectiveData = $this->buildMockOfClass(ObjectiveData::class);
+        $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
+        $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
+        $this->keyResultProgressReportData = $this->buildMockOfClass(KeyResultProgressReportData::class);
     }
     protected function getKeyResultData()
     {
@@ -125,6 +130,39 @@ class KeyResultTest extends TestBase
     {
         $this->keyResult->disabled = true;
         $this->assertFalse($this->keyResult->isActive());
+    }
+    
+    protected function executeSetProgressReportIn()
+    {
+        $this->objectiveProgressReportData->expects($this->any())
+                ->method('pullKeyResultProgressReportData')
+                ->with($this->keyResult->id)
+                ->willReturn($this->keyResultProgressReportData);
+        $this->keyResult->setProgressReportIn($this->objectiveProgressReport, $this->objectiveProgressReportData);
+    }
+    public function test_setProgressReport_setObjectiveProgressReportSetKeyResultProgressReport()
+    {
+        $this->objectiveProgressReport->expects($this->once())
+                ->method('setKeyResultProgressReport')
+                ->with($this->keyResult, $this->keyResultProgressReportData);
+        $this->executeSetProgressReportIn();
+    }
+    public function test_setProgressReport_noKeyResultProgressReportDataCorrespondWithId_skipSettingKeyResultProgressReport()
+    {
+        $this->objectiveProgressReportData->expects($this->once())
+                ->method('pullKeyResultProgressReportData')
+                ->with($this->keyResult->id)
+                ->willReturn(null);
+        $this->objectiveProgressReport->expects($this->never())
+                ->method('setKeyResultProgressReport');
+        $this->executeSetProgressReportIn();
+    }
+    public function test_setProgressReport_inactiveKeyResult_skipSettingKeyResultProgressReport()
+    {
+        $this->keyResult->disabled = true;
+        $this->objectiveProgressReport->expects($this->never())
+                ->method('setKeyResultProgressReport');
+        $this->executeSetProgressReportIn();
     }
 }
 

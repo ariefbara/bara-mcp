@@ -32,6 +32,16 @@ class OKRPeriodApprovalStatusTest extends TestBase
         $this->approvalStatus->value = TestableOKRPeriodApprovalStatus::REJECTED;
         $this->assertTrue($this->approvalStatus->isRejected());
     }
+    
+    public function test_isApproved_statusNoApproved_returnFalse()
+    {
+        $this->assertFalse($this->approvalStatus->isApproved());
+    }
+    public function test_isApproved_statusApproved_returnTrue()
+    {
+        $this->approvalStatus->value = TestableOKRPeriodApprovalStatus::APPROVED;
+        $this->assertTrue($this->approvalStatus->isApproved());
+    }
 }
 
 class TestableOKRPeriodApprovalStatus extends OKRPeriodApprovalStatus

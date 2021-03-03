@@ -28,8 +28,8 @@ class RecordOfOKRPeriod implements Record
         $this->id = "okr-period-$index-id";
         $this->name = "okr period $index name";
         $this->description = "okr period $index description";
-        $this->startDate = (new DateTime('+1 days'))->format('Y-m-d');
-        $this->endDate = (new DateTime('+15 days'))->format('Y-m-d');
+        $this->startDate = (new DateTime("-$index months"))->format('Y-m-d');
+        $this->endDate = (new DateTime("+$index months"))->format('Y-m-d');
         $this->status = OKRPeriodApprovalStatus::UNCONCLUDED;
         $this->cancelled = false;
     }

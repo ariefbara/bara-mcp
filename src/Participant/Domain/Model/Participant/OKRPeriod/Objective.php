@@ -2,9 +2,13 @@
 
 namespace Participant\Domain\Model\Participant\OKRPeriod;
 
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Participant\Domain\Model\Participant\ManageableByParticipant;
 use Participant\Domain\Model\Participant\OKRPeriod;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\KeyResult;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
@@ -12,7 +16,7 @@ use Resources\ValidationRule;
 use Resources\ValidationService;
 use SharedContext\Domain\ValueObject\Label;
 
-class Objective
+class Objective implements ManageableByParticipant
 {
 
     /**
@@ -51,6 +55,12 @@ class Objective
      */
     protected $keyResults;
     
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $objectiveProgressReports;
+    
     public function isActive(): bool
     {
         return ! $this->disabled;
@@ -80,6 +90,12 @@ class Objective
             throw RegularException::forbidden($errorDetail);
         }
     }
+    
+    public function isManageableByParticipant(\Participant\Domain\Model\Participant $participant): bool
+    {
+        return $this->okrPeriod->isManageableByParticipant($participant);
+    }
+    
     public function __construct(OKRPeriod $okrPeriod, string $id, ObjectiveData $objectiveData)
     {
         $this->okrPeriod = $okrPeriod;
@@ -115,6 +131,34 @@ class Objective
         foreach ($this->keyResults->getIterator() as $keyResult) {
             $keyResult->disable();
         }
+    }
+    
+    public function submitReport(
+            string $objectiveProgressReportId, ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
+    {
+        return new ObjectiveProgressReport($this, $objectiveProgressReportId, $objectiveProgressReportData);
+    }
+    
+    public function canAcceptReportAt(DateTimeImmutable $reportDate): bool
+    {
+        return !$this->disabled
+                && $this->okrPeriod->canAcceptReportAt($reportDate);
+    }
+    
+    public function aggregateKeyResultProgressReportTo(
+            ObjectiveProgressReport $objectiveProgressReport, ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        foreach ($this->keyResults->getIterator() as $keyResult) {
+            $keyResult->setProgressReportIn($objectiveProgressReport, $objectiveProgressReportData);
+        }
+    }
+    
+    public function containProgressReportInConflictWith(ObjectiveProgressReport $objectiveProgressReport): bool
+    {
+        $p = function (ObjectiveProgressReport $report) use ($objectiveProgressReport) {
+            return $report->inConflictWith($objectiveProgressReport);
+        };
+        return !empty($this->objectiveProgressReports->filter($p)->count());
     }
 
 }

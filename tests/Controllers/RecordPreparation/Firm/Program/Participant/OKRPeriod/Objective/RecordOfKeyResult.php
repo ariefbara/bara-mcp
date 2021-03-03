@@ -25,8 +25,8 @@ class RecordOfKeyResult implements Record
         $this->id = "key-result-$index-id";
         $this->name = "key result $index name";
         $this->description = "key result $index description";
-        $this->target = 999999;
-        $this->weight = 20;
+        $this->target = $index * 999999;
+        $this->weight = $index * 10;
         $this->disabled = false;
     }
 

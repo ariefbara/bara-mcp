@@ -27,8 +27,8 @@ class OKRPeriodTest extends TestBase
     protected $startDate;
     protected $endDate;
     protected $objectiveData, $objectiveId = 'objectiveId';
+    protected $reportDate;
 
-    
     protected function setUp(): void
     {
         parent::setUp();
@@ -53,7 +53,7 @@ class OKRPeriodTest extends TestBase
         $this->objective = $this->buildMockOfClass(Objective::class);
         $this->okrPeriod->objectives->clear();
         $this->okrPeriod->objectives->add($this->objective);
-        
+        $this->reportDate = new \DateTimeImmutable();
     }
     protected function getOkrPeriodData()
     {
@@ -224,6 +224,32 @@ class OKRPeriodTest extends TestBase
                 ->method('intersectWith')
                 ->willReturn(true);
         $this->assertFalse($this->okrPeriod->inConflictWith($this->okrPeriod));
+    }
+    
+    protected function executeCanAcceptReportAt()
+    {
+        $this->approvalStatus->expects($this->any())->method('isApproved')->willReturn(true);
+        $this->period->expects($this->any())
+                ->method('contain')
+                ->willReturn(true);
+        return $this->okrPeriod->canAcceptReportAt($this->reportDate);
+    }
+    public function test_canAcceptReportAt_returnPeriodsContainResult()
+    {
+        $this->period->expects($this->once())
+                ->method('contain')
+                ->with($this->reportDate);
+        $this->executeCanAcceptReportAt();
+    }
+    public function test_canAcceptReportAt_cancelled_forbidden()
+    {
+        $this->okrPeriod->cancelled = true;
+        $this->assertFalse($this->executeCanAcceptReportAt());
+    }
+    public function test_canAcceptReportAt_notApproved_forbidden()
+    {
+        $this->approvalStatus->expects($this->any())->method('isApproved')->willReturn(false);
+        $this->assertFalse($this->executeCanAcceptReportAt());
     }
 }
 

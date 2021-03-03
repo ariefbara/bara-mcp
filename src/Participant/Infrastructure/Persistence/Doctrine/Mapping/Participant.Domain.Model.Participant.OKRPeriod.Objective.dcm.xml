@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Participant\Domain\Model\Participant\OKRPeriod\Objective" 
             table="Objective"
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineObjectiveRepository"
     >
         
         <many-to-one  field="okrPeriod" 
@@ -22,6 +23,11 @@
         >
             <cascade><cascade-persist /></cascade>
         </one-to-many>
+        
+        <one-to-many  field="objectiveProgressReports" 
+                      target-entity="Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport"
+                      mapped-by="objective"
+        />
         
     </entity>
 </doctrine-mapping>

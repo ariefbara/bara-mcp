@@ -21,5 +21,10 @@
                       mapped-by="objective"
         />
         
+        <one-to-many  field="objectiveProgressReports" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport"
+                      mapped-by="objective"
+        />
+        
     </entity>
 </doctrine-mapping>

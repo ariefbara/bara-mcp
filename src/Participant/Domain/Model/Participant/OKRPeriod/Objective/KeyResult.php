@@ -93,5 +93,18 @@ class KeyResult
     {
         $this->disabled = true;
     }
+    
+    public function setProgressReportIn(
+            ObjectiveProgressReport $objectiveProgressReport, ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        if ($this->disabled) {
+            return;
+        }
+        
+        $keyResultProgressReportData = $objectiveProgressReportData->pullKeyResultProgressReportData($this->id);
+        if (isset($keyResultProgressReportData)) {
+            $objectiveProgressReport->setKeyResultProgressReport($this, $keyResultProgressReportData);
+        }
+    }
 
 }

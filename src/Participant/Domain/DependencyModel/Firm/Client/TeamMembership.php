@@ -18,6 +18,9 @@ use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
 use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
@@ -277,6 +280,31 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($teamParticipant);
         $teamParticipant->cancelOKRPeriod($okrPeriod);
+    }
+    
+    public function submitObjectiveProgressReport(
+            TeamProgramParticipation $teamParticipant, Objective $objective, string $objectiveProgressReportId, 
+            ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        return $teamParticipant->submitObjectiveProgressReport(
+                $objective, $objectiveProgressReportId, $objectiveProgressReportData);
+    }
+    public function updateObjectiveProgressReport(
+            TeamProgramParticipation $teamParticipant, ObjectiveProgressReport $objectiveProgressReport, 
+            ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->updateObjectiveProgressReport($objectiveProgressReport, $objectiveProgressReportData);
+    }
+    public function cancelObjectiveProgressReportSubmission(
+            TeamProgramParticipation $teamParticipant, ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->cancelObjectiveProgressReportSubmission($objectiveProgressReport);
     }
 
 }

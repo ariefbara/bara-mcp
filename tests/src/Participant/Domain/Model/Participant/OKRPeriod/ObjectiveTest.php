@@ -2,10 +2,14 @@
 
 namespace Participant\Domain\Model\Participant\OKRPeriod;
 
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Participant\Domain\Model\Participant;
 use Participant\Domain\Model\Participant\OKRPeriod;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\KeyResult;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\KeyResultData;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
 use SharedContext\Domain\ValueObject\Label;
 use SharedContext\Domain\ValueObject\LabelData;
@@ -21,6 +25,11 @@ class ObjectiveTest extends TestBase
     protected $objective;
     protected $keyResult;
     protected $okrPeriodData;
+    protected $participant;
+
+    protected $objectiveProgressReport;
+    protected $otherObjectiveProgressReport;
+    protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $reportDate;
 
     protected function setUp(): void
     {
@@ -41,6 +50,17 @@ class ObjectiveTest extends TestBase
         $this->objective->keyResults->add($this->keyResult);
         
         $this->okrPeriodData = $this->buildMockOfClass(OKRPeriodData::class);
+        $this->participant = $this->buildMockOfClass(Participant::class);
+        
+        $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
+        $this->otherObjectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
+        $this->objective->objectiveProgressReports = new ArrayCollection();
+        $this->objective->objectiveProgressReports->add($this->objectiveProgressReport);
+        
+        $this->reportDate = new DateTimeImmutable();
+        $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
+        $this->objectiveProgressReportData->expects($this->any())->method('getReportDate')->willReturn($this->reportDate);
+        
     }
     protected function getObjectiveData()
     {
@@ -51,6 +71,14 @@ class ObjectiveTest extends TestBase
     protected function getObjectiveDataWithoutKeyResult()
     {
         return new ObjectiveData($this->labelData, $this->weight);
+    }
+    
+    public function test_isManageableByParticipant_returnOKRPeriodIsManageableByParticipantResult()
+    {
+        $this->okrPeriod->expects($this->once())
+                ->method('isManageableByParticipant')
+                ->with($this->participant);
+        $this->objective->isManageableByParticipant($this->participant);
     }
     
     protected function executeConstruct()
@@ -185,6 +213,70 @@ class ObjectiveTest extends TestBase
                 ->method('disable');
         $this->executeDisable();
     }
+    
+    protected function executeSubmitReport()
+    {
+        $this->okrPeriod->expects($this->once())
+                ->method('canAcceptReportAt')
+                ->willReturn(true);
+        return $this->objective->submitReport($this->objectiveProgressReportId, $this->objectiveProgressReportData);
+    }
+    public function test_submitReport_returnObjectiveProgressReport()
+    {
+        $this->assertInstanceOf(ObjectiveProgressReport::class, $this->executeSubmitReport());
+    }
+    
+    protected function executeCanAcceptReport()
+    {
+        $this->okrPeriod->expects($this->any())
+                ->method('canAcceptReportAt')
+                ->with($reportDate = new DateTimeImmutable())
+                ->willReturn(true);
+        return $this->objective->canAcceptReportAt($reportDate);
+    }
+    public function test_canAcceptReportAt_returnOKRPeriodCanAcceptReportAtResult()
+    {
+        $this->okrPeriod->expects($this->once())
+                ->method('canAcceptReportAt');
+        $this->executeCanAcceptReport();
+    }
+    public function test_canAcceptReportAt_disabled_returnFalse()
+    {
+        $this->objective->disabled = true;
+        $this->assertFalse($this->executeCanAcceptReport());
+    }
+    
+    protected function executeAggregateKeyResultProgressReportTo()
+    {
+        $this->keyResult->expects($this->any())
+                ->method('isActive')
+                ->willReturn(true);
+        $this->objective->aggregateKeyResultProgressReportTo($this->objectiveProgressReport, $this->objectiveProgressReportData);
+    }
+    public function test_aggregateKeyResultProgressReportTo_executeAllKeyResultsSetProgressReportInMethod()
+    {
+        $this->keyResult->expects($this->once())
+                ->method('setProgressReportIn')
+                ->with($this->objectiveProgressReport, $this->objectiveProgressReportData);
+        $this->executeAggregateKeyResultProgressReportTo();
+    }
+    
+    protected function executeContainProgressReportInConflictWith()
+    {
+        return $this->objective->containProgressReportInConflictWith($this->otherObjectiveProgressReport);
+    }
+    public function test_containProgressReportInConflictWith_noConflictedProgressReportInCollection_returnFalse()
+    {
+        $this->assertFalse($this->executeContainProgressReportInConflictWith());
+    }
+    public function test_containProgressReportInConflictWith_containConflictedProgressReportInCollection_returnTrue()
+    {
+        $this->objectiveProgressReport->expects($this->any())
+                ->method('inConflictWith')
+                ->with($this->otherObjectiveProgressReport)
+                ->willReturn(true);
+        $this->assertTrue($this->executeContainProgressReportInConflictWith());
+    }
 }
 
 class TestableObjective extends Objective
@@ -195,4 +287,5 @@ class TestableObjective extends Objective
     public $weight;
     public $disabled;
     public $keyResults;
+    public $objectiveProgressReports;
 }

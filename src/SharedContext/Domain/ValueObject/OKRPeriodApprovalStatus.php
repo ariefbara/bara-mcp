@@ -22,4 +22,9 @@ class OKRPeriodApprovalStatus extends BaseEnum
         return $this->value === self::REJECTED;
     }
     
+    public function isApproved(): bool
+    {
+        return $this->value === self::APPROVED;
+    }
+    
 }

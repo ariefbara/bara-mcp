@@ -2,6 +2,7 @@
 
 namespace Participant\Domain\Model\Participant;
 
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\Model\Participant;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective;
@@ -136,6 +137,13 @@ class OKRPeriod implements ManageableByParticipant
                 && !$this->approvalStatus->isRejected() 
                 && $this->id !== $other->id
                 && $this->period->intersectWith($other->period);
+    }
+    
+    public function canAcceptReportAt(DateTimeImmutable $reportDate): bool
+    {
+        return !$this->cancelled
+                && $this->approvalStatus->isApproved()
+                && $this->period->contain($reportDate);
     }
 
 }

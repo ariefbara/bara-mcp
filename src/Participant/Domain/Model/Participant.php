@@ -21,6 +21,9 @@ use Participant\Domain\Model\Participant\ManageableByParticipant;
 use Participant\Domain\Model\Participant\MetricAssignment;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
 use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
@@ -365,6 +368,28 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $this->assertActive();
         $this->assertAssetIsManageable($okrPeriod, 'okr period');
         $okrPeriod->cancel();
+    }
+    
+    public function submitObjectiveProgressReport(
+            Objective $objective, string $objectiveProgressReportId, 
+            ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($objective, 'objective');
+        return $objective->submitReport($objectiveProgressReportId, $objectiveProgressReportData);
+    }
+    public function updateObjectiveProgressReport(
+            ObjectiveProgressReport $objectiveProgressReport, ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($objectiveProgressReport, 'objective progress report');
+        $objectiveProgressReport->update($objectiveProgressReportData);
+    }
+    public function cancelObjectiveProgressReportSubmission(ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($objectiveProgressReport, 'objective progress report');
+        $objectiveProgressReport->cancel();
     }
 
 }

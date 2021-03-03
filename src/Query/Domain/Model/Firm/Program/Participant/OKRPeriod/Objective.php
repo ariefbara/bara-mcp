@@ -3,9 +3,12 @@
 namespace Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\KeyResult;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use SharedContext\Domain\ValueObject\Label;
+use SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus;
 
 class Objective
 {
@@ -45,6 +48,12 @@ class Objective
      * @var ArrayCollection
      */
     protected $keyResults;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $objectiveProgressReports;
 
     public function getOkrPeriod(): OKRPeriod
     {
@@ -88,6 +97,16 @@ class Objective
     public function iterateKeyResults()
     {
         return $this->keyResults->getIterator();
+    }
+    
+    public function getLastApprovedProgressReport(): ?ObjectiveProgressReport
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('status', OKRPeriodApprovalStatus::APPROVED))
+                ->orderBy(['reportDate' => Criteria::DESC]);
+        
+        $progressReport = $this->objectiveProgressReports->matching($criteria)->first();
+        return empty($progressReport) ? null : $progressReport;
     }
 
 }

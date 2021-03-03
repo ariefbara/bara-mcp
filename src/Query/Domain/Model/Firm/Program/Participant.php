@@ -13,12 +13,14 @@ use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant\Evaluation;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
 use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\ObjectiveProgressReportFinder;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
 
@@ -211,6 +213,17 @@ class Participant extends EntityContainEvents
     public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
     {
         return $okrPeriodRepository->allOKRPeriodsBelongsToParticipant($this->id, $page, $pageSize);
+    }
+    
+    public function viewObjectiveProgressReport(ObjectiveProgressReportFinder $finder, string $objectiveProgressReportId): ObjectiveProgressReport
+    {
+        return $finder->findObjectiveProgressReportBelongsToParticipant($this->id, $objectiveProgressReportId);
+    }
+    public function viewAllObjectiveProgressReportsInObjective(
+            ObjectiveProgressReportFinder $finder, string $objectiveId, int $page, int $pageSize)
+    {
+        return $finder->findAllObjectiveProgressReportInObjectiveBelongsToParticipant(
+                $this->id, $objectiveId, $page, $pageSize);
     }
 
 }

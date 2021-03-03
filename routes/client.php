@@ -535,6 +535,15 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("", ["uses" => "$controller@showAll"]);
                 $router->get("/{okrPeriodId}", ["uses" => "$controller@show"]);
             });
+            
+            $router->post("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@submit"]);
+            $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAll"]);
+            $router->group(['prefix' => '/objective-progress-reports'], function () use($router) {
+                $controller = "ObjectiveProgressReportController";
+                $router->patch("/{objectiveProgressReportId}", ["uses" => "$controller@update"]);
+                $router->delete("/{objectiveProgressReportId}", ["uses" => "$controller@cancel"]);
+                $router->get("/{objectiveProgressReportId}", ["uses" => "$controller@show"]);
+            });
         });
         
         $programRegistrationAggregate = [

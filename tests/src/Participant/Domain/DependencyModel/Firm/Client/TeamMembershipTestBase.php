@@ -4,6 +4,7 @@ namespace Tests\src\Participant\Domain\DependencyModel\Firm\Client;
 
 use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
 use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\TeamProgramParticipation;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestBase;
 
@@ -20,12 +21,21 @@ class TeamMembershipTestBase extends TestBase
      */
     protected $teamMembership;
     
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $teamParticipant;
+
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->teamMembership = new TestableTeamMembership();
         $this->team = $this->buildMockOfClass(Team::class);
         $this->teamMembership->team = $this->team;
+        
+        $this->teamParticipant = $this->buildMockOfClass(TeamProgramParticipation::class);
     }
     protected function assertInactiveTeamMemberError(callable $operation): void
     {

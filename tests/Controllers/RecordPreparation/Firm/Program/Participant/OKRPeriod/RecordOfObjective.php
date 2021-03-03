@@ -25,7 +25,7 @@ class RecordOfObjective implements Record
         $this->id = "objective-$index-id";
         $this->name = "objective $index name";
         $this->description = "objective $index description";
-        $this->weight = 30;
+        $this->weight = $index * 30;
         $this->disabled = false;
     }
 

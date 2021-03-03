@@ -24,6 +24,7 @@ use Query\Domain\Service\Firm\Team\TeamFileInfoFinder;
 use Query\Domain\Service\Firm\Team\TeamProgramParticipationFinder;
 use Query\Domain\Service\Firm\Team\TeamProgramRegistrationFinder;
 use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\ObjectiveProgressReportFinder;
 use Query\Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2;
 use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
@@ -322,6 +323,21 @@ class Member extends EntityContainEvents
     {
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
+    }
+    
+    public function viewObjectiveProgressReport(
+            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant, 
+            string $objectiveProgressReportId): OKRPeriod\Objective\ObjectiveProgressReport
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
+    }
+    public function viewAllObjectiveProgressReportInObjective(
+            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant, string $objectiveId, 
+            int $page, int $pageSize)
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
     }
 
 }
