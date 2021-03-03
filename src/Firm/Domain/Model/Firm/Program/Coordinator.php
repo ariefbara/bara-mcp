@@ -15,6 +15,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Firm\Domain\Model\Firm\Program\Participant\OKRPeriod;
+use Firm\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
@@ -202,6 +203,19 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertActive();
         $this->assertAssetManageable($okrPeriod, 'okr period');
         $okrPeriod->reject();
+    }
+    
+    public function approveObjectiveProgressReport(ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($objectiveProgressReport, 'objective progress report');
+        $objectiveProgressReport->approve();
+    }
+    public function rejectObjectiveProgressReport(ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($objectiveProgressReport, 'objective progress report');
+        $objectiveProgressReport->reject();
     }
 
 }

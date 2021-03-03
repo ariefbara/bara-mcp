@@ -459,7 +459,6 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
        $this->keyResultPR1_ObjPR2_KR1_21->insert($this->connection);
        
        $uri = $this->programParticipationUri . "/{$this->programParticipation->participant->id}/objectives/{$this->objective->id}/objective-progress-reports";
-echo $uri;
        $this->get($uri, $this->teamMember->client->token);
    }
    public function test_showAll_200()

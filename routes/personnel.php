@@ -167,6 +167,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->patch("/okr-periods/{okrPeriodId}/reject", ["uses" => "OKRPeriodController@reject"]);
         $router->get("/okr-periods/{okrPeriodId}", ["uses" => "OKRPeriodController@show"]);
         $router->get("/participants/{participantId}/okr-periods", ["uses" => "OKRPeriodController@showAllBelongsToParticipant"]);
+        
+        $router->patch("/objective-progress-reports/{objectiveProgressReportId}/approve", ["uses" => "ObjectiveProgressReportController@approve"]);
+        $router->patch("/objective-progress-reports/{objectiveProgressReportId}/reject", ["uses" => "ObjectiveProgressReportController@reject"]);
+        $router->get("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@show"]);
+        $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAllInObjective"]);
+        
     });
     
     $asProgramConsultantAggregate = [

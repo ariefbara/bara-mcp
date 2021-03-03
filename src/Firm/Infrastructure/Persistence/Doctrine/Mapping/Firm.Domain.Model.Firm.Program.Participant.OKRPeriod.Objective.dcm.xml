@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective" 
+            table="Objective"
+    >
+        
+        <many-to-one  field="okrPeriod" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant\OKRPeriod"
+        >
+            <join-column name="OKRPeriod_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+    </entity>
+</doctrine-mapping>
