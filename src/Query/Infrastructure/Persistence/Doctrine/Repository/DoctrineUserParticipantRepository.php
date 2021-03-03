@@ -2,20 +2,15 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\User\ProgramParticipationRepository,
-    Domain\Model\User\UserParticipant
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\User\AsProgramParticipant\UserParticipantRepository;
+use Query\Application\Service\User\ProgramParticipationRepository;
+use Query\Domain\Model\User\UserParticipant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineUserParticipantRepository extends EntityRepository implements ProgramParticipationRepository
+class DoctrineUserParticipantRepository extends EntityRepository implements ProgramParticipationRepository, UserParticipantRepository
 {
 
     public function all(string $userId, int $page, int $pageSize, ?bool $activeStatus)
@@ -83,6 +78,29 @@ class DoctrineUserParticipantRepository extends EntityRepository implements Prog
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: user program participation not found';
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aUserParticipant(string $userId, string $participantId): UserParticipant
+    {
+        $params = [
+            'userId' => $userId,
+            'participantId' => $participantId,
+        ];
+
+        $qb = $this->createQueryBuilder('userParticipant');
+        $qb->select('userParticipant')
+                ->andWhere($qb->expr()->eq('userParticipant.id', ':participantId'))
+                ->leftJoin('userParticipant.user', 'user')
+                ->andWhere($qb->expr()->eq('user.id', ':userId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = 'not found: user participant not found';
             throw RegularException::notFound($errorDetail);
         }
     }
