@@ -1,37 +1,37 @@
 <?php
 
-namespace App\Http\Controllers\Client\ProgramParticipation;
+namespace App\Http\Controllers\User\ProgramParticipation;
 
-use App\Http\Controllers\Client\ClientBaseController;
-use Participant\Application\Service\Client\CancelObjectiveProgressReportSubmission;
-use Participant\Application\Service\Client\SubmitObjectiveProgressReport;
-use Participant\Application\Service\Client\UpdateObjectiveProgressReport;
-use Participant\Domain\Model\ClientParticipant as ClientParticipant2;
+use App\Http\Controllers\User\UserBaseController;
+use Participant\Application\Service\User\CancelObjectiveProgressReportSubmission;
+use Participant\Application\Service\User\SubmitObjectiveProgressReport;
+use Participant\Application\Service\User\UpdateObjectiveProgressReport;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport as ObjectiveProgressReport2;
-use Query\Application\Service\Client\AsProgramParticipant\ViewObjectiveProgressReport;
-use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Participant\Domain\Model\UserParticipant as UserParticipant2;
+use Query\Application\Service\User\AsProgramParticipant\ViewObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport;
+use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
 
-class ObjectiveProgressReportController extends ClientBaseController
+class ObjectiveProgressReportController extends UserBaseController
 {
 
     public function submit($programParticipationId, $objectiveId)
     {
         $objectiveProgressReportId = $this->buildSubmitService()->execute(
-                $this->firmId(), $this->clientId(), $programParticipationId, $objectiveId, $this->getObjectiveProgressReportData());
+                $this->userId(), $programParticipationId, $objectiveId, $this->getObjectiveProgressReportData());
 
         $objectiveProgressReport = $this->buildViewService()->showById(
-                $this->firmId(), $this->clientId(), $programParticipationId, $objectiveProgressReportId);
+                $this->userId(), $programParticipationId, $objectiveProgressReportId);
         return $this->commandCreatedResponse($this->arrayDataOfObjectiveProgressReport($objectiveProgressReport));
     }
 
     public function update($programParticipationId, $objectiveProgressReportId)
     {
         $this->buildUpdateService()->execute(
-                $this->firmId(), $this->clientId(), $programParticipationId, $objectiveProgressReportId,
+                $this->userId(), $programParticipationId, $objectiveProgressReportId,
                 $this->getObjectiveProgressReportData());
         return $this->show($programParticipationId, $objectiveProgressReportId);
     }
@@ -52,21 +52,21 @@ class ObjectiveProgressReportController extends ClientBaseController
     public function cancel($programParticipationId, $objectiveProgressReportId)
     {
         $this->buildCancelService()->execute(
-                $this->firmId(), $this->clientId(), $programParticipationId, $objectiveProgressReportId);
+                $this->userId(), $programParticipationId, $objectiveProgressReportId);
         return $this->show($programParticipationId, $objectiveProgressReportId);
     }
 
     public function show($programParticipationId, $objectiveProgressReportId)
     {
         $objectiveProgressReport = $this->buildViewService()->showById(
-                $this->firmId(), $this->clientId(), $programParticipationId, $objectiveProgressReportId);
+                $this->userId(), $programParticipationId, $objectiveProgressReportId);
         return $this->singleQueryResponse($this->arrayDataOfObjectiveProgressReport($objectiveProgressReport));
     }
 
     public function showAll($programParticipationId, $objectiveId)
     {
         $objectiveProgressReports = $this->buildViewService()->showAll(
-                $this->firmId(), $this->clientId(), $programParticipationId, $objectiveId, $this->getPage(),
+                $this->userId(), $programParticipationId, $objectiveId, $this->getPage(),
                 $this->getPageSize());
         $result = [];
         $result['total'] = count($objectiveProgressReports);
@@ -108,32 +108,32 @@ class ObjectiveProgressReportController extends ClientBaseController
 
     protected function buildViewService()
     {
-        $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
+        $userParticipantRepository = $this->em->getRepository(UserParticipant::class);
         $objectiveProgressReportRepository = $this->em->getRepository(ObjectiveProgressReport::class);
         $objectiveProgressReportFinder = new ObjectiveProgressReportFinder($objectiveProgressReportRepository);
-        return new ViewObjectiveProgressReport($clientParticipantRepository, $objectiveProgressReportFinder);
+        return new ViewObjectiveProgressReport($userParticipantRepository, $objectiveProgressReportFinder);
     }
 
     protected function buildSubmitService()
     {
-        $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
+        $userParticipantRepository = $this->em->getRepository(UserParticipant2::class);
         $objectiveRepository = $this->em->getRepository(Objective::class);
         $objectiveProgressReportRepository = $this->em->getRepository(ObjectiveProgressReport2::class);
-        return new SubmitObjectiveProgressReport($clientParticipantRepository, $objectiveRepository, $objectiveProgressReportRepository);
+        return new SubmitObjectiveProgressReport($userParticipantRepository, $objectiveRepository, $objectiveProgressReportRepository);
     }
 
     protected function buildUpdateService()
     {
-        $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
+        $userParticipantRepository = $this->em->getRepository(UserParticipant2::class);
         $objectiveProgressReportRepository = $this->em->getRepository(ObjectiveProgressReport2::class);
-        return new UpdateObjectiveProgressReport($clientParticipantRepository, $objectiveProgressReportRepository);
+        return new UpdateObjectiveProgressReport($userParticipantRepository, $objectiveProgressReportRepository);
     }
 
     protected function buildCancelService()
     {
-        $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
+        $userParticipantRepository = $this->em->getRepository(UserParticipant2::class);
         $objectiveProgressReportRepository = $this->em->getRepository(ObjectiveProgressReport2::class);
-        return new CancelObjectiveProgressReportSubmission($clientParticipantRepository, $objectiveProgressReportRepository);
+        return new CancelObjectiveProgressReportSubmission($userParticipantRepository, $objectiveProgressReportRepository);
     }
 
 }
