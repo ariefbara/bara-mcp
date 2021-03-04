@@ -9,8 +9,10 @@ use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\ObjectiveProgressReportFinder;
 use Resources\Application\Event\ContainEvents;
 
 class ClientParticipant implements ContainEvents
@@ -96,6 +98,16 @@ class ClientParticipant implements ContainEvents
     public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
     {
         return $this->participant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
+    }
+    
+    public function viewObjectiveProgressReport(ObjectiveProgressReportFinder $finder, string $objectiveProgressReportId): ObjectiveProgressReport
+    {
+        return $this->participant->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
+    }
+    public function viewAllObjectiveProgressReportsInObjective(
+            ObjectiveProgressReportFinder $finder, string $objectiveId, int $page, int $pageSize)
+    {
+        return $this->participant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
     }
 
 }

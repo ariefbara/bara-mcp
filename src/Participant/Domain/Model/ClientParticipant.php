@@ -12,6 +12,9 @@ use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
 use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
@@ -147,6 +150,23 @@ class ClientParticipant implements ContainEvents
     public function cancelOKRPeriod(OKRPeriod $okrPeriod): void
     {
         $this->participant->cancelOKRPeriod($okrPeriod);
+    }
+    
+    public function submitObjectiveProgressReport(
+            Objective $objective, string $objectiveProgressReportId, 
+            ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
+    {
+        return $this->participant->submitObjectiveProgressReport(
+                $objective, $objectiveProgressReportId, $objectiveProgressReportData);
+    }
+    public function updateObjectiveProgressReport(
+            ObjectiveProgressReport $objectiveProgressReport, ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        $this->participant->updateObjectiveProgressReport($objectiveProgressReport, $objectiveProgressReportData);
+    }
+    public function cancelObjectiveProgressReportSubmission(ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->participant->cancelObjectiveProgressReportSubmission($objectiveProgressReport);
     }
 
 }

@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Controllers\Team\AsTeamMember\ProgramParticipation;
+namespace Tests\Controllers\Client\ProgramParticipation;
 
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
 use SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus;
-use Tests\Controllers\Client\AsTeamMember\ProgramParticipationTestCase;
+use Tests\Controllers\Client\ProgramParticipationTestCase;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\RecordOfKeyResultProgressReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\RecordOfKeyResult;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\RecordOfObjectiveProgressReport;
@@ -87,7 +87,7 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->keyResultTwo->insert($this->connection);
         
         $uri = $this->programParticipationUri . "/{$this->programParticipation->participant->id}/objectives/{$this->objective->id}/objective-progress-reports";
-        $this->post($uri, $this->objectiveProgressReportRequest, $this->teamMember->client->token);
+        $this->post($uri, $this->objectiveProgressReportRequest, $this->client->token);
     }
     public function test_submit_201()
     {
@@ -217,7 +217,7 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->keyResultPR1_ObjPR1_KR1_11->insert($this->connection);
         
         $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
-        $this->patch($uri, $this->objectiveProgressReportRequest, $this->teamMember->client->token);
+        $this->patch($uri, $this->objectiveProgressReportRequest, $this->client->token);
     }
     public function test_update_200()
     {
@@ -362,7 +362,7 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->objectivePR1->insert($this->connection);
         
         $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
-        $this->delete($uri, [], $this->teamMember->client->token);
+        $this->delete($uri, [], $this->client->token);
     }
     public function test_cancel_200()
     {
@@ -406,7 +406,7 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
        $this->keyResultPR2_ObjPR1_KR2_12->insert($this->connection);
        
        $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
-       $this->get($uri, $this->teamMember->client->token);       
+       $this->get($uri, $this->client->token);       
    }
    public function test_show_200()
    {
@@ -459,7 +459,7 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
        $this->keyResultPR1_ObjPR2_KR1_21->insert($this->connection);
        
        $uri = $this->programParticipationUri . "/{$this->programParticipation->participant->id}/objectives/{$this->objective->id}/objective-progress-reports";
-       $this->get($uri, $this->teamMember->client->token);
+       $this->get($uri, $this->client->token);
    }
    public function test_showAll_200()
    {

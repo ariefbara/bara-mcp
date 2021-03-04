@@ -11,6 +11,9 @@ use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
@@ -37,6 +40,9 @@ class ClientParticipantTest extends TestBase
     protected $participantProfile;
     
     protected $okrPeriod, $okrPeriodId = 'okrPeriodId', $okrPeriodData;
+    
+    protected $objective;
+    protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $objectiveProgressReport;
 
     protected function setUp(): void
     {
@@ -70,6 +76,10 @@ class ClientParticipantTest extends TestBase
         
         $this->okrPeriod = $this->buildMockOfClass(OKRPeriod::class);
         $this->okrPeriodData = $this->buildMockOfClass(OKRPeriodData::class);
+        
+        $this->objective = $this->buildMockOfClass(Objective::class);
+        $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
+        $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
     }
 
     public function test_quit_quitParticipant()
@@ -256,6 +266,28 @@ class ClientParticipantTest extends TestBase
                 ->with($this->okrPeriod);
         $this->clientParticipant->cancelOKRPeriod($this->okrPeriod);
     }
+    
+    public function test_submitObjectiveProgressReport_returnParticipantsSubmitObjectiveProgressReportResult()
+    {
+        $this->participant->expects($this->once())
+                ->method('submitObjectiveProgressReport')
+                ->with($this->objective, $this->objectiveProgressReportId, $this->objectiveProgressReportData);
+        $this->clientParticipant->submitObjectiveProgressReport($this->objective, $this->objectiveProgressReportId, $this->objectiveProgressReportData);
+    }
+    public function test_updateObjectiveProgressReport_executeParticipantsUpdateObjectiveProgressReport()
+    {
+        $this->participant->expects($this->once())
+                ->method('updateObjectiveProgressReport')
+                ->with($this->objectiveProgressReport, $this->objectiveProgressReportData);
+        $this->clientParticipant->updateObjectiveProgressReport($this->objectiveProgressReport, $this->objectiveProgressReportData);
+    }
+    public function test_cancelObjectiveProgressReportSubmission_executeParticipantCancelObjectiveProgressReportSubmission()
+    {
+        $this->participant->expects($this->once())
+                ->method('cancelObjectiveProgressReportSubmission')
+                ->with($this->objectiveProgressReport);
+        $this->clientParticipant->cancelObjectiveProgressReportSubmission($this->objectiveProgressReport);
+    }
 
 }
 
@@ -263,7 +295,7 @@ class TestableClientParticipant extends ClientParticipant
 {
 
     public $client;
-    public $id = 'programParticipationId';
+    public $id = 'participantId';
     public $participant;
 
     function __construct()

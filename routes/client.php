@@ -197,6 +197,12 @@ $router->group($clientAggregate, function () use ($router) {
         $router->delete('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@cancel"]);
         $router->get('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@show"]);
         
+        $router->post("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@submit"]);
+        $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAll"]);
+        $router->patch("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@update"]);
+        $router->delete("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@cancel"]);
+        $router->get("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@show"]);
+        
     });
     
     $programRegistrationAggregate = [
