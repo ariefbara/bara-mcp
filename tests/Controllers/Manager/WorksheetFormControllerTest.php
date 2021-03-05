@@ -241,14 +241,17 @@ class WorksheetFormControllerTest extends ManagerTestCase
                 [
                     "id" => $this->worksheetForm->id,
                     "name" => $this->worksheetForm->form->name,
+                    'globalForm' => false,
                 ],
                 [
                     "id" => $this->worksheetFormOne->id,
                     "name" => $this->worksheetFormOne->form->name,
+                    'globalForm' => false,
                 ],
                 [
                     "id" => $this->globalWorksheetForm->id,
                     "name" => $this->globalWorksheetForm->form->name,
+                    'globalForm' => true,
                 ],
             ],
         ];

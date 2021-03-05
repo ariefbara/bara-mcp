@@ -13,7 +13,7 @@ class WorksheetForm implements ContainFormInterface
 
     /**
      *
-     * @var Firm
+     * @var Firm|null
      */
     protected $firm;
 
@@ -35,7 +35,7 @@ class WorksheetForm implements ContainFormInterface
      */
     protected $removed = false;
 
-    function getFirm(): Firm
+    function getFirm(): ?Firm
     {
         return $this->firm;
     }
@@ -93,6 +93,11 @@ class WorksheetForm implements ContainFormInterface
     public function getUnremovedTextAreaFields()
     {
         return $this->form->getUnremovedTextAreaFields();
+    }
+    
+    public function isGlobalForm(): bool
+    {
+        return empty($this->firm);
     }
 
 }

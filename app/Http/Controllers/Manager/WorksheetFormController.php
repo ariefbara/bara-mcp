@@ -64,7 +64,8 @@ class WorksheetFormController extends ManagerBaseController
         foreach ($worksheetForms as $worksheetForm) {
             $result['list'][] = [
                 "id" => $worksheetForm->getId(),
-                "name" => $worksheetForm->getName()
+                "name" => $worksheetForm->getName(),
+                "globalForm" => $worksheetForm->isGlobalForm(),
             ];
         }
         return $this->listQueryResponse($result);
@@ -74,6 +75,7 @@ class WorksheetFormController extends ManagerBaseController
     {
         $worksheetFormData = (new FormToArrayDataConverter())->convert($worksheetForm);
         $worksheetFormData['id'] = $worksheetForm->getId();
+        $worksheetFormData['globalForm'] = $worksheetForm->isGlobalForm();
         return $worksheetFormData;
     }
 
