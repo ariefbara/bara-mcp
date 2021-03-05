@@ -2,28 +2,27 @@
 
 namespace Tests\Controllers\Client\ProgramParticipation;
 
-use Tests\Controllers\ {
-    Client\ProgramParticipationTestCase,
-    RecordPreparation\Firm\Program\Mission\RecordOfLearningMaterial,
-    RecordPreparation\Firm\Program\Participant\ConsultationRequest\RecordOfConsultationRequestActivityLog,
-    RecordPreparation\Firm\Program\Participant\ConsultationSession\RecordOfConsultationSessionActivityLog,
-    RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest,
-    RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession,
-    RecordPreparation\Firm\Program\Participant\RecordOfViewLearningMaterialActivityLog,
-    RecordPreparation\Firm\Program\Participant\RecordOfWorksheet,
-    RecordPreparation\Firm\Program\Participant\Worksheet\Comment\RecordOfCommentActivityLog,
-    RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment,
-    RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfWorksheetActivityLog,
-    RecordPreparation\Firm\Program\RecordOfConsultant,
-    RecordPreparation\Firm\Program\RecordOfConsultationSetup,
-    RecordPreparation\Firm\Program\RecordOfMission,
-    RecordPreparation\Firm\RecordOfFeedbackForm,
-    RecordPreparation\Firm\RecordOfPersonnel,
-    RecordPreparation\Firm\RecordOfWorksheetForm,
-    RecordPreparation\Shared\RecordOfActivityLog,
-    RecordPreparation\Shared\RecordOfForm,
-    RecordPreparation\Shared\RecordOfFormRecord
-};
+use Tests\Controllers\Client\ProgramParticipationTestCase;
+use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantActivityLog;
+use Tests\Controllers\RecordPreparation\Firm\Program\Mission\RecordOfLearningMaterial;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\ConsultationRequest\RecordOfConsultationRequestActivityLog;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\ConsultationSession\RecordOfConsultationSessionActivityLog;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfViewLearningMaterialActivityLog;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfWorksheet;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\Comment\RecordOfCommentActivityLog;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfWorksheetActivityLog;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfWorksheetForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfActivityLog;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class ActivityLogControllerTest extends ProgramParticipationTestCase
 {
@@ -34,7 +33,7 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
     protected $consultationSession;
     protected $activityLogTwo_worksheet;
     protected $worksheet;
-    protected $activityLogThree_comment;
+    protected $activityLogThree_comment_fromConsultant;
     protected $comment;
     protected $learningMaterial;
     protected $activityLogFour_learningMaterial;
@@ -45,6 +44,7 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->activityLogUri = $this->programParticipationUri . "/{$this->programParticipation->id}/activity-logs";
         
         $this->connection->table("ActivityLog")->truncate();
+        $this->connection->table("ConsultantActivityLog")->truncate();
         $this->connection->table("ConsultationRequestActivityLog")->truncate();
         $this->connection->table("ConsultationSessionActivityLog")->truncate();
         $this->connection->table("WorksheetActivityLog")->truncate();
@@ -72,12 +72,12 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->activityLog = new RecordOfActivityLog(0);
         $this->activityLogOne_consultationSession = new RecordOfActivityLog(1);
         $this->activityLogTwo_worksheet = new RecordOfActivityLog(2);
-        $this->activityLogThree_comment = new RecordOfActivityLog(3);
+        $this->activityLogThree_comment_fromConsultant = new RecordOfActivityLog(3);
         $this->activityLogFour_learningMaterial = new RecordOfActivityLog(4);
         $this->connection->table("ActivityLog")->insert($this->activityLog->toArrayForDbEntry());
         $this->connection->table("ActivityLog")->insert($this->activityLogOne_consultationSession->toArrayForDbEntry());
         $this->connection->table("ActivityLog")->insert($this->activityLogTwo_worksheet->toArrayForDbEntry());
-        $this->connection->table("ActivityLog")->insert($this->activityLogThree_comment->toArrayForDbEntry());
+        $this->connection->table("ActivityLog")->insert($this->activityLogThree_comment_fromConsultant->toArrayForDbEntry());
         $this->connection->table("ActivityLog")->insert($this->activityLogFour_learningMaterial->toArrayForDbEntry());
         
         $personnel = new RecordOfPersonnel($firm, 0, 'personnel@email.org', 'password213');
@@ -126,7 +126,7 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $this->comment = new RecordOfComment($this->worksheet, 0);
         $this->connection->table("Comment")->insert($this->comment->toArrayForDbEntry());
         
-        $commentActivityLog = new RecordOfCommentActivityLog($this->comment, $this->activityLogThree_comment);
+        $commentActivityLog = new RecordOfCommentActivityLog($this->comment, $this->activityLogThree_comment_fromConsultant);
         $this->connection->table("CommentActivityLog")->insert($commentActivityLog->toArrayForDbEntry());
         
         $this->learningMaterial = new RecordOfLearningMaterial($mission, 0);
@@ -135,30 +135,34 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
         $viewLearningMaterialActivityLog = new RecordOfViewLearningMaterialActivityLog(
                 $participant, $this->learningMaterial, $this->activityLogFour_learningMaterial);
         $this->connection->table("ViewLearningMaterialActivityLog")->insert($viewLearningMaterialActivityLog->toArrayForDbEntry());
+        
+        $consultantActivityLog = new RecordOfConsultantActivityLog($consultant, $this->activityLogThree_comment_fromConsultant);
+        $this->connection->table("ConsultantActivityLog")->insert($consultantActivityLog->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table("ActivityLog")->truncate();
-        $this->connection->table("ConsultationRequestActivityLog")->truncate();
-        $this->connection->table("ConsultationSessionActivityLog")->truncate();
-        $this->connection->table("WorksheetActivityLog")->truncate();
-        $this->connection->table("CommentActivityLog")->truncate();
-        $this->connection->table("ViewLearningMaterialActivityLog")->truncate();
-        $this->connection->table("Personnel")->truncate();
-        $this->connection->table("Form")->truncate();
-        $this->connection->table("FeedbackForm")->truncate();
-        $this->connection->table("ConsultationSetup")->truncate();
-        $this->connection->table("Consultant")->truncate();
-        $this->connection->table("ConsultationRequest")->truncate();
-        $this->connection->table("ConsultationSession")->truncate();
-        $this->connection->table("FormRecord")->truncate();
-        $this->connection->table("WorksheetForm")->truncate();
-        $this->connection->table("Mission")->truncate();
-        $this->connection->table("Worksheet")->truncate();
-        $this->connection->table("Comment")->truncate();
-        $this->connection->table("LearningMaterial")->truncate();
+//        $this->connection->table("ActivityLog")->truncate();
+//        $this->connection->table("ConsultantActivityLog")->truncate();
+//        $this->connection->table("ConsultationRequestActivityLog")->truncate();
+//        $this->connection->table("ConsultationSessionActivityLog")->truncate();
+//        $this->connection->table("WorksheetActivityLog")->truncate();
+//        $this->connection->table("CommentActivityLog")->truncate();
+//        $this->connection->table("ViewLearningMaterialActivityLog")->truncate();
+//        $this->connection->table("Personnel")->truncate();
+//        $this->connection->table("Form")->truncate();
+//        $this->connection->table("FeedbackForm")->truncate();
+//        $this->connection->table("ConsultationSetup")->truncate();
+//        $this->connection->table("Consultant")->truncate();
+//        $this->connection->table("ConsultationRequest")->truncate();
+//        $this->connection->table("ConsultationSession")->truncate();
+//        $this->connection->table("FormRecord")->truncate();
+//        $this->connection->table("WorksheetForm")->truncate();
+//        $this->connection->table("Mission")->truncate();
+//        $this->connection->table("Worksheet")->truncate();
+//        $this->connection->table("Comment")->truncate();
+//        $this->connection->table("LearningMaterial")->truncate();
     }
     
     public function test_showAll_200()
@@ -227,9 +231,9 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
             "learningMaterial" => null,
         ];
         $commentObject = [
-            "id" => $this->activityLogThree_comment->id,
-            "message" => $this->activityLogThree_comment->message,
-            "occuredTime" => $this->activityLogThree_comment->occuredTime,
+            "id" => $this->activityLogThree_comment_fromConsultant->id,
+            "message" => $this->activityLogThree_comment_fromConsultant->message,
+            "occuredTime" => $this->activityLogThree_comment_fromConsultant->occuredTime,
             "consultationRequest" => null,
             "consultationSession" => null,
             "worksheet" => null,
@@ -259,7 +263,8 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                 ],
             ],
         ];
-        $this->get($this->activityLogUri, $this->programParticipation->client->token)
+        $uri = $this->activityLogUri . '/all';
+        $this->get($uri, $this->programParticipation->client->token)
                 ->seeJsonContains($totalResponse)
                 ->seeJsonContains($consultationRequestObject)
                 ->seeJsonContains($consultationSessionObject)
@@ -267,5 +272,23 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
                 ->seeJsonContains($commentObject)
                 ->seeJsonContains($viewLearningMaterialObject)
                 ->seeStatusCode(200);
+    }
+    public function test_showSelf_200()
+    {
+        $uri = $this->activityLogUri . '/self';
+        $this->get($uri, $this->programParticipation->client->token);
+        $this->seeStatusCode(200);
+        
+        $totalRecord = ['total' => 4];
+        $this->seeJsonContains($totalRecord);
+    }
+    public function test_showShared_200()
+    {
+        $uri = $this->activityLogUri . '/shared';
+        $this->get($uri, $this->programParticipation->client->token);
+        $this->seeStatusCode(200);
+        
+        $totalRecord = ['total' => 1];
+        $this->seeJsonContains($totalRecord);
     }
 }

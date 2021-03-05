@@ -2,24 +2,24 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    QueryBuilder
-};
-use Query\ {
-    Application\Service\Firm\Program\Participant\ActivityLogRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
-    Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog,
-    Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
+use Query\Application\Service\Firm\Program\Participant\ActivityLogRepository;
+use Query\Application\Service\Participant\ActivityLogRepository as ActivityLogRepository3;
+use Query\Application\Service\TeamMember\ActivityLogRepository as ActivityLogRepository2;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantActivityLog;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog;
+use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineActivityLogRepository extends EntityRepository implements ActivityLogRepository
+class DoctrineActivityLogRepository extends EntityRepository implements ActivityLogRepository, ActivityLogRepository2, ActivityLogRepository3
 {
 
     public function allActivityLogsInParticipantOfProgram(
@@ -267,6 +267,182 @@ class DoctrineActivityLogRepository extends EntityRepository implements Activity
                 ->leftJoin("{$prefix}_teamProgramParticipation.programParticipation", "{$prefix}_programParticipation")
                 ->setMaxResults(1);
         return $participantQb->getDQL();
+    }
+
+    public function allTeamSharedActivityLogsInProgram(string $memberId, string $teamId, string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            "memberId" => $memberId,
+            "teamId" => $teamId,
+            "programParticipationId" => $participantId,
+        ];
+
+        $crQb = $this->getActivityLogQbOfConsultationRequest();
+        $crQb->andWhere($crQb->expr()->in("cr_participant.id", $this->getParticipantDqlOfTeam("cr")));
+
+        $csQb = $this->getActivityLogQbOfConsultationSession();
+        $csQb->andWhere($csQb->expr()->in("cs_participant.id", $this->getParticipantDqlOfTeam("cs")));
+
+        $wkQb = $this->getActivityLogQbOfWorksheet();
+        $wkQb->andWhere($wkQb->expr()->in("wk_participant.id", $this->getParticipantDqlOfTeam("wk")));
+
+        $cmQb = $this->getActivityLogQbOfComment();
+        $cmQb->andWhere($cmQb->expr()->in("cm_participant.id", $this->getParticipantDqlOfTeam("cm")));
+
+        $lmQb = $this->getActivityLogQbOfViewLearningMaterial();
+        $lmQb->andWhere($lmQb->expr()->in("lm_participant.id", $this->getParticipantDqlOfTeam("lm")));
+        
+        $teamMemberLogQB = $this->getEntityManager()->createQueryBuilder();
+        $teamMemberLogQB->select('_f_activityLog.id')
+                ->from(TeamMemberActivityLog::class, '_f_teamMemberLog')
+                ->leftJoin('_f_teamMemberLog.member', '_f_member')
+                ->andWhere($teamMemberLogQB->expr()->eq('_f_member.id', ':memberId'))
+                ->leftJoin('_f_teamMemberLog.activityLog', '_f_activityLog');
+
+        $qb = $this->createQueryBuilder("activityLog");
+        $qb->select("activityLog")
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in("activityLog.id", $crQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $csQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $wkQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $cmQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $lmQb->getDQL())
+                ))
+                ->andWhere($qb->expr()->notIn('activityLog.id', $teamMemberLogQB->getDQL()))
+                ->orderBy("activityLog.occuredTime", "DESC")
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allMemberActivityLogsInProgram(string $memberId, string $teamId, string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            "memberId" => $memberId,
+            "teamId" => $teamId,
+            "programParticipationId" => $participantId,
+        ];
+
+        $crQb = $this->getActivityLogQbOfConsultationRequest();
+        $crQb->andWhere($crQb->expr()->in("cr_participant.id", $this->getParticipantDqlOfTeam("cr")));
+
+        $csQb = $this->getActivityLogQbOfConsultationSession();
+        $csQb->andWhere($csQb->expr()->in("cs_participant.id", $this->getParticipantDqlOfTeam("cs")));
+
+        $wkQb = $this->getActivityLogQbOfWorksheet();
+        $wkQb->andWhere($wkQb->expr()->in("wk_participant.id", $this->getParticipantDqlOfTeam("wk")));
+
+        $cmQb = $this->getActivityLogQbOfComment();
+        $cmQb->andWhere($cmQb->expr()->in("cm_participant.id", $this->getParticipantDqlOfTeam("cm")));
+
+        $lmQb = $this->getActivityLogQbOfViewLearningMaterial();
+        $lmQb->andWhere($lmQb->expr()->in("lm_participant.id", $this->getParticipantDqlOfTeam("lm")));
+        
+        $teamMemberLogQB = $this->getEntityManager()->createQueryBuilder();
+        $teamMemberLogQB->select('_f_activityLog.id')
+                ->from(TeamMemberActivityLog::class, '_f_teamMemberLog')
+                ->leftJoin('_f_teamMemberLog.member', '_f_member')
+                ->andWhere($teamMemberLogQB->expr()->eq('_f_member.id', ':memberId'))
+                ->leftJoin('_f_teamMemberLog.activityLog', '_f_activityLog');
+
+        $qb = $this->createQueryBuilder("activityLog");
+        $qb->select("activityLog")
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in("activityLog.id", $crQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $csQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $wkQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $cmQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $lmQb->getDQL())
+                ))
+                ->andWhere($qb->expr()->in('activityLog.id', $teamMemberLogQB->getDQL()))
+                ->orderBy("activityLog.occuredTime", "DESC")
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allParticipantActivityLogs(string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            "participantId" => $participantId,
+        ];
+
+        $crQb = $this->getActivityLogQbOfConsultationRequest();
+        $crQb->andWhere($crQb->expr()->eq("cr_participant.id", ":participantId"));
+
+        $csQb = $this->getActivityLogQbOfConsultationSession();
+        $csQb->andWhere($csQb->expr()->eq("cs_participant.id", ":participantId"));
+
+        $wkQb = $this->getActivityLogQbOfWorksheet();
+        $wkQb->andWhere($wkQb->expr()->eq("wk_participant.id", ":participantId"));
+
+        $cmQb = $this->getActivityLogQbOfComment();
+        $cmQb->andWhere($cmQb->expr()->eq("cm_participant.id", ":participantId"));
+
+        $lmQb = $this->getActivityLogQbOfViewLearningMaterial();
+        $lmQb->andWhere($lmQb->expr()->eq("lm_participant.id", ":participantId"));
+        
+        $consultantLogQB = $this->getEntityManager()->createQueryBuilder();
+        $consultantLogQB->select('_f_activityLog.id')
+                ->from(ConsultantActivityLog::class, '_f_consultantLog')
+                ->leftJoin('_f_consultantLog.activityLog', '_f_activityLog');
+
+        $qb = $this->createQueryBuilder("activityLog");
+        $qb->select("activityLog")
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in("activityLog.id", $crQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $csQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $wkQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $cmQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $lmQb->getDQL())
+                ))
+                ->andWhere($qb->expr()->notIn('activityLog.id', $consultantLogQB->getDQL()))
+                ->orderBy("activityLog.occuredTime", "DESC")
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allSharedActivityLog(string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            "participantId" => $participantId,
+        ];
+
+        $crQb = $this->getActivityLogQbOfConsultationRequest();
+        $crQb->andWhere($crQb->expr()->eq("cr_participant.id", ":participantId"));
+
+        $csQb = $this->getActivityLogQbOfConsultationSession();
+        $csQb->andWhere($csQb->expr()->eq("cs_participant.id", ":participantId"));
+
+        $wkQb = $this->getActivityLogQbOfWorksheet();
+        $wkQb->andWhere($wkQb->expr()->eq("wk_participant.id", ":participantId"));
+
+        $cmQb = $this->getActivityLogQbOfComment();
+        $cmQb->andWhere($cmQb->expr()->eq("cm_participant.id", ":participantId"));
+
+        $lmQb = $this->getActivityLogQbOfViewLearningMaterial();
+        $lmQb->andWhere($lmQb->expr()->eq("lm_participant.id", ":participantId"));
+        
+        $consultantLogQB = $this->getEntityManager()->createQueryBuilder();
+        $consultantLogQB->select('_f_activityLog.id')
+                ->from(ConsultantActivityLog::class, '_f_consultantLog')
+                ->leftJoin('_f_consultantLog.activityLog', '_f_activityLog');
+
+        $qb = $this->createQueryBuilder("activityLog");
+        $qb->select("activityLog")
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in("activityLog.id", $crQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $csQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $wkQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $cmQb->getDQL()),
+                                $qb->expr()->in("activityLog.id", $lmQb->getDQL())
+                ))
+                ->andWhere($qb->expr()->in('activityLog.id', $consultantLogQB->getDQL()))
+                ->orderBy("activityLog.occuredTime", "DESC")
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

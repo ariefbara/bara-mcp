@@ -4,6 +4,7 @@ namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
 use Query\Application\Service\Firm\Client\AsTeamMember\TeamMemberActivityLogRepository;
+use Query\Application\Service\TeamMember\ActivityLogRepository;
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
 use Query\Domain\Model\Firm\Client;
@@ -338,6 +339,21 @@ class Member extends EntityContainEvents
     {
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
+    }
+    
+    public function viewAllSelfActivityLogsInProgram(
+            ActivityLogRepository $activityLogRepository, string $participantId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $activityLogRepository
+                ->allMemberActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page, $pageSize);
+    }
+    public function viewAllSharedActivityLogsInProgram(
+            ActivityLogRepository $activityLogRepositoyr, string $participantId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $activityLogRepositoyr
+                ->allTeamSharedActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page, $pageSize);
     }
 
 }

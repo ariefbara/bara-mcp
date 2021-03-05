@@ -85,7 +85,9 @@ $router->group($clientAggregate, function () use ($router) {
     $router->group($programParticipationAggregate, function () use ($router) {
         
         $router->get('/summary', ['uses' => "SummaryController@show"]);
-        $router->get('/activity-logs', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/activity-logs/all', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);
+        $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
@@ -424,7 +426,9 @@ $router->group($clientAggregate, function () use ($router) {
             
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";
-                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/all", ["uses" => "$controller@showAll"]);
+                $router->get("/self", ["uses" => "$controller@showAllSelfActivityLog"]);
+                $router->get("/shared", ["uses" => "$controller@showAllSharedActivityLog"]);
             });
             
             $router->group(['prefix' => '/missions'], function () use($router) {

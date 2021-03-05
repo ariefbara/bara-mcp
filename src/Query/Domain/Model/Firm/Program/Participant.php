@@ -5,6 +5,7 @@ namespace Query\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Query\Application\Service\Participant\ActivityLogRepository;
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Event\LearningMaterialViewedByParticipantEvent;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
@@ -224,6 +225,15 @@ class Participant extends EntityContainEvents
     {
         return $finder->findAllObjectiveProgressReportInObjectiveBelongsToParticipant(
                 $this->id, $objectiveId, $page, $pageSize);
+    }
+    
+    public function viewSelfActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $activityLogRepository->allParticipantActivityLogs($this->id, $page, $pageSize);
+    }
+    public function viewSharedActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $activityLogRepository->allSharedActivityLog($this->id, $page, $pageSize);
     }
 
 }

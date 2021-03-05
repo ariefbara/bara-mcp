@@ -123,7 +123,9 @@ $router->group($userAggregate, function () use ($router) {
     $router->group($programParticipationAggregate, function () use ($router) {
         
         $router->get('/summary', ['uses' => "SummaryController@show"]);
-        $router->get('/activity-logs', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/activity-logs/all', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);
+        $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";

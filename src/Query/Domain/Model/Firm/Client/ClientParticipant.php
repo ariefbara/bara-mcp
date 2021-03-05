@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Model\Firm\Client;
 
+use Query\Application\Service\Participant\ActivityLogRepository;
 use Query\Application\Service\Participant\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
@@ -108,6 +109,15 @@ class ClientParticipant implements ContainEvents
             ObjectiveProgressReportFinder $finder, string $objectiveId, int $page, int $pageSize)
     {
         return $this->participant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
+    }
+    
+    public function viewSelfActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $this->participant->viewSelfActivityLogs($activityLogRepository, $page, $pageSize);
+    }
+    public function viewSharedActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $this->participant->viewSharedActivityLogs($activityLogRepository, $page, $pageSize);
     }
 
 }
