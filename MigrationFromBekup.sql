@@ -203,7 +203,7 @@ SELECT Team_id, id, removed, FileInfo_id FROM miktiid_innovid2020.TeamFileInfo;
 
 REPLACE INTO miktiid_mcp_test.CompletedMission (id, Participant_id, Mission_id)
 SELECT UUID(), _a.Participant_id, _a.Mission_id
-    FROM (SELECT DISTINCT Participant_id, Mission_id FROM miktiid_innovid2020.Worksheet) _a;
+    FROM (SELECT DISTINCT Participant_id, Mission_id FROM miktiid_mcp_test.Worksheet) _a;
 
 -- SET FOREIGN_KEY_CHECKS = 1;
 
