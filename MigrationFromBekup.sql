@@ -85,7 +85,6 @@ SELECT Incubator_id, id, false FROM miktiid_innovid2020.ProfileForm;
 REPLACE INTO miktiid_mcp_test.ClientBio (Client_id, id, BioForm_id, removed)
 SELECT Founder_id, id, ProfileForm_id, removed FROM miktiid_innovid2020.Profile;
 
-
 REPLACE INTO miktiid_mcp_test.Program (Firm_id, id, name, description, published, removed, participantTypes)
 SELECT Incubator_id, id, name, description, published, removed, 'team' as participantTypes FROM miktiid_innovid2020.Program;
 
@@ -201,6 +200,10 @@ SELECT Team_id, id, position, joinTime, NOT `removed`, Founder_id, true FROM mik
 
 REPLACE INTO miktiid_mcp_test.TeamFileInfo (Team_id, id, removed, FileInfo_id)
 SELECT Team_id, id, removed, FileInfo_id FROM miktiid_innovid2020.TeamFileInfo;
+
+REPLACE INTO miktiid_mcp_test.CompletedMission (id, Participant_id, Mission_id)
+SELECT UUID(), _a.Participant_id, _a.Mission_id
+    FROM (SELECT DISTINCT Participant_id, Mission_id FROM miktiid_innovid2020.Worksheet) _a;
 
 -- SET FOREIGN_KEY_CHECKS = 1;
 
