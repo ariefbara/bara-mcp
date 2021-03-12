@@ -26,7 +26,7 @@ class DoctrineConsultantSummaryRepository implements ConsultantSummaryRepository
         $statement = <<<_STATEMENT
 SELECT 
     C.id,
-    CONCAT(Personnel.firstName, ' ', Personnel.lastName) 'name',
+    CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) 'name',
     _h.mentorRating,
     _f.consultationRequestCount,
     _g.consultationSessionCount,

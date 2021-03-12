@@ -201,17 +201,12 @@ SELECT Team_id, id, position, joinTime, NOT `removed`, Founder_id, true FROM mik
 REPLACE INTO miktiid_mcp_test.TeamFileInfo (Team_id, id, removed, FileInfo_id)
 SELECT Team_id, id, removed, FileInfo_id FROM miktiid_innovid2020.TeamFileInfo;
 
-REPLACE INTO miktiid_mcp_test.CompletedMission (id, Participant_id, Mission_id)
-SELECT UUID(), _a.Participant_id, _a.Mission_id
+REPLACE INTO miktiid_mcp_test.CompletedMission (id, Participant_id, Mission_id, completedTime)
+SELECT UUID(), _a.Participant_id, _a.Mission_id, _a.completedTime
 FROM (
-    SELECT DISTINCT _a_a.Participant_id, _a_a.Mission_id
-    FROM miktiid_innovid2020.Journal _a_a
-    LEFT JOIN miktiid_innovid2020.Worksheet _a_b ON _a_a.Worksheet_id = _a_b.id
-    LEFT JOIN (
-        SELECT _a_c_a.id journalId, _a_c_b.id parentId
-        FROM miktiid_innovid2020.Journal _a_c_a
-        LEFT JOIN miktiid_innovid2020.Worksheet _a_c_b ON _a_c_a.Worksheet_id = _a_c_b.id
-    )_a_c ON _a_c.journalId = _a_a.parentJournal_id
+    SELECT id, Participant_id, Mission_id, MIN(createdTime) completedTime
+    FROM miktiid_innovid2020.Journal
+    GROUP BY Participant_id, Mission_id
 )_a
 
 -- SET FOREIGN_KEY_CHECKS = 1;
