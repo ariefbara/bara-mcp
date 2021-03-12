@@ -68,12 +68,12 @@ LEFT JOIN (
     WHERE Participant.active = true
 )_b ON _b.programId = _a.programId
 LEFT JOIN (
-    SELECT CONCAT(User.firstName, ' ', User.lastName) userName, UserParticipant.Participant_id participantId
+    SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
     FROM UserParticipant
         LEFT JOIN User ON User.id = UserParticipant.User_id
 )_c ON _c.participantId = _b.participantId
 LEFT JOIN (
-    SELECT CONCAT(Client.firstName, ' ', Client.lastName) clientName, ClientParticipant.Participant_id participantId
+    SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
     FROM ClientParticipant
         LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
 )_d ON _d.participantId = _b.participantId
@@ -152,12 +152,12 @@ LEFT OUTER JOIN (
     GROUP BY reportId
 )_a ON _a.Participant_id = Participant.id
 LEFT JOIN (
-    SELECT CONCAT(User.firstName, ' ', User.lastName) userName, UserParticipant.Participant_id participantId
+    SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
     FROM UserParticipant
         LEFT JOIN User ON User.id = UserParticipant.User_id
 )_b ON _b.participantId = Participant.id
 LEFT JOIN (
-    SELECT CONCAT(Client.firstName, ' ', Client.lastName) clientName, ClientParticipant.Participant_id participantId
+    SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
     FROM ClientParticipant
         LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
 )_c ON _c.participantId = Participant.id
@@ -205,12 +205,12 @@ FROM (
 LEFT JOIN EvaluationPlan _b ON _b.days_interval = _a.days_interval AND _b.Program_id = _a.Program_id
 LEFT JOIN Evaluation _c ON _c.Participant_id = _a.participantId AND _c.EvaluationPlan_id = _b.id
 LEFT JOIN (
-    SELECT CONCAT(User.firstName, ' ', User.lastName) userName, UserParticipant.Participant_id participantId
+    SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
     FROM UserParticipant
         LEFT JOIN User ON User.id = UserParticipant.User_id
 )_d ON _d.participantId = _a.participantId
 LEFT JOIN (
-    SELECT CONCAT(Client.firstName, ' ', Client.lastName) clientName, ClientParticipant.Participant_id participantId
+    SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
     FROM ClientParticipant
         LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
 )_e ON _e.participantId = _a.participantId
