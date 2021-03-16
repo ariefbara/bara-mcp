@@ -74,6 +74,28 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/bio-forms'], function () use($router) {
+        $controller = "BioFormController";
+        $router->post("", ["uses" => "$controller@create"]);
+        $router->patch("/{bioFormId}/update", ["uses" => "$controller@update"]);
+        $router->patch("/{bioFormId}/disable", ["uses" => "$controller@disable"]);
+        $router->patch("/{bioFormId}/enable", ["uses" => "$controller@enable"]);
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{bioFormId}", ["uses" => "$controller@show"]);
+    });
+    
+    $router->group(['prefix' => '/clients'], function () use($router) {
+        $controller = "ClientController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{clientId}", ["uses" => "$controller@show"]);
+    });
+    
+    $router->group(['prefix' => '/client-bios'], function () use($router) {
+        $controller = "ClientBioController";
+        $router->get("/{clientId}", ["uses" => "$controller@showAll"]);
+        $router->get("/{clientId}/{bioFormId}", ["uses" => "$controller@show"]);
+    });
+    
     $programAggregate = [
         'prefix' => '/programs/{programId}',
         'namespace' => 'Program',

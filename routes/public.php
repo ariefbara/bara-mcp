@@ -19,6 +19,18 @@ $router->group($guestAggregate, function () use ($router) {
     
     $router->get('/firm-setting/{firmIdentifier}', ['uses' => "FirmSettingController@show"]);
     
+    $router->group(['prefix' => '/programs'], function () use($router) {
+        $controller = "ProgramController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{id}", ["uses" => "$controller@show"]);
+    });
+    
+    $router->get('/programs/{programId}/consultants', ['uses' => "ConsultantController@showAll"]);
+    $router->get('/consultants/{id}', ['uses' => "ConsultantController@show"]);
+    
+    $router->get('/programs/{programId}/missions', ['uses' => "MissionController@showAll"]);
+    $router->get('/missions/{id}', ['uses' => "MissionController@show"]);
+    
     $router->group(['prefix' => '/client-account'], function () use($router) {
         $controller = "ClientAccountController";
         $router->patch("/activate", ["uses" => "$controller@activate"]);

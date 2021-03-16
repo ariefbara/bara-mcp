@@ -40,8 +40,9 @@ class ManagerTest extends TestBase
             $sessionDuration = 99, $consultantFeedbackForm;
     protected $profileFormId = "profileFormId", $formData, $profileForm;
     protected $programsProfileForm;
-    protected $mission;
+    protected $mission, $missionId = 'missionId';
     protected $worksheetForm;
+    protected $bioForm, $bioFormId = "bioFormId";
 
     protected function setUp(): void
     {
@@ -74,6 +75,7 @@ class ManagerTest extends TestBase
         
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
+        $this->bioForm = $this->buildMockOfClass(BioForm::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -621,31 +623,70 @@ class ManagerTest extends TestBase
         });
     }
     
-    protected function executeChangeMissionsWorksheetForm()
+    protected function executeCreateBioForm()
     {
-        $this->setAssetBelongsToFirm($this->mission);
-        $this->setAssetBelongsToFirm($this->worksheetForm);
-        $this->manager->changeMissionsWorksheetForm($this->mission, $this->worksheetForm);
+        return $this->manager->createBioForm($this->bioFormId, $this->formData);
     }
-    public function test_changeMissionsWorkshetForm_changeMissionsWorksheetForm()
+    public function test_createBioForm_returnBioForm()
     {
-        $this->mission->expects($this->once())
-                ->method("changeWorksheetForm")
-                ->with($this->worksheetForm);
-        $this->executeChangeMissionsWorksheetForm();
+        $this->assertInstanceOf(BioForm::class, $this->executeCreateBioForm());
     }
-    public function test_changeMissionWorksheetForm_unamanagedMission_forbidden()
+    
+    protected function executeUpdateBioForm()
     {
-        $this->setAssetDoesntBelongsToFirm($this->mission);
+        $this->setAssetBelongsToFirm($this->bioForm);
+        $this->manager->updateBioForm($this->bioForm, $this->formData);
+    }
+    public function test_updateBioForm_updateBioForm()
+    {
+        $this->bioForm->expects($this->once())
+                ->method("update")
+                ->with($this->formData);
+        $this->executeUpdateBioForm();
+    }
+    public function test_updateBioForm_bioFormNotInSameFirm_forbiddenError()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->bioForm);
         $this->assertUnmanageableAssetForbiddenError(function (){
-            $this->executeChangeMissionsWorksheetForm();
+            $this->executeUpdateBioForm();
         });
     }
-    public function test_changeMissionWorksheetForm_unamanagedWorksheetForm_forbidden()
+    
+    protected function executeDisableBioForm()
     {
-        $this->setAssetDoesntBelongsToFirm($this->worksheetForm);
+        $this->setAssetBelongsToFirm($this->bioForm);
+        $this->manager->disableBioForm($this->bioForm);
+    }
+    public function test_disableBioForm_disableBioForm()
+    {
+        $this->bioForm->expects($this->once())
+                ->method("disable");
+        $this->executeDisableBioForm();
+    }
+    public function test_disableBioForm_bioFormFromDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->bioForm);
         $this->assertUnmanageableAssetForbiddenError(function (){
-            $this->executeChangeMissionsWorksheetForm();
+            $this->executeDisableBioForm();
+        });
+    }
+    
+    protected function executeEnableBioForm()
+    {
+        $this->setAssetBelongsToFirm($this->bioForm);
+        $this->manager->enableBioForm($this->bioForm);
+    }
+    public function test_enableBioForm_enableBioForm()
+    {
+        $this->bioForm->expects($this->once())
+                ->method("enable");
+        $this->executeEnableBioForm();
+    }
+    public function test_enableBioForm_bioFormFromDifferentFirm_forbidden()
+    {
+        $this->setAssetDoesntBelongsToFirm($this->bioForm);
+        $this->assertUnmanageableAssetForbiddenError(function (){
+            $this->executeEnableBioForm();
         });
     }
 }

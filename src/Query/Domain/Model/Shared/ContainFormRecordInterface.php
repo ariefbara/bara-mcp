@@ -14,7 +14,7 @@ use Query\Domain\Model\Shared\FormRecord\ {
 interface ContainFormRecordInterface
 {
 
-    function getSubmitTimeString(): string;
+    function getSubmitTimeString(): ?string;
 
     /**
      * 

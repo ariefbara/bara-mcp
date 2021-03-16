@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\User\ProgramParticipation;
 
 use App\Http\Controllers\User\UserBaseController;
-use Query\ {
-    Application\Service\User\ProgramParticipation\ViewActivityLog,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
-    Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog,
-    Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog,
-    Domain\SharedModel\ActivityLog
-};
+use Query\Application\Service\User\AsProgramParticipant\ViewActivityLog as ViewActivityLog2;
+use Query\Application\Service\User\ProgramParticipation\ViewActivityLog;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\SharedModel\ActivityLog;
 
 class ActivityLogController extends UserBaseController
 {
@@ -19,6 +19,31 @@ class ActivityLogController extends UserBaseController
     {
         $service = $this->buildViewService();
         $activityLogs = $service->showAll($this->userId(), $programParticipationId, $this->getPage(), $this->getPageSize());
+        
+        $result = [];
+        $result["total"] = count($activityLogs);
+        foreach ($activityLogs as $activityLog) {
+            $result["list"][] = $this->arrayDataOfActivityLog($activityLog);
+        }
+        return $this->listQueryResponse($result);
+    }
+    
+    public function showSelfActivityLogs($programParticipationId)
+    {
+        $activityLogs = $this->buildViewActivityLog()->showSelfActivityLog(
+                $this->userId(), $programParticipationId, $this->getPage(), $this->getPageSize());
+        
+        $result = [];
+        $result["total"] = count($activityLogs);
+        foreach ($activityLogs as $activityLog) {
+            $result["list"][] = $this->arrayDataOfActivityLog($activityLog);
+        }
+        return $this->listQueryResponse($result);
+    }
+    public function showSharedActivityLogs($programParticipationId)
+    {
+        $activityLogs = $this->buildViewActivityLog()->showSharedActivityLog(
+                $this->userId(), $programParticipationId, $this->getPage(), $this->getPageSize());
         
         $result = [];
         $result["total"] = count($activityLogs);
@@ -110,5 +135,12 @@ class ActivityLogController extends UserBaseController
     {
         $activityLogRepository = $this->em->getRepository(ActivityLog::class);
         return new ViewActivityLog($activityLogRepository);
+    }
+    
+    protected function buildViewActivityLog()
+    {
+        $userParticipantRepository = $this->em->getRepository(UserParticipant::class);
+        $activityLogRepository = $this->em->getRepository(ActivityLog::class);
+        return new ViewActivityLog2($userParticipantRepository, $activityLogRepository);
     }
 }

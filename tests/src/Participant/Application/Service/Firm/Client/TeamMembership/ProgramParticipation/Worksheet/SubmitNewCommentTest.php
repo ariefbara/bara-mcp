@@ -2,20 +2,17 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet;
 
-use Participant\{
-    Application\Service\Firm\Client\TeamMembershipRepository,
-    Application\Service\Participant\Worksheet\CommentRepository,
-    Application\Service\Participant\WorksheetRepository,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\Model\Participant\Worksheet
-};
+use Participant\Application\Service\Firm\Client\TeamMembershipRepository;
+use Participant\Application\Service\Participant\WorksheetRepository;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\Model\Participant\Worksheet;
 use Tests\TestBase;
 
 class SubmitNewCommentTest extends TestBase
 {
 
     protected $service;
-    protected $commentRepository, $nextId = "nextId";
+    protected $memberCommentRepository, $nextId = "nextId";
     protected $worksheetRepository, $worksheet;
     protected $teamMembershipRepository, $teamMembership;
     protected $firmId = "firmId", $clientId = "clientId", $teamMembershipId = "teamMembershipId",
@@ -24,8 +21,8 @@ class SubmitNewCommentTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->commentRepository = $this->buildMockOfInterface(CommentRepository::class);
-        $this->commentRepository->expects($this->any())->method("nextIdentity")->willReturn($this->nextId);
+        $this->memberCommentRepository = $this->buildMockOfInterface(MemberCommentRepository::class);
+        $this->memberCommentRepository->expects($this->any())->method("nextIdentity")->willReturn($this->nextId);
 
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         $this->worksheetRepository = $this->buildMockOfInterface(WorksheetRepository::class);
@@ -42,7 +39,7 @@ class SubmitNewCommentTest extends TestBase
                 ->willReturn($this->teamMembership);
 
         $this->service = new SubmitNewComment(
-                $this->commentRepository, $this->worksheetRepository, $this->teamMembershipRepository);
+                $this->memberCommentRepository, $this->worksheetRepository, $this->teamMembershipRepository);
     }
 
     protected function execute()
@@ -56,7 +53,7 @@ class SubmitNewCommentTest extends TestBase
         $this->teamMembership->expects($this->once())
                 ->method("submitNewCommentInWorksheet")
                 ->with($this->worksheet, $this->nextId, $this->message);
-        $this->commentRepository->expects($this->once())
+        $this->memberCommentRepository->expects($this->once())
                 ->method("add");
         $this->execute();
     }

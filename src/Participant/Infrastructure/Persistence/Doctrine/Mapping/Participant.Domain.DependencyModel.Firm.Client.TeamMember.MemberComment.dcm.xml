@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\DependencyModel\Firm\Client\TeamMember\MemberComment" 
+            table="MemberComment"
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineMemberCommentRepository"
+    >
+        
+        <many-to-one  field="member" 
+                      target-entity="Participant\Domain\DependencyModel\Firm\Client\TeamMembership"
+        >
+            <join-column name="Member_id" referenced-column-name="id" />
+        </many-to-one>
+        
+	<id name="comment" association-key="true" />
+        <one-to-one field="comment" 
+                    target-entity="Participant\Domain\Model\Participant\Worksheet\Comment"
+        >
+            <join-column name="id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

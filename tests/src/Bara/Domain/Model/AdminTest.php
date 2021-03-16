@@ -2,6 +2,8 @@
 
 namespace Bara\Domain\Model;
 
+use Firm\Domain\Model\Shared\FormData;
+use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestBase;
 
 class AdminTest extends TestBase
@@ -9,12 +11,34 @@ class AdminTest extends TestBase
 
     protected $admin, $originalEmail = 'original_address@email.org', $originalPassword = 'originalPwd123';
     protected $id = 'newid', $name = 'new sys admin name', $email = 'newAdmin@email.org', $password = 'newPwd123';
+    protected $worksheetFormId = 'worksheetFormId', $worksheetForm, $formData;
 
     protected function setUp(): void
     {
         parent::setUp();
         $adminData = new AdminData('name', $this->originalEmail);
         $this->admin = new TestableAdmin('id', $adminData, $this->originalPassword);
+        $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
+        $this->formData = $this->buildMockOfClass(FormData::class);
+        $this->formData->expects($this->any())->method('getName')->willReturn('form name');
+    }
+    protected function assertInactiveAdminForbiddenError(callable $operation): void
+    {
+        $errorDetail = 'forbidden: only active admin can make this request';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    protected function assertNotGlobalAssetForbiddenError(callable $operation): void
+    {
+        $errorDetail = 'forbidden: can only manage global asset';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+    protected function setGlobalAsset(MockObject $asset)
+    {
+        $asset->expects($this->any())->method('isGlobalAsset')->willReturn(true);
+    }
+    protected function setNotGlobalAsset(MockObject $asset)
+    {
+        $asset->expects($this->any())->method('isGlobalAsset')->willReturn(false);
     }
 
     protected function executeConstruct()
@@ -127,6 +151,76 @@ class AdminTest extends TestBase
     {
         $this->admin->remove();
         $this->assertTrue($this->admin->removed);
+    }
+    
+    protected function executeCreateWorksheetForm()
+    {
+        return $this->admin->createWorksheetForm($this->worksheetFormId, $this->formData);
+    }
+    public function test_createWorksheetForm_returnWorksheetForm()
+    {
+        $worksheetForm = new WorksheetForm($this->worksheetFormId, $this->formData);
+        $this->assertEquals($worksheetForm, $this->executeCreateWorksheetForm());
+    }
+    public function test_createWorksheetForm_inactiveAdmin_forbidden()
+    {
+        $this->admin->removed = true;
+        $this->assertInactiveAdminForbiddenError(function (){
+            $this->executeCreateWorksheetForm();
+        });
+    }
+    
+    protected function executeUpdateWorksheetForm()
+    {
+        $this->setGlobalAsset($this->worksheetForm);
+        $this->admin->updateWorksheetForm($this->worksheetForm, $this->formData);
+    }
+    public function test_updateWorksheetForm_updateWorksheetForm()
+    {
+        $this->worksheetForm->expects($this->once())
+                ->method('update')
+                ->with($this->formData);
+        $this->executeUpdateWorksheetForm();
+    }
+    public function test_updateWorksheetForm_inactiveAdmin_forbidden()
+    {
+        $this->admin->removed = true;
+        $this->assertInactiveAdminForbiddenError(function (){
+            $this->executeUpdateWorksheetForm();
+        });
+    }
+    public function test_updateWorksheetForm_notGlobalAsset_forbidden()
+    {
+        $this->setNotGlobalAsset($this->worksheetForm);
+        $this->assertNotGlobalAssetForbiddenError(function (){
+            $this->executeUpdateWorksheetForm();
+        });
+    }
+    
+    protected function executeRemoveWorksheetForm()
+    {
+        $this->setGlobalAsset($this->worksheetForm);
+        return $this->admin->removeWorksheetForm($this->worksheetForm);
+    }
+    public function test_removeWorksheetForm_removeWorksheetForm()
+    {
+        $this->worksheetForm->expects($this->once())
+                ->method('remove');
+        $this->executeRemoveWorksheetForm();
+    }
+    public function test_removeWorksheetForm_inactiveAdmin_forbidden()
+    {
+        $this->admin->removed = true;
+        $this->assertInactiveAdminForbiddenError(function (){
+            $this->executeRemoveWorksheetForm();
+        });
+    }
+    public function test_removeWorksheetForm_notGlobalAsset()
+    {
+        $this->setNotGlobalAsset($this->worksheetForm);
+        $this->assertNotGlobalAssetForbiddenError(function (){
+            $this->executeRemoveWorksheetForm();
+        });
     }
     
 }

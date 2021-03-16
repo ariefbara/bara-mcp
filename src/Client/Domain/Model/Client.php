@@ -2,27 +2,26 @@
 
 namespace Client\Domain\Model;
 
-use Client\Domain\ {
-    Event\ClientResetPasswordCodeGenerated,
-    Model\Client\ClientFileInfo,
-    Model\Client\ProgramParticipation,
-    Model\Client\ProgramRegistration
-};
+use Client\Domain\DependencyModel\Firm\BioForm;
+use Client\Domain\Model\Client\ClientBio;
+use Client\Domain\Model\Client\ClientFileInfo;
+use Client\Domain\Model\Client\ProgramParticipation;
+use Client\Domain\Model\Client\ProgramRegistration;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\Firm;
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Domain\Event\CommonEvent,
-    Domain\Model\EntityContainEvents,
-    Domain\ValueObject\Password,
-    Domain\ValueObject\PersonName,
-    Exception\RegularException,
-    ValidationRule,
-    ValidationService
-};
+use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\PersonName;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class Client extends EntityContainEvents
 {
@@ -105,6 +104,12 @@ class Client extends EntityContainEvents
      */
     protected $programParticipations;
     
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $clientBios;
+
     protected function setEmail(string $email): void
     {
         $errorDetail = 'bad request: invalid email format';
@@ -217,11 +222,41 @@ class Client extends EntityContainEvents
         $this->assertNoActiveParticipationInSameProgram($program);
         return new ProgramRegistration($this, $programRegistrationId, $program);
     }
+    
+    public function submitBio(BioForm $bioForm, FormRecordData $formRecordData): void
+    {
+        $this->assertAccountActive();
+        if (!$bioForm->belongsToFirm($this->firmId)) {
+            $errorDetail = "forbidden: can only use asset in same firm";
+            throw RegularException::forbidden($errorDetail);
+        }
+        
+        $p = function (ClientBio $clientBio) use ($bioForm) {
+            return $clientBio->isActiveBioCorrespondWithForm($bioForm);
+        };
+        if (!empty($clientBio = $this->clientBios->filter($p)->first())) {
+            $clientBio->update($formRecordData);
+        } else {
+            $id = Uuid::generateUuid4();
+            $clientBio = new ClientBio($this, $id, $bioForm, $formRecordData);
+            $this->clientBios->add($clientBio);
+        }
+    }
+    
+    public function removeBio(ClientBio $clientBio): void
+    {
+        $this->assertAccountActive();
+        if (!$clientBio->belongsToClient($this)) {
+            $errorDetail = "forbidden: can only manage owned asset";
+            throw RegularException::forbidden($errorDetail);
+        }
+        $clientBio->remove();
+    }
 
     protected function assertAccountActive(): void
     {
         if (!$this->activated) {
-            $errorDetail = 'forbidden: only active client can  make this request';
+            $errorDetail = 'forbidden: only active client can make this request';
             throw RegularException::forbidden($errorDetail);
         }
     }

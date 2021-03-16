@@ -23,6 +23,7 @@ class ParticipantSummaryController extends AsProgramCoordinatorBaseController
             $result["list"][] = [
                 "id" => $participantSummary["participantId"],
                 "name" => $participantSummary["participantName"],
+                "participantRating" => $participantSummary["participantRating"],
                 "totalCompletedMission" => $participantSummary["totalCompletedMission"],
                 "totalMission" => $participantSummary["totalMission"],
                 "lastCompletedTime" => $participantSummary["lastCompletedTime"],

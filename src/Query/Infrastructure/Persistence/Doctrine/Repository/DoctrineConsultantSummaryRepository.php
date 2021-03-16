@@ -26,7 +26,8 @@ class DoctrineConsultantSummaryRepository implements ConsultantSummaryRepository
         $statement = <<<_STATEMENT
 SELECT 
     C.id,
-    CONCAT(Personnel.firstName, ' ', Personnel.lastName) 'name',
+    CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) 'name',
+    _h.mentorRating,
     _f.consultationRequestCount,
     _g.consultationSessionCount,
     _b.unconcludedConsultationRequestCount,
@@ -78,6 +79,12 @@ LEFT OUTER JOIN (
     FROM ConsultationSession
     GROUP BY Consultant_id
 )_g ON _g.Consultant_id = C.id
+LEFT OUTER JOIN (
+    SELECT ConsultationSession.Consultant_id, AVG(ParticipantFeedback.mentorRating) mentorRating
+    FROM ParticipantFeedback
+    LEFT JOIN ConsultationSession ON ConsultationSession.id = ParticipantFeedback.ConsultationSession_id
+    GROUP BY Consultant_id
+)_h ON _h.Consultant_id = C.id
 WHERE C.Program_Id = :programId
     AND C.active = true
 ORDER BY consultationSessionCount DESC

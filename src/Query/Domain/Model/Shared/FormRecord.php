@@ -75,9 +75,9 @@ class FormRecord
         return $this->id;
     }
 
-    function getSubmitTimeString(): string
+    function getSubmitTimeString(): ?string
     {
-        return $this->submitTime->format("Y-m-d H:i:s");
+        return isset($this->submitTime)? $this->submitTime->format("Y-m-d H:i:s"): null;
     }
 
     function getUnremovedIntegerFieldRecords()

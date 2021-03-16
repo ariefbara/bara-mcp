@@ -27,9 +27,9 @@ class ViewProgramRegistration
      * @param int $pageSize
      * @return ClientRegistrant[]
      */
-    public function showAll(string $firmId, string $clientId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $clientId, int $page, int $pageSize, ?bool $concludedStatus = null)
     {
-        return $this->programRegistrationRepository->all($firmId, $clientId, $page, $pageSize);
+        return $this->programRegistrationRepository->all($firmId, $clientId, $page, $pageSize, $concludedStatus);
     }
 
     public function showById(string $firmId, string $clientId, string $programRegistrationId): ClientRegistrant

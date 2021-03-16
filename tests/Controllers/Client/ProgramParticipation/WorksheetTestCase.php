@@ -89,6 +89,7 @@ class WorksheetTestCase extends ProgramParticipationTestCase
             "mission" => [
                 "id" => $this->mission->id,
                 "name" => $this->mission->name,
+                "position" => $this->mission->position,
                 "worksheetForm" => [
                     "id" => $this->mission->worksheetForm->id,
                     "name" => $this->mission->worksheetForm->form->name,

@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
+use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program\ActivityType;
@@ -16,6 +17,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
@@ -113,6 +115,18 @@ class Manager implements CanAttendMeeting
         $this->setPhone($managerData->getPhone());
         $this->joinTime = new DateTimeImmutable();
         $this->removed = false;
+    }
+    protected function assertActive()
+    {
+        if ($this->removed) {
+            throw RegularException::forbidden('forbidden: only active manager can make this request');
+        }
+    }
+    protected function assertAssetManageable(ManageableByFirm $asset): void
+    {
+        if (! $asset->isManageableByFirm($this->firm)) {
+            throw RegularException::forbidden('forbidden: can only manage asset manageable by firm');
+        }
     }
 
     public function createActivityTypeInProgram(
@@ -267,19 +281,71 @@ class Manager implements CanAttendMeeting
         $program->remove();
     }
     
-    public function changeMissionsWorksheetForm(Mission $mission, WorksheetForm $worksheetForm): void
-    {
-        $this->assertAssetBelongsToSameFirm($mission);
-        $this->assertAssetBelongsToSameFirm($worksheetForm);
-        $mission->changeWorksheetForm($worksheetForm);
-    }
-
     protected function assertAssetBelongsToSameFirm(AssetBelongsToFirm $asset): void
     {
         if (!$asset->belongsToFirm($this->firm)) {
             $errorDetail = "forbidden: unable to manage asset from other firm";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+    
+    public function createBioForm(string $bioFormId, FormData $formData): BioForm
+    {
+        return new BioForm($this->firm, $bioFormId, $formData);
+    }
+    
+    public function updateBioForm(BioForm $bioForm, FormData $formData): void
+    {
+        $this->assertAssetBelongsToSameFirm($bioForm);
+        $bioForm->update($formData);
+    }
+    
+    public function disableBioForm(BioForm $bioForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($bioForm);
+        $bioForm->disable();
+    }
+    
+    public function enableBioForm(BioForm $bioForm): void
+    {
+        $this->assertAssetBelongsToSameFirm($bioForm);
+        $bioForm->enable();
+    }
+    
+    public function createRootMission(
+            string $missionId, Program $program, WorksheetForm $worksheetForm, MissionData $missionData): Mission
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($program);
+        $this->assertAssetManageable($worksheetForm);
+        return $program->createRootMission($missionId, $worksheetForm, $missionData);
+    }
+    public function createBranchMission(
+            string $missionId, Mission $parentMission, WorksheetForm $worksheetForm, MissionData $missionData): Mission
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($parentMission);
+        $this->assertAssetManageable($worksheetForm);
+        return $parentMission->createBranch($missionId, $worksheetForm, $missionData);
+    }
+    public function updateMission(Mission $mission, MissionData $missionData): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($mission);
+        $mission->update($missionData);
+    }
+    public function publishMission(Mission $mission): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($mission);
+        $mission->publish();
+    }
+    public function changeMissionsWorksheetForm(Mission $mission, WorksheetForm $worksheetForm): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($mission);
+        $this->assertAssetManageable($worksheetForm);
+        $mission->changeWorksheetForm($worksheetForm);
     }
 
 }

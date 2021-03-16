@@ -2,12 +2,13 @@
 
 namespace Firm\Domain\Model\Firm;
 
+use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Shared\Form;
 use Firm\Domain\Model\Shared\FormData;
 
-class WorksheetForm implements AssetBelongsToFirm
+class WorksheetForm implements AssetBelongsToFirm, ManageableByFirm
 {
 
     /**
@@ -55,6 +56,11 @@ class WorksheetForm implements AssetBelongsToFirm
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->firm === $firm;
+    }
+
+    public function isManageableByFirm(Firm $firm): bool
+    {
+        return is_null($this->firm) || $this->firm === $firm;
     }
 
 }

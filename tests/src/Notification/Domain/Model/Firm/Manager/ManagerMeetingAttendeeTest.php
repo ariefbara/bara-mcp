@@ -3,6 +3,7 @@
 namespace Notification\Domain\Model\Firm\Manager;
 
 use Notification\Domain\Model\Firm\Manager;
+use Notification\Domain\Model\Firm\Program\MeetingType\Meeting\MeetingAttendee;
 use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Notification\Domain\SharedModel\ContainNotificationForAllUser;
 use SharedContext\Domain\ValueObject\MailMessage;
@@ -12,6 +13,7 @@ class ManagerMeetingAttendeeTest extends TestBase
 {
     protected $managerMeetingAttendee;
     protected $manager;
+    protected $meetingAttendee;
     protected $mailGenerator, $mailMessage;
     protected $notification;
     
@@ -20,8 +22,12 @@ class ManagerMeetingAttendeeTest extends TestBase
         parent::setUp();
         
         $this->managerMeetingAttendee = new TestableManagerMeetingAttendee();
+        
         $this->manager = $this->buildMockOfClass(Manager::class);
         $this->managerMeetingAttendee->manager = $this->manager;
+        
+        $this->meetingAttendee = $this->buildMockOfClass(MeetingAttendee::class);
+        $this->managerMeetingAttendee->meetingAttendee = $this->meetingAttendee;
         
         $this->mailGenerator = $this->buildMockOfInterface(CanSendPersonalizeMail::class);
         $this->mailMessage = $this->buildMockOfClass(MailMessage::class);

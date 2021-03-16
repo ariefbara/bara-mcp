@@ -20,11 +20,11 @@ class SubmitFeedback
 
     public function execute(
             string $userId, string $programId, string $consultationSessionId,
-            FormRecordData $formRecordData): void
+            FormRecordData $formRecordData, ?int $mentorRating): void
     {
         $this->consultationSessionRepository
                 ->aConsultationSessionOfUserParticipant($userId, $programId, $consultationSessionId)
-                ->setParticipantFeedback($formRecordData);
+                ->setParticipantFeedback($formRecordData, $mentorRating);
         $this->consultationSessionRepository->update();
     }
 }

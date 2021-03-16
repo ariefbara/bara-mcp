@@ -107,6 +107,7 @@ class WorksheetController extends AsTeamMemberBaseController
             "mission" => [
                 "id" => $worksheet->getMission()->getId(),
                 "name" => $worksheet->getMission()->getName(),
+                "position" => $worksheet->getMission()->getPosition(),
             ],
             "parent" => $parent,
         ];
@@ -122,6 +123,7 @@ class WorksheetController extends AsTeamMemberBaseController
         $data['mission'] = [
             "id" => $worksheet->getMission()->getId(),
             "name" => $worksheet->getMission()->getName(),
+            "position" => $worksheet->getMission()->getPosition(),
             "worksheetForm" => [
                 "id" => $worksheet->getMission()->getWorksheetForm()->getId(),
                 "name" => $worksheet->getMission()->getWorksheetForm()->getName(),

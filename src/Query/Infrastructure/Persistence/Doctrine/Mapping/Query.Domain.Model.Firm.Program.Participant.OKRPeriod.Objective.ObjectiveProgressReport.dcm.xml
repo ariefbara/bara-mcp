@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport" 
+            table="ObjectiveProgressReport"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineObjectiveProgressReportRepository"
+    >
+        
+        <many-to-one  field="objective" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective"
+                      inversed-by="objectiveProgressReports"
+        >
+            <join-column name="Objective_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        <field name="reportDate" type="date_immutable" nullable="false"/>
+        <field name="submitTime" type="datetime_immutable" nullable="false"/>
+        <embedded name="approvalStatus" class="SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus" use-column-prefix="false" />
+        <field name="cancelled" type="boolean" />
+        
+        <one-to-many field="keyResultProgressReports" 
+                     target-entity="Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport" 
+                     mapped-by="objectiveProgressReport"
+        />
+        
+    </entity>
+</doctrine-mapping>

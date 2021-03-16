@@ -15,7 +15,7 @@ class ParticipantFeedbackSetTest extends TestBase
     protected $service;
     protected $consultationSessionRepository, $consultationSession;
     protected $firmId = 'firmId', $clientId = 'clientId', $programId = 'programId', $consultationSessionId = 'consultationSessionId';
-    protected $formRecordData;
+    protected $formRecordData, $mentorRating = 4;
 
     protected function setUp(): void
     {
@@ -35,14 +35,15 @@ class ParticipantFeedbackSetTest extends TestBase
 
     protected function execute()
     {
-        $this->service->execute($this->firmId, $this->clientId, $this->programId, $this->consultationSessionId, $this->formRecordData);
+        $this->service->execute(
+                $this->firmId, $this->clientId, $this->programId, $this->consultationSessionId, $this->formRecordData, $this->mentorRating);
     }
     
     public function test_execute_setParticipantFeedbackInConsultationSession()
     {
         $this->consultationSession->expects($this->once())
                 ->method('setParticipantFeedback')
-                ->with($this->formRecordData);
+                ->with($this->formRecordData, $this->mentorRating);
         $this->execute();
     }
     public function test_execute_updateConsultationSessionRepository()

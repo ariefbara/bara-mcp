@@ -2,14 +2,15 @@
 
 namespace Tests\Controllers\Client;
 
-use Tests\Controllers\RecordPreparation\Firm\ {
-    Client\RecordOfClientParticipant,
-    Program\Participant\MetricAssignment\RecordOfAssignmentField,
-    Program\Participant\RecordOfMetricAssignment,
-    Program\RecordOfMetric,
-    Program\RecordOfParticipant,
-    RecordOfProgram
-};
+use DateTime;
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 
 
 class ProgramParticipationControllerTest extends ProgramParticipationTestCase
@@ -18,6 +19,10 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     protected $metricAssignment;
     protected $assignmentField;
     protected $assignmentFieldOne;
+    protected $metricAssignmentReportOne_lastApproved;
+    protected $metricAssignmentReportTwo_last;
+    protected $assignmentFieldValue_00;
+    protected $assignmentFieldValue_01;
 
     protected function setUp(): void
     {
@@ -26,6 +31,8 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("MetricAssignment")->truncate();
         $this->connection->table("Metric")->truncate();
         $this->connection->table("AssignmentField")->truncate();
+        $this->connection->table("MetricAssignmentReport")->truncate();
+        $this->connection->table("AssignmentFieldValue")->truncate();
         
         $program = new RecordOfProgram($this->client->firm, 1);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
@@ -50,6 +57,23 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->assignmentFieldOne = new RecordOfAssignmentField($this->metricAssignment, $metricOne, 1);
         $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
         $this->connection->table("AssignmentField")->insert($this->assignmentFieldOne->toArrayForDbEntry());
+        
+        $this->metricAssignmentReport = new RecordOfMetricAssignmentReport($this->metricAssignment, 0);
+        $this->metricAssignmentReport->observationTime = (new DateTime("-2 months"))->format("Y-m-d H:i:s");
+        $this->metricAssignmentReport->approved = true;
+        $this->metricAssignmentReportOne_lastApproved = new RecordOfMetricAssignmentReport($this->metricAssignment, 1);
+        $this->metricAssignmentReportOne_lastApproved->observationTime = (new DateTime("-2 weeks"))->format("Y-m-d H:i:s");
+        $this->metricAssignmentReportOne_lastApproved->approved = true;
+        $this->metricAssignmentReportTwo_last = new RecordOfMetricAssignmentReport($this->metricAssignment, 2);
+        $this->metricAssignmentReportTwo_last->observationTime = (new DateTime("-2 days"))->format("Y-m-d H:i:s");
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReport->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne_lastApproved->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportTwo_last->toArrayForDbEntry());
+        
+        $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_lastApproved, $this->assignmentField, "00");
+        $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_lastApproved, $this->assignmentFieldOne, "01");
+        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
+        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
     }
     protected function tearDown(): void
     {
@@ -57,6 +81,8 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("MetricAssignment")->truncate();
         $this->connection->table("Metric")->truncate();
         $this->connection->table("AssignmentField")->truncate();
+        $this->connection->table("MetricAssignmentReport")->truncate();
+        $this->connection->table("AssignmentFieldValue")->truncate();
     }
     
     public function test_quit_200()
@@ -78,6 +104,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->patch($uri, [], $this->client->token)
             ->seeStatusCode(403);
     }
+    
     public function test_show()
     {
         $response = [
@@ -115,6 +142,24 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
                             "minValue" => $this->assignmentFieldOne->metric->minValue,
                             "maxValue" => $this->assignmentFieldOne->metric->maxValue,
                             "higherIsBetter" => $this->assignmentFieldOne->metric->higherIsBetter,
+                        ],
+                    ],
+                ],
+                "lastMetricAssignmentReport" => [
+                    "id" => $this->metricAssignmentReportOne_lastApproved->id,
+                    "observationTime" => $this->metricAssignmentReportOne_lastApproved->observationTime,
+                    "submitTime" => $this->metricAssignmentReportOne_lastApproved->submitTime,
+                    "removed" => $this->metricAssignmentReportOne_lastApproved->removed,
+                    "assignmentFieldValues" => [
+                        [
+                            "id" => $this->assignmentFieldValue_00->id,
+                            "value" => $this->assignmentFieldValue_00->inputValue,
+                            "assignmentFieldId" => $this->assignmentFieldValue_00->assignmentField->id,
+                        ],
+                        [
+                            "id" => $this->assignmentFieldValue_01->id,
+                            "value" => $this->assignmentFieldValue_01->inputValue,
+                            "assignmentFieldId" => $this->assignmentFieldValue_01->assignmentField->id,
                         ],
                     ],
                 ],

@@ -2,21 +2,16 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\Firm\ProgramRepository,
-    Domain\Model\Firm\ParticipantTypes,
-    Domain\Model\Firm\Program,
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\ProgramRepository;
+use Query\Application\Service\ProgramRepository as InterfaceForPublic;
+use Query\Domain\Model\Firm\ParticipantTypes;
+use Query\Domain\Model\Firm\Program;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineProgramRepository extends EntityRepository implements ProgramRepository
+class DoctrineProgramRepository extends EntityRepository implements ProgramRepository, InterfaceForPublic
 {
 
     public function ofId(string $firmId, string $programId): Program
@@ -66,6 +61,30 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
                 ->andWhere($qb->expr()->eq("program.published", "true"))
                 ->andWhere($qb->expr()->like('program.participantTypes.values', ":participantType"))
                 ->setParameter("participantType", "%".ParticipantTypes::USER_TYPE."%")
+                ->andWhere($qb->expr()->eq('program.removed', 'false'));
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aPublishedProgram(string $id): Program
+    {
+        $program = $this->findOneBy([
+            'id' => $id,
+            'published' => true,
+            'removed' => false,
+        ]);
+        
+        if (empty($program)) {
+            throw RegularException::notFound('not found: program not found');
+        }
+        return $program;
+    }
+
+    public function allPublishedProgram(int $page, int $pageSize)
+    {
+        $qb = $this->createQueryBuilder('program');
+        $qb->select('program')
+                ->andWhere($qb->expr()->eq("program.published", "true"))
                 ->andWhere($qb->expr()->eq('program.removed', 'false'));
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);

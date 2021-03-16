@@ -23,4 +23,12 @@ $router->group($managerAggregate, function () use ($router) {
         $router->get("/{firmId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });
+    $router->group(['prefix' => '/worksheet-forms'], function () use($router) {
+        $controller = "WorksheetFormController";
+        $router->post("", ["uses" => "$controller@create"]);
+        $router->patch("/{worksheetFormId}", ["uses" => "$controller@update"]);
+        $router->delete("/{worksheetFormId}", ["uses" => "$controller@remove"]);
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{worksheetFormId}", ["uses" => "$controller@show"]);
+    });
 });

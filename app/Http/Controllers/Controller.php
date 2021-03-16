@@ -10,6 +10,7 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 use Notification\Application\Service\SendImmediateMail;
 use Notification\Domain\SharedModel\Mail\Recipient;
 use Notification\Infrastructure\MailManager\SwiftMailSender;
+use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
 use Swift_Mailer;
 use Swift_SmtpTransport;
@@ -211,6 +212,11 @@ class Controller extends BaseController
         return (new TimeIntervalFilter)
                         ->setFrom($this->dateTimeImmutableOfQueryRequest("from"))
                         ->setTo($this->dateTimeImmutableOfQueryRequest("to"));
+    }
+    
+    protected function buildDataFinder(): DataFinder
+    {
+        return new DataFinder($this->em->getConnection());
     }
 
 }

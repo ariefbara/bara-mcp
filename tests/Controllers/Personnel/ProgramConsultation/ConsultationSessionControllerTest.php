@@ -108,6 +108,7 @@ class ConsultationSessionControllerTest extends ProgramConsultationTestCase
         $this->connection->table('ParticipantFeedback')->insert($participantFeedback->toArrayForDbEntry());
 
         $this->consultantFeedbackInput = [
+            "participantRating" => 4,
             "stringFieldRecords" => [
                 [
                     "fieldId" => $this->stringField->id,
@@ -300,6 +301,9 @@ $this->disableExceptionHandling();
             ],
             "value" => $this->consultantFeedbackInput['stringFieldRecords'][0]['value'],
         ];
+        $ratingResponse = [
+            "participantRating" => $this->consultantFeedbackInput["participantRating"],
+        ];
         $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/submit-report";
         $this->put($uri, $this->consultantFeedbackInput, $this->personnel->token)
                 ->seeStatusCode(200)
@@ -307,6 +311,7 @@ $this->disableExceptionHandling();
 
         $consultantFeedbackEntry = [
             "ConsultationSession_id" => $this->consultationSession->id,
+            "participantRating" => $this->consultantFeedbackInput["participantRating"],
         ];
         $this->seeInDatabase("ConsultantFeedback", $consultantFeedbackEntry);
 
@@ -364,6 +369,7 @@ $this->disableExceptionHandling();
                 "team" => null,
             ],
             "consultantFeedback" => [
+                "participantRating" => $this->consultantFeedbackInput["participantRating"],
                 "submitTime" => (new DateTime())->format("Y-m-d H:i:s"),
                 "stringFieldRecords" => [
                     [

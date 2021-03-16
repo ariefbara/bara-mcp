@@ -99,6 +99,10 @@ class MissionControllerTest extends MissionTestCase
                     'name' => $this->mission->name,
                     'description' => $this->mission->description,
                     'position' => $this->mission->position,
+                    'worksheetForm' => [
+                        'id' => $this->mission->worksheetForm->id,
+                        'name' => $this->mission->worksheetForm->form->name,
+                    ],
                     'submittedWorksheet' => null,
                 ],
                 [
@@ -106,6 +110,10 @@ class MissionControllerTest extends MissionTestCase
                     'name' => $this->mission_0->name,
                     'description' => $this->mission_0->description,
                     'position' => $this->mission_0->position,
+                    'worksheetForm' => [
+                        'id' => $this->mission_0->worksheetForm->id,
+                        'name' => $this->mission_0->worksheetForm->form->name,
+                    ],
                     'submittedWorksheet' => "2",
                 ],
                 [
@@ -113,6 +121,10 @@ class MissionControllerTest extends MissionTestCase
                     'name' => $this->mission_1->name,
                     'description' => $this->mission_1->description,
                     'position' => $this->mission_1->position,
+                    'worksheetForm' => [
+                        'id' => $this->mission_1->worksheetForm->id,
+                        'name' => $this->mission_1->worksheetForm->form->name,
+                    ],
                     'submittedWorksheet' => null,
                 ],
                 [
@@ -120,6 +132,10 @@ class MissionControllerTest extends MissionTestCase
                     'name' => $this->mission_2->name,
                     'description' => $this->mission_2->description,
                     'position' => $this->mission_2->position,
+                    'worksheetForm' => [
+                        'id' => $this->mission_2->worksheetForm->id,
+                        'name' => $this->mission_2->worksheetForm->form->name,
+                    ],
                     'submittedWorksheet' => '1',
                 ],
             ],
@@ -138,6 +154,10 @@ class MissionControllerTest extends MissionTestCase
                     'name' => $this->mission_2->name,
                     'description' => $this->mission_2->description,
                     'position' => $this->mission_2->position,
+                    'worksheetForm' => [
+                        'id' => $this->mission_2->worksheetForm->id,
+                        'name' => $this->mission_2->worksheetForm->form->name,
+                    ],
                     'submittedWorksheet' => '1',
                 ],
                 [
@@ -145,6 +165,10 @@ class MissionControllerTest extends MissionTestCase
                     'name' => $this->mission->name,
                     'description' => $this->mission->description,
                     'position' => $this->mission->position,
+                    'worksheetForm' => [
+                        'id' => $this->mission->worksheetForm->id,
+                        'name' => $this->mission->worksheetForm->form->name,
+                    ],
                     'submittedWorksheet' => null,
                 ],
             ],

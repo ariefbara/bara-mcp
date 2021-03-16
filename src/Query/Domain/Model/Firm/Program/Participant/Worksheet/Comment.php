@@ -3,10 +3,9 @@
 namespace Query\Domain\Model\Firm\Program\Participant\Worksheet;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\Program\ {
-    Consultant\ConsultantComment,
-    Participant\Worksheet
-};
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantComment;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Team\Member\MemberComment;
 
 class Comment
 {
@@ -53,6 +52,12 @@ class Comment
      */
     protected $consultantComment = null;
 
+    /**
+     * 
+     * @var MemberComment|null
+     */
+    protected $memberComment = null;
+
     public function getWorksheet(): Worksheet
     {
         return $this->worksheet;
@@ -86,6 +91,11 @@ class Comment
     public function getConsultantComment(): ?ConsultantComment
     {
         return $this->consultantComment;
+    }
+
+    public function getMemberComment(): ?MemberComment
+    {
+        return $this->memberComment;
     }
 
     public function __construct()

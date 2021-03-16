@@ -2,16 +2,20 @@
 
 namespace Tests\Controllers\Manager\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfMission,
-    Firm\RecordOfWorksheetForm,
-    Shared\RecordOfForm
-};
+use Tests\Controllers\RecordPreparation\Firm\Program\Mission\RecordOfLearningMaterial;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfWorksheetForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class MissionControllerTest extends MissionTestCase
 {
+    protected $globalWorksheetForm;
     protected $missionOne, $publishedMission;
     protected $missionInput, $worksheetFormTwo;
+    protected $missionOneLearningMaterialOne;
+    protected $missionOneLearningMaterialTwo_removed;
+    protected $missionOneLearningMaterialThree;
+    protected $publishedMissionLearningMaterialOne;
     protected $updateMissionInput = [
         "name" => "new mission name",
         "description" => "new mission description",
@@ -22,12 +26,17 @@ class MissionControllerTest extends MissionTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->connection->table('LearningMaterial')->truncate();
         
         $formOne = new RecordOfForm('form-worksheet-form-1');
+        $formTwo = new RecordOfForm('form-worksheet-form-2');
         $this->connection->table('Form')->insert($formOne->toArrayForDbEntry());
+        $this->connection->table('Form')->insert($formTwo->toArrayForDbEntry());
         
         $worksheetFormOne = new RecordOfWorksheetForm($this->firm, $formOne);
+        $this->globalWorksheetForm = new RecordOfWorksheetForm(null, $formTwo);
         $this->connection->table('WorksheetForm')->insert($worksheetFormOne->toArrayForDbEntry());
+        $this->connection->table('WorksheetForm')->insert($this->globalWorksheetForm->toArrayForDbEntry());
         
         $this->missionOne = new RecordOfMission($this->program, $worksheetFormOne, 1, $this->mission);
         $this->publishedMission = new RecordOfMission($this->program, $worksheetFormOne, 2, $this->mission);
@@ -40,6 +49,16 @@ class MissionControllerTest extends MissionTestCase
         
         $this->worksheetFormTwo = new RecordOfWorksheetForm($this->firm, $formTwo);
         $this->connection->table('WorksheetForm')->insert($this->worksheetFormTwo->toArrayForDbEntry());
+        
+        $this->missionOneLearningMaterialOne = new RecordOfLearningMaterial($this->missionOne, '11');
+        $this->missionOneLearningMaterialTwo_removed = new RecordOfLearningMaterial($this->missionOne, '12');
+        $this->missionOneLearningMaterialTwo_removed->removed = true;
+        $this->missionOneLearningMaterialThree = new RecordOfLearningMaterial($this->missionOne, '13');
+        $this->publishedMissionLearningMaterialOne = new RecordOfLearningMaterial($this->publishedMission, '21');
+        $this->connection->table('LearningMaterial')->insert($this->missionOneLearningMaterialOne->toArrayForDbEntry());
+        $this->connection->table('LearningMaterial')->insert($this->missionOneLearningMaterialTwo_removed->toArrayForDbEntry());
+        $this->connection->table('LearningMaterial')->insert($this->missionOneLearningMaterialThree->toArrayForDbEntry());
+        $this->connection->table('LearningMaterial')->insert($this->publishedMissionLearningMaterialOne->toArrayForDbEntry());
         
         $this->missionInput = [
             "name" => 'new mission name',
@@ -54,6 +73,7 @@ class MissionControllerTest extends MissionTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table('LearningMaterial')->truncate();
     }
     
     public function test_addRoot()
@@ -112,6 +132,24 @@ class MissionControllerTest extends MissionTestCase
         $this->post($this->missionUri, $this->missionInput, $this->manager->token)
             ->seeStatusCode(404);
     }
+    public function test_addRoot_globalWorksheetForm_201()
+    {
+        $this->missionInput['worksheetFormId'] = $this->globalWorksheetForm->id;
+        
+        $this->post($this->missionUri, $this->missionInput, $this->manager->token)
+            ->seeStatusCode(201);
+        
+        $missionRecord = [
+            "Program_id" => $this->program->id,
+            "parent_id" => null,
+            "WorksheetForm_id" => $this->globalWorksheetForm->id,
+            "name" => $this->missionInput['name'],
+            "description" => $this->missionInput['description'],
+            "position" => $this->missionInput['position'],
+            "published" => false,
+        ];
+        $this->seeInDatabase('Mission', $missionRecord);
+    }
     
     public function test_addBranch()
     {
@@ -139,6 +177,24 @@ class MissionControllerTest extends MissionTestCase
             "Program_id" => $this->program->id,
             "parent_id" => $this->missionOne->id,
             "WorksheetForm_id" => $this->worksheetFormTwo->id,
+            "name" => $this->missionInput['name'],
+            "description" => $this->missionInput['description'],
+            "position" => $this->missionInput['position'],
+            "published" => false,
+        ];
+        $this->seeInDatabase('Mission', $missionRecord);
+    }
+    public function test_addBranch_useGlobalWorksheetForm_201()
+    {
+        $this->missionInput['worksheetFormId'] = $this->globalWorksheetForm->id;
+        $uri = $this->missionUri . "/{$this->missionOne->id}";
+        $this->post($uri, $this->missionInput, $this->manager->token)
+            ->seeStatusCode(201);
+        
+        $missionRecord = [
+            "Program_id" => $this->program->id,
+            "parent_id" => $this->missionOne->id,
+            "WorksheetForm_id" => $this->globalWorksheetForm->id,
             "name" => $this->missionInput['name'],
             "description" => $this->missionInput['description'],
             "position" => $this->missionInput['position'],
@@ -227,6 +283,19 @@ $this->disableExceptionHandling();
         $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
+        
+        $missionEntry = [
+            "id" => $this->mission->id,
+            "worksheetForm_id" => $this->changeWorksheetFormInput["worksheetFormId"],
+        ];
+        $this->seeInDatabase("Mission", $missionEntry);
+    }
+    public function test_changeWorksheetForm_useGlobalWorksheetForm_200()
+    {
+        $this->changeWorksheetFormInput['worksheetFormId'] = $this->globalWorksheetForm->id;
+        $uri = $this->missionUri . "/{$this->mission->id}/change-worksheet-form";
+        $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token)
+                ->seeStatusCode(200);
         
         $missionEntry = [
             "id" => $this->mission->id,
@@ -339,8 +408,52 @@ $this->disableExceptionHandling();
             ],
         ];
         $this->get($this->missionUri, $this->manager->token)
-            ->seeStatusCode(200)
-            ->seeJsonContains($response);
+            ->seeStatusCode(200);
+        $totalResponse = ['total' => 3];
+        $this->seeJsonContains($totalResponse);
+        
+        $missionOneResponse = [
+            "parent" => [
+                "id" => $this->mission->id,
+                "name" => $this->mission->name,
+            ],
+            "id" => $this->missionOne->id,
+            "name" => $this->missionOne->name,
+            "description" => $this->missionOne->description,
+            "position" => $this->missionOne->position,
+            "worksheetForm" => [
+                "id" => $this->missionOne->worksheetForm->id,
+                "name" => $this->missionOne->worksheetForm->form->name,
+            ],
+            'learningMaterials' => [
+                [
+                    'id' => $this->missionOneLearningMaterialOne->id,
+                    'name' => $this->missionOneLearningMaterialOne->name,
+                ],
+                [
+                    'id' => $this->missionOneLearningMaterialThree->id,
+                    'name' => $this->missionOneLearningMaterialThree->name,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($missionOneResponse);
+        
+        $publishedMissionResponse = [
+            'id' => $this->publishedMission->id,
+            'learningMaterials' => [
+                [
+                    'id' => $this->publishedMissionLearningMaterialOne->id,
+                    'name' => $this->publishedMissionLearningMaterialOne->name,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($publishedMissionResponse);
+        
+        $missionResponse = [
+            'id' => $this->mission->id,
+        ];
+        $this->seeJsonContains($missionResponse);
+        
         
     }
     public function test_showAll_userNotManager_error401()

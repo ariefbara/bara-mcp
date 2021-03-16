@@ -11,7 +11,7 @@ class MailMessageTest extends TestBase
     protected $subject = "new subject";
     protected $logoPath = "http://path/to/logo.jpg";
     protected $greetings = "new greetings";
-    protected $mainMessage = "new main message";
+    protected $mainMessage = ["new main message"];
     protected $domain = "new-domain.com";
     protected $urlPath = "/new-entity/newEntityId";
     protected $showLink = true;
@@ -20,7 +20,7 @@ class MailMessageTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->mailMessage = new TestableMailMessage("subject", "greetings", "main message", "domain.com",
+        $this->mailMessage = new TestableMailMessage("subject", "greetings", ["main message"], "domain.com",
                 "/entity/entityId", "http://path/to/logo.jpg", false);
     }
 
@@ -69,10 +69,11 @@ class MailMessageTest extends TestBase
 
     public function test_getTextMessage_returnTextMessage()
     {
+        $this->mailMessage->showLink = true;
         $textMessage = <<<_MESSAGE
-{$this->mailMessage->greetings},
+{$this->mailMessage->greetings},\n
 
-{$this->mailMessage->mainMessage}
+{$this->mailMessage->mainMessage[0]}
 
 {$this->mailMessage->domain}{$this->mailMessage->urlPath}
 _MESSAGE;

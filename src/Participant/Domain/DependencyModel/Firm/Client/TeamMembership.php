@@ -4,6 +4,7 @@ namespace Participant\Domain\DependencyModel\Firm\Client;
 
 use DateTimeImmutable;
 use Participant\Domain\DependencyModel\Firm\Client;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMember\MemberComment;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
@@ -16,6 +17,11 @@ use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
+use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
@@ -60,7 +66,6 @@ class TeamMembership extends EntityContainEvents
     {
         
     }
-
     protected function assertAssetBelongsToTeam(AssetBelongsToTeamInterface $assetBelongsToTeam): void
     {
         if (!$assetBelongsToTeam->belongsToTeam($this->team)) {
@@ -68,7 +73,6 @@ class TeamMembership extends EntityContainEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
-
     protected function assertActive(): void
     {
         if (!$this->active) {
@@ -177,25 +181,25 @@ class TeamMembership extends EntityContainEvents
     }
 
     public function submitConsultationSessionReport(
-            ConsultationSession $consultationSession, FormRecordData $formRecordData): void
+            ConsultationSession $consultationSession, FormRecordData $formRecordData, ?int $mentorRating): void
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($consultationSession);
-        $consultationSession->setParticipantFeedback($formRecordData, $this);
+        $consultationSession->setParticipantFeedback($formRecordData, $mentorRating, $this);
     }
 
-    public function submitNewCommentInWorksheet(Worksheet $worksheet, string $commentId, string $message): Comment
+    public function submitNewCommentInWorksheet(Worksheet $worksheet, string $commentId, string $message): MemberComment
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($worksheet);
-        return $worksheet->createComment($commentId, $message, $this);
+        return new MemberComment($this, $worksheet->createComment($commentId, $message, $this));
     }
 
-    public function replyComment(Comment $comment, string $replyId, string $message): Comment
+    public function replyComment(Comment $comment, string $replyId, string $message): MemberComment
     {
         $this->assertActive();
         $this->assertAssetBelongsToTeam($comment);
-        return $comment->createReply($replyId, $message, $this);
+        return new MemberComment($this, $comment->createReply($replyId, $message, $this));
     }
 
     public function logViewLearningMaterialActivity(
@@ -255,6 +259,52 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($teamParticipant);
         $teamParticipant->removeProfile($participantProfile);
+    }
+    
+    public function createOKRPeriodInTeamParticipant(
+            TeamProgramParticipation $teamParticipant, string $okrPeriodId, OKRPeriodData $okrPeriodData): OKRPeriod
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        return $teamParticipant->createOKRPeriod($okrPeriodId, $okrPeriodData);
+    }
+    public function updateOKRPeriod(
+            TeamProgramParticipation $teamParticipant, OKRPeriod $okrPeriod, OKRPeriodData $okrPeriodData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->updateOKRPeriod($okrPeriod, $okrPeriodData);
+    }
+    public function cancelOKRPeriod(TeamProgramParticipation $teamParticipant, OKRPeriod $okrPeriod): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->cancelOKRPeriod($okrPeriod);
+    }
+    
+    public function submitObjectiveProgressReport(
+            TeamProgramParticipation $teamParticipant, Objective $objective, string $objectiveProgressReportId, 
+            ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        return $teamParticipant->submitObjectiveProgressReport(
+                $objective, $objectiveProgressReportId, $objectiveProgressReportData);
+    }
+    public function updateObjectiveProgressReport(
+            TeamProgramParticipation $teamParticipant, ObjectiveProgressReport $objectiveProgressReport, 
+            ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->updateObjectiveProgressReport($objectiveProgressReport, $objectiveProgressReportData);
+    }
+    public function cancelObjectiveProgressReportSubmission(
+            TeamProgramParticipation $teamParticipant, ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->assertActive();
+        $this->assertAssetBelongsToTeam($teamParticipant);
+        $teamParticipant->cancelObjectiveProgressReportSubmission($objectiveProgressReport);
     }
 
 }

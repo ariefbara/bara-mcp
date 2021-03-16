@@ -13,7 +13,7 @@ use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 class DoctrineClientRegistrantRepository extends EntityRepository implements ProgramRegistrationRepository, InterfaceForAuthorization
 {
 
-    public function all(string $firmId, string $clientId, int $page, int $pageSize)
+    public function all(string $firmId, string $clientId, int $page, int $pageSize, ?bool $concludedStatus = null)
     {
         $params = [
             'firmId' => $firmId,
@@ -27,6 +27,12 @@ class DoctrineClientRegistrantRepository extends EntityRepository implements Pro
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
+        
+        if (isset($concludedStatus)) {
+            $qb->leftJoin('programRegistration.registrant', 'registrant')
+                    ->andWhere($qb->expr()->eq('registrant.concluded', ':concludedStatus'))
+                    ->setParameter('concludedStatus', $concludedStatus);
+        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

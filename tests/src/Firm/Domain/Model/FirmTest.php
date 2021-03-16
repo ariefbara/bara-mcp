@@ -2,7 +2,10 @@
 
 namespace Firm\Domain\Model;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Domain\Model\Firm\BioForm;
 use Firm\Domain\Model\Firm\FirmFileInfo;
+use Firm\Domain\Model\Firm\ProfileForm;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use Tests\TestBase;
 
@@ -12,6 +15,7 @@ class FirmTest extends TestBase
     
     protected $firmFileInfoId = "firmFileInfoId", $fileInfoData;
     protected $firmFileInfo, $displaySetting = "new display setting";
+    protected $profileForm;
 
     protected function setUp(): void
     {
@@ -19,6 +23,8 @@ class FirmTest extends TestBase
         $this->firm = new TestableFirm();
         $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
         $this->fileInfoData->expects($this->any())->method("getName")->willReturn("filename.txt");
+        
+        $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
     }
     
     public function test_createFileInfo_returnFirmFileInfo()
@@ -44,6 +50,7 @@ class FirmTest extends TestBase
         $this->executeUpdateProfile();
         $this->assertNull($this->firm->logo);
     }
+    
 }
 
 class TestableFirm extends Firm

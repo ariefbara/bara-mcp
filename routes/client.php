@@ -10,6 +10,8 @@ $router->group($clientAggregate, function () use ($router) {
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
+    $router->get('/active-program-participation-summaries', ['uses' => "ActiveProgramParticipationSummaryController@showAll"]);
+    $router->get('/active-team-program-participation-summaries', ['uses' => "ActiveTeamProgramParticipationSummaryController@showAll"]);
     
     $router->group(['prefix' => '/create-team'], function () use($router) {
         $controller = "CreateTeamController";
@@ -38,6 +40,11 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("", ["uses" => "$controller@showAll"]);
     });
     
+    $router->group(['prefix' => '/active-team-program-registrations'], function () use($router) {
+        $controller = "ActiveTeamProgramRegistrationController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+    });
+    
     $router->group(['prefix' => '/program-participations'], function () use($router) {
         $controller = "ProgramParticipationController";
         $router->patch("/{programParticipationId}/quit", ["uses" => "$controller@quit"]);
@@ -51,13 +58,36 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/bio-forms'], function () use($router) {
+        $controller = "BioFormController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{bioFormId}", ["uses" => "$controller@show"]);
+    });
+    
+    $router->group(['prefix' => '/bios'], function () use($router) {
+        $controller = "ClientBioController";
+        $router->put("/{bioFormId}", ["uses" => "$controller@submit"]);
+        $router->delete("/{bioFormId}", ["uses" => "$controller@remove"]);
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{bioFormId}", ["uses" => "$controller@show"]);
+    });
+    
+    $router->group(['prefix' => '/{memberId}/team-member-activity-logs'], function () use($router) {
+        $controller = "TeamMemberActivityLogController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{id}", ["uses" => "$controller@show"]);
+    });
+    
     $programParticipationAggregate = [
         'prefix' => '/program-participations/{programParticipationId}',
         'namespace' => 'ProgramParticipation',
     ];
     $router->group($programParticipationAggregate, function () use ($router) {
         
-        $router->get('/activity-logs', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/summary', ['uses' => "SummaryController@show"]);
+        $router->get('/activity-logs/all', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);
+        $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
@@ -162,6 +192,18 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
+        $router->post('/okr-periods', ['uses' => "OKRPeriodController@create"]);
+        $router->get('/okr-periods', ['uses' => "OKRPeriodController@showAll"]);
+        $router->patch('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@update"]);
+        $router->delete('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@cancel"]);
+        $router->get('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@show"]);
+        
+        $router->post("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@submit"]);
+        $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAll"]);
+        $router->patch("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@update"]);
+        $router->delete("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@cancel"]);
+        $router->get("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@show"]);
         
     });
     
@@ -270,6 +312,7 @@ $router->group($clientAggregate, function () use ($router) {
     $router->group($asTeamMemberAggregate, function () use ($router) {
         
         $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
+        $router->get('/active-program-participation-summaries', ['uses' => "ActiveProgramParticipationSummaryController@showAll"]);
         
         $router->group(['prefix' => '/find-client-by-email'], function () use($router) {
             $controller = "FindClientByEmailController";
@@ -379,9 +422,13 @@ $router->group($clientAggregate, function () use ($router) {
         ];
         $router->group($teamProgramParticipationAggregate, function () use ($router) {
             
+            $router->get('/summary', ['uses' => "SummaryController@show"]);
+            
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";
-                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/all", ["uses" => "$controller@showAll"]);
+                $router->get("/self", ["uses" => "$controller@showAllSelfActivityLog"]);
+                $router->get("/shared", ["uses" => "$controller@showAllSharedActivityLog"]);
             });
             
             $router->group(['prefix' => '/missions'], function () use($router) {
@@ -494,6 +541,24 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->delete("/{programsProfileFormId}", ["uses" => "$controller@remove"]);
                 $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
                 $router->get("", ["uses" => "$controller@showAll"]);
+            });
+            
+            $router->group(['prefix' => '/okr-periods'], function () use($router) {
+                $controller = "OKRPeriodController";
+                $router->post("", ["uses" => "$controller@create"]);
+                $router->patch("/{okrPeriodId}", ["uses" => "$controller@update"]);
+                $router->delete("/{okrPeriodId}", ["uses" => "$controller@cancel"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+                $router->get("/{okrPeriodId}", ["uses" => "$controller@show"]);
+            });
+            
+            $router->post("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@submit"]);
+            $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAll"]);
+            $router->group(['prefix' => '/objective-progress-reports'], function () use($router) {
+                $controller = "ObjectiveProgressReportController";
+                $router->patch("/{objectiveProgressReportId}", ["uses" => "$controller@update"]);
+                $router->delete("/{objectiveProgressReportId}", ["uses" => "$controller@cancel"]);
+                $router->get("/{objectiveProgressReportId}", ["uses" => "$controller@show"]);
             });
         });
         

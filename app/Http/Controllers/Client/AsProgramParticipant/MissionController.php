@@ -48,6 +48,10 @@ class MissionController extends AsProgramParticipantBaseController
                 'description' => $mission['description'],
                 'position' => $mission['position'],
                 'submittedWorksheet' => $mission['submittedWorksheet'],
+                'worksheetForm' => [
+                    'id' => $mission['worksheetFormId'],
+                    'name' => $mission['worksheetFormName'],
+                ],
             ];
         }
         return $this->listQueryResponse($result);

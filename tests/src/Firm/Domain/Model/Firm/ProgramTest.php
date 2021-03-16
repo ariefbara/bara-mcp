@@ -11,6 +11,8 @@ use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Firm\Program\Registrant;
@@ -349,6 +351,25 @@ class ProgramTest extends TestBase
         $this->assertEquals($id, $this->executeAssignProfileForm());
     }
     
+    public function test_createRootMission_returnMission()
+    {
+        $worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
+        $missionData = $this->buildMockOfClass(MissionData::class);
+        $missionData->expects($this->any())->method('getName')->willReturn('mission name');
+        $mission = new Mission($this->program, $missionId = 'missionId', $worksheetForm, $missionData);
+        
+        $this->assertEquals($mission, $this->program->createRootMission($missionId, $worksheetForm, $missionData));
+    }
+    
+    public function test_isManageableByFirm_sameFirm_returnTrue()
+    {
+        $this->assertTrue($this->program->isManageableByFirm($this->firm));
+    }
+    public function test_isManageableByFirm_differentFirm_returnFalse()
+    {
+        $firm = $this->buildMockOfClass(Firm::class);
+        $this->assertFalse($this->program->isManageableByFirm($firm));
+    }
 }
 
 class TestableProgram extends Program

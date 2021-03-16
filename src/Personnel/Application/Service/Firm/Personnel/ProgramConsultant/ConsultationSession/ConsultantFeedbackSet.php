@@ -21,10 +21,10 @@ class ConsultantFeedbackSet
 
     public function execute(
             string $firmId, string $personnelId, string $programConsultantId, string $consultationSessionId,
-            FormRecordData $formRecordData): void
+            FormRecordData $formRecordData, ?int $participantRating): void
     {
         $this->consultationSessionRepository->ofId($firmId, $personnelId, $programConsultantId, $consultationSessionId)
-                ->setConsultantFeedback($formRecordData);
+                ->setConsultantFeedback($formRecordData, $participantRating);
         $this->consultationSessionRepository->update();
     }
 

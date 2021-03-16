@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective" 
+            table="Objective"
+    >
+        
+        <many-to-one  field="okrPeriod" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\OKRPeriod"
+                      inversed-by="objectives"
+        >
+            <join-column name="OKRPeriod_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="label" class="SharedContext\Domain\ValueObject\Label" use-column-prefix="false" />
+        <field name="weight" type="smallint" nullable="false" />
+        <field name="disabled" type="boolean" />
+        
+        <one-to-many  field="keyResults" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\KeyResult"
+                      mapped-by="objective"
+        />
+        
+        <one-to-many  field="objectiveProgressReports" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport"
+                      mapped-by="objective"
+        />
+        
+    </entity>
+</doctrine-mapping>

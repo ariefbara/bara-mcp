@@ -73,7 +73,7 @@ class WorksheetTest extends TestBase
     {
         $this->mailMessage->expects($this->once())
                 ->method("prependUrlPath")
-                ->with("/worksheets/{$this->worksheet->id}");
+                ->with("/worksheet/{$this->worksheet->id}");
         $this->executeRegisterParticipantAsMailRecipient();
     }
     public function test_registerParticipantAsMailRecipient_executeParticipantsRegisterMailRecipient()

@@ -24,5 +24,10 @@ class RecordOfForm implements Record
             "description" => $this->description,
         ];
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
+    {
+        $connection->table('Form')->insert($this->toArrayForDbEntry());
+    }
 
 }

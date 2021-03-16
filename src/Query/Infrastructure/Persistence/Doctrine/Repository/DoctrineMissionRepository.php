@@ -2,25 +2,20 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
 use PDO;
-use Query\ {
-    Application\Service\Firm\Program\MissionRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Mission,
-    Domain\Model\Firm\Team\Member,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Query\Application\Service\Firm\Program\MissionRepository;
+use Query\Application\Service\MissionRepository as InterfaceForGuest;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Mission;
+use Query\Domain\Model\Firm\Team\Member;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMissionRepository extends EntityRepository implements MissionRepository
+class DoctrineMissionRepository extends EntityRepository implements MissionRepository, InterfaceForGuest
 {
 
     public function ofId(string $firmId, string $programId, string $missionId): Mission
@@ -462,6 +457,34 @@ _STATEMENT;
             $errorDetail = "not found: mission not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function aPublishedMission(string $id): Mission
+    {
+        $mission = $this->findOneBy([
+            'id' => $id,
+            'published' => true,
+        ]);
+        if (empty($mission)) {
+            throw RegularException::notFound('not found: mission not found');
+        }
+        return $mission;
+    }
+
+    public function allPublishedMissionInProgram(string $programId)
+    {
+        $params = [
+            "programId" => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder("mission");
+        $qb->select("mission")
+                ->andWhere($qb->expr()->eq("mission.published", "true"))
+                ->leftJoin("mission.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params);
+        
+        return $qb->getQuery()->getResult();
     }
 
 }

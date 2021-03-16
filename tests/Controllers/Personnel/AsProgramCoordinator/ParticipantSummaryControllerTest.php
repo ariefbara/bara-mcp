@@ -3,24 +3,25 @@
 namespace Tests\Controllers\Personnel\AsProgramCoordinator;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Client\RecordOfClientParticipant,
-    Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue,
-    Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField,
-    Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport,
-    Firm\Program\Participant\RecordOfMetricAssignment,
-    Firm\Program\Participant\Worksheet\RecordOfCompletedMission,
-    Firm\Program\RecordOfMetric,
-    Firm\Program\RecordOfMission,
-    Firm\Program\RecordOfParticipant,
-    Firm\RecordOfClient,
-    Firm\RecordOfTeam,
-    Firm\RecordOfWorksheetForm,
-    Firm\Team\RecordOfTeamProgramParticipation,
-    RecordOfUser,
-    Shared\RecordOfForm,
-    User\RecordOfUserParticipant
-};
+use DateTimeImmutable;
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\ConsultationSession\RecordOfConsultantFeedback;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfWorksheetForm;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
+use Tests\Controllers\RecordPreparation\RecordOfUser;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\User\RecordOfUserParticipant;
 
 class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
 {
@@ -43,7 +44,14 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
     protected $completedMission_30;
     protected $completedMission_32;
     
-/**
+    protected $consultantFeedback_01;
+    protected $consultantFeedback_02;
+    protected $consultantFeedback_03;
+    protected $consultantFeedback_21;
+    protected $consultantFeedback_31;
+    protected $consultantFeedback_32;
+
+    /**
  * participant One has no metric assignment
  * participant two never submit assignment report
  */
@@ -78,7 +86,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
     protected $value_forFieldOne_assignmentReport33_331;
     protected $value_forFieldTwo_assignmentReport33_332;
     protected $value_forFieldThree_assignmentReport33_333;
-
+    
     protected function setUp(): void
     {
         parent::setUp();
@@ -100,6 +108,8 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("AssignmentField")->truncate();
         $this->connection->table("MetricAssignmentReport")->truncate();
         $this->connection->table("AssignmentFieldValue")->truncate();
+        $this->connection->table("ConsultationSession")->truncate();
+        $this->connection->table("ConsultantFeedback")->truncate();
         
         $program = $this->coordinator->program;
         $firm = $program->firm;
@@ -216,10 +226,10 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->assignmentReportOne_fromParticipant_01_approved->approved = true;
         $this->assignmentReportOne_fromParticipantThree_31_approved = new RecordOfMetricAssignmentReport($this->participantThreeMetricAssignment_3,"31");
         $this->assignmentReportOne_fromParticipantThree_31_approved->approved = true;
-        $this->assignmentReportOne_fromParticipantThree_31_approved->observationTime = (new \DateTimeImmutable("-14 days"))->format("Y-m-d H:i:s");
+        $this->assignmentReportOne_fromParticipantThree_31_approved->observationTime = (new DateTimeImmutable("-14 days"))->format("Y-m-d H:i:s");
         $this->assignmentReportTwo_fromParticipantThree_32_approved = new RecordOfMetricAssignmentReport($this->participantThreeMetricAssignment_3,"32");
         $this->assignmentReportTwo_fromParticipantThree_32_approved->approved = true;
-        $this->assignmentReportTwo_fromParticipantThree_32_approved->observationTime = (new \DateTimeImmutable("-7 days"))->format("Y-m-d H:i:s");
+        $this->assignmentReportTwo_fromParticipantThree_32_approved->observationTime = (new DateTimeImmutable("-7 days"))->format("Y-m-d H:i:s");
         $this->assignmentReportThree_fromParticipantThree_33_approved_removed = new RecordOfMetricAssignmentReport($this->participantThreeMetricAssignment_3,"33");
         $this->assignmentReportThree_fromParticipantThree_33_approved_removed->approved = true;
         $this->assignmentReportThree_fromParticipantThree_33_approved_removed->removed = true;
@@ -276,27 +286,61 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("AssignmentFieldValue")->insert($this->value_forFieldOne_assignmentReport33_331->toArrayForDbEntry());
         $this->connection->table("AssignmentFieldValue")->insert($this->value_forFieldTwo_assignmentReport33_332->toArrayForDbEntry());
         $this->connection->table("AssignmentFieldValue")->insert($this->value_forFieldThree_assignmentReport33_333->toArrayForDbEntry());
+        
+        $consultationSession_01 = new RecordOfConsultationSession(null, $this->participant_client, null, "01");
+        $consultationSession_02 = new RecordOfConsultationSession(null, $this->participant_client, null, "02");
+        $consultationSession_03 = new RecordOfConsultationSession(null, $this->participant_client, null, "03");
+        $consultationSession_21 = new RecordOfConsultationSession(null, $this->participantTwo_clientinactive, null, "21");
+        $consultationSession_31 = new RecordOfConsultationSession(null, $this->participantThree_user, null, "31");
+        $consultationSession_32 = new RecordOfConsultationSession(null, $this->participantThree_user, null, "32");
+        $this->connection->table("ConsultationSession")->insert($consultationSession_01->toArrayForDbEntry());
+        $this->connection->table("ConsultationSession")->insert($consultationSession_02->toArrayForDbEntry());
+        $this->connection->table("ConsultationSession")->insert($consultationSession_03->toArrayForDbEntry());
+        $this->connection->table("ConsultationSession")->insert($consultationSession_21->toArrayForDbEntry());
+        $this->connection->table("ConsultationSession")->insert($consultationSession_31->toArrayForDbEntry());
+        $this->connection->table("ConsultationSession")->insert($consultationSession_32->toArrayForDbEntry());
+        
+        $this->consultantFeedback_01 = new RecordOfConsultantFeedback($consultationSession_01, null, "01");
+        $this->consultantFeedback_01->participantRating = 2;
+        $this->consultantFeedback_02 = new RecordOfConsultantFeedback($consultationSession_02, null, "02");
+        $this->consultantFeedback_02->participantRating = 2;
+        $this->consultantFeedback_03 = new RecordOfConsultantFeedback($consultationSession_03, null, "03");
+        $this->consultantFeedback_03->participantRating = 5;
+        $this->consultantFeedback_21 = new RecordOfConsultantFeedback($consultationSession_21, null, "21");
+        $this->consultantFeedback_21->participantRating = 1;
+        $this->consultantFeedback_31 = new RecordOfConsultantFeedback($consultationSession_31, null, "31");
+        $this->consultantFeedback_31->participantRating = 3;
+        $this->consultantFeedback_32 = new RecordOfConsultantFeedback($consultationSession_32, null, "32");
+        $this->consultantFeedback_32->participantRating = 4;
+        $this->connection->table("ConsultantFeedback")->insert($this->consultantFeedback_01->toArrayForDbEntry());
+        $this->connection->table("ConsultantFeedback")->insert($this->consultantFeedback_02->toArrayForDbEntry());
+        $this->connection->table("ConsultantFeedback")->insert($this->consultantFeedback_03->toArrayForDbEntry());
+        $this->connection->table("ConsultantFeedback")->insert($this->consultantFeedback_21->toArrayForDbEntry());
+        $this->connection->table("ConsultantFeedback")->insert($this->consultantFeedback_31->toArrayForDbEntry());
+        $this->connection->table("ConsultantFeedback")->insert($this->consultantFeedback_32->toArrayForDbEntry());
     }
     
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table("Client")->truncate();
-//        $this->connection->table("User")->truncate();
-//        $this->connection->table("Team")->truncate();
-//        $this->connection->table("Form")->truncate();
-//        $this->connection->table("WorksheetForm")->truncate();
-//        $this->connection->table("Mission")->truncate();
-//        $this->connection->table("Participant")->truncate();
-//        $this->connection->table("ClientParticipant")->truncate();
-//        $this->connection->table("TeamParticipant")->truncate();
-//        $this->connection->table("UserParticipant")->truncate();
-//        $this->connection->table("CompletedMission")->truncate();
-//        $this->connection->table("Metric")->truncate();
-//        $this->connection->table("MetricAssignment")->truncate();
-//        $this->connection->table("AssignmentField")->truncate();
-//        $this->connection->table("MetricAssignmentReport")->truncate();
-//        $this->connection->table("AssignmentFieldValue")->truncate();
+        parent::tearDown();
+        $this->connection->table("Client")->truncate();
+        $this->connection->table("User")->truncate();
+        $this->connection->table("Team")->truncate();
+        $this->connection->table("Form")->truncate();
+        $this->connection->table("WorksheetForm")->truncate();
+        $this->connection->table("Mission")->truncate();
+        $this->connection->table("Participant")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
+        $this->connection->table("TeamParticipant")->truncate();
+        $this->connection->table("UserParticipant")->truncate();
+        $this->connection->table("CompletedMission")->truncate();
+        $this->connection->table("Metric")->truncate();
+        $this->connection->table("MetricAssignment")->truncate();
+        $this->connection->table("AssignmentField")->truncate();
+        $this->connection->table("MetricAssignmentReport")->truncate();
+        $this->connection->table("AssignmentFieldValue")->truncate();
+        $this->connection->table("ConsultationSession")->truncate();
+        $this->connection->table("ConsultantFeedback")->truncate();
     }
     
     public function test_showAll_200()
@@ -312,6 +356,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
             "lastCompletedTime" => $this->completedMission_01->completedTime,
             "lastMissionId" => $this->missionOne->id,
             "lastMissionName" => $this->missionOne->name,
+            "participantRating" => "3.0000",
         ];
         $participantOneResponse = [
             "id" => $this->participantOne_team->id,
@@ -321,6 +366,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
             "lastCompletedTime" => null,
             "lastMissionId" => null,
             "lastMissionName" => null,
+            "participantRating" => null,
         ];
         $participantThreeResponse = [
             "id" => $this->participantThree_user->id,
@@ -330,6 +376,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
             "lastCompletedTime" => $this->completedMission_30->completedTime,
             "lastMissionId" => $this->mission->id,
             "lastMissionName" => $this->mission->name,
+            "participantRating" => "3.5000",
         ];
         
         $this->get($this->participantSummaryUri, $this->coordinator->personnel->token)
@@ -353,6 +400,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
                     "lastCompletedTime" => null,
                     "lastMissionId" => null,
                     "lastMissionName" => null,
+                    "participantRating" => null,
                 ],
             ],
         ];

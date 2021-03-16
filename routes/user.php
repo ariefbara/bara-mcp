@@ -11,6 +11,7 @@ $router->group($userAggregate, function () use ($router) {
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
+    $router->get('/active-program-participation-summaries', ['uses' => "ActiveProgramParticipationSummaryController@showAll"]);
     
     $router->group(['prefix' => '/programs'], function () use($router) {
         $controller = "ProgramController";
@@ -121,7 +122,10 @@ $router->group($userAggregate, function () use ($router) {
     ];
     $router->group($programParticipationAggregate, function () use ($router) {
         
-        $router->get('/activity-logs', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/summary', ['uses' => "SummaryController@show"]);
+        $router->get('/activity-logs/all', ['uses' => "ActivityLogController@showAll"]);
+        $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);
+        $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
@@ -225,6 +229,18 @@ $router->group($userAggregate, function () use ($router) {
             $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
+        $router->post('/okr-periods', ['uses' => "OKRPeriodController@create"]);
+        $router->get('/okr-periods', ['uses' => "OKRPeriodController@showAll"]);
+        $router->patch('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@update"]);
+        $router->delete('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@cancel"]);
+        $router->get('/okr-periods/{okrPeriodId}', ['uses' => "OKRPeriodController@show"]);
+        
+        $router->post("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@submit"]);
+        $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAll"]);
+        $router->patch("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@update"]);
+        $router->delete("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@cancel"]);
+        $router->get("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@show"]);
         
     });
     

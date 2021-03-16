@@ -246,4 +246,26 @@ class ProgramRegistrationControllerTest extends ClientTestCase
             ->seeStatusCode(200)
             ->seeJsonContains($response);
     }
+    public function test_show_filterConcludedStatus()
+    {
+        $uri = $this->programRegistrationUri . '?concludedStatus=false';
+        $this->get($uri, $this->client->token)
+                ->seeStatusCode(200);
+        $response = [
+            "total" => 1, 
+            "list" => [
+                [
+                    "id" => $this->programRegistration->id,
+                    "program" => [
+                        "id" => $this->programRegistration->registrant->program->id,
+                        "name" => $this->programRegistration->registrant->program->name,
+                    ],
+                    "registeredTime" => $this->programRegistration->registrant->registeredTime,
+                    "concluded" => $this->programRegistration->registrant->concluded,
+                    "note" => $this->programRegistration->registrant->note,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
 }

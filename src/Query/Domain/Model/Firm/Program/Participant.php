@@ -4,23 +4,26 @@ namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Query\Domain\ {
-    Event\LearningMaterialViewedByParticipantEvent,
-    Model\Firm\Client\ClientParticipant,
-    Model\Firm\Program,
-    Model\Firm\Program\Mission\LearningMaterial,
-    Model\Firm\Program\Participant\Evaluation,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Model\Firm\Program\Participant\Worksheet,
-    Model\Firm\Team\TeamProgramParticipation,
-    Model\User\UserParticipant,
-    Service\Firm\Program\Participant\WorksheetFinder,
-    Service\LearningMaterialFinder
-};
-use Resources\ {
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException
-};
+use Doctrine\Common\Collections\Criteria;
+use Query\Application\Service\Participant\ActivityLogRepository;
+use Query\Application\Service\TeamMember\OKRPeriodRepository;
+use Query\Domain\Event\LearningMaterialViewedByParticipantEvent;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant\Evaluation;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
+use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\ObjectiveProgressReportFinder;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
 
 class Participant extends EntityContainEvents
 {
@@ -193,10 +196,44 @@ class Participant extends EntityContainEvents
     
     public function getLastEvaluation(): ?Evaluation
     {
-        $criteria = \Doctrine\Common\Collections\Criteria::create()
+        $criteria = Criteria::create()
                 ->orderBy(["submitTime" => "DESC"]);
         $evaluation = $this->evaluations->matching($criteria)->first();
         return empty($evaluation)? null: $evaluation;
+    }
+    
+    public function viewSummary(DataFinder $dataFinder): array
+    {
+        return $dataFinder->summaryOfParticipant($this->id);
+    }
+    
+    public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
+    {
+        return $okrPeriodRepository->anOKRPeriodBelongsToParticipant($this->id, $okrPeriodId);
+    }
+    public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
+    {
+        return $okrPeriodRepository->allOKRPeriodsBelongsToParticipant($this->id, $page, $pageSize);
+    }
+    
+    public function viewObjectiveProgressReport(ObjectiveProgressReportFinder $finder, string $objectiveProgressReportId): ObjectiveProgressReport
+    {
+        return $finder->findObjectiveProgressReportBelongsToParticipant($this->id, $objectiveProgressReportId);
+    }
+    public function viewAllObjectiveProgressReportsInObjective(
+            ObjectiveProgressReportFinder $finder, string $objectiveId, int $page, int $pageSize)
+    {
+        return $finder->findAllObjectiveProgressReportInObjectiveBelongsToParticipant(
+                $this->id, $objectiveId, $page, $pageSize);
+    }
+    
+    public function viewSelfActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $activityLogRepository->allParticipantActivityLogs($this->id, $page, $pageSize);
+    }
+    public function viewSharedActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $activityLogRepository->allSharedActivityLog($this->id, $page, $pageSize);
     }
 
 }

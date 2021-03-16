@@ -22,6 +22,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/{managerId}", ["uses" => "$controller@show"]);
     });
     
+    $router->group(['prefix' => '/client-bios'], function () use($router) {
+        $controller = "ClientBioController";
+        $router->get("/{clientId}", ["uses" => "$controller@showAll"]);
+        $router->get("/{clientId}/{bioFormId}", ["uses" => "$controller@show"]);
+    });
+    
     $router->get("/team/{teamId}/members", ["uses" => "TeamMemberController@showAll"]);
     $router->get("team-members/{teamMemberId}", ["uses" => "TeamMemberController@show"]);
     
@@ -142,6 +148,12 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{activityId}", ["uses" => "$controller@show"]);
         });
         
+        $router->group(['prefix' => '/missions'], function () use($router) {
+            $controller = "MissionController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{missionId}", ["uses" => "$controller@show"]);
+        });
+        
         $router->get("/activities/{activityId}/activity-reports", ["uses" => "ActivityReportController@showAllReportsInActivity"]);
         $router->get("/activity-reports/{activityReportId}", ["uses" => "ActivityReportController@show"]);
         
@@ -150,6 +162,16 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->get("/participants/{participantId}/participant-profiles", ["uses" => "ParticipantProfileController@showAll"]);
         $router->get("/participant-profiles/{participantProfileId}", ["uses" => "ParticipantProfileController@show"]);
+        
+        $router->patch("/okr-periods/{okrPeriodId}/approve", ["uses" => "OKRPeriodController@approve"]);
+        $router->patch("/okr-periods/{okrPeriodId}/reject", ["uses" => "OKRPeriodController@reject"]);
+        $router->get("/okr-periods/{okrPeriodId}", ["uses" => "OKRPeriodController@show"]);
+        $router->get("/participants/{participantId}/okr-periods", ["uses" => "OKRPeriodController@showAllBelongsToParticipant"]);
+        
+        $router->patch("/objective-progress-reports/{objectiveProgressReportId}/approve", ["uses" => "ObjectiveProgressReportController@approve"]);
+        $router->patch("/objective-progress-reports/{objectiveProgressReportId}/reject", ["uses" => "ObjectiveProgressReportController@reject"]);
+        $router->get("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@show"]);
+        $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAllInObjective"]);
         
     });
     
@@ -208,6 +230,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->group(['prefix' => '/meetings'], function () use($router) {
             $controller = "MeetingController";
             $router->post("", ["uses" => "$controller@initiate"]);
+        });
+        
+        $router->group(['prefix' => '/missions'], function () use($router) {
+            $controller = "MissionController";
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{missionId}", ["uses" => "$controller@show"]);
         });
         
         $router->get("/participant/{participantId}/metric-assignment-reports", ["uses" => "MetricAssignmentReportController@showAll"]);

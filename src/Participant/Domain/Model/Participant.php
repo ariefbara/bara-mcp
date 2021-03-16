@@ -17,8 +17,14 @@ use Participant\Domain\Model\Participant\CompletedMission;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\ManageableByParticipant;
 use Participant\Domain\Model\Participant\MetricAssignment;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
+use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
@@ -102,10 +108,28 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      * @var ArrayCollection
      */
     protected $profiles;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $okrPeriods;
 
     protected function __construct()
     {
         
+    }
+    function assertActive(): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active program participant can make this request');
+        }
+    }
+    protected function assertAssetIsManageable(ManageableByParticipant $asset, string $assetName): void
+    {
+        if (!$asset->isManageableByParticipant($this)) {
+            throw RegularException::forbidden("forbidden: unable to manage $assetName");
+        }
     }
 
     public function belongsToTeam(Team $team): bool
@@ -286,14 +310,6 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         }
     }
 
-    public function assertActive(): void
-    {
-        if (!$this->active) {
-            $errorDetail = "forbidden: only active program participant can make this request";
-            throw RegularException::forbidden($errorDetail);
-        }
-    }
-    
     public function submitProfile(ProgramsProfileForm $programsProfileForm, FormRecordData $formRecordData): void
     {
         $this->assertActive();
@@ -322,6 +338,58 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             throw RegularException::forbidden($errorDetail);
         }
         $participantProfile->remove();
+    }
+    
+    protected function assertNoExistingOKRPeriodInConflictWith(OKRPeriod $okrPeriod): void
+    {
+        $p = function (OKRPeriod $existingOKRPeriod) use ($okrPeriod) {
+            return $existingOKRPeriod->inConflictWith($okrPeriod);
+        };
+        if (!empty($this->okrPeriods->filter($p)->count())) {
+            throw RegularException::conflict('conflict: okr period in conflict with existing okr period');
+        }
+    }
+    public function createOKRPeriod(string $okrPeriodId, OKRPeriodData $okrPeriodData): OKRPeriod
+    {
+        $this->assertActive();
+        $okrPeriod = new OKRPeriod($this, $okrPeriodId, $okrPeriodData);
+        $this->assertNoExistingOKRPeriodInConflictWith($okrPeriod);
+        return $okrPeriod;
+    }
+    public function updateOKRPeriod(OKRPeriod $okrPeriod, OKRPeriodData $okrPeriodData): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($okrPeriod, 'okr period');
+        $okrPeriod->update($okrPeriodData);
+        $this->assertNoExistingOKRPeriodInConflictWith($okrPeriod);
+    }
+    public function cancelOKRPeriod(OKRPeriod $okrPeriod): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($okrPeriod, 'okr period');
+        $okrPeriod->cancel();
+    }
+    
+    public function submitObjectiveProgressReport(
+            Objective $objective, string $objectiveProgressReportId, 
+            ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($objective, 'objective');
+        return $objective->submitReport($objectiveProgressReportId, $objectiveProgressReportData);
+    }
+    public function updateObjectiveProgressReport(
+            ObjectiveProgressReport $objectiveProgressReport, ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($objectiveProgressReport, 'objective progress report');
+        $objectiveProgressReport->update($objectiveProgressReportData);
+    }
+    public function cancelObjectiveProgressReportSubmission(ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->assertActive();
+        $this->assertAssetIsManageable($objectiveProgressReport, 'objective progress report');
+        $objectiveProgressReport->cancel();
     }
 
 }

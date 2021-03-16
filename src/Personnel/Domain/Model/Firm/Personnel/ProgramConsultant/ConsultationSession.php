@@ -98,18 +98,18 @@ class ConsultationSession extends EntityContainEvents
         return !$this->cancelled && $consultationRequest->scheduleIntersectWith($this->startEndTime);
     }
 
-    public function setConsultantFeedback(FormRecordData $formRecordData): void
+    public function setConsultantFeedback(FormRecordData $formRecordData, ?int $participantRating): void
     {
         if ($this->cancelled) {
             $errorDetail = "forbidden: unable to submit report on cancelled session";
             throw RegularException::forbidden($errorDetail);
         }
         if (!empty($this->consultantFeedback)) {
-            $this->consultantFeedback->update($formRecordData);
+            $this->consultantFeedback->update($formRecordData, $participantRating);
         } else {
             $id = Uuid::generateUuid4();
             $formRecord = $this->consultationSetup->createFormRecordForConsultantFeedback($id, $formRecordData);
-            $this->consultantFeedback = new ConsultantFeedback($this, $id, $formRecord);
+            $this->consultantFeedback = new ConsultantFeedback($this, $id, $formRecord, $participantRating);
         }
         
         $this->logActivity("consultant report submitted");

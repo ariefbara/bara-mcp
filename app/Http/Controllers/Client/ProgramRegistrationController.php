@@ -50,7 +50,9 @@ class ProgramRegistrationController extends ClientBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $programRegistrations = $service->showAll($this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize());
+        $concludedStatus = $this->filterBooleanOfQueryRequest('concludedStatus');
+        $programRegistrations = $service->showAll(
+                $this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize(), $concludedStatus);
 
         $result = [];
         $result['total'] = count($programRegistrations);

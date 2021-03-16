@@ -2,20 +2,18 @@
 
 namespace Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\Worksheet;
 
-use Participant\Application\Service\{
-    Firm\Client\TeamMembershipRepository,
-    Participant\Worksheet\CommentRepository,
-    Participant\WorksheetRepository
-};
+use Participant\Application\Service\Firm\Client\TeamMembershipRepository;
+use Participant\Application\Service\Participant\Worksheet\CommentRepository;
+use Participant\Application\Service\Participant\WorksheetRepository;
 
 class SubmitNewComment
 {
 
     /**
      *
-     * @var CommentRepository
+     * @var MemberCommentRepository
      */
-    protected $commentRepository;
+    protected $memberCommentRepository;
 
     /**
      *
@@ -29,10 +27,10 @@ class SubmitNewComment
      */
     protected $teamMembershipRepository;
 
-    public function __construct(CommentRepository $commentRepository, WorksheetRepository $worksheetRepository,
-            TeamMembershipRepository $teamMembershipRepository)
+    public function __construct(MemberCommentRepository $memberCommentRepository,
+            WorksheetRepository $worksheetRepository, TeamMembershipRepository $teamMembershipRepository)
     {
-        $this->commentRepository = $commentRepository;
+        $this->memberCommentRepository = $memberCommentRepository;
         $this->worksheetRepository = $worksheetRepository;
         $this->teamMembershipRepository = $teamMembershipRepository;
     }
@@ -43,12 +41,12 @@ class SubmitNewComment
     {
         $worksheet = $this->worksheetRepository
                 ->aWorksheetBelongsToTeamParticipant($teamProgramParticipationId, $worksheetId);
-        $id = $this->commentRepository->nextIdentity();
+        $id = $this->memberCommentRepository->nextIdentity();
 
         $comment = $this->teamMembershipRepository
                 ->aTeamMembershipCorrespondWithTeam($firmId, $clientId, $teamMembershipId)
                 ->submitNewCommentInWorksheet($worksheet, $id, $message);
-        $this->commentRepository->add($comment);
+        $this->memberCommentRepository->add($comment);
 
         return $id;
     }

@@ -2,14 +2,18 @@
 
 namespace Query\Domain\Model\Firm\Client;
 
-use Query\Domain\ {
-    Model\Firm\Client,
-    Model\Firm\Program,
-    Model\Firm\Program\Mission\LearningMaterial,
-    Model\Firm\Program\Participant,
-    Model\Firm\Program\Participant\MetricAssignment,
-    Service\LearningMaterialFinder
-};
+use Query\Application\Service\Participant\ActivityLogRepository;
+use Query\Application\Service\Participant\OKRPeriodRepository;
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\ObjectiveProgressReportFinder;
 use Resources\Application\Event\ContainEvents;
 
 class ClientParticipant implements ContainEvents
@@ -81,6 +85,39 @@ class ClientParticipant implements ContainEvents
     public function pullRecordedEvents(): array
     {
         return $this->participant->pullRecordedEvents();
+    }
+    
+    public function viewSummary(DataFinder $dataFinder): array
+    {
+        return $this->participant->viewSummary($dataFinder);
+    }
+    
+    public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
+    {
+        return $this->participant->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
+    }
+    public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
+    {
+        return $this->participant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
+    }
+    
+    public function viewObjectiveProgressReport(ObjectiveProgressReportFinder $finder, string $objectiveProgressReportId): ObjectiveProgressReport
+    {
+        return $this->participant->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
+    }
+    public function viewAllObjectiveProgressReportsInObjective(
+            ObjectiveProgressReportFinder $finder, string $objectiveId, int $page, int $pageSize)
+    {
+        return $this->participant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
+    }
+    
+    public function viewSelfActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $this->participant->viewSelfActivityLogs($activityLogRepository, $page, $pageSize);
+    }
+    public function viewSharedActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
+    {
+        return $this->participant->viewSharedActivityLogs($activityLogRepository, $page, $pageSize);
     }
 
 }

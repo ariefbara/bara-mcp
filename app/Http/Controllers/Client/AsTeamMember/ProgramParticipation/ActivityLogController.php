@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
-use Query\ {
-    Application\Service\Firm\Team\ProgramParticipation\ViewActivityLog,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog,
-    Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog,
-    Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog,
-    Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog,
-    Domain\Model\Firm\Team\Member\TeamMemberActivityLog,
-    Domain\SharedModel\ActivityLog
-};
+use Query\Application\Service\Firm\Team\ProgramParticipation\ViewActivityLog;
+use Query\Application\Service\TeamMember\ViewProgramActivityLog;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest\ConsultationRequestActivityLog;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\ConsultationSessionActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\ViewLearningMaterialActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\Comment\CommentActivityLog;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet\WorksheetActivityLog;
+use Query\Domain\Model\Firm\Team\Member;
+use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
+use Query\Domain\SharedModel\ActivityLog;
 
 class ActivityLogController extends AsTeamMemberBaseController
 {
@@ -20,9 +20,37 @@ class ActivityLogController extends AsTeamMemberBaseController
     public function showAll($teamId, $teamProgramParticipationId)
     {
         $this->authorizeClientIsActiveTeamMember($teamId);
-        
+
         $service = $this->buildViewService();
         $activityLogs = $service->showAll($teamId, $teamProgramParticipationId, $this->getPage(), $this->getPageSize());
+
+        $result = [];
+        $result["total"] = count($activityLogs);
+        foreach ($activityLogs as $activityLog) {
+            $result["list"][] = $this->arrayDataOfActivityLog($activityLog);
+        }
+        return $this->listQueryResponse($result);
+    }
+
+    public function showAllSelfActivityLog($teamId, $teamProgramParticipationId)
+    {
+        $activityLogs = $this->buildViewProgramActivityLog()->showSelfActivityLogs(
+                $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $this->getPage(),
+                $this->getPageSize());
+        
+        $result = [];
+        $result["total"] = count($activityLogs);
+        foreach ($activityLogs as $activityLog) {
+            $result["list"][] = $this->arrayDataOfActivityLog($activityLog);
+        }
+        return $this->listQueryResponse($result);
+    }
+
+    public function showAllSharedActivityLog($teamId, $teamProgramParticipationId)
+    {
+        $activityLogs = $this->buildViewProgramActivityLog()->showSharedSelfActivityLogs(
+                $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $this->getPage(),
+                $this->getPageSize());
         
         $result = [];
         $result["total"] = count($activityLogs);
@@ -46,10 +74,10 @@ class ActivityLogController extends AsTeamMemberBaseController
             "learningMaterial" => $this->arrayDataOfLearningMaterial($activityLog->getViewLearningMaterialActivityLog()),
         ];
     }
-    
+
     protected function arrayDataOfTeamMember(?TeamMemberActivityLog $teamMemberActivityLog): ?array
     {
-        return empty($teamMemberActivityLog)? null: [
+        return empty($teamMemberActivityLog) ? null : [
             "id" => $teamMemberActivityLog->getMember()->getId(),
             "client" => [
                 "id" => $teamMemberActivityLog->getMember()->getClient()->getId(),
@@ -73,9 +101,10 @@ class ActivityLogController extends AsTeamMemberBaseController
             ],
         ];
     }
+
     protected function arrayDataOfConsultationSession(?ConsultationSessionActivityLog $consultationSessionActivityLog): ?array
     {
-        return empty($consultationSessionActivityLog)? null: [
+        return empty($consultationSessionActivityLog) ? null : [
             "id" => $consultationSessionActivityLog->getConsultationSession()->getId(),
             "startTime" => $consultationSessionActivityLog->getConsultationSession()->getStartTime(),
             "endTime" => $consultationSessionActivityLog->getConsultationSession()->getEndTime(),
@@ -88,22 +117,23 @@ class ActivityLogController extends AsTeamMemberBaseController
             ],
         ];
     }
+
     protected function arrayDataOfWorksheet(?WorksheetActivityLog $worksheetActivityLog): ?array
     {
-        return empty($worksheetActivityLog)? null: [
+        return empty($worksheetActivityLog) ? null : [
             "id" => $worksheetActivityLog->getWorksheet()->getId(),
             "name" => $worksheetActivityLog->getWorksheet()->getName(),
             "mission" => [
                 "id" => $worksheetActivityLog->getWorksheet()->getMission()->getId(),
                 "name" => $worksheetActivityLog->getWorksheet()->getMission()->getName(),
                 "position" => $worksheetActivityLog->getWorksheet()->getMission()->getPosition(),
-                
             ],
         ];
     }
+
     protected function arrayDataOfComment(?CommentActivityLog $commentActivityLog): ?array
     {
-        return empty($commentActivityLog)? null: [
+        return empty($commentActivityLog) ? null : [
             "id" => $commentActivityLog->getComment()->getId(),
             "worksheet" => [
                 "id" => $commentActivityLog->getComment()->getWorksheet()->getId(),
@@ -111,14 +141,15 @@ class ActivityLogController extends AsTeamMemberBaseController
             ],
         ];
     }
+
     protected function arrayDataOfLearningMaterial(?ViewLearningMaterialActivityLog $viewLearingMaterialActivityLog): ?array
     {
-        return empty($viewLearingMaterialActivityLog)? null: [
-           "id" => $viewLearingMaterialActivityLog->getLearningMaterial()->getId(),
-           "name" => $viewLearingMaterialActivityLog->getLearningMaterial()->getName(),
+        return empty($viewLearingMaterialActivityLog) ? null : [
+            "id" => $viewLearingMaterialActivityLog->getLearningMaterial()->getId(),
+            "name" => $viewLearingMaterialActivityLog->getLearningMaterial()->getName(),
             "mission" => [
-               "id" => $viewLearingMaterialActivityLog->getLearningMaterial()->getMission()->getId(),
-               "name" => $viewLearingMaterialActivityLog->getLearningMaterial()->getMission()->getName(),
+                "id" => $viewLearingMaterialActivityLog->getLearningMaterial()->getMission()->getId(),
+                "name" => $viewLearingMaterialActivityLog->getLearningMaterial()->getMission()->getName(),
             ],
         ];
     }
@@ -127,6 +158,13 @@ class ActivityLogController extends AsTeamMemberBaseController
     {
         $activityLogRepository = $this->em->getRepository(ActivityLog::class);
         return new ViewActivityLog($activityLogRepository);
+    }
+
+    protected function buildViewProgramActivityLog()
+    {
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $activityLogRepository = $this->em->getRepository(ActivityLog::class);
+        return new ViewProgramActivityLog($teamMemberRepository, $activityLogRepository);
     }
 
 }

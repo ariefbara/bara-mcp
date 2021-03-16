@@ -138,6 +138,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->worksheetResponse['mission'] = [
             "id" => $this->branchMission->id,
             "name" => $this->branchMission->name,
+            "position" => $this->branchMission->position,
             "worksheetForm" => [
                 "id" => $this->branchMission->worksheetForm->id,
                 "name" => $this->branchMission->worksheetForm->form->name,
@@ -309,6 +310,7 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->worksheetResponse['mission'] = [
             'id' => $this->worksheetOne->mission->id,
             'name' => $this->worksheetOne->mission->name,
+            'position' => $this->worksheetOne->mission->position,
             "worksheetForm" => [
                 'id' => $this->worksheetOne->mission->worksheetForm->id,
                 'name' => $this->worksheetOne->mission->worksheetForm->form->name,
@@ -352,6 +354,7 @@ class WorksheetControllerTest extends WorksheetTestCase
                     "mission" => [
                         "id" => $this->worksheet->mission->id,
                         "name" => $this->worksheet->mission->name,
+                        "position" => $this->worksheet->mission->position,
                     ],
                 ],
                 [
@@ -364,6 +367,7 @@ class WorksheetControllerTest extends WorksheetTestCase
                     "mission" => [
                         "id" => $this->worksheetOne->mission->id,
                         "name" => $this->worksheetOne->mission->name,
+                        "position" => $this->worksheetOne->mission->position,
                     ],
                 ],
             ],
@@ -390,6 +394,7 @@ class WorksheetControllerTest extends WorksheetTestCase
                     "mission" => [
                         "id" => $this->worksheet->mission->id,
                         "name" => $this->worksheet->mission->name,
+                        "position" => $this->worksheet->mission->position,
                     ],
                 ],
             ],
@@ -414,6 +419,7 @@ class WorksheetControllerTest extends WorksheetTestCase
                     "mission" => [
                         "id" => $this->worksheetOne->mission->id,
                         "name" => $this->worksheetOne->mission->name,
+                        "position" => $this->worksheetOne->mission->position,
                     ],
                 ],
             ],
@@ -438,6 +444,7 @@ class WorksheetControllerTest extends WorksheetTestCase
                     "mission" => [
                         "id" => $this->worksheetOne->mission->id,
                         "name" => $this->worksheetOne->mission->name,
+                        "position" => $this->worksheetOne->mission->position,
                     ],
                 ],
             ],

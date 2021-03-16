@@ -106,4 +106,9 @@ class DoctrineManagerRepository extends EntityRepository implements ManagerRepos
         }
     }
 
+    public function update(): void
+    {
+        $this->getEntityManager()->flush();
+    }
+
 }

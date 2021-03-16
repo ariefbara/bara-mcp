@@ -13,6 +13,11 @@ use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
+use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -36,6 +41,9 @@ class TeamProgramParticipationTest extends TestBase
     protected $metricAssignmentReportDataProvider, $fileInfo;
     protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime;
     protected $programsProfileForm, $profile;
+    protected $okrPeriod, $okrPeriodData;
+    protected $objective;
+    protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $objectiveProgressReport;
 
     protected function setUp(): void
     {
@@ -67,6 +75,13 @@ class TeamProgramParticipationTest extends TestBase
         
         $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
         $this->profile = $this->buildMockOfClass(ParticipantProfile::class);
+        
+        $this->okrPeriod = $this->buildMockOfClass(OKRPeriod::class);
+        $this->okrPeriodData = $this->buildMockOfClass(OKRPeriodData::class);
+        
+        $this->objective = $this->buildMockOfClass(Objective::class);
+        $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
+        $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
     }
     
     public function test_belongsToTeam_sameTeam_returnTrue()
@@ -203,6 +218,50 @@ class TeamProgramParticipationTest extends TestBase
                 ->method("removeProfile")
                 ->with($this->profile);
         $this->teamProgramParticipation->removeProfile($this->profile);
+    }
+    
+    public function test_createOKRPeriod_returnParticipantsCreateOKRPeriodResult()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('createOKRPeriod')
+                ->with($okrPeriodId = 'okrPeriodId', $this->okrPeriodData);
+        $this->teamProgramParticipation->createOKRPeriod($okrPeriodId, $this->okrPeriodData);
+    }
+    public function test_updateOKRPeriod_executeParticipantsUpdateOKRPeriod()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('updateOKRPeriod')
+                ->with($this->okrPeriod, $this->okrPeriodData);
+        $this->teamProgramParticipation->updateOKRPeriod($this->okrPeriod, $this->okrPeriodData);
+    }
+    public function test_cancelOKRPeriod_executeParticipantsDisableOKRPeriod()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('cancelOKRPeriod')
+                ->with($this->okrPeriod);
+        $this->teamProgramParticipation->cancelOKRPeriod($this->okrPeriod);
+    }
+    
+    public function test_submitObjectiveProgressReport_returnParticipantsSubmitObjectiveProgressReportResult()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('submitObjectiveProgressReport')
+                ->with($this->objective, $this->objectiveProgressReportId, $this->objectiveProgressReportData);
+        $this->teamProgramParticipation->submitObjectiveProgressReport($this->objective, $this->objectiveProgressReportId, $this->objectiveProgressReportData);
+    }
+    public function test_updateObjectiveProgressReport_executeParticipantsUpdateObjectiveProgressReport()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('updateObjectiveProgressReport')
+                ->with($this->objectiveProgressReport, $this->objectiveProgressReportData);
+        $this->teamProgramParticipation->updateObjectiveProgressReport($this->objectiveProgressReport, $this->objectiveProgressReportData);
+    }
+    public function test_cancelObjectiveProgressReportSubmission_executeParticipantCancelObjectiveProgressReportSubmission()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('cancelObjectiveProgressReportSubmission')
+                ->with($this->objectiveProgressReport);
+        $this->teamProgramParticipation->cancelObjectiveProgressReportSubmission($this->objectiveProgressReport);
     }
 }
 

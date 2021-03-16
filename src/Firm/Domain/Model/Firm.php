@@ -2,8 +2,12 @@
 
 namespace Firm\Domain\Model;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Domain\Model\Firm\BioForm;
 use Firm\Domain\Model\Firm\FirmFileInfo;
+use Firm\Domain\Model\Firm\ProfileForm;
 use Query\Domain\Model\FirmWhitelableInfo;
+use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 
 class Firm
@@ -63,7 +67,7 @@ class Firm
 
     public function createFileInfo(string $firmFileInfoId, FileInfoData $fileInfoData): FirmFileInfo
     {
-       return new FirmFileInfo($this, $firmFileInfoId, $fileInfoData); 
+        return new FirmFileInfo($this, $firmFileInfoId, $fileInfoData);
     }
 
     public function updateProfile(?FirmFileInfo $logo, ?string $displaySetting): void

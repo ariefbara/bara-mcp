@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Team\AsTeamMember\ProgramParticipation;
+namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use DateTimeImmutable;
 use Tests\Controllers\ {

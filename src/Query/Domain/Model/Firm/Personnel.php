@@ -177,7 +177,7 @@ class Personnel
         return $this->name->getFirstName();
     }
 
-    public function getLastName(): string
+    public function getLastName(): ?string
     {
         return $this->name->getLastName();
     }

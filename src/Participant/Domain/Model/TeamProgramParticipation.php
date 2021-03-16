@@ -14,6 +14,11 @@ use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
+use Participant\Domain\Model\Participant\OKRPeriod;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
+use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
@@ -130,6 +135,36 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
     public function removeProfile(ParticipantProfile $profile): void
     {
         $this->programParticipation->removeProfile($profile);
+    }
+    
+    public function createOKRPeriod(string $okrPeriodId, OKRPeriodData $okrPeriodData): OKRPeriod
+    {
+        return $this->programParticipation->createOKRPeriod($okrPeriodId, $okrPeriodData);
+    }
+    public function updateOKRPeriod(OKRPeriod $okrPeriod, OKRPeriodData $okrPeriodData): void
+    {
+        $this->programParticipation->updateOKRPeriod($okrPeriod, $okrPeriodData);
+    }
+    public function cancelOKRPeriod(OKRPeriod $okrPeriod): void
+    {
+        $this->programParticipation->cancelOKRPeriod($okrPeriod);
+    }
+    
+    public function submitObjectiveProgressReport(
+            Objective $objective, string $objectiveProgressReportId, 
+            ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
+    {
+        return $this->programParticipation->submitObjectiveProgressReport(
+                $objective, $objectiveProgressReportId, $objectiveProgressReportData);
+    }
+    public function updateObjectiveProgressReport(
+            ObjectiveProgressReport $objectiveProgressReport, ObjectiveProgressReportData $objectiveProgressReportData): void
+    {
+        $this->programParticipation->updateObjectiveProgressReport($objectiveProgressReport, $objectiveProgressReportData);
+    }
+    public function cancelObjectiveProgressReportSubmission(ObjectiveProgressReport $objectiveProgressReport): void
+    {
+        $this->programParticipation->cancelObjectiveProgressReportSubmission($objectiveProgressReport);
     }
 
 }

@@ -23,7 +23,7 @@ class ConsultationSessionTest extends TestBase
     protected $id = 'consultationSession-id', $startEndTime, $channel;
     protected $consultationSession;
     protected $consultationRequest;
-    protected $participantFeedback;
+    protected $participantFeedback, $mentorRating = 4;
     protected $formRecordData;
     protected $teamMember;
     protected $team;
@@ -126,7 +126,7 @@ class ConsultationSessionTest extends TestBase
 
     protected function executeSetParticipantFeedback()
     {
-        $this->consultationSession->setParticipantFeedback($this->formRecordData);
+        $this->consultationSession->setParticipantFeedback($this->formRecordData, $this->mentorRating);
     }
     public function test_setParticipantFeedback_setParticipantFeedback()
     {
@@ -138,7 +138,7 @@ class ConsultationSessionTest extends TestBase
         $this->consultationSession->participantFeedback = $this->participantFeedback;
         $this->participantFeedback->expects($this->once())
                 ->method('update')
-                ->with($this->formRecordData);
+                ->with($this->formRecordData, $this->mentorRating);
         $this->executeSetParticipantFeedback();
     }
     public function test_setParticipantFeedback_addActivityLog()

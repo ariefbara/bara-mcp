@@ -5,6 +5,7 @@ namespace Firm\Domain\Model\Firm;
 use Config\EventList;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program\ActivityType;
@@ -14,6 +15,8 @@ use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Firm\Program\Registrant;
@@ -26,7 +29,7 @@ use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
 
-class Program extends EntityContainEvents implements AssetBelongsToFirm
+class Program extends EntityContainEvents implements AssetBelongsToFirm, ManageableByFirm
 {
 
     /**
@@ -251,6 +254,16 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm
             $this->assignedProfileForms->add($assignedProfileForm);
         }
         return $assignedProfileForm->getId();
+    }
+    
+    public function createRootMission(string $missionId, WorksheetForm $worksheetForm, MissionData $missionData): Mission
+    {
+        return new Mission($this, $missionId, $worksheetForm, $missionData);
+    }
+
+    public function isManageableByFirm(Firm $firm): bool
+    {
+        return $this->firm === $firm;
     }
 
 }

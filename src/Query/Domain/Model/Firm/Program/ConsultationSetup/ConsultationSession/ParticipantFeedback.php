@@ -2,7 +2,7 @@
 
 namespace Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 
-use Query\Domain\Model\ {
+use Query\Domain\Model\{
     Firm\Program\ConsultationSetup\ConsultationSession,
     Shared\ContainFormRecordInterface,
     Shared\FormRecord
@@ -29,6 +29,12 @@ class ParticipantFeedback implements ContainFormRecordInterface
      */
     protected $formRecord;
 
+    /**
+     * 
+     * @var int|null
+     */
+    protected $mentorRating;
+
     function getConsultationSession(): ConsultationSession
     {
         return $this->consultationSession;
@@ -39,12 +45,17 @@ class ParticipantFeedback implements ContainFormRecordInterface
         return $this->id;
     }
 
-    protected function __construct()
+    public function getMentorRating(): ?int
     {
-        ;
+        return $this->mentorRating;
     }
 
-    public function getSubmitTimeString(): string
+    protected function __construct()
+    {
+        
+    }
+
+    public function getSubmitTimeString(): ?string
     {
         return $this->formRecord->getSubmitTimeString();
     }

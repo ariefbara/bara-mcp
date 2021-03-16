@@ -42,4 +42,9 @@ class RecordOfParticipant implements Record
     {
         $connection->table("Participant")->insert($this->toArrayForDbEntry());
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection)
+    {
+        $connection->table('Participant')->insert($this->toArrayForDbEntry());
+    }
 }

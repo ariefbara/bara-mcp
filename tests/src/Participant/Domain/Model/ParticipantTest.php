@@ -103,6 +103,7 @@ class ParticipantTest extends TestBase
         $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
         $this->profile = $this->buildMockOfClass(ParticipantProfile::class);
         $this->participant->profiles->add($this->profile);
+        
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -629,6 +630,7 @@ class TestableParticipant extends Participant
     public $metricAssignment;
     public $completedMissions;
     public $profiles;
+    public $okrPeriods;
 
     function __construct()
     {

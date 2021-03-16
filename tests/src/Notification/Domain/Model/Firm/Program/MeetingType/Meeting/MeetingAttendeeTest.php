@@ -155,18 +155,11 @@ class MeetingAttendeeTest extends TestBase
     {
         $this->meetingAttendee->registerAsMeetingMailRecipient($this->meeting, $this->mailMessage, $this->haltPrependUrlPath);
     }
-    public function test_registerAsMeetingMailRecipient_preventMailMessageUrlPath()
-    {
-        $this->mailMessage->expects($this->once())
-                ->method("prependUrlPath")
-                ->with("/invitations/{$this->meetingAttendee->id}");
-        $this->executeRegisterAsMeetingMailRecipient();
-    }
     public function test_registerAsMeetingMailRecipient_registerManagerAsMailRecipient()
     {
         $modifiedMailMessage = $this->buildMockOfClass(MailMessage::class);
         $this->mailMessage->expects($this->once())
-                ->method("prependUrlPath")
+                ->method("appendUrlPath")
                 ->willReturn($modifiedMailMessage);
         
         $this->managerAttendee->expects($this->once())

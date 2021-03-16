@@ -4,10 +4,10 @@ namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
 use Query\Domain\Model\Firm;
-use Resources\Domain\ValueObject\{
-    Password,
-    PersonName
-};
+use Query\Domain\Service\DataFinder;
+use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\PersonName;
+use Resources\Exception\RegularException;
 
 class Client
 {
@@ -93,9 +93,9 @@ class Client
         return $this->email;
     }
 
-    public function getSignupTime(): DateTimeImmutable
+    public function getSignupTimeString(): ?string
     {
-        return $this->signupTime;
+        return isset($this->signupTime)? $this->signupTime->format("Y-m-d H:i:s"): null;
     }
 
     public function isActivated(): bool
@@ -126,6 +126,19 @@ class Client
     public function passwordMatch(string $password): bool
     {
         return $this->password->match($password);
+    }
+    
+    protected function assertActive(): void
+    {
+        if (!$this->activated) {
+            throw RegularException::forbidden('forbidden: only active client can make this request');
+        }
+    }
+    
+    public function viewAllActiveProgramParticipationSummary(DataFinder $dataFinder, int $page, int $pageSize): array
+    {
+        $this->assertActive();
+        return $dataFinder->summaryOfAllClientProgramParticipations($this->id, $page, $pageSize);
     }
 
 }

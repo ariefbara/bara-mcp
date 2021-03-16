@@ -3,31 +3,34 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use DateTimeImmutable;
-use Query\ {
-    Domain\Event\LearningMaterialViewedByTeamMemberEvent,
-    Domain\Model\Firm\Client,
-    Domain\Model\Firm\Program,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
-    Domain\Model\Firm\Program\Mission\LearningMaterial,
-    Domain\Model\Firm\Program\Participant\Worksheet,
-    Domain\Model\Firm\Team,
-    Domain\Service\Firm\ClientFinder,
-    Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder,
-    Domain\Service\Firm\Program\Participant\ConsultationSessionFinder,
-    Domain\Service\Firm\Program\Participant\WorksheetFinder,
-    Domain\Service\Firm\ProgramFinder,
-    Domain\Service\Firm\Team\TeamFileInfoFinder,
-    Domain\Service\Firm\Team\TeamProgramParticipationFinder,
-    Domain\Service\Firm\Team\TeamProgramRegistrationFinder,
-    Domain\Service\LearningMaterialFinder,
-    Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2,
-    Infrastructure\QueryFilter\ConsultationRequestFilter,
-    Infrastructure\QueryFilter\ConsultationSessionFilter
-};
-use Resources\ {
-    Domain\Model\EntityContainEvents,
-    Exception\RegularException
-};
+use Query\Application\Service\Firm\Client\AsTeamMember\TeamMemberActivityLogRepository;
+use Query\Application\Service\TeamMember\ActivityLogRepository;
+use Query\Application\Service\TeamMember\OKRPeriodRepository;
+use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Team;
+use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
+use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\ClientFinder;
+use Query\Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder;
+use Query\Domain\Service\Firm\Program\Participant\ConsultationSessionFinder;
+use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
+use Query\Domain\Service\Firm\ProgramFinder;
+use Query\Domain\Service\Firm\Team\TeamFileInfoFinder;
+use Query\Domain\Service\Firm\Team\TeamProgramParticipationFinder;
+use Query\Domain\Service\Firm\Team\TeamProgramRegistrationFinder;
+use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\ObjectiveProgressReportFinder;
+use Query\Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
 
 class Member extends EntityContainEvents
 {
@@ -277,6 +280,80 @@ class Member extends EntityContainEvents
         }
         
         return $learningMaterial;
+    }
+    
+    public function viewSummaryOfProgramParticipation(TeamProgramParticipation $teamProgramParticipation, DataFinder $dataFinder): array
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamProgramParticipation);
+        return $teamProgramParticipation->viewSummary($dataFinder);
+    }
+    protected function assertTeamOwnedProgramParticipation(TeamProgramParticipation $teamProgramParticipation): void
+    {
+        if (! $teamProgramParticipation->teamEquals($this->team)) {
+            throw RegularException::forbidden('forbidden: can only manage asset of your team');
+        }
+    }
+    
+    public function viewAllActiveProgramParticipationSummary(DataFinder $dataFinder, int $page, int $pageSize): array
+    {
+        $this->assertActive();
+        return $dataFinder->summaryOfAllTeamProgramParticipations($this->team->getId(), $page, $pageSize);
+    }
+    
+    public function viewAllSelfActivityLogs(
+            TeamMemberActivityLogRepository $teamMemberActivityLogRepository, int $page, int $pageSize)
+    {
+        return $teamMemberActivityLogRepository->allActivityLogsOfTeamMember($this->id, $page, $pageSize);
+    }
+    
+    public function viewSelfActivityLog(
+            TeamMemberActivityLogRepository $teamMemberActivityLogRepository, string $teamMemberActivityLogId): TeamMemberActivityLog
+    {
+        return $teamMemberActivityLogRepository->anActivityLogOfTeamMember($this->id, $teamMemberActivityLogId);
+    }
+    
+    public function viewOKRPeriodOfTeamParticipant(
+            OKRPeriodRepository $okrPeriodRepository, TeamProgramParticipation $teamParticipant, $okrPeriodId): OKRPeriod
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
+    }
+    public function viewAllOKRPeriodsOfTeamParticipant(
+            OKRPeriodRepository $okrPeriodRepository, TeamProgramParticipation $teamParticipant, int $page, int $pageSize)
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
+    }
+    
+    public function viewObjectiveProgressReport(
+            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant, 
+            string $objectiveProgressReportId): OKRPeriod\Objective\ObjectiveProgressReport
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
+    }
+    public function viewAllObjectiveProgressReportInObjective(
+            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant, string $objectiveId, 
+            int $page, int $pageSize)
+    {
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
+    }
+    
+    public function viewAllSelfActivityLogsInProgram(
+            ActivityLogRepository $activityLogRepository, string $participantId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $activityLogRepository
+                ->allMemberActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page, $pageSize);
+    }
+    public function viewAllSharedActivityLogsInProgram(
+            ActivityLogRepository $activityLogRepositoyr, string $participantId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $activityLogRepositoyr
+                ->allTeamSharedActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page, $pageSize);
     }
 
 }

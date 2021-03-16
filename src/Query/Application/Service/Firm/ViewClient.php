@@ -24,9 +24,9 @@ class ViewClient
      * @param int $pageSize
      * @return Client[]
      */
-    public function showAll(string $firmId, int $page, int $pageSize)
+    public function showAll(string $firmId, int $page, int $pageSize, ?bool $activatedStatus)
     {
-        return $this->clientRepository->all($firmId, $page, $pageSize);
+        return $this->clientRepository->all($firmId, $page, $pageSize, $activatedStatus);
     }
     
     public function showById(string $firmId, string $clientId): Client
