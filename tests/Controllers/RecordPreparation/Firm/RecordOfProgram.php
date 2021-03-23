@@ -16,6 +16,7 @@ class RecordOfProgram implements Record
      */
     public $firm;
     public $id, $name, $description, $participantTypes, $published = true, $removed = false;
+    public $strictMissionOrder;
 
     public function __construct(?RecordOfFirm $firm, $index)
     {
@@ -23,6 +24,7 @@ class RecordOfProgram implements Record
         $this->id = "program-$index";
         $this->name = "program $index name";
         $this->description = "program $index description";
+        $this->strictMissionOrder = false;
         $this->participantTypes = ParticipantTypes::CLIENT_TYPE . "," . ParticipantTypes::USER_TYPE . "," . ParticipantTypes::TEAM_TYPE;
         $this->removed = false;
     }
@@ -34,6 +36,7 @@ class RecordOfProgram implements Record
             "id" => $this->id,
             "name" => $this->name,
             "description" => $this->description,
+            "strictMissionOrder" => $this->strictMissionOrder,
             "published" => $this->published,
             "participantTypes" => $this->participantTypes,
             "removed" => $this->removed,

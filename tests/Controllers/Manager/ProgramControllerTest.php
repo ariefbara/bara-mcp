@@ -10,6 +10,7 @@ class ProgramControllerTest extends ProgramTestCase
     protected $programInput = [
         "name" => "new program name",
         "description" => "new program description",
+        "strictMissionOrder" => true,
         "participantTypes" => [
             'client', 'user'
         ],
@@ -35,6 +36,7 @@ class ProgramControllerTest extends ProgramTestCase
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
             "participantTypes" => $this->programInput['participantTypes'],
+            "strictMissionOrder" => $this->programInput['strictMissionOrder'],
             "published" => false,
         ];
         $this->post($this->programUri, $this->programInput, $this->manager->token)
@@ -45,6 +47,7 @@ class ProgramControllerTest extends ProgramTestCase
             "Firm_id" => $this->firm->id,
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
+            "strictMissionOrder" => $this->programInput['strictMissionOrder'],
             "participantTypes" => "client,user",
             "published" => false,
             "removed" => false,
@@ -141,6 +144,7 @@ class ProgramControllerTest extends ProgramTestCase
             "id" => $this->program->id,
             "name" => $this->program->name,
             "description" => $this->program->description,
+            "strictMissionOrder" => $this->program->strictMissionOrder,
             "published" => $this->program->published,
         ];
         $uri = "{$this->programUri}/{$this->program->id}";

@@ -16,6 +16,11 @@
                   class="Query\Domain\Model\Firm\ParticipantTypes" 
                   use-column-prefix="false" />
         <field name="published" type="boolean" />
+        <field name="strictMissionOrder" type="boolean">
+            <options>
+                <option name="default">0</option>
+            </options>
+        </field>
         <field name="removed" type="boolean" />
         
     </entity>

@@ -67,6 +67,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var bool
      */
     protected $published = false;
+    
+    /**
+     * 
+     * @var bool
+     */
+    protected $strictMissionOrder;
 
     /**
      *
@@ -125,6 +131,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->setName($programData->getName());
         $this->setDescription($programData->getDescription());
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
+        $this->strictMissionOrder = $programData->isStrictMissionOrder();
         $this->published = false;
         $this->removed = false;
     }
@@ -139,6 +146,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->setName($programData->getName());
         $this->setDescription($programData->getDescription());
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
+        $this->strictMissionOrder = $programData->isStrictMissionOrder();
     }
 
     public function publish(): void

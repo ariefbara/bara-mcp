@@ -20,6 +20,7 @@
                   use-column-prefix="false" />
         
         <field name="published" type="boolean" />
+        <field name="strictMissionOrder" type="boolean" />
         <field name="removed" type="boolean" />
         
         <one-to-many  field="coordinators" 

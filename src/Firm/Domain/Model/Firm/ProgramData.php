@@ -18,6 +18,12 @@ class ProgramData
     protected $description;
 
     /**
+     * 
+     * @var bool|null
+     */
+    protected $strictMissionOrder;
+
+    /**
      *
      * @var array||null
      */
@@ -38,10 +44,16 @@ class ProgramData
         return $this->participantTypes;
     }
 
-    public function __construct(?string $name, ?string $description)
+    public function isStrictMissionOrder(): ?bool
+    {
+        return $this->strictMissionOrder;
+    }
+
+    public function __construct(?string $name, ?string $description, ?bool $strictMissionOrder)
     {
         $this->name = $name;
         $this->description = $description;
+        $this->strictMissionOrder = $strictMissionOrder;
         $this->participantTypes = [];
     }
 

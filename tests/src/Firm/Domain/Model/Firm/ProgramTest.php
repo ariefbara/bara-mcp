@@ -25,7 +25,7 @@ class ProgramTest extends TestBase
 {
     protected $program, $participantTypes;
     protected $firm;
-    protected $id = 'program-id', $name = 'new name', $description = 'new description', $types = ['user', 'client'];
+    protected $id = 'program-id', $name = 'new name', $description = 'new description', $strictMissionOrder = true, $types = ['user', 'client'];
     
     protected $consultant;
     protected $coordinator;
@@ -45,7 +45,7 @@ class ProgramTest extends TestBase
     {
         parent::setUp();
         $this->firm = $this->buildMockOfClass(Firm::class);
-        $programData = new ProgramData('name', 'description');
+        $programData = new ProgramData('name', 'description', false);
         $this->program = new TestableProgram($this->firm, 'id', $programData);
         $this->participantTypes = $this->buildMockOfClass(ParticipantTypes::class);
         $this->program->participantTypes = $this->participantTypes;
@@ -88,7 +88,7 @@ class ProgramTest extends TestBase
 
     protected function getProgramData()
     {
-        $programData = new ProgramData($this->name, $this->description);
+        $programData = new ProgramData($this->name, $this->description, $this->strictMissionOrder);
         foreach ($this->types as $type) {
             $programData->addParticipantType($type);
         }
@@ -106,6 +106,7 @@ class ProgramTest extends TestBase
         $this->assertEquals($this->id, $program->id);
         $this->assertEquals($this->name, $program->name);
         $this->assertEquals($this->description, $program->description);
+        $this->assertEquals($this->strictMissionOrder, $program->strictMissionOrder);
         $this->assertFalse($program->published);
         $this->assertFalse($program->removed);
         
@@ -141,6 +142,7 @@ class ProgramTest extends TestBase
         $this->executeUpdate();
         $this->assertEquals($this->name, $this->program->name);
         $this->assertEquals($this->description, $this->program->description);
+        $this->assertEquals($this->strictMissionOrder, $this->program->strictMissionOrder);
         
         $participantTypes = new ParticipantTypes($this->types);
         $this->assertEquals($participantTypes, $this->program->participantTypes);
@@ -376,6 +378,7 @@ class TestableProgram extends Program
 {
 
     public $firm, $id, $name, $description, $participantTypes, $published, $removed;
+    public $strictMissionOrder;
     public $consultants, $coordinators;
     public $participants, $registrants;
     public $recordedEvents;

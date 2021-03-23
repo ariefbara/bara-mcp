@@ -87,7 +87,8 @@ class ProgramController extends ManagerBaseController
     {
         $name = $this->stripTagsInputRequest('name');
         $description = $this->stripTagsInputRequest('description');
-        $programData = new ProgramData($name, $description);
+        $strictMissionOrder = $this->filterBooleanOfInputRequest('strictMissionOrder');
+        $programData = new ProgramData($name, $description, $strictMissionOrder);
         
         foreach ($this->request->input('participantTypes') as $participantType) {
             $programData->addParticipantType($this->stripTagsVariable($participantType));
@@ -102,6 +103,7 @@ class ProgramController extends ManagerBaseController
             "name" => $program->getName(),
             "description" => $program->getDescription(),
             "participantTypes" => $program->getParticipantTypeValues(),
+            "strictMissionOrder" => $program->isStrictMissionOrder(),
             "published" => $program->isPublished(),
         ];
     }

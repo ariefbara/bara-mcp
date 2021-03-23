@@ -30,7 +30,7 @@ class Program
      * @var string||null
      */
     protected $description = null;
-    
+
     /**
      *
      * @var ParticipantTypes
@@ -42,6 +42,12 @@ class Program
      * @var bool
      */
     protected $published = false;
+
+    /**
+     * 
+     * @var bool
+     */
+    protected $strictMissionOrder;
 
     /**
      *
@@ -74,6 +80,11 @@ class Program
         return $this->published;
     }
 
+    public function isStrictMissionOrder(): bool
+    {
+        return $this->strictMissionOrder;
+    }
+
     function isRemoved(): bool
     {
         return $this->removed;
@@ -81,8 +92,9 @@ class Program
 
     protected function __construct()
     {
+        
     }
-    
+
     public function getParticipantTypeValues(): array
     {
         return $this->participantTypes->getValues();
