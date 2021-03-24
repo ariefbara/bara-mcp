@@ -173,6 +173,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@show"]);
         $router->get("/objectives/{objectiveId}/objective-progress-reports", ["uses" => "ObjectiveProgressReportController@showAllInObjective"]);
         
+        $router->post("/participants/{participantId}/dedicated-mentors", ["uses" => "DedicatedMentorController@assign"]);
+        $router->get("/participants/{participantId}/dedicated-mentors", ["uses" => "DedicatedMentorController@showAllBelongsToParticipant"]);
+        $router->get("/consultants/{consultantId}/dedicated-mentors", ["uses" => "DedicatedMentorController@showAllBelongsToConsultant"]);
+        $router->delete("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@cancel"]);
+        $router->get("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@show"]);
+        
     });
     
     $asProgramConsultantAggregate = [
@@ -319,6 +325,9 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{invitationId}", ["uses" => "$controller@show"]);
         });
+        
+        $router->get("/dedicated-mentors", ["uses" => "DedicatedMentorController@showAll"]);
+        $router->get("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@show"]);
         
     });
     

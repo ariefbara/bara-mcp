@@ -4,6 +4,7 @@ namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
 use DateTime;
 use Illuminate\Database\Connection;
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Record;
 use Tests\Controllers\RecordPreparation\RecordOfFirm;
@@ -43,7 +44,7 @@ class RecordOfParticipant implements Record
         $connection->table("Participant")->insert($this->toArrayForDbEntry());
     }
     
-    public function insert(\Illuminate\Database\ConnectionInterface $connection)
+    public function insert(ConnectionInterface $connection)
     {
         $connection->table('Participant')->insert($this->toArrayForDbEntry());
     }

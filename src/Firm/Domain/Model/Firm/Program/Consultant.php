@@ -16,7 +16,7 @@ use Firm\Domain\Model\{
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
-class Consultant implements CanAttendMeeting, AssetBelongsToFirm
+class Consultant implements CanAttendMeeting, AssetBelongsToFirm, AssetInProgram
 {
 
     /**
@@ -86,6 +86,10 @@ class Consultant implements CanAttendMeeting, AssetBelongsToFirm
         $this->id = $id;
         $this->personnel = $personnel;
         $this->active = true;
+    }
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->program === $program;
     }
 
     public function enable(): void

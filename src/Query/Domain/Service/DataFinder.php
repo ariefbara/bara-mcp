@@ -113,6 +113,7 @@ _STATEMENT;
 SELECT 
     _a.programId,
     _a.programName,
+    _a.programStrictMissionOrder,
     _b.participantId, 
     _b.participantRating,
     _b.totalCompletedMission,
@@ -125,7 +126,7 @@ SELECT
     _b.totalAssignedMetric,
     _b.reportId
 FROM (
-    SELECT Program.id programId, Program.name programName, Participant.id participantId
+    SELECT Program.id programId, Program.name programName, Program.strictMissionOrder programStrictMissionOrder, Participant.id participantId
     FROM ClientParticipant
     LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
     LEFT JOIN Participant ON Participant.id = ClientParticipant.Participant_id
@@ -237,6 +238,7 @@ _STATEMENT;
 SELECT 
     _a.programId,
     _a.programName,
+    _a.programStrictMissionOrder,
     _b.participantId, 
     _b.participantRating,
     _b.totalCompletedMission,
@@ -249,7 +251,7 @@ SELECT
     _b.totalAssignedMetric,
     _b.reportId
 FROM (
-    SELECT Program.id programId, Program.name programName, Participant.id participantId
+    SELECT Program.id programId, Program.name programName, Program.strictMissionOrder programStrictMissionOrder, Participant.id participantId
     FROM UserParticipant
     LEFT JOIN User ON User.id = UserParticipant.User_id
     LEFT JOIN Participant ON Participant.id = UserParticipant.Participant_id
@@ -361,6 +363,7 @@ _STATEMENT;
 SELECT 
     _a.programId,
     _a.programName,
+    _a.programStrictMissionOrder,
     _b.participantId, 
     _b.participantRating,
     _b.totalCompletedMission,
@@ -373,7 +376,7 @@ SELECT
     _b.totalAssignedMetric,
     _b.reportId
 FROM (
-    SELECT Program.id programId, Program.name programName, Participant.id participantId
+    SELECT Program.id programId, Program.name programName, Program.strictMissionOrder programStrictMissionOrder, Participant.id participantId
     FROM TeamParticipant
     LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
     LEFT JOIN Participant ON Participant.id = TeamParticipant.Participant_id

@@ -10,6 +10,7 @@ use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
@@ -43,6 +44,8 @@ class ParticipantTest extends TestBase
     protected $evaluation;
     protected $evaluationPlan, $coordinator, $evaluationData;
     protected $programsProfileForm, $formRecord;
+    protected $consultant;
+    protected $dedicatedMentor;
 
     protected function setUp(): void
     {
@@ -53,6 +56,7 @@ class ParticipantTest extends TestBase
         $this->participant->consultationRequests = new ArrayCollection();
         $this->participant->consultationSessions = new ArrayCollection();
         $this->participant->meetingInvitations = new ArrayCollection();
+        $this->participant->dedicatedMentors = new ArrayCollection();
         
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $this->participant->consultationRequests->add($this->consultationRequest);
@@ -60,6 +64,8 @@ class ParticipantTest extends TestBase
         $this->participant->consultationSessions->add($this->consultationSession);
         $this->invitation = $this->buildMockOfClass(ParticipantAttendee::class);
         $this->participant->meetingInvitations->add($this->invitation);
+        $this->dedicatedMentor = $this->buildMockOfClass(DedicatedMentor::class);
+        $this->participant->dedicatedMentors->add($this->dedicatedMentor);
         
         $this->participant->evaluations = new ArrayCollection();
         
@@ -98,6 +104,12 @@ class ParticipantTest extends TestBase
         
         $this->programsProfileForm = $this->buildMockOfClass(ProgramsProfileForm::class);
         $this->formRecord = $this->buildMockOfClass(FormRecord::class);
+        
+        $this->consultant = $this->buildMockOfClass(Consultant::class);
+    }
+    protected function assertInactiveParticipant(callable $operation): void
+    {
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', 'forbidden: inactive partiicpant');
     }
 
     public function test_participantForUser_setProperties()
@@ -413,6 +425,53 @@ class ParticipantTest extends TestBase
         $this->participant->addProfile($this->programsProfileForm, $this->formRecord);
         $this->assertEquals($profile, $this->participant->profiles->first());
     }
+    
+    protected function executeDedicateMentor()
+    {
+        return $this->participant->dedicateMentor($this->consultant);
+    }
+    public function test_dedicateMentor_addDedicatedMentorToCollection()
+    {
+        $this->executeDedicateMentor();
+        $this->assertEquals(2, $this->participant->dedicatedMentors->count());
+        $this->assertInstanceOf(DedicatedMentor::class, $this->participant->dedicatedMentors->last());
+    }
+    public function test_dedicateMentor_consultantAlreadyParticipantDedicatedMentor_reassignExistingDedicatedMentor()
+    {
+        $this->dedicatedMentor->expects($this->once())
+                ->method('consultantEquals')
+                ->with($this->consultant)
+                ->willReturn(true);
+        $this->dedicatedMentor->expects($this->once())
+                ->method('reassign');
+        $this->executeDedicateMentor();
+    }
+    public function test_dedicateMentor_alreadyADedicatedMentor_preventAddNewDedicatedMentorToCollection()
+    {
+        $this->dedicatedMentor->expects($this->once())
+                ->method('consultantEquals')
+                ->with($this->consultant)
+                ->willReturn(true);
+        $this->executeDedicateMentor();
+        $this->assertEquals(1, $this->participant->dedicatedMentors->count());
+    }
+    public function test_dedicatementor_returnDedicatedMentorId()
+    {
+        $this->dedicatedMentor->expects($this->once())
+                ->method('consultantEquals')
+                ->with($this->consultant)
+                ->willReturn(true);
+        $this->dedicatedMentor->expects($this->once())->method('getId')
+                ->willReturn($dedicatedMentorId = 'dedicatedMentorId');
+        $this->assertEquals($dedicatedMentorId, $this->executeDedicateMentor());
+    }
+    public function test_dedicateMentor_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertInactiveParticipant(function (){
+            $this->executeDedicateMentor();
+        });
+    }
 }
 
 class TestableParticipant extends Participant
@@ -432,6 +491,7 @@ class TestableParticipant extends Participant
     public $meetingInvitations;
     public $consultationRequests;
     public $consultationSessions;
+    public $dedicatedMentors;
 
     public function __construct(Program $program, string $id)
     {

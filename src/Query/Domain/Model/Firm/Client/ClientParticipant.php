@@ -119,5 +119,15 @@ class ClientParticipant implements ContainEvents
     {
         return $this->participant->viewSharedActivityLogs($activityLogRepository, $page, $pageSize);
     }
+    
+    public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
+    {
+        return $this->participant->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
+    }
+    public function viewAllDedicatedMentors(
+            DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
+    {
+        return $this->participant->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
+    }
 
 }

@@ -6,6 +6,7 @@ use Query\Application\Service\Coordinator\ObjectiveProgressReportRepository;
 use Query\Application\Service\Coordinator\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Personnel;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Resources\Exception\RegularException;
@@ -94,6 +95,26 @@ class Coordinator
     {
         return $objectiveProgressReportRepository->allObjectiveProgressReportsBelongsToObjectiveInProgram(
                 $this->program->getId(), $objectiveId, $page, $pageSize);
+    }
+    
+    public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
+    {
+        $this->assertActive();
+        return $dedicatedMentorRepository->aDedicatedMentorInProgram($this->program->getId(), $dedicatedMentorId);
+    }
+    public function viewAllDedicatedMentorOfParticipant(
+            DedicatedMentorRepository $dedicatedMentorRepository, string $participantId, int $page, int $pageSize, ?bool $activeOnly)
+    {
+        $this->assertActive();
+        return $dedicatedMentorRepository->allDedicatedMentorsOfParticipantInProgram(
+                $this->program->getId(), $participantId, $page, $pageSize, $activeOnly);
+    }
+    public function viewAllDedicatedMentorOfConsultant(
+            DedicatedMentorRepository $dedicatedMentorRepository, string $consultantId, int $page, int $pageSize, ?bool $cancelledStatus)
+    {
+        $this->assertActive();
+        return $dedicatedMentorRepository->allDedicatedMentorsOfConsultantInProgram(
+                $this->program->getId(), $consultantId, $page, $pageSize, $cancelledStatus);
     }
 
 }

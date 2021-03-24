@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\DedicatedMentor" 
+            table="DedicatedMentor"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineDedicatedMentorRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="consultant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <field name="modifiedTime" type="datetime_immutable" nullable="true"/>
+        <field name="cancelled" type="boolean">
+            <options>
+                <option name="default">0</option>
+            </options>
+        </field>
+        
+    </entity>
+</doctrine-mapping>

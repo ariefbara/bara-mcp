@@ -4,8 +4,10 @@ namespace Query\Domain\Model\Firm\Team;
 
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
@@ -138,6 +140,17 @@ class TeamProgramParticipation implements ContainEvents
     {
         return $this->programParticipation->viewAllObjectiveProgressReportsInObjective(
                 $finder, $objectivevId, $page, $pageSize);
+    }
+    
+    public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
+    {
+        return $this->programParticipation->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
+    }
+    public function viewAllDedicatedMentors(
+            DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
+    {
+        return $this->programParticipation
+                ->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
     }
     
 }

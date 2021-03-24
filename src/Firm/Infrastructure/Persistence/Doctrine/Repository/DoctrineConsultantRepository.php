@@ -2,19 +2,16 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\Program\ConsultantRepository,
-    Application\Service\Firm\Program\ProgramCompositionId,
-    Application\Service\Manager\ConsultantRepository as InterfaceForManager,
-    Domain\Model\Firm\Program\Consultant
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Coordinator\ConsultantRepository as InterfaceFormCoordinator;
+use Firm\Application\Service\Firm\Program\ConsultantRepository;
+use Firm\Application\Service\Firm\Program\ProgramCompositionId;
+use Firm\Application\Service\Manager\ConsultantRepository as InterfaceForManager;
+use Firm\Domain\Model\Firm\Program\Consultant;
 use Resources\Exception\RegularException;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForManager
+class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForManager, InterfaceFormCoordinator
 {
 
     public function ofId(ProgramCompositionId $programCompositionId, string $consultantId): Consultant

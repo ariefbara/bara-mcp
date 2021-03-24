@@ -58,6 +58,13 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many  field="dedicatedMentors" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor"
+                      mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
         <one-to-many  field="meetingInvitations" 
                       target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee"
                       mapped-by="participant"

@@ -3,6 +3,7 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Record;
@@ -48,6 +49,11 @@ class RecordOfCoordinator implements Record
     public static function truncateTable(Connection $connection): void
     {
         $connection->table("Coordinator")->truncate();
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('Coordinator')->insert($this->toArrayForDbEntry());
     }
 
 }

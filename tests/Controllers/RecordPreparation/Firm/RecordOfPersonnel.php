@@ -5,6 +5,7 @@ namespace Tests\Controllers\RecordPreparation\Firm;
 use DateTime;
 use DateTimeImmutable;
 use Illuminate\Database\Connection;
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\JwtHeaderTokenGenerator;
 use Tests\Controllers\RecordPreparation\Record;
 use Tests\Controllers\RecordPreparation\RecordOfFirm;
@@ -79,6 +80,11 @@ class RecordOfPersonnel implements Record
     public static function truncateTable(Connection $connection): void
     {
         $connection->table("Personnel")->truncate();
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('Personnel')->insert($this->toArrayForDbEntry());
     }
 
 }

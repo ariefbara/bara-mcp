@@ -9,6 +9,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
@@ -107,6 +108,12 @@ class Participant implements AssetInProgram, CanAttendMeeting
      * @var ArrayCollection
      */
     protected $consultationSessions;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $dedicatedMentors;
 
     public function getId(): string
     {
@@ -122,6 +129,12 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $this->note = null;
         
         $this->profiles = new ArrayCollection();
+    }
+    protected function assertActive(): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: inactive partiicpant');
+        }
     }
 
     public function belongsToProgram(Program $program): bool
@@ -275,6 +288,22 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $id = $formRecord->getId();
         $profile = new ParticipantProfile($this, $id, $programsProfileForm, $formRecord);
         $this->profiles->add($profile);
+    }
+    
+    public function dedicateMentor(Consultant $consultant): string
+    {
+        $this->assertActive();
+        $p = function (DedicatedMentor $dedicatedMentor) use ($consultant) {
+            return $dedicatedMentor->consultantEquals($consultant);
+        };
+        $dedicatedMentor = $this->dedicatedMentors->filter($p)->first();
+        if (empty($dedicatedMentor)) {
+            $dedicatedMentor = new DedicatedMentor($this, Uuid::generateUuid4(), $consultant);
+            $this->dedicatedMentors->add($dedicatedMentor);
+        } else {
+            $dedicatedMentor->reassign();
+        }
+        return $dedicatedMentor->getId();
     }
 
 }

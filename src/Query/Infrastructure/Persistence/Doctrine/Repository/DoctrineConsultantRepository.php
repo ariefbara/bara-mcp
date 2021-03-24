@@ -5,13 +5,14 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Auth\Firm\Program\ConsultantRepository as InterfaceForAuthorization;
-use Query\Application\Service\Firm\Program\ConsultantRepository;
+use Query\Application\Service\Consultant\ConsultantRepository as ConsultantRepository2;
 use Query\Application\Service\ConsultantRepository as InterfaceForGuest;
+use Query\Application\Service\Firm\Program\ConsultantRepository;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization, InterfaceForGuest
+class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization, InterfaceForGuest, ConsultantRepository2
 {
 
     public function aProgramConsultationOfPersonnel(string $firmId, string $personnelId, string $programConsultationId): Consultant
@@ -156,6 +157,30 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
             throw RegularException::notFound('not found: consultant not found');
         }
         return $consultant;
+    }
+
+    public function aConsultantBelongsToPersonnel(string $firmId, string $personnelId, string $consultantId): Consultant
+    {
+        $params = [
+            'firmId' => $firmId,
+            'personnelId' => $personnelId,
+            'consultantid' => $consultantId,
+        ];
+        
+        $qb = $this->createQueryBuilder('consultant')
+                ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
+                ->leftJoin('consultant.personnel', 'personnel')
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('personnel.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: consultant not found');
+        }
     }
 
 }

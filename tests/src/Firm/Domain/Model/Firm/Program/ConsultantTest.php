@@ -76,8 +76,16 @@ class ConsultantTest extends TestBase
         };
         $errorDetail = "forbidden: can only assign active personnel as program mentor";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-        
-        
+    }
+    
+    public function test_belongsToProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->consultant->belongsToProgram($this->consultant->program));
+    }
+    public function test_belongsToProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->consultant->belongsToProgram($program));
     }
 
     protected function executeDisable()

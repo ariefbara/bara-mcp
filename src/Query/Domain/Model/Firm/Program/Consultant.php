@@ -2,13 +2,12 @@
 
 namespace Query\Domain\Model\Firm\Program;
 
-use Query\Domain\{
-    Model\Firm\Personnel,
-    Model\Firm\Program,
-    Model\Firm\Program\Participant\Worksheet,
-    Service\Firm\Program\Participant\WorksheetFinder,
-    Service\Firm\Program\ParticipantFinder
-};
+use Query\Domain\Model\Firm\Personnel;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
+use Query\Domain\Service\Firm\Program\ParticipantFinder;
 use Resources\Exception\RegularException;
 
 class Consultant
@@ -112,6 +111,18 @@ class Consultant
         $this->assertActive();
         return $worksheetFinder->findAllBranchOfWorksheetBelongsToParticipantInProgram(
                         $this->program, $participantId, $worksheetId, $page, $pageSize);
+    }
+
+    public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
+    {
+        return $dedicatedMentorRepository->aDedicatedMentorBelongsToConsultant($this->id, $dedicatedMentorId);
+    }
+
+    public function viewAllDedicatedMentors(
+            DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
+    {
+        return $dedicatedMentorRepository
+                        ->allDedicatedMentorsBelongsToConsultant($this->id, $page, $pageSize, $cancelledStatus);
     }
 
 }

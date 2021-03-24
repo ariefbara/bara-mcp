@@ -5,8 +5,10 @@ namespace Query\Domain\Model\User;
 use Query\Application\Service\Participant\ActivityLogRepository;
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
@@ -118,6 +120,17 @@ class UserParticipant implements ContainEvents
     public function viewSharedActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
     {
         return $this->participant->viewSharedActivityLogs($activityLogRepository, $page, $pageSize);
+    }
+    
+    public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
+    {
+        return $this->participant->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
+    }
+    public function viewAllDedicatedMentors(
+            DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus): DedicatedMentor
+    {
+        return $this->participant
+                ->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
     }
 
 }

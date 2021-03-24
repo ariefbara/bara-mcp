@@ -46,4 +46,9 @@ class ControllerTestCase extends TestCase
         });
     }
     
+    protected function currentTimeString()
+    {
+        return (new \DateTime())->format('Y-m-d H:i:s');
+    }
+    
 }

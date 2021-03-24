@@ -12,6 +12,7 @@ use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Firm\Domain\Model\Firm\Program\Participant\OKRPeriod;
@@ -216,6 +217,21 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertActive();
         $this->assertAssetManageable($objectiveProgressReport, 'objective progress report');
         $objectiveProgressReport->reject();
+    }
+    
+    public function dedicateMentorToParticipant(Participant $participant, Consultant $consultant): string
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($participant, 'participant');
+        $this->assertAssetManageable($consultant, 'consultant');
+        $dedicatedMentorId = $participant->dedicateMentor($consultant);
+        return $dedicatedMentorId;
+    }
+    public function cancelMentorDedication(DedicatedMentor $dedicatedMentor): void
+    {
+        $this->assertActive();
+        $this->assertAssetManageable($dedicatedMentor, 'dedicated mentor');
+        $dedicatedMentor->cancel();
     }
 
 }

@@ -10,7 +10,9 @@ use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team;
@@ -273,87 +275,113 @@ class Member extends EntityContainEvents
         $teamProgramParticipation = $teamProgramParticipationFinder
                 ->execute($this->team, $programId);
         $learningMaterial = $teamProgramParticipation->viewLearningMaterial($learningMaterialFinder, $learningMaterialId);
-        
+
         foreach ($teamProgramParticipation->pullRecordedEvents() as $triggeredByParticipant) {
             $event = new LearningMaterialViewedByTeamMemberEvent($this->id, $triggeredByParticipant);
             $this->recordEvent($event);
         }
-        
+
         return $learningMaterial;
     }
-    
-    public function viewSummaryOfProgramParticipation(TeamProgramParticipation $teamProgramParticipation, DataFinder $dataFinder): array
+
+    public function viewSummaryOfProgramParticipation(TeamProgramParticipation $teamProgramParticipation,
+            DataFinder $dataFinder): array
     {
         $this->assertActive();
         $this->assertTeamOwnedProgramParticipation($teamProgramParticipation);
         return $teamProgramParticipation->viewSummary($dataFinder);
     }
+
     protected function assertTeamOwnedProgramParticipation(TeamProgramParticipation $teamProgramParticipation): void
     {
-        if (! $teamProgramParticipation->teamEquals($this->team)) {
+        if (!$teamProgramParticipation->teamEquals($this->team)) {
             throw RegularException::forbidden('forbidden: can only manage asset of your team');
         }
     }
-    
+
     public function viewAllActiveProgramParticipationSummary(DataFinder $dataFinder, int $page, int $pageSize): array
     {
         $this->assertActive();
         return $dataFinder->summaryOfAllTeamProgramParticipations($this->team->getId(), $page, $pageSize);
     }
-    
+
     public function viewAllSelfActivityLogs(
             TeamMemberActivityLogRepository $teamMemberActivityLogRepository, int $page, int $pageSize)
     {
         return $teamMemberActivityLogRepository->allActivityLogsOfTeamMember($this->id, $page, $pageSize);
     }
-    
+
     public function viewSelfActivityLog(
             TeamMemberActivityLogRepository $teamMemberActivityLogRepository, string $teamMemberActivityLogId): TeamMemberActivityLog
     {
         return $teamMemberActivityLogRepository->anActivityLogOfTeamMember($this->id, $teamMemberActivityLogId);
     }
-    
+
     public function viewOKRPeriodOfTeamParticipant(
             OKRPeriodRepository $okrPeriodRepository, TeamProgramParticipation $teamParticipant, $okrPeriodId): OKRPeriod
     {
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
     }
+
     public function viewAllOKRPeriodsOfTeamParticipant(
-            OKRPeriodRepository $okrPeriodRepository, TeamProgramParticipation $teamParticipant, int $page, int $pageSize)
+            OKRPeriodRepository $okrPeriodRepository, TeamProgramParticipation $teamParticipant, int $page,
+            int $pageSize)
     {
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
     }
-    
+
     public function viewObjectiveProgressReport(
-            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant, 
+            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant,
             string $objectiveProgressReportId): OKRPeriod\Objective\ObjectiveProgressReport
     {
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
     }
+
     public function viewAllObjectiveProgressReportInObjective(
-            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant, string $objectiveId, 
+            ObjectiveProgressReportFinder $finder, TeamProgramParticipation $teamParticipant, string $objectiveId,
             int $page, int $pageSize)
     {
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
     }
-    
+
     public function viewAllSelfActivityLogsInProgram(
             ActivityLogRepository $activityLogRepository, string $participantId, int $page, int $pageSize)
     {
         $this->assertActive();
         return $activityLogRepository
-                ->allMemberActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page, $pageSize);
+                        ->allMemberActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page,
+                                $pageSize);
     }
+
     public function viewAllSharedActivityLogsInProgram(
             ActivityLogRepository $activityLogRepositoyr, string $participantId, int $page, int $pageSize)
     {
         $this->assertActive();
         return $activityLogRepositoyr
-                ->allTeamSharedActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page, $pageSize);
+                        ->allTeamSharedActivityLogsInProgram($this->id, $this->team->getId(), $participantId, $page,
+                                $pageSize);
+    }
+
+    public function viewDedicatedMentor(
+            TeamProgramParticipation $teamParticipant, DedicatedMentorRepository $dedicatedMentorRepository,
+            stirng $dedicatedMentorId): DedicatedMentor
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
+    }
+
+    public function viewAllDedicatedMentor(
+            TeamProgramParticipation $teamParticipant, DedicatedMentorRepository $dedicatedMentorRepository, int $page,
+            int $pageSize, ?bool $cancelledStatus)
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
     }
 
 }

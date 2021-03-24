@@ -74,5 +74,10 @@ class RecordOfClient implements Record
     {
         $connection->table("Client")->insert($this->toArrayForDbEntry());
     }
+    
+    public function insert(Connection $connection): void
+    {
+        $connection->table('Client')->insert($this->toArrayForDbEntry());
+    }
 
 }
