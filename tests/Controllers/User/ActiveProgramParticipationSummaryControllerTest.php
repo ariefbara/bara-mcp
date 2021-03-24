@@ -156,6 +156,7 @@ class ActiveProgramParticipationSummaryControllerTest extends UserTestCase
         $programOneResponse = [
             'programId' => $this->programOne->id,
             'programName' => $this->programOne->name,
+            'programStrictMissionOrder' => strval(intval($this->programOne->strictMissionOrder)),
             'participantId' => $this->programParticipationOne->id,
             'participantRating' => '2.5000',
             'totalCompletedMission' => '2',
@@ -169,6 +170,7 @@ class ActiveProgramParticipationSummaryControllerTest extends UserTestCase
         $programTwoResponse = [
             'programId' => $this->programTwo->id,
             'programName' => $this->programTwo->name,
+            'programStrictMissionOrder' => strval(intval($this->programTwo->strictMissionOrder)),
             'participantId' => $this->programParticipationTwo->id,
             'participantRating' => '2.0000',
             'totalCompletedMission' => '1',
