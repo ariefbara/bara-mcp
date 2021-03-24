@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\AsProgramParticipant;
+namespace Tests\Controllers\Client\ProgramParticipation;
 
 use DateTime;
 use SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus;
