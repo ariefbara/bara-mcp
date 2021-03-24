@@ -127,7 +127,7 @@ class UserParticipant implements ContainEvents
         return $this->participant->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
     }
     public function viewAllDedicatedMentors(
-            DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus): DedicatedMentor
+            DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
     {
         return $this->participant
                 ->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);

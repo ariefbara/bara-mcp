@@ -242,6 +242,9 @@ $router->group($userAggregate, function () use ($router) {
         $router->delete("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@cancel"]);
         $router->get("/objective-progress-reports/{objectiveProgressReportId}", ["uses" => "ObjectiveProgressReportController@show"]);
         
+        $router->get("/dedicated-mentors", ["uses" => "DedicatedMentorController@showAll"]);
+        $router->get("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@show"]);
+        
     });
     
     $programRegistrationAggregate = [
