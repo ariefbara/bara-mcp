@@ -563,6 +563,9 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->delete("/{objectiveProgressReportId}", ["uses" => "$controller@cancel"]);
                 $router->get("/{objectiveProgressReportId}", ["uses" => "$controller@show"]);
             });
+            
+            $router->get("/dedicated-mentors", ["uses" => "DedicatedMentorController@showAll"]);
+            $router->get("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@show"]);
         });
         
         $programRegistrationAggregate = [

@@ -34,27 +34,30 @@ class ViewDedicatedMentor
         $this->dedicatedMentorRepository = $dedicatedMentorRepository;
     }
 
-    /**
-     * 
-     * @param string $firmId
-     * @param string $clientId
-     * @param string $teamId
-     * @param string $teamParticipantId
-     * @param string $dedicatedMentorId
-     * @return DedicatedMentor[]
-     */
-    public function showAll(
-            string $firmId, string $clientId, string $teamId, string $teamParticipantId, string $dedicatedMentorId)
+    public function showById(
+            string $firmId, string $clientId, string $teamId, string $teamParticipantId, string $dedicatedMentorId): DedicatedMentor
     {
         $teamParticipant = $this->teamParticipantRepository->ofId($teamParticipantId);
         return $this->teamMemberRepository->aTeamMemberOfClientCorrespondWithTeam($firmId, $clientId, $teamId)
                         ->viewDedicatedMentor($teamParticipant, $this->dedicatedMentorRepository, $dedicatedMentorId);
     }
 
-    public function showById(
+    /**
+     * 
+     * @param string $firmId
+     * @param string $clientId
+     * @param string $teamId
+     * @param string $teamParticipantId
+     * @param int $page
+     * @param int $pageSize
+     * @param bool|null $cancelledStatus
+     * @return DedicatedMentor[]
+     */
+    public function showAll(
             string $firmId, string $clientId, string $teamId, string $teamParticipantId, int $page, int $pageSize,
-            ?bool $cancelledStatus): DedicatedMentor
+            ?bool $cancelledStatus)
     {
+        $teamParticipant = $this->teamParticipantRepository->ofId($teamParticipantId);
         return $this->teamMemberRepository->aTeamMemberOfClientCorrespondWithTeam($firmId, $clientId, $teamId)
                         ->viewAllDedicatedMentor(
                                 $teamParticipant, $this->dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);

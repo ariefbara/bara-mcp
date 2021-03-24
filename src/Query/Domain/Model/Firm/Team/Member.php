@@ -368,7 +368,7 @@ class Member extends EntityContainEvents
 
     public function viewDedicatedMentor(
             TeamProgramParticipation $teamParticipant, DedicatedMentorRepository $dedicatedMentorRepository,
-            stirng $dedicatedMentorId): DedicatedMentor
+            string $dedicatedMentorId): DedicatedMentor
     {
         $this->assertActive();
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
