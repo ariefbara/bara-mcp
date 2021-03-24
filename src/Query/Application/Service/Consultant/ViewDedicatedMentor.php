@@ -47,7 +47,7 @@ class ViewDedicatedMentor
     public function showById(string $firmId, string $personnelId, string $consultantId, string $dedicatedMentorId): DedicatedMentor
     {
         return $this->consultantRepository->aConsultantBelongsToPersonnel($firmId, $personnelId, $consultantId)
-                        ->viewDedicatedMentor($this->$this->dedicatedMentorRepository, $dedicatedMentorId);
+                        ->viewDedicatedMentor($this->dedicatedMentorRepository, $dedicatedMentorId);
     }
 
 }

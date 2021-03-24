@@ -38,7 +38,7 @@ class DedicatedMentorController extends ProgramConsultationBaseController
             'modifiedTime' => $dedicatedMentor->getModifiedTimeString(),
             'cancelled' => $dedicatedMentor->isCancelled(),
             'participant' => [
-                'id' => $dedicatedMentor->getParticipant(),
+                'id' => $dedicatedMentor->getParticipant()->getId(),
                 'name' => $dedicatedMentor->getParticipant()->getName(),
             ],
         ];

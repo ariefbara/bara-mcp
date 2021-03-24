@@ -164,10 +164,11 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
         $params = [
             'firmId' => $firmId,
             'personnelId' => $personnelId,
-            'consultantid' => $consultantId,
+            'consultantId' => $consultantId,
         ];
         
-        $qb = $this->createQueryBuilder('consultant')
+        $qb = $this->createQueryBuilder('consultant');
+        $qb->select('consultant')
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
                 ->leftJoin('consultant.personnel', 'personnel')
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))

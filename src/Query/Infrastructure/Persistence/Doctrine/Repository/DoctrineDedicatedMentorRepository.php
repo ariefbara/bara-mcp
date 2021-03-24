@@ -92,7 +92,7 @@ class DoctrineDedicatedMentorRepository extends DoctrineEntityRepository impleme
         $qb = $this->createQueryBuilder('dedicatedMentor');
         $qb->select('dedicatedMentor')
                 ->leftJoin('dedicatedMentor.consultant', 'consultant')
-                ->andWhere($qb->expr()->eq('consultant.id', ':consultantid'))
+                ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
                 ->setParameters($params);
         
         $this->setActiveOnlyFilter($qb, $cancelledStatus);
@@ -108,7 +108,7 @@ class DoctrineDedicatedMentorRepository extends DoctrineEntityRepository impleme
         $qb = $this->createQueryBuilder('dedicatedMentor');
         $qb->select('dedicatedMentor')
                 ->leftJoin('dedicatedMentor.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.id', ':participantid'))
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
                 ->setParameters($params);
         
         $this->setActiveOnlyFilter($qb, $cancelledStatus);
