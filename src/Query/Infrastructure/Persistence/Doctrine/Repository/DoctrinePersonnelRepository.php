@@ -2,21 +2,16 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Auth\Firm\PersonnelRepository as InterfaceForAuthorization,
-    Application\Service\Firm\PersonnelRepository,
-    Domain\Model\Firm\Personnel
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Auth\Firm\PersonnelRepository as InterfaceForAuthorization;
+use Query\Application\Service\Firm\PersonnelRepository;
+use Query\Application\Service\Personnel\PersonnelRepository as InterfaceForPersonnel;
+use Query\Domain\Model\Firm\Personnel;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrinePersonnelRepository extends EntityRepository implements PersonnelRepository, InterfaceForAuthorization
+class DoctrinePersonnelRepository extends EntityRepository implements PersonnelRepository, InterfaceForAuthorization, InterfaceForPersonnel
 {
 
     public function ofId(string $firmId, string $personnelId): Personnel
@@ -93,6 +88,27 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
                 ->setMaxResults(1);
         
         return !empty($qb->getQuery()->getResult());
+    }
+
+    public function aPersonnelInFirm(string $firmId, string $personnelId): Personnel
+    {
+        $params = [
+            'firmId' => $firmId,
+            'personnelId' => $personnelId,
+        ];
+        $qb = $this->createQueryBuilder('personnel');
+        $qb->select('personnel')
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('personnel.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: personnel not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

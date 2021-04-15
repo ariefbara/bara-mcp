@@ -55,7 +55,9 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
         
         $this->registrant_user = new RecordOfRegistrant($program, 0);
         $this->registrantOne_client = new RecordOfRegistrant($program, 1);
+        $this->registrantOne_client->registeredTime = (new \DateTime('-5 days'))->format('Y-m-d H:i:s');
         $this->registrantTwo_team = new RecordOfRegistrant($program, 2);
+        $this->registrantTwo_team->registeredTime = (new \DateTime('-7 days'))->format('Y-m-d H:i:s');
         $this->connection->table('Registrant')->insert($this->registrant_user->toArrayForDbEntry());
         $this->connection->table('Registrant')->insert($this->registrantOne_client->toArrayForDbEntry());
         $this->connection->table('Registrant')->insert($this->registrantTwo_team->toArrayForDbEntry());
@@ -307,6 +309,42 @@ class RegistrantControllerTest extends AsProgramCoordinatorTestCase
             ],
         ];
         $this->get($this->registrantUri, $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+    }
+    public function test_showAll_sortByRegisteredTimeAsc()
+    {
+        $response = [
+            'total' => 3,
+            'list' => [
+                [
+                    "id" => $this->registrantTwo_team->id,
+                    "registeredTime" => $this->registrantTwo_team->registeredTime,
+                    "note" => $this->registrantTwo_team->note,
+                    "concluded" => $this->registrantTwo_team->concluded,
+                    "client" => null,
+                    "user" => null,
+                    "team" => [
+                        "id" => $this->team->id,
+                        "name" => $this->team->name,
+                    ],
+                ],
+                [
+                    "id" => $this->registrantOne_client->id,
+                    "registeredTime" => $this->registrantOne_client->registeredTime,
+                    "note" => $this->registrantOne_client->note,
+                    "concluded" => $this->registrantOne_client->concluded,
+                    "client" => [
+                        "id" => $this->client->id,
+                        "name" => $this->client->getFullName(),
+                    ],
+                    "user" => null,
+                    "team" => null,
+                ],
+            ],
+        ];
+        $uri = $this->registrantUri . "?page=1&pageSize=2";
+        $this->get($uri, $this->coordinator->personnel->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
     }

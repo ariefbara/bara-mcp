@@ -9,6 +9,10 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     
+    $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
+    
+    $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
+    
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/update", ["uses" => "AccountController@updateProfile"]);

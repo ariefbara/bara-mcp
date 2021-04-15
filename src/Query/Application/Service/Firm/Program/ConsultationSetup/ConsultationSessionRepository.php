@@ -18,5 +18,5 @@ interface ConsultationSessionRepository extends InterfaceForPersonnel, Interface
 
     public function all(
             string $firmId, string $programId, string $consultationSetupId, int $page, int $pageSize, 
-            ?ConsultationSessionFilter $consultationSessionFilter): ConsultationSession;
+            ?ConsultationSessionFilter $consultationSessionFilter);
 }

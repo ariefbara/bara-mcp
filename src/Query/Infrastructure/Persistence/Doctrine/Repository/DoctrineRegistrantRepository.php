@@ -26,6 +26,7 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
                 ->andWhere($qb->expr()->eq('program.id', ":programId"))
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
+                ->addOrderBy('registrant.registeredTime', 'ASC')
                 ->setParameters($parameters);
 
         if (isset($concludedStatus)) {

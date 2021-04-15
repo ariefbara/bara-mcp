@@ -2,25 +2,20 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException,
-    QueryBuilder
-};
-use Query\{
-    Application\Service\Firm\Program\ConsultationRequestRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant,
-    Infrastructure\QueryFilter\ConsultationRequestFilter
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
+use Query\Application\Service\Firm\Program\ConsultationRequestRepository;
+use Query\Application\Service\Personnel\ConsultationRequestRepository as InterfaceForPersonnel;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository
+class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository, InterfaceForPersonnel
 {
 
     public function aConsultationRequestOfClient(
@@ -264,7 +259,7 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
             "programId" => $programId,
             "consultationRequestId" => $consultationRequestId,
         ];
-        
+
         $qb = $this->createQueryBuilder("consultationRequest");
         $qb->select("consultationRequest")
                 ->andWhere($qb->expr()->eq("consultationRequest.id", ":consultationRequestId"))
@@ -273,7 +268,7 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -288,18 +283,36 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         $params = [
             "programId" => $programId,
         ];
-        
+
         $qb = $this->createQueryBuilder("consultationRequest");
         $qb->select("consultationRequest")
                 ->leftJoin("consultationRequest.participant", "participant")
                 ->leftJoin("participant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params);
-        
+
         $this->applyFilter($qb, $consultationRequestFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
-    
+
+    public function allConsultationRequestBelongsToPersonnel(
+            string $personnelId, int $page, int $pageSize, ?ConsultationRequestFilter $consultationRequestFilter)
+    {
+        $params = [
+            "personnelId" => $personnelId,
+        ];
+
+        $qb = $this->createQueryBuilder("consultationRequest");
+        $qb->select("consultationRequest")
+                ->leftJoin("consultationRequest.consultant", "consultant")
+                ->leftJoin("consultant.personnel", "personnel")
+                ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
+                ->setParameters($params);
+
+        $this->applyFilter($qb, $consultationRequestFilter);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
     protected function applyFilter(QueryBuilder $qb, ?ConsultationRequestFilter $consultationRequestFilter): void
     {
         if (!isset($consultationRequestFilter)) {

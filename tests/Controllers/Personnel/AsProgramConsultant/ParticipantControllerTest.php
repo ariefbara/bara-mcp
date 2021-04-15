@@ -245,4 +245,17 @@ class ParticipantControllerTest extends ParticipantTestCase
         $this->get($this->participantUri, $this->removedConsultant->personnel->token)
                 ->seeStatusCode(401);
     }
+    public function test_showAll_searchByName()
+    {
+$this->disableExceptionHandling();
+        $uri = $this->participantUri . "?searchByName=client";
+        $totalResponse = ["total" => 1];
+        $participantOneResponse = [
+            "id" => $this->participantOne_client->id,
+        ];
+        $this->get($uri, $this->consultant->personnel->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($participantOneResponse);
+    }
 }

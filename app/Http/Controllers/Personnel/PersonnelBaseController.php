@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Personnel;
 
 use App\Http\Controllers\Controller;
-use Query\ {
-    Application\Auth\Firm\AuthorizeUserIsActiveFirmPersonnel,
-    Domain\Model\Firm\Personnel
-};
+use Query\Application\Auth\Firm\AuthorizeUserIsActiveFirmPersonnel;
+use Query\Domain\Model\Firm\Personnel;
 
 class PersonnelBaseController extends Controller
 {
@@ -24,5 +22,10 @@ class PersonnelBaseController extends Controller
         $personnelRepository = $this->em->getRepository(Personnel::class);
         $authZ = new AuthorizeUserIsActiveFirmPersonnel($personnelRepository);
         $authZ->execute($this->firmId(), $this->personnelId());
+    }
+    
+    protected function personnelQueryRepository()
+    {
+        return $this->em->getRepository(Personnel::class);
     }
 }

@@ -2,33 +2,28 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\Firm\Program\ParticipantRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant,
-    Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\Program\ParticipantRepository;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, InterfaceForDomainService
 {
 
-    public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $activeStatus, ?string $note)
+    public function all(
+            string $firmId, string $programId, int $page, int $pageSize, ?bool $activeStatus, ?string $note, ?string $searchByName)
     {
         $params = [
             "firmId" => $firmId,
             "programId" => $programId,
         ];
-
+        
         $qb = $this->createQueryBuilder('participant');
         $qb->select('participant')
                 ->leftJoin('participant.program', 'program')
@@ -36,6 +31,40 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
                 ->leftJoin('program.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->setParameters($params);
+        
+        if (isset($searchByName)) {
+            $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+            $clientParticipantQb->select('a_participant.id')
+                    ->from(ClientParticipant::class, 'clientParticipant')
+                    ->leftJoin('clientParticipant.client', 'client')
+                    ->orWhere($clientParticipantQb->expr()->like('client.personName.firstName', ":name"))
+                    ->orWhere($clientParticipantQb->expr()->like('client.personName.lastName', ":name"))
+                    ->leftJoin('clientParticipant.participant', 'a_participant');
+            $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
+            
+            $userParticipantQb = $this->getEntityManager()->createQueryBuilder();
+            $userParticipantQb->select('b_participant.id')
+                    ->from(UserParticipant::class, 'userParticipant')
+                    ->leftJoin('userParticipant.user', 'user')
+                    ->orWhere($userParticipantQb->expr()->like('user.personName.firstName', ":name"))
+                    ->orWhere($userParticipantQb->expr()->like('user.personName.lastName', ":name"))
+                    ->leftJoin('userParticipant.participant', 'b_participant');
+            
+            $teamParticipantQb = $this->getEntityManager()->createQueryBuilder();
+            $teamParticipantQb->select('c_participant.id')
+                    ->from(TeamProgramParticipation::class, 'teamParticipant')
+                    ->leftJoin('teamParticipant.team', 'team')
+                    ->orWhere($teamParticipantQb->expr()->like('team.name', ":name"))
+                    ->leftJoin('teamParticipant.programParticipation', 'c_participant');
+            
+            $qb->andWhere($qb->expr()->orX(
+                    $qb->expr()->in('participant.id', $clientParticipantQb->getDQL()),
+                    $qb->expr()->in('participant.id', $userParticipantQb->getDQL()),
+                    $qb->expr()->in('participant.id', $teamParticipantQb->getDQL())
+            ))
+                    ->setParameter('name', "%$searchByName%");
+        }
+
         
         if (isset($activeStatus)) {
             $qb->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))

@@ -3,19 +3,18 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Query\Domain\Model\{
-    Firm,
-    Firm\Program\Consultant,
-    Firm\Program\Coordinator
-};
-use Resources\Domain\ValueObject\{
-    Password,
-    PersonName
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Query\Application\Service\Personnel\ConsultationRequestRepository;
+use Query\Application\Service\Personnel\ConsultationSessionRepository;
+use Query\Domain\Model\Firm;
+use Query\Domain\Model\Firm\Program\Consultant;
+use Query\Domain\Model\Firm\Program\Coordinator;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
+use Resources\Domain\ValueObject\Password;
+use Resources\Domain\ValueObject\PersonName;
+use Resources\Exception\RegularException;
 
 class Personnel
 {
@@ -67,13 +66,13 @@ class Personnel
      * @var DateTimeImmutable
      */
     protected $joinTime;
-    
+
     /**
      *
      * @var string|null
      */
     protected $resetPasswordCode;
-    
+
     /**
      *
      * @var DateTimeImmutable|null
@@ -150,6 +149,13 @@ class Personnel
     {
         return $this->programConsultants->matching($this->activeCriteria())->getIterator();
     }
+    
+    protected function assertActive()
+    {
+        if (! $this->active) {
+            throw RegularException::forbidden('forbidden: only active personnel can make this request');
+        }
+    }
 
     protected function __construct()
     {
@@ -180,6 +186,24 @@ class Personnel
     public function getLastName(): ?string
     {
         return $this->name->getLastName();
+    }
+
+    public function viewAllConsultationSessions(
+            ConsultationSessionRepository $consultationSessionRepository, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $this->assertActive();
+        return $consultationSessionRepository->allConsultationSessionBelongsToPersonnel(
+                        $this->id, $page, $pageSize, $consultationSessionFilter);
+    }
+
+    public function viewAllConsultationRequests(
+            ConsultationRequestRepository $consultationRequestRepository, int $page, int $pageSize,
+            ?ConsultationRequestFilter $consultationRequestFilter)
+    {
+        $this->assertActive();
+        return $consultationRequestRepository->allConsultationRequestBelongsToPersonnel(
+                        $this->id, $page, $pageSize, $consultationRequestFilter);
     }
 
 }

@@ -2,25 +2,20 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException,
-    QueryBuilder
-};
-use Query\{
-    Application\Service\Firm\Program\ConsultationSessionRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant,
-    Infrastructure\QueryFilter\ConsultationSessionFilter
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
+use Query\Application\Service\Firm\Program\ConsultationSessionRepository;
+use Query\Application\Service\Personnel\ConsultationSessionRepository as InterfaceForPersonnel;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository
+class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository, InterfaceForPersonnel
 {
 
     public function aConsultationSessionOfClient(
@@ -338,6 +333,25 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
                 ->leftJoin("consultationSession.participant", "participant")
                 ->leftJoin("participant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params);
+
+        $this->applyFilter($qb, $consultationSessionFilter);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allConsultationSessionBelongsToPersonnel(string $personnelId, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $params = [
+            "personnelId" => $personnelId,
+        ];
+
+        $qb = $this->createQueryBuilder("consultationSession");
+        $qb->select("consultationSession")
+                ->andWhere($qb->expr()->eq('consultationSession.cancelled', 'false'))
+                ->leftJoin("consultationSession.consultant", "consultant")
+                ->leftJoin("consultant.personnel", "personnel")
+                ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
                 ->setParameters($params);
 
         $this->applyFilter($qb, $consultationSessionFilter);

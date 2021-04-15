@@ -16,8 +16,8 @@ class RecordOfUser implements Record
         $this->rawPassword = "pwd123user$index";
         
         $this->id = "user-$index-id";
-        $this->firstName = "fistname";
-        $this->lastName = "lastname";
+        $this->firstName = "user-$index-fistname";
+        $this->lastName = "user-$index-lastname";
         $this->email = "purnama.adi+user$index@gmail.com";
         $this->password = (new TestablePassword($this->rawPassword))->getHashedPassword();
         $this->signupTime = (new DateTimeImmutable())->format('Y-m-d H:i:s');

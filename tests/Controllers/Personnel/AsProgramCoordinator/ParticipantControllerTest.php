@@ -435,6 +435,18 @@ class ParticipantControllerTest extends ParticipantTestCase
                 ->seeJsonContains($totalResponse)
                 ->seeJsonContains($participantTwoResponse);
     }
+    public function test_showAll_searchByName()
+    {
+        $uri = $this->participantUri . "?searchByName=user";
+        $totalResponse = ["total" => 1];
+        $participantOneResponse = [
+            "id" => $this->participant->id,
+        ];
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeStatusCode(200)
+                ->seeJsonContains($totalResponse)
+                ->seeJsonContains($participantOneResponse);
+    }
     
     public function test_assignMetric_200()
     {
