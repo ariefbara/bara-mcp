@@ -5,12 +5,13 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\Program\RegistrantRepository;
-use Query\Domain\Model\Firm\Client\ClientRegistrant;
+use Query\Application\Service\Personnel\RegistrantRepository as InterfaceForPersonnel;
+use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Registrant;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineRegistrantRepository extends EntityRepository implements RegistrantRepository
+class DoctrineRegistrantRepository extends EntityRepository implements RegistrantRepository, InterfaceForPersonnel
 {
 
     public function all(string $firmId, string $programId, int $page, int $pageSize, ?bool $concludedStatus)
@@ -60,6 +61,34 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
             $errorDetail = "not found: registrant not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function allRegistrantsAccessibleByPersonnel(
+            string $personnelId, int $page, int $pageSize, ?bool $concludedStatus)
+    {
+        $parameters = [
+            "personnelId" => $personnelId,
+        ];
+        
+        $coordinatorQB = $this->getEntityManager()->createQueryBuilder();
+        $coordinatorQB->select('a_program.id')
+                ->from(Coordinator::class, 'coordinator')
+                ->andWhere($coordinatorQB->expr()->eq('coordinator.active', "true"))
+                ->leftJoin('coordinator.personnel', 'personnel')
+                ->andWhere($coordinatorQB->expr()->eq('personnel.id', ":personnelId"))
+                ->leftJoin('coordinator.program', 'a_program');
+        
+        $qb = $this->createQueryBuilder("registrant");
+        $qb->select('registrant')
+                ->leftJoin('registrant.program', 'program')
+                ->andWhere($qb->expr()->in('program.id', $coordinatorQB->getDQL()))
+                ->addOrderBy('registrant.registeredTime', 'ASC')
+                ->setParameters($parameters);
+        if (isset($concludedStatus)) {
+            $qb->andWhere($qb->expr()->eq("registrant.concluded", ":concludedStatus"))
+                    ->setParameter("concludedStatus", $concludedStatus);
+        }
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

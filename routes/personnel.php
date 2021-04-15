@@ -10,8 +10,8 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     
     $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
-    
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
+    $router->get('/registrants', ['uses' => "RegistrantController@showAll"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";

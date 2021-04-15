@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Application\Service\Personnel\ConsultationRequestRepository;
 use Query\Application\Service\Personnel\ConsultationSessionRepository;
+use Query\Application\Service\Personnel\RegistrantRepository;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\Coordinator;
@@ -149,10 +150,10 @@ class Personnel
     {
         return $this->programConsultants->matching($this->activeCriteria())->getIterator();
     }
-    
+
     protected function assertActive()
     {
-        if (! $this->active) {
+        if (!$this->active) {
             throw RegularException::forbidden('forbidden: only active personnel can make this request');
         }
     }
@@ -204,6 +205,13 @@ class Personnel
         $this->assertActive();
         return $consultationRequestRepository->allConsultationRequestBelongsToPersonnel(
                         $this->id, $page, $pageSize, $consultationRequestFilter);
+    }
+
+    public function viewAllAccessibleRegistrant(
+            RegistrantRepository $registrantRepository, int $page, int $pageSize, ?bool $concludedStatus)
+    {
+        $this->assertActive();
+        return $registrantRepository->allRegistrantsAccessibleByPersonnel($this->id, $page, $pageSize, $concludedStatus);
     }
 
 }
