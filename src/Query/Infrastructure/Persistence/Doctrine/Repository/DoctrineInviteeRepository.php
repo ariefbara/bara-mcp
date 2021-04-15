@@ -2,33 +2,66 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Query\{
-    Application\Auth\MeetingAttendeeRepository as InterfaceForAuthorization,
-    Application\Service\Firm\Program\Activity\InviteeRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Manager\ManagerActivity,
-    Domain\Model\Firm\Manager\ManagerInvitee,
-    Domain\Model\Firm\Program\Activity\Invitee,
-    Domain\Model\Firm\Program\Consultant\ConsultantActivity,
-    Domain\Model\Firm\Program\Consultant\ConsultantInvitee,
-    Domain\Model\Firm\Program\Coordinator\CoordinatorActivity,
-    Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee,
-    Domain\Model\Firm\Program\Participant\ParticipantActivity,
-    Domain\Model\Firm\Program\Participant\ParticipantInvitee,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
+use Query\Application\Auth\MeetingAttendeeRepository as InterfaceForAuthorization;
+use Query\Application\Service\Firm\Program\Activity\InviteeRepository;
+use Query\Application\Service\Personnel\InviteeRepository as InterfaceForPersonnel;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Manager\ManagerActivity;
+use Query\Domain\Model\Firm\Manager\ManagerInvitee;
+use Query\Domain\Model\Firm\Program\Activity\Invitee;
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantActivity;
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitee;
+use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorActivity;
+use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantActivity;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineInviteeRepository extends EntityRepository implements InviteeRepository, InterfaceForAuthorization
+class DoctrineInviteeRepository extends EntityRepository implements InviteeRepository, InterfaceForAuthorization, InterfaceForPersonnel
 {
+    
+    protected function applyFilter(QueryBuilder $qb, ?InviteeFilter $inviteeFilter): void
+    {
+        if (!isset($inviteeFilter)) {
+            return;
+        }
+        $from = $inviteeFilter->getFrom();
+        $to = $inviteeFilter->getTo();
+        if (isset($from) || isset($to)) {
+            $qb->leftJoin('invitee.activity', 'activity');
+            if (isset($from)) {
+                $qb->andWhere($qb->expr()->gte('activity.startEndTime.startDateTime', ':from'))
+                        ->setParameter('from', $from);
+            }
+            if (isset($to)) {
+                $qb->andWhere($qb->expr()->lte('activity.startEndTime.startDateTime', ':to'))
+                        ->setParameter('to', $to);
+            }
+        }
+        if (!empty($inviteeFilter->getCancelledStatus())) {
+            $qb->andWhere($qb->expr()->eq('invitee.cancelled', ':cancelled'))
+                    ->setParameter('cancelled', $inviteeFilter->getCancelledStatus());
+        }
+        if (!empty($inviteeFilter->getWillAttendStatuses())) {
+            $orX = $qb->expr()->orX();
+            foreach ($inviteeFilter->getWillAttendStatuses() as $willAttendStatus) {
+                if (is_null($willAttendStatus)) {
+                    $orX->add($qb->expr()->isNull('invitee.willAttend'));
+                } else {
+                    $orX->add($qb->expr()->eq('invitee.willAttend', ':willAttendStatus'));
+                    $qb->setParameter('willAttendStatus', $willAttendStatus);
+                }
+            }
+            $qb->andWhere($orX);
+        }
+    }
 
     public function allInviteesInManagerActivity(
             string $firmId, string $managerId, string $activityId, int $page, int $pageSize)
@@ -681,6 +714,41 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
                 ->setMaxResults(1);
 
         return !empty($qb->getQuery()->getResult());
+    }
+
+    public function allActivityInvitationsToPersonnel(string $personnelId, int $page, int $pageSize,
+            ?InviteeFilter $inviteeFilter)
+    {
+        $params = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $coordinatorInviteeQB = $this->getEntityManager()->createQueryBuilder();
+        $coordinatorInviteeQB->select('a_invitee.id')
+                ->from(CoordinatorInvitee::class, 'coordinatorInvitee')
+                ->leftJoin('coordinatorInvitee.invitee', 'a_invitee')
+                ->leftJoin('coordinatorInvitee.coordinator', 'coordinator')
+                ->leftJoin('coordinator.personnel', 'a_personnel')
+                ->andWhere($coordinatorInviteeQB->expr()->eq('a_personnel.id', ':personnelId'));
+        
+        $consultantInviteeQB = $this->getEntityManager()->createQueryBuilder();
+        $consultantInviteeQB->select('b_invitee.id')
+                ->from(ConsultantInvitee::class, 'consultantInvitee')
+                ->leftJoin('consultantInvitee.invitee', 'b_invitee')
+                ->leftJoin('consultantInvitee.consultant', 'consultant')
+                ->leftJoin('consultant.personnel', 'b_personnel')
+                ->andWhere($consultantInviteeQB->expr()->eq('b_personnel.id', ':personnelId'));
+        
+        $qb = $this->createQueryBuilder('invitee');
+        $qb->select('invitee')
+                ->andWhere($qb->expr()->orX(
+                        $qb->expr()->in('invitee.id', $coordinatorInviteeQB->getDQL()),
+                        $qb->expr()->in('invitee.id', $consultantInviteeQB->getDQL())
+                ))
+                ->setParameters($params);
+        $this->applyFilter($qb, $inviteeFilter);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

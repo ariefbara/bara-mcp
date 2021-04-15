@@ -107,7 +107,7 @@ class Invitee
         return $this->anInitiator;
     }
 
-    function WillAttend(): ?bool
+    function isWillAttend(): ?bool
     {
         return $this->willAttend;
     }

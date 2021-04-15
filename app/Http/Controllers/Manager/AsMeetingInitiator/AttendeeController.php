@@ -102,7 +102,7 @@ class AttendeeController extends AsMeetingInitiatorBaseController
     {
         return [
             "id" => $invitee->getId(),
-            "willAttend" => $invitee->willAttend(),
+            "willAttend" => $invitee->isWillAttend(),
             "attended" => $invitee->isAttended(),
             "manager" => $this->arrayDataOfManager($invitee->getManagerInvitee()),
             "coordinator" => $this->arrayDataOfCoordinator($invitee->getCoordinatorInvitee()),

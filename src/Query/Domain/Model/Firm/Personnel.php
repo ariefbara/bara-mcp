@@ -7,12 +7,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Application\Service\Personnel\ConsultationRequestRepository;
 use Query\Application\Service\Personnel\ConsultationSessionRepository;
+use Query\Application\Service\Personnel\InviteeRepository;
 use Query\Application\Service\Personnel\RegistrantRepository;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
 use Resources\Exception\RegularException;
@@ -212,6 +214,13 @@ class Personnel
     {
         $this->assertActive();
         return $registrantRepository->allRegistrantsAccessibleByPersonnel($this->id, $page, $pageSize, $concludedStatus);
+    }
+    
+    public function viewAllActivityInvitation(
+            InviteeRepository $inviteeRepository, int $page, int $pageSize, ?InviteeFilter $inviteeFilter)
+    {
+        $this->assertActive();
+        return $inviteeRepository->allActivityInvitationsToPersonnel($this->id, $page, $pageSize, $inviteeFilter);
     }
 
 }
