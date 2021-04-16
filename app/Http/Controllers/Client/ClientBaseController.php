@@ -25,4 +25,9 @@ class ClientBaseController extends Controller
         $authZ = new AuthorizeRequestFromActiveClient($clientRepository);
         $authZ->execute($this->firmId(), $this->clientId());
     }
+    
+    protected function clientQueryRepository()
+    {
+        return $this->em->getRepository(Client::class);
+    }
 }

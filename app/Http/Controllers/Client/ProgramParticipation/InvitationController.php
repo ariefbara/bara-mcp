@@ -59,7 +59,7 @@ class InvitationController extends ClientBaseController
         foreach ($invitations as $invitation) {
             $result["list"][] = [
                 "id" => $invitation->getId(),
-                "willAttend" => $invitation->willAttend(),
+                "willAttend" => $invitation->isWillAttend(),
                 "attended" => $invitation->isAttended(),
                 "anInitiator" => $invitation->isAnInitiator(),
                 "activity" => [
@@ -80,7 +80,7 @@ class InvitationController extends ClientBaseController
     {
         return [
             "id" => $invitation->getId(),
-            "willAttend" => $invitation->willAttend(),
+            "willAttend" => $invitation->isWillAttend(),
             "attended" => $invitation->isAttended(),
             "anInitiator" => $invitation->isAnInitiator(),
             "report" => $this->arrayDataOfReport($invitation->getReport()),

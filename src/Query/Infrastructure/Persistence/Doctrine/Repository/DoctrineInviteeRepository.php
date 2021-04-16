@@ -18,6 +18,7 @@ use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorActivity;
 use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantActivity;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
+use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
@@ -26,7 +27,7 @@ use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineInviteeRepository extends EntityRepository implements InviteeRepository, InterfaceForAuthorization, InterfaceForPersonnel
 {
-    
+
     protected function applyFilter(QueryBuilder $qb, ?InviteeFilter $inviteeFilter): void
     {
         if (!isset($inviteeFilter)) {
@@ -651,7 +652,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
             "teamId" => $teamId,
             "meetingId" => $meetingId,
         ];
-        
+
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("b_participant.id")
                 ->from(TeamProgramParticipation::class, "teamParticipant")
@@ -688,7 +689,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
             "userId" => $userId,
             "meetingId" => $meetingId,
         ];
-        
+
         $participantQb = $this->getEntityManager()->createQueryBuilder();
         $participantQb->select("b_participant.id")
                 ->from(UserParticipant::class, "userParticipant")
@@ -722,7 +723,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $params = [
             'personnelId' => $personnelId,
         ];
-        
+
         $coordinatorInviteeQB = $this->getEntityManager()->createQueryBuilder();
         $coordinatorInviteeQB->select('a_invitee.id')
                 ->from(CoordinatorInvitee::class, 'coordinatorInvitee')
@@ -730,7 +731,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
                 ->leftJoin('coordinatorInvitee.coordinator', 'coordinator')
                 ->leftJoin('coordinator.personnel', 'a_personnel')
                 ->andWhere($coordinatorInviteeQB->expr()->eq('a_personnel.id', ':personnelId'));
-        
+
         $consultantInviteeQB = $this->getEntityManager()->createQueryBuilder();
         $consultantInviteeQB->select('b_invitee.id')
                 ->from(ConsultantInvitee::class, 'consultantInvitee')
@@ -738,16 +739,16 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
                 ->leftJoin('consultantInvitee.consultant', 'consultant')
                 ->leftJoin('consultant.personnel', 'b_personnel')
                 ->andWhere($consultantInviteeQB->expr()->eq('b_personnel.id', ':personnelId'));
-        
+
         $qb = $this->createQueryBuilder('invitee');
         $qb->select('invitee')
                 ->andWhere($qb->expr()->orX(
-                        $qb->expr()->in('invitee.id', $coordinatorInviteeQB->getDQL()),
-                        $qb->expr()->in('invitee.id', $consultantInviteeQB->getDQL())
+                                $qb->expr()->in('invitee.id', $coordinatorInviteeQB->getDQL()),
+                                $qb->expr()->in('invitee.id', $consultantInviteeQB->getDQL())
                 ))
                 ->setParameters($params);
         $this->applyFilter($qb, $inviteeFilter);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

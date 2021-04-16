@@ -12,6 +12,8 @@ $router->group($clientAggregate, function () use ($router) {
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     $router->get('/active-program-participation-summaries', ['uses' => "ActiveProgramParticipationSummaryController@showAll"]);
     $router->get('/active-team-program-participation-summaries', ['uses' => "ActiveTeamProgramParticipationSummaryController@showAll"]);
+    $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
+    $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     
     $router->group(['prefix' => '/create-team'], function () use($router) {
         $controller = "CreateTeamController";

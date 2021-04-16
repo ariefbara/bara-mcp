@@ -5,17 +5,53 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Query\Application\Service\Client\ParticipantInviteeRepository;
 use Query\Application\Service\Firm\Program\Participant\ParticipantInvitationRepository;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
+use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineParticipantInviteeRepository extends EntityRepository implements ParticipantInvitationRepository
+class DoctrineParticipantInviteeRepository extends EntityRepository implements ParticipantInvitationRepository, ParticipantInviteeRepository
 {
+    
+    protected function applyFilter(QueryBuilder $qb, ?InviteeFilter $inviteeFilter): void
+    {
+        if (!isset($inviteeFilter)) {
+            return;
+        }
+        $from = $inviteeFilter->getFrom();
+        $to = $inviteeFilter->getTo();
+        if (isset($from)) {
+            $qb->andWhere($qb->expr()->gte('activity.startEndTime.startDateTime', ':from'))
+                    ->setParameter('from', $from);
+        }
+        if (isset($to)) {
+            $qb->andWhere($qb->expr()->lte('activity.startEndTime.startDateTime', ':to'))
+                    ->setParameter('to', $to);
+        }
+        if (!empty($inviteeFilter->getCancelledStatus())) {
+            $qb->andWhere($qb->expr()->eq('invitee.cancelled', ':cancelled'))
+                    ->setParameter('cancelled', $inviteeFilter->getCancelledStatus());
+        }
+        if (!empty($inviteeFilter->getWillAttendStatuses())) {
+            $orX = $qb->expr()->orX();
+            foreach ($inviteeFilter->getWillAttendStatuses() as $willAttendStatus) {
+                if (is_null($willAttendStatus)) {
+                    $orX->add($qb->expr()->isNull('invitee.willAttend'));
+                } else {
+                    $orX->add($qb->expr()->eq('invitee.willAttend', ':willAttendStatus'));
+                    $qb->setParameter('willAttendStatus', $willAttendStatus);
+                }
+            }
+            $qb->andWhere($orX);
+        }
+    }
 
     public function allInvitationsForClientParticipant(
             string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
@@ -218,6 +254,52 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
             $qb->andWhere($qb->expr()->lte("activity.startEndTime.startDateTime", ":to"))
                     ->setParameter("to", $timeIntervalFilter->getTo());
         }
+    }
+
+    public function allAccessibleParticipantInviteeBelongsToClient(
+            string $clientId, int $page, int $pageSize, ?InviteeFilter $inviteeFilter)
+    {
+        $params = [
+            'clientId' => $clientId,
+        ];
+        
+        $clientParticipantQB = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQB->select('a_participant.id')
+                ->from(ClientParticipant::class, 'a_clientParticipant')
+                ->leftJoin('a_clientParticipant.participant', 'a_participant')
+                ->leftJoin('a_clientParticipant.client', 'a_client')
+                ->andWhere($clientParticipantQB->expr()->eq('a_client.id', ':clientId'));
+        
+        $teamMemberQB = $this->getEntityManager()->createQueryBuilder();
+        $teamMemberQB->select('b_team.id')
+                ->from(Member::class, 'b_member')
+                ->andWhere($teamMemberQB->expr()->eq('b_member.active', 'true'))
+                ->leftJoin('b_member.client', 'b_client')
+                ->andWhere($teamMemberQB->expr()->eq('b_client.id', ':clientId'))
+                ->leftJoin('b_member.team', 'b_team');
+        
+        $teamParticipantQB = $this->getEntityManager()->createQueryBuilder();
+        $teamParticipantQB->select('c_participant.id')
+                ->from(TeamProgramParticipation::class, 'c_teamParticipant')
+                ->leftJoin('c_teamParticipant.programParticipation', 'c_participant')
+                ->leftJoin('c_teamParticipant.team', 'c_team')
+                ->andWhere($teamParticipantQB->expr()->in('c_team.id', $teamMemberQB->getDQL()));
+        
+        $qb = $this->createQueryBuilder('participantInvitee');
+        $qb->select('participantInvitee')
+                ->leftJoin('participantInvitee.participant', 'participant')
+                ->andWhere($qb->expr()->orX(
+                        $qb->expr()->in('participant.id', $clientParticipantQB->getDQL()),
+                        $qb->expr()->in('participant.id', $teamParticipantQB->getDQL())
+                ))
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->leftJoin('participantInvitee.invitee', 'invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->addOrderBy('activity.startEndTime.startDateTime', 'ASC')
+                ->setParameters($params);
+        
+        $this->applyFilter($qb, $inviteeFilter);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

@@ -3,8 +3,12 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
+use Query\Application\Service\Client\ConsultationSessionRepository;
+use Query\Application\Service\Client\ParticipantInviteeRepository;
 use Query\Domain\Model\Firm;
 use Query\Domain\Service\DataFinder;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
 use Resources\Exception\RegularException;
@@ -95,7 +99,7 @@ class Client
 
     public function getSignupTimeString(): ?string
     {
-        return isset($this->signupTime)? $this->signupTime->format("Y-m-d H:i:s"): null;
+        return isset($this->signupTime) ? $this->signupTime->format("Y-m-d H:i:s") : null;
     }
 
     public function isActivated(): bool
@@ -127,18 +131,35 @@ class Client
     {
         return $this->password->match($password);
     }
-    
+
     protected function assertActive(): void
     {
         if (!$this->activated) {
             throw RegularException::forbidden('forbidden: only active client can make this request');
         }
     }
-    
+
     public function viewAllActiveProgramParticipationSummary(DataFinder $dataFinder, int $page, int $pageSize): array
     {
         $this->assertActive();
         return $dataFinder->summaryOfAllClientProgramParticipations($this->id, $page, $pageSize);
+    }
+
+    public function viewAllAccessibleConsultationSessions(
+            ConsultationSessionRepository $consultationSessionRepository, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $this->assertActive();
+        return $consultationSessionRepository->allAccessibleConsultationSesssionBelongsToClient(
+                $this->id, $page, $pageSize, $consultationSessionFilter);
+    }
+    
+    public function viewAllAccessibleActivityInvitations(
+            ParticipantInviteeRepository $participantInviteeRepository, int $page, int $pageSize, ?InviteeFilter $inviteeFilter)
+    {
+        $this->assertActive();
+        return $participantInviteeRepository
+                ->allAccessibleParticipantInviteeBelongsToClient($this->id, $page, $pageSize, $inviteeFilter);
     }
 
 }

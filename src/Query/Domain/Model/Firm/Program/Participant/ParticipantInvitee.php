@@ -56,7 +56,7 @@ class ParticipantInvitee
         return $this->invitee->getActivityParticipant();
     }
 
-    function WillAttend(): ?bool
+    function isWillAttend(): ?bool
     {
         return $this->invitee->isWillAttend();
     }

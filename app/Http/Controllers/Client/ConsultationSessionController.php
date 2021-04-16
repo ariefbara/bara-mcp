@@ -1,31 +1,27 @@
 <?php
 
-namespace App\Http\Controllers\Personnel;
+namespace App\Http\Controllers\Client;
 
-use Query\Application\Service\Personnel\ViewConsultationSession;
-use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Application\Service\Client\ViewConsultationSession;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
-use Query\Domain\Model\User\UserParticipant;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 
-class ConsultationSessionController extends PersonnelBaseController
+class ConsultationSessionController extends ClientBaseController
 {
-
     public function showAll()
     {
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
-        $service = new ViewConsultationSession($this->personnelQueryRepository(), $consultationSessionRepository);
-
+        $service = new ViewConsultationSession($this->clientQueryRepository(), $consultationSessionRepository);
+        
         $consultationSessionFilter = (new ConsultationSessionFilter())
                 ->setMinStartTime($this->dateTimeImmutableOfQueryRequest("minStartTime"))
                 ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("maxEndTime"))
                 ->setContainParticipantFeedback($this->filterBooleanOfQueryRequest("containParticipantFeedback"))
                 ->setContainConsultantFeedback($this->filterBooleanOfQueryRequest("containConsultantFeedback"));
-
+        
         $consultationSessions = $service->showAll(
-                $this->firmId(), $this->personnelId(), $this->getPage(), $this->getPageSize(),
-                $consultationSessionFilter);
+                $this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize(), $consultationSessionFilter);
         
         $result = [];
         $result['total'] = count($consultationSessions);
@@ -43,34 +39,22 @@ class ConsultationSessionController extends PersonnelBaseController
             "endTime" => $consultationSession->getEndTime(),
             "media" => $consultationSession->getMedia(),
             "address" => $consultationSession->getAddress(),
+            "hasParticipantFeedback" => !empty($consultationSession->getParticipantFeedback()),
             "participant" => [
                 "id" => $consultationSession->getParticipant()->getId(),
-                "client" => $this->arrayDataOfClient($consultationSession->getParticipant()->getClientParticipant()),
-                "user" => $this->arrayDataOfUser($consultationSession->getParticipant()->getUserParticipant()),
+                "program" => [
+                    "id" => $consultationSession->getParticipant()->getProgram()->getId(),
+                    "name" => $consultationSession->getParticipant()->getProgram()->getName(),
+                ],
                 "team" => $this->arrayDataOfTeam($consultationSession->getParticipant()->getTeamParticipant()),
             ],
-            "hasConsultantFeedback" => !empty($consultationSession->getConsultantFeedback()),
             "consultant" => [
                 "id" => $consultationSession->getConsultant()->getId(),
-                'program' => [
-                    "id" => $consultationSession->getConsultant()->getProgram()->getId(),
-                    "name" => $consultationSession->getConsultant()->getProgram()->getName(),
+                'personnel' => [
+                    "id" => $consultationSession->getConsultant()->getPersonnel()->getId(),
+                    "name" => $consultationSession->getConsultant()->getPersonnel()->getName(),
                 ],
             ],
-        ];
-    }
-    protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
-    {
-        return empty($clientParticipant)? null: [
-            "id" => $clientParticipant->getClient()->getId(),
-            "name" => $clientParticipant->getClient()->getFullName(),
-        ];
-    }
-    protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
-    {
-        return empty($userParticipant)? null: [
-            "id" => $userParticipant->getUser()->getId(),
-            "name" => $userParticipant->getUser()->getFullName(),
         ];
     }
     protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
@@ -80,5 +64,4 @@ class ConsultationSessionController extends PersonnelBaseController
             "name" => $teamParticipant->getTeam()->getName(),
         ];
     }
-
 }
