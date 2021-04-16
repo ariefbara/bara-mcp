@@ -3,9 +3,14 @@
 namespace Query\Domain\Model;
 
 use DateTimeImmutable;
+use Query\Application\Service\User\ConsultationSessionRepository;
+use Query\Application\Service\User\ParticipantInviteeRepository;
 use Query\Domain\Service\DataFinder;
+use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
+use Resources\Exception\RegularException;
 
 class User
 {
@@ -90,9 +95,16 @@ class User
         return $this->activated;
     }
 
+    protected function assertActive()
+    {
+        if (!$this->activated) {
+            throw RegularException::forbidden('forbidden: only active user can make this request');
+        }
+    }
+
     protected function __construct()
     {
-        ;
+        
     }
 
     public function passwordMatches(string $password): bool
@@ -114,10 +126,28 @@ class User
     {
         return $this->personName->getLastName();
     }
-    
+
     public function viewAllActiveProgramParticipationSummary(DataFinder $dataFinder, int $page, int $pageSize): array
     {
         return $dataFinder->summaryOfAllUserProgramParticipations($this->id, $page, $pageSize);
+    }
+
+    public function viewAllActivityInvitations(
+            ParticipantInviteeRepository $participantInviteeRepository, int $page, int $pageSize,
+            ?InviteeFilter $inviteeFilter)
+    {
+        $this->assertActive();
+        return $participantInviteeRepository
+                        ->allParticipantInviteeBelongsToUser($this->id, $page, $pageSize, $inviteeFilter);
+    }
+
+    public function viewAllConsultationSessions(
+            ConsultationSessionRepository $consultationSessionRepository, int $page, int $pageSize,
+            ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $this->assertActive();
+        return $consultationSessionRepository
+                ->allConsultationSessionBelongsToUser($this->id, $page, $pageSize, $consultationSessionFilter);
     }
 
 }

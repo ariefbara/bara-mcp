@@ -8,6 +8,7 @@ use Doctrine\ORM\QueryBuilder;
 use Query\Application\Service\Client\ConsultationSessionRepository as InterfaceForClient;
 use Query\Application\Service\Firm\Program\ConsultationSessionRepository;
 use Query\Application\Service\Personnel\ConsultationSessionRepository as InterfaceForPersonnel;
+use Query\Application\Service\User\ConsultationSessionRepository as InterfaceForUser;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Team\Member;
@@ -18,7 +19,7 @@ use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository, InterfaceForPersonnel,
-        InterfaceForClient
+        InterfaceForClient, InterfaceForUser
 {
 
     public function aConsultationSessionOfClient(
@@ -368,14 +369,14 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
         $params = [
             'clientId' => $clientId,
         ];
-        
+
         $clientParticipantQB = $this->getEntityManager()->createQueryBuilder();
         $clientParticipantQB->select('a_participant.id')
                 ->from(ClientParticipant::class, 'a_clientParticipant')
                 ->leftJoin('a_clientParticipant.participant', 'a_participant')
                 ->leftJoin('a_clientParticipant.client', 'a_client')
                 ->andWhere($clientParticipantQB->expr()->eq('a_client.id', ':clientId'));
-        
+
         $teamMemberQB = $this->getEntityManager()->createQueryBuilder();
         $teamMemberQB->select('b_team.id')
                 ->from(Member::class, 'b_member')
@@ -383,25 +384,51 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
                 ->leftJoin('b_member.client', 'b_client')
                 ->andWhere($teamMemberQB->expr()->eq('b_client.id', ':clientId'))
                 ->leftJoin('b_member.team', 'b_team');
-        
+
         $teamParticipantQB = $this->getEntityManager()->createQueryBuilder();
         $teamParticipantQB->select('c_participant.id')
                 ->from(TeamProgramParticipation::class, 'c_teamParticipant')
                 ->leftJoin('c_teamParticipant.programParticipation', 'c_participant')
                 ->leftJoin('c_teamParticipant.team', 'c_team')
                 ->andWhere($teamParticipantQB->expr()->in('c_team.id', $teamMemberQB->getDQL()));
-        
+
         $qb = $this->createQueryBuilder('consultationSession');
         $qb->select('consultationSession')
                 ->leftJoin('consultationSession.participant', 'participant')
                 ->andWhere($qb->expr()->eq('participant.active', 'true'))
                 ->andWhere($qb->expr()->orX(
-                        $qb->expr()->in('participant.id', $clientParticipantQB->getDQL()),
-                        $qb->expr()->in('participant.id', $teamParticipantQB->getDQL())
+                                $qb->expr()->in('participant.id', $clientParticipantQB->getDQL()),
+                                $qb->expr()->in('participant.id', $teamParticipantQB->getDQL())
                 ))
                 ->addOrderBy('consultationSession.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
-        
+
+        $this->applyFilter($qb, $consultationSessionFilter);
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allConsultationSessionBelongsToUser(
+            string $userId, int $page, int $pageSize, ?ConsultationSessionFilter $consultationSessionFilter)
+    {
+        $params = [
+            'userId' => $userId,
+        ];
+
+        $userParticipantQB = $this->getEntityManager()->createQueryBuilder();
+        $userParticipantQB->select('a_participant.id')
+                ->from(UserParticipant::class, 'a_userParticipant')
+                ->leftJoin('a_userParticipant.participant', 'a_participant')
+                ->leftJoin('a_userParticipant.user', 'a_user')
+                ->andWhere($userParticipantQB->expr()->eq('a_user.id', ':userId'));
+
+        $qb = $this->createQueryBuilder('consultationSession');
+        $qb->select('consultationSession')
+                ->leftJoin('consultationSession.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->andWhere($qb->expr()->in('participant.id', $userParticipantQB->getDQL()))
+                ->addOrderBy('consultationSession.startEndTime.startDateTime', 'ASC')
+                ->setParameters($params);
+
         $this->applyFilter($qb, $consultationSessionFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

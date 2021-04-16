@@ -2,20 +2,15 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\UserRepository,
-    Domain\Model\User
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\User\UserRepository as InterfaceForUser;
+use Query\Application\Service\UserRepository;
+use Query\Domain\Model\User;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineUserRepository extends EntityRepository implements UserRepository
+class DoctrineUserRepository extends EntityRepository implements UserRepository, InterfaceForUser
 {
 
     public function all(int $page, int $pageSize)
