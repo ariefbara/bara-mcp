@@ -3,10 +3,12 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
+use Query\Application\Service\Client\ConsultationRequestRepository;
 use Query\Application\Service\Client\ConsultationSessionRepository;
 use Query\Application\Service\Client\ParticipantInviteeRepository;
 use Query\Domain\Model\Firm;
 use Query\Domain\Service\DataFinder;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Domain\ValueObject\Password;
@@ -152,6 +154,15 @@ class Client
         $this->assertActive();
         return $consultationSessionRepository->allAccessibleConsultationSesssionBelongsToClient(
                 $this->id, $page, $pageSize, $consultationSessionFilter);
+    }
+
+    public function viewAllAccessibleConsultationRequest(
+            ConsultationRequestRepository $consultationRequestRepository, int $page, int $pageSize,
+            ?ConsultationRequestFilter $consultationRequestFilter)
+    {
+        $this->assertActive();
+        return $consultationRequestRepository->allAccessibleConsultationSesssionBelongsToClient(
+                $this->id, $page, $pageSize, $consultationRequestFilter);
     }
     
     public function viewAllAccessibleActivityInvitations(
