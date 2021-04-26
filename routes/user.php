@@ -13,6 +13,7 @@ $router->group($userAggregate, function () use ($router) {
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     $router->get('/active-program-participation-summaries', ['uses' => "ActiveProgramParticipationSummaryController@showAll"]);
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
+    $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     
     $router->group(['prefix' => '/programs'], function () use($router) {

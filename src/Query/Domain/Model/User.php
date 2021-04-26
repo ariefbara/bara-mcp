@@ -3,9 +3,11 @@
 namespace Query\Domain\Model;
 
 use DateTimeImmutable;
+use Query\Application\Service\User\ConsultationRequestRepository;
 use Query\Application\Service\User\ConsultationSessionRepository;
 use Query\Application\Service\User\ParticipantInviteeRepository;
 use Query\Domain\Service\DataFinder;
+use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Domain\ValueObject\Password;
@@ -148,6 +150,15 @@ class User
         $this->assertActive();
         return $consultationSessionRepository
                 ->allConsultationSessionBelongsToUser($this->id, $page, $pageSize, $consultationSessionFilter);
+    }
+
+    public function viewAllConsultationRequests(
+            ConsultationRequestRepository $consultationRequestRepository, int $page, int $pageSize,
+            ?ConsultationRequestFilter $consultationRequestFilter)
+    {
+        $this->assertActive();
+        return $consultationRequestRepository
+                ->allConsultationRequestBelongsToUser($this->id, $page, $pageSize, $consultationRequestFilter);
     }
 
 }
