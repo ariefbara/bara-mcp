@@ -14,4 +14,6 @@ interface MissionRepository
     public function update(): void;
 
     public function ofId(ProgramCompositionId $programCompositionId, string $missionId): Mission;
+    
+    public function aMissionOfId(string $missionId): Mission;
 }

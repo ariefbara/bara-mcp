@@ -7,12 +7,14 @@ use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
+use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\WorksheetForm;
 use Resources\Exception\RegularException;
 use Resources\ValidationRule;
 use Resources\ValidationService;
 
-class Mission implements AssetBelongsToFirm, ManageableByFirm
+class Mission implements AssetBelongsToFirm, ManageableByFirm, AssetInProgram
 {
 
     /**
@@ -79,6 +81,11 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm
         $this->name = $name;
     }
 
+    public function belongsToProgram(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+    
     public function __construct(Program $program, string $id, WorksheetForm $worksheetForm, MissionData $missionData)
     {
         $this->program = $program;
@@ -135,6 +142,12 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm
     public function isManageableByFirm(Firm $firm): bool
     {
         return $this->program->isManageableByFirm($firm);
+    }
+    
+    public function receiveComment(
+            string $missionCommentId, MissionCommentData $missionCommentData, string $userId, string $userName): MissionComment
+    {
+        return new MissionComment($this, $missionCommentId, $missionCommentData, $userId, $userName);
     }
 
 }

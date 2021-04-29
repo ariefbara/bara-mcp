@@ -420,6 +420,10 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{programsProfileFormId}", ["uses" => "$controller@show"]);
             });
             
+            $router->post('/missions/{missionId}/mission-comments', ['uses' => "MissionCommentController@submit"]);
+            $router->post('/mission-comments/{missionCommentId}', ['uses' => "MissionCommentController@reply"]);
+            $router->get('/missions/{missionId}/mission-comments', ['uses' => "MissionCommentController@showAll"]);
+            $router->get('/mission-comments/{missionCommentId}', ['uses' => "MissionCommentController@show"]);
         });
         
         $teamProgramParticipationAggregate = [

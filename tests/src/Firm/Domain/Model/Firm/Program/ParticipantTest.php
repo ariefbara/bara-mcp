@@ -27,6 +27,7 @@ class ParticipantTest extends TestBase
 
     protected $program;
     protected $participant;
+    protected $asset;
     protected $consultationRequest;
     protected $consultationSession;
     protected $invitation;
@@ -68,6 +69,8 @@ class ParticipantTest extends TestBase
         $this->participant->dedicatedMentors->add($this->dedicatedMentor);
         
         $this->participant->evaluations = new ArrayCollection();
+        
+        $this->asset = $this->buildMockOfInterface(AssetInProgram::class);
         
         $this->inactiveParticipant = new TestableParticipant($this->program, 'id');
         $this->inactiveParticipant->active = false;
@@ -153,6 +156,34 @@ class ParticipantTest extends TestBase
         $this->assertEquals($teamParticipant, $participant->teamParticipant);
         $this->assertNull($participant->userParticipant);
         $this->assertNull($participant->clientParticipant);
+    }
+    
+    public function test_asserActive_activeParticipant_void()
+    {
+        $this->participant->assertActive();
+        $this->markAsSuccess();
+    }
+    public function test_asserActive_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertInactiveParticipant(function(){
+            $this->participant->assertActive();
+        });
+    }
+    
+    public function test_assertAssetAccessible_inaccesibleAsset_forbidden()
+    {
+        $this->assertRegularExceptionThrowed(function (){
+            $this->participant->assertAssetAccessible($this->asset);
+        }, 'Forbidden', 'forbidden: unable to access asset not in same program');
+    }
+    public function test_assertAssetAccessible_accessibleAsset_void()
+    {
+        $this->asset->expects($this->once())
+                ->method('belongsToProgram')
+                ->with($this->participant->program)
+                ->willReturn(true);
+        $this->participant->assertAssetAccessible($this->asset);
     }
 
     public function test_belongsToProgram_sameProgram_returnTrue()
@@ -428,6 +459,9 @@ class ParticipantTest extends TestBase
     
     protected function executeDedicateMentor()
     {
+        $this->consultant->expects($this->any())
+                ->method('isActive')
+                ->willReturn(true);
         return $this->participant->dedicateMentor($this->consultant);
     }
     public function test_dedicateMentor_addDedicatedMentorToCollection()

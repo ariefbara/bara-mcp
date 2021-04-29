@@ -44,5 +44,10 @@ class ClientParticipant
     {
         return $this->participant->initiateMeeting($meetingId, $meetingType, $meetingData);
     }
+    
+    public function submitCommentInMission(Mission $mission, string $missionCommentId, string $message): Mission\MissionComment
+    {
+        
+    }
 
 }

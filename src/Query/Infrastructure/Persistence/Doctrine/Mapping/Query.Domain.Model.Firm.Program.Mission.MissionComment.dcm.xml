@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Mission\MissionComment" 
+            table="MissionComment"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineMissionCommentRepository"
+    >
+        
+        <many-to-one  field="mission" 
+                      target-entity="Query\Domain\Model\Firm\Program\Mission"
+        >
+            <join-column name="Mission_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="message" type="text" length="1024" nullable="true"/>
+        <field name="rolePaths" type="json" nullable="true"/>
+        <field name="userId" type="string" length="36" nullable="false"/>
+        <field name="userName" length="1024" nullable="true"/>
+        <field name="modifiedTime" type="datetime_immutable" nullable="true"/>
+        
+        <many-to-one  field="repliedComment" 
+                      target-entity="Query\Domain\Model\Firm\Program\Mission\MissionComment"
+        >
+            <join-column name="MissionComment_idToReply" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

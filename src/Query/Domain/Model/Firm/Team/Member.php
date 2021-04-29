@@ -12,6 +12,7 @@ use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
@@ -20,6 +21,7 @@ use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\ClientFinder;
 use Query\Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder;
+use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Program\Participant\ConsultationSessionFinder;
 use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
 use Query\Domain\Service\Firm\ProgramFinder;
@@ -382,6 +384,23 @@ class Member extends EntityContainEvents
         $this->assertActive();
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
+    }
+    
+    public function viewMissionComment(
+            TeamProgramParticipation $teamParticipant, MissionCommentRepository $missionCommentRepository, 
+            string $missionCommentId): MissionComment
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewMissionComment($missionCommentRepository, $missionCommentId);
+    }
+    public function viewAllMissionComments(
+            TeamProgramParticipation $teamParticipant, MissionCommentRepository $missionCommentRepository, 
+            string $missionId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
     }
 
 }

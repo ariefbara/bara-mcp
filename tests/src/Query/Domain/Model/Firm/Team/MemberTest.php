@@ -2,16 +2,15 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
-use Query\Domain\ {
-    Event\LearningMaterialViewedByParticipantEvent,
-    Event\LearningMaterialViewedByTeamMemberEvent,
-    Model\Firm\Client,
-    Model\Firm\Team,
-    Service\Firm\ClientFinder,
-    Service\Firm\Team\TeamProgramParticipationFinder,
-    Service\LearningMaterialFinder,
-    Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2
-};
+use Query\Domain\Event\LearningMaterialViewedByParticipantEvent;
+use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Team;
+use Query\Domain\Service\Firm\ClientFinder;
+use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
+use Query\Domain\Service\Firm\Team\TeamProgramParticipationFinder;
+use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2;
 use Tests\TestBase;
 
 class MemberTest extends TestBase
@@ -24,6 +23,8 @@ class MemberTest extends TestBase
     protected $teamProgramParticipation;
     protected $programParticipationFinder, $programId = "programId";
     protected $learningMaterialFinder, $learningMaterialId = "learningMaterialId";
+    protected $page = 1, $pageSize = 25;
+    protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
 
     protected function setUp(): void
     {
@@ -43,6 +44,7 @@ class MemberTest extends TestBase
                 ->willReturn($this->teamProgramParticipation);
         
         $this->learningMaterialFinder = $this->buildMockOfClass(LearningMaterialFinder::class);
+        $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
     }
     protected function assertNotAdminForbiddenError(callable $operation): void
     {
@@ -53,6 +55,25 @@ class MemberTest extends TestBase
     {
         $errorDetail = "forbidden: only active team member can make this requests";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    protected function assertUnmanageTeamParticipant(callable $operation): void
+    {
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', 'forbidden: can only manage asset of your team');
+    }
+    
+    protected function setManageableTeamParticipant(): void
+    {
+        $this->teamProgramParticipation->expects($this->any())
+                ->method('teamEquals')
+                ->with($this->member->team)
+                ->willReturn(true);
+    }
+    protected function setUnmanageableTeamParticipant(): void
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('teamEquals')
+                ->with($this->member->team)
+                ->willReturn(false);
     }
     
     protected function executeViewClientByEmail()
@@ -122,6 +143,62 @@ class MemberTest extends TestBase
         $this->member->active = false;
         $this->assertInactiveForbiddenError(function (){
             $this->executeViewLearningMaterial();
+        });
+    }
+    
+    protected function executeViewMissionComment()
+    {
+        $this->setManageableTeamParticipant();
+        return $this->member->viewMissionComment(
+                $this->teamProgramParticipation, $this->missionCommentRepository, $this->missionCommentId);
+    }
+    public function test_viewMissionComment_returnTeamParticipantsViewMissionCommentResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('viewMissionComment')
+                ->with($this->missionCommentRepository, $this->missionCommentId);
+        $this->executeViewMissionComment();
+    }
+    public function test_viewMissionComment_inactiveMember_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertInactiveForbiddenError(function (){
+            $this->executeViewMissionComment();
+        });
+    }
+    public function test_viewMissionComment_unamangeTeamParticipant_forbidden()
+    {
+        $this->setUnmanageableTeamParticipant();
+        $this->assertUnmanageTeamParticipant(function(){
+            $this->executeViewMissionComment();
+        });
+    }
+    
+    protected function executeViewAllMissionComment()
+    {
+        $this->setManageableTeamParticipant();
+        return $this->member->viewAllMissionComments(
+                $this->teamProgramParticipation, $this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
+    }
+    public function test_viewAllMissionComment_returnTeamParticipantsViewAllMissionCommentsResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('viewAllMissionComments')
+                ->with($this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
+        $this->executeViewAllMissionComment();
+    }
+    public function test_viewAllMissionComment_inactiveMember_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertInactiveForbiddenError(function (){
+            $this->executeViewAllMissionComment();
+        });
+    }
+    public function test_viewAllMissionComment_unamangeTeamParticipant_forbidden()
+    {
+        $this->setUnmanageableTeamParticipant();
+        $this->assertUnmanageTeamParticipant(function(){
+            $this->executeViewAllMissionComment();
         });
     }
 }

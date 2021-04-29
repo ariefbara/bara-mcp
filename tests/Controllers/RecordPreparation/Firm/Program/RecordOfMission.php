@@ -55,5 +55,10 @@ class RecordOfMission implements Record
             "published" => $this->published,
         ];
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection)
+    {
+        $connection->table('Mission')->insert($this->toArrayForDbEntry());
+    }
 
 }

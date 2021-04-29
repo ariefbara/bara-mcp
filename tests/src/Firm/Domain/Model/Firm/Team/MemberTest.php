@@ -2,25 +2,29 @@
 
 namespace Firm\Domain\Model\Firm\Team;
 
-use Firm\Domain\ {
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Model\Firm\Program\TeamParticipant,
-    Model\Firm\Team,
-    Service\MeetingAttendeeBelongsToTeamFinder
-};
+use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
+use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\TeamParticipant;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
 use Tests\TestBase;
 
 class MemberTest extends TestBase
 {
     protected $member;
+    protected $client;
     protected $team;
     protected $meetingId = "meetingId", $teamParticipant, $meetingType, $meetingData;
     protected $attendeeFinder, $attendee;
     protected $user;
     protected $toCancelAttendee;
+    protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
 
     protected function setUp(): void
     {
@@ -28,6 +32,8 @@ class MemberTest extends TestBase
         $this->member = new TestableMember();
         $this->team = $this->buildMockOfClass(Team::class);
         $this->member->team = $this->team;
+        $this->client = $this->buildMockOfClass(Client::class);
+        $this->member->client = $this->client;
         
         $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
@@ -43,6 +49,10 @@ class MemberTest extends TestBase
         $this->toCancelAttendee = $this->buildMockOfClass(Attendee::class);
         
         $this->user = $this->buildMockOfInterface(CanAttendMeeting::class);
+        
+        $this->mission = $this->buildMockOfClass(Mission::class);
+        $this->missionComment = $this->buildMockOfClass(MissionComment::class);
+        $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
     }
     
     protected function setAttendeeDoesntBelongsToTeam()
@@ -172,12 +182,92 @@ class MemberTest extends TestBase
         });
     }
     
+    protected function executeSubmitCommentInMission()
+    {
+        $this->teamParticipant->expects($this->any())
+                ->method('belongsToTeam')
+                ->willReturn(true);
+        $this->member->submitCommentInMission(
+                $this->teamParticipant, $this->mission, $this->missionCommentId, $this->missionCommentData);
+    }
+    public function test_submitCommentInMission_returnTeamParticipantsSubmitCommentInMissionResult()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('submitCommentInMission')
+                ->with($this->mission, $this->missionCommentId, $this->missionCommentData, $this->member->client);
+        $this->executeSubmitCommentInMission();
+    }
+    public function test_submitCommentInMission_modifyMissionCommentData()
+    {
+        $this->missionCommentData->expects($this->once())
+                ->method('addRolePath')
+                ->with('member', $this->member->id);
+        $this->executeSubmitCommentInMission();
+    }
+    public function test_submitComment_inactiveMember_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeSubmitCommentInMission();
+        }, 'Forbidden', 'forbidden: only active team member can make this request');
+    }
+    public function test_submitComment_unmanagedTeamParticipant_forbidden()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('belongsToTeam')
+                ->with($this->member->team)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeSubmitCommentInMission();
+        }, 'Forbidden', 'forbidden: unable to manage team participant');
+    }
+    
+    protected function executeReplyMissionComment()
+    {
+        $this->teamParticipant->expects($this->any())
+                ->method('belongsToTeam')
+                ->willReturn(true);
+        $this->member->replyMissionComment(
+                $this->teamParticipant, $this->missionComment, $this->missionCommentId, $this->missionCommentData);
+    }
+    public function test_replyMissionComment_returnTeamParticipantsReplyMissionCommentResult()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('replyMissionComment')
+                ->with($this->missionComment, $this->missionCommentId, $this->missionCommentData, $this->member->client);
+        $this->executeReplyMissionComment();
+    }
+    public function test_replyMissionComment_modifyMissionCommentData()
+    {
+        $this->missionCommentData->expects($this->once())
+                ->method('addRolePath')
+                ->with('member', $this->member->id);
+        $this->executeReplyMissionComment();
+    }
+    public function test_replyMissionComment_inactiveMember_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeReplyMissionComment();
+        }, 'Forbidden', 'forbidden: only active team member can make this request');
+    }
+    public function test_replyMissionComment_unmanagedTeamParticipant_forbidden()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('belongsToTeam')
+                ->with($this->member->team)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeReplyMissionComment();
+        }, 'Forbidden', 'forbidden: unable to manage team participant');
+    }
+    
 }
 
 class TestableMember extends Member
 {
      public $team;
-     public $id;
+     public $id = 'member-id';
      public $client;
      public $anAdmin;
      public $active = true;

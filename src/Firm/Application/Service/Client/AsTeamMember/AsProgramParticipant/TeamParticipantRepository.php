@@ -6,5 +6,7 @@ use Firm\Domain\Model\Firm\Program\TeamParticipant;
 
 interface TeamParticipantRepository
 {
+
     public function aTeamParticipantCorrespondWitnProgram(string $teamId, string $programId): TeamParticipant;
+
 }

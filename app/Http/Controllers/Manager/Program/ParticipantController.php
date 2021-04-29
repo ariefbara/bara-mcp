@@ -19,8 +19,9 @@ class ParticipantController extends ManagerBaseController
         $service = $this->buildViewService();
         $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
         $note = $this->stripTagQueryRequest("note");
+        $searchByName = $this->stripTagQueryRequest("name");
         $participants = $service
-                ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activeStatus, $note);
+                ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activeStatus, $note, $searchByName);
         
         $result = [];
         $result["total"] = count($participants);

@@ -2,16 +2,16 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Firm\Application\Service\Firm\Program\MissionRepository;
 use Firm\Application\Service\Firm\Program\ProgramCompositionId;
 use Firm\Application\Service\Manager\MissionRepository as InterfaceForManager;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 use Resources\Uuid;
 
-class DoctrineMissionRepository extends EntityRepository implements MissionRepository, InterfaceForManager
+class DoctrineMissionRepository extends DoctrineEntityRepository implements MissionRepository, InterfaceForManager
 {
 
     public function add(Mission $mission): void

@@ -12,6 +12,9 @@
         
         <id name="id" type="guid" />
         <field name="activated" type="boolean" />
+        <embedded name="personName" 
+                  class="Resources\Domain\ValueObject\PersonName" 
+                  use-column-prefix="false" />
         
     </entity>
 </doctrine-mapping>

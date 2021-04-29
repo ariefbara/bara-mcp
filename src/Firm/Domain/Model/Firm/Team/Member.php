@@ -8,6 +8,9 @@ use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
+use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
@@ -69,7 +72,7 @@ class Member extends EntityContainCommonEvents
         $this->assertActive();
         $meeting = $meetingAttendeeFinder->execute($this->team, $meetingId);
         $meeting->updateMeeting($meetingData);
-        
+
         $this->recordedEvents = $meeting->pullRecordedEvents();
     }
 
@@ -79,10 +82,10 @@ class Member extends EntityContainCommonEvents
         $this->assertActive();
         $meeting = $meetingAttendeeFinder->execute($this->team, $meetingId);
         $meeting->inviteUserToAttendMeeting($user);
-        
+
         $this->recordedEvents = $meeting->pullRecordedEvents();
     }
-    
+
     public function cancelInvitation(
             MeetingAttendeeBelongsToTeamFinder $meetingAttendeeFinder, string $meetingId, Attendee $attendee): void
     {
@@ -97,6 +100,32 @@ class Member extends EntityContainCommonEvents
             $errorDetail = "forbidden: only active team member can make this request";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+    protected function assertManageableTeamParticipant(TeamParticipant $teamParticipant): void
+    {
+        if (! $teamParticipant->belongsToTeam($this->team)) {
+            throw RegularException::forbidden('forbidden: unable to manage team participant');
+        }
+    }
+
+    public function submitCommentInMission(
+            TeamParticipant $teamParticipant, Mission $mission, string $missionCommentId,
+            MissionCommentData $missionCommentData): MissionComment
+    {
+        $this->assertActive();
+        $this->assertManageableTeamParticipant($teamParticipant);
+        $missionCommentData->addRolePath('member', $this->id);
+        return $teamParticipant->submitCommentInMission($mission, $missionCommentId, $missionCommentData, $this->client);
+    }
+
+    public function replyMissionComment(
+            TeamParticipant $teamParticipant, MissionComment $missionComment, string $replyId,
+            MissionCommentData $missionCommentData): MissionComment
+    {
+        $this->assertActive();
+        $this->assertManageableTeamParticipant($teamParticipant);
+        $missionCommentData->addRolePath('member', $this->id);
+        return $teamParticipant->replyMissionComment($missionComment, $replyId, $missionCommentData, $this->client);
     }
 
 }

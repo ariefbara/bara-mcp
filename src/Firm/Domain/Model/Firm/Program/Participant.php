@@ -9,6 +9,8 @@ use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
+use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
@@ -130,10 +132,16 @@ class Participant implements AssetInProgram, CanAttendMeeting
         
         $this->profiles = new ArrayCollection();
     }
-    protected function assertActive(): void
+    public function assertActive(): void
     {
         if (!$this->active) {
             throw RegularException::forbidden('forbidden: inactive partiicpant');
+        }
+    }
+    public function assertAssetAccessible(AssetInProgram $asset): void
+    {
+        if (!$asset->belongsToProgram($this->program)) {
+            throw RegularException::forbidden('forbidden: unable to access asset not in same program');
         }
     }
 

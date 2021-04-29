@@ -5,6 +5,7 @@ namespace Firm\Domain\Model\Firm\Program;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\WorksheetForm;
 use Tests\TestBase;
 
@@ -16,6 +17,7 @@ class MissionTest extends TestBase
     protected $mission;
     protected $id = 'mission-id', $name = 'new mission name', $description = 'new mission description', $position = 'mission positioin';
     protected $firm;
+    protected $missionCommentId = 'mission-comment-id', $missionCommentData, $userId = 'user-id', $userName = 'user name';
 
     protected function setUp(): void
     {
@@ -29,10 +31,22 @@ class MissionTest extends TestBase
 
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->firm = $this->buildMockOfClass(Firm::class);
+        
+        $this->missionCommentData = new MissionCommentData('message');
     }
     protected function getMissionData()
     {
         return new MissionData($this->name, $this->description, $this->position);
+    }
+    
+    public function test_belongsToProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->mission->belongsToProgram($this->program));
+    }
+    public function test_belongsToProgram_differentProgram_returnFalse()
+    {
+        $program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->mission->belongsToProgram($program));
     }
 
     protected function executeConstruct()
@@ -152,6 +166,17 @@ class MissionTest extends TestBase
                 ->method('isManageableByFirm')
                 ->with($firm);
         $this->mission->isManageableByFirm($firm);
+    }
+    
+    protected function executeReceiveComment()
+    {
+        return $this->mission->receiveComment(
+                $this->missionCommentId, $this->missionCommentData, $this->userId, $this->userName);
+    }
+    public function test_receiveComment_returnMissionComment()
+    {
+        $missionComment = new Mission\MissionComment($this->mission, $this->missionCommentId, $this->missionCommentData, $this->userId, $this->userName);
+        $this->assertEquals($missionComment, $this->executeReceiveComment());
     }
 }
 
