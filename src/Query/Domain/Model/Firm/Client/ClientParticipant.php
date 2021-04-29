@@ -8,12 +8,14 @@ use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
 use Resources\Application\Event\ContainEvents;
@@ -130,6 +132,17 @@ class ClientParticipant implements ContainEvents
             DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
     {
         return $this->participant->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
+    }
+    
+    public function viewMissionComment(
+            MissionCommentRepository $missionCommentRepository, string $missionCommentId): MissionComment
+    {
+        return $this->participant->viewMissionComment($missionCommentRepository, $missionCommentId);
+    }
+    public function viewAllMissionComments(
+            MissionCommentRepository $missionCommentRepository, string $missionId, int $page, int $pageSize)
+    {
+        return $this->participant->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
     }
 
 }

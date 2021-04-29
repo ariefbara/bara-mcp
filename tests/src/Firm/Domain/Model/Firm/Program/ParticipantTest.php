@@ -4,6 +4,7 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
@@ -35,7 +36,7 @@ class ParticipantTest extends TestBase
     protected $clientParticipant;
     protected $userParticipant;
     protected $teamParticipant;
-    protected $id = 'newParticipantId', $userId = 'userId', $clientId = 'clientId', $teamId = "teamId";
+    protected $id = 'newParticipantId', $userId = 'userId', $client, $teamId = "teamId";
     protected $registrant;
     protected $metricAssignment;
     protected $metricAssignmentDataProvider;
@@ -75,6 +76,8 @@ class ParticipantTest extends TestBase
         $this->inactiveParticipant = new TestableParticipant($this->program, 'id');
         $this->inactiveParticipant->active = false;
         $this->inactiveParticipant->note = 'booted';
+        
+        $this->client = $this->buildMockOfClass(Client::class);
 
         $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
         $this->participant->clientParticipant = $this->clientParticipant;
@@ -131,14 +134,14 @@ class ParticipantTest extends TestBase
 
     public function test_participantForClient_setProperties()
     {
-        $participant = TestableParticipant::participantForClient($this->program, $this->id, $this->clientId);
+        $participant = TestableParticipant::participantForClient($this->program, $this->id, $this->client);
         $this->assertEquals($this->program, $participant->program);
         $this->assertEquals($this->id, $participant->id);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
         $this->assertTrue($participant->active);
         $this->assertNull($participant->note);
 
-        $clientParticipant = new ClientParticipant($participant, $this->id, $this->clientId);
+        $clientParticipant = new ClientParticipant($participant, $this->id, $this->client);
         $this->assertEquals($clientParticipant, $participant->clientParticipant);
         $this->assertNull($participant->userParticipant);
     }

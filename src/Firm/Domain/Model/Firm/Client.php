@@ -30,11 +30,6 @@ class Client
      */
     protected $personName;
 
-    /**
-     *
-     * @var bool
-     */
-
     protected function __construct()
     {
         

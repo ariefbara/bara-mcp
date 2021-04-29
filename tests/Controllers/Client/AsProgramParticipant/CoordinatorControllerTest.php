@@ -16,7 +16,7 @@ class CoordinatorControllerTest extends AsProgramParticipantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->coordinatorUri = $this->asProgramparticipantUri . "/coordinators";
+        $this->coordinatorUri = $this->asProgramParticipantUri . "/coordinators";
         
         $this->connection->table("Personnel")->truncate(); 
         $this->connection->table("Coordinator")->truncate(); 

@@ -15,7 +15,7 @@ class ProgramsProfileFormControllerTest extends AsProgramParticipantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->programsProfileFormUri = $this->asProgramparticipantUri . "/programs-profile-forms";
+        $this->programsProfileFormUri = $this->asProgramParticipantUri . "/programs-profile-forms";
         $this->connection->table("Form")->truncate();
         $this->connection->table("ProfileForm")->truncate();
         $this->connection->table("ProgramsProfileForm")->truncate();

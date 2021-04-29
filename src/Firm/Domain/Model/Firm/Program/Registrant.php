@@ -5,6 +5,7 @@ namespace Firm\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Resources\Exception\RegularException;
 
@@ -115,9 +116,9 @@ class Registrant
         return empty($this->userRegistrant) ? false : $this->userRegistrant->userIdEquals($userId);
     }
 
-    public function correspondWithClient(string $clientId): bool
+    public function correspondWithClient(Client $client): bool
     {
-        return empty($this->clientRegistrant) ? false : $this->clientRegistrant->clientIdEquals($clientId);
+        return empty($this->clientRegistrant) ? false : $this->clientRegistrant->clientEquals($client);
     }
 
     public function correspondWithTeam(string $teamId): bool

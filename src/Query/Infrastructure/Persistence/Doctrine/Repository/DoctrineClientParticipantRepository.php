@@ -113,4 +113,33 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
         }
     }
 
+    public function aClientParticipantCorrespondWithProgram(
+            string $firmId, string $clientId, string $programId): ClientParticipant
+    {
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "programId" => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder("clientParticipant");
+        $qb->select("clientParticipant")
+                ->leftJoin("clientParticipant.client", "client")
+                ->andWhere($qb->expr()->eq("client.id", ":clientId"))
+                ->leftJoin("client.firm", "firm")
+                ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->leftJoin("clientParticipant.participant", "participant")
+                ->leftJoin("participant.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: client participant not found";
+            throw RegularException::notFound($errorDetail);
+        }
+    }
+
 }

@@ -2,6 +2,7 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 
 class ClientRegistrant
@@ -21,23 +22,22 @@ class ClientRegistrant
 
     /**
      *
-     * @var string
+     * @var Client
      */
-    protected $clientId;
+    protected $client;
     
     protected function __construct()
     {
-        ;
     }
     
     public function createParticipant(Program $program, string $participantId): Participant
     {
-        return Participant::participantForClient($program, $participantId, $this->clientId);
+        return Participant::participantForClient($program, $participantId, $this->client);
     }
     
-    public function clientIdEquals(string $clientId): bool
+    public function clientEquals(Client $client): bool
     {
-        return $this->clientId === $clientId;
+        return $this->client === $client;
     }
 
 }

@@ -4,13 +4,12 @@ namespace Firm\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
 use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
-use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
-use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
@@ -157,10 +156,10 @@ class Participant implements AssetInProgram, CanAttendMeeting
         return $participant;
     }
 
-    public static function participantForClient(Program $program, string $id, string $clientId): self
+    public static function participantForClient(Program $program, string $id, Client $client): self
     {
         $participant = new static($program, $id);
-        $participant->clientParticipant = new ClientParticipant($participant, $id, $clientId);
+        $participant->clientParticipant = new ClientParticipant($participant, $id, $client);
         return $participant;
     }
 

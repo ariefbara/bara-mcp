@@ -22,7 +22,7 @@ class ParticipantControllerTest extends AsProgramParticipantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->participantUri = $this->asProgramparticipantUri . "/participants";
+        $this->participantUri = $this->asProgramParticipantUri . "/participants";
         
         $this->connection->table("User")->truncate();
         $this->connection->table("Team")->truncate();

@@ -22,7 +22,7 @@ class ActivityTypeControllerTest extends AsProgramParticipantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->activityTypeUri = $this->asProgramparticipantUri . "/activity-types";
+        $this->activityTypeUri = $this->asProgramParticipantUri . "/activity-types";
         
         $this->connection->table("ActivityType")->truncate();
         $this->connection->table("Form")->truncate();

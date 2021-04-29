@@ -25,7 +25,8 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Cl
         
         $qb = $this->createQueryBuilder("clientParticipant");
         $qb->select("clientParticipant")
-                ->andWhere($qb->expr()->eq("clientParticipant.clientId", ":clientId"))
+                ->leftJoin("clientParticipant.client", "client")
+                ->andWhere($qb->expr()->eq("client.id", ":clientId"))
                 ->leftJoin("clientParticipant.participant", "participant")
                 ->leftJoin("participant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))

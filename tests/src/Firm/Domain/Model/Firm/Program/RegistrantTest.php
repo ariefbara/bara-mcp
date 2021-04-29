@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Registrant\RegistrantProfile;
 use Tests\TestBase;
@@ -21,7 +22,7 @@ class RegistrantTest extends TestBase
     
     protected $participantId = 'participantId';
     
-    protected $userId = 'userId', $clientId = 'clientId', $teamId = "clientId";
+    protected $userId = 'userId', $client, $teamId = "clientId";
 
     protected function setUp(): void
     {
@@ -41,6 +42,8 @@ class RegistrantTest extends TestBase
         $this->clientRegistrant = $this->buildMockOfClass(ClientRegistrant::class);
         
         $this->teamRegistrant = $this->buildMockOfClass(TeamRegistrant::class);
+        
+        $this->client = $this->buildMockOfClass(Client::class);
     }
     
     protected function executeAccept()
@@ -148,15 +151,15 @@ class RegistrantTest extends TestBase
     
     public function test_correspondWithClient_emptyClientRegistrant_returnFalse()
     {
-        $this->assertFalse($this->registrant->correspondWithClient($this->clientId));
+        $this->assertFalse($this->registrant->correspondWithClient($this->client));
     }
     public function test_correspondWithClient_hasClientRegistrant_returnClientRegistrantsClientIdEqualsResult()
     {
         $this->registrant->clientRegistrant = $this->clientRegistrant;
         $this->clientRegistrant->expects($this->once())
-                ->method('clientIdEquals')
-                ->with($this->clientId);
-        $this->registrant->correspondWithClient($this->clientId);
+                ->method('clientEquals')
+                ->with($this->client);
+        $this->registrant->correspondWithClient($this->client);
     }
     
     public function test_correspondWithTeam_emptyTeamRegistrant_returnFalse()

@@ -17,7 +17,7 @@ class ConsultationSetupControllerTest extends AsProgramParticipantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->consultationSetupUri = $this->asProgramparticipantUri . "/consultation-setups";
+        $this->consultationSetupUri = $this->asProgramParticipantUri . "/consultation-setups";
         $this->connection->table('Form')->truncate();
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();

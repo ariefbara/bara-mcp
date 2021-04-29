@@ -14,7 +14,7 @@ use Tests\Controllers\ {
 class AsProgramParticipantTestCase extends ClientTestCase
 {
 
-    protected $asProgramparticipantUri;
+    protected $asProgramParticipantUri;
 
     /**
      *
@@ -62,7 +62,7 @@ class AsProgramParticipantTestCase extends ClientTestCase
         $this->connection->table('ClientParticipant')->insert($this->programParticipation->toArrayForDbEntry());
         $this->connection->table('ClientParticipant')->insert($this->inactiveProgramParticipation->toArrayForDbEntry());
 
-        $this->asProgramparticipantUri = $this->clientUri . "/as-program-participant/{$program->id}";
+        $this->asProgramParticipantUri = $this->clientUri . "/as-program-participant/{$program->id}";
     }
 
     protected function tearDown(): void

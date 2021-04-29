@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Client\AsProgramParticipant;
 
 use App\Http\Controllers\Client\ClientBaseController;
-use Query\ {
-    Application\Auth\Firm\Program\ParticipantAuthorization,
-    Domain\Model\Firm\Program\Participant
-};
+use Firm\Domain\Model\Firm\Program\ClientParticipant;
+use Query\Application\Auth\Firm\Program\ParticipantAuthorization;
+use Query\Domain\Model\Firm\Client\ClientParticipant as ClientParticipant2;
+use Query\Domain\Model\Firm\Program\Participant;
 
 class AsProgramParticipantBaseController extends ClientBaseController
 {
@@ -16,6 +16,15 @@ class AsProgramParticipantBaseController extends ClientBaseController
         $participantRepository = $this->em->getRepository(Participant::class);
         $authZ = new ParticipantAuthorization($participantRepository);
         $authZ->execute($this->firmId(), $programId, $this->clientId());
+    }
+    
+    protected function clientParticipantFirmRepository()
+    {
+        return $this->em->getRepository(ClientParticipant::class);
+    }
+    protected function clientParticipantQueryRepository()
+    {
+        return $this->em->getRepository(ClientParticipant2::class);
     }
 
 }
