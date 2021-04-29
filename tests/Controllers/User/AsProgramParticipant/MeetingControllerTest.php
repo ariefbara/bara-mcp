@@ -18,7 +18,7 @@ class MeetingControllerTest extends AsProgramParticipantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->meetingUri = $this->asProgramparticipantUri . "/meetings";
+        $this->meetingUri = $this->asProgramParticipantUri . "/meetings";
         $this->connection->table("ActivityType")->truncate();
         $this->connection->table("ActivityParticipant")->truncate();
         $this->connection->table("Activity")->truncate();

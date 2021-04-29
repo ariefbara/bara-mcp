@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\User;
 use Resources\Exception\RegularException;
 
 class Registrant
@@ -111,9 +112,9 @@ class Registrant
         return $participant;
     }
 
-    public function correspondWithUser(string $userId): bool
+    public function correspondWithUser(User $user): bool
     {
-        return empty($this->userRegistrant) ? false : $this->userRegistrant->userIdEquals($userId);
+        return empty($this->userRegistrant) ? false : $this->userRegistrant->userEquals($user);
     }
 
     public function correspondWithClient(Client $client): bool

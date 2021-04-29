@@ -20,7 +20,8 @@ class DoctrineUserParticipantRepository extends EntityRepository implements User
         
         $qb = $this->createQueryBuilder("userParticipant");
         $qb->select("userParticipant")
-                ->andWhere($qb->expr()->eq("userParticipant.userId", ":userId"))
+                ->leftJoin("userParticipant.user", "user")
+                ->andWhere($qb->expr()->eq("user.id", ":userId"))
                 ->leftJoin("userParticipant.participant", "participant")
                 ->leftJoin("participant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))

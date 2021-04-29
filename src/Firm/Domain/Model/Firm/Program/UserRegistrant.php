@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\User;
 
 class UserRegistrant
 {
@@ -20,9 +21,9 @@ class UserRegistrant
 
     /**
      *
-     * @var string
+     * @var User
      */
-    protected $userId;
+    protected $user;
 
     protected function __construct()
     {
@@ -31,12 +32,12 @@ class UserRegistrant
     
     public function createParticipant(Program $program, string $participantId): Participant
     {
-        return Participant::participantForUser($program, $participantId, $this->userId);
+        return Participant::participantForUser($program, $participantId, $this->user);
     }
     
-    public function userIdEquals(string $userId): bool
+    public function userEquals(User $user): bool
     {
-        return $this->userId === $userId;
+        return $this->user === $user;
     }
 
 }

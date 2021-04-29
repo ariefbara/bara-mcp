@@ -13,7 +13,7 @@ use Tests\Controllers\ {
 
 class AsProgramParticipantTestCase extends UserTestCase
 {
-    protected $asProgramparticipantUri;
+    protected $asProgramParticipantUri;
     /**
      *
      * @var RecordOfUserParticipant
@@ -53,7 +53,7 @@ class AsProgramParticipantTestCase extends UserTestCase
         $this->connection->table("UserParticipant")->insert($this->programParticipation->toArrayForDbEntry());
         $this->connection->table("UserParticipant")->insert($this->inactiveProgramParticipation->toArrayForDbEntry());
         
-        $this->asProgramparticipantUri = $this->userUri . "/as-program-participant/{$firm->id}/{$program->id}";
+        $this->asProgramParticipantUri = $this->userUri . "/as-program-participant/{$firm->id}/{$program->id}";
     }
     
     protected function tearDown(): void

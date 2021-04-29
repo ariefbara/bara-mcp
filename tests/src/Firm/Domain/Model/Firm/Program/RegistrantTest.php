@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Registrant\RegistrantProfile;
+use Firm\Domain\Model\User;
 use Tests\TestBase;
 
 class RegistrantTest extends TestBase
@@ -22,7 +23,7 @@ class RegistrantTest extends TestBase
     
     protected $participantId = 'participantId';
     
-    protected $userId = 'userId', $client, $teamId = "clientId";
+    protected $user, $client, $teamId = "clientId";
 
     protected function setUp(): void
     {
@@ -43,6 +44,7 @@ class RegistrantTest extends TestBase
         
         $this->teamRegistrant = $this->buildMockOfClass(TeamRegistrant::class);
         
+        $this->user = $this->buildMockOfClass(User::class);
         $this->client = $this->buildMockOfClass(Client::class);
     }
     
@@ -140,13 +142,13 @@ class RegistrantTest extends TestBase
     {
         $this->userRegistrant->expects($this->once())
                 ->method('userIdEquals')
-                ->with($this->userId);
-        $this->registrant->correspondWithUser($this->userId);
+                ->with($this->user);
+        $this->registrant->correspondWithUser($this->user);
     }
     public function test_correspondWithUser_emptyUserRegistrant_returnFalse()
     {
         $this->registrant->userRegistrant = null;
-        $this->assertFalse($this->registrant->correspondWithUser($this->userId));
+        $this->assertFalse($this->registrant->correspondWithUser($this->user));
     }
     
     public function test_correspondWithClient_emptyClientRegistrant_returnFalse()

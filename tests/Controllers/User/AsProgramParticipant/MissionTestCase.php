@@ -20,7 +20,7 @@ class MissionTestCase extends AsProgramParticipantTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->missionUri = $this->asProgramparticipantUri . "/missions";
+        $this->missionUri = $this->asProgramParticipantUri . "/missions";
         $this->connection->table('Form')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
         $this->connection->table('Mission')->truncate();

@@ -16,6 +16,7 @@ use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
 use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Model\User;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Exception\RegularException;
@@ -149,10 +150,10 @@ class Participant implements AssetInProgram, CanAttendMeeting
         return $this->program === $program;
     }
 
-    public static function participantForUser(Program $program, string $id, string $userId): self
+    public static function participantForUser(Program $program, string $id, User $user): self
     {
         $participant = new static($program, $id);
-        $participant->userParticipant = new UserParticipant($participant, $id, $userId);
+        $participant->userParticipant = new UserParticipant($participant, $id, $user);
         return $participant;
     }
 
