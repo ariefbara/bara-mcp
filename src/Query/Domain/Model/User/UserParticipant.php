@@ -5,6 +5,7 @@ namespace Query\Domain\Model\User;
 use Query\Application\Service\Participant\ActivityLogRepository;
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
@@ -15,6 +16,7 @@ use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Model\User;
 use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\Program\MentorRepository;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
@@ -144,6 +146,15 @@ class UserParticipant implements ContainEvents
             MissionCommentRepository $missionCommentRepository, string $missionId, int $page, int $pageSize)
     {
         return $this->participant->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
+    }
+    
+    public function viewAllMentors(MentorRepository $mentorRepository, int $page, int $pageSize)
+    {
+        return $this->participant->viewAllMentors($mentorRepository, $page, $pageSize);
+    }
+    public function viewMentor(MentorRepository $mentorRepository, string $mentorId): Consultant
+    {
+        return $this->participant->viewMentor($mentorRepository, $mentorId);
     }
 
 }

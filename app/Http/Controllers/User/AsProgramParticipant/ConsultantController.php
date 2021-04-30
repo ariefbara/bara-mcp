@@ -2,34 +2,21 @@
 
 namespace App\Http\Controllers\User\AsProgramParticipant;
 
-use Query\ {
-    Application\Service\Firm\Program\ViewConsultant,
-    Domain\Model\Firm\Program\Consultant
-};
+use Query\Application\Service\User\AsProgramParticipant\ViewMentor;
+use Query\Domain\Model\Firm\Program\Consultant;
 
 class ConsultantController extends AsProgramParticipantBaseController
 {
     public function showAll($firmId, $programId)
     {
-        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
-        
-        $viewService = $this->buildViewService();
-        $consultants = $viewService->showAll($firmId, $programId, $this->getPage(), $this->getPageSize());
-        
-        $result = [];
-        $result['total'] = count($consultants);
-        foreach ($consultants as $consultant) {
-            $result['list'][] = $this->arrayDataOfConsultant($consultant);
-        }
+        $result = $this->buildViewService()->showAll($this->userId(), $programId, $this->getPage(), $this->getPageSize());
         return $this->listQueryResponse($result);
         
     }
     public function show($firmId, $programId, $consultantId)
     {
-        $this->authorizedUserIsActiveProgramParticipant($firmId, $programId);
-        
-        $viewService = $this->buildViewService();
-        $consultant = $viewService->showById($firmId, $programId, $consultantId);
+        $consultant = $this->buildViewService()
+                ->showById($this->userId(), $programId, $consultantId);
         return $this->singleQueryResponse($this->arrayDataOfConsultant($consultant));
     }
     
@@ -45,8 +32,8 @@ class ConsultantController extends AsProgramParticipantBaseController
     }
     protected function buildViewService()
     {
-        $consultantRepository = $this->em->getRepository(Consultant::class);
-        return new ViewConsultant($consultantRepository);
+        $mentorRepository = $this->em->getRepository(Consultant::class);
+        return new ViewMentor($this->userParticipantQueryRepository(), $mentorRepository);
     }
     
 }
