@@ -7,6 +7,7 @@ use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Service\Firm\ClientFinder;
+use Query\Domain\Service\Firm\Program\MentorRepository;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Team\TeamProgramParticipationFinder;
 use Query\Domain\Service\LearningMaterialFinder;
@@ -25,6 +26,7 @@ class MemberTest extends TestBase
     protected $learningMaterialFinder, $learningMaterialId = "learningMaterialId";
     protected $page = 1, $pageSize = 25;
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
+    protected $mentorRepository, $mentorId = 'mentorId';
 
     protected function setUp(): void
     {
@@ -45,6 +47,7 @@ class MemberTest extends TestBase
         
         $this->learningMaterialFinder = $this->buildMockOfClass(LearningMaterialFinder::class);
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
+        $this->mentorRepository = $this->buildMockOfInterface(MentorRepository::class);
     }
     protected function assertNotAdminForbiddenError(callable $operation): void
     {
@@ -201,6 +204,61 @@ class MemberTest extends TestBase
             $this->executeViewAllMissionComment();
         });
     }
+    
+    protected function executeViewAllMentors()
+    {
+        $this->setManageableTeamParticipant();
+        $this->member->viewAllMentors($this->teamProgramParticipation, $this->mentorRepository, $this->page, $this->pageSize);
+    }
+    public function test_viewAllMentors_returnTeamParticipantsViewAllMentorsResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('viewAllMentors')
+                ->with($this->mentorRepository, $this->page, $this->pageSize);
+        $this->executeViewAllMentors();
+    }
+    public function test_viewAllMentor_inactiveMembers_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertInactiveForbiddenError(function (){
+            $this->executeViewAllMentors();
+        });
+    }
+    public function test_viewAllMentor_unmanagedTeamParticipant_forbidden()
+    {
+        $this->setUnmanageableTeamParticipant();
+        $this->assertUnmanageTeamParticipant(function (){
+            $this->executeViewAllMentors();
+        });
+    }
+    
+    protected function executeViewMentors()
+    {
+        $this->setManageableTeamParticipant();
+        $this->member->viewMentor($this->teamProgramParticipation, $this->mentorRepository, $this->mentorId);
+    }
+    public function test_viewMentors_returnTeamParticipantsViewMentorsResult()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('viewMentor')
+                ->with($this->mentorRepository, $this->mentorId);
+        $this->executeViewMentors();
+    }
+    public function test_viewMentor_inactiveMembers_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertInactiveForbiddenError(function (){
+            $this->executeViewMentors();
+        });
+    }
+    public function test_viewMentor_unmanagedTeamParticipant_forbidden()
+    {
+        $this->setUnmanageableTeamParticipant();
+        $this->assertUnmanageTeamParticipant(function (){
+            $this->executeViewMentors();
+        });
+    }
+    
 }
 
 class TestableMember extends Member

@@ -9,6 +9,7 @@ use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
@@ -21,6 +22,7 @@ use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\ClientFinder;
 use Query\Domain\Service\Firm\Program\ConsultationSetup\ConsultationRequestFinder;
+use Query\Domain\Service\Firm\Program\MentorRepository;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Program\Participant\ConsultationSessionFinder;
 use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
@@ -401,6 +403,21 @@ class Member extends EntityContainEvents
         $this->assertActive();
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
+    }
+    
+    public function viewAllMentors(
+            TeamProgramParticipation $teamParticipant, MentorRepository $mentorRepository, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewAllMentors($mentorRepository, $page, $pageSize);
+    }
+    public function viewMentor(
+            TeamProgramParticipation $teamParticipant, MentorRepository $mentorRepository, string $mentorId): Consultant
+    {
+        $this->assertActive();
+        $this->assertTeamOwnedProgramParticipation($teamParticipant);
+        return $teamParticipant->viewMentor($mentorRepository, $mentorId);
     }
 
 }

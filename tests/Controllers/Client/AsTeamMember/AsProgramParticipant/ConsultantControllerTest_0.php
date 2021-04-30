@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\User\AsProgramParticipant;
+namespace Tests\Controllers\Client\AsTeamMember\AsProgramParticipant;
 
 use Tests\Controllers\RecordPreparation\Firm\ {
     Program\RecordOfConsultant,
@@ -20,7 +20,7 @@ class ConsultantControllerTest extends AsProgramParticipantTestCase
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
         
-        $participant = $this->programParticipation->participant;
+        $participant = $this->programParticipant->participant;
         $program = $participant->program;
         $firm = $program->firm;
         
@@ -52,14 +52,15 @@ class ConsultantControllerTest extends AsProgramParticipantTestCase
             ],
         ];
         $uri = $this->consultantUri . "/{$this->consultant->id}";
-        $this->get($uri, $this->programParticipation->user->token)
+        $this->get($uri, $this->teamMember->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_show_userNotActiveParticipant_error403()
+    public function test_show_clientNotActiveParticipant_403()
     {
+        $this->setInactiveParticipant();
         $uri = $this->consultantUri . "/{$this->consultant->id}";
-        $this->get($uri, $this->inactiveProgramParticipation->user->token)
+        $this->get($uri, $this->teamMember->client->token)
                 ->seeStatusCode(403);
         
     }
@@ -85,13 +86,14 @@ class ConsultantControllerTest extends AsProgramParticipantTestCase
                 ],
             ],
         ];
-        $this->get($this->consultantUri, $this->programParticipation->user->token)
+        $this->get($this->consultantUri, $this->teamMember->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
-    public function test_showAll_UserNotActiveParticipant_error403()
+    public function test_showAll_ClientNotActiveParticipant_403()
     {
-        $this->get($this->consultantUri, $this->inactiveProgramParticipation->user->token)
+        $this->setInactiveParticipant();
+        $this->get($this->consultantUri, $this->teamMember->client->token)
                 ->seeStatusCode(403);
     }
 }
