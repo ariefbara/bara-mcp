@@ -9,12 +9,13 @@ use Query\Application\Auth\Firm\Program\ConsultantRepository as InterfaceForAuth
 use Query\Application\Service\Consultant\ConsultantRepository as ConsultantRepository2;
 use Query\Application\Service\ConsultantRepository as InterfaceForGuest;
 use Query\Application\Service\Firm\Program\ConsultantRepository;
+use Query\Application\Service\Personnel\AsProgramConsultant\ConsultantRepository as ConsultantRepository3;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Service\Firm\Program\MentorRepository;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization, InterfaceForGuest, ConsultantRepository2, MentorRepository
+class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization, InterfaceForGuest, ConsultantRepository2, MentorRepository, ConsultantRepository3
 {
 
     public function aProgramConsultationOfPersonnel(string $firmId, string $personnelId, string $programConsultationId): Consultant
@@ -252,6 +253,32 @@ _STATEMENT;
                 ->andWhere($qb->expr()->eq('mentor.id', ':mentorId'))
                 ->leftJoin('mentor.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: consultant not found');
+        }
+    }
+
+    public function aConsultantCorrepondWithProgram(string $firmId, string $personnelId, string $programId): Consultant
+    {
+        $params = [
+            'firmId' => $firmId,
+            'personnelId' => $personnelId,
+            'programId' => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder('mentor');
+        $qb->select('mentor')
+                ->leftJoin('mentor.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('mentor.personnel', 'personnel')
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('personnel.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
         

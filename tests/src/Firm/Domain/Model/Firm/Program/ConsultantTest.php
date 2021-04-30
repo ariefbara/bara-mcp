@@ -3,16 +3,17 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\ {
-    Firm,
-    Firm\Personnel,
-    Firm\Program,
-    Firm\Program\ConsultationSetup\ConsultationRequest,
-    Firm\Program\ConsultationSetup\ConsultationSession,
-    Firm\Program\MeetingType\Meeting\Attendee,
-    Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee,
-    Firm\Program\MeetingType\MeetingData
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Personnel;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
+use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
+use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use PHPUnit\Framework\MockObject\MockObject;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
@@ -29,6 +30,7 @@ class ConsultantTest extends TestBase
     protected $consultationRequest;
     protected $consultationSession;
     protected $firm;
+    protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
 
     protected function setUp(): void
     {
@@ -57,6 +59,32 @@ class ConsultantTest extends TestBase
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
         
         $this->firm = $this->buildMockOfClass(Firm::class);
+        
+        $this->mission = $this->buildMockOfClass(Mission::class);
+        $this->missionComment = $this->buildMockOfClass(MissionComment::class);
+        $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
+    }
+    protected function assertInactiveConsultant(callable $operations): void
+    {
+        $this->assertRegularExceptionThrowed($operations, 'Forbidden', 'forbidden: only active consultant can make this request');
+    }
+    protected function assertInacessibleAsset(callable $operations, string $assetName): void
+    {
+        $this->assertRegularExceptionThrowed($operations, 'Forbidden', "forbidden: unable to access $assetName");
+    }
+    protected function setAccessibleAsset(MockObject $asset): void
+    {
+        $asset->expects($this->any())
+                ->method('belongsToProgram')
+                ->with($this->program)
+                ->willReturn(true);
+    }
+    protected function setInaccessibleAsset(MockObject $asset): void
+    {
+        $asset->expects($this->any())
+                ->method('belongsToProgram')
+                ->with($this->program)
+                ->willReturn(false);
     }
 
     public function test_construct_setProperties()
@@ -218,13 +246,81 @@ class ConsultantTest extends TestBase
                 ->with($this->firm);
         $this->consultant->belongsToFirm($this->firm);
     }
+    
+    protected function executeSubmitCommentInMission()
+    {
+        $this->setAccessibleAsset($this->mission);
+        $this->consultant->submitCommentInMission($this->mission, $this->missionCommentId, $this->missionCommentData);
+    }
+    public function test_submitCommentInMission_returnClientsSubmitCommentInMissionResult()
+    {
+        $this->personnel->expects($this->once())
+                ->method('submitCommentInMission')
+                ->with($this->mission, $this->missionCommentId, $this->missionCommentData);
+        $this->executeSubmitCommentInMission();
+    }
+    public function test_submitCommentInMission_modifyCommentDataRolePaths()
+    {
+        $this->missionCommentData->expects($this->once())
+                ->method('addRolePath')
+                ->with('mentor', $this->consultant->id);
+        $this->executeSubmitCommentInMission();
+    }
+    public function test_submitCommentInMission_inactiveConsultant_forbidden()
+    {
+        $this->consultant->active = false;
+        $this->assertInactiveConsultant(function(){
+            $this->executeSubmitCommentInMission();
+        });
+    }
+    public function test_submitCommentInMission_inacessibleMission_forbidden()
+    {
+        $this->setInaccessibleAsset($this->mission);
+        $this->assertInacessibleAsset(function (){
+            $this->executeSubmitCommentInMission();
+        }, 'mission');
+    }
+    
+    protected function executeReplyMissionComment()
+    {
+        $this->setAccessibleAsset($this->missionComment);
+        $this->consultant->replyMissionComment($this->missionComment, $this->missionCommentId, $this->missionCommentData);
+    }
+    public function test_replyMissionComment_returnClientsReplyMissionCommentResult()
+    {
+        $this->personnel->expects($this->once())
+                ->method('replyMissionComment')
+                ->with($this->missionComment, $this->missionCommentId, $this->missionCommentData);
+        $this->executeReplyMissionComment();
+    }
+    public function test_replyMissionComment_modifyCommentDataRolePaths()
+    {
+        $this->missionCommentData->expects($this->once())
+                ->method('addRolePath')
+                ->with('mentor', $this->consultant->id);
+        $this->executeReplyMissionComment();
+    }
+    public function test_replyMissionComment_inactiveConsultant_forbidden()
+    {
+        $this->consultant->active = false;
+        $this->assertInactiveConsultant(function(){
+            $this->executeReplyMissionComment();
+        });
+    }
+    public function test_replyMissionComment_inacessibleMission_forbidden()
+    {
+        $this->setInaccessibleAsset($this->missionComment);
+        $this->assertInacessibleAsset(function (){
+            $this->executeReplyMissionComment();
+        }, 'mission comment');
+    }
 
 }
 
 class TestableConsultant extends Consultant
 {
 
-    public $program, $id, $personnel, $active;
+    public $program, $id = 'consultant-id', $personnel, $active;
     public $meetingInvitations;
     public $consultationRequests;
     public $consultationSessions;

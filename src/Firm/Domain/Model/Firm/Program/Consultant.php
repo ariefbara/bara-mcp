@@ -3,16 +3,15 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\{
-    AssetBelongsToFirm,
-    Firm,
-    Firm\Personnel,
-    Firm\Program,
-    Firm\Program\MeetingType\CanAttendMeeting,
-    Firm\Program\MeetingType\Meeting,
-    Firm\Program\MeetingType\Meeting\Attendee,
-    Firm\Program\MeetingType\MeetingData
-};
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Personnel;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
+use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
@@ -87,6 +86,19 @@ class Consultant implements CanAttendMeeting, AssetBelongsToFirm, AssetInProgram
         $this->personnel = $personnel;
         $this->active = true;
     }
+    protected function assertActive(): void
+    {
+        if (! $this->active) {
+            throw RegularException::forbidden('forbidden: only active consultant can make this request');
+        }
+    }
+    protected function assertAssetAccessible(AssetInProgram $asset, string $assetName): void
+    {
+        if (! $asset->belongsToProgram($this->program)) {
+            throw RegularException::forbidden("forbidden: unable to access $assetName");
+        }
+    }
+    
     public function belongsToProgram(Program $program): bool
     {
         return $this->program === $program;
@@ -152,6 +164,21 @@ class Consultant implements CanAttendMeeting, AssetBelongsToFirm, AssetInProgram
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->program->belongsToFirm($firm);
+    }
+    
+    public function submitCommentInMission(Mission $mission, string $missionCommentId, Mission\MissionCommentData $missionCommentData): MissionComment
+    {
+        $this->assertActive();
+        $this->assertAssetAccessible($mission, 'mission');
+        $missionCommentData->addRolePath('mentor', $this->id);
+        return $this->personnel->submitCommentInMission($mission, $missionCommentId, $missionCommentData);
+    }
+    public function replyMissionComment(MissionComment $missionComment, string $replyId, Mission\MissionCommentData $missionCommentData): MissionComment
+    {
+        $this->assertActive();
+        $this->assertAssetAccessible($missionComment, 'mission comment');
+        $missionCommentData->addRolePath('mentor', $this->id);
+        return $this->personnel->replyMissionComment($missionComment, $replyId, $missionCommentData);
     }
 
 }

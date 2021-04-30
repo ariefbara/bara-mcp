@@ -4,8 +4,10 @@ namespace Query\Domain\Model\Firm\Program;
 
 use Query\Domain\Model\Firm\Personnel;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
 use Query\Domain\Service\Firm\Program\ParticipantFinder;
 use Resources\Exception\RegularException;
@@ -123,6 +125,20 @@ class Consultant
     {
         return $dedicatedMentorRepository
                         ->allDedicatedMentorsBelongsToConsultant($this->id, $page, $pageSize, $cancelledStatus);
+    }
+
+    public function viewAllMissionComments(
+            MissionCommentRepository $missionCommentRepository, string $missionId, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $missionCommentRepository->allMissionCommentsBelongsInMission(
+                $this->program->getId(), $missionId, $page, $pageSize);
+    }
+    public function viewMissionComment(
+            MissionCommentRepository $missionCommentRepository, string $missionCommentId): MissionComment
+    {
+        $this->assertActive();
+        return $missionCommentRepository->aMissionCommentInProgram($this->program->getId(), $missionCommentId);
     }
 
 }

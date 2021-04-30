@@ -3,24 +3,26 @@
 namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\ {
-    Firm,
-    Firm\Program\Consultant,
-    Firm\Program\Coordinator
-};
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
+use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
 
 class PersonnelTest extends TestBase
 {
 
-    protected $personnel;
+    protected $personnel, $personName;
     protected $firm;
     protected $id = 'personnel-input', $firstName = 'hadi', $lastName = 'pranoto', $email = 'newPersonnel@email.org',
             $password = 'password123', $phone = '08231231231';
     protected $bio = "new bio";
     protected $programCoordinatorship;
     protected $programMentorship;
+    protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
 
     protected function setUp(): void
     {
@@ -38,6 +40,10 @@ class PersonnelTest extends TestBase
         
         $this->programMentorship = $this->buildMockOfClass(Consultant::class);
         $this->personnel->programMentorships->add($this->programMentorship);
+        
+        $this->mission = $this->buildMockOfClass(Mission::class);
+        $this->missionComment = $this->buildMockOfClass(MissionComment::class);
+        $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
     }
     
     protected function getPersonnelData()
@@ -163,6 +169,30 @@ class PersonnelTest extends TestBase
     {
         $firm = $this->buildMockOfClass(Firm::class);
         $this->assertFalse($this->personnel->belongsToFirm($firm));
+    }
+    
+    protected function executeSubmitCommentInMission()
+    {
+        $this->personnel->submitCommentInMission($this->mission, $this->missionCommentId, $this->missionCommentData);
+    }
+    public function test_submitCommentInMission_returnMissionsReceiveCommentResult()
+    {
+        $this->mission->expects($this->once())
+                ->method('receiveComment')
+                ->with($this->missionCommentId, $this->missionCommentData, $this->personnel->id, $this->personnel->name->getFullName());
+        $this->executeSubmitCommentInMission();
+    }
+    
+    protected function executeReplyMissionComment()
+    {
+        $this->personnel->replyMissionComment($this->missionComment, $this->missionCommentId, $this->missionCommentData);
+    }
+    public function test_replyMissionComment_returnMissionCommentssReceiveReplyResult()
+    {
+        $this->missionComment->expects($this->once())
+                ->method('receiveReply')
+                ->with($this->missionCommentId, $this->missionCommentData, $this->personnel->id, $this->personnel->name->getFullName());
+        $this->executeReplyMissionComment();
     }
 
 }
