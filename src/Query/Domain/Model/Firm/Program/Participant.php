@@ -21,6 +21,7 @@ use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\DataFinder;
+use Query\Domain\Service\Firm\Program\MentorRepository;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
 use Query\Domain\Service\LearningMaterialFinder;
@@ -267,6 +268,18 @@ class Participant extends EntityContainEvents
         $this->assertActive();
         return $missionCommentRepository->allMissionCommentsBelongsInMission(
                         $this->program->getId(), $missionId, $page, $pageSize);
+    }
+    
+    public function viewAllMentors(MentorRepository $mentorRepository, int $page, int $pageSize)
+    {
+        $this->assertActive();
+        return $mentorRepository->allMentorsAccessibleToParticipant($this->id, $page, $pageSize);
+    }
+    
+    public function viewMentor(MentorRepository $mentorRepository, string $mentorId): Consultant
+    {
+        $this->assertActive();
+        return $mentorRepository->aMentorInProgram($this->program->getId(), $mentorId);
     }
 
 }

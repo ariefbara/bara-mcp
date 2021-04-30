@@ -2,34 +2,22 @@
 
 namespace App\Http\Controllers\Client\AsProgramParticipant;
 
-use Query\ {
-    Application\Service\Firm\Program\ViewConsultant,
-    Domain\Model\Firm\Program\Consultant
-};
+use Query\Application\Service\Client\AsProgramParticipant\ViewConsultant;
+use Query\Domain\Model\Firm\Program\Consultant;
 
 class ConsultantController extends AsProgramParticipantBaseController
 {
     public function showAll($programId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
-        
-        $viewService = $this->buildViewService();
-        $consultants = $viewService->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
-        
-        $result = [];
-        $result['total'] = count($consultants);
-        foreach ($consultants as $consultant) {
-            $result['list'][] = $this->arrayDataOfConsultant($consultant);
-        }
+        $result = $this->buildViewService()
+                ->showAll($this->firmId(), $this->clientId(), $programId, $this->getPage(), $this->getPageSize());
         return $this->listQueryResponse($result);
-        
     }
+    
     public function show($programId, $consultantId)
     {
-        $this->authorizedClientIsActiveProgramParticipant($programId);
-        
-        $viewService = $this->buildViewService();
-        $consultant = $viewService->showById($this->firmId(), $programId, $consultantId);
+        $consultant = $this->buildViewService()
+                ->showById($this->firmId(), $this->clientId(), $programId, $consultantId);
         return $this->singleQueryResponse($this->arrayDataOfConsultant($consultant));
     }
     
@@ -45,8 +33,8 @@ class ConsultantController extends AsProgramParticipantBaseController
     }
     protected function buildViewService()
     {
-        $consultantRepository = $this->em->getRepository(Consultant::class);
-        return new ViewConsultant($consultantRepository);
+        $mentorRepository = $this->em->getRepository(Consultant::class);
+        return new ViewConsultant($this->clientParticipantQueryRepository(), $mentorRepository);
     }
     
 /*
