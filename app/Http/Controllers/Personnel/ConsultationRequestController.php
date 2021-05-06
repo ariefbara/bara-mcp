@@ -24,19 +24,22 @@ class ConsultationRequestController extends PersonnelBaseController
                 ->setMaxEndTime($this->dateTimeImmutableOfQueryRequest("maxEndTime"))
                 ->setConcludedStatus($this->filterBooleanOfInputRequest("concludedStatus"))
                 ->setStatus($status);
-        
-        $consultationRequests = $service->showAll(
-                $this->firmId(), $this->personnelId(), $this->getPage(), $this->getPageSize(),
-                $consultationRequestFilter);
-        
-        $result = [];
-        $result['total'] = count($consultationRequests);
-        foreach ($consultationRequests as $consultationRequest) {
-            $result['list'][] = $this->arrayDataOfConsultationRequest($consultationRequest);
-        }
-        return $this->listQueryResponse($result);
+
+        return $service->showAll(
+                        $this->firmId(), $this->personnelId(), $this->getPage(), $this->getPageSize(),
+                        $consultationRequestFilter);
+//        $consultationRequests = $service->showAll(
+//                $this->firmId(), $this->personnelId(), $this->getPage(), $this->getPageSize(),
+//                $consultationRequestFilter);
+//        
+//        $result = [];
+//        $result['total'] = count($consultationRequests);
+//        foreach ($consultationRequests as $consultationRequest) {
+//            $result['list'][] = $this->arrayDataOfConsultationRequest($consultationRequest);
+//        }
+//        return $this->listQueryResponse($result);
     }
-    
+
     protected function arrayDataOfConsultationRequest(ConsultationRequest $consultationRequest): array
     {
         return [
@@ -66,6 +69,7 @@ class ConsultationRequestController extends PersonnelBaseController
             ],
         ];
     }
+
     protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
     {
         return empty($clientParticipant) ? null : [
@@ -73,6 +77,7 @@ class ConsultationRequestController extends PersonnelBaseController
             "name" => $clientParticipant->getClient()->getFullName(),
         ];
     }
+
     protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
     {
         return empty($userParticipant) ? null : [
@@ -80,6 +85,7 @@ class ConsultationRequestController extends PersonnelBaseController
             "name" => $userParticipant->getUser()->getFullName(),
         ];
     }
+
     protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
     {
         return empty($teamParticipant) ? null : [

@@ -30,7 +30,8 @@ class ViewConsultationRequest
             string $firmId, string $personnelId, int $page, int $pageSize,
             ?ConsultationRequestFilter $consultationRequestFilter)
     {
-        return $this->personnelRepository->aPersonnelInFirm($firmId, $personnelId)
+        return $this->personnelRepository
+                        ->aPersonnelInFirm($firmId, $personnelId)
                         ->viewAllConsultationRequests(
                                 $this->consultationRequestRepository, $page, $pageSize, $consultationRequestFilter);
     }

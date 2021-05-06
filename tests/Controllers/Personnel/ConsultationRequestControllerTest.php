@@ -6,6 +6,7 @@ use DateTime;
 use DateTimeImmutable;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationRequest;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfDedicatedMentor;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
@@ -23,6 +24,7 @@ class ConsultationRequestControllerTest extends PersonnelTestCase
     protected $participantTwo_team;
     protected $clientParticipant;
     protected $teamParticipant;
+    protected $dedicatedMentor;
 
     protected function setUp(): void
     {
@@ -36,6 +38,7 @@ class ConsultationRequestControllerTest extends PersonnelTestCase
         $this->connection->table('Team')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
         
         $this->consultationRequestUri = $this->personnelUri . "/consultation-requests";
 
@@ -82,6 +85,8 @@ class ConsultationRequestControllerTest extends PersonnelTestCase
         $this->teamParticipant = new RecordOfTeamProgramParticipation($teamOne, $this->participantTwo_team);
         $this->connection->table('TeamParticipant')->insert($this->teamParticipant->toArrayForDbEntry());
         
+        $this->dedicatedMentor = new RecordOfDedicatedMentor($this->participantTwo_team, $consultantTwo, '2');
+        $this->dedicatedMentor->insert($this->connection);
     }
     protected function tearDown(): void
     {
@@ -95,79 +100,39 @@ class ConsultationRequestControllerTest extends PersonnelTestCase
         $this->connection->table('Team')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
     }
     
     public function test_showAll_200()
     {
-$this->disableExceptionHandling();
         $uri = $this->consultationRequestUri;
         $this->get($uri, $this->personnel->token)
                 ->seeStatusCode(200);
         
         $response = [
-            "total" => 2,
+            "total" => "2",
             "list" => [
                 [
                     "id" => $this->consultationRequestOne->id,
+                    "concluded" => (string)intval($this->consultationRequestOne->concluded),
+                    "status" => $this->consultationRequestOne->status,
                     "startTime" => $this->consultationRequestOne->startDateTime,
                     "endTime" => $this->consultationRequestOne->endDateTime,
                     "media" => $this->consultationRequestOne->media,
                     "address" => $this->consultationRequestOne->address,
-                    "concluded" => $this->consultationRequestOne->concluded,
-                    "status" => $this->consultationRequestOne->status,
-                    'consultationSetup' => [
-                        "id" => $this->consultationRequestOne->consultationSetup->id,
-                        "name" => $this->consultationRequestOne->consultationSetup->name,
-                    ],
-                    "participant" => [
-                        "id" => $this->consultationRequestOne->participant->id,
-                        "user" => null,
-                        "client" => [
-                            "id" => $this->clientParticipant->client->id,
-                            "name" => $this->clientParticipant->client->getFullName(),
-                        ],
-                        "team" => null,
-                    ],
-                    'consultant' => [
-                        "id" => $this->consultationRequestOne->consultant->id,
-                        'program' => [
-                            "id" => $this->consultationRequestOne->consultant->program->id,
-                            "name" => $this->consultationRequestOne->consultant->program->name,
-                        ],
-                        
-                    ],
-                    
+                    "participantName" => $this->clientParticipant->client->getFullName(),
+                    "isDedicatedMentor" => "0",
                 ],
                 [
                     "id" => $this->consultationRequestTwo->id,
+                    "concluded" => (string)intval($this->consultationRequestTwo->concluded),
+                    "status" => $this->consultationRequestTwo->status,
                     "startTime" => $this->consultationRequestTwo->startDateTime,
                     "endTime" => $this->consultationRequestTwo->endDateTime,
                     "media" => $this->consultationRequestTwo->media,
                     "address" => $this->consultationRequestTwo->address,
-                    "concluded" => $this->consultationRequestTwo->concluded,
-                    "status" => $this->consultationRequestTwo->status,
-                    'consultationSetup' => [
-                        "id" => $this->consultationRequestTwo->consultationSetup->id,
-                        "name" => $this->consultationRequestTwo->consultationSetup->name,
-                    ],
-                    "participant" => [
-                        "id" => $this->consultationRequestTwo->participant->id,
-                        "user" => null,
-                        "client" => null,
-                        "team" => [
-                            "id" => $this->teamParticipant->team->id,
-                            "name" => $this->teamParticipant->team->name,
-                        ],
-                    ],
-                    'consultant' => [
-                        "id" => $this->consultationRequestTwo->consultant->id,
-                        'program' => [
-                            "id" => $this->consultationRequestTwo->consultant->program->id,
-                            "name" => $this->consultationRequestTwo->consultant->program->name,
-                        ],
-                        
-                    ],
-                    
+                    "participantName" => $this->teamParticipant->team->name,
+                    "isDedicatedMentor" => "1",
                 ],
             ],
         ];
@@ -176,7 +141,7 @@ $this->disableExceptionHandling();
     public function test_showAll_hasMinStartTimeFilter()
     {
         $response = [
-            "total" => 1,
+            "total" => "1",
         ];
         $consultationRequestResponse = [
             "id" => $this->consultationRequestOne->id
@@ -193,7 +158,7 @@ $this->disableExceptionHandling();
     public function test_showAll_maxStartTimeFilter()
     {
         $response = [
-            "total" => 1,
+            "total" => "1",
         ];
         $consultationRequestResponse = [
             "id" => $this->consultationRequestTwo->id
@@ -201,6 +166,22 @@ $this->disableExceptionHandling();
         $maxEndTimeString = (new DateTime())->format('Y-m-d H:i:s');
         $uri = $this->consultationRequestUri
                 . "?maxEndTime=$maxEndTimeString";
+
+        $this->get($uri, $this->personnel->token)
+                ->seeJsonContains($response)
+                ->seeJsonContains($consultationRequestResponse)
+                ->seeStatusCode(200);
+    }
+    public function test_showAll_orderByDedicatedMentorFirst()
+    {
+        $response = [
+            "total" => "2",
+        ];
+        $consultationRequestResponse = [
+            "id" => $this->consultationRequestTwo->id
+        ];
+        $uri = $this->consultationRequestUri
+                . "?pageSize=1";
 
         $this->get($uri, $this->personnel->token)
                 ->seeJsonContains($response)

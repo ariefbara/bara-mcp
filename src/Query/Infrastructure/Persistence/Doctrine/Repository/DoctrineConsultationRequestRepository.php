@@ -5,6 +5,7 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use PDO;
 use Query\Application\Service\Client\ConsultationRequestRepository as InterfaceForClient;
 use Query\Application\Service\Firm\Program\ConsultationRequestRepository;
 use Query\Application\Service\Personnel\ConsultationRequestRepository as InterfaceForPersonnel;
@@ -302,19 +303,102 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
     public function allConsultationRequestBelongsToPersonnel(
             string $personnelId, int $page, int $pageSize, ?ConsultationRequestFilter $consultationRequestFilter)
     {
+        $em = $this->getEntityManager();
         $params = [
             "personnelId" => $personnelId,
         ];
-
-        $qb = $this->createQueryBuilder("consultationRequest");
-        $qb->select("consultationRequest")
-                ->leftJoin("consultationRequest.consultant", "consultant")
-                ->leftJoin("consultant.personnel", "personnel")
-                ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
-                ->setParameters($params);
-
-        $this->applyFilter($qb, $consultationRequestFilter);
-        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+        
+        $minStartTimeCondition = "";
+        $minStartTime = $consultationRequestFilter->getMinStartTime();
+        if (isset($minStartTime)) {
+            $minStartTimeCondition = "AND ConsultationRequest.startDateTime >= :minStartTime";
+            $params['minStartTime'] = $minStartTime->format('Y-m-d H:i:s');
+        }
+        
+        $maxEndTime = $consultationRequestFilter->getMaxEndTime();
+        $maxEndTimeCondition = "";
+        if (isset($maxEndTime)) {
+            $maxEndTimeCondition = "AND ConsultationRequest.endDateTime <= :maxEndTime";
+            $params['maxEndTime'] = $maxEndTime->format('Y-m-d H:i:s');
+        }
+        
+        $concludedStatusCondition = "";
+        $concludedStatus = $consultationRequestFilter->getConcludedStatus();
+        if (isset($concludedStatus)) {
+            $concludedStatusCondition = "AND ConsultationRequest.concluded = :concludedStatus";
+            $params['concludedStatus'] = $concludedStatus;
+        }
+        $statusCondition = "";
+        $status = $consultationRequestFilter->getStatus();
+        if (!empty($status)) {
+            $statusCondition = "AND ConsultationRequest.status IN " . implode(', ', $status);
+        }
+        
+        $totalStatement = <<<_TOTAL
+SELECT COUNT(ConsultationRequest.id) total
+FROM ConsultationRequest
+LEFT JOIN Consultant ON Consultant.id = ConsultationRequest.Consultant_id
+WHERE Consultant.Personnel_id = :personnelId 
+    AND Consultant.active = true
+    {$minStartTimeCondition}
+    {$maxEndTimeCondition}
+    {$concludedStatusCondition}
+    {$statusCondition}
+_TOTAL;
+        $totalQuery = $em->getConnection()->prepare($totalStatement);
+        $totalQuery->execute($params);
+        $total = $totalQuery->fetchAll(PDO::FETCH_ASSOC)[0]['total'];
+        
+        $offset = $pageSize * ($page - 1);
+        $statement = <<<_STATEMENT
+SELECT
+    ConsultationRequest.id,
+    ConsultationRequest.concluded,
+    ConsultationRequest.status,
+    ConsultationRequest.startDateTime startTime,
+    ConsultationRequest.endDateTime endTime,
+    ConsultationRequest.media,
+    ConsultationRequest.address,
+    COALESCE(_c.userName, _d.clientName, _e.teamName) participantName, 
+    IF (_a.id IS NULL, false, true) isDedicatedMentor
+FROM ConsultationRequest
+LEFT JOIN Consultant ON Consultant.id = ConsultationRequest.Consultant_id
+LEFT JOIN (
+    SELECT id, Consultant_id, Participant_id
+    FROM DedicatedMentor
+)_a ON _a.Consultant_id = Consultant.id AND _a.Participant_id = ConsultationRequest.Participant_id
+LEFT JOIN (
+    SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
+    FROM UserParticipant
+        LEFT JOIN User ON User.id = UserParticipant.User_id
+)_c ON _c.participantId = ConsultationRequest.Participant_id
+LEFT JOIN (
+    SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
+    FROM ClientParticipant
+        LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+)_d ON _d.participantId = ConsultationRequest.Participant_id
+LEFT JOIN (
+    SELECT Team.name teamName, TeamParticipant.Participant_id participantId
+    FROM TeamParticipant
+        LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+)_e ON _e.participantId = ConsultationRequest.Participant_id
+WHERE Consultant.Personnel_id = :personnelId 
+    AND Consultant.active = true
+    {$minStartTimeCondition}
+    {$maxEndTimeCondition}
+    {$concludedStatusCondition}
+    {$statusCondition}
+ORDER BY isDedicatedMentor DESC
+LIMIT {$offset}, {$pageSize}
+_STATEMENT;
+        
+        $offset = $pageSize * ($page - 1);
+        $query = $em->getConnection()->prepare($statement);
+        $query->execute($params);
+        return [
+            'total' => $total,
+            'list' => $query->fetchAll(PDO::FETCH_ASSOC),
+        ];
     }
 
     protected function applyFilter(QueryBuilder $qb, ?ConsultationRequestFilter $consultationRequestFilter): void
