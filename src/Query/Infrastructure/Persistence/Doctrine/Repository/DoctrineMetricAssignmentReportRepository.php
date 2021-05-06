@@ -2,23 +2,19 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\Firm\Program\Participant\MetricAssignmentReportRepository,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Model\User\UserParticipant
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportRepository as MetricAssignmentReportRepository2;
+use Query\Application\Service\Firm\Program\Participant\MetricAssignmentReportRepository;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Coordinator;
+use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMetricAssignmentReportRepository extends EntityRepository implements MetricAssignmentReportRepository
+class DoctrineMetricAssignmentReportRepository extends EntityRepository implements MetricAssignmentReportRepository, MetricAssignmentReportRepository2
 {
 
     public function aMetricAssignmentInProgram(string $programId, string $metricAssignmentReportId): MetricAssignmentReport
@@ -237,6 +233,39 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
                 ->setParameters($params);
 
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allMetricAssignmentReportsAccessibleByPersonnel(string $personnelId, int $page, int $pageSize,
+            ?bool $approvedStatus)
+    {
+        $params = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $programQB = $this->getEntityManager()->createQueryBuilder();
+        $programQB->select("_aProgram.id")
+                ->from(Coordinator::class, '_aCoordinator')
+                ->andWhere($programQB->expr()->eq('_aCoordinator.active', 'true'))
+                ->leftJoin('_aCoordinator.personnel', '_aPersonnel')
+                ->andWhere($programQB->expr()->eq('_aPersonnel.id', ':personnelId'))
+                ->leftJoin('_aCoordinator.program', '_aProgram');
+        
+        $qb = $this->createQueryBuilder('metricAssignmentReport');
+        $qb->select('metricAssignmentReport')
+                ->andWhere($qb->expr()->eq('metricAssignmentReport.removed', 'false'))
+                ->leftJoin('metricAssignmentReport.metricAssignment', 'metricAssignment')
+                ->leftJoin('metricAssignment.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->in('program.id', $programQB->getDQL()))
+                ->setParameters($params);
+        
+        if (isset($approvedStatus)) {
+            $qb->andWhere($qb->expr()->eq('metricAssignmentReport.approved', ':approvedStatus'))
+                    ->setParameter('approvedStatus', $approvedStatus);
+        }
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

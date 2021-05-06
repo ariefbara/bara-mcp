@@ -11,6 +11,7 @@ $router->group($personnelAggregate, function () use ($router) {
     
     $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
+    $router->get('/metric-assignment-reports', ['uses' => "MetricAssignmentReportController@showAll"]);
     $router->get('/registrants', ['uses' => "RegistrantController@showAll"]);
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     

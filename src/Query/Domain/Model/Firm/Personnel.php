@@ -5,6 +5,7 @@ namespace Query\Domain\Model\Firm;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Query\Application\Service\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportRepository;
 use Query\Application\Service\Personnel\ConsultationRequestRepository;
 use Query\Application\Service\Personnel\ConsultationSessionRepository;
 use Query\Application\Service\Personnel\InviteeRepository;
@@ -221,6 +222,15 @@ class Personnel
     {
         $this->assertActive();
         return $inviteeRepository->allActivityInvitationsToPersonnel($this->id, $page, $pageSize, $inviteeFilter);
+    }
+    
+    public function viewAllAccesibleMetricAssignmentReports(
+            MetricAssignmentReportRepository $metricAssignmentReportRepository, int $page, int $pageSize, 
+            ?bool $approvedStatus)
+    {
+        $this->assertActive();
+        return $metricAssignmentReportRepository
+                ->allMetricAssignmentReportsAccessibleByPersonnel($this->id, $page, $pageSize, $approvedStatus);
     }
 
 }
