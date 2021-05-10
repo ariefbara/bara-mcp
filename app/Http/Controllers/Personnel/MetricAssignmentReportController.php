@@ -53,7 +53,7 @@ class MetricAssignmentReportController extends PersonnelBaseController
                     ],
                     "user" => $this->arrayDataOfUser($metricAssignmentReport->getMetricAssignment()->getParticipant()->getUserParticipant()),
                     "client" => $this->arrayDataOfClient($metricAssignmentReport->getMetricAssignment()->getParticipant()->getClientParticipant()),
-                    "team" => $this->arrayDataOfClient($metricAssignmentReport->getMetricAssignment()->getParticipant()->getTeamParticipant()),
+                    "team" => $this->arrayDataOfTeam($metricAssignmentReport->getMetricAssignment()->getParticipant()->getTeamParticipant()),
                 ],
             ],
         ];
