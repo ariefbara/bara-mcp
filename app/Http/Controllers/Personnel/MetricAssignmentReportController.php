@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Personnel;
 
 use Query\Application\Service\Personnel\ViewMetricAssignmentReport;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\Shared\FileInfo;
+use Query\Domain\Model\User\UserParticipant;
 
 class MetricAssignmentReportController extends PersonnelBaseController 
 {
@@ -40,6 +43,40 @@ class MetricAssignmentReportController extends PersonnelBaseController
             "note" => $metricAssignmentReport->getNote(),
             "removed" => $metricAssignmentReport->isRemoved(),
             "assignmentFieldValues" => $assignmentFieldValues,
+            "metricAssignment" => [
+                "id" => $metricAssignmentReport->getMetricAssignment()->getId(),
+                'participant' => [
+                    "id" => $metricAssignmentReport->getMetricAssignment()->getParticipant()->getId(),
+                    'program' => [
+                        "id" => $metricAssignmentReport->getMetricAssignment()->getParticipant()->getProgram()->getId(),
+                        "name" => $metricAssignmentReport->getMetricAssignment()->getParticipant()->getProgram()->getName(),
+                    ],
+                    "user" => $this->arrayDataOfUser($metricAssignmentReport->getMetricAssignment()->getParticipant()->getUserParticipant()),
+                    "client" => $this->arrayDataOfClient($metricAssignmentReport->getMetricAssignment()->getParticipant()->getClientParticipant()),
+                    "team" => $this->arrayDataOfClient($metricAssignmentReport->getMetricAssignment()->getParticipant()->getTeamParticipant()),
+                ],
+            ],
+        ];
+    }
+    protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
+    {
+        return empty($userParticipant) ? null : [
+            'id' => $userParticipant->getUser()->getId(),
+            'name' => $userParticipant->getUser()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
+    {
+        return empty($clientParticipant) ? null : [
+            'id' => $clientParticipant->getClient()->getId(),
+            'name' => $clientParticipant->getClient()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
+    {
+        return empty($teamParticipant) ? null : [
+            'id' => $teamParticipant->getTeam()->getId(),
+            'name' => $teamParticipant->getTeam()->getName(),
         ];
     }
     protected function arrayDataOfAssignmentFieldValue(AssignmentFieldValue $assignmentFieldValue): array
