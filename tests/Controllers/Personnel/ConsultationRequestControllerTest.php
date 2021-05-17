@@ -114,6 +114,8 @@ class ConsultationRequestControllerTest extends PersonnelTestCase
             "list" => [
                 [
                     "id" => $this->consultationRequestOne->id,
+                    "consultantId" => $this->consultationRequestOne->consultant->id,
+                    "programId" => $this->consultationRequestOne->consultant->program->id,
                     "concluded" => (string)intval($this->consultationRequestOne->concluded),
                     "status" => $this->consultationRequestOne->status,
                     "startTime" => $this->consultationRequestOne->startDateTime,
@@ -125,6 +127,8 @@ class ConsultationRequestControllerTest extends PersonnelTestCase
                 ],
                 [
                     "id" => $this->consultationRequestTwo->id,
+                    "consultantId" => $this->consultationRequestTwo->consultant->id,
+                    "programId" => $this->consultationRequestTwo->consultant->program->id,
                     "concluded" => (string)intval($this->consultationRequestTwo->concluded),
                     "status" => $this->consultationRequestTwo->status,
                     "startTime" => $this->consultationRequestTwo->startDateTime,

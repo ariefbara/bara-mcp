@@ -353,6 +353,8 @@ _TOTAL;
         $statement = <<<_STATEMENT
 SELECT
     ConsultationRequest.id,
+    Consultant.id consultantId,
+    Consultant.Program_id programId,
     ConsultationRequest.concluded,
     ConsultationRequest.status,
     ConsultationRequest.startDateTime startTime,
