@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\BioSearchFilter\SingleSelectFieldSearchFilter" 
+            table="SingleSelectFieldSearchFilter"
+    >
+        
+        <many-to-one  field="bioSearchFilter" 
+                      target-entity="Firm\Domain\Model\Firm\BioSearchFilter"
+                      inversed-by="singleSelectFieldSearchFilters"
+        >
+            <join-column name="BioSearchFilter_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        <embedded name="comparisonType" class="SharedContext\Domain\ValueObject\SelectFieldComparisonType" use-column-prefix="false" />
+        
+        <many-to-one  field="singleSelectField" 
+                      target-entity="Firm\Domain\Model\Shared\Form\SingleSelectField"
+        >
+            <join-column name="SingleSelectField_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

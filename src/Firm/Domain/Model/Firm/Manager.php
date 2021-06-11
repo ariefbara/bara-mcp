@@ -347,5 +347,11 @@ class Manager implements CanAttendMeeting
         $this->assertAssetManageable($worksheetForm);
         $mission->changeWorksheetForm($worksheetForm);
     }
+    
+    public function handleMutationTask(MutationTaskExecutableByManager $task): void
+    {
+        $this->assertActive();
+        $task->execute($this->firm);
+    }
 
 }

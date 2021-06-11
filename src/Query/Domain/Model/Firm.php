@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Model;
 
+use Query\Domain\Model\Firm\BioSearchFilter;
 use Query\Domain\Model\Firm\FirmFileInfo;
 
 class Firm
@@ -49,6 +50,12 @@ class Firm
      */
     protected $suspended = false;
 
+    /**
+     * 
+     * @var BioSearchFilter|null
+     */
+    protected $bioSearchFilter;
+
     function getId(): string
     {
         return $this->id;
@@ -77,6 +84,11 @@ class Firm
     function isSuspended(): bool
     {
         return $this->suspended;
+    }
+
+    public function getBioSearchFilter(): ?BioSearchFilter
+    {
+        return $this->bioSearchFilter;
     }
 
     protected function __construct()

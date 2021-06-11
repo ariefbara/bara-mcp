@@ -2,23 +2,20 @@
 
 namespace Firm\Domain\Model\Shared;
 
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
-use Firm\Domain\Model\Shared\Form\{
-    AttachmentField,
-    IntegerField,
-    MultiSelectField,
-    SingleSelectField,
-    StringField,
-    TextAreaField
-};
-use Resources\{
-    Uuid,
-    ValidationRule,
-    ValidationService
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Firm\Domain\Model\Firm\BioSearchFilterData;
+use Firm\Domain\Model\Shared\Form\AttachmentField;
+use Firm\Domain\Model\Shared\Form\IntegerField;
+use Firm\Domain\Model\Shared\Form\MultiSelectField;
+use Firm\Domain\Model\Shared\Form\SingleSelectField;
+use Firm\Domain\Model\Shared\Form\StringField;
+use Firm\Domain\Model\Shared\Form\TextAreaField;
+use Firm\Domain\Task\BioSearchFilterDataBuilder\BioFormSearchFilterRequest;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
 class Form
 {
@@ -256,6 +253,84 @@ class Form
     {
         return Criteria::create()
                         ->andWhere(Criteria::expr()->eq('removed', false));
+    }
+
+    public function setFieldFiltersToBioSearchFilterData(
+            BioSearchFilterData $bioSearchFilterData, BioFormSearchFilterRequest $bioFormSearchFilterRequest): void
+    {
+        foreach ($bioFormSearchFilterRequest->getIntegerFieldSearchFilterRequests() as $integerFieldId => $comparisonType) {
+            $bioSearchFilterData->addIntegerFieldFilter($this->findIntegerFieldOrDie($integerFieldId), $comparisonType);
+        }
+        foreach ($bioFormSearchFilterRequest->getStringFieldSearchFilterRequests() as $stringFieldId => $comparisonType) {
+            $bioSearchFilterData->addStringFieldFilter($this->findStringFieldOrDie($stringFieldId), $comparisonType);
+        }
+        foreach ($bioFormSearchFilterRequest->getTextAreaFieldSearchFilterRequests() as $textAreaFieldId => $comparisonType) {
+            $bioSearchFilterData->addTextAreaFieldFilter(
+                    $this->findTextAreaFieldOrDie($textAreaFieldId), $comparisonType);
+        }
+        foreach ($bioFormSearchFilterRequest->getSingleSelectFieldSearchFilterRequests() as $singleSelectFieldId => $comparisonType) {
+            $bioSearchFilterData->addSingleSelectFieldFilter(
+                    $this->findSingleSelectFieldOrDie($singleSelectFieldId), $comparisonType);
+        }
+        foreach ($bioFormSearchFilterRequest->getMultiSelectFieldSearchFilterRequests() as $multiSelectFieldId => $comparisonType) {
+            $bioSearchFilterData->addMultiSelectFieldFilter(
+                    $this->findMultiSelectFieldOrDie($multiSelectFieldId), $comparisonType);
+        }
+    }
+
+    protected function findIntegerFieldOrDie(string $integerFieldId): IntegerField
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('id', $integerFieldId));
+        $integerField = $this->integerFields->matching($criteria)->first();
+        if (empty($integerField)) {
+            throw RegularException::notFound('not found: field not found');
+        }
+        return $integerField;
+    }
+
+    protected function findStringFieldOrDie(string $stringFieldId): StringField
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('id', $stringFieldId));
+        $stringField = $this->stringFields->matching($criteria)->first();
+        if (empty($stringField)) {
+            throw RegularException::notFound('not found: field not found');
+        }
+        return $stringField;
+    }
+
+    protected function findTextAreaFieldOrDie(string $textAreaFieldId): TextAreaField
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('id', $textAreaFieldId));
+        $textAreaField = $this->textAreaFields->matching($criteria)->first();
+        if (empty($textAreaField)) {
+            throw RegularException::notFound('not found: field not found');
+        }
+        return $textAreaField;
+    }
+
+    protected function findSingleSelectFieldOrDie(string $singleSelectFieldId): SingleSelectField
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('id', $singleSelectFieldId));
+        $singleSelectField = $this->singleSelectFields->matching($criteria)->first();
+        if (empty($singleSelectField)) {
+            throw RegularException::notFound('not found: field not found');
+        }
+        return $singleSelectField;
+    }
+
+    protected function findMultiSelectFieldOrDie(string $multiSelectFieldId): MultiSelectField
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('id', $multiSelectFieldId));
+        $multiSelectField = $this->multiSelectFields->matching($criteria)->first();
+        if (empty($multiSelectField)) {
+            throw RegularException::notFound('not found: field not found');
+        }
+        return $multiSelectField;
     }
 
 }

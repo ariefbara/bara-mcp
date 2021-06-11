@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\BioSearchFilter\TextAreaFieldSearchFilter" 
+            table="TextAreaFieldSearchFilter"
+    >
+        
+        <many-to-one  field="bioSearchFilter" 
+                      target-entity="Firm\Domain\Model\Firm\BioSearchFilter"
+                      inversed-by="textAreaFieldSearchFilters"
+        >
+            <join-column name="BioSearchFilter_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        <embedded name="comparisonType" class="SharedContext\Domain\ValueObject\TextFieldComparisonType" use-column-prefix="false" />
+        
+        <many-to-one  field="textAreaField" 
+                      target-entity="Firm\Domain\Model\Shared\Form\TextAreaField"
+        >
+            <join-column name="TextAreaField_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

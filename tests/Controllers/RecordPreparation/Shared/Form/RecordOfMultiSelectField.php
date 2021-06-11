@@ -2,10 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\Form;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    Shared\RecordOfForm
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class RecordOfMultiSelectField implements Record
 {
@@ -42,5 +41,12 @@ class RecordOfMultiSelectField implements Record
             "maximumValue" => $this->maxValue,
             "removed" => $this->removed,
         ];
+    }
+    
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->selectField->insert($connection);
+        $connection->table('MultiSelectField')->insert($this->toArrayForDbEntry());
     }
 }

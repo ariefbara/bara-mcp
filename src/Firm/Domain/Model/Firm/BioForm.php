@@ -6,6 +6,7 @@ use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Shared\Form;
 use Firm\Domain\Model\Shared\FormData;
+use Firm\Domain\Task\BioSearchFilterDataBuilder\BioFormSearchFilterRequest;
 use Resources\Exception\RegularException;
 
 class BioForm implements AssetBelongsToFirm
@@ -28,11 +29,6 @@ class BioForm implements AssetBelongsToFirm
      * @var bool
      */
     protected $disabled;
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
 
     public function __construct(Firm $firm, string $id, FormData $formData)
     {
@@ -72,6 +68,19 @@ class BioForm implements AssetBelongsToFirm
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->firm === $firm;
+    }
+    
+    public function assertAccessibleInFirm(Firm $firm): void
+    {
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('forbidden: inaccesible bio form');
+        }
+    }
+    
+    public function setFieldFiltersToBioSearchFilterData(
+            BioSearchFilterData $bioSearchFilterData, BioFormSearchFilterRequest $bioFormSearchFilterRequest): void
+    {
+        $this->form->setFieldFiltersToBioSearchFilterData($bioSearchFilterData, $bioFormSearchFilterRequest);
     }
 
 }

@@ -21,5 +21,12 @@
         
         <field name="displaySetting" type="string" length="256" nullable="true"/>
         
+        <one-to-one field="bioSearchFilter" 
+                    target-entity="Firm\Domain\Model\Firm\BioSearchFilter"
+                    mapped-by="firm"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
     </entity>
 </doctrine-mapping>

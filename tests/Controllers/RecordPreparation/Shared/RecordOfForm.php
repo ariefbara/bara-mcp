@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared;
 
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfForm implements Record
@@ -25,7 +26,7 @@ class RecordOfForm implements Record
         ];
     }
     
-    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
+    public function insert(ConnectionInterface $connection): void
     {
         $connection->table('Form')->insert($this->toArrayForDbEntry());
     }

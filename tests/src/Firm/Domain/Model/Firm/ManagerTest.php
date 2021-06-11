@@ -43,6 +43,8 @@ class ManagerTest extends TestBase
     protected $mission, $missionId = 'missionId';
     protected $worksheetForm;
     protected $bioForm, $bioFormId = "bioFormId";
+    
+    protected $mutationTask;
 
     protected function setUp(): void
     {
@@ -76,6 +78,8 @@ class ManagerTest extends TestBase
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
         $this->bioForm = $this->buildMockOfClass(BioForm::class);
+        
+        $this->mutationTask = $this->buildMockOfInterface(MutationTaskExecutableByManager::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -688,6 +692,26 @@ class ManagerTest extends TestBase
         $this->assertUnmanageableAssetForbiddenError(function (){
             $this->executeEnableBioForm();
         });
+    }
+    
+    protected function executeHandleMutationTask()
+    {
+        $this->manager->handleMutationTask($this->mutationTask);
+    }
+    public function test_handleMutationTask_executeTask()
+    {
+        $this->mutationTask->expects($this->once())
+                ->method('execute')
+                ->with($this->firm);
+        $this->executeHandleMutationTask();
+    }
+    public function test_handleMutationTask_inactiveManager_forbidden()
+    {
+        $this->manager->removed = true;
+        $this->assertRegularExceptionThrowed(function () {
+                $this->executeHandleMutationTask ();
+            
+        }, 'Forbidden', 'forbidden: only active manager can make this request');
     }
 }
 

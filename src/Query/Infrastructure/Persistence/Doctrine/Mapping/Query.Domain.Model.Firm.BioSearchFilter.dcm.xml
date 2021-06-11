@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\BioSearchFilter" 
+            table="BioSearchFilter"
+    >
+        
+        <one-to-one field="firm" 
+                    target-entity="Query\Domain\Model\Firm"
+                    inversed-by="bioSearchFilter"
+        >
+            <join-column name="Firm_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        <field name="modifiedTime" type="datetime_immutable" nullable="true"/>
+        
+        <one-to-many field="integerFieldSearchFilters" 
+                     target-entity="Query\Domain\Model\Firm\BioSearchFilter\IntegerFieldSearchFilter" 
+                     mapped-by="bioSearchFilter"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="stringFieldSearchFilters" 
+                     target-entity="Query\Domain\Model\Firm\BioSearchFilter\StringFieldSearchFilter" 
+                     mapped-by="bioSearchFilter"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="textAreaFieldSearchFilters" 
+                     target-entity="Query\Domain\Model\Firm\BioSearchFilter\TextAreaFieldSearchFilter" 
+                     mapped-by="bioSearchFilter"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="singleSelectFieldSearchFilters" 
+                     target-entity="Query\Domain\Model\Firm\BioSearchFilter\SingleSelectFieldSearchFilter" 
+                     mapped-by="bioSearchFilter"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+        <one-to-many field="multiSelectFieldSearchFilters" 
+                     target-entity="Query\Domain\Model\Firm\BioSearchFilter\MultiSelectFieldSearchFilter" 
+                     mapped-by="bioSearchFilter"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
+    </entity>
+</doctrine-mapping>

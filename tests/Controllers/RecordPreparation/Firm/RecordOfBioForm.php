@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm;
 
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Record;
 use Tests\Controllers\RecordPreparation\RecordOfFirm;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
@@ -36,6 +37,12 @@ class RecordOfBioForm implements Record
             "id" => $this->form->id,
             "disabled" => $this->disabled,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->form->insert($connection);
+        $connection->table('BioForm')->insert($this->toArrayForDbEntry());
     }
 
 }

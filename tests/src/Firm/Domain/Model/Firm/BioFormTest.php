@@ -4,6 +4,7 @@ namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Shared\FormData;
+use Firm\Domain\Task\BioSearchFilterDataBuilder\BioFormSearchFilterRequest;
 use Tests\TestBase;
 
 class BioFormTest extends TestBase
@@ -12,7 +13,8 @@ class BioFormTest extends TestBase
     protected $bioForm;
     protected $form;
     protected $id = "newId", $formData;
-    
+    protected $bioSearchFilterData, $bioFormSearchFilterRequest;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -24,6 +26,9 @@ class BioFormTest extends TestBase
         
         $this->form = $this->buildMockOfClass(\Firm\Domain\Model\Shared\Form::class);
         $this->bioForm->form = $this->form;
+        
+        $this->bioSearchFilterData = $this->buildMockOfClass(BioSearchFilterData::class);
+        $this->bioFormSearchFilterRequest = new BioFormSearchFilterRequest('bio-form-id');
     }
     
     protected function executeConstruct()
@@ -100,6 +105,31 @@ class BioFormTest extends TestBase
     {
         $firm = $this->buildMockOfClass(Firm::class);
         $this->assertFalse($this->bioForm->belongsToFirm($firm));
+    }
+    
+    protected function executeAssertAccessibleInFirm()
+    {
+        $this->bioForm->assertAccessibleInFirm($this->firm);
+    }
+    public function test_assertAccessibleInFirm_sameFirm_void()
+    {
+        $this->executeAssertAccessibleInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertAccessibleInForm_differentFirm_forbidden()
+    {
+        $this->bioForm->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeAssertAccessibleInFirm();
+        }, 'Forbidden', 'forbidden: inaccesible bio form');
+    }
+    
+    public function test_setFieldFiltersToBioSearchFilterData_executeFormsSetFieldFiltersToBioSearchFilterData()
+    {
+        $this->form->expects($this->once())
+                ->method('setFieldFiltersToBioSearchFilterData')
+                ->with($this->bioSearchFilterData, $this->bioFormSearchFilterRequest);
+        $this->bioForm->setFieldFiltersToBioSearchFilterData($this->bioSearchFilterData, $this->bioFormSearchFilterRequest);
     }
     
 }

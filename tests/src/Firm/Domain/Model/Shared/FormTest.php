@@ -2,22 +2,22 @@
 
 namespace Firm\Domain\Model\Shared;
 
-use Firm\Domain\Model\Shared\Form\ {
-    AttachmentField,
-    AttachmentFieldData,
-    FieldData,
-    IntegerField,
-    IntegerFieldData,
-    MultiSelectField,
-    MultiSelectFieldData,
-    SelectFieldData,
-    SingleSelectField,
-    SingleSelectFieldData,
-    StringField,
-    StringFieldData,
-    TextAreaField,
-    TextAreaFieldData
-};
+use Firm\Domain\Model\Firm\BioSearchFilterData;
+use Firm\Domain\Model\Shared\Form\AttachmentField;
+use Firm\Domain\Model\Shared\Form\AttachmentFieldData;
+use Firm\Domain\Model\Shared\Form\FieldData;
+use Firm\Domain\Model\Shared\Form\IntegerField;
+use Firm\Domain\Model\Shared\Form\IntegerFieldData;
+use Firm\Domain\Model\Shared\Form\MultiSelectField;
+use Firm\Domain\Model\Shared\Form\MultiSelectFieldData;
+use Firm\Domain\Model\Shared\Form\SelectFieldData;
+use Firm\Domain\Model\Shared\Form\SingleSelectField;
+use Firm\Domain\Model\Shared\Form\SingleSelectFieldData;
+use Firm\Domain\Model\Shared\Form\StringField;
+use Firm\Domain\Model\Shared\Form\StringFieldData;
+use Firm\Domain\Model\Shared\Form\TextAreaField;
+use Firm\Domain\Model\Shared\Form\TextAreaFieldData;
+use Firm\Domain\Task\BioSearchFilterDataBuilder\BioFormSearchFilterRequest;
 use Resources\Domain\Data\DataCollection;
 use Tests\TestBase;
 
@@ -48,6 +48,8 @@ class FormTest extends TestBase
             $attachmentField, $attachmentFieldId = 'attachmentFieldId',
             $singleSelectField, $singleSelectFieldId = 'singleSelectFieldId',
             $multiSelectField, $multiSelectFieldId = 'multiSelectFieldId';
+    
+    protected $bioSearchFilterData, $bioFormSearchFilterRequest, $comparisonType = 1;
 
     protected function setUp(): void
     {
@@ -130,6 +132,9 @@ class FormTest extends TestBase
         $this->formData->expects($this->any())
                 ->method('getAttachmentFieldDataCollection')
                 ->willReturn($this->attachmentFieldDataCollection);
+        
+        $this->bioSearchFilterData = $this->buildMockOfClass(BioSearchFilterData::class);
+        $this->bioFormSearchFilterRequest = new BioFormSearchFilterRequest('form-id');
     }
 
     protected function executeConstruct()
@@ -143,7 +148,6 @@ class FormTest extends TestBase
 
         return new TestableForm($this->id, $this->formData);
     }
-
     public function test_construct_setProperties()
     {
         $form = $this->executeConstruct();
@@ -151,7 +155,6 @@ class FormTest extends TestBase
         $this->assertEquals($this->name, $form->name);
         $this->assertEquals($this->description, $form->description);
     }
-
     public function test_construct_emptyName_throwEx()
     {
         $this->name = ' ';
@@ -161,42 +164,36 @@ class FormTest extends TestBase
         $errorDetail = 'bad request: form name is mandatory';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
-
     public function test_construct_containsStirngFieldData_addStringFieldToCollection()
     {
         $form = $this->executeConstruct();
         $this->assertEquals(1, $form->stringFields->count());
         $this->assertInstanceOf(StringField::class, $form->stringFields->first());
     }
-
     public function test_construct_containIntegerFieldData_addIntegerFieldToCollection()
     {
         $form = $this->executeConstruct();
         $this->assertEquals(1, $form->integerFields->count());
         $this->assertInstanceOf(IntegerField::class, $form->integerFields->first());
     }
-
     public function test_construct_containTextAreaFieldData_addTextAreaFieldToCollection()
     {
         $form = $this->executeConstruct();
         $this->assertEquals(1, $form->textAreaFields->count());
         $this->assertInstanceOf(TextAreaField::class, $form->textAreaFields->first());
     }
-
     public function test_construct_containSingleSelectFieldData_addSingleSelectFieldToCollection()
     {
         $form = $this->executeConstruct();
         $this->assertEquals(1, $form->singleSelectFields->count());
         $this->assertInstanceOf(SingleSelectField::class, $form->singleSelectFields->first());
     }
-
     public function test_construct_containMultiSelectFieldData_addMultiSelectFieldToCollection()
     {
         $form = $this->executeConstruct();
         $this->assertEquals(1, $form->multiSelectFields->count());
         $this->assertInstanceOf(MultiSelectField::class, $form->multiSelectFields->first());
     }
-
     public function test_construct_containAttachmentFieldData_addAttachmentFieldToCollection()
     {
         $form = $this->executeConstruct();
@@ -240,7 +237,6 @@ class FormTest extends TestBase
 
         $this->form->update($this->formData);
     }
-
     public function test_update_updatePropertiesAndAddFieldsToCollection()
     {
         $this->executeUpdate();
@@ -253,7 +249,6 @@ class FormTest extends TestBase
         $this->assertEquals(2, $this->form->multiSelectFields->count());
         $this->assertEquals(2, $this->form->attachmentFields->count());
     }
-
     public function test_update_emptyName_throwEx()
     {
         $this->name = '';
@@ -263,7 +258,6 @@ class FormTest extends TestBase
         $errorDetail = "bad request: form name is mandatory";
         $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
     }
-
     public function test_update_stringFieldInCollectionHasCorrespondingData_updateThisField()
     {
         $this->stringField->expects($this->once())
@@ -271,7 +265,6 @@ class FormTest extends TestBase
                 ->with($this->stringFieldData);
         $this->executeUpdate();
     }
-
     public function test_update_stringFieldInCollectionAlreadyRemoved_ignoreThisField()
     {
         $this->stringField->expects($this->once())
@@ -281,7 +274,6 @@ class FormTest extends TestBase
                 ->method('update');
         $this->executeUpdate();
     }
-
     public function test_update_stringFieldInCollectionHasNoCorrespondingData_removeThisField()
     {
         $this->formData->expects($this->once())
@@ -292,7 +284,6 @@ class FormTest extends TestBase
                 ->method('remove');
         $this->executeUpdate();
     }
-
     public function test_update_integerFieldInCollectionHasCorrespondingData_updateThisField()
     {
         $this->integerField->expects($this->once())
@@ -300,7 +291,6 @@ class FormTest extends TestBase
                 ->with($this->integerFieldData);
         $this->executeUpdate();
     }
-
     public function test_update_integerFieldInCollectionAlreadyRemoved_ignoreThisField()
     {
         $this->integerField->expects($this->once())
@@ -310,7 +300,6 @@ class FormTest extends TestBase
                 ->method('update');
         $this->executeUpdate();
     }
-
     public function test_update_integerFieldInCollectionHasNoCorrespondingData_removeThisField()
     {
         $this->formData->expects($this->once())
@@ -321,7 +310,6 @@ class FormTest extends TestBase
                 ->method('remove');
         $this->executeUpdate();
     }
-
     public function test_update_textAreaFieldInCollectionHasCorrespondingData_updateThisField()
     {
         $this->textAreaField->expects($this->once())
@@ -329,7 +317,6 @@ class FormTest extends TestBase
                 ->with($this->textAreaFieldData);
         $this->executeUpdate();
     }
-
     public function test_update_textAreaFieldInCollectionAlreadyRemoved_ignoreThisField()
     {
         $this->textAreaField->expects($this->once())
@@ -339,7 +326,6 @@ class FormTest extends TestBase
                 ->method('update');
         $this->executeUpdate();
     }
-
     public function test_update_textAreaFieldInCollectionHasNoCorrespondingData_removeThisField()
     {
         $this->formData->expects($this->once())
@@ -350,7 +336,6 @@ class FormTest extends TestBase
                 ->method('remove');
         $this->executeUpdate();
     }
-
     public function test_update_singleSelectFieldInCollectionHasCorrespondingData_updateThisField()
     {
         $this->singleSelectField->expects($this->once())
@@ -358,7 +343,6 @@ class FormTest extends TestBase
                 ->with($this->singleSelectFieldData);
         $this->executeUpdate();
     }
-
     public function test_update_singleSelectFieldInCollectionAlreadyRemoved_ignoreThisField()
     {
         $this->singleSelectField->expects($this->once())
@@ -368,7 +352,6 @@ class FormTest extends TestBase
                 ->method('update');
         $this->executeUpdate();
     }
-
     public function test_update_singleSelectFieldInCollectionHasNoCorrespondingData_removeThisField()
     {
         $this->formData->expects($this->once())
@@ -379,7 +362,6 @@ class FormTest extends TestBase
                 ->method('remove');
         $this->executeUpdate();
     }
-
     public function test_update_multiSelectFieldInCollectionHasCorrespondingData_updateThisField()
     {
         $this->multiSelectField->expects($this->once())
@@ -387,7 +369,6 @@ class FormTest extends TestBase
                 ->with($this->multiSelectFieldData);
         $this->executeUpdate();
     }
-
     public function test_update_multiSelectFieldInCollectionAlreadyRemoved_ignoreThisField()
     {
         $this->multiSelectField->expects($this->once())
@@ -397,7 +378,6 @@ class FormTest extends TestBase
                 ->method('update');
         $this->executeUpdate();
     }
-
     public function test_update_multiSelectFieldInCollectionHasNoCorrespondingData_removeThisField()
     {
         $this->formData->expects($this->once())
@@ -408,7 +388,6 @@ class FormTest extends TestBase
                 ->method('remove');
         $this->executeUpdate();
     }
-
     public function test_update_attachmentFieldInCollectionHasCorrespondingData_updateThisField()
     {
         $this->attachmentField->expects($this->once())
@@ -416,7 +395,6 @@ class FormTest extends TestBase
                 ->with($this->attachmentFieldData);
         $this->executeUpdate();
     }
-
     public function test_update_attachmentFieldInCollectionAlreadyRemoved_ignoreThisField()
     {
         $this->attachmentField->expects($this->once())
@@ -426,7 +404,6 @@ class FormTest extends TestBase
                 ->method('update');
         $this->executeUpdate();
     }
-
     public function test_update_attachmentFieldInCollectionHasNoCorrespondingData_removeThisField()
     {
         $this->formData->expects($this->once())
@@ -436,6 +413,96 @@ class FormTest extends TestBase
         $this->attachmentField->expects($this->once())
                 ->method('remove');
         $this->executeUpdate();
+    }
+    
+    protected function executeSetFieldFiltersToBioSearchFilter()
+    {
+        $this->form->setFieldFiltersToBioSearchFilterData($this->bioSearchFilterData, $this->bioFormSearchFilterRequest);
+    }
+    public function test_setFieldFiltersToBioSearchFilter_hasIntegerFieldFilter_addIntegerFieldFilterToBioSearchFilterData()
+    {
+        $this->bioFormSearchFilterRequest->addIntegerFieldSearchFilterRequest($this->integerFieldId, $this->comparisonType);
+        $this->form->integerFields->add($this->integerField);
+        
+        $this->bioSearchFilterData->expects($this->once())
+                ->method('addIntegerFieldFilter')
+                ->with($this->integerField, $this->comparisonType);
+        $this->executeSetFieldFiltersToBioSearchFilter();
+    }
+    public function test_setFieldFiltersToBioSearchFilter_noIntegerFieldCorrespondWithFieldIdFound_forbidden()
+    {
+        $this->bioFormSearchFilterRequest->addIntegerFieldSearchFilterRequest('non-existing-field', $this->comparisonType);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeSetFieldFiltersToBioSearchFilter();
+        }, 'Not Found', 'not found: field not found');
+    }
+    public function test_setFieldFiltersToBioSearchFilter_hasStringFieldFilter_addStringFieldFilterToBioSearchFilterData()
+    {
+        $this->bioFormSearchFilterRequest->addStringFieldSearchFilterRequest($this->stringFieldId, $this->comparisonType);
+        $this->form->stringFields->add($this->stringField);
+        
+        $this->bioSearchFilterData->expects($this->once())
+                ->method('addStringFieldFilter')
+                ->with($this->stringField, $this->comparisonType);
+        $this->executeSetFieldFiltersToBioSearchFilter();
+    }
+    public function test_setFieldFiltersToBioSearchFilter_noStringFieldCorrespondWithFieldIdFound_forbidden()
+    {
+        $this->bioFormSearchFilterRequest->addStringFieldSearchFilterRequest('non-existing-field', $this->comparisonType);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeSetFieldFiltersToBioSearchFilter();
+        }, 'Not Found', 'not found: field not found');
+    }
+    public function test_setFieldFiltersToBioSearchFilter_hasTextAreaFieldFilter_addTextAreaFieldFilterToBioSearchFilterData()
+    {
+        $this->bioFormSearchFilterRequest->addTextAreaFieldSearchFilterRequest($this->textAreaFieldId, $this->comparisonType);
+        $this->form->textAreaFields->add($this->textAreaField);
+        
+        $this->bioSearchFilterData->expects($this->once())
+                ->method('addTextAreaFieldFilter')
+                ->with($this->textAreaField, $this->comparisonType);
+        $this->executeSetFieldFiltersToBioSearchFilter();
+    }
+    public function test_setFieldFiltersToBioSearchFilter_noTextAreaFieldCorrespondWithFieldIdFound_forbidden()
+    {
+        $this->bioFormSearchFilterRequest->addTextAreaFieldSearchFilterRequest('non-existing-field', $this->comparisonType);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeSetFieldFiltersToBioSearchFilter();
+        }, 'Not Found', 'not found: field not found');
+    }
+    public function test_setFieldFiltersToBioSearchFilter_hasSingleSelectFieldFilter_addSingleSelectFieldFilterToBioSearchFilterData()
+    {
+        $this->bioFormSearchFilterRequest->addSingleSelectFieldSearchFilterRequest($this->singleSelectFieldId, $this->comparisonType);
+        $this->form->singleSelectFields->add($this->singleSelectField);
+        
+        $this->bioSearchFilterData->expects($this->once())
+                ->method('addSingleSelectFieldFilter')
+                ->with($this->singleSelectField, $this->comparisonType);
+        $this->executeSetFieldFiltersToBioSearchFilter();
+    }
+    public function test_setFieldFiltersToBioSearchFilter_noSingleSelectFieldCorrespondWithFieldIdFound_forbidden()
+    {
+        $this->bioFormSearchFilterRequest->addSingleSelectFieldSearchFilterRequest('non-existing-field', $this->comparisonType);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeSetFieldFiltersToBioSearchFilter();
+        }, 'Not Found', 'not found: field not found');
+    }
+    public function test_setFieldFiltersToBioSearchFilter_hasMultiSelectFieldFilter_addMultiSelectFieldFilterToBioSearchFilterData()
+    {
+        $this->bioFormSearchFilterRequest->addMultiSelectFieldSearchFilterRequest($this->multiSelectFieldId, $this->comparisonType);
+        $this->form->multiSelectFields->add($this->multiSelectField);
+        
+        $this->bioSearchFilterData->expects($this->once())
+                ->method('addMultiSelectFieldFilter')
+                ->with($this->multiSelectField, $this->comparisonType);
+        $this->executeSetFieldFiltersToBioSearchFilter();
+    }
+    public function test_setFieldFiltersToBioSearchFilter_noMultiSelectFieldCorrespondWithFieldIdFound_forbidden()
+    {
+        $this->bioFormSearchFilterRequest->addMultiSelectFieldSearchFilterRequest('non-existing-field', $this->comparisonType);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeSetFieldFiltersToBioSearchFilter();
+        }, 'Not Found', 'not found: field not found');
     }
 
 }

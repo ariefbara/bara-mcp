@@ -2,10 +2,9 @@
 
 namespace Firm\Domain\Model;
 
-use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\Firm\BioForm;
+use Firm\Domain\Model\Firm\BioSearchFilter;
+use Firm\Domain\Model\Firm\BioSearchFilterData;
 use Firm\Domain\Model\Firm\FirmFileInfo;
-use Firm\Domain\Model\Firm\ProfileForm;
 use Query\Domain\Model\FirmWhitelableInfo;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
@@ -55,6 +54,12 @@ class Firm
      */
     protected $suspended = false;
 
+    /**
+     * 
+     * @var BioSearchFilter|null
+     */
+    protected $bioSearchFilter;
+
     function getId(): string
     {
         return $this->id;
@@ -74,6 +79,16 @@ class Firm
     {
         $this->logo = $logo;
         $this->displaySetting = $displaySetting;
+    }
+
+    public function setBioSearchFilter(BioSearchFilterData $bioSearchFilterData): void
+    {
+        if (empty($this->bioSearchFilter)) {
+            $id = Uuid::generateUuid4();
+            $this->bioSearchFilter = new BioSearchFilter($this, $id, $bioSearchFilterData);
+        } else {
+            $this->bioSearchFilter->update($bioSearchFilterData);
+        }
     }
 
 }

@@ -5,10 +5,11 @@ namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\NoResultException;
 use Firm\Application\Service\Manager\BioFormRepository;
 use Firm\Domain\Model\Firm\BioForm;
+use Firm\Domain\Task\BioFormRepository as InterfaceForTask;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineBioFormRepository extends DoctrineEntityRepository implements BioFormRepository
+class DoctrineBioFormRepository extends DoctrineEntityRepository implements BioFormRepository, InterfaceForTask
 {
 
     public function add(BioForm $bioForm): void

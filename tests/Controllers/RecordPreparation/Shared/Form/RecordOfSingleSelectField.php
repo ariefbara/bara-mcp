@@ -2,10 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\Form;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    Shared\RecordOfForm
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class RecordOfSingleSelectField implements Record
 {
@@ -40,6 +39,13 @@ class RecordOfSingleSelectField implements Record
             "defaultValue" => $this->defaultValue,
             "removed" => $this->removed,
         ];
+    }
+    
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->selectField->insert($connection);
+        $connection->table('SingleSelectField')->insert($this->toArrayForDbEntry());
     }
 
 }

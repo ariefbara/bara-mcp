@@ -2,10 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\Form;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    Shared\RecordOfForm
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class RecordOfIntegerField implements Record
 {
@@ -48,5 +47,10 @@ class RecordOfIntegerField implements Record
             "defaultValue" => $this->defaultValue,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('IntegerField')->insert($this->toArrayForDbEntry());
     }
 }

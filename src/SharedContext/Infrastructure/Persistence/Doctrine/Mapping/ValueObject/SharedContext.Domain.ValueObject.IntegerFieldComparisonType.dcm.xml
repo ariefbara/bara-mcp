@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\IntegerFieldComparisonType">
+        
+        <field name="value" column="comparisonType" type="smallint" nullable="false"/>
+        
+    </embeddable>
+</doctrine-mapping>

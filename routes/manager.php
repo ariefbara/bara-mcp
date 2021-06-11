@@ -19,6 +19,7 @@ $router->group($managerAggregate, function () use ($router) {
     $router->group(['prefix' => '/firm-profile'], function () use($router) {
         $controller = "FirmController";
         $router->patch("/update", ["uses" => "$controller@update"]);
+        $router->put("/bio-search-filter", ["uses" => "$controller@setBioSearchFilter"]);
         $router->get("", ["uses" => "$controller@show"]);
     });
     

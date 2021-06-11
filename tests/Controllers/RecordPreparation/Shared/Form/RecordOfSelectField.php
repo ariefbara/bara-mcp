@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\Form;
 
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfSelectField implements Record
@@ -26,6 +27,12 @@ class RecordOfSelectField implements Record
             "position" => $this->position,
             "mandatory" => $this->mandatory,
         ];
+    }
+    
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('SelectField')->insert($this->toArrayForDbEntry());
     }
 
 }
