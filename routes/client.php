@@ -16,6 +16,12 @@ $router->group($clientAggregate, function () use ($router) {
     $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     
+    $router->group(['prefix' => '/clients'], function () use($router) {
+        $controller = "ClientController";
+        $router->get("", ["uses" => "$controller@showAll"]);
+        $router->get("/{id}", ["uses" => "$controller@show"]);
+    });
+    
     $router->group(['prefix' => '/create-team'], function () use($router) {
         $controller = "CreateTeamController";
         $router->post("", ["uses" => "$controller@create"]);

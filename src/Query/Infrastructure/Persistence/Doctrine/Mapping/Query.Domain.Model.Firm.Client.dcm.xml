@@ -25,6 +25,11 @@
         <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true" />
         <field name="activated" type="boolean" />
         
+        <one-to-many  field="clientBios" 
+                      target-entity="Query\Domain\Model\Firm\Client\ClientBio"
+                      mapped-by="client"
+        />
+        
         <unique-constraints>
             <unique-constraint columns="Firm_id,email" name="client_email_idx" />
         </unique-constraints>

@@ -8,4 +8,6 @@ interface ClientRepository
 {
 
     public function aClientInFirm(string $firmId, string $clientId): Client;
+    
+    public function executeNativeQuery(string $sqlQuery): array;
 }

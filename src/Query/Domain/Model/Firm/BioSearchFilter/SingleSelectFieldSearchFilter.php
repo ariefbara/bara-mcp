@@ -73,5 +73,19 @@ class SingleSelectFieldSearchFilter
     {
         return $this->comparisonType->getDisplayValue();
     }
+    
+    public function singleSelectFieldIdEquals(string $singleSelectFieldId): bool
+    {
+        return $this->singleSelectField->idEquals($singleSelectFieldId);
+    }
+    
+    public function buildSqlComparisonClause(array $listOfOptionId): string
+    {
+        return <<<_QUERY
+SingleSelectFieldRecord.SingleSelectField_id = '{$this->singleSelectField->getId()}' AND
+    SingleSelectFieldRecord.removed = false AND
+    SingleSelectFieldRecord.Option_id {$this->comparisonType->getComparisonQuery($listOfOptionId)}
+_QUERY;
+    }
 
 }

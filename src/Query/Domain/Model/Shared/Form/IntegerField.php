@@ -109,5 +109,10 @@ class IntegerField
     {
         return $this->minMaxValue->getMaxValue();
     }
+    
+    public function idEquals(string $id): bool
+    {
+        return $this->id === $id;
+    }
 
 }

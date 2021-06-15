@@ -3,10 +3,14 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Query\Application\Service\Client\ClientRepository;
 use Query\Application\Service\Client\ConsultationRequestRepository;
 use Query\Application\Service\Client\ConsultationSessionRepository;
 use Query\Application\Service\Client\ParticipantInviteeRepository;
 use Query\Domain\Model\Firm;
+use Query\Domain\Model\Firm\Client\ClientBio;
 use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
@@ -83,6 +87,12 @@ class Client
      * @var bool
      */
     protected $activated = false;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $clientBios;
 
     public function getFirm(): Firm
     {
@@ -112,6 +122,17 @@ class Client
     protected function __construct()
     {
         ;
+    }
+    
+    /**
+     * 
+     * @return ClientBio[]
+     */
+    public function iterateActiveClientBios()
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('removed', false));
+        return $this->clientBios->matching($criteria)->getIterator();
     }
 
     public function getFullName(): string
@@ -171,6 +192,19 @@ class Client
         $this->assertActive();
         return $participantInviteeRepository
                 ->allAccessibleParticipantInviteeBelongsToClient($this->id, $page, $pageSize, $inviteeFilter);
+    }
+    
+    public function viewAllAccessibleClients(
+            ClientRepository $clientRepository, ClientSearchRequest $clientSearchRequest): array
+    {
+        $this->assertActive();
+        return $this->firm->viewAllClients($clientRepository, $clientSearchRequest);
+    }
+    
+    public function viewClient(ClientRepository $clientRepository, string $id): Client
+    {
+        $this->assertActive();
+        return $clientRepository->aClientInFirm($this->firm->getId(), $id);
     }
 
 }

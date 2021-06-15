@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\FormRecord;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    Shared\Form\RecordOfStringField,
-    Shared\RecordOfFormRecord
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\Form\RecordOfStringField;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class RecordOfStringFieldRecord implements Record
 {
@@ -42,6 +41,11 @@ class RecordOfStringFieldRecord implements Record
             "value" => $this->value,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('StringFieldRecord')->insert($this->toArrayForDbEntry());
     }
 
 }

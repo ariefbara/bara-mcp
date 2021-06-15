@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\FormRecord;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    Shared\Form\RecordOfTextAreaField,
-    Shared\RecordOfFormRecord
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\Form\RecordOfTextAreaField;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class RecordOfTextAreaFieldRecord implements Record
 {
@@ -41,6 +40,11 @@ class RecordOfTextAreaFieldRecord implements Record
             "value" => $this->value,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('TextAreaFieldRecord')->insert($this->toArrayForDbEntry());
     }
 
 }

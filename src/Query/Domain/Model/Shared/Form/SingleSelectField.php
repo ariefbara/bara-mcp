@@ -93,5 +93,10 @@ class SingleSelectField
     {
         return $this->selectField->getUnremovedOptions();
     }
+    
+    public function idEquals(string $id): bool
+    {
+        return $this->id === $id;
+    }
 
 }

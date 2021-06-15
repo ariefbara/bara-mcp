@@ -3,6 +3,7 @@
 namespace Tests\Controllers\RecordPreparation\Shared;
 
 use DateTimeImmutable;
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfFormRecord implements Record
@@ -29,6 +30,11 @@ class RecordOfFormRecord implements Record
             "id" => $this->id,
             "submitTime" => $this->submitTime,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('FormRecord')->insert($this->toArrayForDbEntry());
     }
 
 }

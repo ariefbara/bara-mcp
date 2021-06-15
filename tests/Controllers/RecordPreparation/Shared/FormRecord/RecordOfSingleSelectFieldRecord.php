@@ -2,12 +2,11 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\FormRecord;
 
-use Tests\Controllers\RecordPreparation\{
-    Record,
-    Shared\Form\RecordOfSingleSelectField,
-    Shared\Form\SelectField\RecordOfOption,
-    Shared\RecordOfFormRecord
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\Form\RecordOfSingleSelectField;
+use Tests\Controllers\RecordPreparation\Shared\Form\SelectField\RecordOfOption;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class RecordOfSingleSelectFieldRecord implements Record
 {
@@ -50,6 +49,11 @@ class RecordOfSingleSelectFieldRecord implements Record
             "Option_id" => $this->option->id,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('SingleSelectFieldRecord')->insert($this->toArrayForDbEntry());
     }
 
 }

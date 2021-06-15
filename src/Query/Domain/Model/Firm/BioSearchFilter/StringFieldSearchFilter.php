@@ -73,5 +73,19 @@ class StringFieldSearchFilter
     {
         return $this->comparisonType->getDisplayValue();
     }
+    
+    public function stringFieldIdEquals(string $stringFieldId): bool
+    {
+        return $this->stringField->idEquals($stringFieldId);
+    }
+    
+    public function buildSqlComparisonClause(string $value): string
+    {
+        return <<<_QUERY
+StringFieldRecord.StringField_id = '{$this->stringField->getId()}' AND 
+    StringFieldRecord.removed = false AND
+    StringFieldRecord.value {$this->comparisonType->getComparisonQuery($value)}
+_QUERY;
+    }
 
 }

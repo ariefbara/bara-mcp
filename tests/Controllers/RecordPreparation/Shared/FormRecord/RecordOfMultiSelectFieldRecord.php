@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\FormRecord;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    Shared\Form\RecordOfMultiSelectField,
-    Shared\RecordOfFormRecord
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\Form\RecordOfMultiSelectField;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class RecordOfMultiSelectFieldRecord implements Record
 {
@@ -39,6 +38,11 @@ class RecordOfMultiSelectFieldRecord implements Record
             "id" => $this->id,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table("MultiSelectFieldRecord")->insert($this->toArrayForDbEntry());
     }
 
 }

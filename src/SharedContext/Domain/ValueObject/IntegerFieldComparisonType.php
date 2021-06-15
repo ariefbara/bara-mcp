@@ -29,4 +29,22 @@ class IntegerFieldComparisonType extends BaseEnum
                 break;
         }
     }
+    
+    public function getComparisonQuery(int $value): string
+    {
+        switch ($this->value) {
+            case 1:
+                return "= $value";
+            case 2:
+                return "< $value";
+            case 3:
+                return "<= $value";
+            case 4:
+                return "> $value";
+            case 5:
+                return ">= $value";
+            default:
+                break;
+        }
+    }
 }

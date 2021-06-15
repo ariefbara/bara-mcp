@@ -73,5 +73,20 @@ class MultiSelectFieldSearchFilter
     {
         return $this->comparisonType->getDisplayValue();
     }
+    
+    public function multiSelectFieldIdEquals(string $multiSelectFieldId): bool
+    {
+        return $this->multiSelectField->idEquals($multiSelectFieldId);
+    }
+    
+    public function buildSqlComparisonClause(array $value): string
+    {
+        return <<<_QUERY
+MultiSelectFieldRecord.MultiSelectField_id = '{$this->multiSelectField->getId()}' AND 
+    MultiSelectFieldRecord.removed = false AND 
+    SelectedOption.removed = false AND
+    SelectedOption.Option_id {$this->comparisonType->getComparisonQuery($value)}
+_QUERY;
+    }
 
 }

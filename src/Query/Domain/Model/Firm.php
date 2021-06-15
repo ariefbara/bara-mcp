@@ -2,7 +2,9 @@
 
 namespace Query\Domain\Model;
 
+use Query\Application\Service\Client\ClientRepository;
 use Query\Domain\Model\Firm\BioSearchFilter;
+use Query\Domain\Model\Firm\ClientSearchRequest;
 use Query\Domain\Model\Firm\FirmFileInfo;
 
 class Firm
@@ -109,6 +111,43 @@ class Firm
     public function getWhitelableMailSenderName(): string
     {
         return $this->firmWhitelableInfo->getMailSenderName();
+    }
+    
+    public function viewAllClients(ClientRepository $clientRepository, ClientSearchRequest $clientSearchRequest): array
+    {
+        $dataQuery = <<<_DATA
+SELECT
+    Client.id,
+    Client.firstName,
+    Client.lastName,
+    Client.email
+FROM Client
+_DATA;
+        
+        $totalQuery = <<<_TOTAL
+SELECT COUNT(Client.id) total
+FROM Client
+_TOTAL;
+        
+        $this->bioSearchFilter->modifyClientSearchQuery($dataQuery, $totalQuery, $clientSearchRequest);
+        
+        $firmClause = <<<_CLAUSE
+                
+WHERE Client.Firm_id = '{$this->id}'
+_CLAUSE;
+
+        $dataQuery .= $firmClause;
+        $dataQuery .= <<<_LIMIT
+                
+LIMIT {$clientSearchRequest->getOffset()}, {$clientSearchRequest->getPageSize()}
+_LIMIT;
+        $totalQuery .= $firmClause;
+        
+        return [
+            'total' => $clientRepository->executeNativeQuery($totalQuery)[0]['total'],
+            'list' => $clientRepository->executeNativeQuery($dataQuery),
+        ];
+
     }
 
 }

@@ -169,4 +169,10 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
         }
     }
 
+    public function executeNativeQuery(string $sqlQuery): array
+    {
+        $result = $this->getEntityManager()->getConnection()->executeQuery($sqlQuery);
+        return $result->fetchAllAssociative();
+    }
+
 }

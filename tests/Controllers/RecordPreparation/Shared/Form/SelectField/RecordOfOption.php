@@ -2,10 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared\Form\SelectField;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    Shared\Form\RecordOfSelectField
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\Form\RecordOfSelectField;
 
 class RecordOfOption implements Record
 {
@@ -37,6 +36,11 @@ class RecordOfOption implements Record
             "position" => $this->position,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('T_Option')->insert($this->toArrayForDbEntry());
     }
 
 }

@@ -73,5 +73,19 @@ class TextAreaFieldSearchFilter
     {
         return $this->comparisonType->getDisplayValue();
     }
+    
+    public function textAreaFieldIdEquals(string $textAreaFieldId): bool
+    {
+        return $this->textAreaField->idEquals($textAreaFieldId);
+    }
+    
+    public function buildSqlComparisonClause(string $value): string
+    {
+        return <<<_QUERY
+TextAreaFieldRecord.TextAreaField_id = '{$this->textAreaField->getId()}' AND 
+    TextAreaFieldRecord.removed = false AND
+    TextAreaFieldRecord.value {$this->comparisonType->getComparisonQuery($value)}
+_QUERY;
+    }
 
 }

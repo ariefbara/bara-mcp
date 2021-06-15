@@ -73,5 +73,19 @@ class IntegerFieldSearchFilter
     {
         return $this->comparisonType->getDisplayValue();
     }
+    
+    public function integerFieldIdEquals(string $integerFieldId): bool
+    {
+        return $this->integerField->idEquals($integerFieldId);
+    }
+    
+    public function buildSqlComparisonClause(int $value): string
+    {
+        return <<<_QUERY
+IntegerFieldRecord.IntegerField_id = '{$this->integerField->getId()}' AND 
+    IntegerFieldRecord.removed = false AND
+    IntegerFieldRecord.value {$this->comparisonType->getComparisonQuery($value)}
+_QUERY;
+    }
 
 }

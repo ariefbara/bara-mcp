@@ -20,4 +20,16 @@ class TextFieldComparisonType extends BaseEnum
                 break;
         }
     }
+    
+    public function getComparisonQuery(string $value): string
+    {
+        switch ($this->value) {
+            case 1:
+                return "= '$value'";
+            case 2:
+                return "LIKE '%$value%'";
+            default:
+                break;
+        }
+    }
 }
