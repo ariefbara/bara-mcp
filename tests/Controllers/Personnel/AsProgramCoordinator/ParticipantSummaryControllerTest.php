@@ -194,14 +194,14 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->fieldOne_ofParticipantMetricAssignment_01 = new RecordOfAssignmentField($this->participantMetricAssignment_0, $metric, "01");
         $this->fieldOne_ofParticipantMetricAssignment_01->target = 100;
         $this->fieldTwo_ofParticipantMetricAssignment_02_removed = new RecordOfAssignmentField($this->participantMetricAssignment_0, $metric, "02");
-        $this->fieldTwo_ofParticipantMetricAssignment_02_removed->removed = true;
+        $this->fieldTwo_ofParticipantMetricAssignment_02_removed->disabled = true;
         $this->fieldTwo_ofParticipantMetricAssignment_02_removed->target = 200;
         $this->fieldThree_ofParticipantMetricAssignment_03 = new RecordOfAssignmentField($this->participantMetricAssignment_0, $metric, "03");
         $this->fieldThree_ofParticipantMetricAssignment_03->target = 300;
         $this->fieldOne_ofParticipantTwoMetricAssignment_21 = new RecordOfAssignmentField($this->participantTwoMetricAssignment_2, $metric, "21");
         $this->fieldOne_ofParticipantTwoMetricAssignment_21->target = 100;
         $this->fieldTwo_ofParticipantTwoMetricAssignment_22_removed = new RecordOfAssignmentField($this->participantTwoMetricAssignment_2, $metric, "22");
-        $this->fieldTwo_ofParticipantTwoMetricAssignment_22_removed->removed = true;
+        $this->fieldTwo_ofParticipantTwoMetricAssignment_22_removed->disabled = true;
         $this->fieldTwo_ofParticipantTwoMetricAssignment_22_removed->target = 200;
         $this->fieldThree_ofParticipantTwoMetricAssignment_23 = new RecordOfAssignmentField($this->participantTwoMetricAssignment_2, $metric, "23");
         $this->fieldThree_ofParticipantTwoMetricAssignment_23->target = 300;
@@ -210,7 +210,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->fieldTwo_ofParticipantThreeMetricAssignment_32 = new RecordOfAssignmentField($this->participantThreeMetricAssignment_3, $metric, "32");
         $this->fieldTwo_ofParticipantThreeMetricAssignment_32->target = 200;
         $this->fieldThree_ofParticipantThreeMetricAssignment_33_removed = new RecordOfAssignmentField($this->participantThreeMetricAssignment_3, $metric, "33");
-        $this->fieldThree_ofParticipantThreeMetricAssignment_33_removed->removed = true;
+        $this->fieldThree_ofParticipantThreeMetricAssignment_33_removed->disabled = true;
         $this->fieldThree_ofParticipantThreeMetricAssignment_33_removed->target = 300;
         $this->connection->table("AssignmentField")->insert($this->fieldOne_ofParticipantMetricAssignment_01->toArrayForDbEntry());
         $this->connection->table("AssignmentField")->insert($this->fieldTwo_ofParticipantMetricAssignment_02_removed->toArrayForDbEntry());

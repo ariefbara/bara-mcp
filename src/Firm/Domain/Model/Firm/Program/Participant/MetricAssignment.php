@@ -81,7 +81,7 @@ class MetricAssignment implements AssetInProgram
     public function update(MetricAssignmentDataProvider $metricAssignmentDataProvider): void
     {
         $this->setStartEndDate($metricAssignmentDataProvider->getStartDate(), $metricAssignmentDataProvider->getEndDate());
-        foreach ($this->iterateActiveAssignmentFields() as $assignmentField) {
+        foreach ($this->assignmentFields->getIterator() as $assignmentField) {
             $assignmentField->update($metricAssignmentDataProvider);
         }
         $this->addAssignmentFields($metricAssignmentDataProvider);
@@ -103,16 +103,6 @@ class MetricAssignment implements AssetInProgram
             $errorDetail = "forbidden : unable to assign metric from other program";
             throw RegularException::forbidden($errorDetail);
         }
-    }
-    /**
-     * 
-     * @return AssignmentField[]
-     */
-    protected function iterateActiveAssignmentFields()
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq("removed", false));
-        return $this->assignmentFields->matching($criteria)->getIterator();
     }
 
 }

@@ -21,7 +21,7 @@
         
         <field name="target" type="integer" nullable="false"/>
         
-        <field name="removed" type="boolean" />
+        <field name="disabled" type="boolean" />
         
     </entity>
 </doctrine-mapping>

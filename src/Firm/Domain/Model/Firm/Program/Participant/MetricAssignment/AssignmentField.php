@@ -43,13 +43,8 @@ class AssignmentField
      *
      * @var bool
      */
-    protected $removed;
+    protected $disabled;
 
-    public function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-    
     protected function setTarget(int $target)
     {
         $errorDetail = "bad request: assignment field target is mandatory";
@@ -65,16 +60,17 @@ class AssignmentField
         $this->id = $id;
         $this->metric = $metric;
         $this->setTarget($target);
-        $this->removed = false;
+        $this->disabled = false;
     }
 
     public function update(MetricAssignmentDataProvider $metricAssignmentDataProvider): void
     {
         $target = $metricAssignmentDataProvider->pullTargetCorrespondWithMetric($this->metric);
         if (empty($target)) {
-            $this->removed = true;
+            $this->disabled = true;
         } else {
             $this->setTarget($target);
+            $this->disabled = false;
         }
     }
 

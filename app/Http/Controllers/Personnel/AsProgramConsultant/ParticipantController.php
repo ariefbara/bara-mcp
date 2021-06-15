@@ -87,7 +87,7 @@ class ParticipantController extends AsProgramConsultantBaseController
             return null;
         }
         $assignmentFields = [];
-        foreach ($metricAssignment->iterateNonRemovedAssignmentFields() as $assignmentField) {
+        foreach ($metricAssignment->iterateActiveAssignmentFields() as $assignmentField) {
             $assignmentFields[] = $this->arrayDataOfAssignmentField($assignmentField);
         }
         return empty($metricAssignment) ? null : [

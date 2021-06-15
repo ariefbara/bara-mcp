@@ -143,15 +143,6 @@ class MetricAssignmentTest extends TestBase
                 ->with($this->metricAssignmentDataProvider);
         $this->executeUpdate();
     }
-    public function test_update_existingAssignmentFieldAlreadyRemoved_preventUpdate()
-    {
-        $this->assignmentField->expects($this->once())
-                ->method("isRemoved")
-                ->willReturn(true);
-        $this->assignmentField->expects($this->never())
-                ->method("update");
-        $this->executeUpdate();
-    }
     public function test_update_addLefoverMetricInProviderAsNewAssignmentField()
     {
         $this->executeUpdate();

@@ -40,7 +40,7 @@ class AssignmentFieldTest extends TestBase
         $this->assertEquals($this->id, $assignmentField->id);
         $this->assertEquals($this->metric, $assignmentField->metric);
         $this->assertEquals($this->target, $assignmentField->target);
-        $this->assertFalse($assignmentField->removed);
+        $this->assertFalse($assignmentField->disabled);
     }
     public function test_construct_emptyTarget_badRequest()
     {
@@ -65,6 +65,12 @@ class AssignmentFieldTest extends TestBase
         $this->executeUpdate();
         $this->assertEquals($this->target, $this->assignmentField->target);
     }
+    public function test_update_disabledField_setEnable()
+    {
+        $this->assignmentField->disabled = true;
+        $this->executeUpdate();
+        $this->assertFalse($this->assignmentField->disabled);
+    }
     public function test_update_noTargetInMetricAssignmentDataProviderCorrespondWithMetric_removeAssignmentField()
     {
         $this->metricAssignmentDataProvider->expects($this->once())
@@ -72,7 +78,7 @@ class AssignmentFieldTest extends TestBase
                 ->with($this->metric)
                 ->willReturn(null);
         $this->executeUpdate();
-        $this->assertTrue($this->assignmentField->removed);
+        $this->assertTrue($this->assignmentField->disabled);
     }
 }
 
@@ -82,5 +88,5 @@ class TestableAssignmentField extends AssignmentField
     public $id;
     public $metric;
     public $target;
-    public $removed;
+    public $disabled;
 }

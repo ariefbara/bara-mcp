@@ -75,10 +75,10 @@ class MetricAssignment
      * 
      * @return AssignmentField[]
      */
-    public function iterateNonRemovedAssignmentFields()
+    public function iterateActiveAssignmentFields()
     {
         $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq("removed", false));
+                ->andWhere(Criteria::expr()->eq("disabled", false));
         return $this->assignmentFields->matching($criteria)->getIterator();
     }
     

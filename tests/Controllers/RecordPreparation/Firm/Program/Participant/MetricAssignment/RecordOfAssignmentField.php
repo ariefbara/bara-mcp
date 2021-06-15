@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\Program\Participant\RecordOfMetricAssignment,
-    Firm\Program\RecordOfMetric,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfAssignmentField implements Record
 {
@@ -24,7 +23,7 @@ class RecordOfAssignmentField implements Record
     public $metric;
     public $id;
     public $target;
-    public $removed;
+    public $disabled;
 
     public function __construct(RecordOfMetricAssignment $metricAssignment, RecordOfMetric $metric, $index)
     {
@@ -32,7 +31,7 @@ class RecordOfAssignmentField implements Record
         $this->metric = $metric;
         $this->id = "assignmentField-$index-id";
         $this->target = 999;
-        $this->removed = false;
+        $this->disabled = false;
     }
 
     public function toArrayForDbEntry()
@@ -42,8 +41,13 @@ class RecordOfAssignmentField implements Record
             "Metric_id" => $this->metric->id,
             "id" => $this->id,
             "target" => $this->target,
-            "removed" => $this->removed,
+            "disabled" => $this->disabled,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('AssignmentField')->insert($this->toArrayForDbEntry());
     }
 
 }

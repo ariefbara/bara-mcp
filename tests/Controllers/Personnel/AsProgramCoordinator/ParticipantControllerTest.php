@@ -494,6 +494,70 @@ class ParticipantControllerTest extends ParticipantTestCase
         ];
         $this->seeInDatabase("AssignmentField", $assignmentFieldOneEntry);
     }
+    public function test_assignMetric_alreadyHasMetricAssignment_update()
+    {
+        $metricAssigmentOne = new RecordOfMetricAssignment($this->participantOne_client, '1');
+        $metricAssigmentOne->insert($this->connection);
+        
+        $assignmentField_11 = new RecordOfAssignmentField($metricAssigmentOne, $this->metric, '11');
+        $assignmentField_11->disabled = true;
+        $assignmentField_12 = new RecordOfAssignmentField($metricAssigmentOne, $this->metricOne, '12');
+        $assignmentField_11->insert($this->connection);
+        $assignmentField_12->insert($this->connection);
+        
+        $metricAssignmentResponse = [
+            "startDate" => (new \DateTime($this->assignMetricInput["startDate"]))->format("Y-m-d"),
+            "endDate" => (new \DateTime($this->assignMetricInput["endDate"]))->format("Y-m-d"),
+        ];
+        $assignmentFieldResponse = [
+            "target" => $this->assignMetricInput["assignmentFields"][0]["target"],
+            "metric" => [
+                "id" => $this->assignMetricInput["assignmentFields"][0]["metricId"],
+                "name" => $this->metric->name,
+            ],
+        ];
+        $assignmentFieldOneResponse = [
+            "target" => $this->assignMetricInput["assignmentFields"][1]["target"],
+            "metric" => [
+                "id" => $this->assignMetricInput["assignmentFields"][1]["metricId"],
+                "name" => $this->metricTwo->name,
+            ],
+        ];
+        
+        $uri = $this->participantUri . "/{$this->participantOne_client->id}/assign-metric";
+        $this->put($uri, $this->assignMetricInput, $this->coordinator->personnel->token)
+                ->seeJsonContains($metricAssignmentResponse)
+                ->seeJsonContains($assignmentFieldResponse)
+                ->seeJsonContains($assignmentFieldOneResponse)
+                ->seeStatusCode(200);
+        
+        $metricAssignmentEntry = [
+            "Participant_id" => $this->participantOne_client->id,
+            "startDate" => (new \DateTime($this->assignMetricInput["startDate"]))->format("Y-m-d"),
+            "endDate" => (new \DateTime($this->assignMetricInput["endDate"]))->format("Y-m-d"),
+        ];
+        $this->seeInDatabase("MetricAssignment", $metricAssignmentEntry);
+        
+        $assignmentFieldEntry = [
+            'id' => $assignmentField_11->id,
+            "target" => $this->assignMetricInput["assignmentFields"][0]["target"],
+            "Metric_id" => $assignmentField_11->metric->id,
+            'disabled' => false,
+        ];
+        $this->seeInDatabase("AssignmentField", $assignmentFieldEntry);
+        $assignmentFieldOneEntry = [
+            'id' => $assignmentField_12->id,
+            "Metric_id" => $assignmentField_12->metric->id,
+            'disabled' => true,
+        ];
+        $this->seeInDatabase("AssignmentField", $assignmentFieldOneEntry);
+        $assignmentFieldTwoEntry = [
+            "target" => $this->assignMetricInput["assignmentFields"][1]["target"],
+            "Metric_id" => $this->assignMetricInput["assignmentFields"][1]["metricId"],
+            'disabled' => false,
+        ];
+        $this->seeInDatabase("AssignmentField", $assignmentFieldEntry);
+    }
     
     public function test_evaluate_pass_200()
     {

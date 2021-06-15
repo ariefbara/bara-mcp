@@ -127,7 +127,7 @@ class SummaryControllerTest extends ProgramParticipationTestCase
         $this->assignmentFieldOne = new RecordOfAssignmentField($this->metricAssignment, $metric, '1');
         $this->assignmentFieldOne->target = 100;
         $this->assignmentFieldTwo_removed = new RecordOfAssignmentField($this->metricAssignment, $metric, '2');
-        $this->assignmentFieldTwo_removed->removed = true;
+        $this->assignmentFieldTwo_removed->disabled = true;
         $this->assignmentFieldTwo_removed->target = 200;
         $this->assignmentFieldThree = new RecordOfAssignmentField($this->metricAssignment, $metric, '3');
         $this->assignmentFieldThree->target = 300;

@@ -81,7 +81,7 @@ class ProgramParticipationController extends UserBaseController
             return null;
         }
         $assignmentFields = [];
-        foreach ($metricAssignment->iterateNonRemovedAssignmentFields() as $assignmentField) {
+        foreach ($metricAssignment->iterateActiveAssignmentFields() as $assignmentField) {
             $assignmentFields[] = $this->arrayDataOfAssignmentField($assignmentField);
         }
         return [

@@ -77,7 +77,7 @@ class MetricAssignmentReportControllerTest extends ParticipantTestCase
         
         $this->assignmentField = new RecordOfAssignmentField($this->metricAssignment, $metric, 0);
         $this->assignmentFieldOne_removed = new RecordOfAssignmentField($this->metricAssignment, $metricOne, 1);
-        $this->assignmentFieldOne_removed->removed = true;
+        $this->assignmentFieldOne_removed->disabled = true;
         $this->assignmentFieldTwo = new RecordOfAssignmentField($this->metricAssignment, $metricTwo, 2);
         $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
         $this->connection->table("AssignmentField")->insert($this->assignmentFieldOne_removed->toArrayForDbEntry());

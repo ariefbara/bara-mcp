@@ -3,10 +3,9 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant;
 
 use DateTimeImmutable;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfParticipant,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfMetricAssignment implements Record
 {
@@ -35,6 +34,11 @@ class RecordOfMetricAssignment implements Record
             "startDate" => $this->startDate,
             "endDate" => $this->endDate,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('MetricAssignment')->insert($this->toArrayForDbEntry());
     }
 
 }
