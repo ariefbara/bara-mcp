@@ -2,10 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Mission;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\Program\RecordOfMission,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfLearningMaterial implements Record
 {
@@ -35,6 +34,11 @@ class RecordOfLearningMaterial implements Record
             "content" => $this->content,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('LearningMaterial')->insert($this->toArrayForDbEntry());
     }
 
 }

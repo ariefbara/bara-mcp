@@ -20,9 +20,10 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Firm/Domain/Model/Firm/Program/Participant/MetricAssignment.php</file>
             <file>file:/home/apur/workspace/php/bara-mcp/routes/client.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/ClientController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/AsTeamMember/MemberController.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Personnel/AsProgramCoordinator/ParticipantControllerTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ParticipantController.php</file>
         </group>
     </open-files>
 </project-private>
