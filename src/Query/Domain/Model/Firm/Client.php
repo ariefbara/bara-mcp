@@ -206,5 +206,16 @@ class Client
         $this->assertActive();
         return $clientRepository->aClientInFirm($this->firm->getId(), $id);
     }
+    
+    public function viewFirm(): Firm
+    {
+        $this->assertActive();
+        return $this->firm;
+    }
+    public function viewBioSearchFilter(): ?BioSearchFilter
+    {
+        $this->assertActive();
+        return $this->firm->getBioSearchFilter();
+    }
 
 }

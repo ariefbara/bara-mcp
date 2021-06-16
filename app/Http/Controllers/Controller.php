@@ -145,7 +145,7 @@ class Controller extends BaseController
         return response()->json($content, 200);
     }
 
-    protected function singleQueryResponse(array $result)
+    protected function singleQueryResponse(?array $result)
     {
         $content = [
             "data" => $result,

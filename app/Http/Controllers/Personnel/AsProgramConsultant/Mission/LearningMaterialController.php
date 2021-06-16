@@ -14,7 +14,7 @@ class LearningMaterialController extends AsProgramConsultantBaseController
         
         $learningMaterial = $this->buildViewService()
                 ->showById($this->firmId(), $programId, $missionId, $learningMaterialId);
-        return $this->arrayDataOfLearningMaterial($learningMaterial);
+        return $this->singleQueryResponse($this->arrayDataOfLearningMaterial($learningMaterial));
     }
     public function showAll($programId, $missionId)
     {

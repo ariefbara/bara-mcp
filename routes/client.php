@@ -15,6 +15,8 @@ $router->group($clientAggregate, function () use ($router) {
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
     $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
+    $router->get('/firm/info', ['uses' => "FirmController@show"]);
+    $router->get('/firm/bio-search-filter', ['uses' => "FirmController@showBioSearchFilter"]);
     
     $router->group(['prefix' => '/clients'], function () use($router) {
         $controller = "ClientController";
