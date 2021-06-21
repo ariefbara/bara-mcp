@@ -352,7 +352,6 @@ class ActivityLogControllerTest extends ProgramParticipationTestCase
     public function test_showShared_200()
     {
         $uri = $this->activityLogUri . '/shared';
-echo $uri;
         $this->get($uri, $this->teamMember->client->token)
                 ->seeStatusCode(200);
         $totalRecord = ['total' => 2];

@@ -132,7 +132,8 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
         $participantQb->select("b_participant.id")
                 ->from(ClientParticipant::class, "clientParticipant")
                 ->leftJoin("clientParticipant.participant", "b_participant")
-                ->andWhere($participantQb->expr()->eq("clientParticipant.clientId", ":clientId"));
+                ->leftJoin("clientParticipant.client", "client")
+                ->andWhere($participantQb->expr()->eq("client.id", ":clientId"));
         
         $attendeeQb = $this->getEntityManager()->createQueryBuilder();
         $attendeeQb->select("a_attendee.id")
@@ -171,7 +172,8 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
         $participantQb->select("b_participant.id")
                 ->from(UserParticipant::class, "userParticipant")
                 ->leftJoin("userParticipant.participant", "b_participant")
-                ->andWhere($participantQb->expr()->eq("userParticipant.userId", ":userId"));
+                ->leftJoin("userParticipant.user", "b_user")
+                ->andWhere($participantQb->expr()->eq("b_user.id", ":userId"));
         
         $attendeeQb = $this->getEntityManager()->createQueryBuilder();
         $attendeeQb->select("a_attendee.id")

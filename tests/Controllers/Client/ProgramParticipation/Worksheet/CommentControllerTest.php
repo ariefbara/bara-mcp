@@ -190,13 +190,14 @@ class CommentControllerTest extends WorksheetTestCase
     }
     public function test_submitReply_logActivity()
     {
+        $currentTime = (new DateTimeImmutable())->format('Y-m-d H:i:s');
         $uri = $this->commentUri . "/{$this->consultantComment->comment->id}";
         $this->post($uri, $this->commentInput, $this->client->token)
                 ->seeStatusCode(201);
         
         $activityLogEntry = [
             "message" => "participant submitted comment",
-            "occuredTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+            "occuredTime" => $currentTime,
         ];
         $this->seeInDatabase("ActivityLog", $activityLogEntry);
         

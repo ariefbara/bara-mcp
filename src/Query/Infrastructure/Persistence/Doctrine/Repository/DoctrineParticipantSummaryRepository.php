@@ -141,7 +141,7 @@ LEFT OUTER JOIN (
     LEFT JOIN (
         SELECT id, `target`, MetricAssignment_id
         FROM AssignmentField
-        WHERE removed = false
+        WHERE disabled = false
     )__c ON __c.MetricAssignment_id = __b.MetricAssignment_id
     LEFT JOIN (
         SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id

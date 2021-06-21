@@ -80,7 +80,7 @@ class AssignmentFieldValue
 
     public function isNonRemovedAssignmentFieldValueCorrespondWithObsoleteAssignmentField(): bool
     {
-        return !$this->removed && $this->assignmentField->isRemoved();
+        return !$this->removed && $this->assignmentField->isDisabled();
     }
 
     public function isNonRemovedAssignmentFieldValueCorrespondWithAssignmentField(AssignmentField $assignmentField): bool

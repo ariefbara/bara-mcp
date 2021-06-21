@@ -40,11 +40,11 @@ class AssignmentField
      *
      * @var bool
      */
-    protected $removed;
+    protected $disabled;
 
-    public function isRemoved(): bool
+    public function isDisabled(): bool
     {
-        return $this->removed;
+        return $this->disabled;
     }
 
     protected function __construct()

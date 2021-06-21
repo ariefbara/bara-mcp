@@ -70,12 +70,12 @@ class AssignmentFieldValueTest extends TestBase
     }
     public function test_isNonRemovedAssignmentFieldValueCorrespondWithObsoleteAssignmentField_aNonRemovedValueCorrespondToRemovedField_returnTrue()
     {
-        $this->assignmentField->expects($this->once())->method("isRemoved")->willReturn(true);
+        $this->assignmentField->expects($this->once())->method("isDisabled")->willReturn(true);
         $this->assertTrue($this->executeIsNonRemovedAssignmentFieldValueCorrespondWithObsoleteAssignmentField());
     }
     public function test_isNonRemovedAssignmentFieldValueCorrespondWithObsoleteAssignmentField_alreadyRemoved_returnFalse()
     {
-        $this->assignmentField->expects($this->any())->method("isRemoved")->willReturn(true);
+        $this->assignmentField->expects($this->any())->method("isDisabled")->willReturn(true);
         $this->assignmentFieldValue->removed = true;
         $this->assertFalse($this->executeIsNonRemovedAssignmentFieldValueCorrespondWithObsoleteAssignmentField());
     }

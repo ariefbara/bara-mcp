@@ -79,7 +79,7 @@ FROM (
         LEFT JOIN (
             SELECT id, `target`, MetricAssignment_id
             FROM AssignmentField
-            WHERE removed = false
+            WHERE disabled = false
         )__c_c ON __c_c.MetricAssignment_id = __c_b.MetricAssignment_id
         LEFT JOIN (
             SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id
@@ -179,7 +179,7 @@ LEFT JOIN (
         LEFT JOIN (
             SELECT id, `target`, MetricAssignment_id
             FROM AssignmentField
-            WHERE removed = false
+            WHERE disabled = false
         )__c_c ON __c_c.MetricAssignment_id = __c_b.MetricAssignment_id
         LEFT JOIN (
             SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id
@@ -304,7 +304,7 @@ LEFT JOIN (
         LEFT JOIN (
             SELECT id, `target`, MetricAssignment_id
             FROM AssignmentField
-            WHERE removed = false
+            WHERE disabled = false
         )__c_c ON __c_c.MetricAssignment_id = __c_b.MetricAssignment_id
         LEFT JOIN (
             SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id
@@ -429,7 +429,7 @@ LEFT JOIN (
         LEFT JOIN (
             SELECT id, `target`, MetricAssignment_id
             FROM AssignmentField
-            WHERE removed = false
+            WHERE disabled = false
         )__c_c ON __c_c.MetricAssignment_id = __c_b.MetricAssignment_id
         LEFT JOIN (
             SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id
