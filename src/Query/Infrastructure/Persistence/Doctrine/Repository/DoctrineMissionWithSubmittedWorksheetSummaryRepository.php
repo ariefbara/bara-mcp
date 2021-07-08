@@ -61,6 +61,7 @@ LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
 GROUP BY id
 ORDER BY CAST(position as UNSIGNED INTEGER) ASC
 LIMIT {$offset}, {$pageSize}
+_STATEMENT;
 
         $query = $this->em->getConnection()->prepare($statement);
         $params = [
