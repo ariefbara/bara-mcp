@@ -54,7 +54,7 @@ FROM (
 	FROM Mission M
 	LEFT JOIN WorksheetForm ON WorksheetForm.id = M.WorksheetForm_id
 	LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
-	WHERE M.Program_id = ::programId AND M.published = true
+	WHERE M.Program_id = :programId AND M.published = true
 )_a
 LEFT JOIN WorksheetForm ON WorksheetForm.id = _a.WorksheetForm_id
 LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
