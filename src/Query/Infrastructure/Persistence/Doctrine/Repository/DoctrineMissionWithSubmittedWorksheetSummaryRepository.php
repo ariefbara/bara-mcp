@@ -29,28 +29,38 @@ class DoctrineMissionWithSubmittedWorksheetSummaryRepository implements Interfac
     {
         $offset = $pageSize * ($page - 1);
         $statement = <<<_STATEMENT
-SELECT M.id, M.name, M.description, M.position, _b.submittedWorksheet, 
-    WorksheetForm.id worksheetFormId, Form.name worksheetFormName
-FROM Mission M
-LEFT JOIN WorksheetForm ON WorksheetForm.id = M.WorksheetForm_id
+SELECT _a.id, _a.name, _a.description, _a.position, SUM(_a.submittedWorksheet) submittedWorksheet, _a.WorksheetForm_id worksheetFormId, Form.name worksheetFormName 
+FROM (
+	SELECT M.id, M.name, M.description, M.position, _a1.submittedWorksheet, M.WorksheetForm_id
+	FROM (
+	    SELECT Participant.id participantId, Participant.Program_id, _a1a.Mission_id, _a1a.submittedWorksheet
+	    FROM TeamParticipant
+		LEFT JOIN Participant ON Participant.id = TeamParticipant.Participant_id
+		LEFT JOIN (
+		    SELECT Worksheet.Participant_id, Worksheet.Mission_id, COUNT(Worksheet.id) AS submittedWorksheet
+		    FROM Worksheet
+		    WHERE Worksheet.removed = false
+		    GROUP BY Worksheet.Mission_id, Worksheet.Participant_id
+		)_a1a ON _a1a.Participant_id = Participant.id
+	    WHERE Participant.active = true
+		AND TeamParticipant.Team_id = :teamId
+	)_a1
+	LEFT JOIN Mission M ON M.id = _a1.Mission_id
+	WHERE M.Program_id = :programId AND M.published = true
+
+	UNION 
+            
+        SELECT M.id, M.name, M.description, M.position, 0 submittedWorksheet, M.WorksheetForm_id
+	FROM Mission M
+	LEFT JOIN WorksheetForm ON WorksheetForm.id = M.WorksheetForm_id
+	LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
+	WHERE M.Program_id = ::programId AND M.published = true
+)_a
+LEFT JOIN WorksheetForm ON WorksheetForm.id = _a.WorksheetForm_id
 LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
-LEFT JOIN (
-    SELECT Participant.id participantId, Participant.Program_id
-    FROM TeamParticipant
-        LEFT JOIN Participant ON Participant.id = TeamParticipant.Participant_id
-    WHERE Participant.active = true
-        AND TeamParticipant.Team_id = :teamId
-)_a ON _a.Program_id = M.Program_id
-LEFT OUTER JOIN (
-    SELECT W.Participant_id, W.Mission_id, COUNT(W.id) AS submittedWorksheet
-    FROM Worksheet W
-    WHERE W.removed = false
-    GROUP BY Mission_id, Participant_id
-)_b ON _b.Mission_id = M.id AND _b.Participant_id = _a.participantId
-WHERE M.Program_id = :programId AND M.published = true
-ORDER BY M.position ASC
+GROUP BY id
+ORDER BY CAST(position as UNSIGNED INTEGER) ASC
 LIMIT {$offset}, {$pageSize}
-_STATEMENT;
 
         $query = $this->em->getConnection()->prepare($statement);
         $params = [
