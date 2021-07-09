@@ -208,6 +208,7 @@ class ActivityInvitationControllerTest extends PersonnelTestCase
     }
     public function test_showAll_timeIntervalFilter_200()
     {
+$this->disableExceptionHandling();
         $startOfMonth = (new \DateTime('first day of this month'))->setTime(00, 00, 00)->format('Y-m-d H:i:s');
         $endOfMonth = (new \DateTime('last day of this month'))->setTime(23, 59, 59)->format('Y-m-d H:i:s');
         $uri = $this->activityInvitationUri 

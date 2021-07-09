@@ -36,7 +36,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $from = $inviteeFilter->getFrom();
         $to = $inviteeFilter->getTo();
         if (isset($from) || isset($to)) {
-            $qb->leftJoin('invitee.activity', 'activity');
+//            $qb->leftJoin('invitee.activity', 'activity');
             if (isset($from)) {
                 $qb->andWhere($qb->expr()->gte('activity.startEndTime.startDateTime', ':from'))
                         ->setParameter('from', $from);
@@ -88,6 +88,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $qb->select("invitee")
                 ->leftJoin("invitee.activity", "activity")
                 ->andWhere($qb->expr()->in("activity.id", $activityQb->getDQL()))
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -151,6 +152,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $qb->select("invitation")
                 ->leftJoin("invitation.activity", "activity")
                 ->andWhere($qb->expr()->in("activity.id", $activityQb->getDQL()))
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -215,6 +217,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $qb->select("invitation")
                 ->leftJoin("invitation.activity", "activity")
                 ->andWhere($qb->expr()->in("activity.id", $activityQb->getDQL()))
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -284,6 +287,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $qb = $this->createQueryBuilder("invitation");
         $qb->select("invitation")
                 ->leftJoin("invitation.activity", "activity")
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->andWhere($qb->expr()->in("activity.id", $activityQb->getDQL()))
                 ->setParameters($params);
 
@@ -357,6 +361,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $qb->select("invitation")
                 ->leftJoin("invitation.activity", "activity")
                 ->andWhere($qb->expr()->in("activity.id", $activityQb->getDQL()))
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -430,6 +435,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $qb->select("invitation")
                 ->leftJoin("invitation.activity", "activity")
                 ->andWhere($qb->expr()->in("activity.id", $activityQb->getDQL()))
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -746,6 +752,8 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
                                 $qb->expr()->in('invitee.id', $coordinatorInviteeQB->getDQL()),
                                 $qb->expr()->in('invitee.id', $consultantInviteeQB->getDQL())
                 ))
+                ->leftJoin('invitee.activity', 'activity')
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
         $this->applyFilter($qb, $inviteeFilter);
 
