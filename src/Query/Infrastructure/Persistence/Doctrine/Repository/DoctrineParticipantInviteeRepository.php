@@ -80,6 +80,9 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
         $qb->select("participantInvitation")
                 ->leftJoin("participantInvitation.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->leftJoin('participantInvitation.invitee', 'invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
@@ -141,6 +144,9 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
         $qb->select("participantInvitation")
                 ->leftJoin("participantInvitation.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->leftJoin('participantInvitation.invitee', 'invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
@@ -202,6 +208,9 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
         $qb->select("participantInvitation")
                 ->leftJoin("participantInvitation.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $participantQb->getDQL()))
+                ->leftJoin('participantInvitation.invitee', 'invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
@@ -246,8 +255,8 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
         if (!isset($timeIntervalFilter)) {
             return;
         }
-        $qb->leftJoin("participantInvitation.invitee", "invitee")
-                ->leftJoin("invitee.activity", "activity");
+//        $qb->leftJoin("participantInvitation.invitee", "invitee")
+//                ->leftJoin("invitee.activity", "activity");
         if (!is_null($timeIntervalFilter->getFrom())) {
             $qb->andWhere($qb->expr()->gte("activity.startEndTime.startDateTime", ":from"))
                     ->setParameter("from", $timeIntervalFilter->getFrom());

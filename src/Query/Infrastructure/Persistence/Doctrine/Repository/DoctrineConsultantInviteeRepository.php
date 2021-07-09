@@ -31,11 +31,12 @@ class DoctrineConsultantInviteeRepository extends EntityRepository implements Co
                 ->andWhere($qb->expr()->eq("personnel.id", ":personnelId"))
                 ->leftJoin("personnel.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->leftJoin('consultantInvitation.invitee', 'invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
         
         if (isset($timeIntervalFilter)) {
-            $qb->leftJoin("consultantInvitation.invitee", "invitee")
-                ->leftJoin("invitee.activity", "activity");
             if (!is_null($timeIntervalFilter->getFrom())) {
                 $qb->andWhere($qb->expr()->gte("activity.startEndTime.startDateTime", ":from"))
                         ->setParameter("from", $timeIntervalFilter->getFrom());

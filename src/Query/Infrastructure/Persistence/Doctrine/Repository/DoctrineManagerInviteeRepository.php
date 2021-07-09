@@ -31,6 +31,9 @@ class DoctrineManagerInviteeRepository extends EntityRepository implements Manag
                 ->andWhere($qb->expr()->eq("manager.id", ":managerId"))
                 ->leftJoin("manager.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
+                ->leftJoin('managerInvitation.invitee', 'invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
