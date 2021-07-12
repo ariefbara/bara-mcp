@@ -403,13 +403,14 @@ class ManagerTest extends TestBase
         $this->setAssetBelongsToFirm($this->program);
         $this->setAssetBelongsToFirm($this->feedbackForm);
         return $this->manager->createEvaluationPlanInProgram(
-                        $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
+                $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm, 
+                $this->mission);
     }
     public function test_createEvaluationPlanInProgram_returnEvaluationPlanCreatedInProgram()
     {
         $this->program->expects($this->once())
                 ->method("createEvaluationPlan")
-                ->with($this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
+                ->with($this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm, $this->mission);
         $this->executeCreateEvaluationPlanInProgram();
     }
     public function test_createEvaluationPlanInProgram_programFromDifferentFirm_forbidden()
@@ -431,23 +432,23 @@ class ManagerTest extends TestBase
     {
         $this->setAssetBelongsToFirm($this->evaluationPlan);
         $this->setAssetBelongsToFirm($this->feedbackForm);
-        $this->manager->updateEvaluationPlan($this->evaluationPlan, $this->evaluationPlanData, $this->feedbackForm);
+        $this->manager->updateEvaluationPlan($this->evaluationPlan, $this->evaluationPlanData, $this->feedbackForm, $this->mission);
     }
     public function test_updateEvaluationPlan_updateEvaluationPlan()
     {
         $this->evaluationPlan->expects($this->once())
                 ->method("update")
-                ->with($this->evaluationPlanData, $this->feedbackForm);
+                ->with($this->evaluationPlanData, $this->feedbackForm, $this->mission);
         $this->executeUpdateEvaluationPlan();
     }
-    public function test_updateEvaluationPlan_unmanagerableEvaluationPlan_forbidden()
+    public function test_updateEvaluationPlan_unmanagedEvaluationPlan_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->evaluationPlan);
         $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeUpdateEvaluationPlan();
         });
     }
-    public function test_updateEvaluationPlan_unmanagerableFeedbackForm_forbidden()
+    public function test_updateEvaluationPlan_unamangedFeedbackForm_forbidden()
     {
         $this->setAssetDoesntBelongsToFirm($this->feedbackForm);
         $this->assertUnmanageableAssetForbiddenError(function () {

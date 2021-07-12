@@ -2,11 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\RecordOfFeedbackForm,
-    Firm\RecordOfProgram,
-    Record
-};
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfEvaluationPlan implements Record
 {
@@ -26,8 +24,13 @@ class RecordOfEvaluationPlan implements Record
     public $name;
     public $interval;
     public $disabled;
+    /**
+     * 
+     * @var RecordOfMisssion
+     */
+    public $mission;
 
-    function __construct(RecordOfProgram $program, ?RecordOfFeedbackForm $feedbackForm, $index)
+    function __construct(RecordOfProgram $program, ?RecordOfFeedbackForm $feedbackForm, $index, ?RecordOfMission $mission = null)
     {
         $this->program = $program;
         $this->feedbackForm = $feedbackForm;
@@ -35,6 +38,7 @@ class RecordOfEvaluationPlan implements Record
         $this->name = "evaluation plan $index name";
         $this->interval = 99;
         $this->disabled = false;
+        $this->mission = $mission;
     }
 
     public function toArrayForDbEntry()
@@ -46,6 +50,7 @@ class RecordOfEvaluationPlan implements Record
             "name" => $this->name,
             "days_interval" => $this->interval,
             "disabled" => $this->disabled,
+            "Mission_id" => empty($this->mission)? null: $this->mission->id,
         ];
     }
 

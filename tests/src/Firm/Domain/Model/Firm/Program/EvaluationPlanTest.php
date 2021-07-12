@@ -14,6 +14,7 @@ class EvaluationPlanTest extends TestBase
 {
     protected $program;
     protected $reportForm;
+    protected $mission;
     protected $evaluationPlan;
     protected $id = "newId", $name = "new name", $interval = 120;
     protected $firm;
@@ -24,8 +25,10 @@ class EvaluationPlanTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
         
         $reportForm = $this->buildMockOfClass(FeedbackForm::class);
+        $this->mission = $this->buildMockOfClass(Mission::class);
+        
         $evaluationPlanData = new EvaluationPlanData("name", 99);
-        $this->evaluationPlan = new TestableEvaluationPlan($this->program, "id", $evaluationPlanData, $reportForm);
+        $this->evaluationPlan = new TestableEvaluationPlan($this->program, "id", $evaluationPlanData, $reportForm, null);
         
         $this->reportForm = $this->buildMockOfClass(FeedbackForm::class);
         $this->firm = $this->buildMockOfClass(Firm::class);
@@ -37,7 +40,12 @@ class EvaluationPlanTest extends TestBase
     
     protected function executeConstruct()
     {
-        return new TestableEvaluationPlan($this->program, $this->id, $this->buildEvaluationPlanData(), $this->reportForm);
+        $this->mission->expects($this->any())
+                ->method('belongsToProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        return new TestableEvaluationPlan(
+                $this->program, $this->id, $this->buildEvaluationPlanData(), $this->reportForm, $this->mission);
     }
     public function test_construct_setProperties()
     {
@@ -47,6 +55,7 @@ class EvaluationPlanTest extends TestBase
         $this->assertEquals($this->name, $evaluationPlan->name);
         $this->assertEquals($this->interval, $evaluationPlan->interval);
         $this->assertEquals($this->reportForm, $evaluationPlan->reportForm);
+        $this->assertEquals($this->mission, $evaluationPlan->mission);
         $this->assertFalse($evaluationPlan->disabled);
     }
     public function test_construct_emptyName_badRequest()
@@ -64,6 +73,21 @@ class EvaluationPlanTest extends TestBase
         $this->expectException(TypeError::class);
         $this->executeConstruct();
     }
+    public function test_construct_nullMission_setNull()
+    {
+        $evaluationPlan = new TestableEvaluationPlan($this->program, $this->id, $this->buildEvaluationPlanData(), $this->reportForm, null);
+        $this->assertNull($evaluationPlan->mission);
+    }
+    public function test_construct_missionFromDifferentProgram_forbidden()
+    {
+        $this->mission->expects($this->once())
+                ->method('belongsToProgram')
+                ->with($this->program)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->executeConstruct();
+        }, 'Forbidden', 'forbidden: mission must be from same program');
+    }
     
     public function test_belongsToFirm_returnProgramBelongsToFirmResult()
     {
@@ -75,14 +99,20 @@ class EvaluationPlanTest extends TestBase
     
     protected function executeUpdate()
     {
-        $this->evaluationPlan->update($this->buildEvaluationPlanData(), $this->reportForm);
+        $this->mission->expects($this->any())
+                ->method('belongsToProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->evaluationPlan->update($this->buildEvaluationPlanData(), $this->reportForm, $this->mission);
     }
     public function test_update_setProperties()
     {
+        $this->evaluationPlan->mission = null;
         $this->executeUpdate();
         $this->assertEquals($this->name, $this->evaluationPlan->name);
         $this->assertEquals($this->interval, $this->evaluationPlan->interval);
         $this->assertEquals($this->reportForm, $this->evaluationPlan->reportForm);
+        $this->assertEquals($this->mission, $this->evaluationPlan->mission);
     }
     public function test_update_emptyName_badRequest()
     {
@@ -98,6 +128,21 @@ class EvaluationPlanTest extends TestBase
         $this->interval = null;
         $this->expectException(TypeError::class);
         $this->executeUpdate();
+    }
+    public function test_update_nullMission_setMissionNull()
+    {
+        $this->evaluationPlan->update($this->buildEvaluationPlanData(), $this->reportForm, null);
+        $this->assertNull($this->evaluationPlan->mission);
+    }
+    public function test_update_unusableMission_forbidden()
+    {
+        $this->mission->expects($this->once())
+                ->method('belongsToProgram')
+                ->with($this->program)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->executeUpdate();
+        }, 'Forbidden', 'forbidden: mission must be from same program');
     }
     
     public function test_disable_setDisableTrue()
@@ -132,4 +177,5 @@ class TestableEvaluationPlan extends EvaluationPlan
     public $interval;
     public $disabled;
     public $reportForm;
+    public $mission;
 }

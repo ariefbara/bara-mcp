@@ -3,21 +3,18 @@
 namespace App\Http\Controllers\Manager\Program;
 
 use App\Http\Controllers\Manager\ManagerBaseController;
-use Firm\ {
-    Application\Service\Manager\CreateEvaluationPlan,
-    Application\Service\Manager\DisableEvaluationPlan,
-    Application\Service\Manager\EnableEvaluationPlan,
-    Application\Service\Manager\UpdateEvaluationPlan,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Manager,
-    Domain\Model\Firm\Program,
-    Domain\Model\Firm\Program\EvaluationPlan as EvaluationPlan2,
-    Domain\Model\Firm\Program\EvaluationPlanData
-};
-use Query\ {
-    Application\Service\Firm\Program\ViewEvaluationPlan,
-    Domain\Model\Firm\Program\EvaluationPlan
-};
+use Firm\Application\Service\Manager\CreateEvaluationPlan;
+use Firm\Application\Service\Manager\DisableEvaluationPlan;
+use Firm\Application\Service\Manager\EnableEvaluationPlan;
+use Firm\Application\Service\Manager\UpdateEvaluationPlan;
+use Firm\Domain\Model\Firm\FeedbackForm;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\EvaluationPlan as EvaluationPlan2;
+use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\Mission;
+use Query\Application\Service\Firm\Program\ViewEvaluationPlan;
+use Query\Domain\Model\Firm\Program\EvaluationPlan;
 
 class EvaluationPlanController extends ManagerBaseController
 {
@@ -26,8 +23,11 @@ class EvaluationPlanController extends ManagerBaseController
     {
         $service = $this->buildCreateService();
         $feedbackFormId = $this->stripTagsInputRequest("reportFormId");
+        $missionId = $this->stripTagsInputRequest('missionId');
+        
         $evaluationPlanId = $service->execute(
-                $this->firmId(), $this->managerId(), $programId, $this->buildEvaluationPlanData(), $feedbackFormId);
+                $this->firmId(), $this->managerId(), $programId, $this->buildEvaluationPlanData(), $feedbackFormId, 
+                $missionId);
 
         $evaluationPlan = $this->buildViewService()->showByIdInFirm($this->firmId(), $evaluationPlanId);
         return $this->commandCreatedResponse($this->arrayDataOfEvaluationPlan($evaluationPlan));
@@ -36,9 +36,11 @@ class EvaluationPlanController extends ManagerBaseController
     public function update($evaluationPlanId)
     {
         $feedbackFormId = $this->stripTagsInputRequest("reportFormId");
+        $missionId = $this->stripTagsInputRequest('missionId');
+        
         $this->buildUpdateService()->execute(
-                $this->firmId(), $this->managerId(), $evaluationPlanId, $this->buildEvaluationPlanData(),
-                $feedbackFormId);
+                $this->firmId(), $this->managerId(), $evaluationPlanId, $this->buildEvaluationPlanData(), 
+                $feedbackFormId, $missionId);
         
         return $this->show($evaluationPlanId);
     }
@@ -92,6 +94,15 @@ class EvaluationPlanController extends ManagerBaseController
                 "id" => $evaluationPlan->getReportForm()->getId(),
                 "name" => $evaluationPlan->getReportForm()->getName(),
             ],
+            "mission" => $this->arrayDataOfMission($evaluationPlan->getMission()),
+        ];
+    }
+    
+    protected function arrayDataOfMission(?\Query\Domain\Model\Firm\Program\Mission $mission): ?array
+    {
+        return empty($mission) ? null: [
+            'id' => $mission->getId(),
+            'name' => $mission->getName(),
         ];
     }
 
@@ -107,9 +118,11 @@ class EvaluationPlanController extends ManagerBaseController
         $managerRepository = $this->em->getRepository(Manager::class);
         $programRepository = $this->em->getRepository(Program::class);
         $feedbackFormRepository = $this->em->getRepository(FeedbackForm::class);
-
+        $missionRepository = $this->em->getRepository(Mission::class);
+        
         return new CreateEvaluationPlan(
-                $evaluationPlanRepository, $managerRepository, $programRepository, $feedbackFormRepository);
+                $evaluationPlanRepository, $managerRepository, $programRepository, $feedbackFormRepository, 
+                $missionRepository);
     }
 
     protected function buildUpdateService()
@@ -117,8 +130,10 @@ class EvaluationPlanController extends ManagerBaseController
         $evaluationPlanRepository = $this->em->getRepository(EvaluationPlan2::class);
         $managerRepository = $this->em->getRepository(Manager::class);
         $feedbackFormRepository = $this->em->getRepository(FeedbackForm::class);
-
-        return new UpdateEvaluationPlan($evaluationPlanRepository, $managerRepository, $feedbackFormRepository);
+        $missionRepository = $this->em->getRepository(Mission::class);
+        
+        return new UpdateEvaluationPlan(
+                $evaluationPlanRepository, $managerRepository, $feedbackFormRepository, $missionRepository);
     }
 
     protected function buildDisableService()

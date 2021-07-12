@@ -31,26 +31,35 @@ class CreateEvaluationPlan
      */
     protected $feedbackFormRepository;
 
-    function __construct(
+    /**
+     * 
+     * @var MissionRepository
+     */
+    protected $missionRepository;
+
+    public function __construct(
             EvaluationPlanRepository $evaluationPlanRepository, ManagerRepository $managerRepository,
-            ProgramRepository $programRepository, FeedbackFormRepository $feedbackFormRepository)
+            ProgramRepository $programRepository, FeedbackFormRepository $feedbackFormRepository,
+            MissionRepository $missionRepository)
     {
         $this->evaluationPlanRepository = $evaluationPlanRepository;
         $this->managerRepository = $managerRepository;
         $this->programRepository = $programRepository;
         $this->feedbackFormRepository = $feedbackFormRepository;
+        $this->missionRepository = $missionRepository;
     }
 
     public function execute(
             string $firmId, string $managerId, string $programId, EvaluationPlanData $evaluationPlanData,
-            string $feedbackFormId): string
+            string $feedbackFormId, ?string $missionId): string
     {
         $program = $this->programRepository->aProgramOfId($programId);
         $id = $this->evaluationPlanRepository->nextIdentity();
         $reportForm = $this->feedbackFormRepository->aFeedbackFormOfId($feedbackFormId);
-        
+        $mission = empty($missionId)? null: $this->missionRepository->aMissionOfId($missionId);
+
         $evaluationPlan = $this->managerRepository->aManagerInFirm($firmId, $managerId)
-                ->createEvaluationPlanInProgram($program, $id, $evaluationPlanData, $reportForm);
+                ->createEvaluationPlanInProgram($program, $id, $evaluationPlanData, $reportForm, $mission);
         $this->evaluationPlanRepository->add($evaluationPlan);
         return $id;
     }

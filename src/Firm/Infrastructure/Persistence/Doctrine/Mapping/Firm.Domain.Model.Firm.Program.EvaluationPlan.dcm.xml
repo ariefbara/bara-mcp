@@ -23,5 +23,11 @@
             <join-column name="FeedbackForm_id" referenced-column-name="id" />
         </many-to-one>
         
+        <many-to-one  field="mission" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Mission"
+        >
+            <join-column name="Mission_id" referenced-column-name="id" />
+        </many-to-one>
+        
     </entity>
 </doctrine-mapping>

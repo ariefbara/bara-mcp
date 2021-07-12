@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfProgram,
-    Firm\RecordOfWorksheetForm,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfWorksheetForm;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfMission implements Record
 {
@@ -56,7 +55,7 @@ class RecordOfMission implements Record
         ];
     }
     
-    public function insert(\Illuminate\Database\ConnectionInterface $connection)
+    public function insert(ConnectionInterface $connection)
     {
         $connection->table('Mission')->insert($this->toArrayForDbEntry());
     }

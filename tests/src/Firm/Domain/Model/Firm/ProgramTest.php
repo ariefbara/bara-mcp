@@ -37,7 +37,7 @@ class ProgramTest extends TestBase
     protected $personnel;
     protected $metricId = "metricId", $metricData;
     protected $activityTypeId = "activityTypeId", $activityTypeDataProvider;
-    protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData, $feedbackForm;
+    protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData, $feedbackForm, $mission;
     
     protected $profileForm;
 
@@ -82,6 +82,11 @@ class ProgramTest extends TestBase
         $this->evaluationPlanData->expects($this->any())->method("getInterval")->willReturn(90);
         $this->evaluationPlanData->expects($this->any())->method("getName")->willReturn("name");
         $this->feedbackForm = $this->buildMockOfClass(FeedbackForm::class);
+        $this->mission = $this->buildMockOfClass(Mission::class);
+        $this->mission->expects($this->any())
+                ->method('belongsToProgram')
+                ->with($this->program)
+                ->willReturn(true);
         
         $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
     }
@@ -305,13 +310,16 @@ class ProgramTest extends TestBase
         $this->assertEquals($activityType, $this->program->createActivityType($this->activityTypeId, $this->activityTypeDataProvider));
     }
     
+    protected function executeCreateEvaluationPlan()
+    {
+        return $this->program->createEvaluationPlan(
+                $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm, $this->mission);
+    }
     public function test_createEvaluationPlan_returnNewEvaluationPlan()
     {
         $evaluationPlan = new EvaluationPlan(
-                $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm);
-        $this->assertEquals(
-                $evaluationPlan, $this->program->createEvaluationPlan(
-                        $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm));
+                $this->program, $this->evaluationPlanId, $this->evaluationPlanData, $this->feedbackForm, $this->mission);
+        $this->assertEquals($evaluationPlan, $this->executeCreateEvaluationPlan());
     }
     
     protected function executeAssignProfileForm()

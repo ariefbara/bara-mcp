@@ -116,15 +116,17 @@ class Manager implements CanAttendMeeting
         $this->joinTime = new DateTimeImmutable();
         $this->removed = false;
     }
+
     protected function assertActive()
     {
         if ($this->removed) {
             throw RegularException::forbidden('forbidden: only active manager can make this request');
         }
     }
+
     protected function assertAssetManageable(ManageableByFirm $asset): void
     {
-        if (! $asset->isManageableByFirm($this->firm)) {
+        if (!$asset->isManageableByFirm($this->firm)) {
             throw RegularException::forbidden('forbidden: can only manage asset manageable by firm');
         }
     }
@@ -206,7 +208,7 @@ class Manager implements CanAttendMeeting
         $this->assertAssetBelongsToSameFirm($personnel);
         $personnel->disable();
     }
-    
+
     public function enablePersonnel(Personnel $personnel): void
     {
         $this->assertAssetBelongsToSameFirm($personnel);
@@ -214,19 +216,21 @@ class Manager implements CanAttendMeeting
     }
 
     public function createEvaluationPlanInProgram(
-            Program $program, string $evaluationPlanId, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): EvaluationPlan
+            Program $program, string $evaluationPlanId, EvaluationPlanData $evaluationPlanData,
+            FeedbackForm $reportForm, ?Mission $mission): EvaluationPlan
     {
         $this->assertAssetBelongsToSameFirm($program);
         $this->assertAssetBelongsToSameFirm($reportForm);
-        return $program->createEvaluationPlan($evaluationPlanId, $evaluationPlanData, $reportForm);
+        return $program->createEvaluationPlan($evaluationPlanId, $evaluationPlanData, $reportForm, $mission);
     }
 
     public function updateEvaluationPlan(
-            EvaluationPlan $evaluationPlan, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): void
+            EvaluationPlan $evaluationPlan, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm,
+            ?Mission $mission): void
     {
         $this->assertAssetBelongsToSameFirm($evaluationPlan);
         $this->assertAssetBelongsToSameFirm($reportForm);
-        $evaluationPlan->update($evaluationPlanData, $reportForm);
+        $evaluationPlan->update($evaluationPlanData, $reportForm, $mission);
     }
 
     public function disableEvaluationPlan(EvaluationPlan $evaluationPlan): void
@@ -250,37 +254,37 @@ class Manager implements CanAttendMeeting
         $this->assertAssetBelongsToSameFirm($consultantFeedbackForm);
         $consultationSetup->update($name, $sessionDuration, $participantFeedbackForm, $consultantFeedbackForm);
     }
-    
+
     public function createProfileForm(string $profileFormId, FormData $formData): ProfileForm
     {
         return new ProfileForm($this->firm, $profileFormId, $formData);
     }
-    
+
     public function updateProfileForm(ProfileForm $profileForm, FormData $formData): void
     {
         $this->assertAssetBelongsToSameFirm($profileForm);
         $profileForm->update($formData);
     }
-    
+
     public function assignProfileFormToProgram(Program $program, ProfileForm $profileForm): string
     {
         $this->assertAssetBelongsToSameFirm($program);
         $this->assertAssetBelongsToSameFirm($profileForm);
         return $program->assignProfileForm($profileForm);
     }
-    
+
     public function disableProgramsProfileForm(ProgramsProfileForm $programsProfileForm): void
     {
         $this->assertAssetBelongsToSameFirm($programsProfileForm);
         $programsProfileForm->disable();
     }
-    
+
     public function removeProgram(Program $program): void
     {
         $this->assertAssetBelongsToSameFirm($program);
         $program->remove();
     }
-    
+
     protected function assertAssetBelongsToSameFirm(AssetBelongsToFirm $asset): void
     {
         if (!$asset->belongsToFirm($this->firm)) {
@@ -288,30 +292,30 @@ class Manager implements CanAttendMeeting
             throw RegularException::forbidden($errorDetail);
         }
     }
-    
+
     public function createBioForm(string $bioFormId, FormData $formData): BioForm
     {
         return new BioForm($this->firm, $bioFormId, $formData);
     }
-    
+
     public function updateBioForm(BioForm $bioForm, FormData $formData): void
     {
         $this->assertAssetBelongsToSameFirm($bioForm);
         $bioForm->update($formData);
     }
-    
+
     public function disableBioForm(BioForm $bioForm): void
     {
         $this->assertAssetBelongsToSameFirm($bioForm);
         $bioForm->disable();
     }
-    
+
     public function enableBioForm(BioForm $bioForm): void
     {
         $this->assertAssetBelongsToSameFirm($bioForm);
         $bioForm->enable();
     }
-    
+
     public function createRootMission(
             string $missionId, Program $program, WorksheetForm $worksheetForm, MissionData $missionData): Mission
     {
@@ -320,6 +324,7 @@ class Manager implements CanAttendMeeting
         $this->assertAssetManageable($worksheetForm);
         return $program->createRootMission($missionId, $worksheetForm, $missionData);
     }
+
     public function createBranchMission(
             string $missionId, Mission $parentMission, WorksheetForm $worksheetForm, MissionData $missionData): Mission
     {
@@ -328,18 +333,21 @@ class Manager implements CanAttendMeeting
         $this->assertAssetManageable($worksheetForm);
         return $parentMission->createBranch($missionId, $worksheetForm, $missionData);
     }
+
     public function updateMission(Mission $mission, MissionData $missionData): void
     {
         $this->assertActive();
         $this->assertAssetManageable($mission);
         $mission->update($missionData);
     }
+
     public function publishMission(Mission $mission): void
     {
         $this->assertActive();
         $this->assertAssetManageable($mission);
         $mission->publish();
     }
+
     public function changeMissionsWorksheetForm(Mission $mission, WorksheetForm $worksheetForm): void
     {
         $this->assertActive();
@@ -347,7 +355,7 @@ class Manager implements CanAttendMeeting
         $this->assertAssetManageable($worksheetForm);
         $mission->changeWorksheetForm($worksheetForm);
     }
-    
+
     public function handleMutationTask(MutationTaskExecutableByManager $task): void
     {
         $this->assertActive();

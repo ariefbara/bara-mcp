@@ -2,12 +2,11 @@
 
 namespace Tests\Controllers\Manager\Program;
 
-use Tests\Controllers\ {
-    Manager\ProgramTestCase,
-    RecordPreparation\Firm\Program\RecordOfEvaluationPlan,
-    RecordPreparation\Firm\RecordOfFeedbackForm,
-    RecordPreparation\Shared\RecordOfForm
-};
+use Tests\Controllers\Manager\ProgramTestCase;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfEvaluationPlan;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class EvaluationPlanControllerTest extends ProgramTestCase
 {
@@ -16,6 +15,7 @@ class EvaluationPlanControllerTest extends ProgramTestCase
     protected $evaluationPlan;
     protected $evaluationPlanOne_disabled;
     protected $feedbackForm;
+    protected $mission;
     protected $createAndUpdateInput;
 
     protected function setUp(): void
@@ -25,6 +25,7 @@ class EvaluationPlanControllerTest extends ProgramTestCase
         
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
+        $this->connection->table("Mission")->truncate();
         $this->connection->table("EvaluationPlan")->truncate();
 
         $firm = $this->program->firm;
@@ -35,6 +36,8 @@ class EvaluationPlanControllerTest extends ProgramTestCase
         $this->feedbackForm = new RecordOfFeedbackForm($firm, $form);
         $this->connection->table("FeedbackForm")->insert($this->feedbackForm->toArrayForDbEntry());
         
+        $this->mission = new RecordOfMission($this->program, null, '99', null);
+        
         $this->evaluationPlan = new RecordOfEvaluationPlan($this->program, $this->feedbackForm, 0);
         $this->evaluationPlanOne_disabled = new RecordOfEvaluationPlan($this->program, $this->feedbackForm, 1);
         $this->evaluationPlanOne_disabled->disabled = true;
@@ -43,6 +46,7 @@ class EvaluationPlanControllerTest extends ProgramTestCase
         
         $this->createAndUpdateInput = [
             "reportFormId" => $this->feedbackForm->id,
+            "missionId" => $this->mission->id,
             "name" => "new evaluation plan name",
             "interval" => 60,
         ];
@@ -53,7 +57,14 @@ class EvaluationPlanControllerTest extends ProgramTestCase
         parent::tearDown();
         $this->connection->table("Form")->truncate();
         $this->connection->table("FeedbackForm")->truncate();
+        $this->connection->table("Mission")->truncate();
         $this->connection->table("EvaluationPlan")->truncate();
+    }
+    
+    protected function executeCreate()
+    {
+        $this->mission->insert($this->connection);
+        $this->post($this->evaluationPlanUri, $this->createAndUpdateInput, $this->manager->token);
     }
     
     public function test_create_201()
@@ -66,15 +77,20 @@ class EvaluationPlanControllerTest extends ProgramTestCase
                 "id" =>  $this->feedbackForm->id,
                 "name" =>  $this->feedbackForm->form->name,
             ],
+            "mission" => [
+                'id' => $this->mission->id,
+                'name' => $this->mission->name,
+            ]
         ];
         
-        $this->post($this->evaluationPlanUri, $this->createAndUpdateInput, $this->manager->token)
-                ->seeJsonContains($response)
-                ->seeStatusCode(201);
+        $this->executeCreate();
+        $this->seeStatusCode(201);
+        $this->seeJsonContains($response);
         
         $evaluationPlanEntry = [
             "Program_id" => $this->program->id,
             "FeedbackForm_id" => $this->feedbackForm->id,
+            "Mission_id" => $this->mission->id,
             "name" => $this->createAndUpdateInput["name"],
             "days_interval" => $this->createAndUpdateInput["interval"],
             "disabled" => false,
@@ -84,16 +100,23 @@ class EvaluationPlanControllerTest extends ProgramTestCase
     public function test_create_emptyName_400()
     {
         $this->createAndUpdateInput["name"] = "";
-        $this->post($this->evaluationPlanUri, $this->createAndUpdateInput, $this->manager->token)
-                ->seeStatusCode(400);
+        $this->executeCreate();
+        $this->seeStatusCode(400);
     }
     public function test_create_nullInterval_500_expectIntegerTypeError()
     {
         $this->createAndUpdateInput["interval"] = null;
-        $this->post($this->evaluationPlanUri, $this->createAndUpdateInput, $this->manager->token)
-                ->seeStatusCode(500);
+        $this->executeCreate();
+        $this->seeStatusCode(500);
     }
     
+    protected function executeUpdate()
+    {
+        $this->mission->insert($this->connection);
+        
+        $uri = $this->evaluationPlanUri . "/{$this->evaluationPlan->id}/update";
+        $this->patch($uri, $this->createAndUpdateInput, $this->manager->token);
+    }
     public function test_update_200()
     {
         $response = [
@@ -104,16 +127,20 @@ class EvaluationPlanControllerTest extends ProgramTestCase
                 "id" =>  $this->feedbackForm->id,
                 "name" =>  $this->feedbackForm->form->name,
             ],
+            "mission" => [
+                "id" => $this->mission->id,
+                "name" => $this->mission->name,
+            ]
         ];
         
-        $uri = $this->evaluationPlanUri . "/{$this->evaluationPlan->id}/update";
-        $this->patch($uri, $this->createAndUpdateInput, $this->manager->token)
-                ->seeJsonContains($response)
-                ->seeStatusCode(200);
+        $this->executeUpdate();
+        $this->seeStatusCode(200);
+        $this->seeJsonContains($response);
         
         $evaluationPlanEntry = [
             "id" => $this->evaluationPlan->id,
             "FeedbackForm_id" => $this->feedbackForm->id,
+            "Mission_id" => $this->mission->id,
             "name" => $this->createAndUpdateInput["name"],
             "days_interval" => $this->createAndUpdateInput["interval"],
         ];
@@ -122,16 +149,15 @@ class EvaluationPlanControllerTest extends ProgramTestCase
     public function test_update_emptyName_400()
     {
         $this->createAndUpdateInput["name"] = "";
-        $uri = $this->evaluationPlanUri . "/{$this->evaluationPlan->id}/update";
-        $this->patch($uri, $this->createAndUpdateInput, $this->manager->token)
-                ->seeStatusCode(400);
+        
+        $this->executeUpdate();
+        $this->seeStatusCode(400);
     }
     public function test_update_nullInterval_500TypeError()
     {
         $this->createAndUpdateInput["interval"] = null;
-        $uri = $this->evaluationPlanUri . "/{$this->evaluationPlan->id}/update";
-        $this->patch($uri, $this->createAndUpdateInput, $this->manager->token)
-                ->seeStatusCode(500);
+        $this->executeUpdate();
+        $this->seeStatusCode(500);
     }
     
     public function test_disable_200()
@@ -204,6 +230,7 @@ class EvaluationPlanControllerTest extends ProgramTestCase
                         "id" => $this->evaluationPlan->feedbackForm->id,
                         "name" => $this->evaluationPlan->feedbackForm->form->name,
                     ],
+                    "mission" => null,
                 ],
                 [
                     "id" => $this->evaluationPlanOne_disabled->id,
@@ -214,6 +241,7 @@ class EvaluationPlanControllerTest extends ProgramTestCase
                         "id" => $this->evaluationPlanOne_disabled->feedbackForm->id,
                         "name" => $this->evaluationPlanOne_disabled->feedbackForm->form->name,
                     ],
+                    "mission" => null,
                 ],
             ],
         ];

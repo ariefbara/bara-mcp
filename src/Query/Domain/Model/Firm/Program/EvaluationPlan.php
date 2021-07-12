@@ -2,10 +2,8 @@
 
 namespace Query\Domain\Model\Firm\Program;
 
-use Query\Domain\Model\Firm\{
-    FeedbackForm,
-    Program
-};
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Program;
 
 class EvaluationPlan
 {
@@ -45,6 +43,12 @@ class EvaluationPlan
      * @var FeedbackForm
      */
     protected $reportForm;
+    
+    /**
+     * 
+     * @var Mission|null
+     */
+    protected $mission;
 
     function getProgram(): Program
     {
@@ -64,6 +68,11 @@ class EvaluationPlan
     function getInterval(): int
     {
         return $this->interval;
+    }
+
+    public function getMission(): ?Mission
+    {
+        return $this->mission;
     }
 
     function isDisabled(): bool

@@ -16,11 +16,16 @@
         <field name="interval" column="days_interval" type="integer" nullable="false"/>
         <field name="disabled" type="boolean" />
         
-        
         <many-to-one  field="reportForm" 
                       target-entity="Query\Domain\Model\Firm\FeedbackForm"
         >
             <join-column name="FeedbackForm_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="mission" 
+                      target-entity="Query\Domain\Model\Firm\Program\Mission"
+        >
+            <join-column name="Mission_id" referenced-column-name="id" />
         </many-to-one>
         
     </entity>

@@ -2,16 +2,13 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\Model\ {
-    AssetBelongsToFirm,
-    Firm,
-    Firm\FeedbackForm,
-    Firm\Program
-};
-use Resources\ {
-    ValidationRule,
-    ValidationService
-};
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\FeedbackForm;
+use Firm\Domain\Model\Firm\Program;
+use Resources\Exception\RegularException;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
 class EvaluationPlan implements AssetBelongsToFirm, AssetInProgram
 {
@@ -51,7 +48,13 @@ class EvaluationPlan implements AssetBelongsToFirm, AssetInProgram
      * @var FeedbackForm
      */
     protected $reportForm;
-    
+
+    /**
+     * 
+     * @var Mission
+     */
+    protected $mission;
+
     protected function setName(string $name): void
     {
         $errorDetail = "bad request: evaluation plan name is mandatory";
@@ -60,13 +63,22 @@ class EvaluationPlan implements AssetBelongsToFirm, AssetInProgram
                 ->execute($name, $errorDetail);
         $this->name = $name;
     }
-    
+
     protected function setInterval(int $interval): void
     {
         $this->interval = $interval;
     }
     
-    function __construct(Program $program, string $id, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm)
+    protected function assertMissionUsable(): void
+    {
+        if (isset($this->mission) && !$this->mission->belongsToProgram($this->program)) {
+            throw RegularException::forbidden('forbidden: mission must be from same program');
+        }
+    }
+
+    function __construct(
+            Program $program, string $id, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm,
+            ?Mission $mission)
     {
         $this->program = $program;
         $this->id = $id;
@@ -74,25 +86,29 @@ class EvaluationPlan implements AssetBelongsToFirm, AssetInProgram
         $this->setInterval($evaluationPlanData->getInterval());
         $this->disabled = false;
         $this->reportForm = $reportForm;
+        $this->mission = $mission;
+        $this->assertMissionUsable();
     }
 
     public function belongsToFirm(Firm $firm): bool
     {
         return $this->program->belongsToFirm($firm);
     }
-    
-    public function update(EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): void
+
+    public function update(EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm, ?Mission $mission): void
     {
         $this->setName($evaluationPlanData->getName());
         $this->setInterval($evaluationPlanData->getInterval());
         $this->reportForm = $reportForm;
+        $this->mission = $mission;
+        $this->assertMissionUsable();
     }
-    
+
     public function disable(): void
     {
         $this->disabled = true;
     }
-    
+
     public function enable(): void
     {
         $this->disabled = false;
@@ -100,7 +116,7 @@ class EvaluationPlan implements AssetBelongsToFirm, AssetInProgram
 
     public function belongsToProgram(Program $program): bool
     {
-        return  $this->program === $program;
+        return $this->program === $program;
     }
 
 }

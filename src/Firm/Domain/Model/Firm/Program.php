@@ -67,7 +67,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var bool
      */
     protected $published = false;
-    
+
     /**
      * 
      * @var bool
@@ -103,7 +103,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var ArrayCollection
      */
     protected $registrants;
-    
+
     /**
      * 
      * @var ArrayCollection
@@ -218,9 +218,10 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     }
 
     public function createEvaluationPlan(
-            string $evaluationPlanId, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm): EvaluationPlan
+            string $evaluationPlanId, EvaluationPlanData $evaluationPlanData, FeedbackForm $reportForm,
+            ?Mission $mission): EvaluationPlan
     {
-        return new EvaluationPlan($this, $evaluationPlanId, $evaluationPlanData, $reportForm);
+        return new EvaluationPlan($this, $evaluationPlanId, $evaluationPlanData, $reportForm, $mission);
     }
 
     protected function findRegistrantOrDie(string $registrantId): Registrant
@@ -248,7 +249,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         return new ActivityType($this, $activityTypeId, $activityTypeDataProvider);
     }
-    
+
     public function assignProfileForm(ProfileForm $profileForm): string
     {
         $p = function (ProgramsProfileForm $assignedProfileForm) use ($profileForm) {
@@ -263,7 +264,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         }
         return $assignedProfileForm->getId();
     }
-    
+
     public function createRootMission(string $missionId, WorksheetForm $worksheetForm, MissionData $missionData): Mission
     {
         return new Mission($this, $missionId, $worksheetForm, $missionData);
