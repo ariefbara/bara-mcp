@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Model\Firm\Program;
 
+use Query\Application\Service\Consultant\EvaluationPlanRepository;
 use Query\Domain\Model\Firm\Personnel;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
@@ -139,6 +140,19 @@ class Consultant
     {
         $this->assertActive();
         return $missionCommentRepository->aMissionCommentInProgram($this->program->getId(), $missionCommentId);
+    }
+    
+    public function viewAllEvaluationPlan(
+            EvaluationPlanRepository $evaluationPlanRepository, int $page, int $pageSize, ?bool $disabledStatus)
+    {
+        $this->assertActive();
+        return $evaluationPlanRepository
+                ->listEvaluationPlansInProgram($this->program->getId(), $page, $pageSize, $disabledStatus);
+    }
+    public function viewEvaluationPlan(EvaluationPlanRepository $evaluationPlanRepository, string $evaluationPlanId): EvaluationPlan
+    {
+        $this->assertActive();
+        return $evaluationPlanRepository->singleEvaluationPlanInProgram($this->program->getId(), $evaluationPlanId);
     }
 
 }
