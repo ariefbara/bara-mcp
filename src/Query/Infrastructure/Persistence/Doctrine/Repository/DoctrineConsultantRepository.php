@@ -228,6 +228,7 @@ LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
 WHERE Participant.id = :participantId 
     AND Participant.Program_id IS NOT NULL
     AND  Consultant.active = true
+GROUP BY Consultant.id
 ORDER BY isDedicatedMentor DESC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
