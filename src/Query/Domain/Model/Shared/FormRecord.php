@@ -3,10 +3,14 @@
 namespace Query\Domain\Model\Shared;
 
 use DateTimeImmutable;
-use Doctrine\Common\Collections\{
-    ArrayCollection,
-    Criteria
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord;
+use Query\Domain\Model\Shared\FormRecord\IntegerFieldRecord;
+use Query\Domain\Model\Shared\FormRecord\MultiSelectFieldRecord;
+use Query\Domain\Model\Shared\FormRecord\SingleSelectFieldRecord;
+use Query\Domain\Model\Shared\FormRecord\StringFieldRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecord\TextAreaFieldRecord;
 
 class FormRecord
 {
@@ -77,7 +81,7 @@ class FormRecord
 
     function getSubmitTimeString(): ?string
     {
-        return isset($this->submitTime)? $this->submitTime->format("Y-m-d H:i:s"): null;
+        return isset($this->submitTime) ? $this->submitTime->format("Y-m-d H:i:s") : null;
     }
 
     function getUnremovedIntegerFieldRecords()
@@ -119,6 +123,141 @@ class FormRecord
     {
         return Criteria::create()
                         ->andWhere(Criteria::expr()->eq('removed', false));
+    }
+
+    public function toArray(): array
+    {
+        $result = [
+            "submitTime" => $this->getSubmitTimeString(),
+            "stringFieldRecords" => [],
+            "integerFieldRecords" => [],
+            "textAreaFieldRecords" => [],
+            "attachmentFieldRecords" => [],
+            "singleSelectFieldRecords" => [],
+            "multiSelectFieldRecords" => [],
+        ];
+        foreach ($this->getUnremovedStringFieldRecords() as $stringFieldRecord) {
+            $result['stringFieldRecords'][] = $this->arrayDataOfStringFieldRecord($stringFieldRecord);
+        }
+        foreach ($this->getUnremovedIntegerFieldRecords() as $integerFieldRecord) {
+            $result['integerFieldRecords'][] = $this->arrayDataOfIntegerFieldRecord($integerFieldRecord);
+        }
+        foreach ($this->getUnremovedTextAreaFieldRecords() as $textAreaFieldRecord) {
+            $result['textAreaFieldRecords'][] = $this->arrayDataOfTextAreaFieldRecord($textAreaFieldRecord);
+        }
+        foreach ($this->getUnremovedAttachmentFieldRecords() as $attachmentFieldRecord) {
+            $result['attachmentFieldRecords'][] = $this->arrayDataOfAttachmentFieldRecord($attachmentFieldRecord);
+        }
+        foreach ($this->getUnremovedSingleSelectFieldRecords() as $singleSelectFieldRecord) {
+            $result['singleSelectFieldRecords'][] = $this->arrayDataOfSingleSelectFieldRecord($singleSelectFieldRecord);
+        }
+        foreach ($this->getUnremovedMultiSelectFieldRecords() as $multiSelectFieldRecord) {
+            $result['multiSelectFieldRecords'][] = $this->arrayDataOfMultiSelectFieldRecord($multiSelectFieldRecord);
+        }
+        return $result;
+    }
+
+    private function arrayDataOfStringFieldRecord(StringFieldRecord $stringFieldRecord): array
+    {
+        return [
+            "id" => $stringFieldRecord->getId(),
+            "stringField" => [
+                "id" => $stringFieldRecord->getStringField()->getId(),
+                "name" => $stringFieldRecord->getStringField()->getName(),
+                "position" => $stringFieldRecord->getStringField()->getPosition(),
+            ],
+            "value" => $stringFieldRecord->getValue(),
+        ];
+    }
+
+    private function arrayDataOfIntegerFieldRecord(IntegerFieldRecord $integerFieldRecord): array
+    {
+        return [
+            "id" => $integerFieldRecord->getId(),
+            "integerField" => [
+                "id" => $integerFieldRecord->getIntegerField()->getId(),
+                "name" => $integerFieldRecord->getIntegerField()->getName(),
+                "position" => $integerFieldRecord->getIntegerField()->getPosition(),
+            ],
+            "value" => $integerFieldRecord->getValue(),
+        ];
+    }
+
+    private function arrayDataOfTextAreaFieldRecord(TextAreaFieldRecord $textAreaFieldRecord): array
+    {
+        return [
+            "id" => $textAreaFieldRecord->getId(),
+            "textAreaField" => [
+                "id" => $textAreaFieldRecord->getTextAreaField()->getId(),
+                "name" => $textAreaFieldRecord->getTextAreaField()->getName(),
+                "position" => $textAreaFieldRecord->getTextAreaField()->getPosition(),
+            ],
+            "value" => $textAreaFieldRecord->getValue(),
+        ];
+    }
+
+    private function arrayDataOfSingleSelectFieldRecord(SingleSelectFieldRecord $singleSelectFieldRecord): array
+    {
+        $selectedOption = empty($singleSelectFieldRecord->getOption()) ? null :
+                [
+            "id" => $singleSelectFieldRecord->getOption()->getId(),
+            "name" => $singleSelectFieldRecord->getOption()->getName(),
+        ];
+        return [
+            "id" => $singleSelectFieldRecord->getId(),
+            "singleSelectField" => [
+                "id" => $singleSelectFieldRecord->getSingleSelectField()->getId(),
+                "name" => $singleSelectFieldRecord->getSingleSelectField()->getName(),
+                "position" => $singleSelectFieldRecord->getSingleSelectField()->getPosition(),
+            ],
+            "selectedOption" => $selectedOption,
+        ];
+    }
+
+    private function arrayDataOfMultiSelectFieldRecord(MultiSelectFieldRecord $multiSelectFieldRecord): array
+    {
+        $multiSelectFieldRecordData = [
+            "id" => $multiSelectFieldRecord->getId(),
+            "multiSelectField" => [
+                "id" => $multiSelectFieldRecord->getMultiSelectField()->getId(),
+                "name" => $multiSelectFieldRecord->getMultiSelectField()->getName(),
+                "position" => $multiSelectFieldRecord->getMultiSelectField()->getPosition(),
+            ],
+            "selectedOptions" => [],
+        ];
+        foreach ($multiSelectFieldRecord->getUnremovedSelectedOptions() as $selectedOption) {
+            $multiSelectFieldRecordData['selectedOptions'][] = [
+                "id" => $selectedOption->getId(),
+                "option" => [
+                    "id" => $selectedOption->getOption()->getId(),
+                    "name" => $selectedOption->getOption()->getName(),
+                ],
+            ];
+        }
+        return $multiSelectFieldRecordData;
+    }
+
+    private function arrayDataOfAttachmentFieldRecord(AttachmentFieldRecord $attachmentFieldRecord): array
+    {
+        $attachmentFieldRecordData = [
+            "id" => $attachmentFieldRecord->getId(),
+            "attachmentField" => [
+                "id" => $attachmentFieldRecord->getAttachmentField()->getId(),
+                "name" => $attachmentFieldRecord->getAttachmentField()->getName(),
+                "position" => $attachmentFieldRecord->getAttachmentField()->getPosition(),
+            ],
+            "attachedFiles" => [],
+        ];
+        foreach ($attachmentFieldRecord->getUnremovedAttachedFiles() as $attachedFile) {
+            $attachmentFieldRecordData['attachedFiles'][] = [
+                "id" => $attachedFile->getId(),
+                "fileInfo" => [
+                    "id" => $attachedFile->getFileInfo()->getId(),
+                    "path" => $attachedFile->getFileInfo()->getFullyQualifiedFileName(),
+                ],
+            ];
+        }
+        return $attachmentFieldRecordData;
     }
 
 }

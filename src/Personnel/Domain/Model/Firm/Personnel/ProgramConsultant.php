@@ -169,5 +169,10 @@ class ProgramConsultant extends EntityContainEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
+    
+    public function verifyAssetUsable(IUsableInProgram $asset): void
+    {
+        $asset->assertUsableInProgram($this->programId);
+    }
 
 }

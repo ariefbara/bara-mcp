@@ -232,5 +232,11 @@ class Personnel
         return $metricAssignmentReportRepository
                 ->allMetricAssignmentReportsAccessibleByPersonnel($this->id, $page, $pageSize, $approvedStatus);
     }
+    
+    public function viewOwnedAsset(IViewAssetBelongsToPersonnelTask $task): array
+    {
+        $this->assertActive();
+        return $task->viewAssetBelongsToPersonnel($this->id);
+    }
 
 }

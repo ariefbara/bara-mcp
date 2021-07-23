@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Record;
@@ -52,6 +53,11 @@ class RecordOfEvaluationPlan implements Record
             "disabled" => $this->disabled,
             "Mission_id" => empty($this->mission)? null: $this->mission->id,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('EvaluationPlan')->insert($this->toArrayForDbEntry());
     }
 
 }

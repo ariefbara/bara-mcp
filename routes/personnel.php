@@ -15,6 +15,11 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/registrants', ['uses' => "RegistrantController@showAll"]);
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     
+    $router->put('/dedicated-mentors/{dedicatedMentorId}/evaluation-reports/{evaluationPlanId}', ['uses' => "MentorEvaluationReportController@submit"]);
+    $router->delete('/dedicated-mentors/{dedicatedMentorId}/evaluation-reports/{id}', ['uses' => "MentorEvaluationReportController@cancel"]);
+    $router->get('/programs/{programId}/evaluation-reports', ['uses' => "MentorEvaluationReportController@showAll"]);
+    $router->get('/evaluation-reports/{id}', ['uses' => "MentorEvaluationReportController@show"]);
+    
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/update", ["uses" => "AccountController@updateProfile"]);

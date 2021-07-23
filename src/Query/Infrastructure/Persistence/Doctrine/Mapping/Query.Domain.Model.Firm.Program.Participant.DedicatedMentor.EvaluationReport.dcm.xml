@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport" 
+            table="MentorEvaluationReport"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineMentorEvaluationReportRepository"
+    >
+        
+        <many-to-one  field="dedicatedMentor" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\DedicatedMentor"
+        >
+            <join-column name="DedicatedMentor_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="evaluationPlan" 
+                      target-entity="Query\Domain\Model\Firm\Program\EvaluationPlan"
+        >
+            <join-column name="EvaluationPlan_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="modifiedTime" type="datetime_immutable" nullable="true"/>
+        <field name="cancelled" type="boolean" />
+        
+        <one-to-one field="formRecord" 
+                    target-entity="Query\Domain\Model\Shared\FormRecord"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

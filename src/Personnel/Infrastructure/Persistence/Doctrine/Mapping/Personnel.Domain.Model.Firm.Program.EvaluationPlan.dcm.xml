@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Program\EvaluationPlan" 
+            table="EvaluationPlan"
+            repository-class="Personnel\Infrastructure\Persistence\Doctrine\Repository\DoctrineEvaluationPlanRepository"
+    >
+        
+        <field name="programId" column="Program_id" type="guid" nullable="false"/>
+        <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        
+        <one-to-one field="reportForm" 
+                    target-entity="Personnel\Domain\Model\Firm\FeedbackForm"
+        >
+            <join-column name="FeedbackForm_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -3,6 +3,7 @@
 namespace Tests\Controllers\RecordPreparation\Firm;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\ConnectionInterface;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Tests\Controllers\RecordPreparation\Record;
 use Tests\Controllers\RecordPreparation\RecordOfFirm;
@@ -45,7 +46,12 @@ class RecordOfProgram implements Record
     
     public function persistSelf(Connection $connection): void
     {
-        $connection->table("Firm")->insert($this->toArrayForDbEntry());
+        $connection->table("Program")->insert($this->toArrayForDbEntry());
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('Program')->insert($this->toArrayForDbEntry());
     }
 
 }

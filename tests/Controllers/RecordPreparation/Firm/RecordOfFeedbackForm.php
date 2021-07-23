@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    RecordOfFirm,
-    Shared\RecordOfForm
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 
 class RecordOfFeedbackForm implements Record
@@ -41,6 +40,12 @@ class RecordOfFeedbackForm implements Record
             "id" => $this->id,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->form->insert($connection);
+        $connection->table('FeedbackForm')->insert($this->toArrayForDbEntry());
     }
 
 }

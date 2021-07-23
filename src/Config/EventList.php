@@ -4,6 +4,8 @@ namespace Config;
 
 class EventList
 {
+    const COMMON_ENTITY_CREATED = "common-entity-created";
+    
     const CLIENT_ACTIVATION_CODE_GENERATED = "client-activation-code-generated";
     const CLIENT_RESET_PASSWORD_CODE_GENERATED = "client-reset-password-code-generated";
     

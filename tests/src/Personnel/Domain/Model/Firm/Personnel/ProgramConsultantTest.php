@@ -24,6 +24,8 @@ class ProgramConsultantTest extends TestBase
     
     protected $consultantCommentId = 'newCommentId', $worksheet, $message = 'new comment message';
     protected $comment;
+    
+    protected $asset;
 
     protected function setUp(): void
     {
@@ -49,6 +51,8 @@ class ProgramConsultantTest extends TestBase
         
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         $this->comment = $this->buildMockOfClass(Comment::class);
+        
+        $this->asset = $this->buildMockOfInterface(IUsableInProgram::class);
     }
 
     protected function executeAcceptConsultationRequest()
@@ -252,6 +256,14 @@ class ProgramConsultantTest extends TestBase
         };
         $errorDetail = "forbidden: can only manage asset related to your program";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    public function test_verifyAssetUsable_assertAssetUsable()
+    {
+        $this->asset->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->programConsultant->verifyAssetUsable($this->asset);
     }
 }
 
