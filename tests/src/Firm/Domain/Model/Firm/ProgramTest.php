@@ -2,13 +2,17 @@
 
 namespace Firm\Domain\Model\Firm;
 
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
 use Firm\Domain\Model\Firm\Program\Mission;
@@ -40,6 +44,9 @@ class ProgramTest extends TestBase
     protected $evaluationPlanId = "evaluationPlanId", $evaluationPlanData, $feedbackForm, $mission;
     
     protected $profileForm;
+    
+    protected $meetingId = 'meeting-id', $activityType, $meetingData;
+    protected $meeting, $activityParticipant;
 
     protected function setUp(): void
     {
@@ -89,6 +96,12 @@ class ProgramTest extends TestBase
                 ->willReturn(true);
         
         $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
+        
+        $this->activityType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = new MeetingData('name', 'description', new DateTimeImmutable('+24 hours'), new DateTimeImmutable('+25 hours'), 'location', 'note');
+        
+        $this->meeting = $this->buildMockOfClass(Meeting::class);
+        $this->activityParticipant = $this->buildMockOfClass(ActivityParticipant::class);
     }
 
     protected function getProgramData()
@@ -379,6 +392,30 @@ class ProgramTest extends TestBase
     {
         $firm = $this->buildMockOfClass(Firm::class);
         $this->assertFalse($this->program->isManageableByFirm($firm));
+    }
+    
+    protected function executeInviteAllActiveParticipantsToMeeting()
+    {
+        $this->participant->expects($this->any())
+                ->method('isActive')
+                ->willReturn(true);
+        $this->program->inviteAllActiveParticipantsToMeeting($this->meeting, $this->activityParticipant);
+    }
+    public function test_inviteAllActiveParticipantsToMeeting_inviteAllParticipantsToMeeting()
+    {
+        $this->participant->expects($this->once())
+                ->method('inviteToMeeting')
+                ->with($this->meeting);
+        $this->executeInviteAllActiveParticipantsToMeeting();
+    }
+    public function test_inviteAllActiveParticipantsToMeeting_containInactiveParticipant_skipInvitingThisParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method('isActive')
+                ->willReturn(false);
+        $this->participant->expects($this->never())
+                ->method('inviteToMeeting');
+        $this->executeInviteAllActiveParticipantsToMeeting();
     }
 }
 

@@ -2,28 +2,29 @@
 
 namespace Tests\Controllers\Client\ProgramParticipation\AsMeetingInitiator;
 
-use Tests\Controllers\ {
-    Client\ProgramParticipationTestCase,
-    RecordPreparation\Firm\Program\Activity\RecordOfInvitee,
-    RecordPreparation\Firm\Program\ActivityType\RecordOfActivityParticipant,
-    RecordPreparation\Firm\Program\Participant\RecordOfActivityInvitation,
-    RecordPreparation\Firm\Program\RecordOfActivity,
-    RecordPreparation\Firm\Program\RecordOfActivityType
-};
+use Tests\Controllers\Client\ProgramParticipationTestCase;
+use Tests\Controllers\RecordPreparation\Firm\Program\Activity\RecordOfInvitee;
+use Tests\Controllers\RecordPreparation\Firm\Program\ActivityType\RecordOfActivityParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfActivityInvitation;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfParticipantInvitee;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfActivity;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfActivityType;
 
 class AsMeetingInitiatorTestCase extends ProgramParticipationTestCase
 {
     protected $asMeetingInitiatorUri;
+    protected $meetingInitiatorUri;
+    
     /**
      *
      * @var RecordOfActivity
      */
     protected $meeting;
     /**
-     *
-     * @var RecordOfActivityInvitation
+     * 
+     * @var RecordOfParticipantInvitee
      */
-    protected $meetingAttendace;
+    protected $participantInvitee;
     
     protected function setUp(): void
     {
@@ -48,13 +49,12 @@ class AsMeetingInitiatorTestCase extends ProgramParticipationTestCase
         $activityParticipant->participantType = "participant";
         $this->connection->table("ActivityParticipant")->insert($activityParticipant->toArrayForDbEntry());
         
-        $attendee = new RecordOfInvitee($this->meeting, $activityParticipant, 999);
-        $attendee->anInitiator = true;
-        $this->connection->table("Invitee")->insert($attendee->toArrayForDbEntry());
+        $invitee = new RecordOfInvitee($this->meeting, $activityParticipant, 'initiator');
+        $invitee->anInitiator = true;
+        $this->participantInvitee = new RecordOfParticipantInvitee($participant, $invitee);
+        $this->participantInvitee->insert($this->connection);
         
-        $this->meetingAttendace = new RecordOfActivityInvitation($participant, $attendee);
-        $this->connection->table("ParticipantInvitee")->insert($this->meetingAttendace->toArrayForDbEntry());
-        
+        $this->meetingInitiatorUri = $this->programParticipationUri . "/{$this->programParticipation->id}/meeting-initiator/{$this->participantInvitee->invitee->id}";
         $this->asMeetingInitiatorUri = $this->programParticipationUri . "/{$this->programParticipation->id}/as-meeting-initiator/{$this->meeting->id}";
     }
     

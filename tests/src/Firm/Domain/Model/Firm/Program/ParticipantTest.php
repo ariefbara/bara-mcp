@@ -6,22 +6,21 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\DateTimeImmutableBuilder;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -29,6 +28,7 @@ class ParticipantTest extends TestBase
 
     protected $program;
     protected $participant;
+    protected $participantAttendee;
     protected $asset;
     protected $consultationRequest;
     protected $consultationSession;
@@ -49,6 +49,7 @@ class ParticipantTest extends TestBase
     protected $programsProfileForm, $formRecord;
     protected $consultant;
     protected $dedicatedMentor;
+    protected $meeting;
 
     protected function setUp(): void
     {
@@ -114,6 +115,8 @@ class ParticipantTest extends TestBase
         $this->formRecord = $this->buildMockOfClass(FormRecord::class);
         
         $this->consultant = $this->buildMockOfClass(Consultant::class);
+        
+        $this->meeting = $this->buildMockOfClass(Meeting::class);
     }
     protected function assertInactiveParticipant(callable $operation): void
     {
@@ -280,74 +283,6 @@ class ParticipantTest extends TestBase
         $this->participant->belongsInTheSameProgramAs($this->metric);
     }
     
-    public function test_canInvolvedInProgram_sameProgram_returnTrue()
-    {
-        $this->assertTrue($this->participant->canInvolvedInProgram($this->participant->program));
-    }
-    public function test_canInvolvedInProgram_inactiveParticipant_returnFalse()
-    {
-        $this->participant->active = false;
-        $this->assertFalse($this->participant->canInvolvedInProgram($this->participant->program));
-    }
-    public function test_canInvolvedInProgram_differentProgram_returnFalse()
-    {
-        $program = $this->buildMockOfClass(Program::class);
-        $this->assertFalse($this->participant->canInvolvedInProgram($program));
-    }
-    
-    public function test_roleCorrespondWith_returnActivityParticipantTypeIsParticipantResult()
-    {
-        $activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
-        $activityParticipantType->expects($this->once())
-                ->method("isParticipantType");
-        $this->participant->roleCorrespondWith($activityParticipantType);
-    }
-    
-    public function test_registerAsAttendeeCandidate_setParticipantAsAttendeeCandidate()
-    {
-        $attendee = $this->buildMockOfClass(Attendee::class);
-        $attendee->expects($this->once())
-                ->method("setParticipantAsAttendeeCandidate")
-                ->with($this->participant);
-        $this->participant->registerAsAttendeeCandidate($attendee);
-    }
-    
-    protected function executeInitiateMeeting()
-    {
-        $this->meetingType->expects($this->any())
-                ->method("belongsToProgram")
-                ->willReturn(true);
-        $this->participant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
-    }
-    public function test_initiateMeeting_returnMeetingTypeCreateMeetingResult()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("createMeeting")
-                ->with($this->meetingId, $this->meetingData, $this->participant);
-        $this->executeInitiateMeeting();
-    }
-    public function test_initiateMeeting_inactiveParticipant_forbidden()
-    {
-        $this->participant->active = false;
-        $operation = function (){
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: only active participant can make this request";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_initiateMeeting_meetingTypeNotFromInProgram_forbidden()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("belongsToProgram")
-                ->with($this->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: can only manage meeting type on same program";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    
     public function test_belongsToTeam_returnTeamParticipantBelongsToTeamResult()
     {
         $this->participant->teamParticipant = $this->teamParticipant;
@@ -511,6 +446,84 @@ class ParticipantTest extends TestBase
             $this->executeDedicateMentor();
         });
     }
+    
+    public function test_isActive_activeParticipant_returnTrue()
+    {
+        $this->assertTrue($this->participant->isActive());
+    }
+    public function test_isActive_inactiveParticipant_returnFalse()
+    {
+        $this->participant->active = false;
+        $this->assertFalse($this->participant->isActive());
+    }
+    
+    protected function executeInitiateMeeting()
+    {
+        return $this->participant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingCreatedInActivityType()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('createMeeting')
+                ->with($this->meetingId, $this->meetingData)
+                ->willReturn($meeting = $this->buildMockOfClass(Meeting::class));
+        $this->assertEquals($meeting, $this->executeInitiateMeeting());
+    }
+    public function test_initiateMeeting_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeInitiateMeeting();
+        }, 'Forbidden', 'forbidden: inactive partiicpant');
+    }
+    public function test_initiateMeeting_assertActivityTypeUsableInProgram()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_aggregateParticipantAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInitiateMeeting();
+        $this->assertEquals(2, $this->participant->meetingInvitations->count());
+        $this->assertInstanceOf(ParticipantAttendee::class, $this->participant->meetingInvitations->last());
+    }
+    
+    protected function executeInviteToMeeting()
+    {
+        $this->participant->inviteToMeeting($this->meeting);
+    }
+    public function test_inviteToMeeting_addNewParticipantAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInviteToMeeting();
+        $this->assertEquals(2, $this->participant->meetingInvitations->count());
+        $this->assertInstanceOf(ParticipantAttendee::class, $this->participant->meetingInvitations->last());
+    }
+    public function test_inviteToMeeting_hasActiveInvitationToSameMeeting_void()
+    {
+        $this->invitation->expects($this->once())
+                ->method('isActiveAttendeeOfMeeting')
+                ->with($this->meeting)
+                ->willReturn(true);
+        $this->executeInviteToMeeting();
+        $this->assertEquals(1, $this->participant->meetingInvitations->count());
+    }
+    public function test_inviteToMeeting_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertInactiveParticipant(function (){
+            $this->executeInviteToMeeting();
+        });
+    }
+    public function test_inviteToMeeting_assertMeetingUsableInProgram()
+    {
+        $this->meeting->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->executeInviteToMeeting();
+    }
+    
 }
 
 class TestableParticipant extends Participant

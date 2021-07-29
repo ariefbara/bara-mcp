@@ -409,11 +409,11 @@ $router->group($personnelAggregate, function () use ($router) {
         });
     });
     
-    $asMeetingInitiatorAggregate = [
-        'prefix' => '/as-meeting-initiator/{meetingId}',
-        'namespace' => 'AsMeetingInitiator',
+    $asConsultantMeetingInitiatorAggregate = [
+        'prefix' => '/as-consultant-meeting-initiator/{meetingId}',
+        'namespace' => 'AsConsultantMeetingInitiator',
     ];
-    $router->group($asMeetingInitiatorAggregate, function () use ($router){
+    $router->group($asConsultantMeetingInitiatorAggregate, function () use ($router){
         
         $router->patch("/update-meeting", ['uses' => "MeetingController@update"]);
         
@@ -423,6 +423,28 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->put("/invite-coordinator", ["uses" => "$controller@inviteCoordinator"]);
             $router->put("/invite-consultant", ["uses" => "$controller@inviteConsultant"]);
             $router->put("/invite-participant", ["uses" => "$controller@inviteParticipant"]);
+            $router->put("/invite-all-active-dedicated-mentees", ["uses" => "$controller@inviteAllActiveDedicatedMentees"]);
+            $router->patch("/cancel-invitation/{attendeeId}", ["uses" => "$controller@cancel"]);
+            $router->get("", ["uses" => "$controller@showAll"]);
+            $router->get("/{attendeeId}", ["uses" => "$controller@show"]);
+        });
+    });
+    
+    $asCoordinatorMeetingInitiatorAggregate = [
+        'prefix' => '/as-coordinator-meeting-initiator/{meetingId}',
+        'namespace' => 'AsCoordinatorMeetingInitiator',
+    ];
+    $router->group($asCoordinatorMeetingInitiatorAggregate, function () use ($router){
+        
+        $router->patch("/update-meeting", ['uses' => "MeetingController@update"]);
+        
+        $router->group(['prefix' => '/attendees'], function () use($router) {
+            $controller = "AttendeeController";
+            $router->put("/invite-manager", ["uses" => "$controller@inviteManager"]);
+            $router->put("/invite-coordinator", ["uses" => "$controller@inviteCoordinator"]);
+            $router->put("/invite-consultant", ["uses" => "$controller@inviteConsultant"]);
+            $router->put("/invite-participant", ["uses" => "$controller@inviteParticipant"]);
+            $router->put("/invite-all-active-program-participants", ["uses" => "$controller@inviteAllActiveProgramParticipants"]);
             $router->patch("/cancel-invitation/{attendeeId}", ["uses" => "$controller@cancel"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{attendeeId}", ["uses" => "$controller@show"]);

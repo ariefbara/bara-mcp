@@ -3,7 +3,7 @@
 namespace Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee;
 
 use Firm\Application\Service\Client\AsTeamMember\TeamMemberRepository;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\MeetingData;
 use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
 use Resources\Application\Event\Dispatcher;
 

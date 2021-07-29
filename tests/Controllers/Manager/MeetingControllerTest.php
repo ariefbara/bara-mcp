@@ -101,7 +101,7 @@ class MeetingControllerTest extends ManagerTestCase
             "ActivityParticipant_id" => $this->attendeeSetup->id,
             "anInitiator" => true,
             "willAttend" => true,
-            "attended" => null,
+            "attended" => false,
             "cancelled" => false,
         ];
         $this->seeInDatabase("Invitee", $attendeeEntry);

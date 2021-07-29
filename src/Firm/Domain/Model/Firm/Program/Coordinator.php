@@ -7,11 +7,10 @@ use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Personnel;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
-use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Coordinator\CoordinatorAttendee;
 use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
@@ -19,7 +18,7 @@ use Firm\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Firm\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\Exception\RegularException;
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
+use Resources\Uuid;
 
 class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
 {
@@ -53,7 +52,7 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
      * @var ArrayCollection
      */
     protected $meetingInvitations;
-
+    
     function getPersonnel(): Personnel
     {
         return $this->personnel;
@@ -84,7 +83,7 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
     protected function assertActive()
     {
         if (!$this->active) {
-            $errorDetail = "forbidden: only active coordinator can make this request";
+            $errorDetail = "forbidden: inactive coordinator";
             throw RegularException::forbidden($errorDetail);
         }
     }
@@ -123,13 +122,6 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $participant->assignMetrics($metricAssignmentDataCollector);
     }
 
-    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
-    {
-        $this->assertActive();
-        $this->assertAssetBelongsProgram($meetingType);
-        return $meetingType->createMeeting($meetingId, $meetingData, $this);
-    }
-
     public function approveMetricAssignmentReport(MetricAssignmentReport $metricAssignmentReport): void
     {
         $this->assertActive();
@@ -142,26 +134,6 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertActive();
         $this->assertAssetBelongsProgram($metricAssignmentReport);
         $metricAssignmentReport->reject($note);
-    }
-
-
-    public function canInvolvedInProgram(Program $program): bool
-    {
-        return $this->active && $this->program === $program;
-    }
-
-    public function roleCorrespondWith(ActivityParticipantType $role): bool
-    {
-        return $role->isCoordinatorType();
-    }
-
-    public function registerAsAttendeeCandidate(Attendee $attendee): void
-    {
-        if (!$this->active) {
-            $errorDetail = "forbidden: can only invite active coordinator";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $attendee->setCoordinatorAsAttendeeCandidate($this);
     }
 
     public function evaluateParticipant(
@@ -233,5 +205,33 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         $this->assertAssetManageable($dedicatedMentor, 'dedicated mentor');
         $dedicatedMentor->cancel();
     }
-
+    
+    public function initiateMeeting(string $meetingId, ActivityType $activityType, MeetingData $meetingData): Meeting
+    {
+        $this->assertActive();
+        $activityType->assertUsableInProgram($this->program);
+        
+        $meeting = $activityType->createMeeting($meetingId, $meetingData);
+        
+        $id = Uuid::generateUuid4();
+        $coordinatorAttendee = new CoordinatorAttendee($this, $id, $meeting, true);
+        $this->meetingInvitations->add($coordinatorAttendee);
+        
+        return $meeting;
+    }
+    
+    public function inviteToMeeting(Meeting $meeting): void
+    {
+        $this->assertActive();
+        $meeting->assertUsableInProgram($this->program);
+        $p = function (CoordinatorAttendee $coordinatorAttendee) use ($meeting) {
+            return $coordinatorAttendee->isActiveAttendeeOfMeeting($meeting);
+        };
+        if (empty($this->meetingInvitations->filter($p)->count())) {
+            $id = Uuid::generateUuid4();
+            $coordinatorAttendee = new CoordinatorAttendee($this, $id, $meeting, false);
+            $this->meetingInvitations->add($coordinatorAttendee);
+        }
+    }
+    
 }

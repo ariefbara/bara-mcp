@@ -3,6 +3,7 @@
 namespace Tests\Controllers\RecordPreparation;
 
 use DateTimeImmutable;
+use Illuminate\Database\ConnectionInterface;
 
 class RecordOfUser implements Record
 {
@@ -55,6 +56,11 @@ class RecordOfUser implements Record
             'resetPasswordCodeExpiredTime' => $this->resetPasswordCodeExpiredTime,
             
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('User')->insert($this->toArrayForDbEntry());
     }
 
 }

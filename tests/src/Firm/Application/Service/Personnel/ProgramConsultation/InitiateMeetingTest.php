@@ -2,12 +2,12 @@
 
 namespace Firm\Application\Service\Personnel\ProgramConsultant;
 
+use Firm\Application\Service\Firm\Program\ActivityType\MeetingRepository;
 use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
-use Firm\Application\Service\Personnel\MeetingRepository;
 use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Consultant;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 

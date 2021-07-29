@@ -2,26 +2,23 @@
 
 namespace Firm\Domain\Model\Firm\Program\ActivityType;
 
-use Firm\Domain\ {
-    Model\Firm\FeedbackForm,
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Service\ActivityTypeDataProvider
-};
-use SharedContext\Domain\ValueObject\ {
-    ActivityParticipantPriviledge,
-    ActivityParticipantType
-};
+use Firm\Domain\Model\Firm\FeedbackForm;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Service\ActivityTypeDataProvider;
+use SharedContext\Domain\ValueObject\ActivityParticipantPriviledge;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ActivityParticipantTest extends TestBase
 {
     protected $activityType;
     protected $attendeeSetup;
+    protected $activityParticipantType;
     protected $priviledge;
     protected $id = "newId";
-    protected $participantType = "coordinator", $canInitiate = false, $canAttend = true;
+    protected $participantType = "participant", $canInitiate = false, $canAttend = true;
     protected $feedbackForm;
     protected $user;
     protected $meeting;
@@ -35,6 +32,9 @@ class ActivityParticipantTest extends TestBase
         
         $activityParticipantData = new ActivityParticipantData("consultant", true, true, null);
         $this->attendeeSetup = new TestableActivityParticipant($this->activityType, "id", $activityParticipantData);
+        
+        $this->activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
+        $this->attendeeSetup->participantType = $this->activityParticipantType;
         
         $this->priviledge = $this->buildMockOfClass(ActivityParticipantPriviledge::class);
         $this->attendeeSetup->participantPriviledge = $this->priviledge;
@@ -118,90 +118,58 @@ class ActivityParticipantTest extends TestBase
         $this->assertTrue($this->attendeeSetup->disabled);
     }
     
-    public function test_roleCorrespondWithUser_returnUsersRoleCorrespondWithParticipantTypeResult()
+    protected function executeIsActiveTypeCorrespondWithRole()
     {
-        $this->user->expects($this->once())
-                ->method("roleCorrespondWith")
-                ->with($this->attendeeSetup->participantType);
-        $this->attendeeSetup->roleCorrespondWithUser($this->user);
+        $this->activityParticipantType->expects($this->any())
+                ->method('sameValueAs')
+                ->with($this->activityParticipantType)
+                ->willReturn(true);
+        return $this->attendeeSetup->isActiveTypeCorrespondWithRole($this->activityParticipantType);
+    }
+    public function test_isActiveTypeCorrespondWithRole_returnParticipantTypeSameValueResult()
+    {
+        $this->assertTrue($this->executeIsActiveTypeCorrespondWithRole());
+    }
+    public function test_isActiveTypeCorrespondWithRole_disabled_returnFalse()
+    {
+        $this->attendeeSetup->disabled = true;
+        $this->assertFalse($this->executeIsActiveTypeCorrespondWithRole());
     }
     
-    protected function executeSetUserAsInitiatorInMeeting()
+    public function test_assertCanAttend_hasAttendPriviledge_void()
     {
         $this->priviledge->expects($this->any())
-                ->method("canInitiate")
+                ->method('canAttend')
                 ->willReturn(true);
-        $this->user->expects($this->any())
-                ->method("roleCorrespondWith")
-                ->willReturn(true);
-        $this->attendeeSetup->setUserAsInitiatorInMeeting($this->meeting, $this->user);
+        $this->attendeeSetup->assertCanAttend();
+        $this->markAsSuccess();
     }
-    public function test_setUserAsInitiatorInMeeting_setMeetingInitiator()
-    {
-        $this->meeting->expects($this->once())
-                ->method("setInitiator")
-                ->with($this->attendeeSetup, $this->user);
-        $this->executeSetUserAsInitiatorInMeeting();
-    }
-    public function test_setUserAsInitiatorInMeeting_userNotCorrespondWithRole_noop()
-    {
-        $this->user->expects($this->once())
-                ->method("roleCorrespondWith")
-                ->with($this->attendeeSetup->participantType)
-                ->willReturn(false);
-        $this->meeting->expects($this->never())
-                ->method("setInitiator");
-        $this->executeSetUserAsInitiatorInMeeting();
-    }
-    public function test_setUserAsInitiatorInMeeting_noInitiatePriviledge_forbidden()
+    public function test_assertCanAttend_noAttendPriviledge_forbidden()
     {
         $this->priviledge->expects($this->once())
-                ->method("canInitiate")
+                ->method('canAttend')
                 ->willReturn(false);
-        $operation = function (){
-            $this->executeSetUserAsInitiatorInMeeting();
-        };
-        $errorDetail = "forbidden: user type cannot initiate this meeting";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->attendeeSetup->assertCanAttend();
+        }, 'Forbidden', 'forbidden: insuficient role to cannot attend meeting');
     }
     
-    protected function executeAddUserAsAttendeeInMeeting()
+    public function test_assertCanInitiate_hasInitiatePriviledge_void()
     {
         $this->priviledge->expects($this->any())
-                ->method("canAttend")
+                ->method('canInitiate')
                 ->willReturn(true);
-        $this->user->expects($this->any())
-                ->method("roleCorrespondWith")
-                ->willReturn(true);
-        $this->attendeeSetup->addUserAsAttendeeInMeeting($this->meeting, $this->user);
+        $this->attendeeSetup->assertCanInitiate();
+        $this->markAsSuccess();
     }
-    public function test_addUserAsAttendeeInMeeting_setMeetingInitiator()
-    {
-        $this->meeting->expects($this->once())
-                ->method("addAttendee")
-                ->with($this->attendeeSetup, $this->user);
-        $this->executeAddUserAsAttendeeInMeeting();
-    }
-    public function test_addUserAsAttendeeInMeeting_userNotCorrespondWithRole_noop()
-    {
-        $this->user->expects($this->once())
-                ->method("roleCorrespondWith")
-                ->with($this->attendeeSetup->participantType)
-                ->willReturn(false);
-        $this->meeting->expects($this->never())
-                ->method("setInitiator");
-        $this->executeAddUserAsAttendeeInMeeting();
-    }
-    public function test_addUserAsAttendeeInMeeting_noInitiatePriviledge_forbidden()
+    public function test_assertCanInitiate_noInitiatePriviledge_forbidden()
     {
         $this->priviledge->expects($this->once())
-                ->method("canAttend")
+                ->method('canInitiate')
                 ->willReturn(false);
-        $operation = function (){
-            $this->executeAddUserAsAttendeeInMeeting();
-        };
-        $errorDetail = "forbidden: user type cannot attend this meeting";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->attendeeSetup->assertCanInitiate();
+        }, 'Forbidden', 'forbidden: insuficient role to cannot initiate meeting');
     }
 }
 

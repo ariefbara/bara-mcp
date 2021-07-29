@@ -50,5 +50,10 @@ class RecordOfActivityParticipant implements Record
             "disabled" => $this->disabled,
         ];
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
+    {
+        $connection->table('ActivityParticipant')->insert($this->toArrayForDbEntry());
+    }
 
 }

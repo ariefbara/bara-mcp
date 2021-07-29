@@ -2,20 +2,16 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\ManagerRepository,
-    Domain\Model\Firm\Manager
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Firm\ManagerRepository;
+use Firm\Domain\Model\Firm\Manager;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
+use Firm\Domain\Task\MeetingInitiator\UserRepository;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
+use Resources\Uuid;
 
-class DoctrineManagerRepository extends EntityRepository implements ManagerRepository
+class DoctrineManagerRepository extends DoctrineEntityRepository implements ManagerRepository, UserRepository
 {
 
     public function add(Manager $manager): void
@@ -109,6 +105,11 @@ class DoctrineManagerRepository extends EntityRepository implements ManagerRepos
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aUserOfId(string $id): CanAttendMeeting
+    {
+        return $this->findOneByIdOrDie($id, 'manager');
     }
 
 }

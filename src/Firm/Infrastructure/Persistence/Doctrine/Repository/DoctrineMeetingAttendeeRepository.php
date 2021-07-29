@@ -2,27 +2,18 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\Program\MeetingType\Meeting\AttendeeRepository,
-    Domain\Model\Firm\Program\ClientParticipant,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ManagerAttendee,
-    Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee,
-    Domain\Model\Firm\Program\TeamParticipant,
-    Domain\Model\Firm\Program\UserParticipant,
-    Domain\Service\MeetingAttendeeRepository as InterfaceForDomainService
-};
-use Resources\Exception\RegularException;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
+use Firm\Domain\Task\MeetingInitiator\AttendeeRepository;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineMeetingAttendeeRepository extends EntityRepository implements AttendeeRepository, InterfaceForDomainService
+class DoctrineMeetingAttendeeRepository extends DoctrineEntityRepository implements AttendeeRepository
 {
+    public function ofId(string $meetingAttendeeId): Attendee
+    {
+        return $this->findOneByIdOrDie($meetingAttendeeId, 'attendee');
+    }
 
+/*
     public function update(): void
     {
         $this->getEntityManager()->flush();
@@ -60,8 +51,8 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
         $qb = $this->createQueryBuilder("attendee");
         $qb->select("attendee")
                 ->andWhere($qb->expr()->orX(
-                        $qb->expr()->in("attendee.id", $coordinatorAttendeeQb->getDQL()),
-                        $qb->expr()->in("attendee.id", $consultantAttendeeQb->getDQL())
+                                $qb->expr()->in("attendee.id", $coordinatorAttendeeQb->getDQL()),
+                                $qb->expr()->in("attendee.id", $consultantAttendeeQb->getDQL())
                 ))
                 ->leftJoin("attendee.meeting", "meeting")
                 ->andWhere($qb->expr()->eq("meeting.id", ":meetingId"))
@@ -134,7 +125,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
                 ->leftJoin("clientParticipant.participant", "b_participant")
                 ->leftJoin("clientParticipant.client", "client")
                 ->andWhere($participantQb->expr()->eq("client.id", ":clientId"));
-        
+
         $attendeeQb = $this->getEntityManager()->createQueryBuilder();
         $attendeeQb->select("a_attendee.id")
                 ->from(ParticipantAttendee::class, "participantAttendee")
@@ -174,7 +165,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
                 ->leftJoin("userParticipant.participant", "b_participant")
                 ->leftJoin("userParticipant.user", "b_user")
                 ->andWhere($participantQb->expr()->eq("b_user.id", ":userId"));
-        
+
         $attendeeQb = $this->getEntityManager()->createQueryBuilder();
         $attendeeQb->select("a_attendee.id")
                 ->from(ParticipantAttendee::class, "participantAttendee")
@@ -210,7 +201,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
                 ->from(TeamParticipant::class, "teamParticipant")
                 ->leftJoin("teamParticipant.participant", "b_participant")
                 ->andWhere($participantQb->expr()->eq("teamParticipant.teamId", ":teamId"));
-        
+
         $attendeeQb = $this->getEntityManager()->createQueryBuilder();
         $attendeeQb->select("a_attendee.id")
                 ->from(ParticipantAttendee::class, "participantAttendee")
@@ -233,5 +224,7 @@ class DoctrineMeetingAttendeeRepository extends EntityRepository implements Atte
             throw RegularException::notFound($errorDetail);
         }
     }
+ * 
+ */
 
 }

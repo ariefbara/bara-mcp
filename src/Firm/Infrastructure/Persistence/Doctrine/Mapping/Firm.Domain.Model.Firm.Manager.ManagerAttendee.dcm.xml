@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Manager\ManagerAttendee" 
+            table="ManagerInvitee"
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineManagerAttendeeRepository"
+    >
+        
+        <many-to-one  field="manager" 
+                      target-entity="Firm\Domain\Model\Firm\Manager"
+                      inversed-by="meetingInvitations"
+        >
+            <join-column name="Manager_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="attendee" 
+                    target-entity="Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee"
+        >
+            <join-column name="Invitee_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+    </entity>
+</doctrine-mapping>

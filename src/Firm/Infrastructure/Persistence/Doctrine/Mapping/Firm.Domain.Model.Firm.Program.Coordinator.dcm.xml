@@ -23,9 +23,11 @@
         <field name="active" type="boolean" />
         
         <one-to-many  field="meetingInvitations" 
-                      target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee"
+                      target-entity="Firm\Domain\Model\Firm\Program\Coordinator\CoordinatorAttendee"
                       mapped-by="coordinator"
-        />
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
         
     </entity>
 </doctrine-mapping>

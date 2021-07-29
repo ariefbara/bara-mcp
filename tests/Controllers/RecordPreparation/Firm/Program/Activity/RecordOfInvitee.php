@@ -3,6 +3,7 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Activity;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Firm\Program\ActivityType\RecordOfActivityParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfActivity;
 use Tests\Controllers\RecordPreparation\Record;
@@ -52,6 +53,11 @@ class RecordOfInvitee implements Record
     }
     
     public function persistSelf(Connection $connection): void
+    {
+        $connection->table("Invitee")->insert($this->toArrayForDbEntry());
+    }
+    
+    public function insert(ConnectionInterface $connection): void
     {
         $connection->table("Invitee")->insert($this->toArrayForDbEntry());
     }

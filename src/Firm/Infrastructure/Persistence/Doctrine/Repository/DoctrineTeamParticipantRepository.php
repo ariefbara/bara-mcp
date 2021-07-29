@@ -2,13 +2,13 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
-use Firm\ {
-    Application\Service\Client\AsTeamMember\AsProgramParticipant\TeamParticipantRepository,
-    Domain\Model\Firm\Program\TeamParticipant
-};
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Client\AsTeamMember\AsProgramParticipant\TeamParticipantRepository;
+use Firm\Domain\Model\Firm\Program\TeamParticipant;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineTeamParticipantRepository extends EntityRepository implements TeamParticipantRepository
+class DoctrineTeamParticipantRepository extends DoctrineEntityRepository implements TeamParticipantRepository
 {
     
     public function aTeamParticipantCorrespondWitnProgram(string $teamId, string $programId): TeamParticipant
@@ -33,6 +33,11 @@ class DoctrineTeamParticipantRepository extends EntityRepository implements Team
             $errorDetail = "not found: program participant not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function ofId(string $id): TeamParticipant
+    {
+        return $this->findOneByIdOrDie($id, 'team participant');
     }
 
 }

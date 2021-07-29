@@ -3,23 +3,39 @@
 namespace App\Http\Controllers\Client\ProgramParticipation\AsMeetingInitiator;
 
 use Config\EventList;
-use Firm\Application\Service\Client\ProgramParticipant\UpdateMeeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Application\Service\Client\ProgramParticipant\ExecuteTaskAsParticipantMeetinInitiator;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ClientParticipant;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
+use Firm\Domain\Task\MeetingInitiator\UpdateMeetingTask;
 use Notification\Application\Listener\MeetingScheduleChangedListener;
 use Notification\Application\Service\GenerateMeetingScheduleChangedNotification;
-use Notification\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Query\Application\Service\Firm\ViewActivity;
+use Query\Application\Service\Firm\Client\ProgramParticipation\ViewInvitationForClientParticipant;
 use Query\Domain\Model\Firm\Program\Activity;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
 use Resources\Application\Event\Dispatcher;
 
 class MeetingController extends AsMeetingInitiatorBaseController
 {
 
-    public function update($meetingId)
+    public function update($programParticipationId, $initiatorId)
     {
-        $service = $this->buildUpdateService();
-
+        $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
+        $participantAttendeeRepository = $this->em->getRepository(ParticipantAttendee::class);
+        $service = new ExecuteTaskAsParticipantMeetinInitiator($clientParticipantRepository, $participantAttendeeRepository);
+        
+        $task = new UpdateMeetingTask($this->getMeetingData(), $dispatcher = $this->getUpdateMeetingScheduleDispatcher());
+        
+        $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $initiatorId, $task);
+        $dispatcher->execute();
+        
+        $viewService = $this->buildViewService();
+        $meeting = $viewService->showById($this->firmId(), $this->clientId(), $initiatorId)->getActivity();
+        return $this->singleQueryResponse($this->arrayDataOfMeeting($meeting));
+    }
+    
+    protected function getMeetingData()
+    {
         $name = $this->stripTagsInputRequest("name");
         $description = $this->stripTagsInputRequest("description");
         $startTime = $this->dateTimeImmutableOfInputRequest("startTime");
@@ -27,12 +43,19 @@ class MeetingController extends AsMeetingInitiatorBaseController
         $location = $this->stripTagsInputRequest("location");
         $note = $this->stripTagsInputRequest("note");
 
-        $meetingData = new MeetingData($name, $description, $startTime, $endTime, $location, $note);
-        $service->execute($this->firmId(), $this->clientId(), $meetingId, $meetingData);
-
-        $viewService = $this->buildViewService();
-        $meeting = $viewService->showById($this->firmId(), $meetingId);
-        return $this->singleQueryResponse($this->arrayDataOfMeeting($meeting));
+        return new MeetingData($name, $description, $startTime, $endTime, $location, $note);
+    }
+    
+    protected function getUpdateMeetingScheduleDispatcher()
+    {
+        $meetingRepository = $this->em->getRepository(\Notification\Domain\Model\Firm\Program\MeetingType\Meeting::class);
+        $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
+        $sendImmediateMail = $this->buildSendImmediateMail();
+        $listener = new MeetingScheduleChangedListener($generateMeetingScheduleChangeNotification, $sendImmediateMail);
+        
+        $dispatcher = new Dispatcher(false);
+        $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);
+        return $dispatcher;
     }
 
     protected function arrayDataOfMeeting(Activity $meeting): array
@@ -50,26 +73,10 @@ class MeetingController extends AsMeetingInitiatorBaseController
         ];
     }
 
-    protected function buildUpdateService()
-    {
-        $attendeeRepository = $this->em->getRepository(Attendee::class);
-        $dispatcher = new Dispatcher();
-        $this->addMeetingScheduleChangedListener($dispatcher);
-        return new UpdateMeeting($attendeeRepository, $dispatcher);
-    }
-    protected function addMeetingScheduleChangedListener(Dispatcher $dispatcher): void
-    {
-        $meetingRepository = $this->em->getRepository(Meeting::class);
-        $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
-        $listener = new MeetingScheduleChangedListener(
-                $generateMeetingScheduleChangeNotification, $this->buildSendImmediateMail());
-        $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);
-    }
-
     protected function buildViewService()
     {
-        $activityRepository = $this->em->getRepository(Activity::class);
-        return new ViewActivity($activityRepository);
+        $participantInvitationRepository = $this->em->getRepository(ParticipantInvitee::class);
+        return new ViewInvitationForClientParticipant($participantInvitationRepository);
     }
 
 }

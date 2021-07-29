@@ -2,18 +2,12 @@
 
 namespace Firm\Domain\Model\Firm\Program\ActivityType;
 
-use Firm\Domain\ {
-    Model\Firm\FeedbackForm,
-    Model\Firm\Program\ActivityType,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Service\ActivityTypeDataProvider
-};
+use Firm\Domain\Model\Firm\FeedbackForm;
+use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Service\ActivityTypeDataProvider;
 use Resources\Exception\RegularException;
-use SharedContext\Domain\ValueObject\ {
-    ActivityParticipantPriviledge,
-    ActivityParticipantType
-};
+use SharedContext\Domain\ValueObject\ActivityParticipantPriviledge;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class ActivityParticipant
 {
@@ -83,34 +77,24 @@ class ActivityParticipant
             $this->reportForm = $activityParticipantData->getReportForm();
         }
     }
-
-    public function roleCorrespondWithUser(CanAttendMeeting $user): bool
+    
+    public function isActiveTypeCorrespondWithRole(ActivityParticipantType $activityParticipantType): bool
     {
-        return $user->roleCorrespondWith($this->participantType);
+        return !$this->disabled && $this->participantType->sameValueAs($activityParticipantType);
     }
-
-    public function setUserAsInitiatorInMeeting(Meeting $meeting, CanAttendMeeting $user): void
+    
+    public function assertCanAttend(): void
     {
-        if (!$this->roleCorrespondWithUser($user)) {
-            return;
-        }
-        if (!$this->participantPriviledge->canInitiate()) {
-            $errorDetail = "forbidden: user type cannot initiate this meeting";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $meeting->setInitiator($this, $user);
-    }
-
-    public function addUserAsAttendeeInMeeting(Meeting $meeting, CanAttendMeeting $user): void
-    {
-        if (!$this->roleCorrespondWithUser($user)) {
-            return;
-        }
         if (!$this->participantPriviledge->canAttend()) {
-            $errorDetail = "forbidden: user type cannot attend this meeting";
-            throw RegularException::forbidden($errorDetail);
+            throw RegularException::forbidden('forbidden: insuficient role to cannot attend meeting');
         }
-        $meeting->addAttendee($this, $user);
     }
-
+    
+    public function assertCanInitiate(): void
+    {
+        if (!$this->participantPriviledge->canInitiate()) {
+            throw RegularException::forbidden('forbidden: insuficient role to cannot initiate meeting');
+        }
+    }
+    
 }

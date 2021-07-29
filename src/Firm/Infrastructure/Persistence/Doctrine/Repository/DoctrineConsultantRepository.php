@@ -2,16 +2,19 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Firm\Application\Service\Coordinator\ConsultantRepository as InterfaceFormCoordinator;
 use Firm\Application\Service\Firm\Program\ConsultantRepository;
 use Firm\Application\Service\Firm\Program\ProgramCompositionId;
 use Firm\Application\Service\Manager\ConsultantRepository as InterfaceForManager;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Task\MeetingInitiator\UserRepository;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForManager, InterfaceFormCoordinator
+class DoctrineConsultantRepository extends DoctrineEntityRepository implements ConsultantRepository, InterfaceForManager, InterfaceFormCoordinator,
+        UserRepository
 {
 
     public function ofId(ProgramCompositionId $programCompositionId, string $consultantId): Consultant
@@ -60,7 +63,7 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
             "personnelId" => $personnelId,
             "programId" => $programId,
         ];
-        
+
         $qb = $this->createQueryBuilder("consultant");
         $qb->select("consultant")
                 ->leftJoin("consultant.program", "program")
@@ -71,13 +74,18 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = "not found: consultant not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function aUserOfId(string $id): CanAttendMeeting
+    {
+        return $this->findOneByIdOrDie($id, 'consultant');
     }
 
 }

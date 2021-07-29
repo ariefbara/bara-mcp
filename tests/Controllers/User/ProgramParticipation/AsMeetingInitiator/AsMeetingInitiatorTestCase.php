@@ -13,6 +13,7 @@ use Tests\Controllers\ {
 
 class AsMeetingInitiatorTestCase extends ProgramParticipationTestCase
 {
+    protected $meetingInitiatorUri;
     protected $asMeetingInitiatorUri;
     /**
      *
@@ -20,10 +21,10 @@ class AsMeetingInitiatorTestCase extends ProgramParticipationTestCase
      */
     protected $meeting;
     /**
-     *
-     * @var RecordOfActivityInvitation
+     * 
+     * @var RecordOfParticipantInvitee
      */
-    protected $meetingAttendace;
+    protected $participantInvitee;
     
     protected function setUp(): void
     {
@@ -50,12 +51,12 @@ class AsMeetingInitiatorTestCase extends ProgramParticipationTestCase
         
         $attendee = new RecordOfInvitee($this->meeting, $activityParticipant, 999);
         $attendee->anInitiator = true;
-        $this->connection->table("Invitee")->insert($attendee->toArrayForDbEntry());
         
-        $this->meetingAttendace = new RecordOfActivityInvitation($participant, $attendee);
-        $this->connection->table("ParticipantInvitee")->insert($this->meetingAttendace->toArrayForDbEntry());
+        $this->participantInvitee = new \Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfParticipantInvitee($participant, $attendee);
+        $this->participantInvitee->insert($this->connection);
         
-        $this->asMeetingInitiatorUri = $this->programParticipationUri . "/{$this->programParticipation->id}/as-meeting-initiator/{$firm->id}/{$this->meeting->id}";
+        $this->meetingInitiatorUri = $this->programParticipationUri . "/{$this->programParticipation->id}/meeting-initiator/{$this->participantInvitee->invitee->id}";
+        $this->asMeetingInitiatorUri = $this->programParticipationUri . "/{$this->programParticipation->id}/as-meeting-initiator/{$program->firm->id}/{$this->meeting->id}";
     }
     
     protected function tearDown(): void

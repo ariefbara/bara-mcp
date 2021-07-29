@@ -3,7 +3,7 @@
 namespace Firm\Application\Service\Personnel;
 
 use Firm\Application\Service\Firm\Program\ParticipantRepository;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;

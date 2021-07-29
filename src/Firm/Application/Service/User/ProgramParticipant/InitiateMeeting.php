@@ -2,9 +2,9 @@
 
 namespace Firm\Application\Service\User\ProgramParticipant;
 
+use Firm\Application\Service\Firm\Program\ActivityType\MeetingRepository;
 use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
-use Firm\Application\Service\Firm\Program\MeetingType\MeetingRepository;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Resources\Application\Event\Dispatcher;
 
 class InitiateMeeting

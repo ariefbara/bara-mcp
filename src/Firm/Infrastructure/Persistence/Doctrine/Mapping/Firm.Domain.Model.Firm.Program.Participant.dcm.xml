@@ -66,9 +66,11 @@
         </one-to-many>
         
         <one-to-many  field="meetingInvitations" 
-                      target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ParticipantAttendee"
+                      target-entity="Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee"
                       mapped-by="participant"
-        />
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
         
         <one-to-many  field="consultationRequests" 
                       target-entity="Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest"

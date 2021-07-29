@@ -4,12 +4,14 @@ namespace Firm\Domain\Model\Firm\Team;
 
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program\ActivityType;
-use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
@@ -25,6 +27,8 @@ class MemberTest extends TestBase
     protected $user;
     protected $toCancelAttendee;
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
+    
+    protected $participantAttendee, $task;
 
     protected function setUp(): void
     {
@@ -53,6 +57,9 @@ class MemberTest extends TestBase
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->missionComment = $this->buildMockOfClass(MissionComment::class);
         $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
+        
+        $this->participantAttendee = $this->buildMockOfClass(ParticipantAttendee::class);
+        $this->task = $this->buildMockOfClass(ITaskExecutableByMeetingInitiator::class);
     }
     
     protected function setAttendeeDoesntBelongsToTeam()
@@ -109,6 +116,7 @@ class MemberTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
+/*
     protected function executeUpdateMeeting()
     {
         $this->member->updateMeeting($this->attendeeFinder, $this->meetingId, $this->meetingData);
@@ -181,6 +189,8 @@ class MemberTest extends TestBase
             $this->executeCancelInvitation();
         });
     }
+ * 
+ */
     
     protected function executeSubmitCommentInMission()
     {
@@ -260,6 +270,33 @@ class MemberTest extends TestBase
         $this->assertRegularExceptionThrowed(function (){
             $this->executeReplyMissionComment();
         }, 'Forbidden', 'forbidden: unable to manage team participant');
+    }
+    
+    protected function executeTaskAsMemberOfTeamParticipantMeetingInitiator()
+    {
+        $this->member->executeTaskAsMemberOfTeamParticipantMeetingInitiator(
+                $this->teamParticipant, $this->participantAttendee, $this->task);
+    }
+    public function test_executeTaskAsMemberOfTeamParticipantMeetingInitiator_teamParticipantExecuteTaskAsMeetingInitiator()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('executeTaskAsMeetingInitiator')
+                ->with($this->participantAttendee, $this->task);
+        $this->executeTaskAsMemberOfTeamParticipantMeetingInitiator();
+    }
+    public function test_executeTaskAsMeetingInitiator_inactiveMembet_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertInactiveMemberForbiddenError(function (){
+            $this->executeTaskAsMemberOfTeamParticipantMeetingInitiator();
+        });
+    }
+    public function test_executeTaskAsMeetingInitiator_assertTeamParticipantBelongsToTeam()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('assertBelongsToTeam')
+                ->with($this->team);
+        $this->executeTaskAsMemberOfTeamParticipantMeetingInitiator();
     }
     
 }

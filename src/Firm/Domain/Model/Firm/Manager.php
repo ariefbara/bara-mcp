@@ -3,19 +3,20 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Manager\ManagerAttendee;
 use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
-use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
@@ -23,9 +24,9 @@ use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Resources\Domain\ValueObject\Password;
 use Resources\Exception\RegularException;
+use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class Manager implements CanAttendMeeting
 {
@@ -77,6 +78,12 @@ class Manager implements CanAttendMeeting
      * @var bool
      */
     protected $removed = false;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $meetingInvitations;
 
     private function setName($name)
     {
@@ -120,14 +127,14 @@ class Manager implements CanAttendMeeting
     protected function assertActive()
     {
         if ($this->removed) {
-            throw RegularException::forbidden('forbidden: only active manager can make this request');
+            throw RegularException::forbidden('forbidden: inactive manager');
         }
     }
 
     protected function assertAssetManageable(ManageableByFirm $asset): void
     {
         if (!$asset->isManageableByFirm($this->firm)) {
-            throw RegularException::forbidden('forbidden: can only manage asset manageable by firm');
+            throw RegularException::forbidden('forbidden: unamanaged asset');
         }
     }
 
@@ -161,34 +168,6 @@ class Manager implements CanAttendMeeting
     {
         $this->assertAssetBelongsToSameFirm($activityType);
         $activityType->enable();
-    }
-
-    public function canInvolvedInProgram(Program $program): bool
-    {
-        return !$this->removed && $program->belongsToFirm($this->firm);
-    }
-
-    public function registerAsAttendeeCandidate(Attendee $attendee): void
-    {
-        $attendee->setManagerAsAttendeeCandidate($this);
-    }
-
-    public function roleCorrespondWith(ActivityParticipantType $role): bool
-    {
-        return $role->isManagerType();
-    }
-
-    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
-    {
-        if ($this->removed) {
-            $errorDetail = "forbidden: only active manager can make this request";
-            throw RegularException::forbidden($errorDetail);
-        }
-        if (!$meetingType->belongsToFirm($this->firm)) {
-            $errorDetail = "forbidden: unable to manage meeting type from other firm";
-            throw RegularException::forbidden($errorDetail);
-        }
-        return $meetingType->createMeeting($meetingId, $meetingData, $this);
     }
 
     public function disableCoordinator(Coordinator $coordinator): void
@@ -288,7 +267,7 @@ class Manager implements CanAttendMeeting
     protected function assertAssetBelongsToSameFirm(AssetBelongsToFirm $asset): void
     {
         if (!$asset->belongsToFirm($this->firm)) {
-            $errorDetail = "forbidden: unable to manage asset from other firm";
+            $errorDetail = "forbidden: unamanaged asset";
             throw RegularException::forbidden($errorDetail);
         }
     }
@@ -360,6 +339,34 @@ class Manager implements CanAttendMeeting
     {
         $this->assertActive();
         $task->execute($this->firm);
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $activityType, MeetingData $meetingData): Meeting
+    {
+        $this->assertActive();
+        $activityType->assertUsableInFirm($this->firm);
+        $meeting = $activityType->createMeeting($meetingId, $meetingData);
+        
+        $id = Uuid::generateUuid4();
+        $managerAttendee = new ManagerAttendee($this, $id, $meeting, true);
+        $this->meetingInvitations->add($managerAttendee);
+        
+        return $meeting;
+    }
+
+    public function inviteToMeeting(Meeting $meeting): void
+    {
+        $this->assertActive();
+        $meeting->assertUsableInFirm($this->firm);
+        
+        $p = function (ManagerAttendee $managerAttendee) use ($meeting) {
+            return $managerAttendee->isActiveAttendeeOfMeeting($meeting);
+        };
+        if (empty($this->meetingInvitations->filter($p)->count())) {
+            $id = Uuid::generateUuid4();
+            $mangaerAttendee = new ManagerAttendee($this, $id, $meeting, false);
+            $this->meetingInvitations->add($mangaerAttendee);
+        }
     }
 
 }

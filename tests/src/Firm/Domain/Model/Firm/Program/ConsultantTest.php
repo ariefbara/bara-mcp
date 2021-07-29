@@ -6,15 +6,16 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Personnel;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Consultant\ConsultantAttendee;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use PHPUnit\Framework\MockObject\MockObject;
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ConsultantTest extends TestBase
@@ -24,13 +25,16 @@ class ConsultantTest extends TestBase
     protected $id = 'consultant-id';
     protected $personnel;
     protected $consultant;
-    protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $attendee;
     protected $meetingInvitation;
     protected $consultationRequest;
     protected $consultationSession;
     protected $firm;
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
+    
+    protected $meetingId = "meetingId", $meetingType, $meetingData;
+    protected $meeting;
+    protected $dedicatedMentee;
 
     protected function setUp(): void
     {
@@ -55,14 +59,19 @@ class ConsultantTest extends TestBase
         
         $this->attendee = $this->buildMockOfClass(Attendee::class);
         
-        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
-        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
-        
         $this->firm = $this->buildMockOfClass(Firm::class);
         
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->missionComment = $this->buildMockOfClass(MissionComment::class);
         $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
+        
+        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        $this->meeting = $this->buildMockOfClass(Meeting::class);
+        
+        $this->dedicatedMentee = $this->buildMockOfClass(DedicatedMentor::class);
+        $this->consultant->dedicatedMentees = new ArrayCollection();
+        $this->consultant->dedicatedMentees->add($this->dedicatedMentee);
     }
     protected function assertInactiveConsultant(callable $operations): void
     {
@@ -159,86 +168,6 @@ class ConsultantTest extends TestBase
         $this->assertEquals($name, $this->consultant->getPersonnelName());
     }
     
-    public function test_canInvolvedInProgram_sameProgram_returnTrue()
-    {
-        $this->assertTrue($this->consultant->canInvolvedInProgram($this->consultant->program));
-    }
-    public function test_canInvolvedInProgram_differentProgram_returnFalse()
-    {
-        $program = $this->buildMockOfClass(Program::class);
-        $this->assertFalse($this->consultant->canInvolvedInProgram($program));
-    }
-    public function test_canInvolvedInProgram_inactiveConsultant_returnFalse()
-    {
-        $this->consultant->active = false;
-        $this->assertFalse($this->consultant->canInvolvedInProgram($this->consultant->program));
-    }
-    
-    public function test_roleCorrespondWith_returnActivityParticipantTypeIsConsultantResult()
-    {
-        $activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
-        $activityParticipantType->expects($this->once())
-                ->method("isConsultantType");
-        $this->consultant->roleCorrespondWith($activityParticipantType);
-    }
-    
-    protected function executeRegisterAsAttendeeCandidate()
-    {
-        $this->consultant->registerAsAttendeeCandidate($this->attendee);
-    }
-    public function test_registerAsAttendeeCandidate_setConsultantAsAttendeeCandidate()
-    {
-        $this->attendee->expects($this->once())
-                ->method("setConsultantAsAttendeeCandidate")
-                ->with($this->consultant);
-        $this->executeRegisterAsAttendeeCandidate();
-    }
-    public function test_registerAsAttendeeCandidate_inactiveConsultant_forbidden()
-    {
-        $this->consultant->active = false;
-        $operation = function (){
-            $this->executeRegisterAsAttendeeCandidate();
-        };
-        $errorDetail = "forbidden: can only invite active consultant to meeting";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    
-    protected function executeInitiateMeeting()
-    {
-        $this->meetingType->expects($this->any())
-                ->method("belongsToProgram")
-                ->willReturn(true);
-        return $this->consultant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
-    }
-    public function test_initiateMeeting_returnMeetingTypeCreateMeetingResult()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("createMeeting")
-                ->with($this->meetingId, $this->meetingData, $this->consultant);
-        $this->executeInitiateMeeting();
-    }
-    public function test_initiateMeeting_inactiveConsultant_forbidden()
-    {
-        $this->consultant->active = false;
-        $operation = function (){
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: only active consultant can make this request";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_initiateMeeting_meetingTypeNotFromInProgram_forbidden()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("belongsToProgram")
-                ->with($this->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: can only manage meeting type from same program";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    
     public function test_belongsToFirm_returnProgramsBelongsToFirmResult()
     {
         $this->program->expects($this->once())
@@ -314,6 +243,102 @@ class ConsultantTest extends TestBase
             $this->executeReplyMissionComment();
         }, 'mission comment');
     }
+    
+    protected function executeInitiateMeeting()
+    {
+        return $this->consultant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingCreatedInActivityType()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('createMeeting')
+                ->with($this->meetingId, $this->meetingData)
+                ->willReturn($meeting = $this->buildMockOfClass(Meeting::class));
+        $this->assertEquals($meeting, $this->executeInitiateMeeting());
+    }
+    public function test_initiateMeeting_inactiveConsultant_forbidden()
+    {
+        $this->consultant->active = false;
+        $this->assertInactiveConsultant(function (){
+            $this->executeInitiateMeeting();
+        });
+    }
+    public function test_initiateMeeting_assertMeetingTypeUsableInProgram()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_aggregateConsultantAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInitiateMeeting();
+        $this->assertEquals(2, $this->consultant->meetingInvitations->count());
+        $this->assertInstanceOf(ConsultantAttendee::class, $this->consultant->meetingInvitations->last());
+    }
+    
+    protected function executeInviteToMeeting()
+    {
+        $this->consultant->inviteToMeeting($this->meeting);
+    }
+    public function test_inviteToMeeting_addNewConsultantAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInviteToMeeting();
+        $this->assertEquals(2, $this->consultant->meetingInvitations->count());
+        $this->assertInstanceOf(ConsultantAttendee::class, $this->consultant->meetingInvitations->last());
+    }
+    public function test_inviteToMeeting_hasActiveInvitationToSameMeeting_void()
+    {
+        $this->meetingInvitation->expects($this->once())
+                ->method('isActiveAttendeeOfMeeting')
+                ->with($this->meeting)
+                ->willReturn(true);
+        $this->executeInviteToMeeting();
+        $this->assertEquals(1, $this->consultant->meetingInvitations->count());
+    }
+    public function test_inviteToMeeting_inactiveConsultant_forbidden()
+    {
+        $this->consultant->active = false;
+        $this->assertInactiveConsultant(function (){
+            $this->executeInviteToMeeting();
+        });
+    }
+    public function test_inviteToMeeting_assertMeetingUsableInProgram()
+    {
+        $this->meeting->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->executeInviteToMeeting();
+    }
+    
+    protected function inviteAllActiveDedicatedMenteesToMeeting()
+    {
+        $this->dedicatedMentee->expects($this->any())
+                ->method('isActiveAssignment')
+                ->willReturn(true);
+        $this->consultant->inviteAllActiveDedicatedMenteesToMeeting($this->meeting);
+    }
+    public function test_inviteAllActiveDedicatedMenteesToMeeting_inviteAllActiveDedicatedMenteesToMeeting()
+    {
+        $this->dedicatedMentee->expects($this->once())
+                ->method('inviteParticipantToMeeting')
+                ->with($this->meeting);
+        $this->inviteAllActiveDedicatedMenteesToMeeting();
+    }
+    public function test_inviteAllActiveDedicatedMenteesToMeeting_containInactiveDedicatedMentee_skipInvitingInactiveMentee()
+    {
+        $this->dedicatedMentee->expects($this->once())
+                ->method('isActiveAssignment')
+                ->willReturn(false);
+        $this->dedicatedMentee->expects($this->never())
+                ->method('inviteParticipantToMeeting');
+        $this->inviteAllActiveDedicatedMenteesToMeeting();
+    }
+    public function test_inviteAllActiveDedicatedMenteesToMeeting_recordMeeting()
+    {
+        $this->inviteAllActiveDedicatedMenteesToMeeting();
+        $this->assertEquals($this->meeting, $this->consultant->aggregatedEntitiesHavingEvents[0]);
+    }
 
 }
 
@@ -324,5 +349,7 @@ class TestableConsultant extends Consultant
     public $meetingInvitations;
     public $consultationRequests;
     public $consultationSessions;
+    public $dedicatedMentees;
+    public $aggregatedEntitiesHavingEvents;
 
 }

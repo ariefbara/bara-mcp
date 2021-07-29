@@ -2,21 +2,22 @@
 
 namespace Firm\Domain\Model\Firm;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Manager\ManagerAttendee;
 use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Shared\FormData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ManagerTest extends TestBase
@@ -45,6 +46,8 @@ class ManagerTest extends TestBase
     protected $bioForm, $bioFormId = "bioFormId";
     
     protected $mutationTask;
+    
+    protected $meeting, $managerAttendee;
 
     protected function setUp(): void
     {
@@ -80,6 +83,12 @@ class ManagerTest extends TestBase
         $this->bioForm = $this->buildMockOfClass(BioForm::class);
         
         $this->mutationTask = $this->buildMockOfInterface(MutationTaskExecutableByManager::class);
+        
+        $this->meeting = $this->buildMockOfClass(Meeting::class);
+        
+        $this->managerAttendee = $this->buildMockOfClass(ManagerAttendee::class);
+        $this->manager->meetingInvitations = new ArrayCollection();
+        $this->manager->meetingInvitations->add($this->managerAttendee);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -97,8 +106,12 @@ class ManagerTest extends TestBase
     }
     protected function assertUnmanageableAssetForbiddenError(callable $operation): void
     {
-        $errorDetail = "forbidden: unable to manage asset from other firm";
+        $errorDetail = "forbidden: unamanaged asset";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    protected function assertInactiveManagerForbiddenError(callable $operation): void
+    {
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', 'forbidden: inactive manager');
     }
 
     protected function getManagerData()
@@ -249,77 +262,6 @@ class ManagerTest extends TestBase
         $this->assertUnmanageableAssetForbiddenError(function () {
             $this->executeEnableActivityType();
         });
-    }
-
-    public function test_canInvolvedInProgram_returnProgramsBelongsToFirmResult()
-    {
-        $program = $this->buildMockOfClass(Program::class);
-        $program->expects($this->once())
-                ->method("belongsToFirm")
-                ->with($this->firm);
-        $this->manager->canInvolvedInProgram($program);
-    }
-    public function test_canInvolvedInProgram_inactiveManager_returnFalse()
-    {
-        $this->manager->removed = true;
-        $program = $this->buildMockOfClass(Program::class);
-        $program->expects($this->any())
-                ->method("belongsToFirm")
-                ->willReturn(true);
-        $this->assertFalse($this->manager->canInvolvedInProgram($program));
-    }
-    
-    public function test_roleCorrespondWith_returnActivityParticipantTypeIsManagerResult()
-    {
-        $activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
-        $activityParticipantType->expects($this->once())
-                ->method("isManagerType");
-        $this->manager->roleCorrespondWith($activityParticipantType);
-    }
-
-    public function test_registerAsAttendeeCandidate_setManagerAsAttendeeCandidate()
-    {
-        $attendee = $this->buildMockOfClass(Attendee::class);
-        $attendee->expects($this->once())
-                ->method("setManagerAsAttendeeCandidate")
-                ->with($this->manager);
-        $this->manager->registerAsAttendeeCandidate($attendee);
-    }
-
-    protected function executeInitiateMeeting()
-    {
-        $this->meetingType->expects($this->any())
-                ->method("belongsToFirm")
-                ->willReturn(true);
-        return $this->manager->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
-    }
-    public function test_initiateMeeting_returnMeetingCreatedThroughMeetingType()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("createMeeting")
-                ->with($this->meetingId, $this->meetingData, $this->manager);
-        $this->executeInitiateMeeting();
-    }
-    public function test_initiateMeeting_inactiveManager_forbidden()
-    {
-        $this->manager->removed = true;
-        $operation = function () {
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: only active manager can make this request";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_initiateMeeting_meetingTypeBelongsToDifferentFirm_forbidden()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("belongsToFirm")
-                ->with($this->firm)
-                ->willReturn(false);
-        $operation = function () {
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: unable to manage meeting type from other firm";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
     protected function executeDisableCoordinator()
@@ -712,7 +654,74 @@ class ManagerTest extends TestBase
         $this->assertRegularExceptionThrowed(function () {
                 $this->executeHandleMutationTask ();
             
-        }, 'Forbidden', 'forbidden: only active manager can make this request');
+        }, 'Forbidden', 'forbidden: inactive manager');
+    }
+    
+    protected function executeInitiateMeeting()
+    {
+        return $this->manager->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingCreatedInActivityType()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('createMeeting')
+                ->with($this->meetingId, $this->meetingData)
+                ->willReturn($meeting = $this->buildMockOfClass(Meeting::class));
+        $this->assertEquals($meeting, $this->executeInitiateMeeting());
+    }
+    public function test_initiateMeeting_inactiveManager_forbidden()
+    {
+        $this->manager->removed = true;
+        $this->assertInactiveManagerForbiddenError(function (){
+            $this->executeInitiateMeeting();
+        });
+    }
+    public function test_initiateMeeting_assertMeetingTypeUsableInFirm()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('assertUsableInFirm')
+                ->with($this->firm);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_aggregateManagerAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInitiateMeeting();
+        $this->assertEquals(2, $this->manager->meetingInvitations->count());
+        $this->assertInstanceOf(ManagerAttendee::class, $this->manager->meetingInvitations->last());
+    }
+    
+    protected function executeInviteToMeeting()
+    {
+        $this->manager->inviteToMeeting($this->meeting);
+    }
+    public function test_inviteToMeeting_addNewManagerAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInviteToMeeting();
+        $this->assertEquals(2, $this->manager->meetingInvitations->count());
+        $this->assertInstanceOf(ManagerAttendee::class, $this->manager->meetingInvitations->last());
+    }
+    public function test_inviteToMeeting_hasActiveInvitationToSameMeeting_void()
+    {
+        $this->managerAttendee->expects($this->once())
+                ->method('isActiveAttendeeOfMeeting')
+                ->with($this->meeting)
+                ->willReturn(true);
+        $this->executeInviteToMeeting();
+        $this->assertEquals(1, $this->manager->meetingInvitations->count());
+    }
+    public function test_inviteToMeeting_inactiveManager_forbidden()
+    {
+        $this->manager->removed = true;
+        $this->assertInactiveManagerForbiddenError(function (){
+            $this->executeInviteToMeeting();
+        });
+    }
+    public function test_inviteToMeeting_assertMeetingUsableInFirm()
+    {
+        $this->meeting->expects($this->once())
+                ->method('assertUsableInFirm')
+                ->with($this->firm);
+        $this->executeInviteToMeeting();
     }
 }
 
@@ -721,5 +730,5 @@ class TestableManager extends Manager
 
     public $firm, $id, $name, $email, $password, $phone, $joinTime, $removed;
     public $adminAssignments;
-
+    public $meetingInvitations;
 }

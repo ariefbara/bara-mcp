@@ -13,6 +13,8 @@ use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
 use Firm\Domain\Model\Firm\Program\Mission;
@@ -273,6 +275,16 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     public function isManageableByFirm(Firm $firm): bool
     {
         return $this->firm === $firm;
+    }
+    
+    public function inviteAllActiveParticipantsToMeeting(Meeting $meeting): void
+    {
+        $p = function (Participant $participant) {
+            return $participant->isActive();
+        };
+        foreach ($this->participants->filter($p)->getIterator() as $participant) {
+            $participant->inviteToMeeting($meeting);
+        }
     }
 
 }

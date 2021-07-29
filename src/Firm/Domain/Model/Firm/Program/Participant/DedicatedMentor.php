@@ -91,5 +91,15 @@ class DedicatedMentor implements AssetInProgram
             $this->assertConsultantActive();
         }
     }
+    
+    public function isActiveAssignment(): bool
+    {
+        return !$this->cancelled;
+    }
+    
+    public function inviteParticipantToMeeting($meeting): void
+    {
+        $this->participant->inviteToMeeting($meeting);
+    }
 
 }

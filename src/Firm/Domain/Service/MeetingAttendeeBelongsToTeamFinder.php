@@ -2,10 +2,8 @@
 
 namespace Firm\Domain\Service;
 
-use Firm\Domain\Model\Firm\{
-    Program\MeetingType\Meeting\Attendee,
-    Team
-};
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Team;
 
 class MeetingAttendeeBelongsToTeamFinder
 {

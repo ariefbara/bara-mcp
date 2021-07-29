@@ -3,10 +3,13 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Client;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
+
 
 class ClientParticipant
 {
@@ -61,6 +64,13 @@ class ClientParticipant
         $this->participant->assertAssetAccessible($missionComment);
         $missionCommentData->addRolePath('participant', $this->id);
         return $this->client->replyMissionComment($missionComment, $replyId, $missionCommentData);
+    }
+    
+    public function executeTaskAsParticipantMeetinInitiator(
+            ParticipantAttendee $participantAttendee, ITaskExecutableByMeetingInitiator $task): void
+    {
+        $participantAttendee->assertBelongsToParticipant($this->participant);
+        $participantAttendee->executeTaskAsMeetingInitiator($task);
     }
 
 }

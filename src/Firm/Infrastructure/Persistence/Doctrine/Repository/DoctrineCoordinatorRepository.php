@@ -2,20 +2,19 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Coordinator\CoordinatorRepository as InterfaceForCoordinator,
-    Application\Service\Firm\Program\CoordinatorRepository,
-    Application\Service\Firm\Program\ProgramCompositionId,
-    Application\Service\Manager\CoordinatorRepository as InterfaceForManager,
-    Domain\Model\Firm\Program\Coordinator
-};
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Coordinator\CoordinatorRepository as InterfaceForCoordinator;
+use Firm\Application\Service\Firm\Program\CoordinatorRepository;
+use Firm\Application\Service\Firm\Program\ProgramCompositionId;
+use Firm\Application\Service\Manager\CoordinatorRepository as InterfaceForManager;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\Coordinator;
+use Firm\Domain\Task\MeetingInitiator\UserRepository;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineCoordinatorRepository extends EntityRepository implements CoordinatorRepository, InterfaceForCoordinator, InterfaceForManager
+class DoctrineCoordinatorRepository extends DoctrineEntityRepository implements CoordinatorRepository, InterfaceForCoordinator, InterfaceForManager,
+        UserRepository
 {
 
     public function ofId(ProgramCompositionId $programCompositionId, string $coordinatorId): Coordinator
@@ -106,6 +105,11 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
             throw RegularException::notFound($errorDetail);
         }
         return $coordinator;
+    }
+
+    public function aUserOfId(string $id): CanAttendMeeting
+    {
+        return $this->findOneByIdOrDie($id, 'coordinator');
     }
 
 }

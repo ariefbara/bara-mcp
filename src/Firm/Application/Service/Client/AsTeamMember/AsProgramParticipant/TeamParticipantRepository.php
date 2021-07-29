@@ -9,4 +9,5 @@ interface TeamParticipantRepository
 
     public function aTeamParticipantCorrespondWitnProgram(string $teamId, string $programId): TeamParticipant;
 
+    public function ofId(string $id): TeamParticipant;
 }

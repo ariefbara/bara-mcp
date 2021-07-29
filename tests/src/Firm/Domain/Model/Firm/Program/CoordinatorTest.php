@@ -6,10 +6,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Personnel;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\CoordinatorAttendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\Coordinator\CoordinatorAttendee;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
@@ -27,13 +28,15 @@ class CoordinatorTest extends TestBase
     
     protected $participant;
     protected $metricAssignemtDataCollector;
-    protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $activityParticipantType;
     protected $attendee;
     protected $metricAssignmentReport, $note = "new note";
     protected $firm;
     protected $evaluationPlan, $evaluationData;
     protected $consultationSession, $media = "new media", $address = "new Address";
+    
+    protected $meetingId = "meetingId", $meetingType, $meetingData;
+    protected $meeting;
 
     protected function setUp(): void
     {
@@ -51,8 +54,6 @@ class CoordinatorTest extends TestBase
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->metricAssignemtDataCollector = $this->buildMockOfClass(MetricAssignmentDataProvider::class);
         
-        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
-        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
         
         $this->activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
         
@@ -66,6 +67,10 @@ class CoordinatorTest extends TestBase
         $this->evaluationData = $this->buildMockOfClass(EvaluationData::class);
         
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
+        
+        $this->meetingType = $this->buildMockOfClass(ActivityType::class);
+        $this->meetingData = $this->buildMockOfClass(MeetingData::class);
+        $this->meeting = $this->buildMockOfClass(Meeting::class);
     }
     
     protected function setAssetBelongsToProgram($asset)
@@ -89,7 +94,7 @@ class CoordinatorTest extends TestBase
     }
     protected function assertInactiveCoordinatorForbiddenError(callable $operation)
     {
-        $errorDetail = "forbidden: only active coordinator can make this request";
+        $errorDetail = "forbidden: inactive coordinator";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
@@ -166,85 +171,6 @@ class CoordinatorTest extends TestBase
         $this->assertAssetNotBelongsToProgramForbiddenError(function (){
             $this->executeAssignMetricToParticipant();
         });
-    }
-    
-    protected function executeInitiateMeeting()
-    {
-        $this->meetingType->expects($this->any())
-                ->method("belongsToProgram")
-                ->willReturn(true);
-        return $this->coordinator->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
-    }
-    public function test_initiateMeeting_returnMeetingTypeCreateMeetingResult()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("createMeeting")
-                ->with($this->meetingId, $this->meetingData, $this->coordinator);
-        $this->executeInitiateMeeting();
-    }
-    public function test_initiateMeeting_inactiveCoordinator_forbidden()
-    {
-        $this->coordinator->active = false;
-        $operation = function (){
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: only active coordinator can make this request";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    public function test_initiateMeeting_meetingTypeFromDifferentProgram_forbidden()
-    {
-        $this->meetingType->expects($this->once())
-                ->method("belongsToProgram")
-                ->with($this->coordinator->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeInitiateMeeting();
-        };
-        $errorDetail = "forbidden: unable to manage asset of other program";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    
-    public function test_canInvolvedInProgram_sameProgram_returnTrue()
-    {
-        $this->assertTrue($this->coordinator->canInvolvedInProgram($this->coordinator->program));
-    }
-    public function test_canInvolvedInProgram_inactiveConsultant_returnFalse()
-    {
-        $this->coordinator->active = false;
-        $this->assertFalse($this->coordinator->canInvolvedInProgram($this->coordinator->program));
-    }
-    public function test_canInvolvedInProgram_differentProgram_returnFalse()
-    {
-        $program = $this->buildMockOfClass(Program::class);
-        $this->assertFalse($this->coordinator->canInvolvedInProgram($program));
-    }
-    
-    public function test_roleCorrespondWith_returnAttendUserTypeIsCoordinatorResult()
-    {
-        $this->activityParticipantType->expects($this->once())
-                ->method("isCoordinatorType");
-        $this->coordinator->roleCorrespondWith($this->activityParticipantType);
-    }
-    
-    protected function executeRegisterAsAttendeeCandidate()
-    {
-        $this->coordinator->registerAsAttendeeCandidate($this->attendee);
-    }
-    public function test_registerAsAttendeeCandidate_setCoordinatorAsAttendeeCandidate()
-    {
-        $this->attendee->expects($this->once())
-                ->method("setCoordinatorAsAttendeeCandidate")
-                ->with($this->coordinator);
-        $this->executeRegisterAsAttendeeCandidate();
-    }
-    public function test_registerAsAttendeeCandidate_inactiveCoordinator_forbidden()
-    {
-        $this->coordinator->active = false;
-        $operation = function (){
-            $this->executeRegisterAsAttendeeCandidate();
-        };
-        $errorDetail = "forbidden: can only invite active coordinator";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
     protected function executeApproveMetricAssignmentReport()
@@ -394,7 +320,73 @@ class CoordinatorTest extends TestBase
             $this->executeChangeConsultationSessionChannel();
         });
     }
-
+    
+    protected function executeInitiateMeeting()
+    {
+        return $this->coordinator->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
+    }
+    public function test_initiateMeeting_returnMeetingCreatedInActivityType()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('createMeeting')
+                ->with($this->meetingId, $this->meetingData)
+                ->willReturn($meeting = $this->buildMockOfClass(Meeting::class));
+        $this->assertEquals($meeting, $this->executeInitiateMeeting());
+    }
+    public function test_initiateMeeting_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeInitiateMeeting();
+        });
+    }
+    public function test_initiateMeeting_assertMeetingTypeUsableInProgram()
+    {
+        $this->meetingType->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->executeInitiateMeeting();
+    }
+    public function test_initiateMeeting_aggregateCoordinatorAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInitiateMeeting();
+        $this->assertEquals(2, $this->coordinator->meetingInvitations->count());
+        $this->assertInstanceOf(CoordinatorAttendee::class, $this->coordinator->meetingInvitations->last());
+    }
+    
+    protected function executeInviteToMeeting()
+    {
+        $this->coordinator->inviteToMeeting($this->meeting);
+    }
+    public function test_inviteToMeeting_addNewCoordinatorAttendeeToMeetingInvitationCollection()
+    {
+        $this->executeInviteToMeeting();
+        $this->assertEquals(2, $this->coordinator->meetingInvitations->count());
+        $this->assertInstanceOf(CoordinatorAttendee::class, $this->coordinator->meetingInvitations->last());
+    }
+    public function test_inviteToMeeting_hasActiveInvitationToSameMeeting_void()
+    {
+        $this->coordinatorAttendee->expects($this->once())
+                ->method('isActiveAttendeeOfMeeting')
+                ->with($this->meeting)
+                ->willReturn(true);
+        $this->executeInviteToMeeting();
+        $this->assertEquals(1, $this->coordinator->meetingInvitations->count());
+    }
+    public function test_inviteToMeeting_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertInactiveCoordinatorForbiddenError(function (){
+            $this->executeInviteToMeeting();
+        });
+    }
+    public function test_inviteToMeeting_assertMeetingUsableInProgram()
+    {
+        $this->meeting->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->executeInviteToMeeting();
+    }
 }
 
 class TestableCoordinator extends Coordinator

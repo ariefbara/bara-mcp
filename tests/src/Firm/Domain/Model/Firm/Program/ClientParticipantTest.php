@@ -3,9 +3,11 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Client;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Tests\TestBase;
 
 class ClientParticipantTest extends TestBase
@@ -18,6 +20,8 @@ class ClientParticipantTest extends TestBase
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
+    
+    protected $participantAttendee, $task;
 
     protected function setUp(): void
     {
@@ -35,6 +39,9 @@ class ClientParticipantTest extends TestBase
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->missionComment = $this->buildMockOfClass(MissionComment::class);
         $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
+        
+        $this->participantAttendee = $this->buildMockOfClass(ParticipantAttendee::class);
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByMeetingInitiator::class);
     }
     
     public function test_construct_setProperties()
@@ -124,6 +131,25 @@ class ClientParticipantTest extends TestBase
                 ->method('assertAssetAccessible')
                 ->with($this->missionComment);
         $this->executeReplyMissionComment();
+    }
+    
+    protected function executeTaskAsParticipantMeetinInitiator()
+    {
+        $this->clientParticipant->executeTaskAsParticipantMeetinInitiator($this->participantAttendee, $this->task);
+    }
+    public function test_executeTaskAsParticipantMeetinInitiator_participantAttendeeExecuteTask()
+    {
+        $this->participantAttendee->expects($this->once())
+                ->method('executeTaskAsMeetingInitiator')
+                ->with($this->task);
+        $this->executeTaskAsParticipantMeetinInitiator();
+    }
+    public function test_executeTaskAsParticipantMeetinInitiator_assertParticipantAttendeeBelongsToParticipant()
+    {
+        $this->participantAttendee->expects($this->once())
+                ->method('assertBelongsToParticipant')
+                ->with($this->participant);
+        $this->executeTaskAsParticipantMeetinInitiator();
     }
     
 }

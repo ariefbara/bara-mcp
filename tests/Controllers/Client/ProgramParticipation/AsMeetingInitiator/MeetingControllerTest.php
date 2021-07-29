@@ -40,7 +40,7 @@ class MeetingControllerTest extends AsMeetingInitiatorTestCase
             "note" => $this->updateInput["note"],
         ];
         
-        $uri = $this->asMeetingInitiatorUri . "/update-meeting";
+        $uri = $this->meetingInitiatorUri . "/update-meeting";
         $this->patch($uri, $this->updateInput, $this->programParticipation->client->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
@@ -58,7 +58,7 @@ class MeetingControllerTest extends AsMeetingInitiatorTestCase
     }
     public function test_update_sendMailAndNotification()
     {
-        $uri = $this->asMeetingInitiatorUri . "/update-meeting";
+        $uri = $this->meetingInitiatorUri . "/update-meeting";
         $this->patch($uri, $this->updateInput, $this->programParticipation->client->token);
         
         (new MailChecker())->checkMailExist($subject = "Meeting Schedule Changed", $this->client->email);

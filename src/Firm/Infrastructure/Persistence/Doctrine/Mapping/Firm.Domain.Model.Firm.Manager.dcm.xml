@@ -20,5 +20,12 @@
         <field name="joinTime" type="datetime_immutable" nullable="true"/>
         <field name="removed" type="boolean" />
         
+        <one-to-many field="meetingInvitations" 
+                     target-entity="Firm\Domain\Model\Firm\Manager\ManagerAttendee" 
+                     mapped-by="manager"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

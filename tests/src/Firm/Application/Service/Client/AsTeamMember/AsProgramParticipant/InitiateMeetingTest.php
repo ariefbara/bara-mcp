@@ -2,13 +2,12 @@
 
 namespace Firm\Application\Service\Client\AsTeamMember\AsProgramParticipant;
 
-use Firm\Application\Service\Client\AsTeamMember\AsProgramParticipant\TeamParticipantRepository;
 use Firm\Application\Service\Client\AsTeamMember\TeamMemberRepository;
+use Firm\Application\Service\Firm\Program\ActivityType\MeetingRepository;
 use Firm\Application\Service\Firm\Program\ActivityTypeRepository;
-use Firm\Application\Service\Firm\Program\MeetingType\MeetingRepository;
 use Firm\Domain\Model\Firm\Program\ActivityType;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team\Member;
 use Resources\Application\Event\Dispatcher;

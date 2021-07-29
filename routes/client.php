@@ -176,11 +176,11 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get("/{invitationId}", ["uses" => "$controller@show"]);
         });
         
-        $asMeetingInitiatorAggregate = [
-            'prefix' => '/as-meeting-initiator/{meetingId}',
+        $meetingInitiatorAggregate = [
+            'prefix' => '/meeting-initiator/{initiatorId}',
             'namespace' => 'AsMeetingInitiator',
         ];
-        $router->group($asMeetingInitiatorAggregate, function () use ($router){
+        $router->group($meetingInitiatorAggregate, function () use ($router){
 
             $router->patch("/update-meeting", ['uses' => "MeetingController@update"]);
 
@@ -191,9 +191,15 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->put("/invite-consultant", ["uses" => "$controller@inviteConsultant"]);
                 $router->put("/invite-participant", ["uses" => "$controller@inviteParticipant"]);
                 $router->patch("/cancel-invitation/{attendeeId}", ["uses" => "$controller@cancel"]);
-                $router->get("", ["uses" => "$controller@showAll"]);
-                $router->get("/{attendeeId}", ["uses" => "$controller@show"]);
             });
+        });
+        $asMeetingInitiatorAggregate = [
+            'prefix' => '/as-meeting-initiator/{meetingId}',
+            'namespace' => 'AsMeetingInitiator',
+        ];
+        $router->group($asMeetingInitiatorAggregate, function () use ($router){
+            $router->get("/attendees", ["uses" => "AttendeeController@showAll"]);
+            $router->get("/attendees/{attendeeId}", ["uses" => "AttendeeController@show"]);
         });
         
         $router->group(['prefix' => '/profiles'], function () use($router) {
@@ -538,11 +544,11 @@ $router->group($clientAggregate, function () use ($router) {
                 $router->get("/{invitationId}", ["uses" => "$controller@show"]);
             });
             
-            $asMeetingInitiatorAggregate = [
-                'prefix' => '/as-meeting-initiator/{meetingId}',
+            $meetingInitiatorAggregate = [
+                'prefix' => '/meeting-initiator/{initiatorId}',
                 'namespace' => 'AsMeetingInitiator',
             ];
-            $router->group($asMeetingInitiatorAggregate, function () use ($router){
+            $router->group($meetingInitiatorAggregate, function () use ($router){
 
                 $router->patch("/update-meeting", ['uses' => "MeetingController@update"]);
 
@@ -553,6 +559,16 @@ $router->group($clientAggregate, function () use ($router) {
                     $router->put("/invite-consultant", ["uses" => "$controller@inviteConsultant"]);
                     $router->put("/invite-participant", ["uses" => "$controller@inviteParticipant"]);
                     $router->patch("/cancel-invitation/{attendeeId}", ["uses" => "$controller@cancel"]);
+                });
+            });
+            
+            $asMeetingInitiatorAggregate = [
+                'prefix' => '/as-meeting-initiator/{meetingId}',
+                'namespace' => 'AsMeetingInitiator',
+            ];
+            $router->group($asMeetingInitiatorAggregate, function () use ($router){
+                $router->group(['prefix' => '/attendees'], function () use($router) {
+                    $controller = "AttendeeController";
                     $router->get("", ["uses" => "$controller@showAll"]);
                     $router->get("/{attendeeId}", ["uses" => "$controller@show"]);
                 });

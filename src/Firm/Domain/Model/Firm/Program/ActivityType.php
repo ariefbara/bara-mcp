@@ -3,22 +3,18 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\ {
-    Model\AssetBelongsToFirm,
-    Model\Firm,
-    Model\Firm\Program,
-    Model\Firm\Program\ActivityType\ActivityParticipant,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Service\ActivityTypeDataProvider
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid,
-    ValidationRule,
-    ValidationService
-};
+use Firm\Domain\Model\AssetBelongsToFirm;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
+use Firm\Domain\Service\ActivityTypeDataProvider;
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class ActivityType implements AssetBelongsToFirm, AssetInProgram
 {
@@ -47,6 +43,10 @@ class ActivityType implements AssetBelongsToFirm, AssetInProgram
      */
     protected $description;
     
+    /**
+     * 
+     * @var bool
+     */
     protected $disabled;
 
     /**
@@ -75,28 +75,28 @@ class ActivityType implements AssetBelongsToFirm, AssetInProgram
         $this->participants = new ArrayCollection();
         $this->addActivityParticipant($activityTypeDataProvider);
     }
-    
+
     public function update(ActivityTypeDataProvider $activityTypeDataProvider): void
     {
         $this->setName($activityTypeDataProvider->getName());
         $this->description = $activityTypeDataProvider->getDescription();
-        
+
         foreach ($this->participants->getIterator() as $attendeeSetup) {
             $attendeeSetup->update($activityTypeDataProvider);
         }
         $this->addActivityParticipant($activityTypeDataProvider);
     }
-    
+
     public function disable(): void
     {
         $this->disabled = true;
     }
-    
+
     public function enable(): void
     {
         $this->disabled = false;
     }
-    
+
     protected function addActivityParticipant(ActivityTypeDataProvider $activityTypeDataProvider): void
     {
         foreach ($activityTypeDataProvider->iterateActivityParticipantData() as $activityParticipantData) {
@@ -110,46 +110,50 @@ class ActivityType implements AssetBelongsToFirm, AssetInProgram
     {
         return $this->program->belongsToFirm($firm);
     }
-    
+
     public function belongsToProgram(Program $program): bool
     {
         return $this->program === $program;
     }
 
-    public function createMeeting(string $meetingId, MeetingData $meetingData, CanAttendMeeting $initiator): Meeting
+    public function assertUsableInProgram(Program $program): void
     {
-        if ($this->disabled) {
-            $errorDetail = "Forbidden: can only create meeting on enabled type";
-            throw RegularException::forbidden($errorDetail);
+        if ($this->disabled || $this->program !== $program) {
+            throw RegularException::forbidden('forbidden: unable to use activity type');
         }
-        return new Meeting($this, $meetingId, $meetingData, $initiator);
     }
     
-    public function setUserAsInitiatorInMeeting(Meeting $meeting, CanAttendMeeting $user): void
+    public function assertUsableInFirm(Firm $firm): void
     {
-        $this->findAttendeeSetupCorrespondWithUserOrDie($user)->setUserAsInitiatorInMeeting($meeting, $user);
-    }
-
-    public function addUserAsAttendeeInMeeting(Meeting $meeting, CanAttendMeeting $user): void
-    {
-        if (!$user->canInvolvedInProgram($this->program)) {
-            $errorDetail = "forbidden: user cannot be involved in program";
-            throw RegularException::forbidden($errorDetail);
+        if ($this->disabled || !$this->program->belongsToFirm($firm)) {
+            throw RegularException::forbidden('forbidden: unable to use activity type');
         }
-        $this->findAttendeeSetupCorrespondWithUserOrDie($user)->addUserAsAttendeeInMeeting($meeting, $user);
     }
-
-    protected function findAttendeeSetupCorrespondWithUserOrDie(CanAttendMeeting $user): ActivityParticipant
+    
+    public function getActiveAttendeeSetupCorrenspondWithRoleOrDie(ActivityParticipantType $activityParticipantType): ActivityParticipant
     {
-        $p = function (ActivityParticipant $attendeeSetup) use ($user) {
-            return $attendeeSetup->roleCorrespondWithUser($user);
+        $p = function (ActivityParticipant $activityParticipant) use($activityParticipantType) {
+            return $activityParticipant->isActiveTypeCorrespondWithRole($activityParticipantType);
         };
-        $meetingSetup = $this->participants->filter($p)->first();
-        if (empty($meetingSetup)) {
-            $errorDetail = "forbidden: this user type is not allowed to involved in meeting type";
-            throw RegularException::forbidden($errorDetail);
+        $activityParticipant = $this->participants->filter($p)->first();
+        
+        if (empty($activityParticipant)) {
+            throw RegularException::notFound('not found: no attendee setup correspond with user role');
         }
-        return $meetingSetup;
+        return $activityParticipant;
+    }
+    
+    public function createMeeting(string $meetingId, MeetingData $meetingData): Meeting
+    {
+        if ($this->disabled) {
+            throw RegularException::forbidden('forbidden: inactive activity type');
+        }
+        return new Meeting($this, $meetingId, $meetingData);
+    }
+    
+    public function inviteAllActiveProgramParticipantsToMeeting(Meeting $meeting): void
+    {
+        $this->program->inviteAllActiveParticipantsToMeeting($meeting);
     }
 
 }

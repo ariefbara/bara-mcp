@@ -2,7 +2,7 @@
 
 namespace Firm\Application\Service\Manager;
 
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\Meeting\Attendee;
 
 interface AttendeeRepository
 {

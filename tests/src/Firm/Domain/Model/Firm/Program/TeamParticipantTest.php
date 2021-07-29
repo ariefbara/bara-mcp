@@ -3,9 +3,11 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Client;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Team;
 use Tests\TestBase;
 
@@ -18,6 +20,7 @@ class TeamParticipantTest extends TestBase
     protected $team;
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData, $client;
+    protected $participantAttendee, $task;
 
     protected function setUp(): void
     {
@@ -37,6 +40,8 @@ class TeamParticipantTest extends TestBase
         $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
         $this->client = $this->buildMockOfClass(Client::class);
 
+        $this->participantAttendee = $this->buildMockOfClass(ParticipantAttendee::class);
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByMeetingInitiator::class);
     }
     
     public function test_construct_setProperties()
@@ -45,6 +50,30 @@ class TeamParticipantTest extends TestBase
         $this->assertEquals($this->participant, $teamParticipant->participant);
         $this->assertEquals($this->id, $teamParticipant->id);
         $this->assertEquals($this->teamId, $teamParticipant->teamId);
+    }
+    
+    protected function executeAssertBelongsToTeam()
+    {
+        $this->team->expects($this->any())
+                ->method('idEquals')
+                ->with($this->teamParticipant->teamId)
+                ->willReturn(true);
+        $this->teamParticipant->assertBelongsToTeam($this->team);
+    }
+    public function test_assertBelongsToTeam_sameTeam_void()
+    {
+        $this->executeAssertBelongsToTeam();
+        $this->markAsSuccess();
+    }
+    public function test_assertBelongsToTeam_differentTeam_forbidden()
+    {
+        $this->team->expects($this->once())
+                ->method('idEquals')
+                ->with($this->teamParticipant->teamId)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeAssertBelongsToTeam();
+        }, 'Forbidden', "forbidden: program participation doesn't belongs to team");
     }
     
     public function test_correspondWithRegistrant_returnRegistrantCorrespondWithTeamResult()
@@ -133,6 +162,25 @@ class TeamParticipantTest extends TestBase
                 ->method('assertAssetAccessible')
                 ->with($this->missionComment);
         $this->executeReplyMissionComment();
+    }
+    
+    protected function executeTaskAsMeetingInitiator()
+    {
+        $this->teamParticipant->executeTaskAsMeetingInitiator($this->participantAttendee, $this->task);
+    }
+    public function test_executeTaskAsMeetingInitiator_participantAttendeeExecuteTask()
+    {
+        $this->participantAttendee->expects($this->once())
+                ->method('executeTaskAsMeetingInitiator')
+                ->with($this->task);
+        $this->executeTaskAsMeetingInitiator();
+    }
+    public function test_executeTaskAsMeetingInitiator_assertBelongsParticipantAttendee()
+    {
+        $this->participantAttendee->expects($this->once())
+                ->method('assertBelongsToParticipant')
+                ->with($this->participant);
+        $this->executeTaskAsMeetingInitiator();
     }
 }
 

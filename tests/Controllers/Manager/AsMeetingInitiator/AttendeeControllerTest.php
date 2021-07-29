@@ -391,7 +391,6 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     
     public function test_cancelInvitation_200()
     {
-$this->disableExceptionHandling();
         $uri = $this->attendeeUri . "/cancel-invitation/{$this->userParticipantAttendee->invitee->id}";
         $this->patch($uri, [], $this->manager->token)
                 ->seeStatusCode(200);

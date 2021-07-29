@@ -2,15 +2,15 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
-use Firm\ {
-    Application\Service\Coordinator\ParticipantRepository as InterfaceForCoordinator,
-    Application\Service\Firm\Program\ParticipantRepository,
-    Domain\Model\Firm\Program\Participant
-};
+use Firm\Application\Service\Coordinator\ParticipantRepository as InterfaceForCoordinator;
+use Firm\Application\Service\Firm\Program\ParticipantRepository;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Task\MeetingInitiator\UserRepository;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, InterfaceForCoordinator
+class DoctrineParticipantRepository extends DoctrineEntityRepository implements ParticipantRepository, InterfaceForCoordinator, UserRepository
 {
     
     public function ofId(string $participantId): Participant
@@ -26,6 +26,11 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aUserOfId(string $id): CanAttendMeeting
+    {
+        return $this->findOneByIdOrDie($id, 'participant');
     }
 
 }

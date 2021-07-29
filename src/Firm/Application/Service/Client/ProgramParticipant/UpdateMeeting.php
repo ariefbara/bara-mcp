@@ -2,7 +2,7 @@
 
 namespace Firm\Application\Service\Client\ProgramParticipant;
 
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\MeetingData;
 use Resources\Application\Event\Dispatcher;
 
 class UpdateMeeting

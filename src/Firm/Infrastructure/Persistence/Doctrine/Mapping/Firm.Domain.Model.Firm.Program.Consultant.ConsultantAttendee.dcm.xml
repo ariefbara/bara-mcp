@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Consultant\ConsultantAttendee" 
+            table="ConsultantInvitee"
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultantAttendeeRepository"
+    >
+        
+        <many-to-one  field="consultant" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Consultant"
+                      inversed-by="meetingInvitations"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="attendee" 
+                    target-entity="Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee"
+        >
+            <join-column name="Invitee_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+        
+    </entity>
+</doctrine-mapping>

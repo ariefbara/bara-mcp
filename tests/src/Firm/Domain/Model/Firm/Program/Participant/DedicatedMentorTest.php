@@ -5,6 +5,7 @@ namespace Firm\Domain\Model\Firm\Program\Participant;
 use DateTimeImmutable;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Consultant;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
@@ -16,6 +17,8 @@ class DedicatedMentorTest extends TestBase
     protected $dedicatedMentor;
     protected $id = 'newId';
     
+    protected $meeting;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -24,6 +27,8 @@ class DedicatedMentorTest extends TestBase
         $this->consultant->expects($this->any())->method('isActive')->willReturn(true);
         $this->dedicatedMentor = new TestableDedicatedMentor($this->participant, 'id', $this->consultant);
         $this->dedicatedMentor->modifiedTime = new DateTimeImmutable('-2 days');
+        
+        $this->meeting = $this->buildMockOfClass(Meeting::class);
     }
     
     protected function executeConstruct()
@@ -110,7 +115,24 @@ class DedicatedMentorTest extends TestBase
         $modifiedTime = $this->dedicatedMentor->modifiedTime;
         $this->executeReassign();
         $this->assertEquals($modifiedTime, $this->dedicatedMentor->modifiedTime);
-        
+    }
+    
+    public function test_isActiveAssignment_active_returnTrue()
+    {
+        $this->assertTrue($this->dedicatedMentor->isActiveAssignment());
+    }
+    public function test_isActiveAssignment_cancelled_returnFalse()
+    {
+        $this->dedicatedMentor->cancelled = true;
+        $this->assertFalse($this->dedicatedMentor->isActiveAssignment());
+    }
+    
+    public function test_inviteParticipantToMeeting_inviteParticipantToMeeting()
+    {
+        $this->participant->expects($this->once())
+                ->method('inviteToMeeting')
+                ->with($this->meeting);
+        $this->dedicatedMentor->inviteParticipantToMeeting($this->meeting);
     }
 }
 

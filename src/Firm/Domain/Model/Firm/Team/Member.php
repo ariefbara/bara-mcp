@@ -4,13 +4,15 @@ namespace Firm\Domain\Model\Firm\Team;
 
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program\ActivityType;
-use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
+use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
@@ -66,34 +68,6 @@ class Member extends EntityContainCommonEvents
         return $teamParticipant->initiateMeeting($meetingId, $meetingType, $meetingData);
     }
 
-    public function updateMeeting(
-            MeetingAttendeeBelongsToTeamFinder $meetingAttendeeFinder, string $meetingId, MeetingData $meetingData): void
-    {
-        $this->assertActive();
-        $meeting = $meetingAttendeeFinder->execute($this->team, $meetingId);
-        $meeting->updateMeeting($meetingData);
-
-        $this->recordedEvents = $meeting->pullRecordedEvents();
-    }
-
-    public function inviteUserToAttendMeeting(
-            MeetingAttendeeBelongsToTeamFinder $meetingAttendeeFinder, string $meetingId, CanAttendMeeting $user): void
-    {
-        $this->assertActive();
-        $meeting = $meetingAttendeeFinder->execute($this->team, $meetingId);
-        $meeting->inviteUserToAttendMeeting($user);
-
-        $this->recordedEvents = $meeting->pullRecordedEvents();
-    }
-
-    public function cancelInvitation(
-            MeetingAttendeeBelongsToTeamFinder $meetingAttendeeFinder, string $meetingId, Attendee $attendee): void
-    {
-        $this->assertActive();
-        $meetingAttendeeFinder->execute($this->team, $meetingId)
-                ->cancelInvitationTo($attendee);
-    }
-
     protected function assertActive(): void
     {
         if (!$this->active) {
@@ -101,9 +75,10 @@ class Member extends EntityContainCommonEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
+
     protected function assertManageableTeamParticipant(TeamParticipant $teamParticipant): void
     {
-        if (! $teamParticipant->belongsToTeam($this->team)) {
+        if (!$teamParticipant->belongsToTeam($this->team)) {
             throw RegularException::forbidden('forbidden: unable to manage team participant');
         }
     }
@@ -126,6 +101,15 @@ class Member extends EntityContainCommonEvents
         $this->assertManageableTeamParticipant($teamParticipant);
         $missionCommentData->addRolePath('member', $this->id);
         return $teamParticipant->replyMissionComment($missionComment, $replyId, $missionCommentData, $this->client);
+    }
+
+    public function executeTaskAsMemberOfTeamParticipantMeetingInitiator(
+            TeamParticipant $teamParticipant, ParticipantAttendee $participantAttendee,
+            ITaskExecutableByMeetingInitiator $task): void
+    {
+        $this->assertActive();
+        $teamParticipant->assertBelongsToTeam($this->team);
+        $teamParticipant->executeTaskAsMeetingInitiator($participantAttendee, $task);
     }
 
 }

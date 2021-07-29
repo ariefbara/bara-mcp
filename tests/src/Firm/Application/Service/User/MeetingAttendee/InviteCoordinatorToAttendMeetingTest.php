@@ -4,7 +4,7 @@ namespace Firm\Application\Service\User\MeetingAttendee;
 
 use Firm\Application\Service\Firm\Program\CoordinatorRepository;
 use Firm\Domain\Model\Firm\Program\Coordinator;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\Meeting\Attendee;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 

@@ -4,7 +4,7 @@ namespace Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeet
 
 use Firm\Application\Service\Client\AsTeamMember\TeamMemberRepository;
 use Firm\Application\Service\Firm\Program\MeetingType\Meeting\AttendeeRepository;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Team\Member;
 use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
 use Resources\Application\Event\Dispatcher;

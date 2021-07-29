@@ -23,9 +23,11 @@
         <field name="active" type="boolean" />
         
         <one-to-many  field="meetingInvitations" 
-                      target-entity="Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee\ConsultantAttendee"
+                      target-entity="Firm\Domain\Model\Firm\Program\Consultant\ConsultantAttendee"
                       mapped-by="consultant"
-        />
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
         
         <one-to-many  field="consultationRequests" 
                       target-entity="Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest"
@@ -35,6 +37,11 @@
         <one-to-many  field="consultationSessions" 
                       target-entity="Firm\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession"
                       mapped-by="consultant"
+        />
+        
+        <one-to-many field="dedicatedMentees" 
+                     target-entity="Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor" 
+                     mapped-by="consultant"
         />
         
     </entity>

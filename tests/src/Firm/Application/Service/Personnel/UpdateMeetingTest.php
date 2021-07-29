@@ -2,8 +2,8 @@
 
 namespace Firm\Application\Service\Personnel;
 
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingType\MeetingData;
 use Resources\Application\Event\Dispatcher;
 use Tests\TestBase;
 

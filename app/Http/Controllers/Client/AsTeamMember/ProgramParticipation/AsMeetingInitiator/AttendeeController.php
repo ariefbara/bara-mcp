@@ -3,18 +3,17 @@
 namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation\AsMeetingInitiator;
 
 use Config\EventList;
-use Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee\CancelInvitation;
-use Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee\InviteConsultantToAttendMeeting;
-use Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee\InviteCoordinatorToAttendMeeting;
-use Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee\InviteManagerToAttendMeeting;
-use Firm\Application\Service\Client\AsTeamMember\ProgramParticipant\AsMeetingAttendee\InviteParticipantToAttendMeeting;
+use Firm\Application\Service\Client\AsTeamMember\AsProgramParticipant\ExecuteTaskAsMemberOfTeamParticipantMeetingInitiator;
 use Firm\Domain\Model\Firm\Manager;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\Coordinator;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
+use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team\Member;
-use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Firm\Domain\Task\MeetingInitiator\CancelInvitationTask;
+use Firm\Domain\Task\MeetingInitiator\InviteUserTask;
 use Notification\Application\Listener\MeetingInvitationCancelledListener;
 use Notification\Application\Listener\MeetingInvitationSentListener;
 use Notification\Application\Service\GenerateMeetingInvitationCancelledNotification;
@@ -34,46 +33,105 @@ use Resources\Application\Event\Dispatcher;
 class AttendeeController extends AsMeetingInitiatorBaseController
 {
 
-    public function inviteManager($teamId, $meetingId)
+    public function inviteManager($teamId, $teamProgramParticipationId, $initiatorId)
     {
-        $service = $this->buildInviteManagerService();
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $teamParticipantRepository = $this->em->getRepository(TeamParticipant::class);
+        $participantAttendeeRepository = $this->em->getRepository(ParticipantAttendee::class);
+        
+        $service = new ExecuteTaskAsMemberOfTeamParticipantMeetingInitiator(
+                $teamMemberRepository, $teamParticipantRepository, $participantAttendeeRepository);
+        
+        $managerRepository = $this->em->getRepository(Manager::class);
         $managerId = $this->stripTagsInputRequest("managerId");
-        $service->execute($this->firmId(), $this->clientId(), $teamId, $meetingId, $managerId);
+        $dispatcher = $this->buildInvitationSentDispatcher();
+        
+        $task = new InviteUserTask($managerRepository, $managerId, $dispatcher);
+        
+        $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
+        $dispatcher->execute();
 
         return $this->commandOkResponse();
     }
 
-    public function inviteCoordinator($teamId, $meetingId)
+    public function inviteCoordinator($teamId, $teamProgramParticipationId, $initiatorId)
     {
-        $service = $this->buildInviteCoordinatorService();
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $teamParticipantRepository = $this->em->getRepository(TeamParticipant::class);
+        $participantAttendeeRepository = $this->em->getRepository(ParticipantAttendee::class);
+        
+        $service = new ExecuteTaskAsMemberOfTeamParticipantMeetingInitiator(
+                $teamMemberRepository, $teamParticipantRepository, $participantAttendeeRepository);
+        
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
         $coordinatorId = $this->stripTagsInputRequest("coordinatorId");
-        $service->execute($this->firmId(), $this->clientId(), $teamId, $meetingId, $coordinatorId);
+        $dispatcher = $this->buildInvitationSentDispatcher();
+        
+        $task = new InviteUserTask($coordinatorRepository, $coordinatorId, $dispatcher);
+        
+        $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
+        $dispatcher->execute();
 
         return $this->commandOkResponse();
     }
 
-    public function inviteConsultant($teamId, $meetingId)
+    public function inviteConsultant($teamId, $teamProgramParticipationId, $initiatorId)
     {
-        $service = $this->buildInviteConsultantService();
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $teamParticipantRepository = $this->em->getRepository(TeamParticipant::class);
+        $participantAttendeeRepository = $this->em->getRepository(ParticipantAttendee::class);
+        
+        $service = new ExecuteTaskAsMemberOfTeamParticipantMeetingInitiator(
+                $teamMemberRepository, $teamParticipantRepository, $participantAttendeeRepository);
+        
+        $consultantRepository = $this->em->getRepository(Consultant::class);
         $consultantId = $this->stripTagsInputRequest("consultantId");
-        $service->execute($this->firmId(), $this->clientId(), $teamId, $meetingId, $consultantId);
+        $dispatcher = $this->buildInvitationSentDispatcher();
+        
+        $task = new InviteUserTask($consultantRepository, $consultantId, $dispatcher);
+        
+        $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
+        $dispatcher->execute();
 
         return $this->commandOkResponse();
     }
 
-    public function inviteParticipant($teamId, $meetingId)
+    public function inviteParticipant($teamId, $teamProgramParticipationId, $initiatorId)
     {
-        $service = $this->buildInviteParticipantService();
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $teamParticipantRepository = $this->em->getRepository(TeamParticipant::class);
+        $participantAttendeeRepository = $this->em->getRepository(ParticipantAttendee::class);
+        
+        $service = new ExecuteTaskAsMemberOfTeamParticipantMeetingInitiator(
+                $teamMemberRepository, $teamParticipantRepository, $participantAttendeeRepository);
+        
+        $participantRepository = $this->em->getRepository(Participant::class);
         $participantId = $this->stripTagsInputRequest("participantId");
-        $service->execute($this->firmId(), $this->clientId(), $teamId, $meetingId, $participantId);
+        $dispatcher = $this->buildInvitationSentDispatcher();
+        
+        $task = new InviteUserTask($participantRepository, $participantId, $dispatcher);
+        
+        $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
+        $dispatcher->execute();
 
         return $this->commandOkResponse();
     }
 
-    public function cancel($teamId, $meetingId, $attendeeId)
+    public function cancel($teamId, $teamProgramParticipationId, $initiatorId, $attendeeId)
     {
-        $service = $this->buildCancelService();
-        $service->execute($this->firmId(), $this->clientId(), $teamId, $meetingId, $attendeeId);
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $teamParticipantRepository = $this->em->getRepository(TeamParticipant::class);
+        $participantAttendeeRepository = $this->em->getRepository(ParticipantAttendee::class);
+        
+        $service = new ExecuteTaskAsMemberOfTeamParticipantMeetingInitiator(
+                $teamMemberRepository, $teamParticipantRepository, $participantAttendeeRepository);
+        
+        $attendeeRepository = $this->em->getRepository(Attendee::class);
+        $dispatcher = $this->buildInvitationCancelledDispatcher();
+        $task = new CancelInvitationTask($attendeeRepository, $attendeeId, $dispatcher);
+        
+        $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
+        $dispatcher->execute();
 
         return $this->commandOkResponse();
     }
@@ -180,86 +238,38 @@ class AttendeeController extends AsMeetingInitiatorBaseController
             "name" => $teamParticipant->getTeam()->getName(),
         ];
     }
-
+    
     protected function buildViewService()
     {
         $inviteeRepository = $this->em->getRepository(Invitee::class);
         return new ViewInvitee($inviteeRepository);
     }
-
-    protected function buildInviteManagerService()
-    {
-        $teamMemberRepository = $this->em->getRepository(Member::class);
-        $managerRepository = $this->em->getRepository(Manager::class);
-        $dispatcher = new Dispatcher();
-        $this->addMeetingInvitationSentListener($dispatcher);
-        return new InviteManagerToAttendMeeting(
-                $teamMemberRepository, $this->buildMeetingAttendeeBelongsToTeamFinder(), $managerRepository, $dispatcher);
-    }
-
-    protected function buildInviteCoordinatorService()
-    {
-        $teamMemberRepository = $this->em->getRepository(Member::class);
-        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
-        $dispatcher = new Dispatcher();
-        $this->addMeetingInvitationSentListener($dispatcher);
-        return new InviteCoordinatorToAttendMeeting(
-                $teamMemberRepository, $this->buildMeetingAttendeeBelongsToTeamFinder(), $coordinatorRepository, $dispatcher);
-    }
-
-    protected function buildInviteConsultantService()
-    {
-        $teamMemberRepository = $this->em->getRepository(Member::class);
-        $consultantRepository = $this->em->getRepository(Consultant::class);
-        $dispatcher = new Dispatcher();
-        $this->addMeetingInvitationSentListener($dispatcher);
-        return new InviteConsultantToAttendMeeting(
-                $teamMemberRepository, $this->buildMeetingAttendeeBelongsToTeamFinder(), $consultantRepository, $dispatcher);
-    }
-    protected function buildInviteParticipantService()
-    {
-        $teamMemberRepository = $this->em->getRepository(Member::class);
-        $participantRepository = $this->em->getRepository(Participant::class);
-        $dispatcher = new Dispatcher();
-        $this->addMeetingInvitationSentListener($dispatcher);
-        return new InviteParticipantToAttendMeeting(
-                $teamMemberRepository, $this->buildMeetingAttendeeBelongsToTeamFinder(), $participantRepository, $dispatcher);
-    }
-    protected function addMeetingInvitationSentListener(Dispatcher $dispatcher): void
+    
+    protected function buildInvitationSentDispatcher()
     {
         $meetingAttendeeRepository = $this->em->getRepository(MeetingAttendee::class);
-        $generateMeetingInvitationSentNotification = new GenerateMeetingInvitationSentNotification(
-                $meetingAttendeeRepository);
+        $generateMeetingInvitationSentNotification = new GenerateMeetingInvitationSentNotification($meetingAttendeeRepository);
         
         $listener = new MeetingInvitationSentListener(
                 $generateMeetingInvitationSentNotification, $this->buildSendImmediateMail());
+        
+        $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_INVITATION_SENT, $listener);
+        
+        return $dispatcher;
     }
-
-    protected function buildCancelService()
-    {
-        $teamMemberRepository = $this->em->getRepository(Member::class);
-        $attendeeRepository = $this->em->getRepository(Attendee::class);
-        $dispatcher = new Dispatcher();
-        $this->addMeetingInvitationCancelledListener($dispatcher);
-        return new CancelInvitation(
-                $teamMemberRepository, $this->buildMeetingAttendeeBelongsToTeamFinder(), $attendeeRepository, $dispatcher);
-    }
-    protected function addMeetingInvitationCancelledListener(Dispatcher $dispatcher): void
+    
+    protected function buildInvitationCancelledDispatcher()
     {
         $meetingAttendeeRepository = $this->em->getRepository(MeetingAttendee::class);
-        $generateMeetingInvitationCancelledNotification = new GenerateMeetingInvitationCancelledNotification(
-                $meetingAttendeeRepository);
+        $generateMeetingInvitationCancelledNotification = new GenerateMeetingInvitationCancelledNotification($meetingAttendeeRepository);
         
-        $listener = new MeetingInvitationCancelledListener(
-                $generateMeetingInvitationCancelledNotification, $this->buildSendImmediateMail());
+        $listener = new MeetingInvitationCancelledListener($generateMeetingInvitationCancelledNotification, $this->buildSendImmediateMail());
+        
+        $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_INVITATION_CANCELLED, $listener);
-    }
-
-    protected function buildMeetingAttendeeBelongsToTeamFinder()
-    {
-        $meetingAttendeeRepository = $this->em->getRepository(Attendee::class);
-        return new MeetingAttendeeBelongsToTeamFinder($meetingAttendeeRepository);
+        
+        return $dispatcher;
     }
 
 }

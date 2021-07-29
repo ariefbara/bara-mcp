@@ -6,14 +6,13 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
-use Firm\Domain\Model\Firm\Program\MeetingType\CanAttendMeeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting;
-use Firm\Domain\Model\Firm\Program\MeetingType\Meeting\Attendee;
-use Firm\Domain\Model\Firm\Program\MeetingType\MeetingData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Firm\Domain\Model\Firm\Program\Participant\Evaluation;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
+use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
@@ -22,7 +21,6 @@ use Resources\DateTimeImmutableBuilder;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
-use SharedContext\Domain\ValueObject\ActivityParticipantType;
 
 class Participant implements AssetInProgram, CanAttendMeeting
 {
@@ -86,31 +84,31 @@ class Participant implements AssetInProgram, CanAttendMeeting
      * @var ArrayCollection
      */
     protected $evaluations;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $profiles;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $meetingInvitations;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $consultationRequests;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $consultationSessions;
-    
+
     /**
      * 
      * @var ArrayCollection
@@ -122,6 +120,11 @@ class Participant implements AssetInProgram, CanAttendMeeting
         return $this->id;
     }
 
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
     public function __construct(Program $program, string $id)
     {
         $this->program = $program;
@@ -129,15 +132,17 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->active = true;
         $this->note = null;
-        
+
         $this->profiles = new ArrayCollection();
     }
+
     public function assertActive(): void
     {
         if (!$this->active) {
             throw RegularException::forbidden('forbidden: inactive partiicpant');
         }
     }
+
     public function assertAssetAccessible(AssetInProgram $asset): void
     {
         if (!$asset->belongsToProgram($this->program)) {
@@ -178,7 +183,7 @@ class Participant implements AssetInProgram, CanAttendMeeting
             $errorDetail = "forbidden: unable to evaluate inactive participant";
             throw RegularException::forbidden($errorDetail);
         }
-        $p = function (Evaluation $evaluation) use($evaluationPlan){
+        $p = function (Evaluation $evaluation) use ($evaluationPlan) {
             return $evaluation->isCompletedEvaluationForPlan($evaluationPlan);
         };
         if (!empty($this->evaluations->filter($p)->count())) {
@@ -189,7 +194,7 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $evaluation = new Evaluation($this, $id, $evaluationPlan, $evaluationData, $coordinator);
         $this->evaluations->add($evaluation);
     }
-    
+
     public function qualify(): void
     {
         if (!$this->active) {
@@ -199,7 +204,7 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $this->active = false;
         $this->note = "completed";
     }
-    
+
     public function disable(): void
     {
         if (!$this->active) {
@@ -208,7 +213,7 @@ class Participant implements AssetInProgram, CanAttendMeeting
         }
         $this->active = false;
         $this->note = "fail";
-        
+
         foreach ($this->consultationSessions->getIterator() as $consultationSession) {
             $consultationSession->disableUpcomingSession();
         }
@@ -258,46 +263,18 @@ class Participant implements AssetInProgram, CanAttendMeeting
         return $metric->belongsToProgram($this->program);
     }
 
-    public function canInvolvedInProgram(Program $program): bool
-    {
-        return $this->active && $this->program === $program;
-    }
-
-    public function registerAsAttendeeCandidate(Attendee $attendee): void
-    {
-        $attendee->setParticipantAsAttendeeCandidate($this);
-    }
-
-    public function roleCorrespondWith(ActivityParticipantType $role): bool
-    {
-        return $role->isParticipantType();
-    }
-
-    public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
-    {
-        if (!$this->active) {
-            $errorDetail = "forbidden: only active participant can make this request";
-            throw RegularException::forbidden($errorDetail);
-        }
-        if (!$meetingType->belongsToProgram($this->program)) {
-            $errorDetail = "forbidden: can only manage meeting type on same program";
-            throw RegularException::forbidden($errorDetail);
-        }
-        return $meetingType->createMeeting($meetingId, $meetingData, $this);
-    }
-
     public function belongsToTeam(Team $team): bool
     {
         return isset($this->teamParticipant) ? $this->teamParticipant->belongsToTeam($team) : false;
     }
-    
+
     public function addProfile(ProgramsProfileForm $programsProfileForm, FormRecord $formRecord): void
     {
         $id = $formRecord->getId();
         $profile = new ParticipantProfile($this, $id, $programsProfileForm, $formRecord);
         $this->profiles->add($profile);
     }
-    
+
     public function dedicateMentor(Consultant $consultant): string
     {
         $this->assertActive();
@@ -312,6 +289,35 @@ class Participant implements AssetInProgram, CanAttendMeeting
             $dedicatedMentor->reassign();
         }
         return $dedicatedMentor->getId();
+    }
+    
+    public function initiateMeeting(string $meetingId, ActivityType $activityType, MeetingData $meetingData): Meeting
+    {
+        $this->assertActive();
+        $activityType->assertUsableInProgram($this->program);
+        
+        $meeting = $activityType->createMeeting($meetingId, $meetingData);
+        
+        $id = Uuid::generateUuid4();
+        $participantAttendee = new ParticipantAttendee($this, $id, $meeting, true);
+        $this->meetingInvitations->add($participantAttendee);
+        
+        return $meeting;
+    }
+    
+    public function inviteToMeeting(Meeting $meeting): void
+    {
+        $this->assertActive();
+        $meeting->assertUsableInProgram($this->program);
+        
+        $p = function (ParticipantAttendee $participantAttendee) use ($meeting) {
+            return $participantAttendee->isActiveAttendeeOfMeeting($meeting);
+        };
+        if (empty($this->meetingInvitations->filter($p)->count())) {
+            $id = Uuid::generateUuid4();
+            $participantAttendee = new ParticipantAttendee($this, $id, $meeting, false);
+            $this->meetingInvitations->add($participantAttendee);
+        }
     }
 
 }

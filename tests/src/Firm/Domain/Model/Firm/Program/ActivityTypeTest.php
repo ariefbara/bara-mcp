@@ -2,29 +2,29 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Firm\Domain\ {
-    Model\Firm,
-    Model\Firm\Program,
-    Model\Firm\Program\ActivityType\ActivityParticipant,
-    Model\Firm\Program\ActivityType\ActivityParticipantData,
-    Model\Firm\Program\MeetingType\CanAttendMeeting,
-    Model\Firm\Program\MeetingType\Meeting,
-    Model\Firm\Program\MeetingType\MeetingData,
-    Service\ActivityTypeDataProvider,
-    Service\FeedbackFormRepository
-};
+use DateTimeImmutable;
+use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
+use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipantData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
+use Firm\Domain\Service\ActivityTypeDataProvider;
+use Firm\Domain\Service\FeedbackFormRepository;
+use SharedContext\Domain\ValueObject\ActivityParticipantType;
 use Tests\TestBase;
 
 class ActivityTypeTest extends TestBase
 {
     protected $program;
-    protected $activityType;
+    protected $activityType, $activityParticipant;
     protected $attendeeSetup;
     protected $id = "newId", $name = "new name", $description = "new description";
     protected $activityTypeDataProvider;
     protected $activityParticipantData;
     protected $meetingId = "meetingId", $meetingData, $user;
     protected $meeting;
+    protected $firm;
 
     protected function setUp(): void
     {
@@ -45,11 +45,14 @@ class ActivityTypeTest extends TestBase
         
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
         $this->meetingData->expects($this->any())->method("getName")->willReturn("new name");
-        $this->meetingData->expects($this->any())->method("getStartTime")->willReturn(new \DateTimeImmutable("+24 hours"));
-        $this->meetingData->expects($this->any())->method("getEndTime")->willReturn(new \DateTimeImmutable("+27 hours"));
+        $this->meetingData->expects($this->any())->method("getStartTime")->willReturn(new DateTimeImmutable("+24 hours"));
+        $this->meetingData->expects($this->any())->method("getEndTime")->willReturn(new DateTimeImmutable("+27 hours"));
         $this->user = $this->buildMockOfInterface(CanAttendMeeting::class);
         
         $this->meeting = $this->buildMockOfClass(Meeting::class);
+        $this->activityParticipantType = $this->buildMockOfClass(ActivityParticipantType::class);
+        
+        $this->firm = $this->buildMockOfClass(Firm::class);
     }
     
     protected function executeConstruct()
@@ -119,6 +122,8 @@ class ActivityTypeTest extends TestBase
     }
     public function test_update_addLeftOverAttendeeSetupToCollection()
     {
+        $this->assertEquals(1, $this->activityType->participants->count());
+        
         $this->activityParticipantData->expects($this->any())->method("getParticipantType")->willReturn("coordinator");
         $this->activityParticipantData->expects($this->any())->method("getCanInitiate")->willReturn(false);
         $this->activityParticipantData->expects($this->any())->method("getCanAttend")->willReturn(true);
@@ -163,12 +168,83 @@ class ActivityTypeTest extends TestBase
         $this->assertFalse($this->activityType->belongsToProgram($program));
     }
     
+    protected function executeAssertUsableInProgram()
+    {
+        $this->activityType->assertUsableInProgram($this->program);
+    }
+    public function test_assertUsableInProgram_activeActivityTypeInSameProgram()
+    {
+        $this->executeAssertUsableInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInProgram_inactiveActivityType_forbidden()
+    {
+        $this->activityType->disabled = true;
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeAssertUsableInProgram();
+        }, 'Forbidden', 'forbidden: unable to use activity type');
+    }
+    public function test_assertUsableInProgram_differentProgram_forbidden()
+    {
+        $this->activityType->program = $this->buildMockOfClass(Program::class);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeAssertUsableInProgram();
+        }, 'Forbidden', 'forbidden: unable to use activity type');
+    }
+    
+    protected function executeAssertUsableInFirm()
+    {
+        $this->program->expects($this->any())
+                ->method('belongsToFirm')
+                ->with($this->firm)
+                ->willReturn(true);
+        $this->activityType->assertUsableInFirm($this->firm);
+    }
+    public function test_assertUsableInFirm_activeActivityTypeInSameFirm()
+    {
+        $this->executeAssertUsableInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInFirm_inactiveActivityType_forbidden()
+    {
+        $this->activityType->disabled = true;
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeAssertUsableInFirm();
+        }, 'Forbidden', 'forbidden: unable to use activity type');
+    }
+    public function test_assertUsableInFirm_programDoesntBelongsToFirm_forbidden()
+    {
+        $this->program->expects($this->once())
+                ->method('belongsToFirm')
+                ->with($this->firm)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeAssertUsableInFirm();
+        }, 'Forbidden', 'forbidden: unable to use activity type');
+    }
+    
+    protected function executeGetActiveAttendeeSetupCorrenspondWithRoleOrDie()
+    {
+        return $this->activityType->getActiveAttendeeSetupCorrenspondWithRoleOrDie($this->activityParticipantType);
+    }
+    public function test_getActiveAttendeeSetupCorrespondWithRoleOrDie_hasActiveActivityParticipantCorrespondWithSameRole_returnActivityParticipant()
+    {
+        $this->attendeeSetup->expects($this->once())
+                ->method('isActiveTypeCorrespondWithRole')
+                ->with($this->activityParticipantType)
+                ->willReturn(true);
+        $this->assertEquals($this->attendeeSetup, $this->executeGetActiveAttendeeSetupCorrenspondWithRoleOrDie());
+    }
+    public function test_getActiveAttendeeSetupCorrespondWithRole_noAttendeeSetupSatisfiedCritera_notFound()
+    {
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeGetActiveAttendeeSetupCorrenspondWithRoleOrDie();
+        }, 'Not Found', 'not found: no attendee setup correspond with user role');
+    }
+    
     protected function executeCreateMeeting()
     {
-        $this->attendeeSetup->expects($this->any())
-                ->method("roleCorrespondWithUser")
-                ->willReturn(true);
-        return $this->activityType->createMeeting($this->meetingId, $this->meetingData, $this->user);
+        return $this->activityType->createMeeting($this->meetingId, $this->meetingData);
     }
     public function test_createMeeting_returnMeeting()
     {
@@ -177,68 +253,17 @@ class ActivityTypeTest extends TestBase
     public function test_createMeeting_disabledActivityType_forbidden()
     {
         $this->activityType->disabled = true;
-        $operation = function (){
+        $this->assertRegularExceptionThrowed(function (){
             $this->executeCreateMeeting();
-        };
-        $errorDetail = "Forbidden: can only create meeting on enabled type";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        }, 'Forbidden', 'forbidden: inactive activity type');
     }
     
-    protected function executeSetUserAsInitiatorInMeeting()
+    public function test_inviteAllActiveProgramParticipantsToMeeting_executeProgramsInviteAllActiveParticipantsToMeeting()
     {
-        $this->attendeeSetup->expects($this->any())
-                ->method("roleCorrespondWithUser")
-                ->willReturn(true);
-        $this->activityType->setUserAsInitiatorInMeeting($this->meeting, $this->user);
-    }
-    public function test_setUserAsInitiatorInMeeting_setMeetingInitiatorThroudCorrespondingAttendeeSetup()
-    {
-        $this->attendeeSetup->expects($this->once())
-                ->method("setUserAsInitiatorInMeeting")
-                ->with($this->meeting, $this->user);
-        $this->executeSetUserAsInitiatorInMeeting();
-    }
-    public function test_setUserAsInitiatorInMeeting_noAttendeeSetupRoleCorrespondWithUser_forbidden()
-    {
-        $this->attendeeSetup->expects($this->once())
-                ->method("roleCorrespondWithUser")
-                ->with($this->user)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeSetUserAsInitiatorInMeeting();
-        };
-        $errorDetail = "forbidden: this user type is not allowed to involved in meeting type";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    
-    protected function executeAddUserAsAttendeeInMeeting()
-    {
-        $this->user->expects($this->any())
-                ->method("canInvolvedInProgram")
-                ->willReturn(true);
-        $this->attendeeSetup->expects($this->any())
-                ->method("roleCorrespondWithUser")
-                ->willReturn(true);
-        $this->activityType->addUserAsAttendeeInMeeting($this->meeting, $this->user);
-    }
-    public function test_addUSerAsAttendeeInMeeting_addMeetingAttendeeThroughAttendeeSetupCorrespondWithUser()
-    {
-        $this->attendeeSetup->expects($this->once())
-                ->method("addUserAsAttendeeInMeeting")
-                ->with($this->meeting, $this->user);
-        $this->executeAddUserAsAttendeeInMeeting();
-    }
-    public function test_addUserAsAttendeeInMeeting_userCannotInvolvedInSameProgram()
-    {
-        $this->user->expects($this->once())
-                ->method("canInvolvedInProgram")
-                ->with($this->program)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeAddUserAsAttendeeInMeeting();
-        };
-        $errorDetail = "forbidden: user cannot be involved in program";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        $this->program->expects($this->once())
+                ->method('inviteAllActiveParticipantsToMeeting')
+                ->with($this->meeting);
+        $this->activityType->inviteAllActiveProgramParticipantsToMeeting($this->meeting);
     }
     
 }

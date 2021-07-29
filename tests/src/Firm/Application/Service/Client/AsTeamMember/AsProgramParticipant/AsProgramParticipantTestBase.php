@@ -19,7 +19,7 @@ class AsProgramParticipantTestBase extends AsTeamMemberTestBase
      * @var MockObject
      */
     protected $teamParticipant;
-    protected $programId = 'program-id';
+    protected $participantId = 'participant-id';
     
     protected function setUp(): void
     {
@@ -27,8 +27,8 @@ class AsProgramParticipantTestBase extends AsTeamMemberTestBase
         $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
         $this->teamParticipantRepository = $this->buildMockOfInterface(TeamParticipantRepository::class);
         $this->teamParticipantRepository->expects($this->any())
-                ->method('aTeamParticipantCorrespondWitnProgram')
-                ->with($this->teamId, $this->programId)
+                ->method('ofId')
+                ->with($this->participantId)
                 ->willReturn($this->teamParticipant);
     }
 }
