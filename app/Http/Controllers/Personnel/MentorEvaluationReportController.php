@@ -70,8 +70,8 @@ class MentorEvaluationReportController extends PersonnelBaseController
         
         $submittedStatus = $this->filterBooleanOfQueryRequest('submittedStatus');
         $evaluationPlanId = $this->stripTagQueryRequest('evaluationPlanId');
-        $participantId = $this->stripTagQueryRequest('participantId');
-        $evaluationReportFilter = new EvaluationReportFilter($submittedStatus, $evaluationPlanId, $participantId);
+        $participantName = $this->stripTagQueryRequest('participantName');
+        $evaluationReportFilter = new EvaluationReportFilter($submittedStatus, $evaluationPlanId, $participantName);
         
         $payload = new ViewAllEvaluationReportsPayload($programId, $this->getPage(), $this->getPageSize(), $evaluationReportFilter);
         $task = new ViewAllEvaluationReportsTask($evaluationReportRepository, $payload);

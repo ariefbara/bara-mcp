@@ -26,6 +26,16 @@ class ViewEvaluationPlan
         $this->evaluationPlanRepository = $evaluationPlanRepository;
     }
 
+    /**
+     * 
+     * @param string $firmId
+     * @param string $personnelId
+     * @param string $consultantId
+     * @param int $page
+     * @param int $pageSize
+     * @param bool|null $disabledStatus
+     * @return EvaluationPlan[]
+     */
     public function showAll(
             string $firmId, string $personnelId, string $consultantId, int $page, int $pageSize, ?bool $disabledStatus)
     {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
+use App\Http\Controllers\FormToArrayDataConverter;
 use App\Http\Controllers\Personnel\ProgramConsultation\ProgramConsultationBaseController;
 use Query\Application\Service\Consultant\ViewEvaluationPlan;
 use Query\Domain\Model\Firm\Program\Consultant;
@@ -20,7 +21,17 @@ class EvaluationPlanController extends ProgramConsultationBaseController
         $result = [];
         $result['total'] = count($evaluationPlans);
         foreach ($evaluationPlans as $evaluationPlan) {
-            $result['list'][] = $this->arrayDataOfEvaluationPlan($evaluationPlan);
+            $result['list'][] = [
+                "id" => $evaluationPlan->getId(),
+                "name" => $evaluationPlan->getName(),
+                "interval" => $evaluationPlan->getInterval(),
+                "disabled" => $evaluationPlan->isDisabled(),
+                "reportForm" => [
+                    "id" => $evaluationPlan->getReportForm()->getId(),
+                    "name" => $evaluationPlan->getReportForm()->getName(),
+                ],
+                "mission" => $this->arrayDataOfMission($evaluationPlan->getMission()),
+            ];
         }
         return $result;
     }
@@ -34,15 +45,14 @@ class EvaluationPlanController extends ProgramConsultationBaseController
     
     protected function arrayDataOfEvaluationPlan(EvaluationPlan $evaluationPlan): array
     {
+        $reportForm = (new FormToArrayDataConverter())->convert($evaluationPlan->getReportForm());
+        $reportForm["id"] = $evaluationPlan->getReportForm()->getId();
         return [
             "id" => $evaluationPlan->getId(),
             "name" => $evaluationPlan->getName(),
             "interval" => $evaluationPlan->getInterval(),
             "disabled" => $evaluationPlan->isDisabled(),
-            "reportForm" => [
-                "id" => $evaluationPlan->getReportForm()->getId(),
-                "name" => $evaluationPlan->getReportForm()->getName(),
-            ],
+            "reportForm" => $reportForm,
             "mission" => $this->arrayDataOfMission($evaluationPlan->getMission()),
         ];
     }

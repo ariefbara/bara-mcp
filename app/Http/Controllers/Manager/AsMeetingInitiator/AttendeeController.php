@@ -47,7 +47,7 @@ class AttendeeController extends AsMeetingInitiatorBaseController
                 
         $service->execute($this->firmId(), $this->managerId(), $meetingId, $task);
         $dispatcher->execute();
-        
+
         return $this->commandOkResponse();
     }
     
@@ -139,6 +139,7 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         foreach ($attendees as $attendee) {
             $result["list"][] = $this->arrayDataOfInvitee($attendee);
         }
+
         return $this->listQueryResponse($result);
     }
     

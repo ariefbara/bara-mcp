@@ -28,13 +28,13 @@ class DoctrineMentorEvaluationReportRepository extends EntityRepository implemen
             $evaluationPlanFilterClause = "AND EvaluationPlan.id = :evaluationPlanId";
             $params['evaluationPlanId'] = $evaluationPlanId;
         }
-        if (!empty($participantId = $evaluationReportFilter->getParticipantId())) {
-            $participantFilterClause = "AND Participant.id = :participantId";
-            $params['participantId'] = $participantId;
+        if (!empty($participantName = $evaluationReportFilter->getParticipantName())) {
+            $participantFilterClause = "HAVING participantName LIKE :participantName";
+            $params['participantName'] = "%{$participantName}%";
         }
         if (!is_null($submittedStatus = $evaluationReportFilter->getSubmittedStatus())) {
             $submittedStatusFilterClause = $submittedStatus ? 
-                    "WHERE MentorEvaluationReport.id IS NOT NULL AND MentorEvaluationReport.cancelled = false" :
+                    "WHERE (MentorEvaluationReport.id IS NOT NULL AND MentorEvaluationReport.cancelled = false)" :
                     "WHERE MentorEvaluationReport.id IS NULL";
         }
         
@@ -43,7 +43,7 @@ class DoctrineMentorEvaluationReportRepository extends EntityRepository implemen
 SELECT 
     _a.dedicatedMentorId, 
     _a.participantId, 
-    COALESCE(_b.userName, _c.clientName, _d.teamName) participantName, 
+    _a.participantName, 
     _a.evaluationPlanId, 
     _a.evaluationPlanName, 
     _a.evaluationPlanIntervalDay, 
@@ -52,11 +52,27 @@ FROM (
     SELECT 
         DedicatedMentor.id dedicatedMentorId, 
         Participant.id participantId,
+        COALESCE(_a1.userName, _a2.clientName, _a3.teamName) participantName, 
         EvaluationPlan.id evaluationPlanId, 
         EvaluationPlan.name evaluationPlanName, 
         EvaluationPlan.days_interval evaluationPlanIntervalDay
     FROM DedicatedMentor
     LEFT JOIN Participant ON Participant.id = DedicatedMentor.Participant_id
+    LEFT JOIN (
+        SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
+        FROM UserParticipant
+            LEFT JOIN User ON User.id = UserParticipant.User_id
+    )_a1 ON _a1.participantId = Participant.id
+    LEFT JOIN (
+        SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
+        FROM ClientParticipant
+            LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    )_a2 ON _a2.participantId = Participant.id
+    LEFT JOIN (
+        SELECT Team.name teamName, TeamParticipant.Participant_id participantId
+        FROM TeamParticipant
+            LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+    )_a3 ON _a3.participantId = Participant.id
     LEFT JOIN Consultant ON Consultant.id = DedicatedMentor.Consultant_id
     LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
     CROSS JOIN EvaluationPlan
@@ -70,21 +86,6 @@ FROM (
         {$evaluationPlanFilterClause}
         {$participantFilterClause}
 )_a
-LEFT JOIN (
-    SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
-    FROM UserParticipant
-        LEFT JOIN User ON User.id = UserParticipant.User_id
-)_b ON _b.participantId = _a.participantId
-LEFT JOIN (
-    SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
-    FROM ClientParticipant
-        LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
-)_c ON _c.participantId = _a.participantId
-LEFT JOIN (
-    SELECT Team.name teamName, TeamParticipant.Participant_id participantId
-    FROM TeamParticipant
-        LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
-)_d ON _d.participantId = _a.participantId
 LEFT JOIN MentorEvaluationReport ON (MentorEvaluationReport.DedicatedMentor_id = _a.dedicatedMentorId AND MentorEvaluationReport.EvaluationPlan_id = _a.evaluationPlanId)
 {$submittedStatusFilterClause}
 ORDER BY evaluationPlanIntervalDay ASC
@@ -112,13 +113,13 @@ _STATEMENT;
             $evaluationPlanFilterClause = "AND EvaluationPlan.id = :evaluationPlanId";
             $params['evaluationPlanId'] = $evaluationPlanId;
         }
-        if (!empty($participantId = $evaluationReportFilter->getParticipantId())) {
-            $participantFilterClause = "AND Participant.id = :participantId";
-            $params['participantId'] = $participantId;
+        if (!empty($participantName = $evaluationReportFilter->getParticipantName())) {
+            $participantFilterClause = "HAVING participantName LIKE :participantName";
+            $params['participantName'] = "%{$participantName}%";
         }
         if (!is_null($submittedStatus = $evaluationReportFilter->getSubmittedStatus())) {
             $submittedStatusFilterClause = $submittedStatus ? 
-                    "WHERE MentorEvaluationReport.id IS NOT NULL AND MentorEvaluationReport.cancelled = false" :
+                    "WHERE (MentorEvaluationReport.id IS NOT NULL AND MentorEvaluationReport.cancelled = false)" :
                     "WHERE MentorEvaluationReport.id IS NULL";
         }
         
@@ -128,9 +129,25 @@ FROM (
     SELECT 
         DedicatedMentor.id dedicatedMentorId, 
         Participant.id participantId,
+        COALESCE(_a1.userName, _a2.clientName, _a3.teamName) participantName, 
         EvaluationPlan.id evaluationPlanId
     FROM DedicatedMentor
     LEFT JOIN Participant ON Participant.id = DedicatedMentor.Participant_id
+    LEFT JOIN (
+        SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
+        FROM UserParticipant
+            LEFT JOIN User ON User.id = UserParticipant.User_id
+    )_a1 ON _a1.participantId = Participant.id
+    LEFT JOIN (
+        SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
+        FROM ClientParticipant
+            LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    )_a2 ON _a2.participantId = Participant.id
+    LEFT JOIN (
+        SELECT Team.name teamName, TeamParticipant.Participant_id participantId
+        FROM TeamParticipant
+            LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+    )_a3 ON _a3.participantId = Participant.id
     LEFT JOIN Consultant ON Consultant.id = DedicatedMentor.Consultant_id
     LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
     CROSS JOIN EvaluationPlan

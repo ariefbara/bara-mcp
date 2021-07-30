@@ -218,5 +218,11 @@ class Controller extends BaseController
     {
         return new DataFinder($this->em->getConnection());
     }
+    
+    protected function executeImmediateSendMailExternally(): void
+    {
+        $sendmailPath = dirname(__DIR__, 3) . "/scripts/sendmail.php";
+        exec("php $sendmailPath > /dev/null 2>/dev/null &");
+    }
 
 }

@@ -21,7 +21,7 @@ class EvaluationReportFilter
      * 
      * @var string|null
      */
-    protected $participantId;
+    protected $participantName;
 
     public function getSubmittedStatus(): ?bool
     {
@@ -33,16 +33,16 @@ class EvaluationReportFilter
         return $this->evaluationPlanId;
     }
 
-    public function getParticipantId(): ?string
+    public function getParticipantName(): ?string
     {
-        return $this->participantId;
+        return $this->participantName;
     }
 
-    public function __construct(?bool $submittedStatus, ?string $evaluationPlanId, ?string $participantId)
+    public function __construct(?bool $submittedStatus, ?string $evaluationPlanId, ?string $participantName)
     {
         $this->submittedStatus = $submittedStatus;
         $this->evaluationPlanId = $evaluationPlanId;
-        $this->participantId = $participantId;
+        $this->participantName = $participantName;
     }
 
 }

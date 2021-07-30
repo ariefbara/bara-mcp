@@ -423,9 +423,9 @@ $this->disableExceptionHandling();
         ];
         $this->seeJsonContains($reportTwoEntry);
     }
-    public function test_showAll_participantIdFilterOn_200()
+    public function test_showAll_participantNameFilterOn_200()
     {
-        $this->showAllUri .= "?participantId={$this->participantOne->id}";
+        $this->showAllUri .= "?participantName=1";
         $this->executeShowAll();
         $this->seeStatusCode(200);
         

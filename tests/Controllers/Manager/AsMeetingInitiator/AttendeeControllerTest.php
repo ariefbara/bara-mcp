@@ -64,6 +64,8 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
         $this->connection->table("CoordinatorInvitee")->truncate();
         $this->connection->table("ConsultantInvitee")->truncate();
         $this->connection->table("ParticipantInvitee")->truncate();
+        $this->connection->table("Mail")->truncate();
+        $this->connection->table("MailRecipient")->truncate();
 
         $activityType = $this->meeting->activityType;
         $firm = $this->manager->firm;
@@ -265,6 +267,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     
     public function test_inviteManager_200()
     {
+$this->disableExceptionHandling();
         $uri = $this->attendeeUri . "/invite-manager";
         $this->put($uri, $this->inviteManagerInput, $this->manager->token)
                 ->seeStatusCode(200);

@@ -66,6 +66,13 @@ class EvaluationPlanControllerTest extends ProgramConsultationTestCase
             "reportForm" => [
                 "id" => $this->evaluationPlan->feedbackForm->id,
                 "name" => $this->evaluationPlan->feedbackForm->form->name,
+                "description" => $this->evaluationPlan->feedbackForm->form->description,
+                'stringFields' => [],
+                'integerFields' => [],
+                'textAreaFields' => [],
+                'attachmentFields' => [],
+                'singleSelectFields' => [],
+                'multiSelectFields' => [],
             ],
             "mission" => [
                 'id' => $this->mission->id,
