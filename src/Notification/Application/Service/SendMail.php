@@ -2,9 +2,8 @@
 
 namespace Notification\Application\Service;
 
-class SendImmediateMail
+class SendMail
 {
-
     /**
      *
      * @var RecipientRepository
@@ -25,13 +24,9 @@ class SendImmediateMail
 
     public function execute()
     {
-        $sendmailPath = dirname(__DIR__, 4) . "/scripts/sendmail.php";
-        exec("php $sendmailPath > /dev/null 2>/dev/null &");
-        
-//        foreach ($this->recipientRepository->allRecipientsWithZeroAttempt() as $recipient) {
-//            $this->mailSender->send($recipient);
-//        }
-//        $this->recipientRepository->update();
+        foreach ($this->recipientRepository->allRecipientsWithZeroAttempt() as $recipient) {
+            $this->mailSender->send($recipient);
+        }
+        $this->recipientRepository->update();
     }
-
 }
