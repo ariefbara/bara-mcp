@@ -19,5 +19,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-one field="icalAttachment" 
+                    target-entity="Notification\Domain\SharedModel\Mail\IcalAttachment"
+                    mapped-by="mail"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
     </entity>
 </doctrine-mapping>

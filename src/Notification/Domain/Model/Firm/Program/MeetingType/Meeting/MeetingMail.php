@@ -34,5 +34,10 @@ class MeetingMail
         $this->id = $id;
         $this->mail = new Mail($id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
     }
+    
+    public function setIcalAttachment(string $content): void
+    {
+        $this->mail->setIcalAttachment($content);
+    }
 
 }

@@ -2,6 +2,7 @@
 
 namespace Query\Domain\SharedModel;
 
+use Query\Domain\SharedModel\Mail\IcalAttachment;
 use SharedContext\Domain\ValueObject\MailMessage;
 
 class Mail
@@ -31,6 +32,12 @@ class Mail
      */
     protected $message;
 
+    /**
+     * 
+     * @var IcalAttachment|null
+     */
+    protected $icalAttachment;
+
     public function getId(): string
     {
         return $this->id;
@@ -46,11 +53,16 @@ class Mail
         return $this->senderName;
     }
 
+    public function getIcalAttachment(): ?IcalAttachment
+    {
+        return $this->icalAttachment;
+    }
+
     protected function __construct()
     {
         
     }
-    
+
     public function getSubject(): string
     {
         return $this->message->getSubject();

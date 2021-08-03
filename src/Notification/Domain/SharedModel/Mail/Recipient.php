@@ -87,6 +87,11 @@ class Recipient
     {
         return $this->mail->getHtmlMessage();
     }
+    
+    public function getIcalAttachment(): ?IcalAttachment
+    {
+        return $this->mail->getIcalAttachment();
+    }
 
     public function sendSuccessful(): void
     {

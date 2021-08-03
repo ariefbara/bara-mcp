@@ -131,7 +131,7 @@ class Meeting implements CanSendPersonalizeMail
             $urlPath = "/meeting/{$this->id}";
             $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
                             $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location,
-                            $domain, $urlPath, $logoPath);
+                            $domain, $urlPath, $logoPath, $icalRequired = true);
 
             $initiator->registerAsMeetingMailRecipient($this, $mailMessage);
             $initiator->registerAsMeetingNotificationRecipient($notification);
@@ -154,7 +154,7 @@ class Meeting implements CanSendPersonalizeMail
 
         $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
                         $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location, $domain,
-                        $urlPath, $logoPath);
+                        $urlPath, $logoPath, $icalRequired = true);
 
         $id = Uuid::generateUuid4();
         $message = NotificationMessageBuilder::buildMeetingNotification($state);
@@ -178,6 +178,16 @@ class Meeting implements CanSendPersonalizeMail
 
         $meetingMail = new MeetingMail(
                 $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
+        if ($mailMessage->isIcalRequired()) {
+            $icalBuilder = new \Resources\Ical($this->id);
+            $icalBuilder->setSummary($this->name)
+                    ->setDtStart($this->startEndTime->getStartTime())
+                    ->setDtEnd($this->startEndTime->getEndTime());
+            if ($mailMessage->isIcalCancellation()) {
+                $icalBuilder->setCancelled();
+            }
+            $meetingMail->setIcalAttachment($icalBuilder->render());
+        }
         $this->mails->add($meetingMail);
     }
 

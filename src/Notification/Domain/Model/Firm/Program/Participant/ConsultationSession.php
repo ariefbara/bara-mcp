@@ -211,6 +211,13 @@ class ConsultationSession implements CanSendPersonalizeMail
 
         $consultationSessionMail = new ConsultationSessionMail(
                 $this, $id, $senderMailAddress, $senderName, $mailMessage, $recipientMailAddress, $recipientName);
+        $icalContent = (new \Resources\Ical($this->id))
+                ->setSummary('consultation session schedule')
+                ->setDtStart($this->startEndTime->getStartTime())
+                ->setDtEnd($this->startEndTime->getEndTime())
+                ->render();
+        $consultationSessionMail->setIcalAttachment($icalContent);
+        
         $this->consultationSessionMails->add($consultationSessionMail);
     }
 

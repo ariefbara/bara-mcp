@@ -45,6 +45,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         
         $this->connection->table('Mail')->truncate();
         $this->connection->table('MailRecipient')->truncate();
+        $this->connection->table('IcalAttachment')->truncate();
         $this->connection->table('ConsultationRequestMail')->truncate();
         $this->connection->table('ConsultationSessionMail')->truncate();
         
@@ -129,6 +130,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
         
 //        $this->connection->table('Mail')->truncate();
 //        $this->connection->table('MailRecipient')->truncate();
+//        $this->connection->table('IcalAttachment')->truncate();
         $this->connection->table('ConsultationRequestMail')->truncate();
         $this->connection->table('ConsultationSessionMail')->truncate();
         
@@ -144,7 +146,6 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
     
     public function test_submit_201()
     {
-$this->disableExceptionHandling();
         $this->connection->table('ConsultationRequest')->truncate();
         
         $response = [

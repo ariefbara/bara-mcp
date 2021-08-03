@@ -3,6 +3,7 @@
 namespace Notification\Domain\SharedModel;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Notification\Domain\SharedModel\Mail\IcalAttachment;
 use Notification\Domain\SharedModel\Mail\Recipient;
 use Resources\Uuid;
 use SharedContext\Domain\ValueObject\MailMessage;
@@ -40,6 +41,12 @@ class Mail
      */
     protected $recipients;
 
+    /**
+     * 
+     * @var IcalAttachment|null
+     */
+    protected $icalAttachment;
+
     public function getSenderMailAddress(): string
     {
         return $this->senderMailAddress;
@@ -74,6 +81,11 @@ class Mail
         return $this->recipients;
     }
 
+    public function getIcalAttachment(): ?IcalAttachment
+    {
+        return $this->icalAttachment;
+    }
+
     public function __construct(string $id, string $senderMailAddress, string $senderName, MailMessage $mailMessage,
             string $recipientMailAddress, string $recipientName)
     {
@@ -90,6 +102,11 @@ class Mail
         $id = Uuid::generateUuid4();
         $recipient = new Recipient($this, $id, $recipientMailAddress, $recipientName);
         $this->recipients->add($recipient);
+    }
+
+    public function setIcalAttachment(string $content): void
+    {
+        $this->icalAttachment = new IcalAttachment($this, $this->id, $content);
     }
 
 }

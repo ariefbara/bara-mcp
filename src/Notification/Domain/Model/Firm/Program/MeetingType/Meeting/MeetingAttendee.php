@@ -120,7 +120,7 @@ class MeetingAttendee implements CanSendPersonalizeMail
 
         $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
                         $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location, $domain,
-                        $urlPath, $logoPath);
+                        $urlPath, $logoPath, $icalRequired = true);
 
         $id = Uuid::generateUuid4();
         $message = NotificationMessageBuilder::buildMeetingNotification($state);
@@ -146,7 +146,7 @@ class MeetingAttendee implements CanSendPersonalizeMail
 
         $mailMessage = MailMessageBuilder::buildMeetingMailMessage(
                         $state, $meetingType, $meetingName, $meetingDescription, $timeDescription, $location, $domain,
-                        $urlPath, $logoPath);
+                        $urlPath, $logoPath, $icalRequired = true, $icalCancellation = true);
 
         $id = Uuid::generateUuid4();
         $message = NotificationMessageBuilder::buildMeetingNotification($state);

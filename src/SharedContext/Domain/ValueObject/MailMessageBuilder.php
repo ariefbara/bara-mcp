@@ -45,6 +45,7 @@ class MailMessageBuilder
             ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
         $showLink = true;
+        $icalRequired = false;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
                 $subject = "New Consultation Request";
@@ -58,14 +59,17 @@ class MailMessageBuilder
                 $subject = "Consultation Request Cancelled";
                 $introductionMessage = "Participant cancelled consultation request";
                 $showLink = false;
+                $cancellation = true;
                 break;
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
                 $introductionMessage = "You accepted consultation schedule";
+                $icalRequired = true;
                 break;
             case self::CONSULTATION_ACCEPTED_BY_PARTICIPANT:
                 $subject = "Consultation Scheduled";
                 $introductionMessage = "Participant accepted consultation schedule suggestion";
+                $icalRequired = true;
                 break;
             default:
                 break;
@@ -80,7 +84,7 @@ class MailMessageBuilder
             "location: {$location}",
         ];
 
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink, $icalRequired);
     }
 
     public static function buildConsultationMailMessageForTeamMember(
@@ -88,6 +92,7 @@ class MailMessageBuilder
             ?string $media, ?string $location, ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
         $showLink = true;
+        $icalRequired = false;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
                 $subject = "New Consultation Request";
@@ -105,10 +110,12 @@ class MailMessageBuilder
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
                 $introductionMessage = "Mentor accepted consultation request from your team";
+                $icalRequired = true;
                 break;
             case self::CONSULTATION_ACCEPTED_BY_PARTICIPANT:
                 $subject = "Consultation Scheduled";
                 $introductionMessage = "Your team has scheduled a consultation";
+                $icalRequired = true;
                 break;
             default:
                 break;
@@ -123,7 +130,7 @@ class MailMessageBuilder
             "media: {$media}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink, $icalRequired);
     }
 
     public static function buildConsultationMailMessageForParticipant(
@@ -131,6 +138,7 @@ class MailMessageBuilder
             ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
         $showLink = true;
+        $icalRequired = false;
         switch ($state) {
             case self::CONSULTATION_SCHEDULE_CHANGED:
                 $subject = "Consultation Request Schedule Changed";
@@ -144,10 +152,12 @@ class MailMessageBuilder
             case self::CONSULTATION_ACCEPTED_BY_MENTOR:
                 $subject = "Consultation Scheduled";
                 $introductionMessage = "Mentor accepted consultation request";
+                $icalRequired = true;
                 break;
             case self::CONSULTATION_ACCEPTED_BY_PARTICIPANT:
                 $subject = "Consultation Scheduled";
                 $introductionMessage = "You accepted consultation offered by mentor";
+                $icalRequired = true;
                 break;
             default:
                 break;
@@ -161,7 +171,7 @@ class MailMessageBuilder
             "media: {$media}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink, $icalRequired);
     }
     
     public static function buildConsultationMailMessageForCoordinator(
@@ -185,6 +195,7 @@ class MailMessageBuilder
             int $state, ?string $meetingType, ?string $meetingName, ?string $meetingDescription,
             ?string $timeDescription, ?string $location, ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
+        $icalCancellation = false;
         switch ($state) {
             case self::MEETING_CREATED:
                 $subject = "New Meeting Schedule";
@@ -197,6 +208,7 @@ class MailMessageBuilder
             case self::MEETING_INVITATION_CANCELLED:
                 $subject = "Meeting Invitation Cancelled";
                 $introductionMessage = "Your meeting invitation has been cancelled";
+                $icalCancellation = true;
                 break;
             case self::MEETING_SCHEDULE_CHANGED:
                 $subject = "Meeting Schedule Changed";
@@ -213,7 +225,9 @@ class MailMessageBuilder
             "schedule: {$timeDescription}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
+        return new MailMessage(
+                $subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true, $icalRequired = true, 
+                $icalCancellation);
     }
 
     public static function buildWorksheetCommentMailMessageForParticipant(

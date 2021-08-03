@@ -46,6 +46,18 @@ class MailMessage
      * @var bool
      */
     protected $showLink;
+    
+    /**
+     * 
+     * @var bool
+     */
+    protected $icalRequired = false;
+
+    /**
+     * 
+     * @var bool
+     */
+    protected $icalCancellation = false;
 
     public function getSubject(): string
     {
@@ -71,10 +83,20 @@ class MailMessage
     {
         return $this->domain . $this->urlPath;
     }
+    
+    public function isIcalRequired(): bool
+    {
+        return $this->icalRequired;
+    }
 
+    public function isIcalCancellation(): bool
+    {
+        return $this->icalCancellation;
+    }
+    
     public function __construct(
             string $subject, string $greetings, array $mainMessage, string $domain, string $urlPath, ?string $logoPath,
-            ?bool $showLink = true)
+            ?bool $showLink = true, ?bool $icalRequired = false, ?bool $icalCancellation = false)
     {
         $this->subject = $subject;
         $this->greetings = $greetings;
@@ -83,37 +105,43 @@ class MailMessage
         $this->urlPath = $urlPath;
         $this->logoPath = $logoPath;
         $this->showLink = $showLink;
+        $this->icalRequired = $icalRequired;
+        $this->icalCancellation = $icalCancellation;
+    }
+    
+    protected function __clone()
+    {
+        
     }
 
     public function appendRecipientFirstNameInGreetings(string $recipientFirstName): self
     {
-        $greetings = $this->greetings . " $recipientFirstName";
-        return new static(
-                $this->subject, $greetings, $this->mainMessage, $this->domain, $this->urlPath, $this->logoPath,
-                $this->showLink);
+        $copy = clone $this;
+        $copy->greetings .= ' ' . $recipientFirstName;
+        return $copy;
     }
 
     public function prependUrlPath(string $urlPath): self
     {
         $urlPath = $urlPath . $this->urlPath;
-        return new static(
-                $this->subject, $this->greetings, $this->mainMessage, $this->domain, $urlPath, $this->logoPath,
-                $this->showLink);
+        $copy = clone $this;
+        $copy->urlPath = $urlPath;
+        return $copy;
     }
 
     public function appendUrlPath(string $urlPath): self
     {
         $urlPath = $this->urlPath . $urlPath;
-        return new static(
-                $this->subject, $this->greetings, $this->mainMessage, $this->domain, $urlPath, $this->logoPath,
-                $this->showLink);
+        $copy = clone $this;
+        $copy->urlPath = $urlPath;
+        return $copy;
     }
 
     public function getTextMessage(): string
     {
         $textMessage = "";
         foreach ($this->mainMessage as $message) {
-            $textMessage .= $textMessage . "\n" .  $message;
+            $textMessage .= $textMessage . "\n" . $message;
         }
         if ($this->showLink) {
             return <<<_MESSAGE

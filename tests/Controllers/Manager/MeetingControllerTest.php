@@ -27,6 +27,9 @@ class MeetingControllerTest extends ManagerTestCase
         $this->connection->table("Activity")->truncate();
         $this->connection->table("Invitee")->truncate();
         $this->connection->table("ManagerInvitee")->truncate();
+        $this->connection->table("Mail")->truncate();
+        $this->connection->table("MailRecipient")->truncate();
+        $this->connection->table("IcalAttachment")->truncate();
         
         $firm = $this->manager->firm;
         
@@ -60,6 +63,9 @@ class MeetingControllerTest extends ManagerTestCase
         $this->connection->table("Activity")->truncate();
         $this->connection->table("Invitee")->truncate();
         $this->connection->table("ManagerInvitee")->truncate();
+//        $this->connection->table("Mail")->truncate();
+//        $this->connection->table("MailRecipient")->truncate();
+//        $this->connection->table("IcalAttachment")->truncate();
     }
     
     public function test_initiate_201()

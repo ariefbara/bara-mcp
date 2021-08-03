@@ -16,6 +16,7 @@ class MailTest extends TestBase
     protected $mailMessage;
     protected $recipientMailAddress = "new_recipient@mail.org";
     protected $recipientName = "new recipient name";
+    protected $icalAttachmentContent = 'new ical attachment content';
 
     protected function setUp(): void
     {
@@ -64,6 +65,13 @@ class MailTest extends TestBase
         $this->mailMessage->expects($this->once())->method("getHtmlMessage");
         $this->mail->getHtmlMessage();
     }
+    
+    public function test_setIcalAttachmentContent_setIcalAttachment()
+    {
+        $this->mail->setIcalAttachment($this->icalAttachmentContent);
+        $icalAttachment = new Mail\IcalAttachment($this->mail, $this->mail->id, $this->icalAttachmentContent);
+        $this->assertEquals($icalAttachment, $this->mail->icalAttachment);
+    }
 
 }
 
@@ -75,5 +83,6 @@ class TestableMail extends Mail
     public $senderName;
     public $message;
     public $recipients;
+    public $icalAttachment;
 
 }

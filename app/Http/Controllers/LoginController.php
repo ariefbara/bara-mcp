@@ -37,6 +37,7 @@ class LoginController extends Controller
             "adminId" => $admin->getId(),
         ];
         $token = $this->generateJwtToken($identifier);
+        
         return $this->buildCredentialsResponse($data, $token);
     }
     
@@ -97,6 +98,7 @@ class LoginController extends Controller
             "userId" => $user->getId(),
         ];
         $token = $this->generateJwtToken($identifier);
+
         return $this->buildCredentialsResponse($data, $token);
     }
     

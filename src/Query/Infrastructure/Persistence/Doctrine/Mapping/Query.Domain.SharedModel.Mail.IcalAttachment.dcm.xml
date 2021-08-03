@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\SharedModel\Mail\IcalAttachment" 
+            table="IcalAttachment"
+    >
+        
+        <one-to-one field="mail" 
+                    target-entity="Query\Domain\SharedModel\Mail"
+                    inversed-by="icalAttachment"
+        >
+            <join-column name="Mail_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="content" type="string" length="2048" nullable="false"/>
+        
+    </entity>
+</doctrine-mapping>

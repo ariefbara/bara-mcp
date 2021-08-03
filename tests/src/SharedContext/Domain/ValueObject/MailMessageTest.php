@@ -15,19 +15,20 @@ class MailMessageTest extends TestBase
     protected $domain = "new-domain.com";
     protected $urlPath = "/new-entity/newEntityId";
     protected $showLink = true;
+    protected $icalRequired = true, $icalCancellation = true;
     protected $recipientFirstName = "adi";
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->mailMessage = new TestableMailMessage("subject", "greetings", ["main message"], "domain.com",
-                "/entity/entityId", "http://path/to/logo.jpg", false);
+                "/entity/entityId", "http://path/to/logo.jpg");
     }
 
     public function test_construct_setProperties()
     {
         $mailMessage = new TestableMailMessage($this->subject, $this->greetings, $this->mainMessage, $this->domain,
-                $this->urlPath, $this->logoPath);
+                $this->urlPath, $this->logoPath, $this->showLink, $this->icalRequired, $this->icalCancellation);
         $this->assertEquals($this->subject, $mailMessage->subject);
         $this->assertEquals($this->greetings, $mailMessage->greetings);
         $this->assertEquals($this->mainMessage, $mailMessage->mainMessage);
@@ -35,6 +36,8 @@ class MailMessageTest extends TestBase
         $this->assertEquals($this->urlPath, $mailMessage->urlPath);
         $this->assertEquals($this->logoPath, $mailMessage->logoPath);
         $this->assertEquals($this->showLink, $mailMessage->showLink);
+        $this->assertEquals($this->icalRequired, $mailMessage->icalRequired);
+        $this->assertEquals($this->icalCancellation, $mailMessage->icalCancellation);
     }
 
     public function test_appendRecipientFirstNameInGreetings_returnNewMailMessageWithModifiedGreetings()
@@ -107,4 +110,6 @@ class TestableMailMessage extends MailMessage
     public $urlPath;
     public $logoPath;
     public $showLink;
+    public $icalRequired;
+    public $icalCancellation;
 }

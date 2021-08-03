@@ -51,7 +51,7 @@ class SwiftMailSenderTest extends TestBase
                 ->method("sendSuccessful");
         $this->executeSend();
     }
-    public function test_send_increateRecipientAttempt()
+    public function test_send_increaseRecipientAttempt()
     {
         $this->recipient->expects($this->once())
                 ->method("increaseAttempt");

@@ -41,6 +41,8 @@ class ConsultationSessionTest extends TestBase
 
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->startEndTime->expects($this->any())->method("getTimeDescriptionInIndonesianFormat")->willReturn($this->timeDescription);
+        $this->startEndTime->expects($this->any())->method("getStartTime")->willReturn(new \DateTimeImmutable());
+        $this->startEndTime->expects($this->any())->method("getEndTime")->willReturn(new \DateTimeImmutable());
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
 
         $this->consultationSession = new TestableConsultationSession();
@@ -205,7 +207,7 @@ class TestableConsultationSession extends ConsultationSession
 {
 
     public $participant;
-    public $id;
+    public $id = 'consultation-session-id';
     public $consultant;
     public $consultationSetup;
     public $startEndTime;

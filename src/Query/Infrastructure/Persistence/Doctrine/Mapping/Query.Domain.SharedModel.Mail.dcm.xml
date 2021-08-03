@@ -11,5 +11,10 @@
                   class="SharedContext\Domain\ValueObject\MailMessage" 
                   use-column-prefix="false" />
         
+        <one-to-one field="icalAttachment" 
+                    target-entity="Query\Domain\SharedModel\Mail\IcalAttachment"
+                    mapped-by="mail"
+        />
+        
     </entity>
 </doctrine-mapping>
