@@ -50,7 +50,7 @@ SELECT
     MentorEvaluationReport.id mentorEvaluationReportId
 FROM (
     SELECT 
-        DedicatedMentor.id dedicatedMentorId, 
+        DedicatedMentor.id dedicatedMentorId,
         Participant.id participantId,
         COALESCE(_a1.userName, _a2.clientName, _a3.teamName) participantName, 
         EvaluationPlan.id evaluationPlanId, 
@@ -79,6 +79,7 @@ FROM (
     WHERE 
         Personnel.id = :personnelId
         AND Consultant.active = true
+        AND Consultant.Program_id = :programId
         AND DedicatedMentor.cancelled = false
         AND Participant.active = true
         AND EvaluationPlan.Program_id = :programId
@@ -154,6 +155,7 @@ FROM (
     WHERE 
         Personnel.id = :personnelId
         AND Consultant.active = true
+        AND Consultant.Program_id = :programId
         AND DedicatedMentor.cancelled = false
         AND Participant.active = true
         AND EvaluationPlan.Program_id = :programId
