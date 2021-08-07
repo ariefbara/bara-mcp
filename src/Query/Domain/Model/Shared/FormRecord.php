@@ -10,7 +10,7 @@ use Query\Domain\Model\Shared\FormRecord\IntegerFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\MultiSelectFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\SingleSelectFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\StringFieldRecord;
-use SharedContext\Domain\Model\SharedEntity\FormRecord\TextAreaFieldRecord;
+use Query\Domain\Model\Shared\FormRecord\TextAreaFieldRecord;
 
 class FormRecord
 {
