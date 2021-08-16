@@ -5,6 +5,12 @@ namespace Query\Domain\Model\Shared;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Query\Domain\Model\Shared\Form\AttachmentField;
+use Query\Domain\Model\Shared\Form\IntegerField;
+use Query\Domain\Model\Shared\Form\MultiSelectField;
+use Query\Domain\Model\Shared\Form\SingleSelectField;
+use Query\Domain\Model\Shared\Form\StringField;
+use Query\Domain\Model\Shared\Form\TextAreaField;
 use Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\IntegerFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\MultiSelectFieldRecord;
@@ -258,6 +264,55 @@ class FormRecord
             ];
         }
         return $attachmentFieldRecordData;
+    }
+    
+    public function getStringFieldRecordValueCorrespondWith(StringField $stringField): ?string
+    {
+        $p = function (StringFieldRecord $stringFieldRecord) use ($stringField) {
+            return $stringFieldRecord->isActiveFieldRecordCorrespondWith($stringField);
+        };
+        $fieldRecord = $this->stringFieldRecords->filter($p)->first();
+        return empty($fieldRecord)? null : $fieldRecord->getValue();
+    }
+    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?int
+    {
+        $p = function (IntegerFieldRecord $integerFieldRecord) use ($integerField) {
+            return $integerFieldRecord->isActiveFieldRecordCorrespondWith($integerField);
+        };
+        $fieldRecord = $this->integerFieldRecords->filter($p)->first();
+        return empty($fieldRecord)? null : $fieldRecord->getValue();
+    }
+    public function getTextAreaFieldRecordValueCorrespondWith(TextAreaField $textAreaField): ?string
+    {
+        $p = function (TextAreaFieldRecord $textAreaFieldRecord) use ($textAreaField) {
+            return $textAreaFieldRecord->isActiveFieldRecordCorrespondWith($textAreaField);
+        };
+        $fieldRecord = $this->textAreaFieldRecords->filter($p)->first();
+        return empty($fieldRecord)? null : $fieldRecord->getValue();
+    }
+    public function getFileInfoListOfAttachmentFieldRecordCorrespondWith(AttachmentField $attachmentField): ?string
+    {
+        $p = function (AttachmentFieldRecord $attachmentFieldRecord) use ($attachmentField) {
+            return $attachmentFieldRecord->isActiveFieldRecordCorrespondWith($attachmentField);
+        };
+        $fieldRecord = $this->attachmentFieldRecords->filter($p)->first();
+        return empty($fieldRecord)? null : $fieldRecord->getStringOfAttachedFileLocationList();
+    }
+    public function getSingleSelectFieldRecordSelectedOptionNameCorrespondWith(SingleSelectField $singleSelectField): ?string
+    {
+        $p = function (SingleSelectFieldRecord $singleSelectFieldRecord) use ($singleSelectField) {
+            return $singleSelectFieldRecord->isActiveFieldRecordCorrespondWith($singleSelectField);
+        };
+        $fieldRecord = $this->singleSelectFieldRecords->filter($p)->first();
+        return empty($fieldRecord)? null : $fieldRecord->getSelectedOptionName();
+    }
+    public function getListOfMultiSelectFieldRecordSelectedOptionNameCorrespondWith(MultiSelectField $multiSelectField): ?string
+    {
+        $p = function (MultiSelectFieldRecord $multiSelectFieldRecord) use ($multiSelectField) {
+            return $multiSelectFieldRecord->isActiveFieldRecordCorrespondWith($multiSelectField);
+        };
+        $fieldRecord = $this->multiSelectFieldRecords->filter($p)->first();
+        return empty($fieldRecord)? null : $fieldRecord->getStringOfSelectedOptionNameList();
     }
 
 }

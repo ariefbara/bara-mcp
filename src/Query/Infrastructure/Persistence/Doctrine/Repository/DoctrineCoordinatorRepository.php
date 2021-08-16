@@ -101,4 +101,29 @@ class DoctrineCoordinatorRepository extends EntityRepository implements Coordina
         }
     }
 
+    public function aCoordinatorBelongsToPersonnel(string $firmId, string $personnelId, string $coordinatorId): Coordinator
+    {
+        $params = [
+            'firmId' => $firmId,
+            'personnelId' => $personnelId,
+            'coordinatorId' => $coordinatorId,
+        ];
+        
+        $qb = $this->createQueryBuilder('coordinator');
+        $qb->select('coordinator')
+                ->andWhere($qb->expr()->eq('coordinator.id', ':coordinatorId'))
+                ->leftJoin('coordinator.personnel', 'personnel')
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('personnel.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: coordinator not found');
+        }
+    }
+
 }

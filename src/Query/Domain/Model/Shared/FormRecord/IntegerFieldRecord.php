@@ -2,10 +2,9 @@
 
 namespace Query\Domain\Model\Shared\FormRecord;
 
-use Query\Domain\Model\Shared\ {
-    Form\IntegerField,
-    FormRecord
-};
+use Query\Domain\Model\Shared\Form\IntegerField;
+use Query\Domain\Model\Shared\Form\StringField;
+use Query\Domain\Model\Shared\FormRecord;
 
 class IntegerFieldRecord
 {
@@ -67,7 +66,11 @@ class IntegerFieldRecord
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function isActiveFieldRecordCorrespondWith(IntegerField $integerField): bool
+    {
+        return !$this->removed && $this->integerField === $integerField;
     }
 
 }

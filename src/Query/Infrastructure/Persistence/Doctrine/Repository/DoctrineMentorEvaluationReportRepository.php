@@ -5,21 +5,24 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use PDO;
+use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportFilter;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportRepository;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
 use Resources\Exception\RegularException;
 
 class DoctrineMentorEvaluationReportRepository extends EntityRepository implements EvaluationReportRepository
 {
 
     public function allEvaluationReportsBelongsToPersonnel(
-            string $personnelId, string $programId, int $page, int $pageSize, EvaluationReportFilter $evaluationReportFilter)
+            string $personnelId, string $programId, int $page, int $pageSize,
+            EvaluationReportFilter $evaluationReportFilter)
     {
         $evaluationPlanFilterClause = '';
         $participantFilterClause = '';
         $submittedStatusFilterClause = '';
-        
+
         $params = [
             "personnelId" => $personnelId,
             "programId" => $programId,
@@ -33,11 +36,11 @@ class DoctrineMentorEvaluationReportRepository extends EntityRepository implemen
             $params['participantName'] = "%{$participantName}%";
         }
         if (!is_null($submittedStatus = $evaluationReportFilter->getSubmittedStatus())) {
-            $submittedStatusFilterClause = $submittedStatus ? 
+            $submittedStatusFilterClause = $submittedStatus ?
                     "WHERE (MentorEvaluationReport.id IS NOT NULL AND MentorEvaluationReport.cancelled = false)" :
                     "WHERE MentorEvaluationReport.id IS NULL";
         }
-        
+
         $offset = $pageSize * ($page - 1);
         $statement = <<<_STATEMENT
 SELECT 
@@ -100,12 +103,14 @@ _STATEMENT;
             'list' => $listResult,
         ];
     }
-    protected function totalEvaluationReportBelongsToPersonnel(string $personnelId, string $programId, EvaluationReportFilter $evaluationReportFilter): ?int
+
+    protected function totalEvaluationReportBelongsToPersonnel(string $personnelId, string $programId,
+            EvaluationReportFilter $evaluationReportFilter): ?int
     {
         $evaluationPlanFilterClause = '';
         $participantFilterClause = '';
         $submittedStatusFilterClause = '';
-        
+
         $params = [
             "personnelId" => $personnelId,
             "programId" => $programId,
@@ -119,11 +124,11 @@ _STATEMENT;
             $params['participantName'] = "%{$participantName}%";
         }
         if (!is_null($submittedStatus = $evaluationReportFilter->getSubmittedStatus())) {
-            $submittedStatusFilterClause = $submittedStatus ? 
+            $submittedStatusFilterClause = $submittedStatus ?
                     "WHERE (MentorEvaluationReport.id IS NOT NULL AND MentorEvaluationReport.cancelled = false)" :
                     "WHERE MentorEvaluationReport.id IS NULL";
         }
-        
+
         $statement = <<<_STATEMENT
 SELECT COUNT(_a.dedicatedMentorId) total
 FROM (
@@ -179,7 +184,7 @@ _STATEMENT;
             'personnelId' => $personnelId,
             'id' => $id,
         ];
-        
+
         $qb = $this->createQueryBuilder('evaluationReport');
         $qb->select('evaluationReport')
                 ->andWhere($qb->expr()->eq('evaluationReport.id', ':id'))
@@ -189,12 +194,39 @@ _STATEMENT;
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             throw RegularException::notFound('not found: evaluation report not found');
         }
+    }
+
+    public function allNonPaginatedEvaluationReportsInProgram(
+            Program $program, EvaluationReportSummaryFilter $evaluationReportSummaryFilter)
+    {
+        $params = [
+            'programId' => $program->getId(),
+        ];
+
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
+                ->leftJoin('evaluationPlan.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($params);
+        
+        if (!empty($evaluationPlanIdList = $evaluationReportSummaryFilter->getEvaluationPlanIdList())) {
+            $qb->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
+                    ->setParameter('evaluationPlanIdList', $evaluationPlanIdList);
+        }
+        if (!empty($participantIdList = $evaluationReportSummaryFilter->getParticipantIdList())) {
+            $qb->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                    ->leftJoin('dedicatedMentor.participant', 'participant')
+                    ->andWhere($qb->expr()->in('participant.id', ':participantIdList'))
+                    ->setParameter('participantIdList', $participantIdList);
+        }
+        return $qb->getQuery()->getResult();
     }
 
 }

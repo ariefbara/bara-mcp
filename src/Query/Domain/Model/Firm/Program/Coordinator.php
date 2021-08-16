@@ -116,5 +116,11 @@ class Coordinator
         return $dedicatedMentorRepository->allDedicatedMentorsOfConsultantInProgram(
                 $this->program->getId(), $consultantId, $page, $pageSize, $cancelledStatus);
     }
+    
+    public function executeTaskInProgram(ITaskInProgramExecutableByCoordinator $task): void
+    {
+        $this->assertActive();
+        $task->executeTaskInProgram($this->program);
+    }
 
 }

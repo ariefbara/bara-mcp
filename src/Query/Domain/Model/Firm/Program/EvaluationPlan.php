@@ -4,6 +4,7 @@ namespace Query\Domain\Model\Firm\Program;
 
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Shared\FormRecord;
 
 class EvaluationPlan
 {
@@ -89,5 +90,15 @@ class EvaluationPlan
     {
         
     }
-
+    
+    public function toArrayOfSummaryTableHeader(): array
+    {
+        return array_merge(['Participant', 'Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
+    }
+    
+    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+    {
+        return $this->reportForm->generateSummaryTableEntryFromRecord($formRecord);
+    }
+    
 }

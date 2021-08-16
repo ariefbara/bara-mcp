@@ -2,10 +2,8 @@
 
 namespace Query\Domain\Model\Shared;
 
-use Doctrine\Common\Collections\ {
-    ArrayCollection,
-    Criteria
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 
 class Form
 {
@@ -119,5 +117,62 @@ class Form
         return Criteria::create()
                 ->andWhere(Criteria::expr()->eq('removed', false));
     }
-
+    
+    public function toArrayOfSummaryTableHeader(): array
+    {
+        $summaryTableHeader = [];
+        foreach ($this->iterateAllFieldsOrderedByPosition() as $field) {
+            $summaryTableHeader[] = $field->getName();
+        }
+        return $summaryTableHeader;
+    }
+    
+    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+    {
+        $summaryTableEntry = [];
+        foreach ($this->iterateAllFieldsOrderedByPosition() as $field) {
+            $summaryTableEntry[] = $field->extractCorrespondingValueFromRecord($formRecord);
+        }
+        return $summaryTableEntry;
+    }
+    
+    /**
+     * 
+     * @var ArrayCollection|null
+     */
+    protected $sortedFields;
+    
+    /**
+     * 
+     * @return IField[]
+     */
+    protected function iterateAllFieldsOrderedByPosition()
+    {
+        if (!isset($this->sortedFields)) {
+            $this->sortedFields = new ArrayCollection();
+            foreach ($this->integerFields->matching($this->nonRemovedCriteria()) as $integerField) {
+                $this->sortedFields->add($integerField);
+            }
+            foreach ($this->stringFields->matching($this->nonRemovedCriteria()) as $stringField) {
+                $this->sortedFields->add($stringField);
+            }
+            foreach ($this->textAreaFields->matching($this->nonRemovedCriteria()) as $textAreaField) {
+                $this->sortedFields->add($textAreaField);
+            }
+            foreach ($this->attachmentFields->matching($this->nonRemovedCriteria()) as $attachmentField) {
+                $this->sortedFields->add($attachmentField);
+            }
+            foreach ($this->singleSelectFields->matching($this->nonRemovedCriteria()) as $singleSelectField) {
+                $this->sortedFields->add($singleSelectField);
+            }
+            foreach ($this->multiSelectFields->matching($this->nonRemovedCriteria()) as $multiSelectField) {
+                $this->sortedFields->add($multiSelectField);
+            }
+        }
+        
+        $criteria = Criteria::create()
+                ->orderBy(['position' => Criteria::ASC, "id" => Criteria::ASC]);
+        return $this->sortedFields->matching($criteria)->getIterator();
+    }
+    
 }

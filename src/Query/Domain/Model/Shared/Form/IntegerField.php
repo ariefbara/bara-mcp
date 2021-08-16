@@ -3,9 +3,11 @@
 namespace Query\Domain\Model\Shared\Form;
 
 use Query\Domain\Model\Shared\Form;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 
-class IntegerField
+class IntegerField implements IField
 {
 
     /**
@@ -113,6 +115,12 @@ class IntegerField
     public function idEquals(string $id): bool
     {
         return $this->id === $id;
+    }
+    
+    public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
+    {
+        $result = $formRecord->getIntegerFieldRecordValueCorrespondWith($this);
+        return empty($result) ? null : strval($result);
     }
 
 }

@@ -68,7 +68,16 @@ class SingleSelectFieldRecord
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function isActiveFieldRecordCorrespondWith(SingleSelectField $singleSelectField): bool
+    {
+        return !$this->removed && $this->singleSelectField === $singleSelectField;
+    }
+    
+    public function getSelectedOptionName(): ?string
+    {
+        return isset($this->option) ? $this->option->getName() : null;
     }
 
 }

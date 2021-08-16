@@ -68,5 +68,15 @@ class DedicatedMentor
     {
         
     }
+    
+    public function getParticipantName(): string
+    {
+        return $this->participant->getName();
+    }
+    
+    public function getMentorName(): string
+    {
+        return $this->consultant->getPersonnel()->getName();
+    }
 
 }
