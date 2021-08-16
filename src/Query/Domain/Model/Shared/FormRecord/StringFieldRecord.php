@@ -67,7 +67,11 @@ class StringFieldRecord
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function isActiveFieldRecordCorrespondWith(StringField $stringField): bool
+    {
+        return !$this->removed && $this->stringField === $stringField;
     }
 
 }

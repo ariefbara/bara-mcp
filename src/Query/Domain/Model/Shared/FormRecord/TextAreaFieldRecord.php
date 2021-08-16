@@ -67,7 +67,11 @@ class TextAreaFieldRecord
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function isActiveFieldRecordCorrespondWith(TextAreaField $textAreaField): bool
+    {
+        return !$this->removed && $this->textAreaField === $textAreaField;
     }
 
 }

@@ -56,7 +56,11 @@ class AttachedFile
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function getFileLocation(): ?string
+    {
+        return $this->fileInfo->getFullyQualifiedFileName();
     }
 
 }

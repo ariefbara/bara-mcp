@@ -224,5 +224,18 @@ class Controller extends BaseController
         $sendmailPath = dirname(__DIR__, 3) . "/scripts/sendmail.php";
         exec("php $sendmailPath > /dev/null 2>/dev/null &");
     }
-
+    
+    function arrayPreserveJsOrder(array $data) {
+        return array_map(
+            function($key, $value) {
+                if (is_array($value)) {
+                    $value = $this->arrayPreserveJsOrder($value);
+                }
+                return array($key, $value);
+            },
+            array_keys($data),
+            array_values($data)
+        );
+    }
+    
 }

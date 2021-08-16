@@ -3,9 +3,11 @@
 namespace Query\Domain\Model\Shared\Form;
 
 use Query\Domain\Model\Shared\Form;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 
-class AttachmentField
+class AttachmentField implements IField
 {
 
     /**
@@ -86,6 +88,11 @@ class AttachmentField
     function getMaxValue(): ?int
     {
         return $this->minMaxValue->getMaxValue();
+    }
+
+    public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
+    {
+        return $formRecord->getFileInfoListOfAttachmentFieldRecordCorrespondWith($this);
     }
 
 }

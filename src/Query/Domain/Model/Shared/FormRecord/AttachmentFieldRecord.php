@@ -2,15 +2,12 @@
 
 namespace Query\Domain\Model\Shared\FormRecord;
 
-use Doctrine\Common\Collections\ {
-    ArrayCollection,
-    Criteria
-};
-use Query\Domain\Model\Shared\ {
-    Form\AttachmentField,
-    FormRecord,
-    FormRecord\AttachmentFieldRecord\AttachedFile
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Query\Domain\Model\Shared\Form\AttachmentField;
+use Query\Domain\Model\Shared\Form\TextAreaField;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord\AttachedFile;
 
 class AttachmentFieldRecord
 {
@@ -78,7 +75,23 @@ class AttachmentFieldRecord
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function isActiveFieldRecordCorrespondWith(AttachmentField $attachmentField): bool
+    {
+        return !$this->removed && $this->attachmentField === $attachmentField;
+    }
+    
+    public function getStringOfAttachedFileLocationList(): ?string
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('removed', false));
+        
+        $result = null;
+        foreach ($this->attachedFiles->matching($criteria)->getIterator() as $attachedFile) {
+            $result .= empty($result) ? $attachedFile->getFileLocation() : "\r\n{$attachedFile->getFileLocation()}";
+        }
+        return $result;
     }
 
 }

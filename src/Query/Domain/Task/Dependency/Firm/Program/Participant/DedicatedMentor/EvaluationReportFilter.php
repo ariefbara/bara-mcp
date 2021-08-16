@@ -38,11 +38,27 @@ class EvaluationReportFilter
         return $this->participantName;
     }
 
-    public function __construct(?bool $submittedStatus, ?string $evaluationPlanId, ?string $participantName)
+    public function __construct()
+    {
+        
+    }
+
+    public function setSubmittedStatus(?bool $submittedStatus)
     {
         $this->submittedStatus = $submittedStatus;
+        return $this;
+    }
+
+    public function setEvaluationPlanId(?string $evaluationPlanId)
+    {
         $this->evaluationPlanId = $evaluationPlanId;
+        return $this;
+    }
+
+    public function setParticipantName(?string $participantName)
+    {
         $this->participantName = $participantName;
+        return $this;
     }
 
 }

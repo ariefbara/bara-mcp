@@ -3,9 +3,11 @@
 namespace Query\Domain\Model\Shared\Form;
 
 use Query\Domain\Model\Shared\Form;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 
-class TextAreaField
+class TextAreaField implements IField
 {
 
     /**
@@ -113,6 +115,11 @@ class TextAreaField
     public function idEquals(string $id): bool
     {
         return $this->id === $id;
+    }
+
+    public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
+    {
+        return $formRecord->getTextAreaFieldRecordValueCorrespondWith($this);
     }
 
 }

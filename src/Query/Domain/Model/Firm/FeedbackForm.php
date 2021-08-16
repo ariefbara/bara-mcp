@@ -2,11 +2,10 @@
 
 namespace Query\Domain\Model\Firm;
 
-use Query\Domain\Model\{
-    Firm,
-    Shared\ContainFormInterface,
-    Shared\Form
-};
+use Query\Domain\Model\Firm;
+use Query\Domain\Model\Shared\ContainFormInterface;
+use Query\Domain\Model\Shared\Form;
+use Query\Domain\Model\Shared\FormRecord;
 
 class FeedbackForm implements ContainFormInterface
 {
@@ -93,6 +92,16 @@ class FeedbackForm implements ContainFormInterface
     public function getUnremovedTextAreaFields()
     {
         return $this->form->getUnremovedTextAreaFields();
+    }
+    
+    public function toArrayOfSummaryTableHeader(): array
+    {
+        return $this->form->toArrayOfSummaryTableHeader();
+    }
+    
+    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+    {
+        return $this->form->generateSummaryTableEntryFromRecord($formRecord);
     }
 
 }

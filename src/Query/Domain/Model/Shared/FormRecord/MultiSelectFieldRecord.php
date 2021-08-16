@@ -2,15 +2,11 @@
 
 namespace Query\Domain\Model\Shared\FormRecord;
 
-use Doctrine\Common\Collections\ {
-    ArrayCollection,
-    Criteria
-};
-use Query\Domain\Model\Shared\ {
-    Form\MultiSelectField,
-    FormRecord,
-    FormRecord\MultiSelectFieldRecord\SelectedOption
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
+use Query\Domain\Model\Shared\Form\MultiSelectField;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\FormRecord\MultiSelectFieldRecord\SelectedOption;
 
 class MultiSelectFieldRecord
 {
@@ -78,7 +74,23 @@ class MultiSelectFieldRecord
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function isActiveFieldRecordCorrespondWith(MultiSelectField $multiSelectField): bool
+    {
+        return !$this->removed && $this->multiSelectField === $multiSelectField;
+    }
+    
+    public function getStringOfSelectedOptionNameList(): ?string
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('removed', false));
+        
+        $result = null;
+        foreach ($this->selectedOptions->matching($criteria)->getIterator() as $selectedOption) {
+            $result .= empty($result)? $selectedOption->getOptionName() : "\r\n{$selectedOption->getOptionName()}";
+        }
+        return $result;
     }
 
 }

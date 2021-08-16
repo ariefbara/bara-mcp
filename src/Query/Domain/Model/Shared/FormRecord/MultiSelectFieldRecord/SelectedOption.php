@@ -56,7 +56,11 @@ class SelectedOption
 
     protected function __construct()
     {
-        ;
+    }
+    
+    public function getOptionName(): ?string
+    {
+        return $this->option->getName();
     }
 
 }

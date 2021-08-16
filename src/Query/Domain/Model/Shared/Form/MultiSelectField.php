@@ -3,9 +3,12 @@
 namespace Query\Domain\Model\Shared\Form;
 
 use Query\Domain\Model\Shared\Form;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
+use SharedContext\Domain\Model\SharedEntity\Form\SelectField\Option;
 
-class MultiSelectField
+class MultiSelectField implements IField
 {
 
     /**
@@ -100,6 +103,11 @@ class MultiSelectField
     public function idEquals(string $id): bool
     {
         return $this->id === $id;
+    }
+
+    public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
+    {
+        return $formRecord->getListOfMultiSelectFieldRecordSelectedOptionNameCorrespondWith($this);
     }
 
 }

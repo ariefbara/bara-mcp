@@ -407,6 +407,9 @@ $router->group($personnelAggregate, function () use ($router) {
             $controller = "NotificationController";
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
+        $router->get("/mentor-evaluation-reports/summary", ["uses" => "MentorEvaluationReportController@summary"]);
+        $router->get("/mentor-evaluation-reports/download-xls-summary", ["uses" => "MentorEvaluationReportController@downloadXlsSummary"]);
     });
     
     $asConsultantMeetingInitiatorAggregate = [
