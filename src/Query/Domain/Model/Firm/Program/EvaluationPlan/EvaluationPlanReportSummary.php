@@ -25,6 +25,14 @@ class EvaluationPlanReportSummary
     {
         return $this->evaluationPlan;
     }
+    public function getEvaluationPlanName(): string
+    {
+        return $this->evaluationPlan->getName();
+    }
+    public function getEvaluationPlanId(): string
+    {
+        return $this->evaluationPlan->getId();
+    }
 
     public function __construct(EvaluationPlan $evaluationPlan, EvaluationReport $firstMentorEvaluationReport)
     {
@@ -42,6 +50,16 @@ class EvaluationPlanReportSummary
         return $mentorEvaluationReport->evaluationPlanEquals($this->evaluationPlan);
     }
 
+    protected function toSummaryTableArray(): array
+    {
+        $summaryTable = [];
+        $summaryTable[] = $this->evaluationPlan->toArrayOfSummaryTableHeader();
+        foreach ($this->mentorEvaluationReports as $evaluationReport) {
+            $summaryTable[] = $evaluationReport->toArrayOfSummaryTableEntry();
+        }
+        return $summaryTable;
+    }
+    
     public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
     {
         $worksheet = $spreadsheet->createSheet();
@@ -58,14 +76,21 @@ class EvaluationPlanReportSummary
         ];
     }
     
-    protected function toSummaryTableArray(): array
+    public function toTrascriptTableArray(): array
     {
-        $summaryTable = [];
-        $summaryTable[] = $this->evaluationPlan->toArrayOfSummaryTableHeader();
+        $horizontanTranscriptTable = [];
+        $horizontanTranscriptTable[] = $this->evaluationPlan->toArrayOfHorizontalTranscriptTableHeader();
         foreach ($this->mentorEvaluationReports as $evaluationReport) {
-            $summaryTable[] = $evaluationReport->toArrayOfSummaryTableEntry();
+            $horizontanTranscriptTable[] = $evaluationReport->toArrayOfHorizontalTranscriptTableEntry();
         }
-        return $summaryTable;
+        
+        $transcriptTable = [];
+        foreach ($horizontanTranscriptTable as $rowKey => $horizontalEntry) {
+            foreach ($horizontalEntry as $columnKey => $columnEntry) {
+                $transcriptTable[$columnKey][$rowKey] = $columnEntry;
+            }
+        }
+        return $transcriptTable;
     }
 
 }

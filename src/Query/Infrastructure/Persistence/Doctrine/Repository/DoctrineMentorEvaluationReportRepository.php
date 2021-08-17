@@ -10,6 +10,7 @@ use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportFilter;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportRepository;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportTranscriptFilter;
 use Resources\Exception\RegularException;
 
 class DoctrineMentorEvaluationReportRepository extends EntityRepository implements EvaluationReportRepository
@@ -225,6 +226,37 @@ _STATEMENT;
                     ->leftJoin('dedicatedMentor.participant', 'participant')
                     ->andWhere($qb->expr()->in('participant.id', ':participantIdList'))
                     ->setParameter('participantIdList', $participantIdList);
+        }
+        return $qb->getQuery()->getResult();
+    }
+
+    public function allEvaluationReportsBelongsToParticipantInProgram(
+            Program $program, string $participantId,
+            EvaluationReportTranscriptFilter $evaluationReportTranscriptFilter)
+    {
+        $params = [
+            'programId' => $program->getId(),
+            'participantId' => $participantId,
+        ];
+
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('dedicatedMentor.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($params);
+        
+        if (!empty($evaluationPlanIdList = $evaluationReportTranscriptFilter->getEvaluationPlanIdList())) {
+            $qb->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
+                    ->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
+                    ->setParameter('evaluationPlanIdList', $evaluationPlanIdList);
+        }
+        if (!empty($mentorIdList = $evaluationReportTranscriptFilter->getMentorIdList())) {
+            $qb->leftJoin('dedicatedMentor.consultant', 'consultant')
+                    ->andWhere($qb->expr()->in('consultant.id', ':mentorIdList'))
+                    ->setParameter('mentorIdList', $mentorIdList);
         }
         return $qb->getQuery()->getResult();
     }

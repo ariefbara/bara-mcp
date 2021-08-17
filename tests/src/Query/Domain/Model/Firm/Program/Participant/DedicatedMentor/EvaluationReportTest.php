@@ -67,6 +67,25 @@ class EvaluationReportTest extends TestBase
         ];
         $this->assertEquals($summaryTableEntry, $this->evaluationReport->toArrayOfSummaryTableEntry());
     }
+    
+    public function test_toArrayOfHorizontalTranscriptTableEntry_returnParticipantTableEntryArray()
+    {
+        $this->dedicatedMentor->expects($this->once())
+                ->method('getMentorName')
+                ->willReturn($mentorName = 'mentor name');
+        
+        $this->evaluationPlan->expects($this->once())
+                ->method('generateSummaryTableEntryFromRecord')
+                ->with($this->formRecord)
+                ->willReturn($formattedReporfFormValues = ['array represent report form values']);
+        $transcriptTableEntry = [
+            $mentorName,
+            $formattedReporfFormValues[0],
+        ];
+        $this->assertEquals($transcriptTableEntry, $this->evaluationReport->toArrayOfHorizontalTranscriptTableEntry());
+    }
+    
+    
 }
 
 class TestableEvaluationReport extends EvaluationReport

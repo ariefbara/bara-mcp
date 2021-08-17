@@ -17,4 +17,7 @@ interface EvaluationReportRepository
     public function allNonPaginatedEvaluationReportsInProgram(
             Program $program, EvaluationReportSummaryFilter $evaluationReportSummaryFilter);
     
+    public function allEvaluationReportsBelongsToParticipantInProgram(
+            Program $program, string $participantId, EvaluationReportTranscriptFilter $evaluationReportTranscriptFilter);
+    
 }

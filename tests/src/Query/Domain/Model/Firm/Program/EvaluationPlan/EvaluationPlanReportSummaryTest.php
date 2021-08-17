@@ -73,16 +73,35 @@ class EvaluationPlanReportSummaryTest extends TestBase
                 ->with($summaryArray);
         $this->saveToSpreadsheet();
     }
-    public function test_saveToSpreadsheet_setEvaluationPlanNameAsWorksheetCodeName()
+    public function test_saveToSpreadsheet_setEvaluationPlanNameAsWorksheetTitle()
     {
         $this->evaluationPlan->expects($this->once())
                 ->method('getName')
                 ->willReturn($evaluationPlanName = 'evaluation plan name');
         
         $this->worksheet->expects($this->once())
-                ->method('setCodeName')
+                ->method('setTitle')
                 ->with($evaluationPlanName);
         $this->saveToSpreadsheet();
+    }
+    
+    protected function toTrascriptTableArray()
+    {
+        return $this->summary->toTrascriptTableArray();
+    }
+    public function test_toTrascriptTableArray_returnTranscriptTable()
+    {
+        $this->evaluationPlan->expects($this->once())
+                ->method('toArrayOfHorizontalTranscriptTableHeader')
+                ->willReturn(['Mentor', 'field-one']);
+        $this->evaluationReport->expects($this->once())
+                ->method('toArrayOfHorizontalTranscriptTableEntry')
+                ->willReturn(['mentor name', 'field-value']);
+        
+        $this->assertEquals([
+            ['Mentor', 'mentor name'],
+            ['field-one', 'field-value'],
+        ], $this->summary->toTrascriptTableArray());
     }
 }
 

@@ -26,7 +26,7 @@ class ProgramMentorEvaluationReportSummary
         foreach ($this->evaluationPlanReportSummaries as $evaluationPlanReportSummary) {
             if ($evaluationPlanReportSummary->canInclude($mentorEvaluationReport)) {
                 $correspondingEvaluationPlanReportSummary = $evaluationPlanReportSummary;
-                break;;
+                break;
             }
         }
         

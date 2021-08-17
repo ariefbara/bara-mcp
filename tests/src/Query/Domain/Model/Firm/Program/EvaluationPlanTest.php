@@ -43,6 +43,18 @@ class EvaluationPlanTest extends TestBase
                 ->with($this->formRecord);
         $this->evaluationPlan->generateSummaryTableEntryFromRecord($this->formRecord);
     }
+    
+    public function test_toArrayOfHorizontalTranscriptTableHeader_returnTranscriptTableHeader()
+    {
+        $this->reportForm->expects($this->once())
+                ->method('toArrayOfSummaryTableHeader')
+                ->willReturn($dynamicTableHeader = ['string represet dynamic table header']);
+        $transcriptTableHeader = [
+            'Mentor',
+            $dynamicTableHeader[0],
+        ];
+        $this->assertEquals($transcriptTableHeader, $this->evaluationPlan->toArrayOfHorizontalTranscriptTableHeader());
+    }
 }
 
 class TestableEvaluationPlan extends EvaluationPlan

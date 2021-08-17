@@ -167,4 +167,11 @@ class EvaluationReport implements ContainFormRecordInterface
         return array_merge($identificationEntry , $this->evaluationPlan->generateSummaryTableEntryFromRecord($this->formRecord));
     }
     
+    public function toArrayOfHorizontalTranscriptTableEntry(): array
+    {
+        return array_merge(
+                [$this->dedicatedMentor->getMentorName()], 
+                $this->evaluationPlan->generateSummaryTableEntryFromRecord($this->formRecord));
+    }
+    
 }

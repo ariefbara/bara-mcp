@@ -101,4 +101,9 @@ class EvaluationPlan
         return $this->reportForm->generateSummaryTableEntryFromRecord($formRecord);
     }
     
+    public function toArrayOfHorizontalTranscriptTableHeader(): array
+    {
+        return array_merge(['Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
+    }
+    
 }
