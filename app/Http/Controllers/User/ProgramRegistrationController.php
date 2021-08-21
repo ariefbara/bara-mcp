@@ -64,6 +64,7 @@ class ProgramRegistrationController extends UserBaseController
             'program' => [
                 'id' => $programRegistration->getProgram()->getId(),
                 'name' => $programRegistration->getProgram()->getName(),
+                'hasProfileForm' => $programRegistration->getProgram()->hasProfileForm(),
                 'firm' => [
                     'id' => $programRegistration->getProgram()->getFirm()->getId(),
                     'name' => $programRegistration->getProgram()->getFirm()->getName(),

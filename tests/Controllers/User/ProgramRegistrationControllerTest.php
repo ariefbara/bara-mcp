@@ -4,15 +4,16 @@ namespace Tests\Controllers\User;
 
 use DateTimeImmutable;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfParticipant,
-    Firm\Program\RecordOfRegistrant,
-    Firm\Program\RecordOfRegistrationPhase,
-    Firm\RecordOfProgram,
-    RecordOfFirm,
-    User\RecordOfUserParticipant,
-    User\RecordOfUserRegistrant
-};
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrationPhase;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\User\RecordOfUserParticipant;
+use Tests\Controllers\RecordPreparation\User\RecordOfUserRegistrant;
 
 class ProgramRegistrationControllerTest extends UserTestCase
 {
@@ -22,6 +23,7 @@ class ProgramRegistrationControllerTest extends UserTestCase
 
 
     protected $program, $registrationPhase;
+    protected $programsProfileFormOne;
     
     protected $registerInput = [];
 
@@ -38,6 +40,9 @@ class ProgramRegistrationControllerTest extends UserTestCase
         $this->connection->table('Participant')->truncate();
         $this->connection->table('UserRegistrant')->truncate();
         $this->connection->table('UserParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('ProfileForm')->truncate();
+        $this->connection->table('ProgramsProfileForm')->truncate();
         
         $firm = new RecordOfFirm(0, 'firm-identifier');
         $this->connection->table('Firm')->insert($firm->toArrayForDbEntry());
@@ -64,6 +69,12 @@ class ProgramRegistrationControllerTest extends UserTestCase
         $this->connection->table('UserRegistrant')->insert($this->programRegistration->toArrayForDbEntry());
         $this->connection->table('UserRegistrant')->insert($this->concludedProgramRegistration->toArrayForDbEntry());
         
+        $formOne = new RecordOfForm('1');
+        
+        $profileFormOne = new RecordOfProfileForm($firm, $formOne);
+        
+        $this->programsProfileFormOne = new RecordOfProgramsProfileForm($this->program, $profileFormOne, '1');
+        
         $this->registrationInput = [
             'firmId' => $this->program->firm->id,
             "programId" => $this->program->id,
@@ -80,13 +91,21 @@ class ProgramRegistrationControllerTest extends UserTestCase
         $this->connection->table('UserRegistrant')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('UserParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('ProfileForm')->truncate();
+        $this->connection->table('ProgramsProfileForm')->truncate();
     }
+    
     public function test_register_201()
     {
+        $this->programsProfileFormOne->profileForm->insert($this->connection);
+        $this->programsProfileFormOne->insert($this->connection);
+        
         $response = [
             "program" => [
                 "id" => $this->program->id,
                 "name" => $this->program->name,
+                "hasProfileForm" => true,
                 'firm' => [
                     "id" => $this->program->firm->id,
                     "name" => $this->program->firm->name,
@@ -202,11 +221,16 @@ class ProgramRegistrationControllerTest extends UserTestCase
     
     public function test_show()
     {
+        $this->programsProfileFormOne->program = $this->programRegistration->registrant->program;
+        $this->programsProfileFormOne->profileForm->insert($this->connection);
+        $this->programsProfileFormOne->insert($this->connection);
+        
         $response = [
             "id" => $this->programRegistration->id,
             "program" => [
                 "id" => $this->programRegistration->registrant->program->id,
                 "name" => $this->programRegistration->registrant->program->name,
+                "hasProfileForm" => true,
                 'firm' => [
                     "id" => $this->programRegistration->registrant->program->firm->id,
                     "name" => $this->programRegistration->registrant->program->firm->name,
@@ -233,6 +257,7 @@ class ProgramRegistrationControllerTest extends UserTestCase
                     "program" => [
                         "id" => $this->programRegistration->registrant->program->id,
                         "name" => $this->programRegistration->registrant->program->name,
+                        "hasProfileForm" => false,
                         'firm' => [
                             "id" => $this->programRegistration->registrant->program->firm->id,
                             "name" => $this->programRegistration->registrant->program->firm->name,
@@ -247,6 +272,7 @@ class ProgramRegistrationControllerTest extends UserTestCase
                     "program" => [
                         "id" => $this->concludedProgramRegistration->registrant->program->id,
                         "name" => $this->concludedProgramRegistration->registrant->program->name,
+                        "hasProfileForm" => false,
                         'firm' => [
                             "id" => $this->concludedProgramRegistration->registrant->program->firm->id,
                             "name" => $this->concludedProgramRegistration->registrant->program->firm->name,
