@@ -71,6 +71,7 @@ class ProgramRegistrationController extends AsTeamMemberBaseController
             "program" => [
                 "id" => $teamProgramRegistration->getProgram()->getId(),
                 "name" => $teamProgramRegistration->getProgram()->getName(),
+                "hasProfileForm" => $teamProgramRegistration->getProgram()->hasProfileForm(),
             ],
         ];
     }

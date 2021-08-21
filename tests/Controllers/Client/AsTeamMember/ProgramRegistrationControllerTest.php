@@ -4,15 +4,16 @@ namespace Tests\Controllers\Client\TeamMembership;
 
 use DateTimeImmutable;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use Tests\Controllers\ {
-    Client\AsTeamMember\AsTeamMemberTestCase,
-    RecordPreparation\Firm\Program\RecordOfParticipant,
-    RecordPreparation\Firm\Program\RecordOfRegistrant,
-    RecordPreparation\Firm\Program\RecordOfRegistrationPhase,
-    RecordPreparation\Firm\RecordOfProgram,
-    RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation,
-    RecordPreparation\Firm\Team\RecordOfTeamProgramRegistration
-};
+use Tests\Controllers\Client\AsTeamMember\AsTeamMemberTestCase;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrationPhase;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramRegistration;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
 {
@@ -20,8 +21,8 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
     protected $programRegistration, $concludedProgramRegistration;
     protected $programParticipation;
 
-
     protected $program, $registrationPhase;
+    protected $programsProfileFormOne;
     
     protected $registerInput = [];
 
@@ -36,8 +37,12 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
         $this->connection->table('Participant')->truncate();
         $this->connection->table('TeamRegistrant')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('ProfileForm')->truncate();
+        $this->connection->table('ProgramsProfileForm')->truncate();
         
         $team = $this->teamMember->team;
+        $firm = $team->firm;
         
         $this->program = new RecordOfProgram($this->client->firm, 0);
         $programOne = new RecordOfProgram($this->client->firm, 1);
@@ -61,6 +66,12 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
         $this->connection->table('TeamRegistrant')->insert($this->programRegistration->toArrayForDbEntry());
         $this->connection->table('TeamRegistrant')->insert($this->concludedProgramRegistration->toArrayForDbEntry());
         
+        $formOne = new RecordOfForm('1');
+        
+        $profileFormOne = new RecordOfProfileForm($firm, $formOne);
+        
+        $this->programsProfileFormOne = new RecordOfProgramsProfileForm($this->program, $profileFormOne, '1');
+        
         $this->registrationInput = [
             "programId" => $this->program->id,
         ];
@@ -75,10 +86,16 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
         $this->connection->table('TeamRegistrant')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('ProfileForm')->truncate();
+        $this->connection->table('ProgramsProfileForm')->truncate();
     }
     
     public function test_register_201()
     {
+        $this->programsProfileFormOne->profileForm->insert($this->connection);
+        $this->programsProfileFormOne->insert($this->connection);
+        
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('TeamRegistrant')->truncate();
         
@@ -86,6 +103,7 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
             "program" => [
                 "id" => $this->program->id,
                 "name" => $this->program->name,
+                "hasProfileForm" => true,
             ],
             "registeredTime" => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
             "concluded" => false,
@@ -209,11 +227,16 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
     
     public function test_show()
     {
+        $this->programsProfileFormOne->program = $this->programRegistration->registrant->program;
+        $this->programsProfileFormOne->profileForm->insert($this->connection);
+        $this->programsProfileFormOne->insert($this->connection);
+        
         $response = [
             "id" => $this->programRegistration->id,
             "program" => [
                 "id" => $this->programRegistration->registrant->program->id,
                 "name" => $this->programRegistration->registrant->program->name,
+                "hasProfileForm" => true,
             ],
             "registeredTime" => $this->programRegistration->registrant->registeredTime,
             "concluded" => $this->programRegistration->registrant->concluded,
@@ -243,6 +266,7 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
                     "program" => [
                         "id" => $this->programRegistration->registrant->program->id,
                         "name" => $this->programRegistration->registrant->program->name,
+                        "hasProfileForm" => false,
                     ],
                     "registeredTime" => $this->programRegistration->registrant->registeredTime,
                     "concluded" => $this->programRegistration->registrant->concluded,
@@ -253,6 +277,7 @@ class ProgramRegistrationControllerTest extends AsTeamMemberTestCase
                     "program" => [
                         "id" => $this->concludedProgramRegistration->registrant->program->id,
                         "name" => $this->concludedProgramRegistration->registrant->program->name,
+                        "hasProfileForm" => false,
                     ],
                     "registeredTime" => $this->concludedProgramRegistration->registrant->registeredTime,
                     "concluded" => $this->concludedProgramRegistration->registrant->concluded,
