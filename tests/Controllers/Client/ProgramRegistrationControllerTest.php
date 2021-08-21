@@ -4,14 +4,15 @@ namespace Tests\Controllers\Client;
 
 use DateTimeImmutable;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use Tests\Controllers\RecordPreparation\Firm\ {
-    Client\RecordOfClientParticipant,
-    Client\RecordOfClientRegistrant,
-    Program\RecordOfParticipant,
-    Program\RecordOfRegistrant,
-    Program\RecordOfRegistrationPhase,
-    RecordOfProgram
-};
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrationPhase;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProfileForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class ProgramRegistrationControllerTest extends ClientTestCase
 {
@@ -21,7 +22,8 @@ class ProgramRegistrationControllerTest extends ClientTestCase
 
 
     protected $program, $registrationPhase;
-    
+    protected $programsProfileFormOne;
+
     protected $registerInput = [];
 
     protected function setUp(): void
@@ -35,7 +37,12 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('Participant')->truncate();
         $this->connection->table('ClientRegistrant')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('ProfileForm')->truncate();
+        $this->connection->table('ProgramsProfileForm')->truncate();
         
+        $firm = $this->client->firm;
+                
         $this->program = new RecordOfProgram($this->client->firm, 0);
         $programOne = new RecordOfProgram($this->client->firm, 1);
         $programTwo = new RecordOfProgram($this->client->firm, 2);
@@ -58,6 +65,12 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('ClientRegistrant')->insert($this->programRegistration->toArrayForDbEntry());
         $this->connection->table('ClientRegistrant')->insert($this->concludedProgramRegistration->toArrayForDbEntry());
         
+        $formOne = new RecordOfForm('1');
+        
+        $profileFormOne = new RecordOfProfileForm($firm, $formOne);
+        
+        $this->programsProfileFormOne = new RecordOfProgramsProfileForm($this->program, $profileFormOne, '1');
+        
         $this->registrationInput = [
             "programId" => $this->program->id,
         ];
@@ -72,14 +85,20 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('ClientRegistrant')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('ProfileForm')->truncate();
+        $this->connection->table('ProgramsProfileForm')->truncate();
     }
     
     public function test_register_201()
     {
+        $this->programsProfileFormOne->profileForm->insert($this->connection);
+        $this->programsProfileFormOne->insert($this->connection);
         $response = [
             "program" => [
                 "id" => $this->program->id,
                 "name" => $this->program->name,
+                "hasProfileForm" => true,
             ],
             "registeredTime" => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
             "concluded" => false,
@@ -202,6 +221,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
             "program" => [
                 "id" => $this->programRegistration->registrant->program->id,
                 "name" => $this->programRegistration->registrant->program->name,
+                "hasProfileForm" => false,
             ],
             "registeredTime" => $this->programRegistration->registrant->registeredTime,
             "concluded" => $this->programRegistration->registrant->concluded,
@@ -224,6 +244,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                     "program" => [
                         "id" => $this->programRegistration->registrant->program->id,
                         "name" => $this->programRegistration->registrant->program->name,
+                        "hasProfileForm" => false,
                     ],
                     "registeredTime" => $this->programRegistration->registrant->registeredTime,
                     "concluded" => $this->programRegistration->registrant->concluded,
@@ -234,6 +255,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                     "program" => [
                         "id" => $this->concludedProgramRegistration->registrant->program->id,
                         "name" => $this->concludedProgramRegistration->registrant->program->name,
+                        "hasProfileForm" => false,
                     ],
                     "registeredTime" => $this->concludedProgramRegistration->registrant->registeredTime,
                     "concluded" => $this->concludedProgramRegistration->registrant->concluded,
@@ -246,7 +268,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
             ->seeStatusCode(200)
             ->seeJsonContains($response);
     }
-    public function test_show_filterConcludedStatus()
+    public function test_showAll_filterConcludedStatus()
     {
         $uri = $this->programRegistrationUri . '?concludedStatus=false';
         $this->get($uri, $this->client->token)
@@ -259,6 +281,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                     "program" => [
                         "id" => $this->programRegistration->registrant->program->id,
                         "name" => $this->programRegistration->registrant->program->name,
+                        "hasProfileForm" => false,
                     ],
                     "registeredTime" => $this->programRegistration->registrant->registeredTime,
                     "concluded" => $this->programRegistration->registrant->concluded,

@@ -2,6 +2,8 @@
 
 namespace Query\Domain\Model\Firm;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm;
 
 class Program
@@ -54,6 +56,12 @@ class Program
      * @var bool
      */
     protected $removed = false;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $profileForms;
 
     function getFirm(): Firm
     {
@@ -98,6 +106,13 @@ class Program
     public function getParticipantTypeValues(): array
     {
         return $this->participantTypes->getValues();
+    }
+    
+    public function hasProfileForm(): bool
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('disabled', false));
+        return !empty($this->profileForms->matching($criteria)->count());
     }
 
 }

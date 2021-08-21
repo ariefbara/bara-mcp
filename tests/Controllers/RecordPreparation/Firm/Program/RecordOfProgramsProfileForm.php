@@ -39,5 +39,10 @@ class RecordOfProgramsProfileForm implements Record
             "disabled" => $this->disabled,
         ];
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
+    {
+        $connection->table('ProgramsProfileForm')->insert($this->toArrayForDbEntry());
+    }
 
 }

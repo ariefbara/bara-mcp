@@ -23,5 +23,10 @@
         </field>
         <field name="removed" type="boolean" />
         
+        <one-to-many field="profileForms" 
+                     target-entity="Query\Domain\Model\Firm\Program\ProgramsProfileForm" 
+                     mapped-by="program"
+        />
+        
     </entity>
 </doctrine-mapping>

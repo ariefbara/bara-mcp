@@ -37,5 +37,11 @@ class RecordOfProfileForm implements Record
             "id" => $this->id,
         ];
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
+    {
+        $this->form->insert($connection);
+        $connection->table('ProfileForm')->insert($this->toArrayForDbEntry());
+    }
 
 }

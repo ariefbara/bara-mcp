@@ -70,6 +70,7 @@ class ProgramRegistrationController extends ClientBaseController
             "program" => [
                 "id" => $programRegistration->getProgram()->getId(),
                 "name" => $programRegistration->getProgram()->getName(),
+                "hasProfileForm" => $programRegistration->getProgram()->hasProfileForm(),
             ],
             "registeredTime" => $programRegistration->getRegisteredTimeString(),
             "concluded" => $programRegistration->isConcluded(),
