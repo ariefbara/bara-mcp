@@ -32,6 +32,7 @@ class ProgramController extends Controller
             'id' => $program->getId(),
             'name' => $program->getName(),
             'description' => $program->getDescription(),
+            "hasProfileForm" => $program->hasProfileForm(),
             "participantTypes" => $program->getParticipantTypeValues(),
             'firm' => [
                 'id' => $program->getFirm()->getId(),
