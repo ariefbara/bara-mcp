@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Criteria;
 use Query\Application\Service\Participant\ActivityLogRepository;
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Event\LearningMaterialViewedByParticipantEvent;
+use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
@@ -280,6 +281,33 @@ class Participant extends EntityContainEvents
     {
         $this->assertActive();
         return $mentorRepository->aMentorInProgram($this->program->getId(), $mentorId);
+    }
+    
+    public function getListOfClientPlusTeamName(): array
+    {
+        if (!empty($this->userParticipant)) {
+            return [$this->userParticipant->getUserName()];
+        } elseif (!empty ($this->clientParticipant)) {
+            return [$this->clientParticipant->getClientName()];
+        } elseif (!empty ($this->teamParticipant)) {
+            return $this->teamParticipant->getListOfActiveMemberPlusTeamName();
+        }
+    }
+    
+    public function correspondWithClient(Client $client): bool
+    {
+        if (!empty($this->clientParticipant)) {
+            return $this->clientParticipant->clientEquals($client);
+        } elseif (!empty ($this->teamParticipant)) {
+            return $this->teamParticipant->hasActiveMemberCorrespondWithClient($client);
+        } else {
+            return false;
+        }
+    }
+    
+    public function getTeamName(): ?string
+    {
+        return isset($this->teamParticipant) ? $this->teamParticipant->getTeamName() : null;
     }
 
 }

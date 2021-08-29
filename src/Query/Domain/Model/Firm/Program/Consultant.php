@@ -154,5 +154,10 @@ class Consultant
         $this->assertActive();
         return $evaluationPlanRepository->singleEvaluationPlanInProgram($this->program->getId(), $evaluationPlanId);
     }
+    
+    public function getPersonnelName(): string
+    {
+        return $this->personnel->getName();
+    }
 
 }

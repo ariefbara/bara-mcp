@@ -3,9 +3,9 @@
 namespace Query\Domain\Model\Firm;
 
 use DateTimeImmutable;
-use Firm\Domain\Model\Firm\Program\ActivityType;
 use Query\Domain\Model\Firm;
 use Resources\Domain\ValueObject\Password;
+use Resources\Exception\RegularException;
 
 class Manager
 {
@@ -113,6 +113,14 @@ class Manager
     public function passwordMatches(string $password): bool
     {
         return $this->password->match($password);
+    }
+    
+    public function executeTaskInFirm(ITaskInFirmExecutableByManager $task): void
+    {
+        if ($this->removed) {
+            throw RegularException::forbidden('forbidden: only active manager can make this request');
+        }
+        $task->executeTaskInFirm($this->firm);
     }
 
 }

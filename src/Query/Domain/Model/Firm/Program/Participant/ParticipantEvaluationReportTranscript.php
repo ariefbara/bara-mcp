@@ -67,5 +67,15 @@ class ParticipantEvaluationReportTranscript
         }
         return $result;
     }
+    
+    public function saveToClientTranscriptTableSpreadsheet(Spreadsheet $spreadsheet): void
+    {
+        
+    }
+    
+    public function toClientTranscriptTableArray(): array
+    {
+        
+    }
 
 }

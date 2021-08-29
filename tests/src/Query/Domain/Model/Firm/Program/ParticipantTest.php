@@ -2,7 +2,11 @@
 
 namespace Query\Domain\Model\Firm\Program;
 
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
 use Tests\TestBase;
@@ -14,6 +18,11 @@ class ParticipantTest extends TestBase
     protected $learningMaterialFinder, $learningMaterialId = "learningMaterialId";
     protected $page = 1, $pageSize = 25;
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
+    
+    protected $teamParticipant;
+    protected $userParticipant;
+    protected $clientParticipant;
+    protected $client;
 
     protected function setUp(): void
     {
@@ -25,6 +34,12 @@ class ParticipantTest extends TestBase
         
         $this->learningMaterialFinder = $this->buildMockOfClass(LearningMaterialFinder::class);
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
+        
+        $this->teamParticipant = $this->buildMockOfClass(TeamProgramParticipation::class);
+        $this->userParticipant = $this->buildMockOfClass(UserParticipant::class);
+        $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
+        
+        $this->client = $this->buildMockOfClass(Client::class);
     }
     protected function assertInactiveParticipant(callable $operation)
     {
@@ -89,6 +104,76 @@ class ParticipantTest extends TestBase
         $this->assertInactiveParticipant(function (){
             $this->executeViewAllMissionComments();
         });
+    }
+    
+    protected function getListOfClientPlusTeamName()
+    {
+        return $this->participant->getListOfClientPlusTeamName();
+    }
+    public function test_getListOfClientPlusTeamName_userParticipant_returnUserParticipantName()
+    {
+        $this->participant->userParticipant = $this->userParticipant;
+        $this->userParticipant->expects($this->once())
+                ->method('getUserName')
+                ->willReturn($userName = 'user name');
+        $this->assertEquals([$userName], $this->getListOfClientPlusTeamName());
+    }
+    public function test_getListOfClientPlusTeamName_clientParticipant_returnClientParticipantName()
+    {
+        $this->participant->clientParticipant = $this->clientParticipant;
+        $this->clientParticipant->expects($this->once())
+                ->method('getClientName')
+                ->willReturn($clientName = 'client name');
+        $this->assertEquals([$clientName], $this->getListOfClientPlusTeamName());
+    }
+    public function test_getListOfClientPlusTeamName_teamParticipant_returnTeamParticipantListOfActiveMemberPlusTeamName()
+    {
+        $this->participant->teamParticipant = $this->teamParticipant;
+        $this->teamParticipant->expects($this->once())
+                ->method('getListOfActiveMemberPlusTeamName');
+        $this->getListOfClientPlusTeamName();
+    }
+    
+    protected function correspondWithClient()
+    {
+        return $this->participant->correspondWithClient($this->client);
+    }
+    public function test_correspondWithClient_clientParticipant_returnClientEqualsResult()
+    {
+        $this->participant->clientParticipant = $this->clientParticipant;
+        $this->clientParticipant->expects($this->once())
+                ->method('clientEquals')
+                ->with($this->client);
+        $this->correspondWithClient();
+    }
+    public function test_correspondWithClient_teamParticipant_returnTeamParticipantHasActiveMemberCorrespondWithClientResult()
+    {
+        $this->participant->teamParticipant = $this->teamParticipant;
+        $this->teamParticipant->expects($this->once())
+                ->method('hasActiveMemberCorrespondWithClient')
+                ->with($this->client);
+        $this->correspondWithClient();
+    }
+    public function test_correspondWithClient_userParticipant_returnFalse()
+    {
+        $this->participant->userParticipant = $this->userParticipant;
+        $this->assertFalse($this->correspondWithClient());
+    }
+    
+    protected function getTeamName()
+    {
+        return $this->participant->getTeamName();
+    }
+    public function test_getTeamName_teamParticipant_returnTeamName()
+    {
+        $this->participant->teamParticipant = $this->teamParticipant;
+        $this->teamParticipant->expects($this->once())
+                ->method('getTeamName');
+        $this->getTeamName();
+    }
+    public function test_getTeamName_notTeamParticipant_returnNull()
+    {
+        $this->assertNull($this->getTeamName());
     }
 }
 

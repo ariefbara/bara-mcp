@@ -10,6 +10,7 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 use Notification\Application\Service\SendImmediateMail;
 use Notification\Domain\SharedModel\Mail\Recipient;
 use Notification\Infrastructure\MailManager\SwiftMailSender;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
 use Swift_Mailer;
@@ -236,6 +237,25 @@ class Controller extends BaseController
             array_keys($data),
             array_values($data)
         );
+    }
+    
+    protected function sendXlsDownloadResponse(Xlsx $writer)
+    {
+        $callback = function() use($writer) {
+            $file = fopen('php://output', 'w');
+            $writer->save($file);
+            fclose($file);
+            return $file;
+        };
+        
+        $headers = [
+            "Content-type" => "application/vnd.ms-excel",
+            "Content-Disposition" => "attachment; filename=evaluation-report-summary.xls",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+        return response()->stream($callback, 200, $headers);
     }
     
 }

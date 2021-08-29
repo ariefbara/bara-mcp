@@ -103,6 +103,39 @@ class EvaluationPlanReportSummaryTest extends TestBase
             ['field-one', 'field-value'],
         ], $this->summary->toTrascriptTableArray());
     }
+    
+    protected function saveToClientSummaryTableSpreadsheet()
+    {
+        $this->spreadsheet->expects($this->once())
+                ->method('createSheet')
+                ->willReturn($this->worksheet);
+        $this->summary->saveToClientSummaryTableSpreadsheet($this->spreadsheet);
+    }
+    public function test_saveToClientSummaryTableSpreadsheet_addSummaryArrayToNewWorksheet()
+    {
+        $this->evaluationPlan->expects($this->once())
+                ->method('toArrayOfSummaryTableHeader')
+                ->willReturn($tableHeaderArray = ['string represent table headers']);
+        $summaryArray = [
+            $tableHeaderArray,
+        ];
+        
+        $this->worksheet->expects($this->once())
+                ->method('fromArray')
+                ->with($summaryArray);
+        $this->saveToClientSummaryTableSpreadsheet();
+    }
+    public function test_saveToClientSummaryTableSpreadsheet_setEvaluationPlanNameAsWorksheetTitle()
+    {
+        $this->evaluationPlan->expects($this->once())
+                ->method('getName')
+                ->willReturn($evaluationPlanName = 'evaluation plan name');
+        
+        $this->worksheet->expects($this->once())
+                ->method('setTitle')
+                ->with($evaluationPlanName);
+        $this->saveToClientSummaryTableSpreadsheet();
+    }
 }
 
 class TestableEvaluationPlanReportSummary extends EvaluationPlanReportSummary

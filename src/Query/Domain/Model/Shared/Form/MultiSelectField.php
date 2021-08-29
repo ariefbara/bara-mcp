@@ -2,9 +2,9 @@
 
 namespace Query\Domain\Model\Shared\Form;
 
+use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
 use Query\Domain\Model\Shared\Form;
 use Query\Domain\Model\Shared\FormRecord;
-use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 use SharedContext\Domain\Model\SharedEntity\Form\SelectField\Option;
 
@@ -108,6 +108,16 @@ class MultiSelectField implements IField
     public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
     {
         return $formRecord->getListOfMultiSelectFieldRecordSelectedOptionNameCorrespondWith($this);
+    }
+
+    public function getCorrespondingValueFromRecord(IContainFieldRecord $containFieldRecord)
+    {
+        return $containFieldRecord->getListOfMultiSelectFieldRecordSelectedOptionNameCorrespondWith($this);
+    }
+
+    public function getLabel(): string
+    {
+        return $this->getName();
     }
 
 }

@@ -4,6 +4,8 @@ namespace Query\Domain\Model\Shared;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Query\Domain\Model\Firm\Program\EvaluationPlan\IContainSummaryTable;
+use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\HeaderColumn;
 
 class Form
 {
@@ -111,41 +113,40 @@ class Form
     {
         ;
     }
-    
+
     protected function nonRemovedCriteria()
     {
         return Criteria::create()
-                ->andWhere(Criteria::expr()->eq('removed', false));
+                        ->andWhere(Criteria::expr()->eq('removed', false));
     }
-    
-    public function toArrayOfSummaryTableHeader(): array
-    {
-        $summaryTableHeader = [];
-        foreach ($this->iterateAllFieldsOrderedByPosition() as $field) {
-            $summaryTableHeader[] = $field->getName();
-        }
-        return $summaryTableHeader;
-    }
-    
-    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
-    {
-        $summaryTableEntry = [];
-        foreach ($this->iterateAllFieldsOrderedByPosition() as $field) {
-            $summaryTableEntry[] = $field->extractCorrespondingValueFromRecord($formRecord);
-        }
-        return $summaryTableEntry;
-    }
-    
+
+    /*
+      public function toArrayOfSummaryTableHeader(): array
+      {
+      $summaryTableHeader = [];
+      foreach ($this->iterateAllFieldsOrderedByPosition() as $field) {
+      $summaryTableHeader[] = $field->getName();
+      }
+      return $summaryTableHeader;
+      }
+
+      public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+      {
+      $summaryTableEntry = [];
+      foreach ($this->iterateAllFieldsOrderedByPosition() as $field) {
+      $summaryTableEntry[] = $field->extractCorrespondingValueFromRecord($formRecord);
+      }
+      return $summaryTableEntry;
+      }
+     * 
+     */
+
     /**
      * 
      * @var ArrayCollection|null
      */
     protected $sortedFields;
-    
-    /**
-     * 
-     * @return IField[]
-     */
+
     protected function iterateAllFieldsOrderedByPosition()
     {
         if (!isset($this->sortedFields)) {
@@ -169,10 +170,19 @@ class Form
                 $this->sortedFields->add($multiSelectField);
             }
         }
-        
+
         $criteria = Criteria::create()
                 ->orderBy(['position' => Criteria::ASC, "id" => Criteria::ASC]);
         return $this->sortedFields->matching($criteria)->getIterator();
     }
-    
+
+    public function appendAllFieldsAsHeaderColumnOfSummaryTable(
+            IContainSummaryTable $containSummaryTable, int $startColNumber): void
+    {
+        foreach ($this->iterateAllFieldsOrderedByPosition() as $field) {
+            $containSummaryTable->addHeaderColumn(new HeaderColumn($startColNumber, $field));
+            $startColNumber++;
+        }
+    }
+
 }

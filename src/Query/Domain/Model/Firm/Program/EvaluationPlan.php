@@ -4,6 +4,7 @@ namespace Query\Domain\Model\Firm\Program;
 
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\EvaluationPlan\IContainSummaryTable;
 use Query\Domain\Model\Shared\FormRecord;
 
 class EvaluationPlan
@@ -91,19 +92,25 @@ class EvaluationPlan
         
     }
     
-    public function toArrayOfSummaryTableHeader(): array
-    {
-        return array_merge(['Participant', 'Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
-    }
+//    public function toArrayOfSummaryTableHeader(): array
+//    {
+//        return array_merge(['Participant', 'Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
+//    }
+//    
+//    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+//    {
+//        return $this->reportForm->generateSummaryTableEntryFromRecord($formRecord);
+//    }
+//    
+//    public function toArrayOfHorizontalTranscriptTableHeader(): array
+//    {
+//        return array_merge(['Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
+//    }
     
-    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+    public function appendAllFieldsAsHeaderColumnOfSummaryTable(
+            IContainSummaryTable $containSummaryTable, int $startColNumber): void
     {
-        return $this->reportForm->generateSummaryTableEntryFromRecord($formRecord);
-    }
-    
-    public function toArrayOfHorizontalTranscriptTableHeader(): array
-    {
-        return array_merge(['Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
+        $this->reportForm->appendAllFieldsAsHeaderColumnOfSummaryTable($containSummaryTable, $startColNumber);
     }
     
 }

@@ -156,5 +156,10 @@ class UserParticipant implements ContainEvents
     {
         return $this->participant->viewMentor($mentorRepository, $mentorId);
     }
+    
+    public function getUserName(): string
+    {
+        return $this->user->getFullName();
+    }
 
 }

@@ -8,27 +8,26 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Query\Application\Service\Coordinator\ExecuteTaskInProgram;
 use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
-use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportTranscriptFilter;
-use Query\Domain\Task\InProgram\GenerateParticipantEvaluationReportTranscriptTask;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
+use Query\Domain\Task\InProgram\GenerateProgramEvaluationReportSummaryTask;
+use Query\Domain\Task\InProgram\ParticipantEvaluationReportTranscriptResult;
 use function response;
 
 class ParticipantEvaluationReportTranscriptController extends PersonnelBaseController
 {
-    public function transcript($coordinatorId, $participantId)
+    public function transcript($coordinatorId)
     {
-        $task = $this->buildGenerateParticipantEvaluationReportTranscriptTask($participantId);
-        $this->buildService()->execute($this->firmId(), $this->personnelId(), $coordinatorId, $task);
-        
-        return $this->singleQueryResponse($this->arrayPreserveJsOrder($task->getResult()->toArray()));
+        $result = $this->executeGenerateParticipantEvaluationReportTranscriptTaskAndReturnResult($coordinatorId);
+        return $this->singleQueryResponse($result->toRelationalArray());
     }
     
-    public function downloadXlsTranscript($coordinatorId, $participantId)
+    public function downloadXlsTranscript($coordinatorId)
     {
-        $task = $this->buildGenerateParticipantEvaluationReportTranscriptTask($participantId);
-        $this->buildService()->execute($this->firmId(), $this->personnelId(), $coordinatorId, $task);
+        $result = $this->executeGenerateParticipantEvaluationReportTranscriptTaskAndReturnResult($coordinatorId);
         
         $spreadsheet = new Spreadsheet();
-        $task->getResult()->saveToSpreadsheet($spreadsheet);
+        $spreadsheet->removeSheetByIndex($spreadsheet->getActiveSheetIndex());
+        $result->saveToSpreadsheet($spreadsheet);
         
         $writer = new Xlsx($spreadsheet);
         
@@ -51,30 +50,42 @@ class ParticipantEvaluationReportTranscriptController extends PersonnelBaseContr
     
     protected function buildService()
     {
-        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
-        return new ExecuteTaskInProgram($coordinatorRepository);
     }
     
-    protected function buildGenerateParticipantEvaluationReportTranscriptTask($participantId)
+    protected function executeGenerateParticipantEvaluationReportTranscriptTaskAndReturnResult($coordinatorId): ParticipantEvaluationReportTranscriptResult
     {
-        $evaluationReportReporsitory = $this->em->getRepository(EvaluationReport::class);
         
+        $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
+        
+        $evaluationReportFilter = new EvaluationReportSummaryFilter();
         $evaluationPlanIdList = $this->request->query('evaluationPlanIdList');
+        $participantIdList = $this->request->query('participantIdList');
         $mentorIdList = $this->request->query('mentorIdList');
         
-        $evaluationReportTranscriptFilter = new EvaluationReportTranscriptFilter();
         if (!empty($evaluationPlanIdList)) {
             foreach ($evaluationPlanIdList as $evaluationPlanId) {
-                $evaluationReportTranscriptFilter->addEvaluationPlanId($this->stripTagsVariable($evaluationPlanId));
+                $evaluationReportFilter->addEvaluationPlanId($this->stripTagsVariable($evaluationPlanId));
+            }
+        }
+        if (!empty($participantIdList)) {
+            foreach ($participantIdList as $participantId) {
+                $evaluationReportFilter->addParticipantId($this->stripTagsVariable($participantId));
             }
         }
         if (!empty($mentorIdList)) {
             foreach ($mentorIdList as $mentorId) {
-                $evaluationReportTranscriptFilter->addMentorId($this->stripTagsVariable($mentorId));
+                $evaluationReportFilter->addMentorId($this->stripTagsVariable($mentorId));
             }
         }
         
-        return new GenerateParticipantEvaluationReportTranscriptTask(
-                $evaluationReportReporsitory, $participantId, $evaluationReportTranscriptFilter);
+        $result = new ParticipantEvaluationReportTranscriptResult();
+        $task = new GenerateProgramEvaluationReportSummaryTask(
+                $evaluationReportRepository, $evaluationReportFilter, $result);
+        
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        (new ExecuteTaskInProgram($coordinatorRepository))
+                ->execute($this->firmId(), $this->personnelId(), $coordinatorId, $task);
+        
+        return $result;
     }
 }

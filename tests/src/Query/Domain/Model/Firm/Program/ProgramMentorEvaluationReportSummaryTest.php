@@ -3,7 +3,6 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx\Worksheet;
 use Query\Domain\Model\Firm\Program\EvaluationPlan\EvaluationPlanReportSummary;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Tests\TestBase;
@@ -88,6 +87,32 @@ class ProgramMentorEvaluationReportSummaryTest extends TestBase
                 ->method('saveToSpreadsheet')
                 ->with($this->spreadsheet);
         $this->saveToSpreadsheet();
+    }
+    
+    protected function saveToClientSummaryTableSpreadsheet()
+    {
+        $this->summary->evaluationPlanReportSummaries[] = $this->evaluationPlanReportSummaryTwo;
+        $this->summary->saveToClientSummaryTableSpreadsheet($this->spreadsheet);
+    }
+    public function test_saveToClientSummaryTableSpreadsheet_removeDefaultActiveWorksheet()
+    {
+        $this->spreadsheet->expects($this->once())
+                ->method('getActiveSheetIndex')
+                ->willReturn(1);
+        $this->spreadsheet->expects($this->once())
+                ->method('removeSheetByIndex')
+                ->with(1);
+        $this->saveToClientSummaryTableSpreadsheet();
+    }
+    public function test_saveToClientSummaryTableSpreadsheet_saveAllEvaluationPlanReportSummaryToClientSummaryTableSpreadsheet()
+    {
+        $this->evaluationPlanReportSummary->expects($this->once())
+                ->method('saveToClientSummaryTableSpreadsheet')
+                ->with($this->spreadsheet);
+        $this->evaluationPlanReportSummaryTwo->expects($this->once())
+                ->method('saveToClientSummaryTableSpreadsheet')
+                ->with($this->spreadsheet);
+        $this->saveToClientSummaryTableSpreadsheet();
     }
 }
 

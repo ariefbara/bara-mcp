@@ -4,9 +4,14 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use PDO;
+use Query\Domain\Model\Firm;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
+use Query\Domain\Model\Firm\Team\Member;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportFilter;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportRepository;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
@@ -213,26 +218,30 @@ _STATEMENT;
         $qb = $this->createQueryBuilder('evaluationReport');
         $qb->select('evaluationReport')
                 ->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
                 ->leftJoin('evaluationPlan.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameters($params);
-        
+
         if (!empty($evaluationPlanIdList = $evaluationReportSummaryFilter->getEvaluationPlanIdList())) {
             $qb->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
                     ->setParameter('evaluationPlanIdList', $evaluationPlanIdList);
         }
         if (!empty($participantIdList = $evaluationReportSummaryFilter->getParticipantIdList())) {
-            $qb->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
-                    ->leftJoin('dedicatedMentor.participant', 'participant')
+            $qb->leftJoin('dedicatedMentor.participant', 'participant')
                     ->andWhere($qb->expr()->in('participant.id', ':participantIdList'))
                     ->setParameter('participantIdList', $participantIdList);
+        }
+        if (!empty($mentorIdList = $evaluationReportSummaryFilter->getMentorIdList())) {
+            $qb->leftJoin('dedicatedMentor.consultant', 'consultant')
+                    ->andWhere($qb->expr()->in('consultant.id', ':mentorIdList'))
+                    ->setParameter('mentorIdList', $mentorIdList);
         }
         return $qb->getQuery()->getResult();
     }
 
     public function allEvaluationReportsBelongsToParticipantInProgram(
-            Program $program, string $participantId,
-            EvaluationReportTranscriptFilter $evaluationReportTranscriptFilter)
+            Program $program, string $participantId, EvaluationReportTranscriptFilter $evaluationReportTranscriptFilter)
     {
         $params = [
             'programId' => $program->getId(),
@@ -247,7 +256,7 @@ _STATEMENT;
                 ->leftJoin('participant.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameters($params);
-        
+
         if (!empty($evaluationPlanIdList = $evaluationReportTranscriptFilter->getEvaluationPlanIdList())) {
             $qb->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
                     ->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
@@ -257,6 +266,122 @@ _STATEMENT;
             $qb->leftJoin('dedicatedMentor.consultant', 'consultant')
                     ->andWhere($qb->expr()->in('consultant.id', ':mentorIdList'))
                     ->setParameter('mentorIdList', $mentorIdList);
+        }
+        return $qb->getQuery()->getResult();
+    }
+
+    public function allEvaluationReportsBelongsToClientInFirm(
+            Firm $firm, string $clientId, EvaluationReportSummaryFilter $filter)
+    {
+        $params = [
+            'firmId' => $firm->getId(),
+            'clientId' => $clientId,
+        ];
+
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('a_participant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.client', 'a_client')
+                ->andWhere($clientParticipantQb->expr()->eq('a_client.id', ':clientId'))
+                ->leftJoin('clientParticipant.participant', 'a_participant');
+
+        $memberQb = $this->getEntityManager()->createQueryBuilder();
+        $memberQb->select('b1_team.id')
+                ->from(Member::class, 'b1_member')
+                ->andWhere($memberQb->expr()->eq('b1_member.active', 'true'))
+                ->leftJoin('b1_member.client', 'b1_client')
+                ->andWhere($memberQb->expr()->eq('b1_client.id', 'clientId'))
+                ->leftJoin('b1_member.team', 'b1_team');
+
+        $teamParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $teamParticipantQb->select('b_participant.id')
+                ->from(TeamProgramParticipation::class, 'b_teamParticipant')
+                ->leftJoin('b_teamParticipant.team', 'b_team')
+                ->andWhere($clientParticipantQb->expr()->in('b_team.id', $memberQb->getDQL()))
+                ->leftJoin('b_teamParticipant.participant', 'b_participant');
+
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('dedicatedMentor.participant', 'participant')
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in('participant.id', $clientParticipantQb->getDQL()),
+                                $qb->expr()->in('participant.id', $teamParticipantQb->getDQL())
+                ))
+                ->leftJoin('participant.program', 'program')
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+
+        if (!empty($evaluationPlanIdList = $filter->getEvaluationPlanIdList())) {
+            $qb->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
+                    ->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
+                    ->setParameter('evaluationPlanIdList', $evaluationPlanIdList);
+        }
+        if (!empty($mentorIdList = $filter->getMentorIdList())) {
+            $qb->leftJoin('dedicatedMentor.consultant', 'consultant')
+                    ->andWhere($qb->expr()->in('consultant.id', ':mentorIdList'))
+                    ->setParameter('mentorIdList', $mentorIdList);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function allNonPaginatedEvaluationReportsInFirm(
+            Firm $firm, EvaluationReportSummaryFilter $filter)
+    {
+        $params = [
+            'firmId' => $firm->getId(),
+        ];
+
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
+                ->leftJoin('evaluationPlan.program', 'program')
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+
+        if (!empty($evaluationPlanIdList = $filter->getEvaluationPlanIdList())) {
+            $qb->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
+                    ->setParameter('evaluationPlanIdList', $evaluationPlanIdList);
+        }
+        if (!empty($personnelIdList = $filter->getPersonnelIdList())) {
+            $qb->leftJoin('dedicatedMentor.consultant', 'consultant')
+                    ->leftJoin('consultant.personnel', 'personnel')
+                    ->andWhere($qb->expr()->in('personnel.id', ':personnelIdList'))
+                    ->setParameter('personnelIdList', $personnelIdList);
+        }
+        if (!empty($clientIdList = $filter->getClientIdList())) {
+            $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+            $clientParticipantQb->select('a_participant.id')
+                    ->from(ClientParticipant::class, 'clientParticipant')
+                    ->leftJoin('clientParticipant.client', 'a_client')
+                    ->andWhere($clientParticipantQb->expr()->in('a_client.id', ':clientIdList'))
+                    ->leftJoin('clientParticipant.participant', 'a_participant');
+
+            $memberQb = $this->getEntityManager()->createQueryBuilder();
+            $memberQb->select('b1_team.id')
+                    ->from(Member::class, 'b1_member')
+                    ->andWhere($memberQb->expr()->eq('b1_member.active', 'true'))
+                    ->leftJoin('b1_member.client', 'b1_client')
+                    ->andWhere($memberQb->expr()->in('b1_client.id', ':clientIdList'))
+                    ->leftJoin('b1_member.team', 'b1_team');
+
+            $teamParticipantQb = $this->getEntityManager()->createQueryBuilder();
+            $teamParticipantQb->select('b_participant.id')
+                    ->from(TeamProgramParticipation::class, 'b_teamParticipant')
+                    ->leftJoin('b_teamParticipant.team', 'b_team')
+                    ->andWhere($clientParticipantQb->expr()->in('b_team.id', $memberQb->getDQL()))
+                    ->leftJoin('b_teamParticipant.programParticipation', 'b_participant');
+        
+            $qb->leftJoin('dedicatedMentor.participant', 'participant')
+                    ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in('participant.id', $clientParticipantQb->getDQL()),
+                                $qb->expr()->in('participant.id', $teamParticipantQb->getDQL())
+                    ))
+                    ->setParameter('clientIdList', $clientIdList);
         }
         return $qb->getQuery()->getResult();
     }

@@ -411,8 +411,8 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/mentor-evaluation-reports/summary", ["uses" => "MentorEvaluationReportController@summary"]);
         $router->get("/mentor-evaluation-reports/download-xls-summary", ["uses" => "MentorEvaluationReportController@downloadXlsSummary"]);
         
-        $router->get("/participants/{participantId}/evaluation-report-transcript", ["uses" => "ParticipantEvaluationReportTranscriptController@transcript"]);
-        $router->get("/participants/{participantId}/download-evaluation-report-transcript-xls", ["uses" => "ParticipantEvaluationReportTranscriptController@downloadXlsTranscript"]);
+        $router->get("/evaluation-report-transcript", ["uses" => "ParticipantEvaluationReportTranscriptController@transcript"]);
+        $router->get("/download-evaluation-report-transcript-xls", ["uses" => "ParticipantEvaluationReportTranscriptController@downloadXlsTranscript"]);
     });
     
     $asConsultantMeetingInitiatorAggregate = [

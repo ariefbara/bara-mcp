@@ -9,25 +9,33 @@ use Query\Application\Service\Coordinator\ExecuteTaskInProgram;
 use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
+use Query\Domain\Task\InProgram\GenerateProgramEvaluationReportSummaryTask;
 use Query\Domain\Task\InProgram\GenerateProgramMentorEvaluationReportSummaryTask;
+use Query\Domain\Task\InProgram\IProgramEvaluationReportSummaryResult;
+use Query\Domain\Task\InProgram\ParticipantEvaluationReportSummaryResult;
 use function response;
 
 class MentorEvaluationReportController extends PersonnelBaseController
 {
     public function summary($coordinatorId)
     {
-        $task = $this->buildGenerateProgramMentorEvaluationReportSummaryTask();
+        $result = new ParticipantEvaluationReportSummaryResult();
+        $task = $this->buildGenerateProgramEvaluationReportSummaryTask($result);
+        
         $this->buildService()->execute($this->firmId(), $this->personnelId(), $coordinatorId, $task);
         
-        return $this->singleQueryResponse($this->arrayPreserveJsOrder($task->getResult()->toArray()));
+        return $this->singleQueryResponse($result->toRelationalArray());
     }
     public function downloadXlsSummary($coordinatorId)
     {
-        $task = $this->buildGenerateProgramMentorEvaluationReportSummaryTask();
+        $result = new ParticipantEvaluationReportSummaryResult();
+        $task = $this->buildGenerateProgramEvaluationReportSummaryTask($result);
+        
         $this->buildService()->execute($this->firmId(), $this->personnelId(), $coordinatorId, $task);
         
         $spreadsheet = new Spreadsheet();
-        $task->getResult()->saveToSpreadsheet($spreadsheet);
+        $spreadsheet->removeSheetByIndex($spreadsheet->getActiveSheetIndex());
+        $result->saveToSpreadsheet($spreadsheet);
         
         $writer = new Xlsx($spreadsheet);
         
@@ -54,26 +62,32 @@ class MentorEvaluationReportController extends PersonnelBaseController
         return new ExecuteTaskInProgram($coordinatorRepository);
     }
     
-    protected function buildGenerateProgramMentorEvaluationReportSummaryTask()
+    protected function buildGenerateProgramEvaluationReportSummaryTask(IProgramEvaluationReportSummaryResult $result)
     {
-        $evaluationReportSummaryFilter = new EvaluationReportSummaryFilter();
+        $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
+        
+        $evaluationReportFilter = new EvaluationReportSummaryFilter();
         $evaluationPlanIdList = $this->request->query('evaluationPlanIdList');
         $participantIdList = $this->request->query('participantIdList');
+        $mentorIdList = $this->request->query('mentorIdList');
         
         if (!empty($evaluationPlanIdList)) {
             foreach ($evaluationPlanIdList as $evaluationPlanId) {
-                $evaluationReportSummaryFilter->addEvaluationPlanId($this->stripTagsVariable($evaluationPlanId));
+                $evaluationReportFilter->addEvaluationPlanId($this->stripTagsVariable($evaluationPlanId));
             }
         }
         if (!empty($participantIdList)) {
             foreach ($participantIdList as $participantId) {
-                $evaluationReportSummaryFilter->addParticipantId($this->stripTagsVariable($participantId));
+                $evaluationReportFilter->addParticipantId($this->stripTagsVariable($participantId));
+            }
+        }
+        if (!empty($mentorIdList)) {
+            foreach ($mentorIdList as $mentorId) {
+                $evaluationReportFilter->addMentorId($this->stripTagsVariable($mentorId));
             }
         }
         
-        $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
-        
-        return new GenerateProgramMentorEvaluationReportSummaryTask(
-                $evaluationReportRepository, $evaluationReportSummaryFilter);
+        return new GenerateProgramEvaluationReportSummaryTask(
+                $evaluationReportRepository, $evaluationReportFilter, $result);
     }
 }

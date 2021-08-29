@@ -17,6 +17,7 @@ use Tests\TestBase;
 class MemberTest extends TestBase
 {
     protected $member;
+    protected $client;
 
     protected $clientFinder, $clientEmail = "client@email.org";
     protected $teamProgramParticipationFinder, $teamProgramParticipationId = "teamProgramParticipationid";
@@ -32,7 +33,8 @@ class MemberTest extends TestBase
     {
         parent::setUp();
         $this->member = new TestableMember();
-        $this->member->client = $this->buildMockOfClass(Client::class);
+        $this->client = $this->buildMockOfClass(Client::class);
+        $this->member->client = $this->client;
         $this->member->team = $this->buildMockOfClass(Team::class);
         
         $this->teamProgramParticipationFinder = $this->buildMockOfClass(TeamProgramParticipationFinder::class);
@@ -257,6 +259,32 @@ class MemberTest extends TestBase
         $this->assertUnmanageTeamParticipant(function (){
             $this->executeViewMentors();
         });
+    }
+    
+    protected function isActiveMemberCorrespondWithClient()
+    {
+        return $this->member->isActiveMemberCorrespondWithClient($this->client);
+    }
+    public function test_isActiveMemberCorrespondWithClient_activeMemberCorrespondToSameClient_returnTrue()
+    {
+        $this->assertTrue($this->isActiveMemberCorrespondWithClient());
+    }
+    public function test_isActiveMemberCorrespondWithClient_inactiveMember_returnFalse()
+    {
+        $this->member->active = false;
+        $this->assertFalse($this->isActiveMemberCorrespondWithClient());
+    }
+    public function test_isActiveMemberCorrespondWithClient_differentClient_returnFalse()
+    {
+        $this->member->client = $this->buildMockOfClass(Client::class);
+        $this->assertFalse($this->isActiveMemberCorrespondWithClient());
+    }
+    
+    public function test_getClientName_returnClientFullName()
+    {
+        $this->client->expects($this->once())
+                ->method('getFullName');
+        $this->member->getClientName();
     }
     
 }

@@ -419,5 +419,15 @@ class Member extends EntityContainEvents
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewMentor($mentorRepository, $mentorId);
     }
+    
+    public function isActiveMemberCorrespondWithClient(Client $client): bool
+    {
+        return $this->active && $this->client === $client;
+    }
+    
+    public function getClientName(): string
+    {
+        return $this->client->getFullName();
+    }
 
 }

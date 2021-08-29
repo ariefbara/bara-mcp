@@ -7,13 +7,15 @@ use Doctrine\ORM\NoResultException;
 use Query\Application\Auth\Firm\ClientRepository as InterfaceForAuthorization;
 use Query\Application\Service\Client\ClientRepository as InterfaceForClient;
 use Query\Application\Service\Firm\ClientRepository;
+use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Service\Firm\ClientRepository as InterfaceForDomainService;
+use Query\Domain\Task\Dependency\Firm\ClientRepository as ClientRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineClientRepository extends EntityRepository implements ClientRepository, InterfaceForDomainService, InterfaceForAuthorization,
-        InterfaceForClient
+        InterfaceForClient, ClientRepository2
 {
 
     public function all(string $firmId, int $page, int $pageSize, ?bool $activatedStatus)
@@ -173,6 +175,27 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
     {
         $result = $this->getEntityManager()->getConnection()->executeQuery($sqlQuery);
         return $result->fetchAllAssociative();
+    }
+
+    public function allNonPaginatedActiveClientInFirm(Firm $firm, array $clientIdList)
+    {
+        $params = [
+            'firmId' => $firm->getId(),
+        ];
+
+        $qb = $this->createQueryBuilder('client');
+        $qb->select('client')
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('client.activated', 'true'))
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+        
+        if (!empty($clientIdList)) {
+            $qb->andWhere($qb->expr()->in('client.id', ':clientIdList'))
+                    ->setParameter('clientIdList', $clientIdList);
+        }
+        
+        return $qb->getQuery()->getResult();
     }
 
 }

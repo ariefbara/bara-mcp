@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Model\Firm\Client;
 
+use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
@@ -10,6 +11,7 @@ use Tests\TestBase;
 class ClientParticipantTest extends TestBase
 {
     protected $clientParticipant;
+    protected $client;
     protected $participant;
     protected $learningMaterialFinder;
     protected $learningMaterialId = "learningMaterialId";
@@ -20,6 +22,10 @@ class ClientParticipantTest extends TestBase
     {
         parent::setUp();
         $this->clientParticipant = new TestableClientParticipant();
+        
+        $this->client = $this->buildMockOfClass(Client::class);
+        $this->clientParticipant->client = $this->client;
+        
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->clientParticipant->participant = $this->participant;
         
@@ -55,6 +61,27 @@ class ClientParticipantTest extends TestBase
                 ->method('viewAllMissionComments')
                 ->with($this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
         $this->clientParticipant->viewAllMissionComments($this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
+    }
+    
+    protected function clientEquals()
+    {
+        return $this->clientParticipant->clientEquals($this->client);
+    }
+    public function test_clientEquals_sameClient_returnTrue()
+    {
+        $this->assertTrue($this->clientEquals());
+    }
+    public function test_clientEquals_differentClient_returnFalse()
+    {
+        $this->clientParticipant->client = $this->buildMockOfClass(Client::class);
+        $this->assertFalse($this->clientEquals());
+    }
+    
+    public function test_getClientName_returnClientFullName()
+    {
+        $this->client->expects($this->once())
+                ->method('getFullName');
+        $this->clientParticipant->getClientName();
     }
 }
 

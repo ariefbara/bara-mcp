@@ -2,21 +2,16 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Query\{
-    Application\Auth\Firm\ManagerRepository as InterfaceForAuth,
-    Application\Service\Firm\ManagerRepository,
-    Domain\Model\Firm\Manager
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Auth\Firm\ManagerRepository as InterfaceForAuth;
+use Query\Application\Service\Firm\ManagerRepository;
+use Query\Application\Service\Manager\ManagerRepository as ManagerRepository2;
+use Query\Domain\Model\Firm\Manager;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineManagerRepository extends EntityRepository implements ManagerRepository, InterfaceForAuth
+class DoctrineManagerRepository extends EntityRepository implements ManagerRepository, InterfaceForAuth, ManagerRepository2
 {
 
     public function all(string $firmId, int $page, int $pageSize)
@@ -98,6 +93,28 @@ class DoctrineManagerRepository extends EntityRepository implements ManagerRepos
         } catch (NoResultException $ex) {
             $errorDetail = "not found: manager not found";
             throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aManagerInFirm(string $firmId, string $managerId): Manager
+    {
+        $params = [
+            'firmId' => $firmId,
+            'managerId' => $managerId,
+        ];
+        
+        $qb = $this->createQueryBuilder('manager');
+        $qb->select('manager')
+                ->andWhere($qb->expr()->eq('manager.id', ':managerId'))
+                ->leftJoin('manager.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: manager not found');
         }
     }
 

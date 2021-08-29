@@ -2,9 +2,8 @@
 
 namespace Query\Domain\Model\Shared\Form;
 
+use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
 use Query\Domain\Model\Shared\Form;
-use Query\Domain\Model\Shared\FormRecord;
-use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 
 class IntegerField implements IField
@@ -117,10 +116,20 @@ class IntegerField implements IField
         return $this->id === $id;
     }
     
-    public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
+    public function extractCorrespondingValueFromRecord(IContainFieldRecord $containFieldRecord)
     {
-        $result = $formRecord->getIntegerFieldRecordValueCorrespondWith($this);
+        $result = $containFieldRecord->getIntegerFieldRecordValueCorrespondWith($this);
         return empty($result) ? null : strval($result);
+    }
+
+    public function getCorrespondingValueFromRecord(IContainFieldRecord $containFieldRecord)
+    {
+        return $containFieldRecord->getIntegerFieldRecordValueCorrespondWith($this);
+    }
+
+    public function getLabel(): string
+    {
+        return $this->getName();
     }
 
 }

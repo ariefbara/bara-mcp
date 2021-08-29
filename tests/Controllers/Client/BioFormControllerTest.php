@@ -34,9 +34,9 @@ class BioFormControllerTest extends ClientTestCase
     }
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table("Form")->truncate();
-        $this->connection->table("BioForm")->truncate();
+//        parent::tearDown();
+//        $this->connection->table("Form")->truncate();
+//        $this->connection->table("BioForm")->truncate();
     }
     
     public function test_show_200()
@@ -70,6 +70,7 @@ class BioFormControllerTest extends ClientTestCase
                 ],
             ],
         ];
+var_dump($this->client->token);
         $this->get($this->bioFormUri, $this->client->token)
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
