@@ -10,7 +10,6 @@ use Tests\TestBase;
 class MeetingScheduleChangedListenerTest extends TestBase
 {
     protected $generateMeetingScheduleChangeNotification;
-    protected $sendImmediateMail;
     protected $listener;
     protected $event, $meetingId = "meetingId";
     
@@ -19,9 +18,8 @@ class MeetingScheduleChangedListenerTest extends TestBase
         parent::setUp();
         
         $this->generateMeetingScheduleChangeNotification = $this->buildMockOfClass(GenerateMeetingScheduleChangedNotification::class);
-        $this->sendImmediateMail = $this->buildMockOfClass(SendImmediateMail::class);
         
-        $this->listener = new MeetingScheduleChangedListener($this->generateMeetingScheduleChangeNotification, $this->sendImmediateMail);
+        $this->listener = new MeetingScheduleChangedListener($this->generateMeetingScheduleChangeNotification);
         
         $this->event = $this->buildMockOfClass(CommonEvent::class);
     }
@@ -36,12 +34,6 @@ class MeetingScheduleChangedListenerTest extends TestBase
         $this->generateMeetingScheduleChangeNotification->expects($this->once())
                 ->method("execute")
                 ->with($this->meetingId);
-        $this->executeHandle();
-    }
-    public function test_handle_executeSendImmediateMail()
-    {
-        $this->sendImmediateMail->expects($this->once())
-                ->method("execute");
         $this->executeHandle();
     }
 }

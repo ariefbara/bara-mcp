@@ -35,7 +35,11 @@ class ConsultationRequestController extends PersonnelBaseController
         $service = $this->buildAcceptService();
         $service->execute($this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId);
 
-        return $this->show($programConsultationId, $consultationRequestId);
+        $consultationRequest = $this->buildViewService()
+                ->showById($this->personnelId(), $programConsultationId, $consultationRequestId);
+        
+        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendImmediateMail();
     }
 
     public function offer($programConsultationId, $consultationRequestId)
@@ -49,16 +53,21 @@ class ConsultationRequestController extends PersonnelBaseController
         
         $service->execute(
                 $this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId, $consultationRequestData);
-
-        return $this->show($programConsultationId, $consultationRequestId);
+        
+        $consultationRequest = $this->buildViewService()
+                ->showById($this->personnelId(), $programConsultationId, $consultationRequestId);
+        
+        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendImmediateMail();
     }
 
     public function reject($programConsultationId, $consultationRequestId)
     {
         $service = $this->buildRejectService();
         $service->execute($this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId);
-
-        return $this->commandOkResponse();
+        
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
     
     public function show($programConsultationId, $consultationRequestId)
@@ -155,8 +164,7 @@ class ConsultationRequestController extends PersonnelBaseController
     {
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
         $service = new GenerateNotificationWhenConsultationSessionAcceptedByConsultant($consultationSessionRepository);
-        $sendImmediateMail = $this->buildSendImmediateMail();
-        return new ConsultationSessionAcceptedByConsultantListener($service, $sendImmediateMail);
+        return new ConsultationSessionAcceptedByConsultantListener($service);
     }
 
     protected function buildOfferService()
@@ -174,8 +182,7 @@ class ConsultationRequestController extends PersonnelBaseController
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
         $service = new GenerateNotificationWhenConsultationRequestOffered($consultationRequestRepository);
-        $sendImmediateMail = $this->buildSendImmediateMail();
-        return new ConsultationRequestOfferedListener($service, $sendImmediateMail);
+        return new ConsultationRequestOfferedListener($service);
     }
 
     protected function buildRejectService()
@@ -193,8 +200,7 @@ class ConsultationRequestController extends PersonnelBaseController
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
         $service = new GenerateNotificationWhenConsultationRequestRejected($consultationRequestRepository);
-        $sendImmediateMail = $this->buildSendImmediateMail();
-        return new ConsultationRequestRejectedListener($service, $sendImmediateMail);
+        return new ConsultationRequestRejectedListener($service);
     }
 
     protected function buildViewService()

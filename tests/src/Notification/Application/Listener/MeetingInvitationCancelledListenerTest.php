@@ -10,7 +10,6 @@ use Tests\TestBase;
 class MeetingInvitationCancelledListenerTest extends TestBase
 {
     protected $generateMeetingInvitationCancelledNotification;
-    protected $sendImmediateMail;
     protected $listener;
     protected $event, $meetingAttendeeId = "meetingAttendeeId";
     
@@ -18,9 +17,8 @@ class MeetingInvitationCancelledListenerTest extends TestBase
     {
         parent::setUp();
         $this->generateMeetingInvitationCancelledNotification = $this->buildMockOfClass(GenerateMeetingInvitationCancelledNotification::class);
-        $this->sendImmediateMail = $this->buildMockOfClass(SendImmediateMail::class);
         
-        $this->listener = new MeetingInvitationCancelledListener($this->generateMeetingInvitationCancelledNotification, $this->sendImmediateMail);
+        $this->listener = new MeetingInvitationCancelledListener($this->generateMeetingInvitationCancelledNotification);
         
         $this->event = $this->buildMockOfClass(CommonEvent::class);
     }
@@ -35,12 +33,6 @@ class MeetingInvitationCancelledListenerTest extends TestBase
         $this->generateMeetingInvitationCancelledNotification->expects($this->once())
                 ->method("execute")
                 ->with($this->meetingAttendeeId);
-        $this->executeHandle();
-    }
-    public function test_handle_sendImmediateMail()
-    {
-        $this->sendImmediateMail->expects($this->once())
-                ->method("execute");
         $this->executeHandle();
     }
 }

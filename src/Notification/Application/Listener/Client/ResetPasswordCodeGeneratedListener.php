@@ -21,23 +21,15 @@ class ResetPasswordCodeGeneratedListener implements Listener
      */
     protected $createClientResetPasswordMail;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
     public function __construct(
-            CreateClientResetPasswordMail $createClientResetPasswordMail, SendImmediateMail $sendImmediateMail)
+            CreateClientResetPasswordMail $createClientResetPasswordMail)
     {
         $this->createClientResetPasswordMail = $createClientResetPasswordMail;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     public function execute(CommonEvent $event): void

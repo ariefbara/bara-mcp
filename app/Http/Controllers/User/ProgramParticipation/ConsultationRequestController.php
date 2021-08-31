@@ -46,14 +46,18 @@ class ConsultationRequestController extends UserBaseController
         $viewService = $this->buildViewService();
         $consultationRequest = $viewService
                 ->showById($this->userId(), $programParticipationId, $consultationRequestId);
-        return $this->commandCreatedResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        
+        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest), 201);
+        $this->sendImmediateMail();
     }
 
     public function cancel($programParticipationId, $consultationRequestId)
     {
         $service = $this->buildCancelService();
         $service->execute($this->userId(), $programParticipationId, $consultationRequestId);
-        return $this->commandOkResponse();
+        
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
 
     public function changeTime($programParticipationId, $consultationRequestId)
@@ -63,7 +67,10 @@ class ConsultationRequestController extends UserBaseController
         $service->execute(
                 $this->userId(), $programParticipationId, $consultationRequestId, $this->getConsultationRequestData());
 
-        return $this->show($programParticipationId, $consultationRequestId);
+        $consultationRequest = $this->buildViewService()->showById($this->userId(), $programParticipationId, $consultationRequestId);
+        
+        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendImmediateMail();
     }
 
     public function accept($programParticipationId, $consultationRequestId)
@@ -71,7 +78,10 @@ class ConsultationRequestController extends UserBaseController
         $service = $this->buildAcceptService();
         $service->execute($this->userId(), $programParticipationId, $consultationRequestId);
 
-        return $this->show($programParticipationId, $consultationRequestId);
+        $consultationRequest = $this->buildViewService()->showById($this->userId(), $programParticipationId, $consultationRequestId);
+        
+        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendImmediateMail();
     }
 
     protected function getConsultationRequestData()
@@ -164,7 +174,7 @@ class ConsultationRequestController extends UserBaseController
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
         $service = new GenerateNotificationWhenConsultationRequestSubmitted($consultationRequestRepository);
-        return new ConsultationRequestSubmittedListener($service, $this->buildSendImmediateMail());
+        return new ConsultationRequestSubmittedListener($service);
     }
 
     protected function buildCancelService()
@@ -181,12 +191,11 @@ class ConsultationRequestController extends UserBaseController
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
         $service = new GenerateNotificationWhenConsultationRequestCancelled($consultationRequestRepository);
-        return new ConsultationRequestCancelledListener($service, $this->buildSendImmediateMail());
+        return new ConsultationRequestCancelledListener($service);
     }
 
     protected function buildAcceptService()
     {
-
         $userParticipantRepository = $this->em->getRepository(UserParticipant::class);
         $dispatcher = new Dispatcher();
         $dispatcher->addListener(
@@ -200,7 +209,7 @@ class ConsultationRequestController extends UserBaseController
     {
         $consultationSessionRepository = $this->em->getRepository(ConsultationSession::class);
         $service = new GenerateNotificationWhenConsultationSessionScheduledByParticipant($consultationSessionRepository);
-        return new ConsultationSessionScheduledByParticipantListener($service, $this->buildSendImmediateMail());
+        return new ConsultationSessionScheduledByParticipantListener($service);
     }
 
     protected function buildChangeTimeService()
@@ -217,7 +226,7 @@ class ConsultationRequestController extends UserBaseController
     {
         $consultationRequestRepository = $this->em->getRepository(ConsultationRequest3::class);
         $service = new GenerateNotificationWhenConsultationRequestTimeChanged($consultationRequestRepository);
-        return new ConsultationRequestTimeChangedListener($service, $this->buildSendImmediateMail());
+        return new ConsultationRequestTimeChangedListener($service);
     }
 
 }

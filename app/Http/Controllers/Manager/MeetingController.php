@@ -35,7 +35,9 @@ class MeetingController extends ManagerBaseController
         
         $viewService = $this->buildViewService();
         $meeting = $viewService->showById($this->firmId(), $meetingId);
-        return $this->commandCreatedResponse($this->arrayDataOfMeeting($meeting));
+        
+        $this->sendAndCloseConnection($this->arrayDataOfMeeting($meeting), 201);
+        $this->sendImmediateMail();
     }
 
     protected function arrayDataOfMeeting(Activity $meeting): array
@@ -68,7 +70,7 @@ class MeetingController extends ManagerBaseController
         $meetingRepository = $this->em->getRepository(Meeting2::class);
         $generateMeetingCreaterNotification = new GenerateMeetingCreatedNotification($meetingRepository);
         $sendImmediateMail = $this->buildSendImmediateMail();
-        $listener =  new MeetingCreatedListener($generateMeetingCreaterNotification, $sendImmediateMail);
+        $listener =  new MeetingCreatedListener($generateMeetingCreaterNotification);
         $dispatcher->addListener(EventList::MEETING_CREATED, $listener);
     }
 

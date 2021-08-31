@@ -17,23 +17,14 @@ class MeetingCreatedListener implements Listener
      */
     protected $generateMeetingCreaterNotification;
 
-    /**
-     * 
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
-    function __construct(GenerateMeetingCreatedNotification $generateMeetingCreaterNotification,
-            SendImmediateMail $sendImmediateMail)
+    function __construct(GenerateMeetingCreatedNotification $generateMeetingCreaterNotification)
     {
         $this->generateMeetingCreaterNotification = $generateMeetingCreaterNotification;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(CommonEvent $event): void

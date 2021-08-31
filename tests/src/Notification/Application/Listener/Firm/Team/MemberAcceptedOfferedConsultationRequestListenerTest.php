@@ -12,7 +12,6 @@ class MemberAcceptedOfferedConsultationRequestListenerTest extends TestBase
 {
 
     protected $addConsultationSessionScheduledNotificationTriggeredByTeamMember;
-    protected $sendImmediateMail;
     protected $listener;
     protected $event, $memberId = "memberId", $id = "id";
 
@@ -21,9 +20,8 @@ class MemberAcceptedOfferedConsultationRequestListenerTest extends TestBase
         parent::setUp();
         $this->addConsultationSessionScheduledNotificationTriggeredByTeamMember = 
                 $this->buildMockOfClass(AddConsultationSessionScheduledNotificationTriggeredByTeamMember::class);
-        $this->sendImmediateMail = $this->buildMockOfClass(SendImmediateMail::class);
         $this->listener = new MemberAcceptedOfferedConsultationRequestListener(
-                $this->addConsultationSessionScheduledNotificationTriggeredByTeamMember, $this->sendImmediateMail);
+                $this->addConsultationSessionScheduledNotificationTriggeredByTeamMember);
         
         $this->event = $this->buildMockOfClass(TriggeredByTeamMemberEventInterface::class);
         $this->event->expects($this->any())->method("getMemberId")->willReturn($this->memberId);
@@ -39,12 +37,6 @@ class MemberAcceptedOfferedConsultationRequestListenerTest extends TestBase
         $this->addConsultationSessionScheduledNotificationTriggeredByTeamMember->expects($this->once())
                 ->method("execute")
                 ->with($this->memberId, $this->id);
-        $this->executeHandle();
-    }
-    public function test_handle_sendImmediateMail()
-    {
-        $this->sendImmediateMail->expects($this->once())
-                ->method("execute");
         $this->executeHandle();
     }
 

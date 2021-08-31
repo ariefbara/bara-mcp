@@ -16,24 +16,15 @@ class MeetingScheduleChangedListener implements Listener
      * @var GenerateMeetingScheduleChangedNotification
      */
     protected $generateMeetingScheduleChangeNotification;
-
-    /**
-     * 
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
     
-    function __construct(GenerateMeetingScheduleChangedNotification $generateMeetingScheduleChangeNotification,
-            SendImmediateMail $sendImmediateMail)
+    function __construct(GenerateMeetingScheduleChangedNotification $generateMeetingScheduleChangeNotification)
     {
         $this->generateMeetingScheduleChangeNotification = $generateMeetingScheduleChangeNotification;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(CommonEvent $event): void

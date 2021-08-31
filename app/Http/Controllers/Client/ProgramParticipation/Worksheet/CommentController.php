@@ -50,7 +50,9 @@ class CommentController extends ClientBaseController
         $viewService = $this->buildViewService();
         $reply = $viewService->showById(
                 $this->firmId(), $this->clientId(), $programParticipationId, $worksheetId, $replyCommentId);
-        return $this->commandCreatedResponse($this->arrayDataOfComment($reply));
+        
+        $this->sendAndCloseConnection($this->arrayDataOfComment($reply), 201);
+        $this->sendImmediateMail();
     }
 
     public function show($programParticipationId, $worksheetId, $commentId)
@@ -136,7 +138,7 @@ class CommentController extends ClientBaseController
     {
         $commentRepository = $this->em->getRepository(Comment3::class);
         $service = new GenerateNotificationWhenConsultantCommentRepliedByParticipant($commentRepository);
-        return new ConsultantCommentRepliedByParticipantListener($service, $this->buildSendImmediateMail());
+        return new ConsultantCommentRepliedByParticipantListener($service);
     }
 
     protected function buildViewService()

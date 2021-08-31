@@ -39,9 +39,12 @@ class ConsultantCommentController extends PersonnelBaseController
                 $participantId, $worksheetId, $message);
 
         $viewService = $this->buildViewService();
+        
         $consultantComment = $viewService->showById(
                 $this->firmId(), $this->personnelId(), $programConsultationId, $consultantCommentId);
-        return $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
+        
+        $this->sendAndCloseConnection($this->arrayDataOfConsultantComment($consultantComment), 201);
+        $this->sendImmediateMail();
     }
 
     public function submitReply($programConsultationId)
@@ -60,7 +63,9 @@ class ConsultantCommentController extends PersonnelBaseController
         $viewService = $this->buildViewService();
         $consultantComment = $viewService->showById(
                 $this->firmId(), $this->personnelId(), $programConsultationId, $consultantCommentId);
-        return $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
+        
+        $this->sendAndCloseConnection($this->arrayDataOfConsultantComment($consultantComment), 201);
+        $this->sendImmediateMail();
     }
 
     public function remove($programConsultationId, $consultantCommentId)
@@ -125,9 +130,7 @@ class ConsultantCommentController extends PersonnelBaseController
     {
         $commentRepository = $this->em->getRepository(Comment::class);
         $generateNotificationWhenCommentSubmittedByConsultant = new GenerateNotificationWhenCommentSubmittedByConsultant($commentRepository);
-        $sendImmediateMail = $this->buildSendImmediateMail();
-        return new CommentSubmittedByConsultantListener(
-                $generateNotificationWhenCommentSubmittedByConsultant, $sendImmediateMail);
+        return new CommentSubmittedByConsultantListener($generateNotificationWhenCommentSubmittedByConsultant);
     }
 
 }

@@ -36,7 +36,9 @@ class MeetingController extends AsMeetingInitiatorBaseController
 
         $viewService = $this->buildViewService();
         $meeting = $viewService->showById($this->firmId(), $teamId, $initiatorId)->getActivity();
-        return $this->singleQueryResponse($this->arrayDataOfMeeting($meeting));
+        
+        $this->sendAndCloseConnection($this->arrayDataOfMeeting($meeting));
+        $this->sendImmediateMail();
     }
     
     protected function getMeetingData()
@@ -55,8 +57,7 @@ class MeetingController extends AsMeetingInitiatorBaseController
     {
         $meetingRepository = $this->em->getRepository(\Notification\Domain\Model\Firm\Program\MeetingType\Meeting::class);
         $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
-        $sendImmediateMail = $this->buildSendImmediateMail();
-        $listener = new MeetingScheduleChangedListener($generateMeetingScheduleChangeNotification, $sendImmediateMail);
+        $listener = new MeetingScheduleChangedListener($generateMeetingScheduleChangeNotification);
         
         $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);

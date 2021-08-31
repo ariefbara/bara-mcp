@@ -2,31 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\DispatcherJob;
-use Client\ {
-    Application\Service\ClientSignup,
-    Domain\Model\Client,
-    Domain\Model\ClientData
-};
+use Client\Application\Service\ClientSignup;
+use Client\Domain\Model\Client;
+use Client\Domain\Model\ClientData;
 use Config\EventList;
-use Notification\ {
-    Application\Listener\Client\ActivationCodeGeneratedListener,
-    Application\Listener\User\ActivationCodeGeneratedListener as ActivationCodeGeneratedListener2,
-    Application\Service\Client\CreateActivationMail,
-    Application\Service\User\CreateActivationMail as CreateActivationMail2,
-    Domain\Model\Firm\Client as Client2,
-    Domain\Model\Firm\Client\ClientMail,
-    Domain\Model\User as User2,
-    Domain\Model\User\UserMail
-};
+use Notification\Application\Listener\Client\ActivationCodeGeneratedListener;
+use Notification\Application\Listener\User\ActivationCodeGeneratedListener as ActivationCodeGeneratedListener2;
+use Notification\Application\Service\Client\CreateActivationMail;
+use Notification\Application\Service\User\CreateActivationMail as CreateActivationMail2;
+use Notification\Domain\Model\Firm\Client as Client2;
+use Notification\Domain\Model\Firm\Client\ClientMail;
+use Notification\Domain\Model\User as User2;
+use Notification\Domain\Model\User\UserMail;
 use Query\Domain\Model\Firm;
 use Resources\Application\Event\Dispatcher;
-use User\ {
-    Application\Service\UserSignup,
-    Domain\Model\User,
-    Domain\Model\UserData
-};
-use function dispatch;
+use User\Application\Service\UserSignup;
+use User\Domain\Model\User;
+use User\Domain\Model\UserData;
 use function response;
 
 class SignupController extends Controller
@@ -45,13 +37,8 @@ class SignupController extends Controller
 
         $service->execute($firmIdentifier, $clientData);
 
-        $content = [
-            "meta" => [
-                "code" => 201,
-                "type" => "Created",
-            ]
-        ];
-        return response()->json($content, 201);
+        $this->sendAndCloseConnection(null, 201);
+        $this->sendImmediateMail();
     }
 
     public function userSignup()
@@ -65,14 +52,9 @@ class SignupController extends Controller
 
         $userData = new UserData($firstName, $lastName, $email, $password);
         $service->execute($userData);
-
-        $content = [
-            "meta" => [
-                "code" => 201,
-                "type" => "Created",
-            ]
-        ];
-        return response()->json($content, 201);
+        
+        $this->sendAndCloseConnection(null, 201);
+        $this->sendImmediateMail();
     }
 
     protected function buildClientSignup()
@@ -91,7 +73,7 @@ class SignupController extends Controller
         $clientMailRepository = $this->em->getRepository(ClientMail::class);
         $clientRepository = $this->em->getRepository(Client2::class);
         $createActivationMail = new CreateActivationMail($clientMailRepository, $clientRepository);
-        return new ActivationCodeGeneratedListener($createActivationMail, $this->buildSendImmediateMail());
+        return new ActivationCodeGeneratedListener($createActivationMail);
     }
 
     protected function buildUserSignup()
@@ -109,7 +91,7 @@ class SignupController extends Controller
         $userMailRepository = $this->em->getRepository(UserMail::class);
         $userRepository = $this->em->getRepository(User2::class);
         $createActivationMail = new CreateActivationMail2($userMailRepository, $userRepository);
-        return new ActivationCodeGeneratedListener2($createActivationMail, $this->buildSendImmediateMail());
+        return new ActivationCodeGeneratedListener2($createActivationMail);
     }
 
 }

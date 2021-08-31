@@ -21,24 +21,15 @@ class ConsultationSessionScheduledByParticipantListener implements Listener
      */
     protected $generateNotificationWhenConsultationSessionScheduledByParticipant;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
     public function __construct(
-            GenerateNotificationWhenConsultationSessionScheduledByParticipant $generateNotificationWhenConsultationSessionScheduledByParticipant,
-            SendImmediateMail $sendImmediateMail)
+            GenerateNotificationWhenConsultationSessionScheduledByParticipant $generateNotificationWhenConsultationSessionScheduledByParticipant)
     {
         $this->generateNotificationWhenConsultationSessionScheduledByParticipant = $generateNotificationWhenConsultationSessionScheduledByParticipant;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(CommonEvent $event): void

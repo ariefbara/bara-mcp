@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Countable;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
+use Exception;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Notification\Application\Service\SendImmediateMail;
@@ -156,6 +157,29 @@ class Controller extends BaseController
         ];
         return response()->json($content, 200);
     }
+    
+    
+    protected function sendAndCloseConnection(?array $data = null, int $statusCode = 200)
+    {
+        $content['meta'] = $statusCode === 201 ? [
+            "code" => 201,
+            "type" => "Created",
+        ] : [
+            "code" => 200,
+            "type" => "OK",
+        ];
+        
+        if (isset($data)) {
+            $content['data'] = $data;
+        }
+        $headers = [
+            "Content-Encoding" => "none\r\n",
+            "Content-Length" => strlen(json_encode($content)),
+        ];
+        response($content, $statusCode, $headers)->send();
+    }
+    
+    
 
     protected function listQueryResponse(array $result)
     {
@@ -205,6 +229,11 @@ class Controller extends BaseController
         $vendor = new Swift_Mailer($transport);
         $mailSender = new SwiftMailSender($vendor);
         return new SendImmediateMail($recipientRepository, $mailSender);
+    }
+    
+    protected function sendImmediateMail(): void
+    {
+        $this->buildSendImmediateMail()->execute();
     }
 
     protected function getTimeIntervalFilter()

@@ -126,7 +126,6 @@ class UserAccountControllerTest extends ControllerTestCase
         $this->post($userLoginUri, $userLoginInput)
                 ->seeStatusCode(200);
     }
-
     public function test_resetPassword_noExistingToken_403()
     {
         $this->activeUser->resetPasswordCode = "";
@@ -138,14 +137,12 @@ class UserAccountControllerTest extends ControllerTestCase
         $this->patch($this->resetPasswordUri, $this->resetPasswordInput)
                 ->seeStatusCode(403);
     }
-
     public function test_resetPassword_invalidToken_403()
     {
         $this->resetPasswordInput['resetPasswordCode'] = 'invalid';
         $this->patch($this->resetPasswordUri, $this->resetPasswordInput)
                 ->seeStatusCode(403);
     }
-
     public function test_resetPassword_expiredToken_403()
     {
         $this->activeUser->resetPasswordCodeExpiredTime = (new \DateTimeImmutable('-1 second'));
@@ -155,7 +152,6 @@ class UserAccountControllerTest extends ControllerTestCase
         $this->patch($this->resetPasswordUri, $this->resetPasswordInput)
                 ->seeStatusCode(403);
     }
-
     public function test_resetPassword_inactiveAccount_403()
     {
         $resetPasswordInput = [

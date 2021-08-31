@@ -47,7 +47,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->personnelId(), $meetingId, $task);
         $dispatcher->execute();
         
-        return $this->commandOkResponse();
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
     
     public function inviteCoordinator($meetingId)
@@ -64,7 +65,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->personnelId(), $meetingId, $task);
         $dispatcher->execute();
         
-        return $this->commandOkResponse();
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
     
     public function inviteConsultant($meetingId)
@@ -81,7 +83,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->personnelId(), $meetingId, $task);
         $dispatcher->execute();
         
-        return $this->commandOkResponse();
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
     
     public function inviteParticipant($meetingId)
@@ -98,7 +101,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->personnelId(), $meetingId, $task);
         $dispatcher->execute();
         
-        return $this->commandOkResponse();
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
     
     public function inviteAllActiveDedicatedMentees($meetingId)
@@ -110,7 +114,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->personnelId(), $meetingId);
         $dispatcher->execute();
         
-        return $this->commandOkResponse();
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
     
     public function cancel($meetingId, $attendeeId)
@@ -125,7 +130,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->personnelId(), $meetingId, $task);
         $dispatcher->execute();
         
-        return $this->commandOkResponse();
+        $this->sendAndCloseConnection();
+        $this->sendImmediateMail();
     }
 
     public function show($meetingId, $attendeeId)
@@ -231,8 +237,7 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $meetingAttendeeRepository = $this->em->getRepository(MeetingAttendee::class);
         $generateMeetingInvitationSentNotification = new GenerateMeetingInvitationSentNotification($meetingAttendeeRepository);
         
-        $listener = new MeetingInvitationSentListener(
-                $generateMeetingInvitationSentNotification, $this->buildSendImmediateMail());
+        $listener = new MeetingInvitationSentListener($generateMeetingInvitationSentNotification);
         
         $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_INVITATION_SENT, $listener);
@@ -245,7 +250,7 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $meetingAttendeeRepository = $this->em->getRepository(MeetingAttendee::class);
         $generateMeetingInvitationCancelledNotification = new GenerateMeetingInvitationCancelledNotification($meetingAttendeeRepository);
         
-        $listener = new MeetingInvitationCancelledListener($generateMeetingInvitationCancelledNotification, $this->buildSendImmediateMail());
+        $listener = new MeetingInvitationCancelledListener($generateMeetingInvitationCancelledNotification);
         
         $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_INVITATION_CANCELLED, $listener);
