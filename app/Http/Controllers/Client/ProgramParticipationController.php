@@ -51,7 +51,7 @@ class ProgramParticipationController extends ClientBaseController
         }
         return $this->listQueryResponse($result);
     }
-
+    
     protected function arrayDataOfProgramParticipation(ClientParticipant $programParticipation): array
     {
         return [
