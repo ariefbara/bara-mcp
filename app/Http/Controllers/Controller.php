@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\Job;
+use App\Jobs\SendImmediateMailJob;
 use Countable;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
-use Exception;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Notification\Application\Service\SendImmediateMail;
@@ -15,6 +16,7 @@ use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
 use Swift_Mailer;
 use Swift_SmtpTransport;
+use Symfony\Component\HttpFoundation\Response;
 use function env;
 use function response;
 
@@ -158,26 +160,33 @@ class Controller extends BaseController
         return response()->json($content, 200);
     }
     
-    
-    protected function sendAndCloseConnection(?array $data = null, int $statusCode = 200)
+    protected function sendAndCloseConnection(Response $response, Job $job): void
     {
-        $content['meta'] = $statusCode === 201 ? [
-            "code" => 201,
-            "type" => "Created",
-        ] : [
-            "code" => 200,
-            "type" => "OK",
-        ];
-        
-        if (isset($data)) {
-            $content['data'] = $data;
+        if (function_exists('fastcgi_finish_request')) {
+            $response->send();
+            fastcgi_finish_request();
+        } elseif (function_exists('litespeed_finish_request')) {
+            $response->send();
+            litespeed_finish_request();
+        } else {
+            $headers = [
+                "Connection" => "close\r\n",
+                "Content-Encoding" => "none\r\n",
+                "Content-Length" => strlen(json_encode($response->getContent())),
+            ];
+            $response
+                    ->header('Connection', 'close')
+                    ->header('Content-Encoding', 'none')
+                    ->header('Content-Length', strlen($response->content()))
+                    ->send();
         }
-        $headers = [
-            "Connection" => "close\r\n",
-            "Content-Encoding" => "none\r\n",
-            "Content-Length" => strlen(json_encode($content)),
-        ];
-        response($content, $statusCode, $headers)->send();
+        $job->handle();
+    }
+    
+    protected function buildSendImmediateMailJob()
+    {
+        $recipientRepository = $this->em->getRepository(Recipient::class);
+        return new SendImmediateMailJob($recipientRepository);
     }
 
     protected function listQueryResponse(array $result)

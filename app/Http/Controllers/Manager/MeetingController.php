@@ -36,8 +36,8 @@ class MeetingController extends ManagerBaseController
         $viewService = $this->buildViewService();
         $meeting = $viewService->showById($this->firmId(), $meetingId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfMeeting($meeting), 201);
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfMeeting($meeting));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function arrayDataOfMeeting(Activity $meeting): array

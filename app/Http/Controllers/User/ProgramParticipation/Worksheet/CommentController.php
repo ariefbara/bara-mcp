@@ -50,8 +50,8 @@ class CommentController extends UserBaseController
         $reply = $viewService->showById(
                 $this->userId(), $programParticipationId, $worksheetId, $replyCommentId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfComment($reply), 201);
-        $this->sendImmediateMail();
+        $response = $this->commandCreatedResponse($this->arrayDataOfComment($reply));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function show($programParticipationId, $worksheetId, $commentId)

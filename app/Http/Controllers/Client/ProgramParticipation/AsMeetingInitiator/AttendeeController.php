@@ -47,8 +47,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $initiatorId, $task);
         $dispatcher->execute();
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function inviteCoordinator($programParticipationId, $initiatorId)
@@ -66,8 +66,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $initiatorId, $task);
         $dispatcher->execute();
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function inviteConsultant($programParticipationId, $initiatorId)
@@ -85,8 +85,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $initiatorId, $task);
         $dispatcher->execute();
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function inviteParticipant($programParticipationId, $initiatorId)
@@ -104,8 +104,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $initiatorId, $task);
         $dispatcher->execute();
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function cancel($programParticipationId, $initiatorId, $attendeeId)
@@ -121,8 +121,8 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $initiatorId, $task);
         $dispatcher->execute();
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function show($meetingId, $attendeeId)

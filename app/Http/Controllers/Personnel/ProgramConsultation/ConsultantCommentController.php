@@ -43,8 +43,8 @@ class ConsultantCommentController extends PersonnelBaseController
         $consultantComment = $viewService->showById(
                 $this->firmId(), $this->personnelId(), $programConsultationId, $consultantCommentId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultantComment($consultantComment), 201);
-        $this->sendImmediateMail();
+        $response = $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function submitReply($programConsultationId)
@@ -64,8 +64,8 @@ class ConsultantCommentController extends PersonnelBaseController
         $consultantComment = $viewService->showById(
                 $this->firmId(), $this->personnelId(), $programConsultationId, $consultantCommentId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultantComment($consultantComment), 201);
-        $this->sendImmediateMail();
+        $response = $this->commandCreatedResponse($this->arrayDataOfConsultantComment($consultantComment));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function remove($programConsultationId, $consultantCommentId)

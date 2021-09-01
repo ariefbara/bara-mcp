@@ -56,8 +56,8 @@ class UserAccountController extends Controller
         $email = $this->stripTagsInputRequest('email');
         $service->execute($email);
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function generateResetPasswordCode()
@@ -66,8 +66,8 @@ class UserAccountController extends Controller
         $email = $this->stripTagsInputRequest('email');
         $service->execute($email);
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
 
     }
 

@@ -45,8 +45,8 @@ class CommentController extends AsTeamMemberBaseController
         $viewService = $this->buildViewService();
         $reply = $viewService->showById($teamId, $replyId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfComment($reply), 201);
-        $this->sendImmediateMail();
+        $response = $this->commandCreatedResponse($this->arrayDataOfComment($reply));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function show($teamId, $teamProgramParticipationId, $worksheetId, $commentId)

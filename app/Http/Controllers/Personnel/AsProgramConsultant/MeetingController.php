@@ -36,8 +36,8 @@ class MeetingController extends AsProgramConsultantBaseController
         $viewService = $this->buildViewService();
         $meeting = $viewService->showById($this->firmId(), $programId, $meetingId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfMeeting($meeting), 201);
-        $this->sendImmediateMail();
+        $response = $this->commandCreatedResponse($this->arrayDataOfMeeting($meeting));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function arrayDataOfMeeting(Activity $meeting): array

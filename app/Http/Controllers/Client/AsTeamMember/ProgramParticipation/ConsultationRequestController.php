@@ -45,8 +45,8 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         $viewService = $this->buildViewService();
         $consultationRequest = $viewService->showById($teamId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest), 201);
-        $this->sendImmediateMail();
+        $response = $this->commandCreatedResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function changeTime($teamId, $teamProgramParticipationId, $consultationRequestId)
@@ -59,8 +59,8 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         
         $consultationRequest = $this->buildViewService()->showById($teamId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function cancel($teamId, $teamProgramParticipationId, $consultationRequestId)
@@ -68,8 +68,8 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         $service = $this->buildCancelService();
         $service->execute($this->firmId(), $this->clientId(), $teamId, $consultationRequestId);
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function accept($teamId, $teamProgramParticipationId, $consultationRequestId)
@@ -80,8 +80,8 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         
         $consultationRequest = $this->buildViewService()->showById($teamId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function getConsultationRequestData()

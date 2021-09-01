@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendImmediateMailJob;
 use Client\Application\Service\ClientSignup;
 use Client\Domain\Model\Client;
 use Client\Domain\Model\ClientData;
@@ -19,7 +20,6 @@ use Resources\Application\Event\Dispatcher;
 use User\Application\Service\UserSignup;
 use User\Domain\Model\User;
 use User\Domain\Model\UserData;
-use function response;
 
 class SignupController extends Controller
 {
@@ -36,9 +36,14 @@ class SignupController extends Controller
         $clientData = new ClientData($firstName, $lastName, $email, $password);
 
         $service->execute($firmIdentifier, $clientData);
-
-        $this->sendAndCloseConnection(null, 201);
-        $this->sendImmediateMail();
+        
+        $response = response()->json([
+            'meta' => [
+                'code' => 201,
+                'type' => 'Created',
+            ],
+        ], '201');
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function userSignup()
@@ -53,9 +58,13 @@ class SignupController extends Controller
         $userData = new UserData($firstName, $lastName, $email, $password);
         $service->execute($userData);
         
-        $this->sendAndCloseConnection(null, 201);
-sleep(15);
-        $this->sendImmediateMail();
+        $response = response()->json([
+            'meta' => [
+                'code' => 201,
+                'type' => 'Created',
+            ],
+        ], '201');
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function buildClientSignup()

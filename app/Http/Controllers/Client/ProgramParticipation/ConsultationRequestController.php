@@ -47,8 +47,8 @@ class ConsultationRequestController extends ClientBaseController
         $consultationRequest = $viewService
                 ->showById($this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest), 201);
-        $this->sendImmediateMail();
+        $response = $this->commandCreatedResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function cancel($programParticipationId, $consultationRequestId)
@@ -56,8 +56,8 @@ class ConsultationRequestController extends ClientBaseController
         $service = $this->buildCancelService();
         $service->execute($this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId);
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function changeTime($programParticipationId, $consultationRequestId)
@@ -70,8 +70,8 @@ class ConsultationRequestController extends ClientBaseController
         $consultationRequest = $this->buildViewService()
                 ->showById($this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function accept($programParticipationId, $consultationRequestId)
@@ -82,8 +82,8 @@ class ConsultationRequestController extends ClientBaseController
         $consultationRequest = $this->buildViewService()
                 ->showById($this->firmId(), $this->clientId(), $programParticipationId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function getConsultationRequestData()

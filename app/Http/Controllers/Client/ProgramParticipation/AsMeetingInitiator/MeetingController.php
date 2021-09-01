@@ -32,8 +32,8 @@ class MeetingController extends AsMeetingInitiatorBaseController
         $viewService = $this->buildViewService();
         $meeting = $viewService->showById($this->firmId(), $this->clientId(), $initiatorId)->getActivity();
         
-        $this->sendAndCloseConnection($this->arrayDataOfMeeting($meeting));
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfMeeting($meeting));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
     
     protected function getMeetingData()

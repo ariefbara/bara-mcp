@@ -38,8 +38,8 @@ class ManagerAccountController extends Controller
         
         $service->execute($firmIdentifier, $email);
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
     
     protected function buildResetPasswordService()
