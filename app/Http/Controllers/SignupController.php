@@ -54,6 +54,7 @@ class SignupController extends Controller
         $service->execute($userData);
         
         $this->sendAndCloseConnection(null, 201);
+sleep(15);
         $this->sendImmediateMail();
     }
 

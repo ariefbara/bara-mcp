@@ -173,13 +173,12 @@ class Controller extends BaseController
             $content['data'] = $data;
         }
         $headers = [
+            "Connection" => "close\r\n",
             "Content-Encoding" => "none\r\n",
             "Content-Length" => strlen(json_encode($content)),
         ];
         response($content, $statusCode, $headers)->send();
     }
-    
-    
 
     protected function listQueryResponse(array $result)
     {
