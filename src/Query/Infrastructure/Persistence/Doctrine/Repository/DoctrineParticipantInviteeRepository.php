@@ -37,9 +37,10 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
             $qb->andWhere($qb->expr()->lte('activity.startEndTime.startDateTime', ':to'))
                     ->setParameter('to', $to);
         }
-        if (!empty($inviteeFilter->getCancelledStatus())) {
+        $cancelledStatus = $inviteeFilter->getCancelledStatus();
+        if (isset($cancelledStatus)) {
             $qb->andWhere($qb->expr()->eq('invitee.cancelled', ':cancelled'))
-                    ->setParameter('cancelled', $inviteeFilter->getCancelledStatus());
+                    ->setParameter('cancelled', $cancelledStatus);
         }
         if (!empty($inviteeFilter->getWillAttendStatuses())) {
             $orX = $qb->expr()->orX();
@@ -57,7 +58,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
 
     public function allInvitationsForClientParticipant(
             string $firmId, string $clientId, string $programParticipationId, int $page, int $pageSize,
-            ?TimeIntervalFilter $timeIntervalFilter)
+            ?InviteeFilter $inviteeFilter)
     {
         $params = [
             "firmId" => $firmId,
@@ -85,7 +86,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
                 ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
-        $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
+        $this->applyFilter($qb, $inviteeFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -124,7 +125,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
 
     public function allInvitationsForUserParticipant(
             string $userId, string $programParticipationId, int $page, int $pageSize,
-            ?TimeIntervalFilter $timeIntervalFilter)
+            ?InviteeFilter $inviteeFilter)
     {
         $params = [
             "userId" => $userId,
@@ -149,7 +150,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
                 ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
-        $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
+        $this->applyFilter($qb, $inviteeFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -185,7 +186,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
 
     public function allInvitationsForTeamParticipant(
             string $firmId, string $teamId, string $programParticipationId, int $page, int $pageSize,
-            ?TimeIntervalFilter $timeIntervalFilter)
+            ?InviteeFilter $inviteeFilter)
     {
         $params = [
             "firmId" => $firmId,
@@ -213,7 +214,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
                 ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
 
-        $this->applyTimeIntervalFilter($qb, $timeIntervalFilter);
+        $this->applyFilter($qb, $inviteeFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

@@ -3,7 +3,7 @@
 namespace Query\Application\Service\User\ProgramParticipation;
 
 use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
-use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 
 class ViewInvitationForUserParticipant
 {
@@ -29,10 +29,10 @@ class ViewInvitationForUserParticipant
      */
     public function showAll(
             string $userId, string $programParticipationId, int $page, int $pageSize,
-            ?TimeIntervalFilter $timeIntervalFilter)
+            ?InviteeFilter $inviteeFilter)
     {
         return $this->participantInvitationRepository->allInvitationsForUserParticipant(
-                        $userId, $programParticipationId, $page, $pageSize, $timeIntervalFilter);
+                        $userId, $programParticipationId, $page, $pageSize, $inviteeFilter);
     }
 
     public function showById(string $userId, string $invitationId): ParticipantInvitee

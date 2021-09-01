@@ -2,28 +2,21 @@
 
 namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation;
 
-use ActivityInvitee\{
-    Application\Service\TeamMember\SubmitReport,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\Model\ParticipantInvitee as ParticipantInvitee2
-};
-use App\Http\Controllers\{
-    Client\AsTeamMember\AsTeamMemberBaseController,
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter,
-    FormToArrayDataConverter
-};
-use Query\{
-    Application\Service\Firm\Team\ProgramParticipation\ViewInvitationForTeamParticipant,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\Activity\Invitee\InviteeReport,
-    Domain\Model\Firm\Program\ActivityType,
-    Domain\Model\Firm\Program\Participant\ParticipantInvitee
-};
-use SharedContext\Domain\{
-    Model\SharedEntity\FileInfo,
-    Service\FileInfoBelongsToTeamFinder
-};
+use ActivityInvitee\Application\Service\TeamMember\SubmitReport;
+use ActivityInvitee\Domain\DependencyModel\Firm\Client\TeamMembership;
+use ActivityInvitee\Domain\Model\ParticipantInvitee as ParticipantInvitee2;
+use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use Query\Application\Service\Firm\Team\ProgramParticipation\ViewInvitationForTeamParticipant;
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Program\Activity\Invitee\InviteeReport;
+use Query\Domain\Model\Firm\Program\ActivityType;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
+use SharedContext\Domain\Service\FileInfoBelongsToTeamFinder;
 
 class InvitationController extends AsTeamMemberBaseController
 {
@@ -53,9 +46,15 @@ class InvitationController extends AsTeamMemberBaseController
     {
         $this->authorizeClientIsActiveTeamMember($teamId);
         $service = $this->buildViewService();
+        
+        $inviteeFilter = (new InviteeFilter())
+                ->setCancelledStatus($this->filterBooleanOfQueryRequest('cancelledStatus'))
+                ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
+                ->setTo($this->dateTimeImmutableOfQueryRequest('to'));
+        
         $invitations = $service->showAll(
                 $this->firmId(), $teamId, $teamProgramParticipationId, $this->getPage(), $this->getPageSize(),
-                $this->getTimeIntervalFilter());
+                $inviteeFilter);
 
         $result = [];
         $result["total"] = count($invitations);
