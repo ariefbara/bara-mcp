@@ -9,8 +9,7 @@ class ClientTest extends TestBase
 {
     protected $client;
     protected $password;
-    
-    protected $task;
+
 
     protected function setUp(): void
     {
@@ -19,8 +18,6 @@ class ClientTest extends TestBase
         
         $this->password = $this->buildMockOfClass(Password::class);
         $this->client->password = $this->password;
-        
-        $this->task = $this->buildMockOfInterface(ITaskExecutableByClient::class);
     }
     
     public function test_passwordMatch_returnPasswordsMatchMetod()
@@ -31,31 +28,12 @@ class ClientTest extends TestBase
                 ->willReturn(true);
         $this->assertTrue($this->client->passwordMatch($password));
     }
-    
-    protected function executeTask()
-    {
-        $this->client->executeTask($this->task);
-    }
-    public function test_executeTask_executeTask()
-    {
-        $this->task->expects($this->once())
-                ->method('execute')
-                ->with($this->client->id);
-        $this->executeTask();
-    }
-    public function test_executeTask_inactiveClient_403()
-    {
-        $this->client->activated = false;
-        $this->assertRegularExceptionThrowed(function (){
-            $this->executeTask();
-        }, 'Forbidden', 'forbidden: only active client can make this request');
-    }
 }
 
 class TestableClient extends Client
 {
     public $firm;
-    public $id = 'client-id';
+    public $id;
     public $personName;
     public $email;
     public $password;
@@ -64,7 +42,7 @@ class TestableClient extends Client
     public $activationCodeExpiredTime = null;
     public $resetPasswordCode = null;
     public $resetPasswordCodeExpiredTime = null;
-    public $activated = true;
+    public $activated = false;
     
     public function __construct()
     {

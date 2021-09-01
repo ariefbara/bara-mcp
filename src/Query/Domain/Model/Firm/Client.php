@@ -217,13 +217,5 @@ class Client
         $this->assertActive();
         return $this->firm->getBioSearchFilter();
     }
-    
-    public function executeTask(ITaskExecutableByClient $task): void
-    {
-        if (!$this->activated) {
-            throw RegularException::forbidden('forbidden: only active client can make this request');
-        }
-        $task->execute($this->id);
-    }
 
 }

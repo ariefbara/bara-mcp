@@ -4,7 +4,6 @@ namespace Tests\Controllers\RecordPreparation\Firm;
 
 use DateTimeImmutable;
 use Illuminate\Database\Connection;
-use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Record;
 use Tests\Controllers\RecordPreparation\RecordOfFirm;
 
@@ -49,11 +48,6 @@ class RecordOfTeam implements Record
     public function persistSelf(Connection $connection): void
     {
         $connection->table("Team")->insert($this->toArrayForDbEntry());
-    }
-    
-    public function insert(ConnectionInterface $connection): void
-    {
-        $connection->table('Team')->insert($this->toArrayForDbEntry());
     }
 
 }

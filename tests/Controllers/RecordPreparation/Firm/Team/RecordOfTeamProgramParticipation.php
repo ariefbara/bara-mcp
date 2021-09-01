@@ -43,10 +43,5 @@ class RecordOfTeamProgramParticipation implements Record
     {
         $connection->table("TeamParticipant")->insert($this->toArrayForDbEntry());
     }
-    
-    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
-    {
-        $connection->table("TeamParticipant")->insert($this->toArrayForDbEntry());
-    }
 
 }
