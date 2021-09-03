@@ -12,7 +12,7 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="name" type="string" length="255" nullable="false"/>
         <field name="interval" column="days_interval" type="integer" nullable="false"/>
         <field name="disabled" type="boolean" />
         
