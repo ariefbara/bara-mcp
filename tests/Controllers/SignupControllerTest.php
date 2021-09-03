@@ -39,6 +39,7 @@ class SignupControllerTest extends ControllerTestCase
         $this->connection->table('MailRecipient')->truncate();
         
         $this->firm = new RecordOfFirm(0, 'firm_identifier');
+        $this->firm->mailSenderAddress = "norepli@innovid.xyz";
         $this->connection->table('Firm')->insert($this->firm->toArrayForDbEntry());
         
         $this->client = new RecordOfClient($this->firm, 0);
@@ -58,14 +59,14 @@ class SignupControllerTest extends ControllerTestCase
     
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('Firm')->truncate();
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('User')->truncate();
-        $this->connection->table('ClientMail')->truncate();
-        $this->connection->table('UserMail')->truncate();
-        $this->connection->table('Mail')->truncate();
-        $this->connection->table('MailRecipient')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('Firm')->truncate();
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('User')->truncate();
+//        $this->connection->table('ClientMail')->truncate();
+//        $this->connection->table('UserMail')->truncate();
+//        $this->connection->table('Mail')->truncate();
+//        $this->connection->table('MailRecipient')->truncate();
     }
     
     public function test_clientSignup()
@@ -84,7 +85,7 @@ class SignupControllerTest extends ControllerTestCase
             "Firm_id" => $this->firm->id,
             "firstName" => $this->clientSignupInput['firstName'],
             "lastName" => $this->clientSignupInput['lastName'],
-            "email" => $this->clientSignupInput['email'],
+//            "email" => $this->clientSignupInput['email'],
             "activated" => false,
             'resetPasswordCode' => null,
             'resetPasswordCodeExpiredTime' => null,

@@ -20,32 +20,11 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultationRequestTimeChangedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/Firm/Team/MemberCancelledConsultationRequestListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultationRequestRejectedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/AsTeamMember/ProgramParticipation/AsMeetingInitiator/AttendeeController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultantCommentRepliedByParticipantListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/MeetingCreatedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Controller.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultationRequestSubmittedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/MeetingInvitationCancelledListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/Client/ActivationCodeGeneratedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultationSessionScheduledByParticipantListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/Firm/Team/MemberAcceptedOfferedConsultationRequestListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsConsultantMeetingInitiator/AttendeeController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/CommentSubmittedByConsultantListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/Firm/Team/MemberSubmittedConsultationRequestListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultationSessionAcceptedByConsultantListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/Firm/Team/MemberChangedConsultationRequestTimeListener.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/.env</file>
             <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Service/SendImmediateMail.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ManagerResetPasswordCodeGeneratedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Client/ProgramParticipation/AsMeetingInitiator/AttendeeController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/MeetingInvitationSentListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultationRequestCancelledListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/ConsultationRequestOfferedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/Client/ResetPasswordCodeGeneratedListener.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/app/Http/Controllers/Manager/AsMeetingInitiator/AttendeeController.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Application/Listener/Firm/Program/Participant/ConsultantCommentRepliedByParticipantListener.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Notification/Infrastructure/MailManager/SwiftMailSender.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Config/BaseConfig.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/SignupControllerTest.php</file>
         </group>
     </open-files>
 </project-private>
