@@ -7,13 +7,15 @@ use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\Program\ParticipantRepository;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService;
+use Query\Domain\Task\Dependency\Firm\Program\ParticipantRepository as ParticipantRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, InterfaceForDomainService
+class DoctrineParticipantRepository extends EntityRepository implements ParticipantRepository, InterfaceForDomainService, ParticipantRepository2
 {
 
     public function all(
@@ -263,6 +265,45 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
                 ->setMaxResults(1);
 
         return !empty($qb->getQuery()->getResult());
+    }
+
+    public function allActiveIndividualAndTeamProgramParticipationBelongsToClient(string $clientId)
+    {
+        $params = [
+            'clientId' => $clientId,
+        ];
+        
+        $clientParticipantQB = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQB->select('a_participant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.participant', 'a_participant')
+                ->leftJoin('clientParticipant.client', 'a_client')
+                ->andWhere($clientParticipantQB->expr()->eq('a_client.id', ':clientId'));
+        
+        $activeTeamMemberQB = $this->getEntityManager()->createQueryBuilder();
+        $activeTeamMemberQB->select('b1_team.id')
+                ->from(Member::class, 'b1_member')
+                ->andWhere($activeTeamMemberQB->expr()->eq('b1_member.active', 'true'))
+                ->leftJoin('b1_member.team', 'b1_team')
+                ->leftJoin('b1_member.client', 'b1_client')
+                ->andWhere($activeTeamMemberQB->expr()->eq('b1_client.id', ':clientId'));
+        
+        $teamParticipantQB = $this->getEntityManager()->createQueryBuilder();
+        $teamParticipantQB->select('b_participant.id')
+                ->from(TeamProgramParticipation::class, 'teamParticipant')
+                ->leftJoin('teamParticipant.programParticipation', 'b_participant')
+                ->leftJoin('teamParticipant.team', 'b_team')
+                ->andWhere($teamParticipantQB->expr()->in('b_team.id', $activeTeamMemberQB->getDQL()));
+        
+        $qb = $this->createQueryBuilder('participant');
+        $qb->select('participant')
+                ->andWhere($qb->expr()->eq('participant.active', 'true'))
+                ->andWhere($qb->expr()->orX(
+                        $qb->expr()->in('participant.id', $clientParticipantQB->getDQL()),
+                        $qb->expr()->in('participant.id', $teamParticipantQB->getDQL()),
+                ))
+                ->setParameters($params);
+        return $qb->getQuery()->getResult();
     }
 
 }

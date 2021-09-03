@@ -18,6 +18,8 @@ $router->group($clientAggregate, function () use ($router) {
     $router->get('/firm/info', ['uses' => "FirmController@show"]);
     $router->get('/firm/bio-search-filter', ['uses' => "FirmController@showBioSearchFilter"]);
     
+    $router->get('/active-individual-and-team-program-participation', ['uses' => "ActiveIndividualAndTeamProgramParticipationController@showAll"]);
+    
     $router->group(['prefix' => '/clients'], function () use($router) {
         $controller = "ClientController";
         $router->get("", ["uses" => "$controller@showAll"]);
