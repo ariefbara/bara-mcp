@@ -192,7 +192,7 @@ class Controller extends BaseController
     {
         $pageSize = (int) $this->request->query('pageSize');
         $safeSize = $pageSize > 100 ? 100 : $pageSize;
-        return empty($safeSize) ? 25 : $safeSize;
+        return empty($safeSize) ? 100 : $safeSize;
     }
 
     protected function buildSendImmediateMail(): SendImmediateMail
