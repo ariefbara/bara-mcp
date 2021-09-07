@@ -5,8 +5,8 @@
     >
         
         <id name="id" type="guid" />
-        <field name="senderMailAddress" type="string" length="256" nullable="false"/>
-        <field name="senderName" type="string" length="256" nullable="false"/>
+        <field name="senderMailAddress" type="string" length="255" nullable="false"/>
+        <field name="senderName" type="string" length="255" nullable="false"/>
         <embedded name="message" 
                   class="SharedContext\Domain\ValueObject\MailMessage" 
                   use-column-prefix="false" />

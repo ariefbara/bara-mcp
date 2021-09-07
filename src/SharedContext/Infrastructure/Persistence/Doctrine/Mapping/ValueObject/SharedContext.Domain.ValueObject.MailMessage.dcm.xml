@@ -2,10 +2,10 @@
 <doctrine-mapping>
     <embeddable name="SharedContext\Domain\ValueObject\MailMessage">
         
-        <field name="subject" type="string" length="256" nullable="false"/>
-        <field name="greetings" type="string" length="256" nullable="true"/>
+        <field name="subject" type="string" length="255" nullable="false"/>
+        <field name="greetings" type="string" length="255" nullable="true"/>
         <field name="mainMessage" type="simple_array" nullable="true"/>
-        <field name="domain" type="string" length="256" nullable="true"/>
+        <field name="domain" type="string" length="255" nullable="true"/>
         <field name="urlPath" type="string" length="1024" nullable="true"/>
         <field name="logoPath" type="string" length="1024" nullable="true"/>
         <field name="showLink" type="boolean">

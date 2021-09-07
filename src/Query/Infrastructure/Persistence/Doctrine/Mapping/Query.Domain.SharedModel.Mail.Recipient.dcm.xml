@@ -11,8 +11,8 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="recipientMailAddress" type="string" length="256" nullable="false"/>
-        <field name="recipientName" type="string" length="256" nullable="false"/>
+        <field name="recipientMailAddress" type="string" length="255" nullable="false"/>
+        <field name="recipientName" type="string" length="255" nullable="false"/>
         <field name="sent" type="boolean" />
         <field name="attempt" type="smallint" nullable="true"/>
         

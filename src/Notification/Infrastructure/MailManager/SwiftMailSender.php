@@ -7,6 +7,7 @@ use Notification\Domain\SharedModel\Mail\Recipient;
 use Swift_Attachment;
 use Swift_Mailer;
 use Swift_Message;
+use Swift_TransportException;
 
 class SwiftMailSender implements MailSender
 {
@@ -38,8 +39,12 @@ class SwiftMailSender implements MailSender
             $message->addPart($recipient->getHtmlMessage(), "text/html");
         }
         
-        if (1 == $this->vendor->send($message)) {
-            $recipient->sendSuccessful();
+        try {
+            if (1 == $this->vendor->send($message)) {
+                $recipient->sendSuccessful();
+            }
+        } catch (\Exception $ex) {
+//catch swift mail send error so mail send can continue and attempt increment correctly
         }
         $recipient->increaseAttempt();
     }

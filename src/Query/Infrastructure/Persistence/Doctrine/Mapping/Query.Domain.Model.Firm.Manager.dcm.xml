@@ -11,8 +11,8 @@
             <join-column name="Firm_id" referenced-column-name="id" />
         </many-to-one>
         <id name="id" type="guid" />
-        <field name="name" type="string" length="256" nullable="false"/>
-        <field name="email" type="string" length="256" nullable="false"/>
+        <field name="name" type="string" length="255" nullable="false"/>
+        <field name="email" type="string" length="255" nullable="false"/>
         <embedded name="password" 
                   class="Resources\Domain\ValueObject\Password" 
                   use-column-prefix="false" />

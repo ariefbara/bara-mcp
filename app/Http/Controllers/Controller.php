@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\Job;
+use App\Jobs\SendImmediateMailJob;
 use Countable;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
@@ -14,6 +16,7 @@ use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
 use Swift_Mailer;
 use Swift_SmtpTransport;
+use Symfony\Component\HttpFoundation\Response;
 use function env;
 use function response;
 
@@ -156,6 +159,35 @@ class Controller extends BaseController
         ];
         return response()->json($content, 200);
     }
+    
+    protected function sendAndCloseConnection(Response $response, Job $job): void
+    {
+        if (function_exists('fastcgi_finish_request')) {
+            $response->send();
+            fastcgi_finish_request();
+        } elseif (function_exists('litespeed_finish_request')) {
+            $response->send();
+            litespeed_finish_request();
+        } else {
+            $headers = [
+                "Connection" => "close\r\n",
+                "Content-Encoding" => "none\r\n",
+                "Content-Length" => strlen(json_encode($response->getContent())),
+            ];
+            $response
+                    ->header('Connection', 'close')
+                    ->header('Content-Encoding', 'none')
+                    ->header('Content-Length', strlen($response->content()))
+                    ->send();
+        }
+        $job->handle();
+    }
+    
+    protected function buildSendImmediateMailJob()
+    {
+        $recipientRepository = $this->em->getRepository(Recipient::class);
+        return new SendImmediateMailJob($recipientRepository);
+    }
 
     protected function listQueryResponse(array $result)
     {
@@ -205,6 +237,11 @@ class Controller extends BaseController
         $vendor = new Swift_Mailer($transport);
         $mailSender = new SwiftMailSender($vendor);
         return new SendImmediateMail($recipientRepository, $mailSender);
+    }
+    
+    protected function sendImmediateMail(): void
+    {
+        $this->buildSendImmediateMail()->execute();
     }
 
     protected function getTimeIntervalFilter()

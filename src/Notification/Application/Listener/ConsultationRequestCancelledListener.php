@@ -21,24 +21,15 @@ class ConsultationRequestCancelledListener implements Listener
      */
     protected $generateNotificationWhenConsultationRequestCancelled;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
     public function __construct(
-            GenerateNotificationWhenConsultationRequestCancelled $generateNotificationWhenConsultationRequestCancelled,
-            SendImmediateMail $sendImmediateMail)
+            GenerateNotificationWhenConsultationRequestCancelled $generateNotificationWhenConsultationRequestCancelled)
     {
         $this->generateNotificationWhenConsultationRequestCancelled = $generateNotificationWhenConsultationRequestCancelled;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(CommonEvent $event): void

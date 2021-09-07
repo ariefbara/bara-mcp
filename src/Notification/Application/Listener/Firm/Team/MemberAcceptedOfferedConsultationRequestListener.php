@@ -20,23 +20,15 @@ class MemberAcceptedOfferedConsultationRequestListener implements Listener
      */
     protected $addConsultationSessionScheduledNotificationTriggeredByTeamMember;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-    
-    public function __construct(AddConsultationSessionScheduledNotificationTriggeredByTeamMember $addConsultationSessionScheduledNotificationTriggeredByTeamMember,
-            SendImmediateMail $sendImmediateMail)
+    public function __construct(
+            AddConsultationSessionScheduledNotificationTriggeredByTeamMember $addConsultationSessionScheduledNotificationTriggeredByTeamMember)
     {
         $this->addConsultationSessionScheduledNotificationTriggeredByTeamMember = $addConsultationSessionScheduledNotificationTriggeredByTeamMember;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(TriggeredByTeamMemberEventInterface $event): void

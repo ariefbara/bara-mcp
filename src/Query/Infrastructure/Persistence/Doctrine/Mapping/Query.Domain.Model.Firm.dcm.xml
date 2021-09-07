@@ -6,8 +6,8 @@
     >
         
         <id name="id" type="guid" />
-        <field name="name" type="string" length="256" nullable="false"/>
-        <field name="identifier" type="string" length="256" nullable="false"/>
+        <field name="name" type="string" length="255" nullable="false"/>
+        <field name="identifier" type="string" length="255" nullable="false"/>
         
         <embedded name="firmWhitelableInfo" 
                   class="Query\Domain\Model\FirmWhitelableInfo" 
@@ -19,7 +19,7 @@
             <join-column name="FirmFileInfo_idOfLogo" referenced-column-name="id" />
         </one-to-one>
         
-        <field name="displaySetting" type="string" length="256" nullable="true"/>
+        <field name="displaySetting" type="string" length="255" nullable="true"/>
         
         <field name="suspended" type="boolean" />
         

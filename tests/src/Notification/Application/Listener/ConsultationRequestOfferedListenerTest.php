@@ -12,7 +12,6 @@ use Tests\TestBase;
 class ConsultationRequestOfferedListenerTest extends TestBase
 {
     protected $service;
-    protected $sendImmediateMail;
     protected $listener;
     protected $event, $id = "consultationRequestId";
     
@@ -20,8 +19,7 @@ class ConsultationRequestOfferedListenerTest extends TestBase
     {
         parent::setUp();
         $this->service = $this->buildMockOfClass(GenerateNotificationWhenConsultationRequestOffered::class);
-        $this->sendImmediateMail = $this->buildMockOfClass(SendImmediateMail::class);
-        $this->listener = new ConsultationRequestOfferedListener($this->service, $this->sendImmediateMail);
+        $this->listener = new ConsultationRequestOfferedListener($this->service);
         
         $this->event = $this->buildMockOfClass(CommonEvent::class);
         $this->event->expects($this->any())->method("getId")->willReturn($this->id);
@@ -36,12 +34,6 @@ class ConsultationRequestOfferedListenerTest extends TestBase
         $this->service->expects($this->once())
                 ->method("execute")
                 ->with($this->id);
-        $this->executeHandle();
-    }
-    public function test_execute_sendMail()
-    {
-        $this->sendImmediateMail->expects($this->once())
-                ->method("execute");
         $this->executeHandle();
     }
 }

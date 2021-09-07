@@ -13,7 +13,7 @@
         <id name="id" type="guid" />
         <field name="enrolledTime" type="datetime_immutable" nullable="true"/>
         <field name="active" type="boolean" />
-        <field name="note" type="string" length="256" nullable="true"/>
+        <field name="note" type="string" length="255" nullable="true"/>
         
         <one-to-one  field="clientParticipant" 
                      target-entity="Query\Domain\Model\Firm\Client\ClientParticipant"

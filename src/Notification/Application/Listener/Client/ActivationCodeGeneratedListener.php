@@ -21,22 +21,14 @@ class ActivationCodeGeneratedListener implements Listener
      */
     protected $createActivationMail;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-    
-    public function __construct(CreateActivationMail $createActivationMail, SendImmediateMail $sendImmediateMail)
+    public function __construct(CreateActivationMail $createActivationMail)
     {
         $this->createActivationMail = $createActivationMail;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     public function execute(CommonEvent $event): void

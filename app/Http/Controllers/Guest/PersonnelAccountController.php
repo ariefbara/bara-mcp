@@ -42,7 +42,9 @@ class PersonnelAccountController extends Controller
         $email = $this->stripTagsInputRequest("email");
         
         $service->execute($firmIdentifier, $email);
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function buildResetPasswordService()
@@ -53,8 +55,7 @@ class PersonnelAccountController extends Controller
 
     protected function buildGenerateResetPasswordCodeService()
     {
-        $listener = new PersonnelResetPasswordCodeGeneratedListener(
-                $this->buildCreatePersonnelResetPasswordMail(), $this->buildSendImmediateMail());
+        $listener = new PersonnelResetPasswordCodeGeneratedListener($this->buildCreatePersonnelResetPasswordMail());
 
         $personnelRepository = $this->em->getRepository(Personnel::class);
         $dispatcher = new Dispatcher();

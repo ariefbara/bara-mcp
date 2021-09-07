@@ -21,24 +21,15 @@ class ConsultationRequestSubmittedListener implements Listener
      */
     protected $generateNotificationWhenConsultationRequestSubmitted;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
     public function __construct(
-            GenerateNotificationWhenConsultationRequestSubmitted $generateNotificationWhenConsultationRequestSubmitted,
-            SendImmediateMail $sendImmediateMail)
+            GenerateNotificationWhenConsultationRequestSubmitted $generateNotificationWhenConsultationRequestSubmitted)
     {
         $this->generateNotificationWhenConsultationRequestSubmitted = $generateNotificationWhenConsultationRequestSubmitted;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(CommonEvent $event): void

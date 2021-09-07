@@ -12,7 +12,6 @@ use Tests\TestBase;
 class PersonnelResetPasswordCodeGeneratedListenerTest extends TestBase
 {
     protected $createPersonnelResetPasswordMail;
-    protected $sendImmediateMail;
     protected $listener;
     protected $event, $personnelId = "personnelId";
     
@@ -20,10 +19,9 @@ class PersonnelResetPasswordCodeGeneratedListenerTest extends TestBase
     {
         parent::setUp();
         $this->createPersonnelResetPasswordMail = $this->buildMockOfClass(CreatePersonnelResetPasswordMail::class);
-        $this->sendImmediateMail = $this->buildMockOfClass(SendImmediateMail::class);
         
         $this->listener = new PersonnelResetPasswordCodeGeneratedListener(
-                $this->createPersonnelResetPasswordMail, $this->sendImmediateMail);
+                $this->createPersonnelResetPasswordMail);
         
         $this->event = $this->buildMockOfClass(CommonEvent::class);
         $this->event->expects($this->once())->method("getId")->willReturn($this->personnelId);
@@ -38,12 +36,6 @@ class PersonnelResetPasswordCodeGeneratedListenerTest extends TestBase
         $this->createPersonnelResetPasswordMail->expects($this->once())
                 ->method("execute")
                 ->with($this->personnelId);
-        $this->executeHandle();
-    }
-    public function test_handle_sendImmediateMail()
-    {
-        $this->sendImmediateMail->expects($this->once())
-                ->method("execute");
         $this->executeHandle();
     }
 }

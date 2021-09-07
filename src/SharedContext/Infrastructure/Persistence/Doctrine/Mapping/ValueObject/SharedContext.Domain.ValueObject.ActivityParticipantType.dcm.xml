@@ -2,7 +2,7 @@
 <doctrine-mapping>
     <embeddable name="SharedContext\Domain\ValueObject\ActivityParticipantType">
         
-        <field name="participantType" type="string" length="256" nullable="false"/>
+        <field name="participantType" type="string" length="255" nullable="false"/>
         
     </embeddable>
 </doctrine-mapping>
