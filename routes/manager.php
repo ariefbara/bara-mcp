@@ -10,6 +10,11 @@ $router->group($managerAggregate, function () use ($router) {
     $router->post('/upload-file', ['uses' => "UploadFileController@upload"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     
+    $router->get("/evaluation-report-summary", ["uses" => "EvaluationReportSummaryController@summary"]);
+    $router->get("/download-evaluation-report-summary-xls", ["uses" => "EvaluationReportSummaryController@downloadSummaryXls"]);
+    $router->get("/evaluation-report-transcript", ["uses" => "EvaluationReportSummaryController@transcript"]);
+    $router->get("/download-evaluation-report-transcript-xls", ["uses" => "EvaluationReportSummaryController@downloadTranscriptXls"]);
+    
     $router->group(['prefix' => '/account'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/change-password", ["uses" => "$controller@changePassword"]);

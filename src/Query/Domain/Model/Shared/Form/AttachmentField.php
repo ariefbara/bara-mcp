@@ -2,9 +2,9 @@
 
 namespace Query\Domain\Model\Shared\Form;
 
+use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
 use Query\Domain\Model\Shared\Form;
 use Query\Domain\Model\Shared\FormRecord;
-use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 
 class AttachmentField implements IField
@@ -93,6 +93,16 @@ class AttachmentField implements IField
     public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
     {
         return $formRecord->getFileInfoListOfAttachmentFieldRecordCorrespondWith($this);
+    }
+
+    public function getCorrespondingValueFromRecord(IContainFieldRecord $containFieldRecord)
+    {
+        return $containFieldRecord->getFileInfoListOfAttachmentFieldRecordCorrespondWith($this);
+    }
+
+    public function getLabel(): string
+    {
+        return $this->getName();
     }
 
 }

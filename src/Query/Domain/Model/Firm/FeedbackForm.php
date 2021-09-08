@@ -3,9 +3,9 @@
 namespace Query\Domain\Model\Firm;
 
 use Query\Domain\Model\Firm;
+use Query\Domain\Model\Firm\Program\EvaluationPlan\IContainSummaryTable;
 use Query\Domain\Model\Shared\ContainFormInterface;
 use Query\Domain\Model\Shared\Form;
-use Query\Domain\Model\Shared\FormRecord;
 
 class FeedbackForm implements ContainFormInterface
 {
@@ -94,14 +94,20 @@ class FeedbackForm implements ContainFormInterface
         return $this->form->getUnremovedTextAreaFields();
     }
     
-    public function toArrayOfSummaryTableHeader(): array
-    {
-        return $this->form->toArrayOfSummaryTableHeader();
-    }
+//    public function toArrayOfSummaryTableHeader(): array
+//    {
+//        return $this->form->toArrayOfSummaryTableHeader();
+//    }
+//    
+//    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+//    {
+//        return $this->form->generateSummaryTableEntryFromRecord($formRecord);
+//    }
     
-    public function generateSummaryTableEntryFromRecord(FormRecord $formRecord): array
+    public function appendAllFieldsAsHeaderColumnOfSummaryTable(
+            IContainSummaryTable $containSummaryTable, int $startColNumber): void
     {
-        return $this->form->generateSummaryTableEntryFromRecord($formRecord);
+        $this->form->appendAllFieldsAsHeaderColumnOfSummaryTable($containSummaryTable, $startColNumber);
     }
 
 }

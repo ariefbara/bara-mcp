@@ -4,12 +4,11 @@ namespace Query\Domain\Task\InProgram;
 
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByCoordinator;
-use Query\Domain\Model\Firm\Program\ProgramMentorEvaluationReportSummary;
-use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportFilter;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportRepository;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\IEvaluationReportSummaryResult;
 
-class GenerateProgramMentorEvaluationReportSummaryTask implements ITaskInProgramExecutableByCoordinator
+class GenerateProgramEvaluationReportSummaryTask implements ITaskInProgramExecutableByCoordinator
 {
 
     /**
@@ -22,34 +21,31 @@ class GenerateProgramMentorEvaluationReportSummaryTask implements ITaskInProgram
      * 
      * @var EvaluationReportSummaryFilter
      */
-    protected $evaluationReportSummaryFilter;
+    protected $evaluationReportFilter;
 
     /**
      * 
-     * @var ProgramMentorEvaluationReportSummary
+     * @var IProgramEvaluationReportSummaryResult
      */
-    protected $result;
-
-    public function getResult(): ProgramMentorEvaluationReportSummary
-    {
-        return $this->result;
-    }
+    protected $programEvaluationReportSummaryResult;
 
     public function __construct(
             EvaluationReportRepository $evaluationReportRepository,
-            EvaluationReportSummaryFilter $evaluationReportSummaryFilter)
+            EvaluationReportSummaryFilter $evaluationReportFilter,
+            IProgramEvaluationReportSummaryResult $programEvaluationReportSummaryResult)
     {
         $this->evaluationReportRepository = $evaluationReportRepository;
-        $this->evaluationReportSummaryFilter = $evaluationReportSummaryFilter;
-        $this->result = new ProgramMentorEvaluationReportSummary();
+        $this->evaluationReportFilter = $evaluationReportFilter;
+        $this->programEvaluationReportSummaryResult = $programEvaluationReportSummaryResult;
     }
 
     public function executeTaskInProgram(Program $program): void
     {
         $evaluationReports = $this->evaluationReportRepository
-                ->allNonPaginatedEvaluationReportsInProgram($program, $this->evaluationReportSummaryFilter);
+                ->allNonPaginatedEvaluationReportsInProgram($program, $this->evaluationReportFilter);
+        
         foreach ($evaluationReports as $evaluationReport) {
-            $this->result->includeEvaluationReport($evaluationReport);
+            $this->programEvaluationReportSummaryResult->includeEvaluationReport($evaluationReport);
         }
     }
 

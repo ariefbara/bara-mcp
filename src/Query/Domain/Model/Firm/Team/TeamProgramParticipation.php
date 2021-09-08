@@ -3,6 +3,7 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use Query\Application\Service\TeamMember\OKRPeriodRepository;
+use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
@@ -175,5 +176,20 @@ class TeamProgramParticipation implements ContainEvents
     public function viewMentor(MentorRepository $mentorRepository, string $mentorId): Consultant
     {
         return $this->programParticipation->viewMentor($mentorRepository, $mentorId);
+    }
+    
+    public function hasActiveMemberCorrespondWithClient(Client $client): bool
+    {
+        return $this->team->hasActiveMemberCorrespondWithClient($client);
+    }
+    
+    public function getListOfActiveMemberPlusTeamName(): array
+    {
+        return $this->team->getListOfActiveMemberPlusTeamName();
+    }
+    
+    public function getTeamName(): string
+    {
+        return $this->team->getName();
     }
 }

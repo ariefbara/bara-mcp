@@ -2,9 +2,9 @@
 
 namespace Query\Domain\Model\Shared\Form;
 
+use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
 use Query\Domain\Model\Shared\Form;
 use Query\Domain\Model\Shared\FormRecord;
-use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 
 class TextAreaField implements IField
@@ -120,6 +120,16 @@ class TextAreaField implements IField
     public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
     {
         return $formRecord->getTextAreaFieldRecordValueCorrespondWith($this);
+    }
+
+    public function getCorrespondingValueFromRecord(IContainFieldRecord $containFieldRecord)
+    {
+        return $containFieldRecord->getTextAreaFieldRecordValueCorrespondWith($this);
+    }
+
+    public function getLabel(): string
+    {
+        return $this->getName();
     }
 
 }

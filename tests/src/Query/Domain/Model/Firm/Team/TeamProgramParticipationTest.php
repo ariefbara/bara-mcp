@@ -2,7 +2,9 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
+use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Team;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
 use Tests\TestBase;
@@ -10,21 +12,28 @@ use Tests\TestBase;
 class TeamProgramParticipationTest extends TestBase
 {
     protected $teamProgramParticipation;
+    protected $team;
     protected $programParticipation;
     protected $learningMaterialFinder, $learningMaterialId = "learningMaterialId";
     protected $page = 1, $pageSize = 25;
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
+    
+    protected $client;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->teamProgramParticipation = new TestableTeamProgramParticipation();
+        $this->team = $this->buildMockOfClass(Team::class);
+        $this->teamProgramParticipation->team = $this->team;
         
         $this->programParticipation = $this->buildMockOfClass(Participant::class);
         $this->teamProgramParticipation->programParticipation = $this->programParticipation;
         
         $this->learningMaterialFinder = $this->buildMockOfClass(LearningMaterialFinder::class);
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
+        
+        $this->client = $this->buildMockOfClass(Client::class);
     }
     
     public function test_viewLearningMaterial_returnProgramParticipationViewLearningMaterialResult()
@@ -55,6 +64,21 @@ class TeamProgramParticipationTest extends TestBase
                 ->method('viewAllMissionComments')
                 ->with($this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
         $this->teamProgramParticipation->viewAllMissionComments($this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
+    }
+    
+    public function test_hasActiveMemberCorrespondWithClient_returnTeamActiveMemberCheckingStatus()
+    {
+        $this->team->expects($this->once())
+                ->method('hasActiveMemberCorrespondWithClient')
+                ->with($this->client);
+        $this->teamProgramParticipation->hasActiveMemberCorrespondWithClient($this->client);
+    }
+    
+    public function test_getListOfActiveMemberPlusTeamName_returnTeamListOfActiveMemberPlusTeamName()
+    {
+        $this->team->expects($this->once())
+                ->method('getListOfActiveMemberPlusTeamName');
+        $this->teamProgramParticipation->getListOfActiveMemberPlusTeamName();
     }
 }
 

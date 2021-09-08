@@ -123,23 +123,23 @@ class MentorEvaluationReportControllerTest extends CoordinatorTestCase
     }
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Form')->truncate();
-//        $this->connection->table('StringField')->truncate();
-//        $this->connection->table('IntegerField')->truncate();
-//        $this->connection->table('TextAreaField')->truncate();
-//        $this->connection->table('FeedbackForm')->truncate();
-//        $this->connection->table('EvaluationPlan')->truncate();
-//        $this->connection->table('Participant')->truncate();
-//        $this->connection->table('Client')->truncate();
-//        $this->connection->table('ClientParticipant')->truncate();
-//        $this->connection->table('Consultant')->truncate();
-//        $this->connection->table('DedicatedMentor')->truncate();
-//        $this->connection->table('FormRecord')->truncate();
-//        $this->connection->table('StringFieldRecord')->truncate();
-//        $this->connection->table('IntegerFieldRecord')->truncate();
-//        $this->connection->table('TextAreaFieldRecord')->truncate();
-//        $this->connection->table('MentorEvaluationReport')->truncate();
+        parent::tearDown();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('StringField')->truncate();
+        $this->connection->table('IntegerField')->truncate();
+        $this->connection->table('TextAreaField')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
+        $this->connection->table('EvaluationPlan')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
+        $this->connection->table('FormRecord')->truncate();
+        $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('IntegerFieldRecord')->truncate();
+        $this->connection->table('TextAreaFieldRecord')->truncate();
+        $this->connection->table('MentorEvaluationReport')->truncate();
     }
     
     protected function summary()
@@ -197,48 +197,64 @@ class MentorEvaluationReportControllerTest extends CoordinatorTestCase
         $this->summary();
         $this->seeStatusCode(200);
         
-        $response = [
-            [
-                "id" => $this->evaluationPlanOne->id,
-                "name" => $this->evaluationPlanOne->name,
-                "summaryTable" => [
-                    ["Participant", "Mentor", $this->integerField_11->name, $this->stringField_11->name],
-                    [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m1_p1_ep1->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_111->value),
-                        $this->stringRecord_111->value,
-                    ],
-                    [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m2_p1_ep1->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_112->value),
-                        $this->stringRecord_112->value,
-                    ],
+        $evaluationPlanSummaryOneResult = [
+            "id" => $this->evaluationPlanOne->id,
+            "name" => $this->evaluationPlanOne->name,
+            "summaryTable" => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'participant'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_11->name],
+                    4 => ['colNumber' => 4, 'label' => $this->stringField_11->name],
                 ],
-            ],
-            [
-                "id" => $this->evaluationPlanTwo->id,
-                "name" => $this->evaluationPlanTwo->name,
-                "summaryTable" => [
-                    ["Participant", "Mentor", $this->integerField_21->name, $this->textAreaField_21->name],
+                'entries' => [
                     [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m1_p1_ep2->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_211->value),
-                        $this->textAreaRecord_211->value,
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p1_ep1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_111->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_111->value],
                     ],
                     [
-                        $this->clientParticipantTwo->client->getFullName(),
-                        $this->evaluationReport_m1_p2_ep2->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_212->value),
-                        $this->textAreaRecord_212->value,
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m2_p1_ep1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_112->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_112->value],
                     ],
                 ],
             ],
         ];
+        $evaluationPlanSummaryTwoResult = [
+            "id" => $this->evaluationPlanTwo->id,
+            "name" => $this->evaluationPlanTwo->name,
+            "summaryTable" => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'participant'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_21->name],
+                    4 => ['colNumber' => 4, 'label' => $this->textAreaField_21->name],
+                ],
+                'entries' => [
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p1_ep2->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_211->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_211->value],
+                    ],
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantTwo->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p2_ep2->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_212->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_212->value],
+                    ],
+                ],
+            ],
+        ];
+        
         $result = [
-            "data" => $this->arrayPreserveJsOrder($response),
+            "data" => [
+                $evaluationPlanSummaryOneResult,
+                $evaluationPlanSummaryTwoResult,
+            ],
             "meta" => [
                 "code" => 200,
                 "type" => "OK",
@@ -252,29 +268,37 @@ class MentorEvaluationReportControllerTest extends CoordinatorTestCase
         $this->summary();
         $this->seeStatusCode(200);
         
-        $response = [
-            [
-                "id" => $this->evaluationPlanOne->id,
-                "name" => $this->evaluationPlanOne->name,
-                "summaryTable" => [
-                    ["Participant", "Mentor", $this->integerField_11->name, $this->stringField_11->name],
+        $evaluationPlanSummaryOneResult = [
+            "id" => $this->evaluationPlanOne->id,
+            "name" => $this->evaluationPlanOne->name,
+            "summaryTable" => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'participant'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_11->name],
+                    4 => ['colNumber' => 4, 'label' => $this->stringField_11->name],
+                ],
+                'entries' => [
                     [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m1_p1_ep1->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_111->value),
-                        $this->stringRecord_111->value,
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p1_ep1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_111->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_111->value],
                     ],
                     [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m2_p1_ep1->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_112->value),
-                        $this->stringRecord_112->value,
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m2_p1_ep1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_112->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_112->value],
                     ],
                 ],
             ],
         ];
+        
         $result = [
-            "data" => $this->arrayPreserveJsOrder($response),
+            "data" => [
+                $evaluationPlanSummaryOneResult,
+            ],
             "meta" => [
                 "code" => 200,
                 "type" => "OK",
@@ -285,47 +309,127 @@ class MentorEvaluationReportControllerTest extends CoordinatorTestCase
     public function test_summary_participantIdListFilterApplied_200()
     {
         $this->mentorEvaluationReportSummaryUri .= "?participantIdList[]={$this->clientParticipantOne->participant->id}";
-echo $this->mentorEvaluationReportSummaryUri;
-var_dump($this->coordinator->personnel->token);
+        $this->mentorEvaluationReportSummaryUri .= "?participantIdList[]={$this->clientParticipantOne->participant->id}";
         $this->summary();
         $this->seeStatusCode(200);
         
-        $response = [
-            [
-                "id" => $this->evaluationPlanOne->id,
-                "name" => $this->evaluationPlanOne->name,
-                "summaryTable" => [
-                    ["Participant", "Mentor", $this->integerField_11->name, $this->stringField_11->name],
-                    [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m1_p1_ep1->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_111->value),
-                        $this->stringRecord_111->value,
-                    ],
-                    [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m2_p1_ep1->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_112->value),
-                        $this->stringRecord_112->value,
-                    ],
+        $evaluationPlanSummaryOneResult = [
+            "id" => $this->evaluationPlanOne->id,
+            "name" => $this->evaluationPlanOne->name,
+            "summaryTable" => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'participant'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_11->name],
+                    4 => ['colNumber' => 4, 'label' => $this->stringField_11->name],
                 ],
-            ],
-            [
-                "id" => $this->evaluationPlanTwo->id,
-                "name" => $this->evaluationPlanTwo->name,
-                "summaryTable" => [
-                    ["Participant", "Mentor", $this->integerField_21->name, $this->textAreaField_21->name],
+                'entries' => [
                     [
-                        $this->clientParticipantOne->client->getFullName(),
-                        $this->evaluationReport_m1_p1_ep2->dedicatedMentor->consultant->personnel->getFullName(),
-                        strval($this->integerRecord_211->value),
-                        $this->textAreaRecord_211->value,
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p1_ep1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_111->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_111->value],
+                    ],
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m2_p1_ep1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_112->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_112->value],
                     ],
                 ],
             ],
         ];
+        $evaluationPlanSummaryTwoResult = [
+            "id" => $this->evaluationPlanTwo->id,
+            "name" => $this->evaluationPlanTwo->name,
+            "summaryTable" => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'participant'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_21->name],
+                    4 => ['colNumber' => 4, 'label' => $this->textAreaField_21->name],
+                ],
+                'entries' => [
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p1_ep2->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_211->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_211->value],
+                    ],
+                ],
+            ],
+        ];
+        
         $result = [
-            "data" => $this->arrayPreserveJsOrder($response),
+            "data" => [
+                $evaluationPlanSummaryOneResult,
+                $evaluationPlanSummaryTwoResult,
+            ],
+            "meta" => [
+                "code" => 200,
+                "type" => "OK",
+            ],
+        ];
+        $this->seeJsonContains($result);
+    }
+    public function test_summary_mentorIdListFilterApplied_200()
+    {
+        $this->mentorEvaluationReportSummaryUri .= "?mentorIdList[]={$this->dedicatedMentor_m1_p1->consultant->id}";
+        $this->summary();
+        $this->seeStatusCode(200);
+        
+        $evaluationPlanSummaryOneResult = [
+            "id" => $this->evaluationPlanOne->id,
+            "name" => $this->evaluationPlanOne->name,
+            "summaryTable" => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'participant'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_11->name],
+                    4 => ['colNumber' => 4, 'label' => $this->stringField_11->name],
+                ],
+                'entries' => [
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p1_ep1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_111->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_111->value],
+                    ],
+                ],
+            ],
+        ];
+        $evaluationPlanSummaryTwoResult = [
+            "id" => $this->evaluationPlanTwo->id,
+            "name" => $this->evaluationPlanTwo->name,
+            "summaryTable" => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'participant'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_21->name],
+                    4 => ['colNumber' => 4, 'label' => $this->textAreaField_21->name],
+                ],
+                'entries' => [
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantOne->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p1_ep2->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_211->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_211->value],
+                    ],
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientParticipantTwo->client->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_m1_p2_ep2->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_212->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_212->value],
+                    ],
+                ],
+            ],
+        ];
+        
+        $result = [
+            "data" => [
+                $evaluationPlanSummaryOneResult,
+                $evaluationPlanSummaryTwoResult,
+            ],
             "meta" => [
                 "code" => 200,
                 "type" => "OK",

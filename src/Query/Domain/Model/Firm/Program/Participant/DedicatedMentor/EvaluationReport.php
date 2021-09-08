@@ -3,10 +3,17 @@
 namespace Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 
 use DateTimeImmutable;
+use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\EvaluationPlan;
-use Query\Domain\Model\Firm\Program\EvaluationPlan\EvaluationPlanReportSummary;
+use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
-use Query\Domain\Model\Shared\ContainFormRecordInterface;
+use Query\Domain\Model\Shared\Form\AttachmentField;
+use Query\Domain\Model\Shared\Form\IContainFieldRecord;
+use Query\Domain\Model\Shared\Form\IntegerField;
+use Query\Domain\Model\Shared\Form\MultiSelectField;
+use Query\Domain\Model\Shared\Form\SingleSelectField;
+use Query\Domain\Model\Shared\Form\StringField;
+use Query\Domain\Model\Shared\Form\TextAreaField;
 use Query\Domain\Model\Shared\FormRecord;
 use Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\IntegerFieldRecord;
@@ -15,7 +22,7 @@ use Query\Domain\Model\Shared\FormRecord\SingleSelectFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\StringFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\TextAreaFieldRecord;
 
-class EvaluationReport implements ContainFormRecordInterface
+class EvaluationReport implements IContainFieldRecord
 {
 
     /**
@@ -152,26 +159,70 @@ class EvaluationReport implements ContainFormRecordInterface
     {
         return $this->evaluationPlan === $evaluationPlan;
     }
-    
-    public function createEvaluationPlanReportSummary(): EvaluationPlan\EvaluationPlanReportSummary
+        
+    public function getListOfClientPlusTeamName(): array
     {
-        return new EvaluationPlanReportSummary($this->evaluationPlan, $this);
+        return $this->dedicatedMentor->getListOfClientPlusTeamName();
     }
     
-    public function toArrayOfSummaryTableEntry(): array
+    public function getMentorName(): string
     {
-        $identificationEntry = [
-            $this->dedicatedMentor->getParticipantName(),
-            $this->dedicatedMentor->getMentorName(),
-        ];
-        return array_merge($identificationEntry , $this->evaluationPlan->generateSummaryTableEntryFromRecord($this->formRecord));
+        return $this->dedicatedMentor->getMentorName();
     }
     
-    public function toArrayOfHorizontalTranscriptTableEntry(): array
+    public function getMentorPlusTeamName(): string
     {
-        return array_merge(
-                [$this->dedicatedMentor->getMentorName()], 
-                $this->evaluationPlan->generateSummaryTableEntryFromRecord($this->formRecord));
+        return $this->dedicatedMentor->getMentorPlusTeamName();
+    }
+
+    public function correspondWithClient(Client $client): bool
+    {
+        return $this->dedicatedMentor->correspondWithClient($client);
     }
     
+    public function getFileInfoListOfAttachmentFieldRecordCorrespondWith(AttachmentField $attachmentField): ?string
+    {
+        return $this->formRecord->getFileInfoListOfAttachmentFieldRecordCorrespondWith($attachmentField);
+    }
+
+    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?int
+    {
+        return $this->formRecord->getIntegerFieldRecordValueCorrespondWith($integerField);
+    }
+
+    public function getListOfMultiSelectFieldRecordSelectedOptionNameCorrespondWith(MultiSelectField $multiSelectField): ?string
+    {
+        return $this->formRecord->getListOfMultiSelectFieldRecordSelectedOptionNameCorrespondWith($multiSelectField);
+    }
+
+    public function getSingleSelectFieldRecordSelectedOptionNameCorrespondWith(SingleSelectField $singleSelectField): ?string
+    {
+        return $this->formRecord->getSingleSelectFieldRecordSelectedOptionNameCorrespondWith($singleSelectField);
+    }
+
+    public function getStringFieldRecordValueCorrespondWith(StringField $stringField): ?string
+    {
+        return $this->formRecord->getStringFieldRecordValueCorrespondWith($stringField);
+    }
+
+    public function getTextAreaFieldRecordValueCorrespondWith(TextAreaField $textAreaField): ?string
+    {
+        return $this->formRecord->getTextAreaFieldRecordValueCorrespondWith($textAreaField);
+    }
+    
+    public function getParticipantName(): string
+    {
+        return $this->dedicatedMentor->getParticipantName();
+    }
+    
+    public function getParticipant(): Participant
+    {
+        return $this->dedicatedMentor->getParticipant();
+    }
+    
+    public function correspondWithParticipant(Participant $participant): bool
+    {
+        return $this->dedicatedMentor->correspondWithParticipant($participant);
+    }
+
 }

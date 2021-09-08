@@ -2,9 +2,8 @@
 
 namespace Query\Domain\Model\Shared\Form;
 
+use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
 use Query\Domain\Model\Shared\Form;
-use Query\Domain\Model\Shared\FormRecord;
-use Query\Domain\Model\Shared\IField;
 use Resources\Domain\ValueObject\IntegerRange;
 
 class StringField implements IField
@@ -117,9 +116,19 @@ class StringField implements IField
         return $this->id === $id;
     }
     
-    public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
+    public function extractCorrespondingValueFromRecord(IContainFieldRecord $containFormRecord)
     {
-        return $formRecord->getStringFieldRecordValueCorrespondWith($this);
+        return $containFormRecord->getStringFieldRecordValueCorrespondWith($this);
+    }
+
+    public function getCorrespondingValueFromRecord(IContainFieldRecord $containFieldRecord)
+    {
+        return $containFieldRecord->getStringFieldRecordValueCorrespondWith($this);
+    }
+
+    public function getLabel(): string
+    {
+        return $this->getName();
     }
 
 }

@@ -2,10 +2,10 @@
 
 namespace Query\Domain\Model\Shared\Form;
 
+use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
 use Query\Domain\Model\Shared\Form;
 use Query\Domain\Model\Shared\Form\SelectField\Option;
 use Query\Domain\Model\Shared\FormRecord;
-use Query\Domain\Model\Shared\IField;
 
 class SingleSelectField implements IField
 {
@@ -102,6 +102,16 @@ class SingleSelectField implements IField
     public function extractCorrespondingValueFromRecord(FormRecord $formRecord)
     {
         return $formRecord->getSingleSelectFieldRecordSelectedOptionNameCorrespondWith($this);
+    }
+
+    public function getCorrespondingValueFromRecord(IContainFieldRecord $containFieldRecord)
+    {
+        return $containFieldRecord->getSingleSelectFieldRecordSelectedOptionNameCorrespondWith($this);
+    }
+
+    public function getLabel(): string
+    {
+        return $this->getName();
     }
 
 }

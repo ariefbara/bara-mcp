@@ -155,5 +155,15 @@ class ClientParticipant implements ContainEvents
     {
         return $this->participant->viewMentor($mentorRepository, $mentorId);
     }
+    
+    public function clientEquals(Client $client): bool
+    {
+        return $this->client === $client;
+    }
+    
+    public function getClientName(): string
+    {
+        return $this->client->getFullName();
+    }
 
 }

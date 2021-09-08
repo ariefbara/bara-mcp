@@ -3,6 +3,7 @@
 namespace Query\Domain\Model\User;
 
 use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\User;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
 use Tests\TestBase;
@@ -10,6 +11,7 @@ use Tests\TestBase;
 class UserParticipantTest extends TestBase
 {
     protected $userParticipant;
+    protected $user;
     protected $participant;
     protected $learningMaterialFinder;
     protected $learningMaterialId = "learningMaterialId";
@@ -20,6 +22,9 @@ class UserParticipantTest extends TestBase
     {
         parent::setUp();
         $this->userParticipant = new TestableUserParticipant();
+        $this->user = $this->buildMockOfClass(User::class);
+        $this->userParticipant->user = $this->user;
+        
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->userParticipant->participant = $this->participant;
         
@@ -55,6 +60,13 @@ class UserParticipantTest extends TestBase
                 ->method('viewAllMissionComments')
                 ->with($this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
         $this->userParticipant->viewAllMissionComments($this->missionCommentRepository, $this->missionId, $this->page, $this->pageSize);
+    }
+    
+    public function test_getUserName_returnUserFullName()
+    {
+        $this->user->expects($this->once())
+                ->method('getFullName');
+        $this->userParticipant->getUserName();
     }
 }
 

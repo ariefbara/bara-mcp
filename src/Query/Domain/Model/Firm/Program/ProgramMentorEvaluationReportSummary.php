@@ -53,5 +53,22 @@ class ProgramMentorEvaluationReportSummary
         }
         return $result;
     }
+    
+    public function saveToClientSummaryTableSpreadsheet(Spreadsheet $spreadsheet): void
+    {
+        $spreadsheet->removeSheetByIndex($spreadsheet->getActiveSheetIndex());
+        foreach ($this->evaluationPlanReportSummaries as $evaluationPlanReportSummary) {
+            $evaluationPlanReportSummary->saveToClientSummaryTableSpreadsheet($spreadsheet);
+        }
+    }
+    
+    public function toClientSummaryTableArray(): array
+    {
+        $result = [];
+        foreach ($this->evaluationPlanReportSummaries as $evaluationPlanReportSummary) {
+            $result[] = $evaluationPlanReportSummary->toClientSummaryTableArray();
+        }
+        return $result;
+    }
 
 }
