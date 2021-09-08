@@ -177,21 +177,21 @@ class ClientAccountControllerTest extends ControllerTestCase
     
     public function test_generateActivationCode()
     {
-$this->disableExceptionHandling();
         $this->inactiveClient->activationCode = null;
         $this->inactiveClient->activationCodeExpiredTime = null;
         $this->connection->table('Client')->truncate();
         $this->connection->table('Client')->insert($this->inactiveClient->toArrayForDbEntry());
+        
+$expiredTime = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
         
         $this->patch($this->generateActivationCodeUri, $this->generateActivationCodeInput)
                 ->seeStatusCode(200);
         
         $clientRecord = [
             'id' => $this->inactiveClient->id,
-            'activationCodeExpiredTime' => (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s'),
+            'activationCodeExpiredTime' => $expiredTime,
         ];
         $this->seeInDatabase('Client', $clientRecord);
-//check mail to verify notification send
     }
     public function test_generateActivationCode_activeAccount_403()
     {
@@ -228,12 +228,13 @@ $this->disableExceptionHandling();
         $this->connection->table('Client')->truncate();
         $this->connection->table('Client')->insert($this->activeClient->toArrayForDbEntry());
         
+        $expiredTime = (new \DateTime('+24 hours'))->format('Y-m-d H:i:s');
         $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
                 ->seeStatusCode(200);
         
         $clientRecord = [
             'id' => $this->activeClient->id,
-            'resetPasswordCodeExpiredTime' => (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s'),
+            'resetPasswordCodeExpiredTime' => $expiredTime,
         ];
         $this->seeInDatabase('Client', $clientRecord);
 //check mail to verify notification send

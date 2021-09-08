@@ -17,24 +17,15 @@ class MemberSubmittedConsultationRequestListener implements Listener
      */
     protected $generateConsultationRequestNotificationTriggeredByTeamMember;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
     public function __construct(
-            GenerateConsultationRequestNotificationTriggeredByTeamMember $generateConsultationRequestNotificationTriggeredByTeamMember,
-            SendImmediateMail $sendImmediateMail)
+            GenerateConsultationRequestNotificationTriggeredByTeamMember $generateConsultationRequestNotificationTriggeredByTeamMember)
     {
         $this->generateConsultationRequestNotificationTriggeredByTeamMember = $generateConsultationRequestNotificationTriggeredByTeamMember;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
 
     protected function execute(TriggeredByTeamMemberEventInterface $event): void

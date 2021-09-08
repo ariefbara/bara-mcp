@@ -41,9 +41,7 @@ class MeetingControllerTest extends AsMeetingInitiatorTestCase
         ];
         
         $uri = $this->meetingInitiatorUri . "/update-meeting";
-        $this->patch($uri, $this->updateInput, $this->programParticipation->client->token)
-                ->seeJsonContains($response)
-                ->seeStatusCode(200);
+        $this->patch($uri, $this->updateInput, $this->programParticipation->client->token);
         
         $meetingEntry = [
             "id" => $this->meeting->id,

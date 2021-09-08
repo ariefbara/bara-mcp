@@ -92,12 +92,13 @@ class PersonnelAccountControllerTest extends ControllerTestCase
     
     public function test_generateResetPasswordCode_200()
     {
+        $expiredTime = (new \DateTimeImmutable("+24 hours"))->format('Y-m-d H:i:s');
         $this->patch($this->generateResetPasswordCodeUri, $this->generateResetPasswordCodeInput)
                 ->seeStatusCode(200);
         
         $personnelEntry = [
             "id" => $this->personnel->id,
-            "resetPasswordCodeExpiredTime" => (new \DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s")
+            "resetPasswordCodeExpiredTime" => $expiredTime,
         ];
         $this->seeInDatabase("Personnel", $personnelEntry);
     }

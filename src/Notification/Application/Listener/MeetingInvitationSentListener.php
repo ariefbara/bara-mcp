@@ -16,24 +16,15 @@ class MeetingInvitationSentListener implements Listener
      * @var GenerateMeetingInvitationSentNotification
      */
     protected $generateMeetingInvitationSentNotification;
-
-    /**
-     * 
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
     
-    function __construct(GenerateMeetingInvitationSentNotification $generateMeetingInvitationSentNotification,
-            SendImmediateMail $sendImmediateMail)
+    function __construct(GenerateMeetingInvitationSentNotification $generateMeetingInvitationSentNotification)
     {
         $this->generateMeetingInvitationSentNotification = $generateMeetingInvitationSentNotification;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(CommonEvent $event): void

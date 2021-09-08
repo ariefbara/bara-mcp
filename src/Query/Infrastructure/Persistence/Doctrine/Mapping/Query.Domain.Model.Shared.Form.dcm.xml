@@ -5,7 +5,7 @@
     >
         
         <id name="id" type="guid" />
-        <field name="name" type="string" length="256" nullable="false"/>
+        <field name="name" type="string" length="255" nullable="false"/>
         <field name="description" type="string" length="1024" nullable="true"/>
         
         <one-to-many  field="stringFields" 

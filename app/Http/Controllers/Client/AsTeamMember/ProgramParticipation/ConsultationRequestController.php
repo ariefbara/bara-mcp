@@ -44,7 +44,9 @@ class ConsultationRequestController extends AsTeamMemberBaseController
 
         $viewService = $this->buildViewService();
         $consultationRequest = $viewService->showById($teamId, $consultationRequestId);
-        return $this->commandCreatedResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        
+        $response = $this->commandCreatedResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function changeTime($teamId, $teamProgramParticipationId, $consultationRequestId)
@@ -54,15 +56,20 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         $service->execute(
                 $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $consultationRequestId,
                 $this->getConsultationRequestData());
-
-        return $this->show($teamId, $teamProgramParticipationId, $consultationRequestId);
+        
+        $consultationRequest = $this->buildViewService()->showById($teamId, $consultationRequestId);
+        
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function cancel($teamId, $teamProgramParticipationId, $consultationRequestId)
     {
         $service = $this->buildCancelService();
         $service->execute($this->firmId(), $this->clientId(), $teamId, $consultationRequestId);
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function accept($teamId, $teamProgramParticipationId, $consultationRequestId)
@@ -70,8 +77,11 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         $service = $this->buildAcceptService();
         $service->execute(
                 $this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $consultationRequestId);
-
-        return $this->show($teamId, $teamProgramParticipationId, $consultationRequestId);
+        
+        $consultationRequest = $this->buildViewService()->showById($teamId, $consultationRequestId);
+        
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function getConsultationRequestData()
@@ -156,8 +166,7 @@ class ConsultationRequestController extends AsTeamMemberBaseController
 
         $dispatcher = new Dispatcher();
         $listener = new MemberSubmittedConsultationRequestListener(
-                $this->buildGenerateConsultationRequestNotificationTriggeredByTeamMember(),
-                $this->buildSendImmediateMail());
+                $this->buildGenerateConsultationRequestNotificationTriggeredByTeamMember());
         $dispatcher->addListener(EventList::CONSULTATION_REQUEST_SUBMITTED, $listener);
 
         return new SubmitConsultationRequest(
@@ -172,8 +181,7 @@ class ConsultationRequestController extends AsTeamMemberBaseController
 
         $dispatcher = new Dispatcher();
         $listener = new MemberChangedConsultationRequestTimeListener(
-                $this->buildGenerateConsultationRequestNotificationTriggeredByTeamMember(),
-                $this->buildSendImmediateMail());
+                $this->buildGenerateConsultationRequestNotificationTriggeredByTeamMember());
         $dispatcher->addListener(EventList::CONSULTATION_REQUEST_TIME_CHANGED, $listener);
 
         return new ChangeConsultationRequestTime($teamMembershipRepository, $teamProgramParticipationRepository,
@@ -187,8 +195,7 @@ class ConsultationRequestController extends AsTeamMemberBaseController
 
         $dispatcher = new Dispatcher();
         $listener = new MemberCancelledConsultationRequestListener(
-                $this->buildGenerateConsultationRequestNotificationTriggeredByTeamMember(),
-                $this->buildSendImmediateMail());
+                $this->buildGenerateConsultationRequestNotificationTriggeredByTeamMember());
         $dispatcher->addListener(EventList::CONSULTATION_REQUEST_CANCELLED, $listener);
 
         return new CancelConsultationRequest($consultationRequestRepository, $teamMembershipRepository, $dispatcher);
@@ -204,7 +211,7 @@ class ConsultationRequestController extends AsTeamMemberBaseController
         $memberRepository = $this->em->getRepository(Member::class);
         $service = new AddConsultationSessionScheduledNotificationTriggeredByTeamMember(
                 $consultationSessionRepository, $memberRepository);
-        $listener = new MemberAcceptedOfferedConsultationRequestListener($service, $this->buildSendImmediateMail());
+        $listener = new MemberAcceptedOfferedConsultationRequestListener($service);
 
         $dispatcher->addListener(EventList::OFFERED_CONSULTATION_REQUEST_ACCEPTED, $listener);
         return new AcceptOfferedConsultationRequest($teamMembershipRepository, $teamProgramParticipationRepository,

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
     <embeddable name="Resources\Domain\ValueObject\PersonName">
-        <field name="firstName" type="string" length="256" nullable="false"/>
-        <field name="lastName" type="string" length="256" nullable="true"/>
+        <field name="firstName" type="string" length="255" nullable="false"/>
+        <field name="lastName" type="string" length="255" nullable="true"/>
     </embeddable>
 </doctrine-mapping>

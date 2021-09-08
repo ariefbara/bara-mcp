@@ -32,7 +32,9 @@ class MeetingController extends AsMeetingInitiatorBaseController
         
         $viewService = $this->buildViewService();
         $meeting = $viewService->showById($this->userId(), $initiatorId)->getActivity();
-        return $this->singleQueryResponse($this->arrayDataOfMeeting($meeting));
+        
+        $response = $this->singleQueryResponse($this->arrayDataOfMeeting($meeting));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
     
     protected function getMeetingData()
@@ -52,7 +54,7 @@ class MeetingController extends AsMeetingInitiatorBaseController
         $meetingRepository = $this->em->getRepository(\Notification\Domain\Model\Firm\Program\MeetingType\Meeting::class);
         $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
         $sendImmediateMail = $this->buildSendImmediateMail();
-        $listener = new MeetingScheduleChangedListener($generateMeetingScheduleChangeNotification, $sendImmediateMail);
+        $listener = new MeetingScheduleChangedListener($generateMeetingScheduleChangeNotification);
         
         $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);
@@ -80,43 +82,4 @@ class MeetingController extends AsMeetingInitiatorBaseController
         return new ViewInvitationForUserParticipant($participantInvitationRepository);
     }
     
-//
-//    protected function arrayDataOfMeeting(Activity $meeting): array
-//    {
-//        return [
-//            "id" => $meeting->getId(),
-//            "name" => $meeting->getName(),
-//            "description" => $meeting->getDescription(),
-//            "startTime" => $meeting->getStartTimeString(),
-//            "endTime" => $meeting->getEndTimeString(),
-//            "location" => $meeting->getLocation(),
-//            "note" => $meeting->getNote(),
-//            "cancelled" => $meeting->isCancelled(),
-//            "createdTime" => $meeting->getCreatedTimeString(),
-//        ];
-//    }
-//
-//    protected function buildUpdateService()
-//    {
-//        $meetingAttendaceRepository = $this->em->getRepository(Attendee::class);
-//        $dispatcher = new Dispatcher();
-//        $this->addMeetingScheduleChangedListener($dispatcher);
-//        
-//        return new UpdateMeeting($meetingAttendaceRepository, $dispatcher);
-//    }
-//    protected function addMeetingScheduleChangedListener(Dispatcher $dispatcher): void
-//    {
-//        $meetingRepository = $this->em->getRepository(Meeting::class);
-//        $generateMeetingScheduleChangeNotification = new GenerateMeetingScheduleChangedNotification($meetingRepository);
-//        $listener = new MeetingScheduleChangedListener(
-//                $generateMeetingScheduleChangeNotification, $this->buildSendImmediateMail());
-//        $dispatcher->addListener(EventList::MEETING_SCHEDULE_CHANGED, $listener);
-//    }
-//
-//    protected function buildViewService()
-//    {
-//        $activityRepository = $this->em->getRepository(Activity::class);
-//        return new ViewActivity($activityRepository);
-//    }
-
 }

@@ -20,7 +20,7 @@
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>
         
-        <field name="position" type="string" length="256" nullable="true"/>
+        <field name="position" type="string" length="255" nullable="true"/>
         <field name="anAdmin" type="boolean" />
         <field name="active" type="boolean" />
         <field name="joinTime" type="datetime_immutable" nullable="false"/>

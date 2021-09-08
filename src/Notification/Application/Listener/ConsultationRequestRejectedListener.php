@@ -21,24 +21,15 @@ class ConsultationRequestRejectedListener implements Listener
      */
     protected $generateNotificationWhenConsultationRequestRejected;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
     public function __construct(
-            GenerateNotificationWhenConsultationRequestRejected $generateNotificationWhenConsultationRequestRejected,
-            SendImmediateMail $sendImmediateMail)
+            GenerateNotificationWhenConsultationRequestRejected $generateNotificationWhenConsultationRequestRejected)
     {
         $this->generateNotificationWhenConsultationRequestRejected = $generateNotificationWhenConsultationRequestRejected;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     protected function execute(CommonEvent $event): void
     {

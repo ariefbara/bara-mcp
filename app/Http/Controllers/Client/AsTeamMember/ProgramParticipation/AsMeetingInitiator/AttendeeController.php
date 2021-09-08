@@ -50,8 +50,9 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         
         $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
         $dispatcher->execute();
-
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function inviteCoordinator($teamId, $teamProgramParticipationId, $initiatorId)
@@ -71,8 +72,9 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         
         $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
         $dispatcher->execute();
-
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function inviteConsultant($teamId, $teamProgramParticipationId, $initiatorId)
@@ -92,8 +94,9 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         
         $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
         $dispatcher->execute();
-
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function inviteParticipant($teamId, $teamProgramParticipationId, $initiatorId)
@@ -113,8 +116,9 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         
         $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
         $dispatcher->execute();
-
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function cancel($teamId, $teamProgramParticipationId, $initiatorId, $attendeeId)
@@ -132,8 +136,9 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         
         $service->execute($this->firmId(), $this->clientId(), $teamId, $teamProgramParticipationId, $initiatorId, $task);
         $dispatcher->execute();
-
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function show($teamId, $meetingId, $attendeeId)
@@ -250,8 +255,7 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $meetingAttendeeRepository = $this->em->getRepository(MeetingAttendee::class);
         $generateMeetingInvitationSentNotification = new GenerateMeetingInvitationSentNotification($meetingAttendeeRepository);
         
-        $listener = new MeetingInvitationSentListener(
-                $generateMeetingInvitationSentNotification, $this->buildSendImmediateMail());
+        $listener = new MeetingInvitationSentListener($generateMeetingInvitationSentNotification);
         
         $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_INVITATION_SENT, $listener);
@@ -264,7 +268,7 @@ class AttendeeController extends AsMeetingInitiatorBaseController
         $meetingAttendeeRepository = $this->em->getRepository(MeetingAttendee::class);
         $generateMeetingInvitationCancelledNotification = new GenerateMeetingInvitationCancelledNotification($meetingAttendeeRepository);
         
-        $listener = new MeetingInvitationCancelledListener($generateMeetingInvitationCancelledNotification, $this->buildSendImmediateMail());
+        $listener = new MeetingInvitationCancelledListener($generateMeetingInvitationCancelledNotification);
         
         $dispatcher = new Dispatcher(false);
         $dispatcher->addListener(EventList::MEETING_INVITATION_CANCELLED, $listener);

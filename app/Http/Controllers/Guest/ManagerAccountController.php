@@ -37,7 +37,9 @@ class ManagerAccountController extends Controller
         $email = $this->stripTagsInputRequest("email");
         
         $service->execute($firmIdentifier, $email);
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
     
     protected function buildResetPasswordService()
@@ -50,7 +52,7 @@ class ManagerAccountController extends Controller
     {
         $createManagerResetPasswordMail = $this->buildCreateManagerResetPasswordMail();
         $sendImmediateMail = $this->buildSendImmediateMail();
-        $listener = new ManagerResetPasswordCodeGeneratedListener($createManagerResetPasswordMail, $sendImmediateMail);
+        $listener = new ManagerResetPasswordCodeGeneratedListener($createManagerResetPasswordMail);
         
         $managerRepository = $this->em->getRepository(Manager::class);
         $dispatcher = new Dispatcher();

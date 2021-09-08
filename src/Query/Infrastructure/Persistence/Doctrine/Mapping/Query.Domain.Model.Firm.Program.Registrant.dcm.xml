@@ -14,7 +14,7 @@
         <id name="id" type="guid" />
         <field name="concluded" type="boolean" />
         <field name="registeredTime" type="datetime_immutable" nullable="true"/>
-        <field name="note" type="string" length="256" nullable="true"/>
+        <field name="note" type="string" length="255" nullable="true"/>
         
         <one-to-one  field="clientRegistrant" 
                      target-entity="Query\Domain\Model\Firm\Client\ClientRegistrant"

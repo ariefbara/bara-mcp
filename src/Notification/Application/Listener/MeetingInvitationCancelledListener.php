@@ -17,23 +17,14 @@ class MeetingInvitationCancelledListener implements Listener
      */
     protected $generateMeetingInvitationCancelledNotification;
 
-    /**
-     * 
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
-    function __construct(GenerateMeetingInvitationCancelledNotification $generateMeetingInvitationCancelledNotification,
-            SendImmediateMail $sendImmediateMail)
+    function __construct(GenerateMeetingInvitationCancelledNotification $generateMeetingInvitationCancelledNotification)
     {
         $this->generateMeetingInvitationCancelledNotification = $generateMeetingInvitationCancelledNotification;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
 
     protected function execute(CommonEvent $event): void

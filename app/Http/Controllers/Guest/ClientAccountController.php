@@ -59,8 +59,9 @@ class ClientAccountController extends Controller
         $email = $this->stripTagsInputRequest('email');
 
         $service->execute($firmIdentifier, $email);
-
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function generateResetPasswordCode()
@@ -71,8 +72,9 @@ class ClientAccountController extends Controller
         $email = $this->stripTagsInputRequest('email');
         
         $service->execute($firmIdentifier, $email);
-
-        return $this->commandOkResponse();
+        
+        $response = $this->commandOkResponse();
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     protected function buildGenerateActivationCodeService()
@@ -89,7 +91,7 @@ class ClientAccountController extends Controller
         $clientMailRepository = $this->em->getRepository(ClientMail::class);
         $clientRepository = $this->em->getRepository(Client2::class);
         $createActivationMail = new CreateActivationMail($clientMailRepository, $clientRepository);
-        return new ActivationCodeGeneratedListener($createActivationMail, $this->buildSendImmediateMail());
+        return new ActivationCodeGeneratedListener($createActivationMail);
     }
 
     protected function buildGenerateResetPasswordCodeService()
@@ -106,7 +108,7 @@ class ClientAccountController extends Controller
         $clientMailRepository = $this->em->getRepository(ClientMail::class);
         $clientRepository = $this->em->getRepository(Client2::class);
         $createClientResetPasswordMail = new CreateClientResetPasswordMail($clientMailRepository, $clientRepository);
-        return new ResetPasswordCodeGeneratedListener($createClientResetPasswordMail, $this->buildSendImmediateMail());
+        return new ResetPasswordCodeGeneratedListener($createClientResetPasswordMail);
     }
 
 }

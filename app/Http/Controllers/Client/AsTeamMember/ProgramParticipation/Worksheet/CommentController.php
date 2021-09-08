@@ -44,7 +44,9 @@ class CommentController extends AsTeamMemberBaseController
 
         $viewService = $this->buildViewService();
         $reply = $viewService->showById($teamId, $replyId);
-        return $this->commandCreatedResponse($this->arrayDataOfComment($reply));
+        
+        $response = $this->commandCreatedResponse($this->arrayDataOfComment($reply));
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function show($teamId, $teamProgramParticipationId, $worksheetId, $commentId)
@@ -151,7 +153,7 @@ class CommentController extends AsTeamMemberBaseController
     {
         $commentRepository = $this->em->getRepository(Comment3::class);
         $service = new GenerateConsultantCommentRepliedByParticipantNotification($commentRepository);
-        return new ConsultantCommentRepliedByParticipantListener($service, $this->buildSendImmediateMail());
+        return new ConsultantCommentRepliedByParticipantListener($service);
     }
 
 }

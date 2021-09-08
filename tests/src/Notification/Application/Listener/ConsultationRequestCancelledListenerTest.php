@@ -20,8 +20,7 @@ class ConsultationRequestCancelledListenerTest extends TestBase
     {
         parent::setUp();
         $this->service = $this->buildMockOfClass(GenerateNotificationWhenConsultationRequestCancelled::class);
-        $this->sendImmediateMail = $this->buildMockOfClass(SendImmediateMail::class);
-        $this->listener = new ConsultationRequestCancelledListener($this->service, $this->sendImmediateMail);
+        $this->listener = new ConsultationRequestCancelledListener($this->service);
         
         $this->event = $this->buildMockOfClass(CommonEvent::class);
         $this->event->expects($this->any())->method("getId")->willReturn($this->id);
@@ -37,12 +36,6 @@ class ConsultationRequestCancelledListenerTest extends TestBase
         $this->service->expects($this->once())
                 ->method("execute")
                 ->with($this->id);
-        $this->executeHandle();
-    }
-    public function test_handle_sendMail()
-    {
-        $this->sendImmediateMail->expects($this->once())
-                ->method("execute");
         $this->executeHandle();
     }
 }

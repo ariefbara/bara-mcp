@@ -21,24 +21,15 @@ class ConsultationRequestTimeChangedListener implements Listener
      */
     protected $generateNotificationWhenConsultationRequestTimeChanged;
 
-    /**
-     *
-     * @var SendImmediateMail
-     */
-    protected $sendImmediateMail;
-
     public function __construct(
-            GenerateNotificationWhenConsultationRequestTimeChanged $generateNotificationWhenConsultationRequestTimeChanged,
-            SendImmediateMail $sendImmediateMail)
+            GenerateNotificationWhenConsultationRequestTimeChanged $generateNotificationWhenConsultationRequestTimeChanged)
     {
         $this->generateNotificationWhenConsultationRequestTimeChanged = $generateNotificationWhenConsultationRequestTimeChanged;
-        $this->sendImmediateMail = $sendImmediateMail;
     }
 
     public function handle(Event $event): void
     {
         $this->execute($event);
-        $this->sendImmediateMail->execute();
     }
     
     protected function execute(CommonEvent $event): void
