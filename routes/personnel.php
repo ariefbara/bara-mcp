@@ -165,6 +165,18 @@ $router->group($personnelAggregate, function () use ($router) {
             $router->get("/{missionId}", ["uses" => "$controller@show"]);
         });
         
+        $missionAggregate = [
+            'prefix' => '/missions/{missionId}',
+            'namespace' => 'Mission',
+        ];
+        $router->group($missionAggregate, function () use ($router) {
+            $router->group(['prefix' => '/learning-materials'], function () use($router) {
+                $controller = "LearningMaterialController";
+                $router->get("/{learningMaterialId}", ["uses" => "$controller@show"]);
+                $router->get("", ["uses" => "$controller@showAll"]);
+            });
+        });
+        
         $router->get("/activities/{activityId}/activity-reports", ["uses" => "ActivityReportController@showAllReportsInActivity"]);
         $router->get("/activity-reports/{activityReportId}", ["uses" => "ActivityReportController@show"]);
         
