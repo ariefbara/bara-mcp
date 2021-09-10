@@ -12,6 +12,7 @@ use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
+use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
@@ -428,6 +429,15 @@ class Member extends EntityContainEvents
     public function getClientName(): string
     {
         return $this->client->getFullName();
+    }
+    
+    public function executeTeamParticipantTask(TeamProgramParticipation $teamParticipant, ITaskExecutableByParticipant $task): void
+    {
+        $this->assertActive();
+        if (!$teamParticipant->teamEquals($this->team)) {
+            throw RegularException::forbidden('forbidden: unmanaged program participation');
+        }
+        $teamParticipant->executeTask($task);
     }
 
 }

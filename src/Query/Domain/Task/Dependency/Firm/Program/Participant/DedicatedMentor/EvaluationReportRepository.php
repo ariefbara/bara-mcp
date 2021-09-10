@@ -12,19 +12,22 @@ interface EvaluationReportRepository
     public function anEvaluationReportBelongsToPersonnel(string $personnelId, string $id): EvaluationReport;
 
     public function allEvaluationReportsBelongsToPersonnel(
-            string $personnelId, string $programId, int $page, int $pageSize, 
+            string $personnelId, string $programId, int $page, int $pageSize,
             EvaluationReportFilter $evaluationReportFilter);
-    
+
     public function allNonPaginatedEvaluationReportsInProgram(
             Program $program, EvaluationReportSummaryFilter $evaluationReportSummaryFilter);
-    
+
     public function allEvaluationReportsBelongsToParticipantInProgram(
             Program $program, string $participantId, EvaluationReportTranscriptFilter $evaluationReportTranscriptFilter);
-    
+
     public function allNonPaginatedEvaluationReportsInFirm(
             Firm $firm, EvaluationReportSummaryFilter $evaluationReportSummaryFilter);
-    
+
     public function allEvaluationReportsBelongsToClientInFirm(
             Firm $firm, string $clientId, EvaluationReportSummaryFilter $filter);
-    
+
+    public function allActiveEvaluationReportsBelongsToParticipant(string $participantId, int $page, int $pageSize);
+
+    public function anActiveEvaluationReportBelongsToParticipant(string $participantId, string $id): EvaluationReport;
 }

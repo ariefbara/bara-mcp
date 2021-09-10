@@ -58,5 +58,11 @@ class RecordOfEvaluationReport implements Record
             "id" => $this->id,
         ];
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
+    {
+        $this->formRecord->insert($connection);
+        $connection->table('MentorEvaluationReport')->insert($this->toArrayForDbEntry());
+    }
 
 }

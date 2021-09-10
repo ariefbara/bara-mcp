@@ -227,6 +227,9 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get("/dedicated-mentors", ["uses" => "DedicatedMentorController@showAll"]);
         $router->get("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@show"]);
         
+        $router->get("/evaluation-reports", ["uses" => "EvaluationReportController@showAll"]);
+        $router->get("/evaluation-reports/{id}", ["uses" => "EvaluationReportController@show"]);
+        
     });
     
     $programRegistrationAggregate = [
@@ -604,6 +607,9 @@ $router->group($clientAggregate, function () use ($router) {
             
             $router->get("/dedicated-mentors", ["uses" => "DedicatedMentorController@showAll"]);
             $router->get("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@show"]);
+            
+            $router->get("/evaluation-reports", ["uses" => "EvaluationReportController@showAll"]);
+            $router->get("/evaluation-reports/{id}", ["uses" => "EvaluationReportController@show"]);
         });
         
         $programRegistrationAggregate = [

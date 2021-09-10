@@ -43,7 +43,7 @@ class DoctrineEntityManagerProvider extends ServiceProvider
                     ];
 
 /**
- * remove line 48-49 and uncomment line 50 if redis successfully configured
+ * uncomment line 48-49 and comment line 50 if redis connection still failed
  */
 //$cache = new \Doctrine\Common\Cache\ArrayCache();
 //$config = Setup::createXMLMetadataConfiguration(self::PATH, env('DOCTRINE_IS_DEV_MODE'), null, $cache);

@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Auth\Firm\Client\TeamMembershipRepository;
 use Query\Application\Auth\Firm\Team\MemberRepository as InterfaceForAuthorization;
+use Query\Application\Service\Client\TeamMember\TeamMemberRepository as TeamMemberRepository3;
 use Query\Application\Service\Firm\Program\TeamMemberRepository;
 use Query\Application\Service\Firm\Team\MemberRepository;
 use Query\Application\Service\TeamMember\TeamMemberRepository as TeamMemberRepository2;
@@ -13,7 +14,7 @@ use Query\Domain\Model\Firm\Team\Member;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository, TeamMemberRepository, TeamMemberRepository2
+class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository, TeamMemberRepository, TeamMemberRepository2, TeamMemberRepository3
 {
 
     public function aTeamMembershipOfClient(string $firmId, string $clientId, string $teamMembershipId): Member

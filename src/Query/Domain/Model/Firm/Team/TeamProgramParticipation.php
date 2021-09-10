@@ -7,6 +7,7 @@ use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
+use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant;
@@ -191,5 +192,10 @@ class TeamProgramParticipation implements ContainEvents
     public function getTeamName(): string
     {
         return $this->team->getName();
+    }
+    
+    public function executeTask(ITaskExecutableByParticipant $task): void
+    {
+        $this->programParticipation->executeTask($task);
     }
 }

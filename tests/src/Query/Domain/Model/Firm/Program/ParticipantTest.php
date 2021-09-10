@@ -23,6 +23,7 @@ class ParticipantTest extends TestBase
     protected $userParticipant;
     protected $clientParticipant;
     protected $client;
+    protected $task;
 
     protected function setUp(): void
     {
@@ -40,6 +41,8 @@ class ParticipantTest extends TestBase
         $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
         
         $this->client = $this->buildMockOfClass(Client::class);
+        
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
     }
     protected function assertInactiveParticipant(callable $operation)
     {
@@ -174,6 +177,25 @@ class ParticipantTest extends TestBase
     public function test_getTeamName_notTeamParticipant_returnNull()
     {
         $this->assertNull($this->getTeamName());
+    }
+    
+    protected function executeTask()
+    {
+        $this->participant->executeTask($this->task);
+    }
+    public function test_executeTask_executeTask()
+    {
+        $this->task->expects($this->once())
+                ->method('execute')
+                ->with($this->participant->id);
+        $this->executeTask();
+    }
+    public function test_executeTask_inactiveParticipant_403()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeTask();
+        }, 'Forbidden', 'forbidden: only active participant can make this request');
     }
 }
 

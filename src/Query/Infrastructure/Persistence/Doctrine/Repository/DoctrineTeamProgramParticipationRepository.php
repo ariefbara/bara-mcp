@@ -4,6 +4,7 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Client\TeamMember\TeamParticipantRepository as TeamParticipantRepository2;
 use Query\Application\Service\Firm\Client\AsTeamMember\AsProgramParticipant\TeamProgramParticipationRepository as TeamProgramParticipationRepository2;
 use Query\Application\Service\Firm\Team\TeamProgramParticipationRepository;
 use Query\Application\Service\TeamMember\TeamParticipantRepository;
@@ -12,7 +13,7 @@ use Query\Domain\Service\TeamProgramParticipationRepository as InterfaceForDomai
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository, InterfaceForDomainService, TeamProgramParticipationRepository2, TeamParticipantRepository
+class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository, InterfaceForDomainService, TeamProgramParticipationRepository2, TeamParticipantRepository, TeamParticipantRepository2
 {
 
     public function aTeamProgramParticipationBelongsToTeam(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation

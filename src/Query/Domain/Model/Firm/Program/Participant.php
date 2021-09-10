@@ -309,5 +309,11 @@ class Participant extends EntityContainEvents
     {
         return isset($this->teamParticipant) ? $this->teamParticipant->getTeamName() : null;
     }
+    
+    public function executeTask(ITaskExecutableByParticipant $task): void
+    {
+        $this->assertActive();
+        $task->execute($this->id);
+    }
 
 }

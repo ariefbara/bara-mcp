@@ -3,6 +3,7 @@
 namespace Query\Domain\Model\Firm\Client;
 
 use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
@@ -17,6 +18,7 @@ class ClientParticipantTest extends TestBase
     protected $learningMaterialId = "learningMaterialId";
     protected $page = 1, $pageSize = 25;
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
+    protected $task;
 
     protected function setUp(): void
     {
@@ -31,6 +33,8 @@ class ClientParticipantTest extends TestBase
         
         $this->learningMaterialFinder = $this->buildMockOfClass(LearningMaterialFinder::class);
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
+        
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
     }
     
     public function test_viewLearningMaterial_returnParticipantsViewLearningMaterialResult()
@@ -82,6 +86,14 @@ class ClientParticipantTest extends TestBase
         $this->client->expects($this->once())
                 ->method('getFullName');
         $this->clientParticipant->getClientName();
+    }
+    
+    public function test_executeTask_executeParticipantTask()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeTask')
+                ->with($this->task);
+        $this->clientParticipant->executeTask($this->task);
     }
 }
 

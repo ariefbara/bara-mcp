@@ -3,6 +3,7 @@
 namespace Query\Domain\Model\Firm\Team;
 
 use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
@@ -19,6 +20,7 @@ class TeamProgramParticipationTest extends TestBase
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
     
     protected $client;
+    protected $task;
 
     protected function setUp(): void
     {
@@ -34,6 +36,8 @@ class TeamProgramParticipationTest extends TestBase
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
         
         $this->client = $this->buildMockOfClass(Client::class);
+        
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
     }
     
     public function test_viewLearningMaterial_returnProgramParticipationViewLearningMaterialResult()
@@ -79,6 +83,14 @@ class TeamProgramParticipationTest extends TestBase
         $this->team->expects($this->once())
                 ->method('getListOfActiveMemberPlusTeamName');
         $this->teamProgramParticipation->getListOfActiveMemberPlusTeamName();
+    }
+    
+    public function test_executeTask_participantExecuteTask()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('executeTask')
+                ->with($this->task);
+        $this->teamProgramParticipation->executeTask($this->task);
     }
 }
 

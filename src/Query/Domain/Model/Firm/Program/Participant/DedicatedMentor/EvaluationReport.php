@@ -7,6 +7,7 @@ use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\EvaluationPlan;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
+use Query\Domain\Model\Shared\ContainFormRecordInterface;
 use Query\Domain\Model\Shared\Form\AttachmentField;
 use Query\Domain\Model\Shared\Form\IContainFieldRecord;
 use Query\Domain\Model\Shared\Form\IntegerField;
@@ -22,7 +23,7 @@ use Query\Domain\Model\Shared\FormRecord\SingleSelectFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\StringFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\TextAreaFieldRecord;
 
-class EvaluationReport implements IContainFieldRecord
+class EvaluationReport implements IContainFieldRecord, ContainFormRecordInterface
 {
 
     /**

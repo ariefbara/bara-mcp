@@ -4,7 +4,6 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\QueryBuilder;
 use PDO;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
@@ -17,6 +16,7 @@ use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\Evalua
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportTranscriptFilter;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineMentorEvaluationReportRepository extends EntityRepository implements EvaluationReportRepository
 {
@@ -384,6 +384,48 @@ _STATEMENT;
                     ->setParameter('clientIdList', $clientIdList);
         }
         return $qb->getQuery()->getResult();
+    }
+
+    public function allActiveEvaluationReportsBelongsToParticipant(string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            'participantId' => $participantId,
+        ];
+        
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->andWhere($qb->expr()->eq('evaluationReport.cancelled', 'false'))
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('dedicatedMentor.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->orderBy('evaluationReport.modifiedTime', 'DESC')
+                ->setParameters($params);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function anActiveEvaluationReportBelongsToParticipant(string $participantId, string $id): EvaluationReport
+    {
+        $params = [
+            'participantId' => $participantId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->andWhere($qb->expr()->eq('evaluationReport.cancelled', 'false'))
+                ->andWhere($qb->expr()->eq('evaluationReport.id', ':id'))
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('dedicatedMentor.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->setMaxResults(1)
+                ->setParameters($params);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: evaluation report not found');
+        }
     }
 
 }

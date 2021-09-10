@@ -7,6 +7,7 @@ use Query\Application\Service\TeamMember\OKRPeriodRepository;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
+use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant;
@@ -160,6 +161,11 @@ class UserParticipant implements ContainEvents
     public function getUserName(): string
     {
         return $this->user->getFullName();
+    }
+    
+    public function executeTask(ITaskExecutableByParticipant $task): void
+    {
+        $this->participant->executeTask($task);
     }
 
 }

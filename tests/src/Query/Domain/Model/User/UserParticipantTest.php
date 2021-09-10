@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Model\User;
 
+use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\User;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
@@ -17,7 +18,8 @@ class UserParticipantTest extends TestBase
     protected $learningMaterialId = "learningMaterialId";
     protected $page = 1, $pageSize = 25;
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
-    
+    protected $task;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -30,6 +32,8 @@ class UserParticipantTest extends TestBase
         
         $this->learningMaterialFinder = $this->buildMockOfClass(LearningMaterialFinder::class);
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
+        
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
     }
     
     public function test_viewLearningMaterial_returnParticipantViewLearningMaterialResult()
@@ -67,6 +71,14 @@ class UserParticipantTest extends TestBase
         $this->user->expects($this->once())
                 ->method('getFullName');
         $this->userParticipant->getUserName();
+    }
+    
+    public function test_executeTask_participantExecuteTask()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeTask')
+                ->with($this->task);
+        $this->userParticipant->executeTask($this->task);
     }
 }
 
