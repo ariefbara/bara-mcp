@@ -24,10 +24,11 @@ interface EvaluationReportRepository
     public function allNonPaginatedEvaluationReportsInFirm(
             Firm $firm, EvaluationReportSummaryFilter $evaluationReportSummaryFilter);
 
-    public function allEvaluationReportsBelongsToClientInFirm(
-            Firm $firm, string $clientId, EvaluationReportSummaryFilter $filter);
-
     public function allActiveEvaluationReportsBelongsToParticipant(string $participantId, int $page, int $pageSize);
 
     public function anActiveEvaluationReportBelongsToParticipant(string $participantId, string $id): EvaluationReport;
+    
+    public function allActiveEvaluationReportCorrespondWithClient(string $clientId, int $page, int $pageSize);
+    
+    public function anActiveEvaluationReportCorrespondWithClient(string $clientId, string $id): EvaluationReport;
 }

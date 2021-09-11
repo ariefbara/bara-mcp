@@ -270,63 +270,6 @@ _STATEMENT;
         return $qb->getQuery()->getResult();
     }
 
-    public function allEvaluationReportsBelongsToClientInFirm(
-            Firm $firm, string $clientId, EvaluationReportSummaryFilter $filter)
-    {
-        $params = [
-            'firmId' => $firm->getId(),
-            'clientId' => $clientId,
-        ];
-
-        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $clientParticipantQb->select('a_participant.id')
-                ->from(ClientParticipant::class, 'clientParticipant')
-                ->leftJoin('clientParticipant.client', 'a_client')
-                ->andWhere($clientParticipantQb->expr()->eq('a_client.id', ':clientId'))
-                ->leftJoin('clientParticipant.participant', 'a_participant');
-
-        $memberQb = $this->getEntityManager()->createQueryBuilder();
-        $memberQb->select('b1_team.id')
-                ->from(Member::class, 'b1_member')
-                ->andWhere($memberQb->expr()->eq('b1_member.active', 'true'))
-                ->leftJoin('b1_member.client', 'b1_client')
-                ->andWhere($memberQb->expr()->eq('b1_client.id', 'clientId'))
-                ->leftJoin('b1_member.team', 'b1_team');
-
-        $teamParticipantQb = $this->getEntityManager()->createQueryBuilder();
-        $teamParticipantQb->select('b_participant.id')
-                ->from(TeamProgramParticipation::class, 'b_teamParticipant')
-                ->leftJoin('b_teamParticipant.team', 'b_team')
-                ->andWhere($clientParticipantQb->expr()->in('b_team.id', $memberQb->getDQL()))
-                ->leftJoin('b_teamParticipant.participant', 'b_participant');
-
-        $qb = $this->createQueryBuilder('evaluationReport');
-        $qb->select('evaluationReport')
-                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
-                ->leftJoin('dedicatedMentor.participant', 'participant')
-                ->andWhere($qb->expr()->orX(
-                                $qb->expr()->in('participant.id', $clientParticipantQb->getDQL()),
-                                $qb->expr()->in('participant.id', $teamParticipantQb->getDQL())
-                ))
-                ->leftJoin('participant.program', 'program')
-                ->leftJoin('program.firm', 'firm')
-                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
-                ->setParameters($params);
-
-        if (!empty($evaluationPlanIdList = $filter->getEvaluationPlanIdList())) {
-            $qb->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
-                    ->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
-                    ->setParameter('evaluationPlanIdList', $evaluationPlanIdList);
-        }
-        if (!empty($mentorIdList = $filter->getMentorIdList())) {
-            $qb->leftJoin('dedicatedMentor.consultant', 'consultant')
-                    ->andWhere($qb->expr()->in('consultant.id', ':mentorIdList'))
-                    ->setParameter('mentorIdList', $mentorIdList);
-        }
-
-        return $qb->getQuery()->getResult();
-    }
-
     public function allNonPaginatedEvaluationReportsInFirm(
             Firm $firm, EvaluationReportSummaryFilter $filter)
     {
@@ -418,6 +361,98 @@ _STATEMENT;
                 ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
                 ->leftJoin('dedicatedMentor.participant', 'participant')
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->setMaxResults(1)
+                ->setParameters($params);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: evaluation report not found');
+        }
+    }
+
+    public function allActiveEvaluationReportCorrespondWithClient(string $clientId, int $page, int $pageSize)
+    {
+        $params = [
+            'clientId' => $clientId,
+        ];
+
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('a_participant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.client', 'a_client')
+                ->andWhere($clientParticipantQb->expr()->eq('a_client.id', ':clientId'))
+                ->leftJoin('clientParticipant.participant', 'a_participant');
+
+        $memberQb = $this->getEntityManager()->createQueryBuilder();
+        $memberQb->select('b1_team.id')
+                ->from(Member::class, 'b1_member')
+                ->andWhere($memberQb->expr()->eq('b1_member.active', 'true'))
+                ->leftJoin('b1_member.client', 'b1_client')
+                ->andWhere($memberQb->expr()->eq('b1_client.id', ':clientId'))
+                ->leftJoin('b1_member.team', 'b1_team');
+
+        $teamParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $teamParticipantQb->select('b_participant.id')
+                ->from(TeamProgramParticipation::class, 'b_teamParticipant')
+                ->leftJoin('b_teamParticipant.team', 'b_team')
+                ->andWhere($clientParticipantQb->expr()->in('b_team.id', $memberQb->getDQL()))
+                ->leftJoin('b_teamParticipant.programParticipation', 'b_participant');
+
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->andWhere($qb->expr()->eq('evaluationReport.cancelled', 'false'))
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('dedicatedMentor.participant', 'participant')
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in('participant.id', $clientParticipantQb->getDQL()),
+                                $qb->expr()->in('participant.id', $teamParticipantQb->getDQL())
+                ))
+                ->orderBy('evaluationReport.modifiedTime', 'DESC')
+                ->setParameters($params);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function anActiveEvaluationReportCorrespondWithClient(string $clientId, string $id): EvaluationReport
+    {
+        $params = [
+            'clientId' => $clientId,
+            'id' => $id,
+        ];
+
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('a_participant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.client', 'a_client')
+                ->andWhere($clientParticipantQb->expr()->eq('a_client.id', ':clientId'))
+                ->leftJoin('clientParticipant.participant', 'a_participant');
+
+        $memberQb = $this->getEntityManager()->createQueryBuilder();
+        $memberQb->select('b1_team.id')
+                ->from(Member::class, 'b1_member')
+                ->andWhere($memberQb->expr()->eq('b1_member.active', 'true'))
+                ->leftJoin('b1_member.client', 'b1_client')
+                ->andWhere($memberQb->expr()->eq('b1_client.id', ':clientId'))
+                ->leftJoin('b1_member.team', 'b1_team');
+
+        $teamParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $teamParticipantQb->select('b_participant.id')
+                ->from(TeamProgramParticipation::class, 'b_teamParticipant')
+                ->leftJoin('b_teamParticipant.team', 'b_team')
+                ->andWhere($clientParticipantQb->expr()->in('b_team.id', $memberQb->getDQL()))
+                ->leftJoin('b_teamParticipant.programParticipation', 'b_participant');
+
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->andWhere($qb->expr()->eq('evaluationReport.cancelled', 'false'))
+                ->andWhere($qb->expr()->eq('evaluationReport.id', ':id'))
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('dedicatedMentor.participant', 'participant')
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in('participant.id', $clientParticipantQb->getDQL()),
+                                $qb->expr()->in('participant.id', $teamParticipantQb->getDQL())
+                ))
                 ->setMaxResults(1)
                 ->setParameters($params);
         

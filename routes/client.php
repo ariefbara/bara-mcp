@@ -20,6 +20,9 @@ $router->group($clientAggregate, function () use ($router) {
     
     $router->get('/active-individual-and-team-program-participation', ['uses' => "ActiveIndividualAndTeamProgramParticipationController@showAll"]);
     
+    $router->get('/evaluation-reports', ['uses' => "EvaluationReportController@showAll"]);
+    $router->get('/evaluation-reports/{id}', ['uses' => "EvaluationReportController@show"]);
+    
     $router->group(['prefix' => '/clients'], function () use($router) {
         $controller = "ClientController";
         $router->get("", ["uses" => "$controller@showAll"]);
