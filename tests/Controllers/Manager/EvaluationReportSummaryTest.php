@@ -168,28 +168,28 @@ class EvaluationReportSummaryTest extends ManagerTestCase
     }
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Form')->truncate();
-//        $this->connection->table('StringField')->truncate();
-//        $this->connection->table('IntegerField')->truncate();
-//        $this->connection->table('TextAreaField')->truncate();
-//        $this->connection->table('FeedbackForm')->truncate();
-//        $this->connection->table('Program')->truncate();
-//        $this->connection->table('EvaluationPlan')->truncate();
-//        $this->connection->table('Participant')->truncate();
-//        $this->connection->table('Client')->truncate();
-//        $this->connection->table('ClientParticipant')->truncate();
-//        $this->connection->table('Team')->truncate();
-//        $this->connection->table('TeamParticipant')->truncate();
-//        $this->connection->table('T_Member')->truncate();
-//        $this->connection->table('Personnel')->truncate();
-//        $this->connection->table('Consultant')->truncate();
-//        $this->connection->table('DedicatedMentor')->truncate();
-//        $this->connection->table('FormRecord')->truncate();
-//        $this->connection->table('StringFieldRecord')->truncate();
-//        $this->connection->table('IntegerFieldRecord')->truncate();
-//        $this->connection->table('TextAreaFieldRecord')->truncate();
-//        $this->connection->table('MentorEvaluationReport')->truncate();
+        parent::tearDown();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('StringField')->truncate();
+        $this->connection->table('IntegerField')->truncate();
+        $this->connection->table('TextAreaField')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
+        $this->connection->table('Program')->truncate();
+        $this->connection->table('EvaluationPlan')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('T_Member')->truncate();
+        $this->connection->table('Personnel')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
+        $this->connection->table('FormRecord')->truncate();
+        $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('IntegerFieldRecord')->truncate();
+        $this->connection->table('TextAreaFieldRecord')->truncate();
+        $this->connection->table('MentorEvaluationReport')->truncate();
     }
     
     protected function summary()
@@ -214,11 +214,6 @@ class EvaluationReportSummaryTest extends ManagerTestCase
         $this->evaluationReport_1111_dm111_ep11_c1_pers1->dedicatedMentor->consultant->insert($this->connection);
         $this->evaluationReport_1221_dm122_ep11_c2_pers2->dedicatedMentor->consultant->insert($this->connection);
         $this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->consultant->insert($this->connection);
-        
-        $this->evaluationReport_1111_dm111_ep11_c1_pers1->dedicatedMentor->participant->insert($this->connection);
-        $this->evaluationReport_1221_dm122_ep11_c2_pers2->dedicatedMentor->participant->insert($this->connection);
-        $this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->participant->insert($this->connection);
-        $this->evaluationReport_2211_dm221_ep21_c1_pers1->dedicatedMentor->participant->insert($this->connection);
         
         $this->clientParticipant_11_prog1_c1->client->insert($this->connection);
         $this->clientParticipant_12_prog1_c2->client->insert($this->connection);
@@ -331,7 +326,6 @@ class EvaluationReportSummaryTest extends ManagerTestCase
             ],
         ];
         $this->seeJsonContains($response);
-print_r($this->manager->token);
     }
     public function test_summary_clientIdListFilterApplied_200()
     {
@@ -523,6 +517,78 @@ print_r($this->manager->token);
         ];
         $this->seeJsonContains($response);
     }
+    public function test_summary_containCancelledReport_excludeFromResult()
+    {
+        $this->evaluationReport_1111_dm111_ep11_c1_pers1->cancelled = true;
+        $this->summary();
+        $this->seeStatusCode(200);
+        
+        $evaluationPlanOneTable = [
+            'id' => $this->evaluationPlan_11_prog1->id,
+            'name' => $this->evaluationPlan_11_prog1->name,
+            'summaryTable' => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'client'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_11->name],
+                    4 => ['colNumber' => 4, 'label' => $this->stringField_11->name],
+                ],
+                'entries' => [
+                    [
+                        1 => ['colNumber' => 1, 'value' => $this->clientTwo->getFullName()],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_1221_dm122_ep11_c2_pers2->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_121_fr12_if11->value],
+                        4 => ['colNumber' => 4, 'value' => $this->stringRecord_121_fr12_sf11->value],
+                    ],
+                ],
+            ],
+        ];
+        
+        $evaluationPlanTwoTable = [
+            'id' => $this->evaluationPlan_21_prog2->id,
+            'name' => $this->evaluationPlan_21_prog2->name,
+            'summaryTable' => [
+                'header' => [
+                    1 => ['colNumber' => 1, 'label' => 'client'],
+                    2 => ['colNumber' => 2, 'label' => 'mentor'],
+                    3 => ['colNumber' => 3, 'label' => $this->integerField_21->name],
+                    4 => ['colNumber' => 4, 'label' => $this->textAreaField_21->name],
+                ],
+                'entries' => [
+                    [
+                        1 => ['colNumber' => 1, 'value' => "{$this->clientOne->getFullName()} (of team: {$this->teamOne->name})"],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_211_fr21_if21->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_211_fr21_taf21->value],
+                    ],
+                    [
+                        1 => ['colNumber' => 1, 'value' => "{$this->clientTwo->getFullName()} (of team: {$this->teamOne->name})"],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_211_fr21_if21->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_211_fr21_taf21->value],
+                    ],
+                    [
+                        1 => ['colNumber' => 1, 'value' => "{$this->clientOne->getFullName()} (of team: {$this->teamTwo->name})"],
+                        2 => ['colNumber' => 2, 'value' => $this->evaluationReport_2211_dm221_ep21_c1_pers1->dedicatedMentor->consultant->personnel->getFullName()],
+                        3 => ['colNumber' => 3, 'value' => $this->integerRecord_221_fr22_if21->value],
+                        4 => ['colNumber' => 4, 'value' => $this->textAreaRecord_221_fr22_taf_21->value],
+                    ],
+                ],
+            ],
+        ];
+        
+        $response = [
+            "data" => [
+                $evaluationPlanOneTable,
+                $evaluationPlanTwoTable,
+            ],
+            "meta" => [
+                "code" => 200,
+                "type" => "OK",
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
     
     protected function transcript()
     {
@@ -546,11 +612,6 @@ print_r($this->manager->token);
         $this->evaluationReport_1111_dm111_ep11_c1_pers1->dedicatedMentor->consultant->insert($this->connection);
         $this->evaluationReport_1221_dm122_ep11_c2_pers2->dedicatedMentor->consultant->insert($this->connection);
         $this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->consultant->insert($this->connection);
-        
-        $this->evaluationReport_1111_dm111_ep11_c1_pers1->dedicatedMentor->participant->insert($this->connection);
-        $this->evaluationReport_1221_dm122_ep11_c2_pers2->dedicatedMentor->participant->insert($this->connection);
-        $this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->participant->insert($this->connection);
-        $this->evaluationReport_2211_dm221_ep21_c1_pers1->dedicatedMentor->participant->insert($this->connection);
         
         $this->clientParticipant_11_prog1_c1->client->insert($this->connection);
         $this->clientParticipant_12_prog1_c2->client->insert($this->connection);
@@ -886,6 +947,97 @@ print_r($this->manager->token);
             'id' => $this->clientTwo->id,
             'name' => $this->clientTwo->getFullName(),
             'evaluationPlans' => [
+                [
+                    'id' => $this->evaluationPlan_21_prog2->id,
+                    'name' => $this->evaluationPlan_21_prog2->name,
+                    'summaryTable' => [
+                        'header' => [
+                            1 => ['colNumber' => 1, 'label' => 'mentor'],
+                            2 => ['colNumber' => 2, 'label' => $this->integerField_21->name],
+                            3 => ['colNumber' => 3, 'label' => $this->textAreaField_21->name],
+                        ],
+                        'entries' => [
+                            [
+                                1 => ['colNumber' => 1, 'value' => "{$this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->consultant->personnel->getFullName()} (of team: {$this->teamOne->name})"],
+                                2 => ['colNumber' => 2, 'value' => $this->integerRecord_211_fr21_if21->value],
+                                3 => ['colNumber' => 3, 'value' => $this->textAreaRecord_211_fr21_taf21->value],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+                                
+        $response = [
+            "data" => [
+                $clientOneTable,
+                $clientTwoTable,
+            ],
+            "meta" => [
+                "code" => 200,
+                "type" => "OK",
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_transcript_containCancelledReport_excludeFromResult()
+    {
+        $this->evaluationReport_1111_dm111_ep11_c1_pers1->cancelled = true;
+        $this->transcript();
+        $this->seeStatusCode(200);
+        
+        $clientOneTable = [
+            'id' => $this->clientOne->id,
+            'name' => $this->clientOne->getFullName(),
+            'evaluationPlans' => [
+                [
+                    'id' => $this->evaluationPlan_21_prog2->id,
+                    'name' => $this->evaluationPlan_21_prog2->name,
+                    'summaryTable' => [
+                        'header' => [
+                            1 => ['colNumber' => 1, 'label' => 'mentor'],
+                            2 => ['colNumber' => 2, 'label' => $this->integerField_21->name],
+                            3 => ['colNumber' => 3, 'label' => $this->textAreaField_21->name],
+                        ],
+                        'entries' => [
+                            [
+                                1 => ['colNumber' => 1, 'value' => "{$this->evaluationReport_2111_dm211_ep21_c1c2_pers1->dedicatedMentor->consultant->personnel->getFullName()} (of team: {$this->teamOne->name})"],
+                                2 => ['colNumber' => 2, 'value' => $this->integerRecord_211_fr21_if21->value],
+                                3 => ['colNumber' => 3, 'value' => $this->textAreaRecord_211_fr21_taf21->value],
+                            ],
+                            [
+                                1 => ['colNumber' => 1, 'value' => "{$this->evaluationReport_2211_dm221_ep21_c1_pers1->dedicatedMentor->consultant->personnel->getFullName()} (of team: {$this->teamTwo->name})"],
+                                2 => ['colNumber' => 2, 'value' => $this->integerRecord_221_fr22_if21->value],
+                                3 => ['colNumber' => 3, 'value' => $this->textAreaRecord_221_fr22_taf_21->value],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        
+        $clientTwoTable = [
+            'id' => $this->clientTwo->id,
+            'name' => $this->clientTwo->getFullName(),
+            'evaluationPlans' => [
+                [
+                    'id' => $this->evaluationPlan_11_prog1->id,
+                    'name' => $this->evaluationPlan_11_prog1->name,
+                    'summaryTable' => [
+                        'header' => [
+                            1 => ['colNumber' => 1, 'label' => 'mentor'],
+                            2 => ['colNumber' => 2, 'label' => $this->integerField_11->name],
+                            3 => ['colNumber' => 3, 'label' => $this->stringField_11->name],
+                        ],
+                        'entries' => [
+                            [
+                                1 => ['colNumber' => 1, 'value' => $this->evaluationReport_1221_dm122_ep11_c2_pers2->dedicatedMentor->consultant->personnel->getFullName()],
+                                2 => ['colNumber' => 2, 'value' => $this->integerRecord_121_fr12_if11->value],
+                                3 => ['colNumber' => 3, 'value' => $this->stringRecord_121_fr12_sf11->value],
+                            ],
+                        ],
+                    ],
+                ],
                 [
                     'id' => $this->evaluationPlan_21_prog2->id,
                     'name' => $this->evaluationPlan_21_prog2->name,

@@ -15,13 +15,10 @@ interface EvaluationReportRepository
             string $personnelId, string $programId, int $page, int $pageSize,
             EvaluationReportFilter $evaluationReportFilter);
 
-    public function allNonPaginatedEvaluationReportsInProgram(
+    public function allNonPaginatedActiveEvaluationReportsInProgram(
             Program $program, EvaluationReportSummaryFilter $evaluationReportSummaryFilter);
 
-    public function allEvaluationReportsBelongsToParticipantInProgram(
-            Program $program, string $participantId, EvaluationReportTranscriptFilter $evaluationReportTranscriptFilter);
-
-    public function allNonPaginatedEvaluationReportsInFirm(
+    public function allNonPaginatedActiveEvaluationReportsInFirm(
             Firm $firm, EvaluationReportSummaryFilter $evaluationReportSummaryFilter);
 
     public function allActiveEvaluationReportsBelongsToParticipant(string $participantId, int $page, int $pageSize);

@@ -42,7 +42,7 @@ class GenerateFirmEvaluationReportSummaryTask implements ITaskInFirmExecutableBy
     public function executeTaskInFirm(Firm $firm): void
     {
         $evaluationReports = $this->evaluationReportRepository
-                ->allNonPaginatedEvaluationReportsInFirm($firm, $this->evaluationReportSummaryFilter);
+                ->allNonPaginatedActiveEvaluationReportsInFirm($firm, $this->evaluationReportSummaryFilter);
         foreach ($evaluationReports as $evaluationReport) {
             $this->firmEvaluationReportSummaryResult->includeEvaluationReport($evaluationReport);
         }

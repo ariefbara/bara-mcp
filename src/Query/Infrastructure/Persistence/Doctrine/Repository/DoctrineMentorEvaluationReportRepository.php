@@ -208,7 +208,7 @@ _STATEMENT;
         }
     }
 
-    public function allNonPaginatedEvaluationReportsInProgram(
+    public function allNonPaginatedActiveEvaluationReportsInProgram(
             Program $program, EvaluationReportSummaryFilter $evaluationReportSummaryFilter)
     {
         $params = [
@@ -217,6 +217,7 @@ _STATEMENT;
 
         $qb = $this->createQueryBuilder('evaluationReport');
         $qb->select('evaluationReport')
+                ->andWhere($qb->expr()->eq('evaluationReport.cancelled', 'false'))
                 ->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
                 ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
                 ->leftJoin('evaluationPlan.program', 'program')
@@ -240,37 +241,7 @@ _STATEMENT;
         return $qb->getQuery()->getResult();
     }
 
-    public function allEvaluationReportsBelongsToParticipantInProgram(
-            Program $program, string $participantId, EvaluationReportTranscriptFilter $evaluationReportTranscriptFilter)
-    {
-        $params = [
-            'programId' => $program->getId(),
-            'participantId' => $participantId,
-        ];
-
-        $qb = $this->createQueryBuilder('evaluationReport');
-        $qb->select('evaluationReport')
-                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
-                ->leftJoin('dedicatedMentor.participant', 'participant')
-                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->eq('program.id', ':programId'))
-                ->setParameters($params);
-
-        if (!empty($evaluationPlanIdList = $evaluationReportTranscriptFilter->getEvaluationPlanIdList())) {
-            $qb->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
-                    ->andWhere($qb->expr()->in('evaluationPlan.id', ':evaluationPlanIdList'))
-                    ->setParameter('evaluationPlanIdList', $evaluationPlanIdList);
-        }
-        if (!empty($mentorIdList = $evaluationReportTranscriptFilter->getMentorIdList())) {
-            $qb->leftJoin('dedicatedMentor.consultant', 'consultant')
-                    ->andWhere($qb->expr()->in('consultant.id', ':mentorIdList'))
-                    ->setParameter('mentorIdList', $mentorIdList);
-        }
-        return $qb->getQuery()->getResult();
-    }
-
-    public function allNonPaginatedEvaluationReportsInFirm(
+    public function allNonPaginatedActiveEvaluationReportsInFirm(
             Firm $firm, EvaluationReportSummaryFilter $filter)
     {
         $params = [
@@ -279,6 +250,7 @@ _STATEMENT;
 
         $qb = $this->createQueryBuilder('evaluationReport');
         $qb->select('evaluationReport')
+                ->andWhere($qb->expr()->eq('evaluationReport.cancelled', 'false'))
                 ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
                 ->leftJoin('evaluationReport.evaluationPlan', 'evaluationPlan')
                 ->leftJoin('evaluationPlan.program', 'program')

@@ -42,7 +42,7 @@ class GenerateProgramEvaluationReportSummaryTask implements ITaskInProgramExecut
     public function executeTaskInProgram(Program $program): void
     {
         $evaluationReports = $this->evaluationReportRepository
-                ->allNonPaginatedEvaluationReportsInProgram($program, $this->evaluationReportFilter);
+                ->allNonPaginatedActiveEvaluationReportsInProgram($program, $this->evaluationReportFilter);
         
         foreach ($evaluationReports as $evaluationReport) {
             $this->programEvaluationReportSummaryResult->includeEvaluationReport($evaluationReport);

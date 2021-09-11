@@ -55,7 +55,7 @@ class GenerateFirmEvaluationReportTranscriptTask implements ITaskInFirmExecutabl
         }
         
         $evaluationReports = $this->evaluationReportRepository
-                ->allNonPaginatedEvaluationReportsInFirm($firm, $this->evaluationReportSummaryFilter);
+                ->allNonPaginatedActiveEvaluationReportsInFirm($firm, $this->evaluationReportSummaryFilter);
         foreach ($evaluationReports as $evaluationReport) {
             $this->clientEvaluationReportTranscriptResult->includeEvaluationReport($evaluationReport);
         }
