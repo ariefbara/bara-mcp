@@ -195,6 +195,7 @@ class MailMessageBuilder
             int $state, ?string $meetingType, ?string $meetingName, ?string $meetingDescription,
             ?string $timeDescription, ?string $location, ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
+        $showLink = true;
         $icalCancellation = false;
         switch ($state) {
             case self::MEETING_CREATED:
@@ -209,6 +210,7 @@ class MailMessageBuilder
                 $subject = "Meeting Invitation Cancelled";
                 $introductionMessage = "Your meeting invitation has been cancelled";
                 $icalCancellation = true;
+                $showLink = false;
                 break;
             case self::MEETING_SCHEDULE_CHANGED:
                 $subject = "Meeting Schedule Changed";
@@ -226,7 +228,7 @@ class MailMessageBuilder
             "location: {$location}",
         ];
         return new MailMessage(
-                $subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true, $icalRequired = true, 
+                $subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink, $icalRequired = true, 
                 $icalCancellation);
     }
 

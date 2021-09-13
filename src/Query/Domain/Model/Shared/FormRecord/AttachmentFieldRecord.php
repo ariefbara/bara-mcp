@@ -2,10 +2,10 @@
 
 namespace Query\Domain\Model\Shared\FormRecord;
 
+use Config\BaseConfig;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Shared\Form\AttachmentField;
-use Query\Domain\Model\Shared\Form\TextAreaField;
 use Query\Domain\Model\Shared\FormRecord;
 use Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord\AttachedFile;
 
@@ -86,10 +86,12 @@ class AttachmentFieldRecord
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('removed', false));
-        
+        $storageFolder = BaseConfig::KONSULTA_MAIN_URL . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
         $result = null;
         foreach ($this->attachedFiles->matching($criteria)->getIterator() as $attachedFile) {
-            $result .= empty($result) ? $attachedFile->getFileLocation() : "\r\n{$attachedFile->getFileLocation()}";
+            $result .= empty($result) ? 
+                    "$storageFolder{$attachedFile->getFileLocation()}" : 
+                    "\r\n$storageFolder{$attachedFile->getFileLocation()}";
         }
         return $result;
     }

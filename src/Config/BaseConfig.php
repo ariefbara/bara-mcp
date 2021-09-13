@@ -10,6 +10,6 @@ class BaseConfig
     const MAIL_SENDER_ADDRESS = 'noreply@innovid.xyz';
     const MAIL_SENDER_NAME = 'innovation';
     const KONSULTA_LOGO_PATH = "";
-    const KONSULTA_MAIN_URL = "http://konsulta.id";
+    const KONSULTA_MAIN_URL = "http://konsulta.co";
 
 }
