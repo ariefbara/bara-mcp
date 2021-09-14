@@ -86,7 +86,7 @@ class AttachmentFieldRecord
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('removed', false));
-        $storageFolder = BaseConfig::KONSULTA_MAIN_URL . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
+        $storageFolder = BaseConfig::KONSULTA_STORAGE_URL;
         $result = null;
         foreach ($this->attachedFiles->matching($criteria)->getIterator() as $attachedFile) {
             $result .= empty($result) ? 

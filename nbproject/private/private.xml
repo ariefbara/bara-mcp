@@ -20,9 +20,13 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Infrastructure/Persistence/Doctrine/Repository/DoctrineMentorEvaluationReportRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Task/Dependency/Firm/Program/Participant/DedicatedMentor/EvaluationReportRepository.php</file>
-            <file>file:/home/apur/workspace/php/bara-mcp/tests/Controllers/Manager/EvaluationReportSummaryTest.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/SharedModel/SummaryTable/Entry.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Config/BaseConfig.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/SharedModel/SummaryTable.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Shared/FormRecord/AttachmentFieldRecord.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Shared/FormRecord.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/Model/Shared/FormRecord/AttachmentFieldRecord/AttachedFile.php</file>
+            <file>file:/home/apur/workspace/php/bara-mcp/src/Query/Domain/SharedModel/SummaryTable/Entry/EntryColumn.php</file>
         </group>
     </open-files>
 </project-private>
