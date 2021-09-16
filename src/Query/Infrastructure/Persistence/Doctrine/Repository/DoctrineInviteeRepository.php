@@ -62,6 +62,10 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
             }
             $qb->andWhere($orX);
         }
+        $order = $inviteeFilter->getOrder();
+        if (!empty($order)) {
+            
+        }
     }
 
     public function allInviteesInManagerActivity(

@@ -54,6 +54,10 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
             }
             $qb->andWhere($orX);
         }
+        $order = $inviteeFilter->getOrder();
+        if (!empty($order)) {
+            $qb->orderBy('activity.startEndTime.startDateTime', $order);
+        }
     }
 
     public function allInvitationsForClientParticipant(

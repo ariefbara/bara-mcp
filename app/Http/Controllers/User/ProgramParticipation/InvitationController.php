@@ -45,7 +45,8 @@ class InvitationController extends UserBaseController
         $inviteeFilter = (new InviteeFilter())
                 ->setCancelledStatus($this->filterBooleanOfQueryRequest('cancelledStatus'))
                 ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
-                ->setTo($this->dateTimeImmutableOfQueryRequest('to'));
+                ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
+                ->setOrder($this->stripTagQueryRequest('order'));
         
         $service = $this->buildViewService();
         $invitations = $service->showAll(

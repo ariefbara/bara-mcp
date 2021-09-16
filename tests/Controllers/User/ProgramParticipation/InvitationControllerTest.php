@@ -64,8 +64,14 @@ class InvitationControllerTest extends ProgramParticipationTestCase
         $activity->startDateTime = (new \DateTimeImmutable("+72 hours"))->format("Y-m-d H:i:s");
         $activity->endDateTime = (new \DateTimeImmutable("+73 hours"))->format("Y-m-d H:i:s");
         $activityOne = new RecordOfActivity($activityType, 1);
+        $activityOne->startDateTime = (new \DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
+        $activityOne->endDateTime = (new \DateTimeImmutable("+25 hours"))->format("Y-m-d H:i:s");
         $activityTwo = new RecordOfActivity($activityType, 2);
+        $activityTwo->startDateTime = (new \DateTimeImmutable("-24 hours"))->format("Y-m-d H:i:s");
+        $activityTwo->endDateTime = (new \DateTimeImmutable("-23 hours"))->format("Y-m-d H:i:s");
         $activityThree = new RecordOfActivity($activityType, 3);
+        $activityThree->startDateTime = (new \DateTimeImmutable("+48 hours"))->format("Y-m-d H:i:s");
+        $activityThree->endDateTime = (new \DateTimeImmutable("-49 hours"))->format("Y-m-d H:i:s");
         $this->connection->table("Activity")->insert($activity->toArrayForDbEntry());
         $this->connection->table("Activity")->insert($activityOne->toArrayForDbEntry());
         $this->connection->table("Activity")->insert($activityTwo->toArrayForDbEntry());
@@ -384,6 +390,66 @@ class InvitationControllerTest extends ProgramParticipationTestCase
                             "program" => [
                                 "id" => $this->invitationTwo->invitee->activity->activityType->program->id,
                                 "name" => $this->invitationTwo->invitee->activity->activityType->program->name,
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    "id" => $this->invitationThree->id,
+                    "willAttend" => $this->invitationThree->invitee->willAttend,
+                    "attended" => $this->invitationThree->invitee->attended,
+                    "anInitiator" => $this->invitationThree->invitee->anInitiator,
+                    "activity" => [
+                        "id" => $this->invitationThree->invitee->activity->id,
+                        "name" => $this->invitationThree->invitee->activity->name,
+                        "location" => $this->invitationThree->invitee->activity->location,
+                        "startTime" => $this->invitationThree->invitee->activity->startDateTime,
+                        "endTime" => $this->invitationThree->invitee->activity->endDateTime,
+                        "cancelled" => $this->invitationThree->invitee->activity->cancelled,
+                        "activityType" => [
+                            "id" => $this->invitationThree->invitee->activity->activityType->id,
+                            "name" => $this->invitationThree->invitee->activity->activityType->name,
+                            "program" => [
+                                "id" => $this->invitationThree->invitee->activity->activityType->program->id,
+                                "name" => $this->invitationThree->invitee->activity->activityType->program->name,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        
+        $this->get($uri, $this->programParticipation->user->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+    }
+    public function test_showAll_orderApplied()
+    {
+        $uri = $this->invitationUri
+                . "?page=1" 
+                . "&pageSize=2" 
+                . "&order=DESC"; 
+        $response = [
+            "total" => 4,
+            "list" => [
+                [
+                    "id" => $this->invitation->id,
+                    "willAttend" => $this->invitation->invitee->willAttend,
+                    "attended" => $this->invitation->invitee->attended,
+                    "anInitiator" => $this->invitation->invitee->anInitiator,
+                    "activity" => [
+                        "id" => $this->invitation->invitee->activity->id,
+                        "name" => $this->invitation->invitee->activity->name,
+                        "location" => $this->invitation->invitee->activity->location,
+                        "startTime" => $this->invitation->invitee->activity->startDateTime,
+                        "endTime" => $this->invitation->invitee->activity->endDateTime,
+                        "cancelled" => $this->invitation->invitee->activity->cancelled,
+                        "activityType" => [
+                            "id" => $this->invitation->invitee->activity->activityType->id,
+                            "name" => $this->invitation->invitee->activity->activityType->name,
+                            "program" => [
+                                "id" => $this->invitation->invitee->activity->activityType->program->id,
+                                "name" => $this->invitation->invitee->activity->activityType->program->name,
                             ],
                         ],
                     ],

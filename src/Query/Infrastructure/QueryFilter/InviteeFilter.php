@@ -3,6 +3,8 @@
 namespace Query\Infrastructure\QueryFilter;
 
 use DateTimeImmutable;
+use ReflectionClass;
+use Resources\Exception\RegularException;
 
 class InviteeFilter
 {
@@ -31,6 +33,15 @@ class InviteeFilter
      */
     protected $willAttendStatuses;
 
+    /**
+     * 
+     * @var string|null
+     */
+    protected $order;
+    
+    const  ASCENDING = 'ASC';
+    const  DESCENDING = 'DESC';
+
     public function getFrom(): ?DateTimeImmutable
     {
         return $this->from;
@@ -51,20 +62,35 @@ class InviteeFilter
         return $this->willAttendStatuses;
     }
 
+    public function getOrder(): ?string
+    {
+        return $this->order;
+    }
+
     public function __construct()
     {
         
     }
 
-    public function setFrom(?DateTimeImmutable $from)
+    public function setFrom(?DateTimeImmutable $from): self
     {
         $this->from = $from;
         return $this;
     }
 
-    public function setTo(?DateTimeImmutable $to)
+    public function setTo(?DateTimeImmutable $to): self
     {
         $this->to = $to;
+        return $this;
+    }
+
+    public function setOrder(?string $order): self
+    {
+        $c = new ReflectionClass($this);
+        if (!is_null($order) && !in_array($order, $c->getConstants())) {
+            throw RegularException::badRequest("bad request: list order can only be 'ASC' or 'DESC'");
+        }
+        $this->order = $order;
         return $this;
     }
 

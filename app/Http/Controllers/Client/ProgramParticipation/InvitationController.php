@@ -47,7 +47,8 @@ class InvitationController extends ClientBaseController
         $inviteeFilter = (new InviteeFilter())
                 ->setCancelledStatus($this->filterBooleanOfQueryRequest('cancelledStatus'))
                 ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
-                ->setTo($this->dateTimeImmutableOfQueryRequest('to'));
+                ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
+                ->setOrder($this->stripTagQueryRequest('order'));
         
         $invitations = $service->showAll(
                 $this->firmId(), $this->clientId(), $programParticipationId, $this->getPage(), $this->getPageSize(),
