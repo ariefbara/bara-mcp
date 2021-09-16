@@ -2,26 +2,19 @@
 
 namespace App\Http\Controllers\Manager;
 
-use ActivityInvitee\ {
-    Application\Service\Manager\SubmitReport,
-    Domain\Model\ManagerInvitee as ManagerInvitee2
-};
-use App\Http\Controllers\ {
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter,
-    FormToArrayDataConverter
-};
-use Query\ {
-    Application\Service\Firm\Manager\ViewInvitationForManager,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Manager\ManagerInvitee,
-    Domain\Model\Firm\Program\Activity\Invitee\InviteeReport,
-    Domain\Model\Firm\Program\ActivityType
-};
-use SharedContext\Domain\ {
-    Model\SharedEntity\FileInfo,
-    Service\FileInfoBelongsToManagerFinder
-};
+use ActivityInvitee\Application\Service\Manager\SubmitReport;
+use ActivityInvitee\Domain\Model\ManagerInvitee as ManagerInvitee2;
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use Query\Application\Service\Firm\Manager\ViewInvitationForManager;
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Manager\ManagerInvitee;
+use Query\Domain\Model\Firm\Program\Activity\Invitee\InviteeReport;
+use Query\Domain\Model\Firm\Program\ActivityType;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
+use SharedContext\Domain\Service\FileInfoBelongsToManagerFinder;
 
 class InvitationController extends ManagerBaseController
 {
@@ -49,7 +42,13 @@ class InvitationController extends ManagerBaseController
     public function showAll()
     {
         $service = $this->buildViewService();
-        $invitations = $service->showAll($this->firmId(), $this->managerId(), $this->getPage(), $this->getPageSize());
+        $inviteeFilter = (new InviteeFilter())
+                ->setCancelledStatus($this->filterBooleanOfQueryRequest('cancelledStatus'))
+                ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
+                ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
+                ->setOrder($this->stripTagQueryRequest('order'));
+        $invitations = $service->showAll(
+                $this->firmId(), $this->managerId(), $this->getPage(), $this->getPageSize(), $inviteeFilter);
         
         $result = [];
         $result["total"] = count($invitations);

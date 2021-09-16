@@ -208,7 +208,6 @@ class ActivityInvitationControllerTest extends PersonnelTestCase
     }
     public function test_showAll_timeIntervalFilter_200()
     {
-$this->disableExceptionHandling();
         $startOfMonth = (new \DateTime('first day of this month'))->setTime(00, 00, 00)->format('Y-m-d H:i:s');
         $endOfMonth = (new \DateTime('last day of this month'))->setTime(23, 59, 59)->format('Y-m-d H:i:s');
         $uri = $this->activityInvitationUri 
@@ -234,6 +233,24 @@ $this->disableExceptionHandling();
             'id' => $this->activityInvitationOne->id,
         ];
         $this->seeJsonContains($inviteeOneResponse);
+        $inviteeTwoResponse = [
+            'id' => $this->activityInvitationTwo->id,
+        ];
+        $this->seeJsonContains($inviteeTwoResponse);
+    }
+    public function test_showAll_orderApplied_200()
+    {
+        $uri = $this->activityInvitationUri 
+                . "?page=1"
+                . "&pageSize=2"
+                . "&order=DESC";
+        $this->get($uri, $this->personnel->token)
+                ->seeStatusCode(200);
+        $totalResponse = ['total' => 3];
+        $inviteeThreeResponse = [
+            'id' => $this->activityInvitationThree->id,
+        ];
+        $this->seeJsonContains($inviteeThreeResponse);
         $inviteeTwoResponse = [
             'id' => $this->activityInvitationTwo->id,
         ];

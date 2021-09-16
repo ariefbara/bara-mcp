@@ -3,6 +3,7 @@
 namespace Query\Application\Service\Firm\Personnel\ProgramCoordinator;
 
 use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 
 class ViewInvitationForCoordinator
 {
@@ -27,10 +28,12 @@ class ViewInvitationForCoordinator
      * @param int $pageSize
      * @return CoordinatorInvitee[]
      */
-    public function showAll(string $firmId, string $personnelId, string $coordinatorId, int $page, int $pageSize)
+    public function showAll(
+            string $firmId, string $personnelId, string $coordinatorId, int $page, int $pageSize, 
+            ?InviteeFilter $inviteeFilter)
     {
-        return $this->coordinatorInvitationRepository->allInvitationsForCoordinator($firmId, $personnelId,
-                        $coordinatorId, $page, $pageSize);
+        return $this->coordinatorInvitationRepository->allInvitationsForCoordinator(
+                $firmId, $personnelId, $coordinatorId, $page, $pageSize, $inviteeFilter);
     }
 
     public function showById(string $firmId, string $personnelId, string $invitationId): CoordinatorInvitee

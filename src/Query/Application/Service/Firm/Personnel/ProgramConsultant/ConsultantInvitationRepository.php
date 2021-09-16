@@ -3,7 +3,7 @@
 namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
 
 use Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitee;
-use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 
 interface ConsultantInvitationRepository
 {
@@ -12,5 +12,5 @@ interface ConsultantInvitationRepository
 
     public function allInvitationsForConsultant(
             string $firmId, string $personnelId, string $consultantId, int $page, int $pageSize,
-            ?TimeIntervalFilter $timeIntervalFilter);
+            ?InviteeFilter $inviteeFilter);
 }

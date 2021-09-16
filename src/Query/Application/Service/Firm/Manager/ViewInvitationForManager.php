@@ -3,6 +3,7 @@
 namespace Query\Application\Service\Firm\Manager;
 
 use Query\Domain\Model\Firm\Manager\ManagerInvitee;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 
 
 class ViewInvitationForManager
@@ -27,9 +28,10 @@ class ViewInvitationForManager
      * @param int $pageSize
      * @return ManagerInvitee[]
      */
-    public function showAll(string $firmId, string $managerId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $managerId, int $page, int $pageSize, ?InviteeFilter $inviteeFilter)
     {
-        return $this->managerInvitationRepository->allInvitationsForManager($firmId, $managerId, $page, $pageSize);
+        return $this->managerInvitationRepository
+                ->allInvitationsForManager($firmId, $managerId, $page, $pageSize, $inviteeFilter);
     }
 
     public function showById(string $firmId, string $managerId, string $invitationId): ManagerInvitee

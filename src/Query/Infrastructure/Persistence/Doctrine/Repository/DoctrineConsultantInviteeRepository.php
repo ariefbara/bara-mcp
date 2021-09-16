@@ -4,18 +4,56 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\QueryBuilder;
 use Query\Application\Service\Firm\Personnel\ProgramConsultant\ConsultantInvitationRepository;
 use Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitee;
-use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineConsultantInviteeRepository extends EntityRepository implements ConsultantInvitationRepository
 {
+    protected function applyFilter(QueryBuilder $qb, ?InviteeFilter $inviteeFilter): void
+    {
+        if (!isset($inviteeFilter)) {
+            return;
+        }
+        $from = $inviteeFilter->getFrom();
+        $to = $inviteeFilter->getTo();
+        if (isset($from)) {
+            $qb->andWhere($qb->expr()->gte('activity.startEndTime.startDateTime', ':from'))
+                    ->setParameter('from', $from);
+        }
+        if (isset($to)) {
+            $qb->andWhere($qb->expr()->lte('activity.startEndTime.startDateTime', ':to'))
+                    ->setParameter('to', $to);
+        }
+        $cancelledStatus = $inviteeFilter->getCancelledStatus();
+        if (isset($cancelledStatus)) {
+            $qb->andWhere($qb->expr()->eq('invitee.cancelled', ':cancelled'))
+                    ->setParameter('cancelled', $cancelledStatus);
+        }
+        if (!empty($inviteeFilter->getWillAttendStatuses())) {
+            $orX = $qb->expr()->orX();
+            foreach ($inviteeFilter->getWillAttendStatuses() as $willAttendStatus) {
+                if (is_null($willAttendStatus)) {
+                    $orX->add($qb->expr()->isNull('invitee.willAttend'));
+                } else {
+                    $orX->add($qb->expr()->eq('invitee.willAttend', ':willAttendStatus'));
+                    $qb->setParameter('willAttendStatus', $willAttendStatus);
+                }
+            }
+            $qb->andWhere($orX);
+        }
+        $order = $inviteeFilter->getOrder();
+        if (!empty($order)) {
+            $qb->orderBy('activity.startEndTime.startDateTime', $order);
+        }
+    }
 
     public function allInvitationsForConsultant(
             string $firmId, string $personnelId, string $consultantId, int $page, int $pageSize,
-            ?TimeIntervalFilter $timeIntervalFilter)
+            ?InviteeFilter $inviteeFilter)
     {
         $params = [
             "firmId" => $firmId,
@@ -36,16 +74,7 @@ class DoctrineConsultantInviteeRepository extends EntityRepository implements Co
                 ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
         
-        if (isset($timeIntervalFilter)) {
-            if (!is_null($timeIntervalFilter->getFrom())) {
-                $qb->andWhere($qb->expr()->gte("activity.startEndTime.startDateTime", ":from"))
-                        ->setParameter("from", $timeIntervalFilter->getFrom());
-            }
-            if (!is_null($timeIntervalFilter->getTo())) {
-                $qb->andWhere($qb->expr()->lte("activity.startEndTime.startDateTime", ":to"))
-                        ->setParameter("to", $timeIntervalFilter->getTo());
-            }
-        }
+        $this->applyFilter($qb, $inviteeFilter);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

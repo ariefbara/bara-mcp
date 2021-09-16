@@ -18,7 +18,9 @@ class ActivityInvitationController extends PersonnelBaseController
         $inviteeFilter = (new InviteeFilter())
                 ->setCancelledStatus($this->filterBooleanOfQueryRequest('cancelledStatus'))
                 ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
-                ->setTo($this->dateTimeImmutableOfQueryRequest('to'));
+                ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
+                ->setOrder($this->stripTagQueryRequest('order'));
+        
         if (!empty($this->request->query('willAttendStatuses'))) {
             foreach ($this->request->query('willAttendStatuses') as $willAttendStatus) {
                 $inviteeFilter->addWillAttendStatus($this->filterBooleanOfVariable($willAttendStatus));

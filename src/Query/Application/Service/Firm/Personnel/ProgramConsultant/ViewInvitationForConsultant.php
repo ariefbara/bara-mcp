@@ -3,7 +3,7 @@
 namespace Query\Application\Service\Firm\Personnel\ProgramConsultant;
 
 use Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitee;
-use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
 
 class ViewInvitationForConsultant
 {
@@ -30,10 +30,10 @@ class ViewInvitationForConsultant
      */
     public function showAll(
             string $firmId, string $personnelId, string $consultantId, int $page, int $pageSize,
-            ?TimeIntervalFilter $timeIntervalFilter)
+            ?InviteeFilter $inviteeFilter)
     {
         return $this->consultantInvitataionRepository->allInvitationsForConsultant(
-                        $firmId, $personnelId, $consultantId, $page, $pageSize, $timeIntervalFilter);
+                        $firmId, $personnelId, $consultantId, $page, $pageSize, $inviteeFilter);
     }
 
     public function showById(string $firmId, string $personnelId, string $invitationId): ConsultantInvitee

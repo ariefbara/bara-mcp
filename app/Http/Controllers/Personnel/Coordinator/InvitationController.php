@@ -2,27 +2,20 @@
 
 namespace App\Http\Controllers\Personnel\Coordinator;
 
-use ActivityInvitee\ {
-    Application\Service\Coordinator\SubmitReport,
-    Domain\Model\CoordinatorInvitee as CoordinatorInvitee2
-};
-use App\Http\Controllers\ {
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter,
-    FormToArrayDataConverter,
-    Personnel\PersonnelBaseController
-};
-use Query\ {
-    Application\Service\Firm\Personnel\ProgramCoordinator\ViewInvitationForCoordinator,
-    Domain\Model\Firm\FeedbackForm,
-    Domain\Model\Firm\Program\Activity\Invitee\InviteeReport,
-    Domain\Model\Firm\Program\ActivityType,
-    Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee
-};
-use SharedContext\Domain\ {
-    Model\SharedEntity\FileInfo,
-    Service\FileInfoBelongsToPersonnelFinder
-};
+use ActivityInvitee\Application\Service\Coordinator\SubmitReport;
+use ActivityInvitee\Domain\Model\CoordinatorInvitee as CoordinatorInvitee2;
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use App\Http\Controllers\Personnel\PersonnelBaseController;
+use Query\Application\Service\Firm\Personnel\ProgramCoordinator\ViewInvitationForCoordinator;
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\Program\Activity\Invitee\InviteeReport;
+use Query\Domain\Model\Firm\Program\ActivityType;
+use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee;
+use Query\Infrastructure\QueryFilter\InviteeFilter;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
+use SharedContext\Domain\Service\FileInfoBelongsToPersonnelFinder;
 
 class InvitationController extends PersonnelBaseController
 {
@@ -50,7 +43,15 @@ class InvitationController extends PersonnelBaseController
     public function showAll($coordinatorId)
     {
         $service = $this->buildViewService();
-        $invitations = $service->showAll($this->firmId(), $this->personnelId(), $coordinatorId, $this->getPage(), $this->getPageSize());
+        
+        $inviteeFilter = (new InviteeFilter())
+                ->setCancelledStatus($this->filterBooleanOfQueryRequest('cancelledStatus'))
+                ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
+                ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
+                ->setOrder($this->stripTagQueryRequest('order'));
+        $invitations = $service->showAll(
+                $this->firmId(), $this->personnelId(), $coordinatorId, $this->getPage(), $this->getPageSize(), 
+                $inviteeFilter);
         
         $result = [];
         $result["total"] = count($invitations);

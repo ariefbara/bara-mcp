@@ -36,7 +36,6 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $from = $inviteeFilter->getFrom();
         $to = $inviteeFilter->getTo();
         if (isset($from) || isset($to)) {
-//            $qb->leftJoin('invitee.activity', 'activity');
             if (isset($from)) {
                 $qb->andWhere($qb->expr()->gte('activity.startEndTime.startDateTime', ':from'))
                         ->setParameter('from', $from);
@@ -64,7 +63,7 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         }
         $order = $inviteeFilter->getOrder();
         if (!empty($order)) {
-            
+            $qb->orderBy('activity.startEndTime.startDateTime', $order);
         }
     }
 
