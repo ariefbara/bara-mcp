@@ -7,10 +7,14 @@ use SharedContext\Domain\ValueObject\MailMessage;
 class BaseConfig
 {
 
-    const MAIL_SENDER_ADDRESS = 'noreply@innovid.xyz';
-    const MAIL_SENDER_NAME = 'innovation';
+    const MAIL_SENDER_ADDRESS = 'noreply@konsulta.co';
+    const MAIL_SENDER_NAME = 'Admin';
     const KONSULTA_LOGO_PATH = "";
-    const KONSULTA_MAIN_URL = "http://dev.konsulta.co";
-    const KONSULTA_STORAGE_URL = "http://dev.konsulta.co/bara-mcp/storage/app";
+    // const KONSULTA_MAIN_URL = "http://dev.konsulta.co";
+    // const KONSULTA_STORAGE_URL = "http://dev.konsulta.co/bara-mcp/storage/app";
+    // const KONSULTA_MAIN_URL = "http://innov.id";
+    // const KONSULTA_STORAGE_URL = "http://innov.id/praja-mcp/storage/app";
+    const KONSULTA_MAIN_URL = "http://konsulta.co";
+    const KONSULTA_STORAGE_URL = "http://konsulta.co/praja-mcp/storage/app";
 
 }
