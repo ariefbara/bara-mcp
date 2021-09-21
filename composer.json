@@ -10,7 +10,7 @@
     "type": "project",
     "require": {
         "php": "^7.2.5",
-        "doctrine/orm": "^2.7",
+        "doctrine/orm": "2.9.5",
         "eluceo/ical": "^0.16.1",
         "firebase/php-jwt": "^5.2",
         "laravel/lumen-framework": "^7.0",
@@ -20,6 +20,7 @@
         "ramsey/uuid": "^4.0",
         "respect/validation": "^2.0",
         "swiftmailer/swiftmailer": "^6.2",
+        "symfony/cache": "^5.3",
         "symfony/http-kernel": "5.1.5"
     },
     "require-dev": {

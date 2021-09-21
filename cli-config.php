@@ -38,8 +38,8 @@ $doctrineConfig->setProxyDir(dirname(__DIR__) . DIRECTORY_SEPARATOR . "mcp_proxy
 
  $conn = array(
     'driver' => 'pdo_mysql',
-    'user' => 'root',
-    'password' => '',
+    'user' => 'apur',
+    'password' => 'Bi$mill4h',
     'dbname' => 'bara_mcp'
  );
 //$conn = array(

@@ -44,7 +44,8 @@ class MailMessageBuilder
             int $state, ?string $participantName, ?string $timeDescription, ?string $media, ?string $location,
             ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
-        $showLink = true;
+//        $showLink = true;
+$showLink = false;
         $icalRequired = false;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
@@ -91,7 +92,8 @@ class MailMessageBuilder
             int $state, ?string $mentorName, ?string $memberName, ?string $teamName, ?string $timeDescription,
             ?string $media, ?string $location, ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
-        $showLink = true;
+$showLink = false;
+//        $showLink = true;
         $icalRequired = false;
         switch ($state) {
             case self::CONSULTATION_REQUESTED:
@@ -137,7 +139,8 @@ class MailMessageBuilder
             int $state, ?string $mentorName, ?string $timeDescription, ?string $media, ?string $location,
             ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
-        $showLink = true;
+$showLink = false;
+//        $showLink = true;
         $icalRequired = false;
         switch ($state) {
             case self::CONSULTATION_SCHEDULE_CHANGED:
@@ -188,14 +191,16 @@ class MailMessageBuilder
             "media: {$media}",
             "location: {$location}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
+//        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
+        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
     }
 
     public static function buildMeetingMailMessage(
             int $state, ?string $meetingType, ?string $meetingName, ?string $meetingDescription,
             ?string $timeDescription, ?string $location, ?string $domain, ?string $urlPath, ?string $logoPath): MailMessage
     {
-        $showLink = true;
+$showLink = false;
+//        $showLink = true;
         $icalCancellation = false;
         switch ($state) {
             case self::MEETING_CREATED:
@@ -244,7 +249,8 @@ class MailMessageBuilder
             "worksheet: {$missionName} - {$worksheetName}",
             "message: {$message}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
+return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
+//        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
     public static function buildWorksheetCommentMailMessageForMentor(
@@ -259,7 +265,8 @@ class MailMessageBuilder
             "worksheet: {$missionName} - {$worksheetName}",
             "message: {$message}",
         ];
-        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
+return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = false);
+//        return new MailMessage($subject, $greetings, $mainMessage, $domain, $urlPath, $logoPath, $showLink = true);
     }
 
 }
