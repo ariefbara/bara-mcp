@@ -12,8 +12,8 @@ class BaseConfig
     const KONSULTA_LOGO_PATH = "";
     // const KONSULTA_MAIN_URL = "http://dev.konsulta.co";
     // const KONSULTA_STORAGE_URL = "http://dev.konsulta.co/bara-mcp/storage/app";
-    const KONSULTA_MAIN_URL = "http://innov.id";
-    const KONSULTA_STORAGE_URL = "http://innov.id/bara-mcp/storage/app";
+    const KONSULTA_MAIN_URL = "http://hub.innov.id";
+    const KONSULTA_STORAGE_URL = "http://hub.innov.id/bara-mcp/storage/app";
     // const KONSULTA_MAIN_URL = "http://konsulta.co";
     // const KONSULTA_STORAGE_URL = "http://konsulta.co/praja-mcp/storage/app";
 
