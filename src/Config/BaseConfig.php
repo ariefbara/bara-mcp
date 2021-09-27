@@ -22,6 +22,6 @@ class BaseConfig
     // const KONSULTA_MAIN_URL = "http://konsulta.co";
     // const KONSULTA_STORAGE_URL = "http://konsulta.co/praja-mcp/storage/app";
     const KONSULTA_MAIN_URL = "http://app.innov.web.id";
-    const KONSULTA_STORAGE_URL = "http://app.innov.web.id/praja-mcp/storage/app";
+    const KONSULTA_STORAGE_URL = "http://app.innov.web.id/bara-mcp/storage/app";
 
 }
