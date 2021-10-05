@@ -30,7 +30,7 @@
         
         <one-to-many  field="sponsors" 
                       target-entity="Query\Domain\Model\Firm\Program\Sponsor"
-                      mapped-by="Program" />
+                      mapped-by="program" />
         
     </entity>
 </doctrine-mapping>

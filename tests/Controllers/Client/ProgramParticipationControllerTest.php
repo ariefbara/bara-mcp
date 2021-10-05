@@ -10,6 +10,7 @@ use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignmen
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfSponsor;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 
 
@@ -23,6 +24,8 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     protected $metricAssignmentReportTwo_last;
     protected $assignmentFieldValue_00;
     protected $assignmentFieldValue_01;
+    protected $sponsorOne;
+    protected $sponsorTwo;
 
     protected function setUp(): void
     {
@@ -33,6 +36,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("AssignmentField")->truncate();
         $this->connection->table("MetricAssignmentReport")->truncate();
         $this->connection->table("AssignmentFieldValue")->truncate();
+        $this->connection->table("Sponsor")->truncate();
         
         $program = new RecordOfProgram($this->client->firm, 1);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
@@ -74,6 +78,9 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_lastApproved, $this->assignmentFieldOne, "01");
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
         $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
+        
+        $this->sponsorOne = new RecordOfSponsor($this->programParticipation->participant->program, "1");
+        $this->sponsorTwo = new RecordOfSponsor($this->programParticipation->participant->program, "2");
     }
     protected function tearDown(): void
     {
@@ -83,6 +90,7 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("AssignmentField")->truncate();
         $this->connection->table("MetricAssignmentReport")->truncate();
         $this->connection->table("AssignmentFieldValue")->truncate();
+        $this->connection->table("Sponsor")->truncate();
     }
     
     public function test_quit_200()
@@ -107,12 +115,29 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
     
     public function test_show()
     {
+        $this->sponsorOne->insert($this->connection);
+        $this->sponsorTwo->insert($this->connection);
+        
         $response = [
             "id" => $this->programParticipation->id,
             "program" => [
                 "id" => $this->programParticipation->participant->program->id,
                 "name" => $this->programParticipation->participant->program->name,
                 "removed" => $this->programParticipation->participant->program->removed,
+                "sponsors" => [
+                    [
+                        "id" => $this->sponsorOne->id,
+                        "name" => $this->sponsorOne->name,
+                        "website" => $this->sponsorOne->website,
+                        "logo" => null,
+                    ],
+                    [
+                        "id" => $this->sponsorTwo->id,
+                        "name" => $this->sponsorTwo->name,
+                        "website" => $this->sponsorTwo->website,
+                        "logo" => null,
+                    ],
+                ],
             ],
             "enrolledTime" => $this->programParticipation->participant->enrolledTime,
             "active" => $this->programParticipation->participant->active,

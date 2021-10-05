@@ -60,6 +60,19 @@ class ProgramParticipationController extends AsTeamMemberBaseController
     
     protected function arrayDataOfTeamProgramParticipation(TeamProgramParticipation $teamProgramParticipation): array
     {
+        $sponsors = [];
+        foreach ($teamProgramParticipation->getProgram()->iterateActiveSponsort() as $sponsor) {
+            $logo = empty($sponsor->getLogo()) ? null : [
+                "id" => $sponsor->getLogo()->getId(),
+                "url" => $sponsor->getLogo()->getFullyQualifiedFileName(),
+            ];
+            $sponsors[] = [
+                "id" => $sponsor->getId(),
+                "name" => $sponsor->getName(),
+                "website" => $sponsor->getWebsite(),
+                "logo" => $logo,
+            ];
+        }
         return [
             "id" => $teamProgramParticipation->getId(),
             "enrolledTime" => $teamProgramParticipation->getEnrolledTimeString(),
@@ -69,6 +82,7 @@ class ProgramParticipationController extends AsTeamMemberBaseController
                 "id" => $teamProgramParticipation->getProgram()->getId(),
                 "name" => $teamProgramParticipation->getProgram()->getName(),
                 "removed" => $teamProgramParticipation->getProgram()->isRemoved(),
+                "sponsors" => $sponsors,
             ],
             "metricAssignment" => $this->arrayDataOfMetricAssignment($teamProgramParticipation->getMetricAssignment()),
         ];

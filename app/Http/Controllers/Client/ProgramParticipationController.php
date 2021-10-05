@@ -54,12 +54,26 @@ class ProgramParticipationController extends ClientBaseController
     
     protected function arrayDataOfProgramParticipation(ClientParticipant $programParticipation): array
     {
+        $sponsors = [];
+        foreach ($programParticipation->getProgram()->iterateActiveSponsort() as $sponsor) {
+            $logo = empty($sponsor->getLogo()) ? null : [
+                "id" => $sponsor->getLogo()->getId(),
+                "url" => $sponsor->getLogo()->getFullyQualifiedFileName(),
+            ];
+            $sponsors[] = [
+                "id" => $sponsor->getId(),
+                "name" => $sponsor->getName(),
+                "website" => $sponsor->getWebsite(),
+                "logo" => $logo,
+            ];
+        }
         return [
             "id" => $programParticipation->getId(),
             "program" => [
                 "id" => $programParticipation->getProgram()->getId(),
                 "name" => $programParticipation->getProgram()->getName(),
                 "removed" => $programParticipation->getProgram()->isRemoved(),
+                "sponsors" => $sponsors,
             ],
             "enrolledTime" => $programParticipation->getEnrolledTimeString(),
             "active" => $programParticipation->isActive(),
