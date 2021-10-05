@@ -6,7 +6,7 @@ use SharedContext\Domain\ValueObject\MailMessage;
 
 class BaseConfig
 {
-
+    
     const MAIL_SENDER_ADDRESS = 'noreply@innovid.xyz';
     const MAIL_SENDER_NAME = 'innovation';
     const KONSULTA_LOGO_PATH = "";

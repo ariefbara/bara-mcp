@@ -2,24 +2,23 @@
 
 namespace Resources;
 
-use Respect\Validation\ {
-    Rules\Alnum,
-    Rules\Alpha,
-    Rules\Between,
-    Rules\BoolType,
-    Rules\Email,
-    Rules\In,
-    Rules\IntVal,
-    Rules\Length,
-    Rules\NotEmpty,
-    Rules\NoWhitespace,
-    Rules\Number,
-    Rules\Optional,
-    Rules\Phone,
-    Rules\Regex,
-    Rules\Url,
-    Validatable
-};
+use Respect\Validation\Rules\Alnum;
+use Respect\Validation\Rules\Alpha;
+use Respect\Validation\Rules\Between;
+use Respect\Validation\Rules\BoolType;
+use Respect\Validation\Rules\Domain;
+use Respect\Validation\Rules\Email;
+use Respect\Validation\Rules\In;
+use Respect\Validation\Rules\IntVal;
+use Respect\Validation\Rules\Length;
+use Respect\Validation\Rules\NotEmpty;
+use Respect\Validation\Rules\NoWhitespace;
+use Respect\Validation\Rules\Number;
+use Respect\Validation\Rules\Optional;
+use Respect\Validation\Rules\Phone;
+use Respect\Validation\Rules\Regex;
+use Respect\Validation\Rules\Url;
+use Respect\Validation\Validatable;
 
 class ValidationRule
 {
@@ -115,5 +114,9 @@ class ValidationRule
         return new static(new Optional($rule->getRule()));
     }
     
+    public static function domain()
+    {
+        return new static(new Domain());
+    }
 
 }

@@ -47,6 +47,23 @@ class FirmFileInfoTest extends TestBase
                 ->method("getFullyQualifiedFileName");
         $this->firmFileInfo->getFullyQualifiedFileName();
     }
+    
+    protected function assertUsableInFirm()
+    {
+        $this->firmFileInfo->assertUsableInFirm($this->firm);
+    }
+    public function test_assertUsableInFirm_sameFirm()
+    {
+        $this->assertUsableInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInFirm_differentFirm_forbidden()
+    {
+        $this->firmFileInfo->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->assertUsableInFirm();
+        }, 'Forbidden', "forbidden: unable to use file, either doesn't exist or doesn't belongs to your firm");
+    }
 }
 
 class TestableFirmFileInfo extends FirmFileInfo

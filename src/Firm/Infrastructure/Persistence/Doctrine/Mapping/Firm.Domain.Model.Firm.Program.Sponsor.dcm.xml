@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Sponsor" 
+            table="Sponsor"
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineSponsorRepository"
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Firm\Domain\Model\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        <field name="name" type="string" length="255" nullable="false"/>
+        <field name="website" type="string" length="1024" nullable="true"/>
+        
+        <many-to-one  field="logo" 
+                      target-entity="Firm\Domain\Model\Firm\FirmFileInfo"
+        >
+            <join-column name="FirmFileInfo_idOfLogo" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>

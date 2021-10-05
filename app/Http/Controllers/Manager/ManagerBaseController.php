@@ -7,9 +7,11 @@ use Doctrine\ORM\EntityManager;
 use Illuminate\Http\Request;
 use Query\Application\Auth\Firm\ManagerAuthorization;
 use Query\Application\Service\Manager\ExecuteTaskInFirm;
+use Query\Application\Service\Manager\ExecuteTaskInProgram;
 use Query\Domain\Model\Firm\ITaskInFirmExecutableByManager;
+use Query\Domain\Model\Firm\ITaskInProgramExecutableByManager;
 use Query\Domain\Model\Firm\Manager;
-use Query\Domain\Model\Firm\Program\Coordinator;
+use Query\Domain\Model\Firm\Program;
 
 class ManagerBaseController extends Controller
 {
@@ -36,12 +38,29 @@ class ManagerBaseController extends Controller
     {
         return $this->request->managerId;
     }
-    
+
     protected function executeTaskInFirm(ITaskInFirmExecutableByManager $task): void
     {
         $managerRepository = $this->em->getRepository(Manager::class);
         (new ExecuteTaskInFirm($managerRepository))
                 ->execute($this->firmId(), $this->managerId(), $task);
+    }
+
+    protected function executeQueryTaskInProgram(string $programId, ITaskInProgramExecutableByManager $task): void
+    {
+        $managerRepository = $this->em->getRepository(Manager::class);
+        $programRepository = $this->em->getRepository(Program::class);
+        (new ExecuteTaskInProgram($managerRepository, $programRepository))
+                ->execute($this->firmId(), $this->managerId(), $programId, $task);
+    }
+
+    protected function executeCommandTaskInProgramOfFirmContext(string $programId,
+            \Firm\Domain\Model\Firm\ITaskInProgramExecutableByManager $task): void
+    {
+        $managerRepository = $this->em->getRepository(\Firm\Domain\Model\Firm\Manager::class);
+        $programRepository = $this->em->getRepository(\Firm\Domain\Model\Firm\Program::class);
+        (new \Firm\Application\Service\Manager\ExecuteTaskInProgram($managerRepository, $programRepository))
+                ->execute($this->firmId(), $this->managerId(), $programId, $task);
     }
 
 }

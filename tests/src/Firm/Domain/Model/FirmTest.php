@@ -18,7 +18,7 @@ class FirmTest extends TestBase
     protected $profileForm;
     protected $bioSearchFilterData;
     protected $bioSearchFilter;
-
+    
     protected function setUp(): void
     {
         parent::setUp();
@@ -30,6 +30,7 @@ class FirmTest extends TestBase
         
         $this->bioSearchFilterData = $this->buildMockOfClass(BioSearchFilterData::class);
         $this->bioSearchFilter = $this->buildMockOfClass(BioSearchFilter::class);
+        
     }
     
     public function test_createFileInfo_returnFirmFileInfo()

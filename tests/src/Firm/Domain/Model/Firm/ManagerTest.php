@@ -48,6 +48,8 @@ class ManagerTest extends TestBase
     protected $mutationTask;
     
     protected $meeting, $managerAttendee;
+    
+    protected $taskInProgramExecutableByManager;
 
     protected function setUp(): void
     {
@@ -89,6 +91,8 @@ class ManagerTest extends TestBase
         $this->managerAttendee = $this->buildMockOfClass(ManagerAttendee::class);
         $this->manager->meetingInvitations = new ArrayCollection();
         $this->manager->meetingInvitations->add($this->managerAttendee);
+        
+        $this->taskInProgramExecutableByManager = $this->buildMockOfInterface(ITaskInProgramExecutableByManager::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -722,6 +726,38 @@ class ManagerTest extends TestBase
                 ->method('assertUsableInFirm')
                 ->with($this->firm);
         $this->executeInviteToMeeting();
+    }
+    
+    protected function executeTaskInProgram()
+    {
+        $this->program->expects($this->any())
+                ->method('isManageableByFirm')
+                ->willReturn(true);
+        $this->manager->executeTaskInProgram($this->program, $this->taskInProgramExecutableByManager);
+    }
+    public function test_executeTaskInProgram_executeTask()
+    {
+        $this->taskInProgramExecutableByManager->expects($this->once())
+                ->method('executeInProgram')
+                ->with($this->program);
+        $this->executeTaskInProgram();
+    }
+    public function test_executeTaskInProgram_unmanagedProgram_forbidden()
+    {
+        $this->program->expects($this->once())
+                ->method('isManageableByFirm')
+                ->with($this->manager->firm)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeTaskInProgram();
+        }, 'Forbidden', 'forbidden: can only manage program owned by firm');
+    }
+    public function test_executeTaskInProgram_inactiveManager_forbidden()
+    {
+        $this->manager->removed = true;
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeTaskInProgram();
+        }, "Forbidden", "forbidden: only active manager can make this request");
     }
 }
 

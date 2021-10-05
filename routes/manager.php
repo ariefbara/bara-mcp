@@ -108,6 +108,13 @@ $router->group($managerAggregate, function () use ($router) {
     ];
     $router->group($programAggregate, function () use ($router) {
         
+        $router->post('/sponsors', ['uses' => "SponsorController@add"]);
+        $router->put('/sponsors/{sponsorId}/update', ['uses' => "SponsorController@update"]);
+        $router->put('/sponsors/{sponsorId}/enable', ['uses' => "SponsorController@enable"]);
+        $router->delete('/sponsors/{sponsorId}', ['uses' => "SponsorController@disable"]);
+        $router->get('/sponsors/{sponsorId}', ['uses' => "SponsorController@show"]);
+        $router->get('/sponsors', ['uses' => "SponsorController@showAll"]);
+        
         $router->group(['prefix' => '/coordinators'], function () use($router) {
             $controller = "CoordinatorController";
             $router->put("", ["uses" => "$controller@assign"]);

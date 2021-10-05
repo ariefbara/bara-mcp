@@ -13,6 +13,7 @@ class ManagerTest extends TestBase
     protected $firm;
     
     protected $task;
+    protected $program, $taskInProgram;
 
     protected function setUp(): void
     {
@@ -25,6 +26,9 @@ class ManagerTest extends TestBase
         $this->manager->firm = $this->firm;
         
         $this->task = $this->buildMockOfInterface(ITaskInFirmExecutableByManager::class);
+        
+        $this->program = $this->buildMockOfClass(Program::class);
+        $this->taskInProgram = $this->buildMockOfInterface(ITaskInProgramExecutableByManager::class);
     }
     
     public function test_passwordMatcher_returnPasswordMatchComparisonResult()
@@ -53,6 +57,32 @@ class ManagerTest extends TestBase
         $this->assertRegularExceptionThrowed(function (){
             $this->executeTaskInFirm();
         }, 'Forbidden', 'forbidden: only active manager can make this request');
+    }
+    
+    protected function executeTaskInProgram()
+    {
+        $this->program->expects($this->any())
+                ->method('firmEquals')
+                ->with($this->manager->firm)
+                ->willReturn(true);
+        $this->manager->executeTaskInProgram($this->program, $this->taskInProgram);
+    }
+    public function test_executeTaskInProgram_executeTask()
+    {
+        $this->taskInProgram->expects($this->once())
+                ->method('executeInProgram')
+                ->with($this->program);
+        $this->executeTaskInProgram();
+    }
+    public function test_executeTaskInProgram_assertProgramFromDifferentFirm_forbidden()
+    {
+        $this->program->expects($this->once())
+                ->method('firmEquals')
+                ->with($this->manager->firm)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->executeTaskInProgram();
+        }, 'Forbidden', 'forbidden: unable to manage program, probably belongs to other firm');
     }
 }
 

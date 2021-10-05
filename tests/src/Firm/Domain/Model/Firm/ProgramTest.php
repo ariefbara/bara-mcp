@@ -7,12 +7,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program\ActivityType;
 use Firm\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
-use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
-use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
 use Firm\Domain\Model\Firm\Program\Mission;
@@ -20,6 +20,7 @@ use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Firm\Program\Registrant;
+use Firm\Domain\Model\Firm\Program\Sponsor;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Domain\Event\CommonEvent;
@@ -47,6 +48,9 @@ class ProgramTest extends TestBase
     
     protected $meetingId = 'meeting-id', $activityType, $meetingData;
     protected $meeting, $activityParticipant;
+    
+    protected $sponsorId = 'sponsor-id', $sponsorData;
+    protected $firmFileInfo;
 
     protected function setUp(): void
     {
@@ -102,6 +106,9 @@ class ProgramTest extends TestBase
         
         $this->meeting = $this->buildMockOfClass(Meeting::class);
         $this->activityParticipant = $this->buildMockOfClass(ActivityParticipant::class);
+        
+        $this->sponsorData = new Program\SponsorData('sponsor name', null, 'http://web.sponsor.id');
+        $this->firmFileInfo = $this->buildMockOfClass(FirmFileInfo::class);
     }
 
     protected function getProgramData()
@@ -416,6 +423,27 @@ class ProgramTest extends TestBase
         $this->participant->expects($this->never())
                 ->method('inviteToMeeting');
         $this->executeInviteAllActiveParticipantsToMeeting();
+    }
+    
+    protected function createSponsor()
+    {
+        return $this->program->createSponsor($this->sponsorId, $this->sponsorData);
+    }
+    public function test_createSponsor_returnSponsor()
+    {
+        $this->assertInstanceOf(Sponsor::class, $this->createSponsor());
+    }
+    
+    protected function assertFileUsable()
+    {
+        $this->program->assertFileUsable($this->firmFileInfo);
+    }
+    public function test_assertFileUsableByFirm_assertFileUsableInFirm()
+    {
+        $this->firmFileInfo->expects($this->once())
+                ->method('assertUsableInFirm')
+                ->with($this->program->firm);
+        $this->assertFileUsable();
     }
 }
 

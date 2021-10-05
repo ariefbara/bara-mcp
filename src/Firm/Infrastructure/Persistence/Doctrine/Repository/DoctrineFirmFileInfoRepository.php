@@ -2,20 +2,15 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\FirmFileInfoRepository,
-    Domain\Model\Firm\FirmFileInfo
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Firm\FirmFileInfoRepository;
+use Firm\Domain\Model\Firm\FirmFileInfo;
+use Firm\Domain\Task\Dependency\Firm\FirmFileInfoRepository as FirmFileInfoRepository2;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
+use Resources\Uuid;
 
-class DoctrineFirmFileInfoRepository extends EntityRepository implements FirmFileInfoRepository
+class DoctrineFirmFileInfoRepository extends DoctrineEntityRepository implements FirmFileInfoRepository, FirmFileInfoRepository2
 {
     
     public function aFirmFileInfoBelongsToFirm(string $firmId, string $firmFileInfoId): FirmFileInfo
@@ -51,6 +46,11 @@ class DoctrineFirmFileInfoRepository extends EntityRepository implements FirmFil
     public function nextIdentity(): string
     {
         return Uuid::generateUuid4();
+    }
+
+    public function ofId(string $id): FirmFileInfo
+    {
+        return $this->findOneByIdOrDie($id, 'firm file info');
     }
 
 }

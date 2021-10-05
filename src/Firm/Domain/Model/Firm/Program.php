@@ -9,12 +9,11 @@ use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
-use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
-use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
 use Firm\Domain\Model\Firm\Program\Mission;
@@ -22,6 +21,8 @@ use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Firm\Program\Registrant;
+use Firm\Domain\Model\Firm\Program\Sponsor;
+use Firm\Domain\Model\Firm\Program\SponsorData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Domain\Event\CommonEvent;
@@ -285,6 +286,16 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         foreach ($this->participants->filter($p)->getIterator() as $participant) {
             $participant->inviteToMeeting($meeting);
         }
+    }
+    
+    public function createSponsor(string $sponsorId, SponsorData $sponsorData): Sponsor
+    {
+        return new Sponsor($this, $sponsorId, $sponsorData);
+    }
+    
+    public function assertFileUsable(FirmFileInfo $firmFileInfo): void
+    {
+        $firmFileInfo->assertUsableInFirm($this->firm);
     }
 
 }

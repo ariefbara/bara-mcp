@@ -3,11 +3,10 @@
 namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\Firm;
-use SharedContext\Domain\ {
-    Model\SharedEntity\FileInfo,
-    Model\SharedEntity\FileInfoData,
-    Service\CanBeSavedInStorage
-};
+use Resources\Exception\RegularException;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
+use SharedContext\Domain\Service\CanBeSavedInStorage;
 
 class FirmFileInfo implements CanBeSavedInStorage
 {
@@ -47,6 +46,13 @@ class FirmFileInfo implements CanBeSavedInStorage
     public function getFullyQualifiedFileName(): string
     {
         return $this->fileInfo->getFullyQualifiedFileName();
+    }
+    
+    public function assertUsableInFirm(Firm $firm): void
+    {
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden("forbidden: unable to use file, either doesn't exist or doesn't belongs to your firm");
+        }
     }
 
 }

@@ -90,5 +90,5 @@ class Firm
             $this->bioSearchFilter->update($bioSearchFilterData);
         }
     }
-
+    
 }

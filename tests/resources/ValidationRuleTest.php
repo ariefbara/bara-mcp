@@ -1,10 +1,9 @@
 <?php
 namespace Resources;
 
-use Respect\Validation\ {
-    Rules\Url,
-    Validator
-};
+use Respect\Validation\Rules\Domain;
+use Respect\Validation\Rules\Url;
+use Respect\Validation\Validator;
 use Tests\TestBase;
 
 class ValidationRuleTest extends TestBase
@@ -65,6 +64,9 @@ class ValidationRuleTest extends TestBase
     }
     function test_between_setRuleAsBetween() {
         $this->assertInstanceOf('Respect\Validation\Rules\Between', ValidationRule::between(1, 99)->getRule());
+    }
+    function test_domain_setRuleAsDomain() {
+        $this->assertInstanceOf(Domain::class, ValidationRule::domain()->getRule());
     }
     
     public function test_length_setRuleAsLenght()

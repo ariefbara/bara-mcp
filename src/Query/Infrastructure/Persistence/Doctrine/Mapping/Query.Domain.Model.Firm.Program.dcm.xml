@@ -28,5 +28,9 @@
                      mapped-by="program"
         />
         
+        <one-to-many  field="sponsors" 
+                      target-entity="Query\Domain\Model\Firm\Program\Sponsor"
+                      mapped-by="Program" />
+        
     </entity>
 </doctrine-mapping>

@@ -4,9 +4,9 @@ namespace Query\Application\Service\Manager;
 
 use Query\Domain\Model\Firm\ITaskInFirmExecutableByManager;
 use Query\Domain\Model\Firm\Manager;
-use Tests\TestBase;
+use Tests\src\Query\Application\Service\Manager\ManagerServiceTestBase;
 
-class ExecuteTaskInFirmTest extends TestBase
+class ExecuteTaskInFirmTest extends ManagerServiceTestBase
 {
     protected $managerRepository, $manager, $firmId = 'firm-id', $managerId = 'manager-id';
     protected $service;

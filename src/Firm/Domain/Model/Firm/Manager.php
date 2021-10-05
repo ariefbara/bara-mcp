@@ -368,5 +368,16 @@ class Manager implements CanAttendMeeting
             $this->meetingInvitations->add($mangaerAttendee);
         }
     }
+    
+    public function executeTaskInProgram(Program $program, ITaskInProgramExecutableByManager $task): void
+    {
+        if ($this->removed) {
+            throw RegularException::forbidden("forbidden: only active manager can make this request");
+        }
+        if (!$program->isManageableByFirm($this->firm)) {
+            throw RegularException::forbidden('forbidden: can only manage program owned by firm');
+        }
+        $task->executeInProgram($program);
+    }
 
 }

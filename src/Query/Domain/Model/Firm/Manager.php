@@ -122,5 +122,13 @@ class Manager
         }
         $task->executeTaskInFirm($this->firm);
     }
+    
+    public function executeTaskInProgram(Program $program, ITaskInProgramExecutableByManager $task): void
+    {
+        if (!$program->firmEquals($this->firm)) {
+            throw RegularException::forbidden("forbidden: unable to manage program, probably belongs to other firm");
+        }
+        $task->executeInProgram($program);
+    }
 
 }

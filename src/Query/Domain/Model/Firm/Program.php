@@ -5,6 +5,7 @@ namespace Query\Domain\Model\Firm;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm;
+use Query\Domain\Model\Firm\Program\Sponsor;
 
 class Program
 {
@@ -56,12 +57,18 @@ class Program
      * @var bool
      */
     protected $removed = false;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $profileForms;
+
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $sponsors;
 
     function getFirm(): Firm
     {
@@ -102,17 +109,33 @@ class Program
     {
         
     }
+    
+    public function firmEquals(Firm $firm): bool
+    {
+        return $firm === $this->firm;
+    }
 
     public function getParticipantTypeValues(): array
     {
         return $this->participantTypes->getValues();
     }
-    
+
     public function hasProfileForm(): bool
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('disabled', false));
         return !empty($this->profileForms->matching($criteria)->count());
+    }
+
+    /**
+     * 
+     * @return Sponsor[]
+     */
+    public function iterateActiveSponsort()
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('disabled', false));
+        return $this->sponsors->matching($criteria)->getIterator();
     }
 
 }

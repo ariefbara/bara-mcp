@@ -2,16 +2,17 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\ProgramRepository;
+use Query\Application\Service\Manager\ProgramRepository as ProgramRepository2;
 use Query\Application\Service\ProgramRepository as InterfaceForPublic;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Query\Domain\Model\Firm\Program;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineProgramRepository extends EntityRepository implements ProgramRepository, InterfaceForPublic
+class DoctrineProgramRepository extends DoctrineEntityRepository implements ProgramRepository, InterfaceForPublic, ProgramRepository2
 {
 
     public function ofId(string $firmId, string $programId): Program
@@ -88,6 +89,11 @@ class DoctrineProgramRepository extends EntityRepository implements ProgramRepos
                 ->andWhere($qb->expr()->eq('program.removed', 'false'));
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aProgramOfId(string $id): Program
+    {
+        return $this->findOneByIdOrDie($id, 'program');
     }
 
 }

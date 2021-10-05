@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm;
 
-use Tests\Controllers\RecordPreparation\ {
-    Record,
-    RecordOfFirm,
-    Shared\RecordOfFileInfo
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfFirm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class RecordOfFirmFileInfo implements Record
 {
@@ -40,6 +39,12 @@ class RecordOfFirmFileInfo implements Record
             "id" => $this->id,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->fileInfo->insert($connection);
+        $connection->table("FirmFileInfo")->insert($this->toArrayForDbEntry());
     }
 
 }

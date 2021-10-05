@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation\Shared;
 
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfFileInfo implements Record
@@ -25,6 +26,11 @@ class RecordOfFileInfo implements Record
             "name" => $this->name,
             "size" => $this->size,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table("FileInfo")->insert($this->toArrayForDbEntry());
     }
 
 }
