@@ -23,6 +23,12 @@
         <field name="strictMissionOrder" type="boolean" />
         <field name="removed" type="boolean" />
         
+        <many-to-one  field="illustration" 
+                      target-entity="Firm\Domain\Model\Firm\FirmFileInfo"
+        >
+            <join-column name="FirmFileInfo_idOfIllustration" referenced-column-name="id" />
+        </many-to-one>
+        
         <one-to-many  field="coordinators" 
                       target-entity="Firm\Domain\Model\Firm\Program\Coordinator"
                       mapped-by="program" 

@@ -23,6 +23,12 @@
         </field>
         <field name="removed" type="boolean" />
         
+        <many-to-one  field="illustration" 
+                      target-entity="Query\Domain\Model\Firm\FirmFileInfo"
+        >
+            <join-column name="FirmFileInfo_idOfIllustration" referenced-column-name="id" />
+        </many-to-one>
+        
         <one-to-many field="profileForms" 
                      target-entity="Query\Domain\Model\Firm\Program\ProgramsProfileForm" 
                      mapped-by="program"

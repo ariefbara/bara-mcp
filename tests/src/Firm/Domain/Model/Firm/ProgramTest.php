@@ -31,7 +31,7 @@ class ProgramTest extends TestBase
     protected $program, $participantTypes;
     protected $firm;
     protected $id = 'program-id', $name = 'new name', $description = 'new description', $strictMissionOrder = true, $types = ['user', 'client'];
-    
+
     protected $consultant;
     protected $coordinator;
     
@@ -56,7 +56,7 @@ class ProgramTest extends TestBase
     {
         parent::setUp();
         $this->firm = $this->buildMockOfClass(Firm::class);
-        $programData = new ProgramData('name', 'description', false);
+        $programData = new ProgramData('name', 'description', false, null);
         $this->program = new TestableProgram($this->firm, 'id', $programData);
         $this->participantTypes = $this->buildMockOfClass(ParticipantTypes::class);
         $this->program->participantTypes = $this->participantTypes;
@@ -107,13 +107,13 @@ class ProgramTest extends TestBase
         $this->meeting = $this->buildMockOfClass(Meeting::class);
         $this->activityParticipant = $this->buildMockOfClass(ActivityParticipant::class);
         
-        $this->sponsorData = new Program\SponsorData('sponsor name', null, 'http://web.sponsor.id');
+        $this->sponsorData = new Program\SponsorData('sponsor name', null, 'sponsor.web.id');
         $this->firmFileInfo = $this->buildMockOfClass(FirmFileInfo::class);
     }
 
     protected function getProgramData()
     {
-        $programData = new ProgramData($this->name, $this->description, $this->strictMissionOrder);
+        $programData = new ProgramData($this->name, $this->description, $this->strictMissionOrder, $this->firmFileInfo);
         foreach ($this->types as $type) {
             $programData->addParticipantType($type);
         }
@@ -131,6 +131,7 @@ class ProgramTest extends TestBase
         $this->assertEquals($this->id, $program->id);
         $this->assertEquals($this->name, $program->name);
         $this->assertEquals($this->description, $program->description);
+        $this->assertEquals($this->firmFileInfo, $program->illustration);
         $this->assertEquals($this->strictMissionOrder, $program->strictMissionOrder);
         $this->assertFalse($program->published);
         $this->assertFalse($program->removed);
@@ -146,6 +147,13 @@ class ProgramTest extends TestBase
         };
         $errorDetail = 'bad request: program name is required';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
+    }
+    public function test_construct_assertIllustrationUsableInFirm()
+    {
+        $this->firmFileInfo->expects($this->once())
+                ->method('assertUsableInFirm')
+                ->with($this->firm);
+        $this->executeConstruct();
     }
     
     public function test_belongsToFirm_sameFirm_returnTrue()
@@ -167,10 +175,18 @@ class ProgramTest extends TestBase
         $this->executeUpdate();
         $this->assertEquals($this->name, $this->program->name);
         $this->assertEquals($this->description, $this->program->description);
+        $this->assertEquals($this->firmFileInfo, $this->program->illustration);
         $this->assertEquals($this->strictMissionOrder, $this->program->strictMissionOrder);
         
         $participantTypes = new ParticipantTypes($this->types);
         $this->assertEquals($participantTypes, $this->program->participantTypes);
+    }
+    public function test_update_assertIllustrationUsable()
+    {
+        $this->firmFileInfo->expects($this->once())
+                ->method('assertUsableInFirm')
+                ->with($this->firm);
+        $this->executeUpdate();
     }
 
     public function test_publish_setPublishFlagTrue()
@@ -451,6 +467,7 @@ class TestableProgram extends Program
 {
 
     public $firm, $id, $name, $description, $participantTypes, $published, $removed;
+    public $illustration;
     public $strictMissionOrder;
     public $consultants, $coordinators;
     public $participants, $registrants;

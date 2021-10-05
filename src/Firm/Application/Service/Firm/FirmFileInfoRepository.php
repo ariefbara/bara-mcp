@@ -12,4 +12,6 @@ interface FirmFileInfoRepository
     public function add(FirmFileInfo $firmFileInfo): void;
 
     public function aFirmFileInfoBelongsToFirm(string $firmId, string $firmFileInfoId): FirmFileInfo;
+    
+    public function ofId(string $id): FirmFileInfo;
 }

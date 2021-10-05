@@ -1,8 +1,8 @@
 <?php
 
-namespace Firm\Domain\Model\Firm;
+namespace Firm\Application\Service\Firm;
 
-class ProgramData
+class ProgramRequest
 {
 
     /**
@@ -31,9 +31,9 @@ class ProgramData
 
     /**
      * 
-     * @var FirmFileInfo|null
+     * @var string|null
      */
-    protected $illustration;
+    protected $firmFileInfoIdOfIllustration;
 
     public function getName(): ?string
     {
@@ -45,31 +45,31 @@ class ProgramData
         return $this->description;
     }
 
+    public function getStrictMissionOrder(): ?bool
+    {
+        return $this->strictMissionOrder;
+    }
+
     public function getParticipantTypes(): ?array
     {
         return $this->participantTypes;
     }
 
-    public function isStrictMissionOrder(): ?bool
+    public function getFirmFileInfoIdOfIllustration(): ?string
     {
-        return $this->strictMissionOrder;
-    }
-
-    public function getIllustration(): ?FirmFileInfo
-    {
-        return $this->illustration;
+        return $this->firmFileInfoIdOfIllustration;
     }
 
     public function __construct(
-            ?string $name, ?string $description, ?bool $strictMissionOrder, ?FirmFileInfo $illustration)
+            ?string $name, ?string $description, ?bool $strictMissionOrder, ?string $firmFileInfoIdOfIllustration)
     {
         $this->name = $name;
         $this->description = $description;
         $this->strictMissionOrder = $strictMissionOrder;
         $this->participantTypes = [];
-        $this->illustration = $illustration;
+        $this->firmFileInfoIdOfIllustration = $firmFileInfoIdOfIllustration;
     }
-
+    
     public function addParticipantType(string $type): void
     {
         $this->participantTypes[] = $type;

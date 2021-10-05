@@ -2,46 +2,67 @@
 
 namespace Tests\Controllers\Manager;
 
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class ProgramControllerTest extends ProgramTestCase
 {
+    protected $firmFileInfoOne;
     protected $programOne;
-    protected $programInput = [
-        "name" => "new program name",
-        "description" => "new program description",
-        "strictMissionOrder" => true,
-        "participantTypes" => [
-            'client', 'user'
-        ],
-    ];
+    protected $programInput;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->connection->table("FileInfo")->truncate();
+        $this->connection->table("FirmFileInfo")->truncate();
         
         $this->programOne = new RecordOfProgram($this->firm, 1);
         $this->programOne->published = false;
         $this->connection->table('Program')->insert($this->programOne->toArrayForDbEntry());
+        
+        $fileInfoOne = new RecordOfFileInfo("1");
+        $this->firmFileInfoOne = new RecordOfFirmFileInfo($this->firm, $fileInfoOne);
+        
+        $this->programInput = [
+            "name" => "new program name",
+            "description" => "new program description",
+            "strictMissionOrder" => true,
+            "firmFileInfoIdOfIllustration" => $this->firmFileInfoOne->id,
+            "participantTypes" => ["client", "user"],
+        ];
     }
     
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table("FileInfo")->truncate();
+        $this->connection->table("FirmFileInfo")->truncate();
     }
     
+    protected function add()
+    {
+        $this->firmFileInfoOne->insert($this->connection);
+        $this->post($this->programUri, $this->programInput, $this->manager->token);
+    }
     public function test_add()
     {
+        $this->add();
+        $this->seeStatusCode(201);
+        
         $response = [
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
             "participantTypes" => $this->programInput['participantTypes'],
             "strictMissionOrder" => $this->programInput['strictMissionOrder'],
             "published" => false,
+            "illustration" => [
+                "id" => $this->firmFileInfoOne->id,
+                "url" => "/{$this->firmFileInfoOne->fileInfo->name}"
+            ],
         ];
-        $this->post($this->programUri, $this->programInput, $this->manager->token)
-            ->seeStatusCode(201)
-            ->seeJsonContains($response);
+        $this->seeJsonContains($response);
         
         $programRecord = [
             "Firm_id" => $this->firm->id,
@@ -49,6 +70,7 @@ class ProgramControllerTest extends ProgramTestCase
             "description" => $this->programInput['description'],
             "strictMissionOrder" => $this->programInput['strictMissionOrder'],
             "participantTypes" => "client,user",
+            "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,
             "published" => false,
             "removed" => false,
         ];
@@ -56,24 +78,32 @@ class ProgramControllerTest extends ProgramTestCase
     }
     public function test_add_userNotManager_error401()
     {
+        $this->firmFileInfoOne->insert($this->connection);
         $this->post($this->programUri, $this->programInput, $this->removedManager->token)
             ->seeStatusCode(401);
     }
     
+    protected function update()
+    {
+        $this->firmFileInfoOne->insert($this->connection);
+        $uri = "{$this->programUri}/{$this->program->id}/update";
+        $this->patch($uri, $this->programInput, $this->manager->token);
+    }
     public function test_update()
     {
+        $this->update();
+        $this->seeStatusCode(200);
         $response = [
             "id" => $this->program->id,
             "name" => $this->programInput['name'],
             "description" => $this->programInput['description'],
             "participantTypes" => $this->programInput['participantTypes'],
             "published" => $this->program->published,
+            "illustration" => [
+                "id" => $this->firmFileInfoOne->id,
+                "url" => "/{$this->firmFileInfoOne->fileInfo->name}"
+            ],
         ];
-        
-        $uri = "{$this->programUri}/{$this->program->id}/update";
-        $this->patch($uri, $this->programInput, $this->manager->token)
-            ->seeStatusCode(200)
-            ->seeJsonContains($response);
         
         $programmeRecord = [
             "id" => $this->program->id,
@@ -82,11 +112,13 @@ class ProgramControllerTest extends ProgramTestCase
             "participantTypes" => "client,user",
             "published" => $this->program->published,
             "removed" => false,
+            "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,
         ];
         $this->seeInDatabase('Program', $programmeRecord);
     }
     public function test_update_userNotManager_error401()
     {
+        $this->firmFileInfoOne->insert($this->connection);
         $uri = "{$this->programUri}/{$this->program->id}/update";
         $this->patch($uri, $this->programInput, $this->removedManager->token)
             ->seeStatusCode(401);
@@ -146,6 +178,7 @@ class ProgramControllerTest extends ProgramTestCase
             "description" => $this->program->description,
             "strictMissionOrder" => $this->program->strictMissionOrder,
             "published" => $this->program->published,
+            "illustration" => null,
         ];
         $uri = "{$this->programUri}/{$this->program->id}";
         $this->get($uri, $this->manager->token)

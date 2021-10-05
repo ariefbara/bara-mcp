@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Manager;
 
 use Firm\Application\Service\Firm\ProgramAdd;
 use Firm\Application\Service\Firm\ProgramPublish;
+use Firm\Application\Service\Firm\ProgramRequest;
 use Firm\Application\Service\Firm\ProgramUpdate;
 use Firm\Application\Service\Manager\RemoveProgram;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\FirmFileInfo;
 use Firm\Domain\Model\Firm\Manager;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\ProgramData;
@@ -15,13 +17,28 @@ use Query\Domain\Model\Firm\Program as Program2;
 
 class ProgramController extends ManagerBaseController
 {
+    
+    protected function buildProgramRequest()
+    {
+        $name = $this->stripTagsInputRequest('name');
+        $description = $this->stripTagsInputRequest('description');
+        $strictMissionOrder = $this->filterBooleanOfInputRequest('strictMissionOrder');
+        $firmFileInfoIdOfIllustration = $this->stripTagsInputRequest("firmFileInfoIdOfIllustration");
+        $programRequest = new ProgramRequest($name, $description, $strictMissionOrder, $firmFileInfoIdOfIllustration);
+        
+        foreach ($this->request->input('participantTypes') as $participantType) {
+            $programRequest->addParticipantType($participantType);
+        }
+
+        return $programRequest;
+    }
 
     public function add()
     {
         $this->authorizedUserIsFirmManager();
         
         $service = $this->buildAddService();
-        $programId = $service->execute($this->firmId(), $this->getProgramData());
+        $programId = $service->execute($this->firmId(), $this->buildProgramRequest());
         
         $viewService = $this->buildViewService();
         $program = $viewService->showById($this->firmId(), $programId);
@@ -33,7 +50,7 @@ class ProgramController extends ManagerBaseController
         $this->authorizedUserIsFirmManager();
         
         $service = $this->buildUpdateService();
-        $service->execute($this->firmId(), $programId, $this->getProgramData());
+        $service->execute($this->firmId(), $programId, $this->buildProgramRequest());
         
         return $this->show($programId);
     }
@@ -83,21 +100,12 @@ class ProgramController extends ManagerBaseController
         return $this->listQueryResponse($result);
     }
 
-    protected function getProgramData()
-    {
-        $name = $this->stripTagsInputRequest('name');
-        $description = $this->stripTagsInputRequest('description');
-        $strictMissionOrder = $this->filterBooleanOfInputRequest('strictMissionOrder');
-        $programData = new ProgramData($name, $description, $strictMissionOrder);
-        
-        foreach ($this->request->input('participantTypes') as $participantType) {
-            $programData->addParticipantType($this->stripTagsVariable($participantType));
-        }
-        return $programData;
-    }
-
     protected function arrayDataOfProgram(Program2 $program): array
     {
+        $illustration = empty($program->getIllustration())? null : [
+            "id" => $program->getIllustration()->getId(),
+            "url" => $program->getIllustration()->getFullyQualifiedFileName(),
+        ];
         return [
             "id" => $program->getId(),
             "name" => $program->getName(),
@@ -105,6 +113,7 @@ class ProgramController extends ManagerBaseController
             "participantTypes" => $program->getParticipantTypeValues(),
             "strictMissionOrder" => $program->isStrictMissionOrder(),
             "published" => $program->isPublished(),
+            "illustration" => $illustration,
         ];
     }
 
@@ -112,13 +121,15 @@ class ProgramController extends ManagerBaseController
     {
         $programRepository = $this->em->getRepository(Program::class);
         $firmRepository = $this->em->getRepository(Firm::class);
-        return new ProgramAdd($programRepository, $firmRepository);
+        $firmFileInfoRepository = $this->em->getRepository(FirmFileInfo::class);
+        return new ProgramAdd($programRepository, $firmRepository, $firmFileInfoRepository);
     }
     
     protected function buildUpdateService()
     {
         $programRepository = $this->em->getRepository(Program::class);
-        return new ProgramUpdate($programRepository);
+        $firmFileInfoRepository = $this->em->getRepository(FirmFileInfo::class);
+        return new ProgramUpdate($programRepository, $firmFileInfoRepository);
     }
     
     protected function buildPublishService()

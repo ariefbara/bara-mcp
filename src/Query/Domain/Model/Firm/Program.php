@@ -35,6 +35,12 @@ class Program
     protected $description = null;
 
     /**
+     * 
+     * @var FirmFileInfo|null
+     */
+    protected $illustration;
+
+    /**
      *
      * @var ParticipantTypes
      */
@@ -90,6 +96,11 @@ class Program
         return $this->description;
     }
 
+    public function getIllustration(): ?FirmFileInfo
+    {
+        return $this->illustration;
+    }
+
     function isPublished(): bool
     {
         return $this->published;
@@ -109,7 +120,7 @@ class Program
     {
         
     }
-    
+
     public function firmEquals(Firm $firm): bool
     {
         return $firm === $this->firm;

@@ -76,6 +76,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var bool
      */
     protected $strictMissionOrder;
+    
+    /**
+     * 
+     * @var FirmFileInfo|null
+     */
+    protected $illustration;
 
     /**
      *
@@ -126,6 +132,14 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         $this->description = $description;
     }
+    
+    protected function setIllustration(?FirmFileInfo $illustration): void
+    {
+        if (isset($illustration)) {
+            $illustration->assertUsableInFirm($this->firm);
+        }
+        $this->illustration = $illustration;
+    }
 
     function __construct(Firm $firm, $id, ProgramData $programData)
     {
@@ -133,6 +147,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->id = $id;
         $this->setName($programData->getName());
         $this->setDescription($programData->getDescription());
+        $this->setIllustration($programData->getIllustration());
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
         $this->strictMissionOrder = $programData->isStrictMissionOrder();
         $this->published = false;
@@ -148,6 +163,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         $this->setName($programData->getName());
         $this->setDescription($programData->getDescription());
+        $this->setIllustration($programData->getIllustration());
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
         $this->strictMissionOrder = $programData->isStrictMissionOrder();
     }
