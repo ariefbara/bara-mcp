@@ -5,10 +5,12 @@ namespace Tests\Controllers\Client;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
 use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfMember;
 use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTestCase
 {
@@ -20,7 +22,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
     protected $member_11_team1;
     protected $member_21_team2;
     protected $otherClient;
-    
+    protected $firmFileInfoTwo;
+    protected $firmFileInfoFour;
+
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -33,11 +38,21 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
         $this->connection->table('TeamParticipant')->truncate();
         $this->connection->table('Team')->truncate();
         $this->connection->table('T_Member')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
+        
+        $fileInfoTwo = new RecordOfFileInfo("2");
+        $fileInfoFour = new RecordOfFileInfo("4");
+        
+        $this->firmFileInfoTwo = new RecordOfFirmFileInfo($firm, $fileInfoTwo);
+        $this->firmFileInfoFour = new RecordOfFirmFileInfo($firm, $fileInfoFour);
         
         $programOne = new RecordOfProgram($firm, '1');
         $programTwo = new RecordOfProgram($firm, '2');
+        $programTwo->illustration = $this->firmFileInfoTwo;
         $programThree = new RecordOfProgram($firm, '3');
         $programFour = new RecordOfProgram($firm, '4');
+        $programFour->illustration = $this->firmFileInfoFour;
         
         $participant_11_prog1 = new RecordOfParticipant($programOne, '11');
         $participant_21_prog2 = new RecordOfParticipant($programTwo, '21');
@@ -67,19 +82,20 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
         $this->connection->table('TeamParticipant')->truncate();
         $this->connection->table('Team')->truncate();
         $this->connection->table('T_Member')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
     }
     
     protected function showAll()
     {
+        $this->firmFileInfoTwo->fileInfo->folders = "firm,apur";
+        $this->clientParticipation_21->participant->program->illustration->insert($this->connection);
+        $this->teamParticipant_41->participant->program->illustration->insert($this->connection);
+        
         $this->clientParticipation_11->participant->program->insert($this->connection);
         $this->clientParticipation_21->participant->program->insert($this->connection);
         $this->teamParticipant_31->participant->program->insert($this->connection);
         $this->teamParticipant_41->participant->program->insert($this->connection);
-        
-        $this->clientParticipation_11->participant->insert($this->connection);
-        $this->clientParticipation_21->participant->insert($this->connection);
-        $this->teamParticipant_31->participant->insert($this->connection);
-        $this->teamParticipant_41->participant->insert($this->connection);
         
         $this->teamParticipant_31->team->insert($this->connection);
         $this->teamParticipant_41->team->insert($this->connection);
@@ -93,6 +109,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
         $this->teamParticipant_41->insert($this->connection);
         
         $this->get($this->activeIndividualAndTeamProgramParticipantControllerUri, $this->client->token);
+echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
     }
     public function test_showAll_200()
     {
@@ -113,6 +130,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
+                            "illustration" => null,
                         ],
                         'team' => null,
                     ],
@@ -127,6 +145,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoTwo->id,
+                                'url' => "/firm/apur/{$this->firmFileInfoTwo->fileInfo->name}",
+                            ],
                         ],
                         'team' => null,
                     ],
@@ -141,6 +163,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_31->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_31->participant->program->published,
                             'removed' => $this->teamParticipant_31->participant->program->removed,
+                            "illustration" => null,
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_31->team->id,
@@ -158,6 +181,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoFour->id,
+                                'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
+                            ],
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_41->team->id,
@@ -193,6 +220,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoTwo->id,
+                                'url' => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                            ],
                         ],
                         'team' => null,
                     ],
@@ -207,6 +238,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_31->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_31->participant->program->published,
                             'removed' => $this->teamParticipant_31->participant->program->removed,
+                            "illustration" => null
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_31->team->id,
@@ -224,6 +256,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoFour->id,
+                                'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
+                            ],
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_41->team->id,
@@ -260,6 +296,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
+                            "illustration" => null,
                         ],
                         'team' => null,
                     ],
@@ -274,6 +311,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_31->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_31->participant->program->published,
                             'removed' => $this->teamParticipant_31->participant->program->removed,
+                            "illustration" => null,
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_31->team->id,
@@ -291,6 +329,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoFour->id,
+                                'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
+                            ],
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_41->team->id,
@@ -326,6 +368,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
+                            "illustration" => null,
                         ],
                         'team' => null,
                     ],
@@ -340,6 +383,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoTwo->id,
+                                'url' => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                            ],
                         ],
                         'team' => null,
                     ],
@@ -354,6 +401,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoFour->id,
+                                'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
+                            ],
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_41->team->id,
@@ -389,6 +440,7 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
+                            "illustration" => null
                         ],
                         'team' => null,
                     ],
@@ -403,6 +455,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoTwo->id,
+                                'url' => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                            ],
                         ],
                         'team' => null,
                     ],
@@ -417,6 +473,10 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            "illustration" => [
+                                'id' => $this->firmFileInfoFour->id,
+                                'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
+                            ],
                         ],
                         'team' => [
                             'id' => $this->teamParticipant_41->team->id,

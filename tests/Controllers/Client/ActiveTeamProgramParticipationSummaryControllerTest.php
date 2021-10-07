@@ -8,10 +8,12 @@ use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsult
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
 use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfMember;
 use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
 {
@@ -63,11 +65,19 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
         $this->connection->table('CompletedMission')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('ConsultantFeedback')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
         
         $firm = $this->client->firm;
         
+        $fileInfoTwo = new RecordOfFileInfo("2");
+        $fileInfoTwo->folders = "firms,2";
+        $firmFileInfoTwo = new RecordOfFirmFileInfo($firm, $fileInfoTwo);
+        $firmFileInfoTwo->insert($this->connection);
+        
         $this->programOne = new RecordOfProgram($firm, '1');
         $this->programTwo = new RecordOfProgram($firm, '2');
+        $this->programTwo->illustration = $firmFileInfoTwo;
         $this->programThree = new RecordOfProgram($firm, '3');
         $this->connection->table('Program')->insert($this->programOne->toArrayForDbEntry());
         $this->connection->table('Program')->insert($this->programTwo->toArrayForDbEntry());
@@ -163,6 +173,8 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
         $this->connection->table('CompletedMission')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('ConsultantFeedback')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
     }
     
     public function test_showAll_200()
@@ -187,6 +199,7 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
                             'programName' => $this->programOne->name,
                             'programStrictMissionOrder' => strval(intval($this->programOne->strictMissionOrder)),
                             'participantId' => $this->programParticipation_11->id,
+                            "programIllustration" => "",
                             'participantRating' => '2.5000',
                             'totalCompletedMission' => '2',
                             'totalMission' => '2',
@@ -203,6 +216,7 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
                             'programName' => $this->programTwo->name,
                             'programStrictMissionOrder' => strval(intval($this->programTwo->strictMissionOrder)),
                             'participantId' => $this->programParticipation_12->id,
+                            'programIllustration' => "firms/2/{$this->programTwo->illustration->fileInfo->name}",
                             'participantRating' => '4.0000',
                             'totalCompletedMission' => '1',
                             'totalMission' => '2',
@@ -233,6 +247,7 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
                             'programName' => $this->programOne->name,
                             'programStrictMissionOrder' => strval(intval($this->programOne->strictMissionOrder)),
                             'participantId' => $this->programParticipation_21->id,
+                            "programIllustration" => "",
                             'participantRating' => '5.0000',
                             'totalCompletedMission' => '1',
                             'totalMission' => '2',

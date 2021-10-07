@@ -37,6 +37,7 @@ class ActiveIndividualAndTeamProgramParticipationController extends ClientBaseCo
                 'strictMissionOrder' => $participant->getProgram()->isStrictMissionOrder(),
                 'published' => $participant->getProgram()->isPublished(),
                 'removed' => $participant->getProgram()->isRemoved(),
+                "illustration" => $this->arrayDataOfIllustration($participant->getProgram()->getIllustration()),
             ],
             'team' => $this->arrayDataOfTeamParticipant($participant->getTeamParticipant()),
         ];
@@ -46,6 +47,13 @@ class ActiveIndividualAndTeamProgramParticipationController extends ClientBaseCo
         return empty($teamParticipant) ? null : [
             'id' => $teamParticipant->getTeam()->getId(),
             'name' => $teamParticipant->getTeam()->getName(),
+        ];
+    }
+    protected function arrayDataOfIllustration(?\Query\Domain\Model\Firm\FirmFileInfo $illustration): ?array
+    {
+        return empty($illustration)? null : [
+            "id" => $illustration->getId(),
+            "url" => $illustration->getFullyQualifiedFileName(),
         ];
     }
 }

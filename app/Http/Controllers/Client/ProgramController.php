@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers\Client;
 
-use Query\ {
-    Application\Service\Firm\ProgramView,
-    Domain\Model\Firm\ParticipantTypes,
-    Domain\Model\Firm\Program
-};
+use Query\Application\Service\Firm\ProgramView;
+use Query\Domain\Model\Firm\FirmFileInfo;
+use Query\Domain\Model\Firm\ParticipantTypes;
+use Query\Domain\Model\Firm\Program;
 
 class ProgramController extends ClientBaseController
 {
@@ -20,19 +19,11 @@ class ProgramController extends ClientBaseController
     {
         $service = $this->buildViewService();
         $programs = $service->showAll($this->firmId(), $this->getPage(), $this->getPageSize());
-//        $programs = $service->showAll(
-//                $this->firmId(), $this->getPage(), $this->getPageSize(), ParticipantTypes::CLIENT_TYPE);
         
         $result = [];
         $result["total"] = count($programs);
         foreach ($programs as $program) {
-            $result["list"][] = [
-                "id" => $program->getId(),
-                "name" => $program->getName(),
-                "published" => $program->isPublished(),
-                "participantTypes" => $program->getParticipantTypeValues(),
-                "removed" => $program->isRemoved(),
-            ];
+            $result["list"][] = $this->arrayDataOfProgram($program);
         }
         return $this->listQueryResponse($result);
     }
@@ -45,13 +36,7 @@ class ProgramController extends ClientBaseController
         $result = [];
         $result["total"] = count($programs);
         foreach ($programs as $program) {
-            $result["list"][] = [
-                "id" => $program->getId(),
-                "name" => $program->getName(),
-                "published" => $program->isPublished(),
-                "participantTypes" => $program->getParticipantTypeValues(),
-                "removed" => $program->isRemoved(),
-            ];
+            $result["list"][] = $this->arrayDataOfProgram($program);
         }
         return $this->listQueryResponse($result);
     }
@@ -65,6 +50,14 @@ class ProgramController extends ClientBaseController
             "published" => $program->isPublished(),
             "participantTypes" => $program->getParticipantTypeValues(),
             "removed" => $program->isRemoved(),
+            "illustration" => $this->arrayDataOfIllustration($program->getIllustration()),
+        ];
+    }
+    protected function arrayDataOfIllustration(?FirmFileInfo $illustration): ?array
+    {
+        return empty($illustration) ? null: [
+            "id" => $illustration->getId(),
+            "url" => $illustration->getFullyQualifiedFileName(),
         ];
     }
     protected function buildViewService()

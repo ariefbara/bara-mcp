@@ -3,10 +3,12 @@
 namespace Tests\Controllers\Client;
 
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
 use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfMember;
 use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramRegistration;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
 {
@@ -19,6 +21,8 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
     protected $teamOneProgramRegistrationThree;
     protected $teamTwoProgramRegistrationOne;
     protected $teamThreeProgramRegistrationOne;
+    
+    protected $firmFileInfoThree;
 
     protected function setUp(): void
     {
@@ -29,6 +33,8 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('TeamRegistrant')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
         
         $firm = $this->client->firm;
         
@@ -47,9 +53,15 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('T_Member')->insert($this->teamMemberTwo_inactive->toArrayForDbEntry());
         $this->connection->table('T_Member')->insert($this->teamMemberThree->toArrayForDbEntry());
         
+        $fileInfoThree = new RecordOfFileInfo("2");
+        
+        $this->firmFileInfoThree = new RecordOfFirmFileInfo($firm, $fileInfoThree);
+        $this->firmFileInfoThree->insert($this->connection);
+        
         $programOne = new RecordOfProgram($firm, '1');
         $programTwo = new RecordOfProgram($firm, '2');
         $programThree = new RecordOfProgram($firm, '3');
+        $programThree->illustration = $this->firmFileInfoThree;
         $this->connection->table('Program')->insert($programOne->toArrayForDbEntry());
         $this->connection->table('Program')->insert($programTwo->toArrayForDbEntry());
         $this->connection->table('Program')->insert($programThree->toArrayForDbEntry());
@@ -85,6 +97,8 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('Registrant')->truncate();
         $this->connection->table('TeamRegistrant')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
     }
     
     public function test_showAll_200()
@@ -106,6 +120,7 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
                                 'program' => [
                                     'id' => $this->teamOneProgramRegistrationOne->registrant->program->id,
                                     'name' => $this->teamOneProgramRegistrationOne->registrant->program->name,
+                                    "illustration" => null,
                                 ],
                             ],
                             [
@@ -114,6 +129,10 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
                                 'program' => [
                                     'id' => $this->teamOneProgramRegistrationThree->registrant->program->id,
                                     'name' => $this->teamOneProgramRegistrationThree->registrant->program->name,
+                                    "illustration" => [
+                                        "id" => $this->firmFileInfoThree->id,
+                                        "url" => "/{$this->firmFileInfoThree->fileInfo->name}",
+                                    ],
                                 ],
                             ],
                         ],
@@ -131,6 +150,7 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
                                 'program' => [
                                     'id' => $this->teamThreeProgramRegistrationOne->registrant->program->id,
                                     'name' => $this->teamThreeProgramRegistrationOne->registrant->program->name,
+                                    "illustration" => null,
                                 ],
                             ],
                         ],

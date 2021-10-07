@@ -114,6 +114,7 @@ SELECT
     _a.programId,
     _a.programName,
     _a.programStrictMissionOrder,
+    _a.programIllustration,
     _b.participantId, 
     _b.participantRating,
     _b.totalCompletedMission,
@@ -126,11 +127,17 @@ SELECT
     _b.totalAssignedMetric,
     _b.reportId
 FROM (
-    SELECT Program.id programId, Program.name programName, Program.strictMissionOrder programStrictMissionOrder, Participant.id participantId
+    SELECT Program.id programId, 
+        Program.name programName, 
+        Program.strictMissionOrder programStrictMissionOrder, 
+        Participant.id participantId,
+        CONCAT_WS('/', REPLACE(FileInfo.folders, ',', '/'), FileInfo.name) programIllustration
     FROM ClientParticipant
     LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
     LEFT JOIN Participant ON Participant.id = ClientParticipant.Participant_id
     LEFT JOIN Program ON Program.id = Participant.Program_id
+    LEFT JOIN FirmFileInfo ON FirmFileInfo.id = Program.FirmFileInfo_idOfIllustration
+    LEFT JOIN FileInfo ON FileInfo.id = FirmFileInfo.FileInfo_id
     WHERE Participant.active = true
         AND Client.id = :clientId
 )_a
@@ -364,6 +371,7 @@ SELECT
     _a.programId,
     _a.programName,
     _a.programStrictMissionOrder,
+    _a.programIllustration,
     _b.participantId, 
     _b.participantRating,
     _b.totalCompletedMission,
@@ -376,11 +384,17 @@ SELECT
     _b.totalAssignedMetric,
     _b.reportId
 FROM (
-    SELECT Program.id programId, Program.name programName, Program.strictMissionOrder programStrictMissionOrder, Participant.id participantId
+    SELECT Program.id programId, 
+        Program.name programName, 
+        Program.strictMissionOrder programStrictMissionOrder, 
+        Participant.id participantId,
+        CONCAT_WS('/', REPLACE(FileInfo.folders, ',', '/'), FileInfo.name) programIllustration
     FROM TeamParticipant
     LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
     LEFT JOIN Participant ON Participant.id = TeamParticipant.Participant_id
     LEFT JOIN Program ON Program.id = Participant.Program_id
+    LEFT JOIN FirmFileInfo ON FirmFileInfo.id = Program.FirmFileInfo_idOfIllustration
+    LEFT JOIN FileInfo ON FileInfo.id = FirmFileInfo.FileInfo_id
     WHERE Participant.active = true
         AND Team.id = :teamId
 )_a

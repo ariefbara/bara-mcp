@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use Query\Application\Service\Firm\Client\ViewTeamMembership;
 use Query\Application\Service\Firm\Team\ViewTeamProgramRegistration;
-use Query\Domain\Model\Firm\Program\Registrant;
+use Query\Domain\Model\Firm\FirmFileInfo;
 use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramRegistration;
 
@@ -46,10 +46,19 @@ class ActiveTeamProgramRegistrationController extends ClientBaseController
                 'program' => [
                     'id' => $teamProgramRegistration->getProgram()->getId(),
                     'name' => $teamProgramRegistration->getProgram()->getName(),
+                    "illustration" => $this->arrayDataOfIllustration($teamProgramRegistration->getProgram()->getIllustration()),
                 ],
             ];
         }
         return $result;
+    }
+    
+    protected function arrayDataOfIllustration(?FirmFileInfo $illustration): ?array
+    {
+        return empty($illustration)? null: [
+            "id" => $illustration->getId(),
+            "url" => $illustration->getFullyQualifiedFileName(),
+        ];
     }
     
 }

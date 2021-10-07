@@ -2,16 +2,13 @@
 
 namespace App\Http\Controllers\Client;
 
-use Client\ {
-    Application\Service\Client\CancelProgramRegistration,
-    Application\Service\Client\RegisterToProgram,
-    Domain\Model\Client,
-    Domain\Model\Client\ProgramRegistration
-};
-use Query\ {
-    Application\Service\Firm\Client\ViewProgramRegistration,
-    Domain\Model\Firm\Client\ClientRegistrant
-};
+use Client\Application\Service\Client\CancelProgramRegistration;
+use Client\Application\Service\Client\RegisterToProgram;
+use Client\Domain\Model\Client;
+use Client\Domain\Model\Client\ProgramRegistration;
+use Query\Application\Service\Firm\Client\ViewProgramRegistration;
+use Query\Domain\Model\Firm\Client\ClientRegistrant;
+use Query\Domain\Model\Firm\FirmFileInfo;
 use Resources\Application\Event\Dispatcher;
 use SharedContext\Domain\Model\Firm\Program;
 
@@ -71,10 +68,19 @@ class ProgramRegistrationController extends ClientBaseController
                 "id" => $programRegistration->getProgram()->getId(),
                 "name" => $programRegistration->getProgram()->getName(),
                 "hasProfileForm" => $programRegistration->getProgram()->hasProfileForm(),
+                "illustration" => $this->arrayDataOfIllustration($programRegistration->getProgram()->getIllustration()),
             ],
             "registeredTime" => $programRegistration->getRegisteredTimeString(),
             "concluded" => $programRegistration->isConcluded(),
             "note" => $programRegistration->getNote(),
+        ];
+    }
+    
+    protected function arrayDataOfIllustration(?FirmFileInfo $illustration): ?array
+    {
+        return empty($illustration) ? null : [
+            "id" => $illustration->getId(),
+            "url" => $illustration->getFullyQualifiedFileName(),
         ];
     }
     

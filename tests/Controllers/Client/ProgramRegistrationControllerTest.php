@@ -10,8 +10,10 @@ use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrationPhase;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProfileForm;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class ProgramRegistrationControllerTest extends ClientTestCase
@@ -20,6 +22,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
     protected $programRegistration, $concludedProgramRegistration;
     protected $programParticipation;
 
+    protected $firmFileInfoTwo;
 
     protected $program, $registrationPhase;
     protected $programsProfileFormOne;
@@ -40,12 +43,20 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('Form')->truncate();
         $this->connection->table('ProfileForm')->truncate();
         $this->connection->table('ProgramsProfileForm')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
         
         $firm = $this->client->firm;
+        
+        $fileInfoTwo = new RecordOfFileInfo("2");
+        
+        $this->firmFileInfoTwo = new RecordOfFirmFileInfo($firm, $fileInfoTwo);
+        $this->firmFileInfoTwo->insert($this->connection);
                 
         $this->program = new RecordOfProgram($this->client->firm, 0);
         $programOne = new RecordOfProgram($this->client->firm, 1);
         $programTwo = new RecordOfProgram($this->client->firm, 2);
+        $programTwo->illustration = $this->firmFileInfoTwo;
         $this->connection->table('Program')->insert($this->program->toArrayForDbEntry());
         $this->connection->table('Program')->insert($programOne->toArrayForDbEntry());
         $this->connection->table('Program')->insert($programTwo->toArrayForDbEntry());
@@ -88,6 +99,8 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('Form')->truncate();
         $this->connection->table('ProfileForm')->truncate();
         $this->connection->table('ProgramsProfileForm')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
     }
     
     public function test_register_201()
@@ -99,6 +112,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                 "id" => $this->program->id,
                 "name" => $this->program->name,
                 "hasProfileForm" => true,
+                "illustration" => null,
             ],
             "registeredTime" => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
             "concluded" => false,
@@ -222,6 +236,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                 "id" => $this->programRegistration->registrant->program->id,
                 "name" => $this->programRegistration->registrant->program->name,
                 "hasProfileForm" => false,
+                "illustration" => null,
             ],
             "registeredTime" => $this->programRegistration->registrant->registeredTime,
             "concluded" => $this->programRegistration->registrant->concluded,
@@ -245,6 +260,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                         "id" => $this->programRegistration->registrant->program->id,
                         "name" => $this->programRegistration->registrant->program->name,
                         "hasProfileForm" => false,
+                        "illustration" => null,
                     ],
                     "registeredTime" => $this->programRegistration->registrant->registeredTime,
                     "concluded" => $this->programRegistration->registrant->concluded,
@@ -256,6 +272,10 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                         "id" => $this->concludedProgramRegistration->registrant->program->id,
                         "name" => $this->concludedProgramRegistration->registrant->program->name,
                         "hasProfileForm" => false,
+                        "illustration" => [
+                            "id" => $this->firmFileInfoTwo->id,
+                            "url" => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                        ],
                     ],
                     "registeredTime" => $this->concludedProgramRegistration->registrant->registeredTime,
                     "concluded" => $this->concludedProgramRegistration->registrant->concluded,
@@ -282,6 +302,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                         "id" => $this->programRegistration->registrant->program->id,
                         "name" => $this->programRegistration->registrant->program->name,
                         "hasProfileForm" => false,
+                        "illustration" => null,
                     ],
                     "registeredTime" => $this->programRegistration->registrant->registeredTime,
                     "concluded" => $this->programRegistration->registrant->concluded,

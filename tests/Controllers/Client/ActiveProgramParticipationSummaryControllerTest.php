@@ -9,7 +9,10 @@ use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsult
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
 {
@@ -48,13 +51,21 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
         $this->connection->table('CompletedMission')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('ConsultantFeedback')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
         
         $firm = $this->client->firm;
-        $clientTwo = new \Tests\Controllers\RecordPreparation\Firm\RecordOfClient($firm, '2');
+        $clientTwo = new RecordOfClient($firm, '2');
         $this->connection->table('Client')->insert($clientTwo->toArrayForDbEntry());
+        
+        $fileInfoTwo = new RecordOfFileInfo("2");
+        $fileInfoTwo->folders = "firms,2";
+        $firmFileInfoTwo = new RecordOfFirmFileInfo($firm, $fileInfoTwo);
+        $firmFileInfoTwo->insert($this->connection);
         
         $this->programOne = new RecordOfProgram($firm, 1);
         $this->programTwo = new RecordOfProgram($firm, 2);
+        $this->programTwo->illustration = $firmFileInfoTwo;
         $this->programThree = new RecordOfProgram($firm, 3);
         $this->connection->table('Program')->insert($this->programOne->toArrayForDbEntry());
         $this->connection->table('Program')->insert($this->programTwo->toArrayForDbEntry());
@@ -137,6 +148,8 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
         $this->connection->table('CompletedMission')->truncate();
         $this->connection->table('ConsultationSession')->truncate();
         $this->connection->table('ConsultantFeedback')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
     }
     
     public function test_showAll_200()
@@ -151,6 +164,7 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
             'programId' => $this->programOne->id,
             'programName' => $this->programOne->name,
             'programStrictMissionOrder' => strval(intval($this->programOne->strictMissionOrder)),
+            'programIllustration' => "",
             'participantId' => $this->programParticipationOne->id,
             'participantRating' => '2.5000',
             'totalCompletedMission' => '2',
@@ -165,6 +179,7 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
             'programId' => $this->programTwo->id,
             'programName' => $this->programTwo->name,
             'programStrictMissionOrder' => strval(intval($this->programTwo->strictMissionOrder)),
+            'programIllustration' => "firms/2/{$this->programTwo->illustration->fileInfo->name}",
             'participantId' => $this->programParticipationTwo->id,
             'participantRating' => '2.0000',
             'totalCompletedMission' => '1',
