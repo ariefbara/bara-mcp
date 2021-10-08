@@ -173,7 +173,7 @@ _MESSAGE;
         }
         $mainMessage = $doc->getElementById("main_message");
         foreach ($this->mainMessage as $message) {
-            $mainMessage->appendChild($doc->createElement("p", $message));
+            $mainMessage->appendChild($doc->createElement("p", htmlentities($message)));
         }
 
         $firmDomain = $doc->createTextNode($this->domain);
