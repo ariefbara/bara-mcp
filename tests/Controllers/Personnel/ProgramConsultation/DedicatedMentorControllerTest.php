@@ -84,10 +84,10 @@ class DedicatedMentorControllerTest extends ProgramConsultationTestCase
         $this->clientParticipantTwo->client->insert($this->connection);
         $this->clientParticipantTwo->insert($this->connection);
         
-        $this->dedicatedMentorOne->participant->insert($this->connection);
+//        $this->dedicatedMentorOne->participant->insert($this->connection);
         $this->dedicatedMentorOne->insert($this->connection);
         
-        $this->dedicatedMentorTwo->participant->insert($this->connection);
+//        $this->dedicatedMentorTwo->participant->insert($this->connection);
         $this->dedicatedMentorTwo->insert($this->connection);
         
         $uri = $uri ?? $this->dedicatedMentorUri;

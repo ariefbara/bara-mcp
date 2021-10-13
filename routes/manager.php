@@ -7,8 +7,8 @@ $managerAggregate = [
 ];
 $router->group($managerAggregate, function () use ($router) {
     
-    $router->post('/upload-file', ['uses' => "UploadFileController@upload"]);
-    $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
+    $router->post('/upload-firm-file', ['uses' => "UploadFileController@upload"]);
+    $router->post('/upload-personal-file', ['uses' => "FileUploadController@upload"]);
     
     $router->get("/evaluation-report-summary", ["uses" => "EvaluationReportSummaryController@summary"]);
     $router->get("/download-evaluation-report-summary-xls", ["uses" => "EvaluationReportSummaryController@downloadSummaryXls"]);

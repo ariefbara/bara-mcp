@@ -16,7 +16,7 @@ class UploadFileControllerTest extends ManagerTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fileUploadUri = $this->managerUri. "/upload-file";
+        $this->fileUploadUri = $this->managerUri. "/upload-firm-file";
         $this->connection->table('FileInfo')->truncate();
         $this->connection->table('FirmFileInfo')->truncate();
         
@@ -33,18 +33,19 @@ class UploadFileControllerTest extends ManagerTestCase
     
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('FileInfo')->truncate();
-//        $this->connection->table('FirmFileInfo')->truncate();
-//        
-//        $root = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
-//        $adapter = new Local($root);
-//        $filessystem = new Filesystem($adapter);
-//        $filessystem->deleteDir("firm_{$this->firm->id}");
+        parent::tearDown();
+        $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        
+        $root = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
+        $adapter = new Local($root);
+        $filessystem = new Filesystem($adapter);
+        $filessystem->deleteDir("firm_{$this->firm->id}");
     }
     
     public function test_upload()
     {
+echo $this->fileUploadUri;
         $header = $this->manager->token;
         $header['fileName'] = 'cat_pile.jpg';
         $this->post($this->fileUploadUri, $this->fileUploadInput, $header)

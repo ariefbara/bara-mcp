@@ -16,7 +16,7 @@ class FileUploadControllerTest extends ManagerTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fileUploadUri = $this->managerUri. "/file-uploads";
+        $this->fileUploadUri = $this->managerUri. "/upload-personal-file";
         $this->connection->table('FileInfo')->truncate();
         $this->connection->table('ManagerFileInfo')->truncate();
         
@@ -45,7 +45,7 @@ class FileUploadControllerTest extends ManagerTestCase
     
     public function test_upload()
     {
-$this->disableExceptionHandling();
+echo $this->fileUploadUri;
         $header = $this->manager->token;
         $header['fileName'] = 'cat_pile.jpg';
         $this->post($this->fileUploadUri, $this->fileUploadInput, $header)
