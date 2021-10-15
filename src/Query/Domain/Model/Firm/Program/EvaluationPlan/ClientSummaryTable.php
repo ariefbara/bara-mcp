@@ -79,7 +79,7 @@ class ClientSummaryTable implements IContainSummaryTable
     public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
     {
         $worksheet = $spreadsheet->createSheet();
-        $worksheet->setTitle($this->evaluationPlan->getName());
+        $worksheet->setTitle(substr($this->evaluationPlan->getName(), 0, 30));
         $worksheet->fromArray($this->summaryTable->toArraySummarySimplifiedFormat($this->getCompleteHeaderColumns()));
     }
     

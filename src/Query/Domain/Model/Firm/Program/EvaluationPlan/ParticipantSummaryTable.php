@@ -67,7 +67,7 @@ class ParticipantSummaryTable implements IContainSummaryTable
     public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
     {
         $worksheet = $spreadsheet->createSheet();
-        $worksheet->setTitle($this->evaluationPlan->getName());
+        $worksheet->setTitle(substr($this->evaluationPlan->getName(), 0, 30));
         
         $participantColumn = new StaticHeaderColumn(1, 'participant');
         $mentorColumn = new StaticHeaderColumn(2, 'mentor');

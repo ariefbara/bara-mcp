@@ -52,7 +52,7 @@ class TranscriptTable
     public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
     {
         $worksheet = $spreadsheet->createSheet();
-        $worksheet->setTitle($this->client->getFullName());
+        $worksheet->setTitle(substr($this->client->getFullName(), 0, 30));
         
         $transcripTable = [];
         foreach ($this->clientTranscriptTables as $clientTranscripTable) {

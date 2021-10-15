@@ -45,7 +45,6 @@ class UploadFileControllerTest extends ManagerTestCase
     
     public function test_upload()
     {
-echo $this->fileUploadUri;
         $header = $this->manager->token;
         $header['fileName'] = 'cat_pile.jpg';
         $this->post($this->fileUploadUri, $this->fileUploadInput, $header)
