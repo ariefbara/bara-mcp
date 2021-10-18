@@ -61,7 +61,7 @@ class FormRecordData
         $this->stringFieldRecordDatas[$stringFieldId] = $input;
     }
 
-    public function addIntegerFieldRecordData(string $integerFieldId, ?int $input): void
+    public function addIntegerFieldRecordData(string $integerFieldId, ?float $input): void
     {
         $this->integerFieldRecordDatas[$integerFieldId] = $input;
     }

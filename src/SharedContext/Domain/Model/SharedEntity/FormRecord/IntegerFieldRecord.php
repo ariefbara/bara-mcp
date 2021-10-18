@@ -2,10 +2,8 @@
 
 namespace SharedContext\Domain\Model\SharedEntity\FormRecord;
 
-use SharedContext\Domain\Model\SharedEntity\ {
-    Form\IntegerField,
-    FormRecord
-};
+use SharedContext\Domain\Model\SharedEntity\Form\IntegerField;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
 
 class IntegerFieldRecord
 {
@@ -30,7 +28,7 @@ class IntegerFieldRecord
 
     /**
      *
-     * @var int
+     * @var float
      */
     protected $value = null;
 
@@ -50,7 +48,7 @@ class IntegerFieldRecord
         return $this->removed;
     }
 
-    public function __construct(FormRecord $formRecord, string $id, IntegerField $integerField, ?int $value)
+    public function __construct(FormRecord $formRecord, string $id, IntegerField $integerField, ?float $value)
     {
         $this->formRecord = $formRecord;
         $this->id = $id;
@@ -59,7 +57,7 @@ class IntegerFieldRecord
         $this->removed = false;
     }
 
-    public function update(?int $value): void
+    public function update(?float $value): void
     {
         $this->value = $value;
     }

@@ -52,7 +52,8 @@ class TranscriptTable
     public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
     {
         $worksheet = $spreadsheet->createSheet();
-        $worksheet->setTitle(substr($this->participant->getName(), 0, 30));
+        $sheetTitle = preg_replace("/[^A-Za-z0-9 _-]/", '', $this->participant->getName());
+        $worksheet->setTitle(substr($sheetTitle, 0, 30));
         
         $transcripTable = [];
         foreach ($this->participantTranscriptTables as $participantTranscripTable) {

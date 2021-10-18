@@ -79,7 +79,8 @@ class ClientSummaryTable implements IContainSummaryTable
     public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
     {
         $worksheet = $spreadsheet->createSheet();
-        $worksheet->setTitle(substr($this->evaluationPlan->getName(), 0, 30));
+        $sheetTitle = preg_replace("/[^A-Za-z0-9 _-]/", '', $this->evaluationPlan->getName());
+        $worksheet->setTitle(substr($sheetTitle, 0, 30));
         $worksheet->fromArray($this->summaryTable->toArraySummarySimplifiedFormat($this->getCompleteHeaderColumns()));
     }
     

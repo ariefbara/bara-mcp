@@ -194,7 +194,7 @@ class FormRecord
         }
     }
 
-    public function setIntegerFieldRecord(IntegerField $integerField, ?int $value): void
+    public function setIntegerFieldRecord(IntegerField $integerField, ?float $value): void
     {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('integerField', $integerField))

@@ -14,14 +14,14 @@ class IntegerFieldRecordTest extends TestBase
     protected $formRecord;
     protected $integerField;
     protected $integerFieldRecord;
-    protected $id = 'id', $value = 123;
+    protected $id = 'id', $value = 123.45;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->formRecord = $this->buildMockOfClass(FormRecord::class);
         $this->integerField = $this->buildMockOfClass(IntegerField::class);
-        $this->integerFieldRecord = new TestableIntegerFieldRecord($this->formRecord, 'id', $this->integerField, 99);
+        $this->integerFieldRecord = new TestableIntegerFieldRecord($this->formRecord, 'id', $this->integerField, 99.99);
     }
 
     function test_construct_setProperties()
@@ -35,8 +35,8 @@ class IntegerFieldRecordTest extends TestBase
 
     function test_update_changeValue()
     {
-        $this->integerFieldRecord->update($value = 12312);
-        $this->assertEquals($value, $this->integerFieldRecord->value);
+        $this->integerFieldRecord->update($this->value);
+        $this->assertEquals($this->value, $this->integerFieldRecord->value);
     }
 
     function test_isReferToRemovedField_returnReferenceFieldRemovedStatus()

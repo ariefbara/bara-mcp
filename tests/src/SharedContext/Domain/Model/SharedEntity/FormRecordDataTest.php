@@ -43,7 +43,7 @@ class FormRecordDataTest extends TestBase
     }
     public function test_addIntegerFieldRecordData_addDataToIntegerCollection()
     {
-        $this->assignmentFormRecordData->addIntegerFieldRecordData($fieldId = 'newFieldId', $data = 123);
+        $this->assignmentFormRecordData->addIntegerFieldRecordData($fieldId = 'newFieldId', $data = 123.45);
         $collection = $this->assignmentFormRecordData->integerFieldRecordDatas;
         $collection[$fieldId] = $data;
         $this->assertEquals($collection, $this->assignmentFormRecordData->integerFieldRecordDatas);

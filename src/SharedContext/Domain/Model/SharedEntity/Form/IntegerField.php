@@ -83,7 +83,7 @@ class IntegerField
         $errorDetail = "bad request: input value of {$this->field->getName()} field is out of range";
 
         ValidationService::build()
-                ->addRule(ValidationRule::optional(ValidationRule::integerValue()))
+                ->addRule(ValidationRule::optional(ValidationRule::number()))
                 ->execute($value, $errorDetail);
 
         if (!empty($value)) {

@@ -274,7 +274,7 @@ class FormRecord
         $fieldRecord = $this->stringFieldRecords->filter($p)->first();
         return empty($fieldRecord)? null : $fieldRecord->getValue();
     }
-    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?int
+    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?float
     {
         $p = function (IntegerFieldRecord $integerFieldRecord) use ($integerField) {
             return $integerFieldRecord->isActiveFieldRecordCorrespondWith($integerField);

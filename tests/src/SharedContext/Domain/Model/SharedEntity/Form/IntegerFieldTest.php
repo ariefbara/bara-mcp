@@ -69,30 +69,19 @@ class IntegerFieldTest extends TestBase
     }
     public function test_setIntegerFieldRecordOf_nonIntegerValue_throwEx()
     {
-        $this->value = 'non integer';
+        $this->value = 'non number';
         $operation = function (){
             $this->executeSetIntegerFieldRecordOf();
         };
         $errorDetail = "bad request: input value of {$this->integerField->field->getName()} field is out of range";
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
-/*
-    public function test_setIntegerFieldRecordOf_nullValue_processNormally()
+    public function test_setIntegerFieldRecordOf_floatValue()
     {
-        $this->value = null;
+        $this->value = 20.4;
         $this->executeSetIntegerFieldRecordOf();
         $this->markAsSuccess();
     }
-    
-    public function test_setIntegerFieldRecordOf_nullMaxValueWithDataValueBiggerThanMinValue_processNormally()
-    {
-        $this->integerField->minMaxValue = new IntegerRange(10, 0);
-        $this->value = 20;
-        $this->executeSetIntegerFieldRecordOf();
-        $this->markAsSuccess();
-    }
- * 
- */
 
 }
 

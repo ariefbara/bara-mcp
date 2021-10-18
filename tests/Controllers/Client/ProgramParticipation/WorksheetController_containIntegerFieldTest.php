@@ -40,19 +40,19 @@ class WorksheetController_containIntegerFieldTest extends WorksheetTestCase
         $this->worksheetInput['integerFieldRecords'] = [
             [
                 "fieldId" => $this->integerFieldOne->id,
-                "value" => 456,
+                "value" => 456.78,
             ],
             [
                 "fieldId" => $this->integerFieldTwo_required->id,
-                "value" => 432,
+                "value" => 432.11,
             ],
         ];
     }
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('IntegerField')->truncate();
-        $this->connection->table('IntegerFieldRecord')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('IntegerField')->truncate();
+//        $this->connection->table('IntegerFieldRecord')->truncate();
     }
     
     public function test_addRoot()

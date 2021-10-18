@@ -29,7 +29,7 @@ class IntegerFieldRecord
 
     /**
      *
-     * @var int
+     * @var float
      */
     protected $value = null;
 
@@ -54,7 +54,7 @@ class IntegerFieldRecord
         return $this->integerField;
     }
 
-    function getValue(): ?int
+    function getValue(): ?float
     {
         return $this->value;
     }

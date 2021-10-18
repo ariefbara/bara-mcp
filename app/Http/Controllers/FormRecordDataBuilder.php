@@ -36,9 +36,9 @@ class FormRecordDataBuilder
         return isset($var) ? strip_tags($var) : null;
     }
 
-    protected function integerOfVariable($var): ?int
+    protected function floatOfVariable($var): ?float
     {
-        return isset($var) ? (int) $var : null;
+        return isset($var) ? (float) $var : null;
     }
 
     public function build(): FormRecordData
@@ -51,7 +51,7 @@ class FormRecordDataBuilder
         }
         foreach ($this->request->input('integerFieldRecords') as $integerFieldRecord) {
             $integerFieldId = $this->stripTagsVariable($integerFieldRecord['fieldId']);
-            $input = $this->integerOfVariable($integerFieldRecord['value']);
+            $input = $this->floatOfVariable($integerFieldRecord['value']);
             $formRecordData->addIntegerFieldRecordData($integerFieldId, $input);
         }
         foreach ($this->request['textAreaFieldRecords'] as $textAreaFieldRecord) {

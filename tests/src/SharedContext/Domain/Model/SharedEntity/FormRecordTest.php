@@ -27,7 +27,7 @@ class FormRecordTest extends TestBase
     protected $stringFieldRecord, $integerFieldRecord, $textAreaFieldRecord, $singleSelectFieldRecord,
             $multiSelectFieldRecord, $attachmentFieldRecord;
     protected $stringField, $integerField, $textAreaField, $singleSelectField, $multiSelectField, $attachmentField;
-    protected $stringData = 'string input', $integerData = 999, $textAreaData = 'text area input',
+    protected $stringData = 'string input', $integerData = 999.99, $textAreaData = 'text area input',
             $selectedOption, $fileInfo;
     protected $fileInfoList;
 

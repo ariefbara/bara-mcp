@@ -100,7 +100,7 @@ class FormRecordTest extends TestBase
     {
         $this->integerFieldRecord->expects($this->any())
                 ->method('getValue')
-                ->willReturn($integerValue = 999);
+                ->willReturn($integerValue = 999.99);
         $this->assertEquals($integerValue, $this->getIntegerRecordValueCorrespondWith());
     }
     public function test_getIntegerFieldRecordValueCorrespondWith_noCorrespondingRecord_returnNull()
