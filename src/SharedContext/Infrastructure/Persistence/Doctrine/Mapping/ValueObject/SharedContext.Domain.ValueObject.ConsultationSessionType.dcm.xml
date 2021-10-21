@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\ConsultationSessionType">
+        
+        <field name="sessionType" type="smallint" nullable="false">
+            <options>
+                <option name="default">0</option>
+            </options>
+        </field>
+        <field name="approvedByMentor" type="boolean" nullable="true" />
+        
+    </embeddable>
+</doctrine-mapping>

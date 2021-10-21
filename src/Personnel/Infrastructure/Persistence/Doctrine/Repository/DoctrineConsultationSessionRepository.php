@@ -2,17 +2,14 @@
 
 namespace Personnel\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Personnel\ {
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionRepository,
-    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession
-};
+use Doctrine\ORM\NoResultException;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationSessionRepository;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Task\Dependency\Firm\Personnel\Mentor\ConsultationSessionRepository as ConsultationSessionRepository2;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository
+class DoctrineConsultationSessionRepository extends DoctrineEntityRepository implements ConsultationSessionRepository, ConsultationSessionRepository2
 {
     public function ofId(string $firmId, string $personnelId, string $programConsultationId,
             string $consultationSessionId): ConsultationSession
@@ -48,6 +45,16 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aConsultationSessionOfId(string $id): ConsultationSession
+    {
+        return $this->findOneByIdOrDie($id, 'consultation session');
+    }
+
+    public function add(ConsultationSession $consultationSession): void
+    {
+        $this->persist($consultationSession);
     }
 
 }

@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfFeedbackForm,
-    Firm\RecordOfProgram,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfConsultationSetup implements Record
 {
@@ -51,6 +50,11 @@ class RecordOfConsultationSetup implements Record
             "sessionDuration" => $this->sessionDuration,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection)
+    {
+        $connection->table('Participant')->insert($this->toArrayForDbEntry());
     }
 
 }

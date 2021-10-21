@@ -14,7 +14,7 @@ use Tests\TestBase;
 class ConsultationSetupTest extends TestBase
 {
 
-    protected $consultationSetup;
+    protected $consultationSetup, $programId = 'programId';
     protected $startTime;
     protected $participantFeedbackForm;
     protected $consultantFeedbackForm;
@@ -25,6 +25,7 @@ class ConsultationSetupTest extends TestBase
     {
         parent::setUp();
         $this->consultationSetup = new TestableConsultationSetup();
+        $this->consultationSetup->programId = $this->programId;
         $this->consultationSetup->sessionDuration = 45;
         $this->startTime = new DateTimeImmutable();
         
@@ -59,16 +60,36 @@ class ConsultationSetupTest extends TestBase
         $this->assertEquals($formRecord, $this->consultationSetup->createFormRecordForConsultantFeedback($id, $formRecordData));
     }
     
+    protected function usableInProgram()
+    {
+        return $this->consultationSetup->usableInProgram($this->programId);
+    }
+    public function test_usableInProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->usableInProgram());
+    }
+    public function test_usableInProgram_differentProgram_returnFalse()
+    {
+        $this->consultationSetup->programId = 'differentProgramId';
+        $this->assertFalse($this->usableInProgram());
+    }
+    public function test_usableInProgram_inactiveConsultationSetup_returnFalse()
+    {
+        $this->consultationSetup->removed = true;
+        $this->assertFalse($this->usableInProgram());
+    }
+    
 }
 
 class TestableConsultationSetup extends ConsultationSetup
 {
-    public $program;
+    public $programId;
     public $id;
     public $name;
     public $sessionDuration;
     public $participantFeedbackForm;
     public $consultantFeedbackForm;
+    public $removed = false;
 
     function __construct()
     {

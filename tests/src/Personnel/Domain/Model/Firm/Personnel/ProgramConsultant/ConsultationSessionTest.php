@@ -12,6 +12,7 @@ use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 use Tests\TestBase;
 
 class ConsultationSessionTest extends TestBase
@@ -21,6 +22,7 @@ class ConsultationSessionTest extends TestBase
     protected $consultationSetup;
     protected $startEndTime;
     protected $channel;
+    protected $sessionType;
     protected $consultationSession;
     protected $id = 'id';
     protected $consultantFeedback, $participantRating = 4;
@@ -35,9 +37,10 @@ class ConsultationSessionTest extends TestBase
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
+        $this->sessionType = $this->buildMockOfClass(ConsultationSessionType::class);
         $this->consultationSession = new TestableConsultationSession(
                 $this->programConsultant, 'id', $this->participant, $this->consultationSetup, $this->startEndTime, 
-                $this->channel);
+                $this->channel, $this->sessionType);
         $this->consultationSession->consultationSessionActivityLogs->clear();
         
         $this->consultantFeedback = $this->buildMockOfClass(ConsultantFeedback::class);
@@ -49,7 +52,7 @@ class ConsultationSessionTest extends TestBase
     {
         return new TestableConsultationSession(
                 $this->programConsultant, $this->id, $this->participant, $this->consultationSetup, $this->startEndTime, 
-                $this->channel);
+                $this->channel, $this->sessionType);
     }
     public function test_construct_setProperties()
     {
@@ -60,6 +63,7 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals($this->consultationSetup, $consultationSession->consultationSetup);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
         $this->assertEquals($this->channel, $consultationSession->channel);
+        $this->assertEquals($this->sessionType, $consultationSession->sessionType);
         $this->assertFalse($consultationSession->cancelled);
     }
     public function test_construct_addConsultationSessionActivityLog()
@@ -128,6 +132,84 @@ class ConsultationSessionTest extends TestBase
         $errorDetail = "forbidden: unable to submit report on cancelled session";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+    
+    protected function cancel()
+    {
+        $this->sessionType->expects($this->any())
+                ->method('canBeCancelled')
+                ->willReturn(true);
+        $this->consultationSession->cancel();
+    }
+    public function test_cancel_setCancelled()
+    {
+        $this->cancel();
+        $this->assertTrue($this->consultationSession->cancelled);
+    }
+    public function test_cancel_uncancelledType_forbidden()
+    {
+        $this->sessionType->expects($this->once())
+                ->method('canBeCancelled')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->cancel();
+        }, 'Forbidden', 'forbidden: unable to cancel handsaking session');
+    }
+    
+    protected function deny()
+    {
+        $this->consultationSession->deny();
+    }
+    public function test_deny_denySessionType()
+    {
+        $this->sessionType->expects($this->once())
+                ->method('deny')
+                ->willReturn($deniedType = $this->buildMockOfClass(ConsultationSessionType::class));
+        
+        $this->deny();
+        $this->assertSame($deniedType, $this->consultationSession->sessionType);
+    }
+    public function test_deny_cancelConsultationSession()
+    {
+        $this->deny();
+        $this->assertTrue($this->consultationSession->cancelled);
+    }
+    
+    protected function approve()
+    {
+        $this->consultationSession->approve();
+    }
+    public function test_approve_approveSessionType()
+    {
+        $this->sessionType->expects($this->once())
+                ->method('approve')
+                ->willReturn($approvedType = $this->buildMockOfClass(ConsultationSessionType::class));
+        $this->approve();
+        $this->assertSame($approvedType, $this->consultationSession->sessionType);
+    }
+    
+    protected function assertManageableByMentor()
+    {
+        $this->consultationSession->assertManageableByMentor($this->programConsultant);
+    }
+    public function test_assertManageableByMentor_sameMentor_void()
+    {
+        $this->assertManageableByMentor();
+        $this->markAsSuccess();
+    }
+    public function test_assertManageableByMentor_differentMentor_forbidden()
+    {
+        $this->consultationSession->programConsultant = $this->buildMockOfClass(ProgramConsultant::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByMentor();
+        }, 'Forbidden', 'forbidden: consultation session is unmanageable, either already cancelled or doesn\'t belongs to mentor');
+    }
+    public function test_assertManageableByMentor_cancelled_forbidden()
+    {
+        $this->consultationSession->cancelled = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByMentor();
+        }, 'Forbidden', 'forbidden: consultation session is unmanageable, either already cancelled or doesn\'t belongs to mentor');
+    }
 
 }
 
@@ -140,6 +222,7 @@ class TestableConsultationSession extends ConsultationSession
     public $consultationSetup;
     public $startEndTime;
     public $channel;
+    public $sessionType;
     public $cancelled;
     public $consultantFeedback;
     public $consultationSessionActivityLogs;

@@ -52,5 +52,10 @@ class Participant
         };
         return !empty($this->consultationSessions->filter($p)->count());
     }
+    
+    public function manageableInProgram(string $programId): bool
+    {
+        return $this->programId === $programId && $this->active;
+    }
 
 }

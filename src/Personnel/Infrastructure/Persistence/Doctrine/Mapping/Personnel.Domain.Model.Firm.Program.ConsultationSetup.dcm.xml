@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Personnel\Domain\Model\Firm\Program\ConsultationSetup" 
             table="ConsultationSetup" 
+            repository-class="Personnel\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultationSetupRepository"
     >
         
         <field name="programId" column="Program_id" type="guid" nullable="false"/>

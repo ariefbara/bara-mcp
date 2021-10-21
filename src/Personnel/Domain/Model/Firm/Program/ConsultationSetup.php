@@ -65,5 +65,10 @@ class ConsultationSetup
     {
         return $this->consultantFeedbackForm->createFormRecord($id, $formRecordData);
     }
-
+    
+    public function usableInProgram(string $programId): bool
+    {
+        return $this->programId === $programId && !$this->removed;
+    }
+    
 }

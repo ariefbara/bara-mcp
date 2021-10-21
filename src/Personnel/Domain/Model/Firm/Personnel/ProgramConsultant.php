@@ -9,11 +9,16 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
+use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
 use Resources\Domain\Model\EntityContainEvents;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 
 class ProgramConsultant extends EntityContainEvents
 {
@@ -62,7 +67,7 @@ class ProgramConsultant extends EntityContainEvents
     public function acceptConsultationRequest(string $consultationRequestId): void
     {
         $this->assertActive();
-        
+
         $consultationRequest = $this->findConsultationRequestOrDie($consultationRequestId);
 
         $this->assertNoConsultationSessionInConflictWithConsultationRequest($consultationRequest);
@@ -73,10 +78,10 @@ class ProgramConsultant extends EntityContainEvents
         $consultationSessionId = Uuid::generateUuid4();
         $consultationSession = $consultationRequest->createConsultationSession($consultationSessionId);
         $this->consultationSessions->add($consultationSession);
-        
+
         $firmId = $this->personnel->getFirmId();
         $personnelId = $this->personnel->getId();
-        
+
         $this->aggregateEventFrom($consultationSession);
     }
 
@@ -84,7 +89,7 @@ class ProgramConsultant extends EntityContainEvents
             string $consultationRequestId, ConsultationRequestData $consultationRequestData): void
     {
         $this->assertActive();
-        
+
         $consultationRequest = $this->findConsultationRequestOrDie($consultationRequestId);
         $consultationRequest->offer($consultationRequestData);
 
@@ -94,25 +99,25 @@ class ProgramConsultant extends EntityContainEvents
 
         $firmId = $this->personnel->getFirmId();
         $personnelId = $this->personnel->getId();
-        
+
         $this->aggregateEventFrom($consultationRequest);
     }
-    
+
     public function submitNewCommentOnWorksheet(
             string $consultantCommentId, Worksheet $worksheet, string $message): ConsultantComment
     {
         $this->assertActive();
         $this->assertAssetBelongsToParticipantInSameProgram($worksheet);
-        
+
         $comment = new Comment($worksheet, $consultantCommentId, $message);
         return new ConsultantComment($this, $consultantCommentId, $comment);
     }
-    
+
     public function submitReplyOnWorksheetComment(string $consultantCommentId, Comment $comment, string $message): ConsultantComment
     {
         $this->assertActive();
         $this->assertAssetBelongsToParticipantInSameProgram($comment);
-        
+
         $reply = $comment->createReply($consultantCommentId, $message);
         return new ConsultantComment($this, $consultantCommentId, $reply);
     }
@@ -154,7 +159,7 @@ class ProgramConsultant extends EntityContainEvents
         }
         return $consultationRequest;
     }
-    
+
     protected function assertActive(): void
     {
         if (!$this->active) {
@@ -162,6 +167,7 @@ class ProgramConsultant extends EntityContainEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
+
     protected function assertAssetBelongsToParticipantInSameProgram(AssetBelongsToParticipantInProgram $asset): void
     {
         if (!$asset->belongsToParticipantInProgram($this->programId)) {
@@ -169,10 +175,33 @@ class ProgramConsultant extends EntityContainEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
-    
+
     public function verifyAssetUsable(IUsableInProgram $asset): void
     {
         $asset->assertUsableInProgram($this->programId);
+    }
+
+    public function executeTask(ITaskExecutableByMentor $task): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active mentor can make this request');
+        }
+        $task->execute($this);
+    }
+
+    public function declareConsultationSession(
+            string $consultationSessionId, Participant $participant, ConsultationSetup $consultationSetup,
+            DateTimeInterval $startEndTime, ConsultationChannel $channel): ConsultationSession
+    {
+        if (!$consultationSetup->usableInProgram($this->programId)) {
+            throw RegularException::forbidden('forbidden: unuseable consultation setup');
+        }
+        if (!$participant->manageableInProgram($this->programId)) {
+            throw RegularException::forbidden('forbidden: unamanged participant');
+        }
+        $type = new ConsultationSessionType(ConsultationSessionType::DECLARED_TYPE, true);
+        return new ConsultationSession(
+                $this, $consultationSessionId, $participant, $consultationSetup, $startEndTime, $channel, $type);
     }
 
 }

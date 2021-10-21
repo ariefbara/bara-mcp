@@ -3,12 +3,12 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfConsultant,
-    Firm\Program\RecordOfConsultationSetup,
-    Firm\Program\RecordOfParticipant,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfConsultationSession implements Record
 {
@@ -32,6 +32,8 @@ class RecordOfConsultationSession implements Record
     public $note;
     public $media;
     public $address;
+    public $sessionType;
+    public $approvedByMentor;
     
     function __construct(
             ?RecordOfConsultationSetup $consultationSetup, ?RecordOfParticipant $participant, ?RecordOfConsultant $consultant, $index)
@@ -46,6 +48,8 @@ class RecordOfConsultationSession implements Record
         $this->note = null;
         $this->media = "media $index";
         $this->address = "consultation request $index address";
+        $this->sessionType = ConsultationSessionType::HANDSHAKING_TYPE;
+        $this->approvedByMentor = null;
     }
 
     
@@ -62,7 +66,14 @@ class RecordOfConsultationSession implements Record
             "note" => $this->note,
             "media" => $this->media,
             "address" => $this->address,
+            "sessionType" => $this->sessionType,
+            'approvedByMentor' => $this->approvedByMentor,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection)
+    {
+        $connection->table('ConsultationSession')->insert($this->toArrayForDbEntry());
     }
 
 }

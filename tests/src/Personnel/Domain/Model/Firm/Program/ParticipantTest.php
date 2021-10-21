@@ -12,7 +12,7 @@ use Tests\TestBase;
 class ParticipantTest extends TestBase
 {
     protected $consultationSession;
-    protected $participant;
+    protected $participant, $programId = 'programId';
     
     protected $consultationRequest;
 
@@ -22,6 +22,8 @@ class ParticipantTest extends TestBase
         parent::setUp();
         
         $this->participant = new TestableParticipant();
+        $this->participant->programId = $this->programId;
+        
         $this->participant->consultationSessions = new ArrayCollection();
         
         $this->consultationSession = $this->buildMockOfClass(ConsultationSession::class);
@@ -54,11 +56,30 @@ class ParticipantTest extends TestBase
     {
         $this->assertFalse($this->participant->programEquals("differentProgramId"));
     }
+    
+    protected function manageableInProgram()
+    {
+        return $this->participant->manageableInProgram($this->programId);
+    }
+    public function test_manageableInProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->manageableInProgram());
+    }
+    public function test_manageableInProgram_differentProgram_returnFalse()
+    {
+        $this->participant->programId = 'differentProgramId';
+        $this->assertFalse($this->manageableInProgram());
+    }
+    public function test_manageableInProgram_inactiveParticipant_returnFalse()
+    {
+        $this->participant->active = false;
+        $this->assertFalse($this->manageableInProgram());
+    }
 }
 
 class TestableParticipant extends Participant
 {
-    public $programId = "programId", $id, $acceptedTime, $active, $note; 
+    public $programId = "programId", $id, $acceptedTime, $active = true, $note; 
     public $consultationSessions;
     
     public function __construct()

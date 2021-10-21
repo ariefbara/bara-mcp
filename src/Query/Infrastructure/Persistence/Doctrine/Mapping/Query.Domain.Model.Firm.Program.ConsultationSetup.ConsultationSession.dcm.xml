@@ -35,6 +35,11 @@
                   use-column-prefix="false" 
         />
         
+        <embedded name="sessionType" 
+                  class="SharedContext\Domain\ValueObject\ConsultationSessionType" 
+                  use-column-prefix="false" 
+        />
+        
         <field name="cancelled" type="boolean" />
         <field name="note" type="string" length="32" nullable="true"/>
         

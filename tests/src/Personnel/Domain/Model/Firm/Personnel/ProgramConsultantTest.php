@@ -2,15 +2,21 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel;
 
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\Model\Firm\Personnel;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
+use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
 use Resources\Application\Event\Event;
+use Resources\Domain\ValueObject\DateTimeInterval;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 use Tests\TestBase;
 
 class ProgramConsultantTest extends TestBase
@@ -26,6 +32,10 @@ class ProgramConsultantTest extends TestBase
     protected $comment;
     
     protected $asset;
+    
+    protected $task;
+    
+    protected $consultationSessionId = 'consultationSessionId', $participant, $consultationSetup, $startEndTime, $channel;
 
     protected function setUp(): void
     {
@@ -47,12 +57,19 @@ class ProgramConsultantTest extends TestBase
         $this->programConsultant->consultationSessions->add($this->consultationSession);
 
         $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
-        $this->consultationRequestData->expects($this->any())->method("getStartTime")->willReturn(new \DateTimeImmutable());
+        $this->consultationRequestData->expects($this->any())->method("getStartTime")->willReturn(new DateTimeImmutable());
         
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         $this->comment = $this->buildMockOfClass(Comment::class);
         
         $this->asset = $this->buildMockOfInterface(IUsableInProgram::class);
+        
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByMentor::class);
+        
+        $this->participant = $this->buildMockOfClass(Participant::class);
+        $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
+        $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
     }
 
     protected function executeAcceptConsultationRequest()
@@ -264,6 +281,61 @@ class ProgramConsultantTest extends TestBase
                 ->method('assertUsableInProgram')
                 ->with($this->programConsultant->programId);
         $this->programConsultant->verifyAssetUsable($this->asset);
+    }
+    
+    protected function executeTask()
+    {
+        $this->programConsultant->executeTask($this->task);
+    }
+    public function test_executeTask_executeTask()
+    {
+        $this->task->expects($this->once())
+                ->method('execute')
+                ->with($this->programConsultant);
+        $this->executeTask();
+    }
+    public function test_executeTask_inactiveMentor_forbidden()
+    {
+        $this->programConsultant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executeTask();
+        }, 'Forbidden', 'forbidden: only active mentor can make this request');
+    }
+    
+    protected function declareConsultationSession()
+    {
+        $this->consultationSetup->expects($this->any())
+                ->method('usableInProgram')
+                ->willReturn(true);
+        $this->participant->expects($this->any())
+                ->method('manageableInProgram')
+                ->willReturn(true);
+        return $this->programConsultant->declareConsultationSession(
+                $this->consultationSessionId, $this->participant, $this->consultationSetup, $this->startEndTime, $this->channel);
+    }
+    public function test_declareConsultatioNSession_returnDeclaredConsultationSession()
+    {
+        $this->assertInstanceOf(ConsultationSession::class, $this->declareConsultationSession());
+    }
+    public function test_declareConsultationSession_unuseableConsultationSetup_forbidden()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('usableInProgram')
+                ->with($this->programConsultant->programId)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->declareConsultationSession();
+        }, 'Forbidden', 'forbidden: unuseable consultation setup');
+    }
+    public function test_declareConsultationSession_unmanagedParticipant_forbidden()
+    {
+        $this->participant->expects($this->once())
+                ->method('manageableInProgram')
+                ->with($this->programConsultant->programId)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->declareConsultationSession();
+        }, 'Forbidden', 'forbidden: unamanged participant');
     }
 }
 
