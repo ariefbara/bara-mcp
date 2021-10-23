@@ -446,7 +446,6 @@ $this->disableExceptionHandling();
     
     public function declare()
     {
-echo $this->consultationSessionUri;
         $this->post($this->consultationSessionUri, $this->declareConsultationSessionRequest, $this->personnel->token);
     }
     public function test_declare_201()
@@ -519,7 +518,6 @@ echo $this->consultationSessionUri;
         $this->connection->table('ConsultationSession')->truncate();
         $this->consultationSession->insert($this->connection);
         $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/cancel";
-echo $uri;
         $this->patch($uri, [], $this->personnel->token);
     }
     public function test_cancel_200()
@@ -557,7 +555,6 @@ echo $uri;
         $this->connection->table('ConsultationSession')->truncate();
         $this->consultationSession->insert($this->connection);
         $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/deny";
-echo $uri;
         $this->patch($uri, [], $this->personnel->token);
     }
     public function test_deny_200()
