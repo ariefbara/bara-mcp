@@ -5,7 +5,7 @@ namespace Query\Domain\Model\Shared\Form;
 interface IContainFieldRecord
 {
 
-    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?int;
+    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?float;
 
     public function getStringFieldRecordValueCorrespondWith(StringField $stringField): ?string;
 

@@ -28,4 +28,11 @@ interface EvaluationReportRepository
     public function allActiveEvaluationReportCorrespondWithClient(string $clientId, int $page, int $pageSize);
     
     public function anActiveEvaluationReportCorrespondWithClient(string $clientId, string $id): EvaluationReport;
+    
+    /**
+     * 
+     * @param string $clientId
+     * @return EvaluationReport[]
+     */
+    public function allNonPaginatedActiveEvaluationReportCorrespondWithClient(string $clientId);
 }

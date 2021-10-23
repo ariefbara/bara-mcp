@@ -315,5 +315,15 @@ class Participant extends EntityContainEvents
         $this->assertActive();
         $task->execute($this->id);
     }
+    
+    public function getProgramName(): string
+    {
+        return $this->program->getName();
+    }
+    
+    public function getProgramId(): string
+    {
+        return $this->program->getId();
+    }
 
 }

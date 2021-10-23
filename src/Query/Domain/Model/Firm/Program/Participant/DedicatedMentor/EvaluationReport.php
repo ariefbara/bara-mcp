@@ -186,7 +186,7 @@ class EvaluationReport implements IContainFieldRecord, ContainFormRecordInterfac
         return $this->formRecord->getFileInfoListOfAttachmentFieldRecordCorrespondWith($attachmentField);
     }
 
-    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?int
+    public function getIntegerFieldRecordValueCorrespondWith(IntegerField $integerField): ?float
     {
         return $this->formRecord->getIntegerFieldRecordValueCorrespondWith($integerField);
     }

@@ -435,4 +435,47 @@ _STATEMENT;
         }
     }
 
+    public function allNonPaginatedActiveEvaluationReportCorrespondWithClient(string $clientId): array
+    {
+        $params = [
+            'clientId' => $clientId,
+        ];
+
+        $clientParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $clientParticipantQb->select('a_participant.id')
+                ->from(ClientParticipant::class, 'clientParticipant')
+                ->leftJoin('clientParticipant.client', 'a_client')
+                ->andWhere($clientParticipantQb->expr()->eq('a_client.id', ':clientId'))
+                ->leftJoin('clientParticipant.participant', 'a_participant');
+
+        $memberQb = $this->getEntityManager()->createQueryBuilder();
+        $memberQb->select('b1_team.id')
+                ->from(Member::class, 'b1_member')
+                ->andWhere($memberQb->expr()->eq('b1_member.active', 'true'))
+                ->leftJoin('b1_member.client', 'b1_client')
+                ->andWhere($memberQb->expr()->eq('b1_client.id', ':clientId'))
+                ->leftJoin('b1_member.team', 'b1_team');
+
+        $teamParticipantQb = $this->getEntityManager()->createQueryBuilder();
+        $teamParticipantQb->select('b_participant.id')
+                ->from(TeamProgramParticipation::class, 'b_teamParticipant')
+                ->leftJoin('b_teamParticipant.team', 'b_team')
+                ->andWhere($clientParticipantQb->expr()->in('b_team.id', $memberQb->getDQL()))
+                ->leftJoin('b_teamParticipant.programParticipation', 'b_participant');
+
+        $qb = $this->createQueryBuilder('evaluationReport');
+        $qb->select('evaluationReport')
+                ->andWhere($qb->expr()->eq('evaluationReport.cancelled', 'false'))
+                ->leftJoin('evaluationReport.dedicatedMentor', 'dedicatedMentor')
+                ->leftJoin('dedicatedMentor.participant', 'participant')
+                ->andWhere($qb->expr()->orX(
+                                $qb->expr()->in('participant.id', $clientParticipantQb->getDQL()),
+                                $qb->expr()->in('participant.id', $teamParticipantQb->getDQL())
+                ))
+                ->orderBy('evaluationReport.modifiedTime', 'DESC')
+                ->setParameters($params);
+        
+        return $qb->getQuery()->getResult();
+    }
+
 }

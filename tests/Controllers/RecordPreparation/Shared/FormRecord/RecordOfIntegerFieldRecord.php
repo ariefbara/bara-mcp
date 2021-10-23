@@ -28,7 +28,7 @@ class RecordOfIntegerFieldRecord implements Record
         $this->formRecord = $formRecord;
         $this->integerField = $integerField;
         $this->id = "integerFieldRecord-$index-id";
-        $this->value = 99;
+        $this->value = 99.99;
         $this->removed = false;
     }
 
