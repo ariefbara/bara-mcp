@@ -47,7 +47,7 @@ class Controller extends BaseController
         if ($this->request->input($label) === null) {
             return null;
         }
-        return strip_tags($this->request->input($label));
+        return htmlentities($this->request->input($label), ENT_QUOTES, 'UTF-8');
     }
 
     protected function integerOfInputRequest($label): ?int
@@ -79,7 +79,7 @@ class Controller extends BaseController
         if ($this->request->query($label) === null) {
             return null;
         }
-        return strip_tags($this->request->query($label));
+        return htmlentities($this->request->query($label), ENT_QUOTES, 'UTF-8');
     }
 
     protected function integerOfQueryRequest($label): ?int
@@ -108,7 +108,7 @@ class Controller extends BaseController
 
     protected function stripTagsVariable($var): ?string
     {
-        return isset($var) ? strip_tags($var) : null;
+        return isset($var) ? htmlentities($var, ENT_QUOTES, 'UTF-8') : null;
     }
 
     protected function integerOfVariable($var): ?int

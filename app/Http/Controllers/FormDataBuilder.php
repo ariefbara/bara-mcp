@@ -31,7 +31,7 @@ class FormDataBuilder
     
     protected function stripTagsVariable($var): ?string
     {
-        return isset($var) ? strip_tags($var) : null;
+        return isset($var) ? htmlentities($var, ENT_QUOTES, 'UTF-8') : null;
     }
 
     protected function integerOfVariable($var): ?int
@@ -67,7 +67,7 @@ class FormDataBuilder
             $defaultValue = $this->stripTagsVariable($stringFieldRequest['defaultValue']);
             
             $stringFieldData = new StringFieldData($fieldData, $minValue, $maxValue, $placeholder, $defaultValue);
-            $stringFieldId = (isset($stringFieldRequest['id']))? strip_tags($stringFieldRequest['id']): null;
+            $stringFieldId = (isset($stringFieldRequest['id']))? htmlentities($stringFieldRequest['id'], ENT_QUOTES, 'UTF-8'): null;
             
             $formData->pushStringFieldData($stringFieldData, $stringFieldId);
         }
@@ -87,7 +87,7 @@ class FormDataBuilder
             $defaultValue = filter_var($integerFieldRequest['defaultValue'], FILTER_SANITIZE_NUMBER_INT);
             
             $integerFieldData = new IntegerFieldData($fieldData, $minValue, $maxValue, $placeholder, $defaultValue);
-            $integerFieldId = (isset($integerFieldRequest['id']))? strip_tags($integerFieldRequest['id']): null;
+            $integerFieldId = (isset($integerFieldRequest['id']))? htmlentities($integerFieldRequest['id'], ENT_QUOTES, 'UTF-8'): null;
             
             $formData->pushIntegerFieldData($integerFieldData, $integerFieldId);
         }
@@ -107,7 +107,7 @@ class FormDataBuilder
             $defaultValue = $this->stripTagsVariable($textAreaFieldRequest['defaultValue']);
             
             $textAreaFieldData = new TextAreaFieldData($fieldData, $minValue, $maxValue, $placeholder, $defaultValue);
-            $textAreaFieldId = (isset($textAreaFieldRequest['id']))? strip_tags($textAreaFieldRequest['id']): null;
+            $textAreaFieldId = (isset($textAreaFieldRequest['id']))? htmlentities($textAreaFieldRequest['id'], ENT_QUOTES, 'UTF-8'): null;
             
             $formData->pushTextAreaFieldData($textAreaFieldData, $textAreaFieldId);
         }
@@ -125,7 +125,7 @@ class FormDataBuilder
             $maxValue = $this->integerOfVariable($attachmentFieldRequest['maxValue']);
             
             $attachmentFieldData = new AttachmentFieldData($fieldData, $minValue, $maxValue);
-            $attachmentFieldId = (isset($attachmentFieldRequest['id']))? strip_tags($attachmentFieldRequest['id']): null;
+            $attachmentFieldId = (isset($attachmentFieldRequest['id']))? htmlentities($attachmentFieldRequest['id'], ENT_QUOTES, 'UTF-8'): null;
             $formData->pushAttachmentFieldData($attachmentFieldData, $attachmentFieldId);
         }
     }
@@ -143,7 +143,7 @@ class FormDataBuilder
             $defaultValue = $this->stripTagsVariable($singleSelectFieldRequest['defaultValue']);
             
             $singleSelectFieldData = new SingleSelectFieldData($selectFieldData, $defaultValue);
-            $singleSelectFieldId = (isset($singleSelectFieldRequest['id']))? strip_tags($singleSelectFieldRequest['id']): null;
+            $singleSelectFieldId = (isset($singleSelectFieldRequest['id']))? htmlentities($singleSelectFieldRequest['id'], ENT_QUOTES, 'UTF-8'): null;
                     
             $formData->pushSingleSelectFieldData($singleSelectFieldData, $singleSelectFieldId);
         }
@@ -163,7 +163,7 @@ class FormDataBuilder
             $maxValue = $this->integerOfVariable($multiSelectFieldRequest['maxValue']);
             
             $multiSelectFieldData = new MultiSelectFieldData($selectFieldData, $minValue, $maxValue);
-            $multiSelectFieldId = (isset($multiSelectFieldRequest['id']))? strip_tags($multiSelectFieldRequest['id']): null;
+            $multiSelectFieldId = (isset($multiSelectFieldRequest['id']))? htmlentities($multiSelectFieldRequest['id'], ENT_QUOTES, 'UTF-8'): null;
             
             $formData->pushMultiSelectFieldData($multiSelectFieldData, $multiSelectFieldId);
         }
@@ -176,7 +176,7 @@ class FormDataBuilder
             $position = $this->stripTagsVariable($optionRequest['position']);
             
             $optionData = new OptionData($name, $description, $position);
-            $optionId = (isset($optionRequest['id']))? strip_tags($optionRequest['id']): null;
+            $optionId = (isset($optionRequest['id']))? htmlentities($optionRequest['id'], ENT_QUOTES, 'UTF-8'): null;
             
             $selectFieldData->pushOptionData($optionData, $optionId);
         }
