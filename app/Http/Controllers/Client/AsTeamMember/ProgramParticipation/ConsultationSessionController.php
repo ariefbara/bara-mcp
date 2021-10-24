@@ -8,8 +8,13 @@ use App\Http\Controllers\FormRecordToArrayDataConverter;
 use App\Http\Controllers\FormToArrayDataConverter;
 use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\ConsultationSession\SubmitReport;
 use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\Model\Participant\ConsultationSession as ConsultationSession2;
 use Participant\Domain\Service\TeamFileInfoFinder;
+use Participant\Domain\Task\Participant\CancelConsultationSessionTask;
+use Participant\Domain\Task\Participant\DeclareConsultationSessionPayload;
+use Participant\Domain\Task\Participant\DeclareConsultationSessionTask;
 use Query\Application\Service\Firm\Team\ProgramParticipation\ViewConsultationSession;
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
@@ -19,6 +24,39 @@ use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ConsultationSessionController extends AsTeamMemberBaseController
 {
+    
+    public function declare($teamId, $teamProgramParticipationId)
+    {
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
+        $consultationSetupRepository = $this->em->getRepository(ConsultationSetup::class);
+        $mentorRepository = $this->em->getRepository(Consultant::class);
+        
+        $consultationSetupId = $this->stripTagsInputRequest('consultationSetupId');
+        $mentorId = $this->stripTagsInputRequest('consultantId');
+        $startTime = $this->dateTimeImmutableOfInputRequest('startTime');
+        $endTime = $this->dateTimeImmutableOfInputRequest('endTime');
+        $media = $this->stripTagsInputRequest('media');
+        $address = $this->stripTagsInputRequest('address');
+        $payload = new DeclareConsultationSessionPayload(
+                $consultationSetupId, $mentorId, $startTime, $endTime, $media, $address);
+        
+        $task = new DeclareConsultationSessionTask(
+                $consultationSessionRepository, $consultationSetupRepository, $mentorRepository, $payload);
+        $this->executeTeamParticipantTask($teamId, $teamProgramParticipationId, $task);
+        
+        $consultationSessionId = $task->declaredSessionId;
+        $consultationSession = $this->buildViewService()->showById($teamId, $consultationSessionId);
+        return $this->commandCreatedResponse($this->arrayDataOfConsultationSession($consultationSession));
+    }
+    
+    public function cancel($teamId, $teamProgramParticipationId, $consultationSessionId) 
+    {
+        $consultationSessionRepository = $this->em->getRepository(ConsultationSession2::class);
+        $task = new CancelConsultationSessionTask($consultationSessionRepository, $consultationSessionId);
+        $this->executeTeamParticipantTask($teamId, $teamProgramParticipationId, $task);
+        
+        return $this->show($teamId, $teamProgramParticipationId, $consultationSessionId);
+    }
 
     public function submitReport($teamId, $teamProgramParticipationId, $consultationSessionId)
     {
@@ -66,6 +104,9 @@ class ConsultationSessionController extends AsTeamMemberBaseController
                 "endTime" => $consultationSession->getEndTime(),
                 "media" => $consultationSession->getMedia(),
                 "address" => $consultationSession->getAddress(),
+                "sessionType" => $consultationSession->getSessionTypeDisplayValue(),
+                "approvedByMentor" => $consultationSession->isApprovedByMentor(),
+                "cancelled" => $consultationSession->isCancelled(),
                 "hasParticipantFeedback" => $consultationSession->hasParticipantFeedback(),
                 "consultationSetup" => [
                     "id" => $consultationSession->getConsultationSetup()->getId(),
@@ -91,6 +132,9 @@ class ConsultationSessionController extends AsTeamMemberBaseController
             "endTime" => $consultationSession->getEndTime(),
             "media" => $consultationSession->getMedia(),
             "address" => $consultationSession->getAddress(),
+            "sessionType" => $consultationSession->getSessionTypeDisplayValue(),
+            "approvedByMentor" => $consultationSession->isApprovedByMentor(),
+            "cancelled" => $consultationSession->isCancelled(),
             "consultationSetup" => [
                 "id" => $consultationSession->getConsultationSetup()->getId(),
                 "name" => $consultationSession->getConsultationSetup()->getName(),
