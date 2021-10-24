@@ -4,15 +4,12 @@ namespace Participant\Domain\DependencyModel\Firm\Program;
 
 use DateInterval;
 use DateTimeImmutable;
-use Participant\Domain\DependencyModel\Firm\ {
-    FeedbackForm,
-    Program
-};
+use Participant\Domain\DependencyModel\Firm\FeedbackForm;
+use Participant\Domain\DependencyModel\Firm\Program;
 use Resources\Domain\ValueObject\DateTimeInterval;
-use SharedContext\Domain\Model\SharedEntity\ {
-    FormRecord,
-    FormRecordData
-};
+use Resources\Exception\RegularException;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class ConsultationSetup
 {
@@ -66,6 +63,13 @@ class ConsultationSetup
     {
         $endTime = $startTime->add(new DateInterval("PT{$this->sessionDuration}M"));
         return new DateTimeInterval($startTime, $endTime);
+    }
+    
+    public function assertUsableInProgram(Program $program): void
+    {
+        if ($this->removed || $this->program !== $program) {
+            throw RegularException::forbidden('forbidden: unuseable consultation setup, either inactive or belongs to other program');
+        }
     }
 
 }

@@ -3,11 +3,10 @@
 namespace Participant\Domain\DependencyModel\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\{
-    DependencyModel\Firm\Program,
-    Model\Participant\ConsultationRequest,
-    Model\Participant\ConsultationSession
-};
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\Model\Participant\ConsultationRequest;
+use Participant\Domain\Model\Participant\ConsultationSession;
+use Resources\Exception\RegularException;
 
 class Consultant
 {
@@ -64,6 +63,13 @@ class Consultant
         };
 
         return $this->active && empty($this->consultationSessions->filter($p)->count());
+    }
+    
+    public function assertUsableInProgram(Program $program): void
+    {
+        if (!$this->active || $this->program !== $program) {
+            throw RegularException::forbidden('forbidden: unuseable mentor, either inactive or belongs to different program');
+        }
     }
 
 }

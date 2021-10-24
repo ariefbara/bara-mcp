@@ -2,19 +2,16 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Participant\ {
-    Application\Service\Participant\ConsultationSessionRepository,
-    Domain\Model\ClientParticipant,
-    Domain\Model\Participant\ConsultationSession,
-    Domain\Model\UserParticipant
-};
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\Participant\ConsultationSessionRepository;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\UserParticipant;
+use Participant\Domain\Task\Dependency\Firm\Program\Participant\ConsultationSessionRepository as InterfaceForTask;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineConsultationSessionRepository extends EntityRepository implements ConsultationSessionRepository
+class DoctrineConsultationSessionRepository extends DoctrineEntityRepository implements ConsultationSessionRepository, InterfaceForTask
 {
 
     public function aConsultationSessionOfClientParticipant(string $firmId, string $clientId,
@@ -108,6 +105,11 @@ class DoctrineConsultationSessionRepository extends EntityRepository implements 
             $errorDetail = "not found: consultation session not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function add(ConsultationSession $consultationSession): void
+    {
+        $this->persist($consultationSession);
     }
 
 }

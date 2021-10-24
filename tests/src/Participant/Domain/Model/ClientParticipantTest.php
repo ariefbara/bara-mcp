@@ -44,6 +44,8 @@ class ClientParticipantTest extends TestBase
     protected $objective;
     protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $objectiveProgressReport;
 
+    protected $participantTask;
+    
     protected function setUp(): void
     {
         parent::setUp();
@@ -80,6 +82,8 @@ class ClientParticipantTest extends TestBase
         $this->objective = $this->buildMockOfClass(Objective::class);
         $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
         $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
+        
+        $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
     }
 
     public function test_quit_quitParticipant()
@@ -287,6 +291,18 @@ class ClientParticipantTest extends TestBase
                 ->method('cancelObjectiveProgressReportSubmission')
                 ->with($this->objectiveProgressReport);
         $this->clientParticipant->cancelObjectiveProgressReportSubmission($this->objectiveProgressReport);
+    }
+    
+    protected function executeParticipantTask()
+    {
+        $this->clientParticipant->executeParticipantTask($this->participantTask);
+    }
+    public function test_executeParticipantTask_partcipantExecuteTask()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeParticipantTask')
+                ->with($this->participantTask);
+        $this->executeParticipantTask();
     }
 
 }

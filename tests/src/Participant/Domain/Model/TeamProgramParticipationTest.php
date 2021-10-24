@@ -29,7 +29,7 @@ use Tests\TestBase;
 class TeamProgramParticipationTest extends TestBase
 {
 
-    protected $teamProgramParticipation;
+    protected $teamProgramParticipation, $team;
     protected $programParticipation;
     protected $program;
     protected $worksheetId = "worksheetId", $worksheetName = "worksheet name", $mission, $formRecordData;
@@ -44,12 +44,14 @@ class TeamProgramParticipationTest extends TestBase
     protected $okrPeriod, $okrPeriodData;
     protected $objective;
     protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $objectiveProgressReport;
+    protected $participantTask;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->teamProgramParticipation = new TestableTeamProgramParticipation();
-        $this->teamProgramParticipation->team = $this->buildMockOfClass(Team::class);
+        $this->team = $this->buildMockOfClass(Team::class);
+        $this->teamProgramParticipation->team = $this->team;
         $this->programParticipation = $this->buildMockOfClass(Participant::class);
         $this->teamProgramParticipation->programParticipation = $this->programParticipation;
 
@@ -82,6 +84,8 @@ class TeamProgramParticipationTest extends TestBase
         $this->objective = $this->buildMockOfClass(Objective::class);
         $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
         $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
+        
+        $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
     }
     
     public function test_belongsToTeam_sameTeam_returnTrue()
@@ -262,6 +266,35 @@ class TeamProgramParticipationTest extends TestBase
                 ->method('cancelObjectiveProgressReportSubmission')
                 ->with($this->objectiveProgressReport);
         $this->teamProgramParticipation->cancelObjectiveProgressReportSubmission($this->objectiveProgressReport);
+    }
+    
+    protected function executeParticipantTask()
+    {
+        $this->teamProgramParticipation->executeParticipantTask($this->participantTask);
+    }
+    public function test_executeParticipantTask_participantExecuteParticipantTask()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('executeParticipantTask')
+                ->with($this->participantTask);
+        $this->executeParticipantTask();
+    }
+    
+    protected function assertBelongsToTeam()
+    {
+        $this->teamProgramParticipation->assertBelongsToTeam($this->team);
+    }
+    public function test_assertBelongsToTeam_sameTeam_void()
+    {
+        $this->assertBelongsToTeam();
+        $this->markAsSuccess();
+    }
+    public function test_assertBelongsToTeam_differentTeam_forbidden()
+    {
+        $this->teamProgramParticipation->team = $this->buildMockOfClass(Team::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertBelongsToTeam();
+        }, 'Forbidden', 'forbidden: participant doesn\'t belongs to team');
     }
 }
 

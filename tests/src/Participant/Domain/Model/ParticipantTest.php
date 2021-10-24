@@ -21,7 +21,9 @@ use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -47,6 +49,9 @@ class ParticipantTest extends TestBase
     protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime, $metricAssignmentReportDataProvider;
     
     protected $programsProfileForm, $profile;
+    protected $participantTask;
+    
+    protected $startEndTime, $channel;
 
     protected function setUp(): void
     {
@@ -104,6 +109,10 @@ class ParticipantTest extends TestBase
         $this->profile = $this->buildMockOfClass(ParticipantProfile::class);
         $this->participant->profiles->add($this->profile);
         
+        $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        
+        $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
+        $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -613,6 +622,59 @@ class ParticipantTest extends TestBase
         });
     }
     
+    protected function executeParticipantTask()
+    {
+        $this->participant->executeParticipantTask($this->participantTask);
+    }
+    public function test_executeParticipantTask_executeTask()
+    {
+        $this->participantTask->expects($this->once())
+                ->method('execute')
+                ->with($this->participant);
+        $this->executeParticipantTask();
+    }
+    public function test_executeParticipantTask_inactiveParticipant()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executeParticipantTask();
+        }, 'Forbidden', 'forbidden: only active participant can make this request');
+    }
+    
+    protected function declareConsultationSession()
+    {
+        $this->consultant->expects($this->any())
+                ->method('isActive')
+                ->willReturn(true);
+        return $this->participant->declareConsultationSession(
+                $this->consultationSessionId, $this->consultationSetup, $this->consultant, $this->startEndTime, 
+                $this->channel);
+    }
+    public function test_declareConsultationSession_returnDeclaredConsultationSession()
+    {
+        $this->assertInstanceOf(ConsultationSession::class, $this->declareConsultationSession());
+    }
+    public function test_declareConsultationSession_assertConsultationSetupUsableInProgram()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->participant->program);
+        $this->declareConsultationSession();
+    }
+    public function test_declareConsultationSession_assertMentorUsableInProgram()
+    {
+        $this->consultant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->participant->program);
+        $this->declareConsultationSession();
+    }
+    public function test_declareConsultationSession_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->declareConsultationSession();
+        }, 'Forbidden', 'forbidden: only active participant can make this request');
+    }
 }
 
 class TestableParticipant extends Participant

@@ -2,19 +2,16 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Participant\ {
-    Application\Service\Firm\Program\ConsultationSetupRepository,
-    Domain\DependencyModel\Firm\Program\ConsultationSetup,
-    Domain\Model\ClientParticipant,
-    Domain\Model\UserParticipant
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\Firm\Program\ConsultationSetupRepository;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
+use Participant\Domain\Task\Dependency\Firm\Program\ConsultationSetupRepository as InterfaceForTask;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\UserParticipant;
 use Resources\Exception\RegularException;
 
-class DoctrineConsultationSetupRepository extends EntityRepository implements ConsultationSetupRepository
+class DoctrineConsultationSetupRepository extends EntityRepository implements ConsultationSetupRepository, InterfaceForTask
 {
 
     public function aConsultationSetupInProgramWhereClientParticipate(

@@ -54,7 +54,7 @@ class RecordOfConsultationSetup implements Record
     
     public function insert(ConnectionInterface $connection)
     {
-        $connection->table('Participant')->insert($this->toArrayForDbEntry());
+        $connection->table('ConsultationSetup')->insert($this->toArrayForDbEntry());
     }
 
 }

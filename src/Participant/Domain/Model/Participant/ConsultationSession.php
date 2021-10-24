@@ -19,6 +19,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 
 class ConsultationSession extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
@@ -52,12 +53,18 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
      * @var DateTimeInterval
      */
     protected $startEndTime;
-    
+
     /**
      * 
      * @var ConsultationChannel
      */
     protected $channel;
+
+    /**
+     * 
+     * @var ConsultationSessionType
+     */
+    protected $sessionType;
 
     /**
      *
@@ -79,7 +86,8 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
 
     function __construct(
             Participant $participant, $id, ConsultationSetup $consultationSetup, Consultant $consultant,
-            DateTimeInterval $startEndTime, ConsultationChannel $channel, ?TeamMembership $teamMember)
+            DateTimeInterval $startEndTime, ConsultationChannel $channel, ConsultationSessionType $sessionType,
+            ?TeamMembership $teamMember = null)
     {
         if (!$consultant->isActive()) {
             $errorDetail = "forbidden: inactive mentor can't give consultation";
@@ -91,6 +99,7 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
         $this->consultant = $consultant;
         $this->startEndTime = $startEndTime;
         $this->channel = $channel;
+        $this->sessionType = $sessionType;
         $this->cancelled = false;
 
         $this->consultationSessionActivityLogs = new ArrayCollection();
@@ -134,6 +143,22 @@ class ConsultationSession extends EntityContainEvents implements AssetBelongsToT
         $id = Uuid::generateUuid4();
         $consultationSesssionActivityLog = new ConsultationSessionActivityLog($this, $id, $message, $teamMember);
         $this->consultationSessionActivityLogs->add($consultationSesssionActivityLog);
+    }
+    
+    public function cancel(): void
+    {
+        if (!$this->sessionType->canBeCancelled() || $this->cancelled) {
+            throw RegularException::forbidden('forbidden: unable to cancel session, either uncancellable (non declared type) or already cancelled');
+        }
+        $this->cancelled = true;
+    }
+    
+    public function assertManageableByParticipant(Participant $participant): void
+    {
+        if ($this->participant !== $participant || $this->cancelled) {
+            $errorDetail = 'forbidden: unmanaged consultation session, either inactive session or belongs to different participant';
+            throw RegularException::forbidden($errorDetail);
+        }
     }
 
 }

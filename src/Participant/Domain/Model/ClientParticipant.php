@@ -168,5 +168,10 @@ class ClientParticipant implements ContainEvents
     {
         $this->participant->cancelObjectiveProgressReportSubmission($objectiveProgressReport);
     }
+    
+    public function executeParticipantTask(ITaskExecutableByParticipant $task): void
+    {
+        $this->participant->executeParticipantTask($task);
+    }
 
 }

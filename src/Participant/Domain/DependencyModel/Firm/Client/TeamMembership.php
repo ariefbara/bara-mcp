@@ -12,6 +12,7 @@ use Participant\Domain\DependencyModel\Firm\Program\Mission;
 use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Event\EventTriggeredByTeamMember;
+use Participant\Domain\Model\ITaskExecutableByParticipant;
 use Participant\Domain\Model\Participant;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
@@ -305,6 +306,16 @@ class TeamMembership extends EntityContainEvents
         $this->assertActive();
         $this->assertAssetBelongsToTeam($teamParticipant);
         $teamParticipant->cancelObjectiveProgressReportSubmission($objectiveProgressReport);
+    }
+    
+    public function executeTeamParticipantTask(
+            TeamProgramParticipation $teamParticipant, ITaskExecutableByParticipant $task): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active team member can make this request');
+        }
+        $teamParticipant->assertBelongsToTeam($this->team);
+        $teamParticipant->executeParticipantTask($task);
     }
 
 }

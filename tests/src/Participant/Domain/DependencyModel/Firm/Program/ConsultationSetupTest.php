@@ -75,6 +75,30 @@ class ConsultationSetupTest extends TestBase
         $this->assertEquals($formRecord,
                 $this->consultationSetup->createFormRecordForParticipantFeedback($id, $formRecordData));
     }
+    
+    protected function assertUsableInProgram()
+    {
+        $this->consultationSetup->assertUsableInProgram($this->program);
+    }
+    public function test_assertUsableInProgram_usableSetup_void()
+    {
+        $this->assertUsableInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInProgram_inactiveSetup_forbidden()
+    {
+        $this->consultationSetup->removed = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: unuseable consultation setup, either inactive or belongs to other program');
+    }
+    public function test_assertUsableInProgram_differentProgram_forbidden()
+    {
+        $this->consultationSetup->program = $this->buildMockOfClass(Program::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: unuseable consultation setup, either inactive or belongs to other program');
+    }
 
 }
 
