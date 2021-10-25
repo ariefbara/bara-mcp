@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
 use Query\Application\Service\Firm\Program\ViewActivity;
 use Query\Domain\Model\Firm\Program\Activity;
+use Query\Infrastructure\QueryFilter\ActivityFilter;
 
 class ActivityController extends AsProgramCoordinatorBaseController
 {
@@ -11,8 +12,21 @@ class ActivityController extends AsProgramCoordinatorBaseController
     {
         $this->authorizedUserIsProgramCoordinator($programId);
         
+        $activityFilter = (new ActivityFilter())
+                ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
+                ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
+                ->setCancelledStatus($this->filterBooleanOfQueryRequest('cancelledStatus'))
+                ->setOrder($this->stripTagQueryRequest('order'));
+        
+        $activityTypeIdLIst = $this->request->query('activityTypeIdList');
+        if (is_array($activityTypeIdLIst)) {
+            foreach ($activityTypeIdLIst as $activityTypeId) {
+                $activityFilter->addActivityTypeId($this->stripTagsVariable($activityTypeId));
+            }
+        }
+        
         $activities = $this->buildViewService()
-                ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize());
+                ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activityFilter);
         
         $result = [];
         $result["total"] = count($activities);

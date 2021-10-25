@@ -21,13 +21,11 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
         
         $program = $this->coordinator->program;
         
-        $activityType = new RecordOfActivityType($program, 0);
-        $this->connection->table("ActivityType")->insert($activityType->toArrayForDbEntry());
+        $activityTypeOne = new RecordOfActivityType($program, 1);
+        $activityTypeTwo = new RecordOfActivityType($program, 2);
         
-        $this->activityOne = new RecordOfActivity($activityType, 1);
-        $this->activityTwo = new RecordOfActivity($activityType, 2);
-        $this->connection->table("Activity")->insert($this->activityOne->toArrayForDbEntry());
-        $this->connection->table("Activity")->insert($this->activityTwo->toArrayForDbEntry());
+        $this->activityOne = new RecordOfActivity($activityTypeOne, 1);
+        $this->activityTwo = new RecordOfActivity($activityTypeTwo, 2);
     }
     protected function tearDown(): void
     {
@@ -36,8 +34,19 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("Activity")->truncate();
     }
     
+    protected function show()
+    {
+        $this->activityOne->activityType->insert($this->connection);
+        $this->activityOne->insert($this->connection);
+        
+        $uri = $this->activityUri . "/{$this->activityOne->id}";
+        $this->get($uri, $this->personnel->token);
+    }
     public function test_show_200()
     {
+        $this->show();
+        $this->seeStatusCode(200);
+        
         $response = [
             "id" => $this->activityOne->id,
             "name" => $this->activityOne->name,
@@ -49,35 +58,119 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
             "cancelled" => $this->activityOne->cancelled,
             "createdTime" => $this->activityOne->createdTime,
         ];
-        $uri = $this->activityUri . "/{$this->activityOne->id}";
-        $this->get($uri, $this->coordinator->personnel->token)
-                ->seeJsonContains($response)
-                ->seeStatusCode(200);
+        $this->seeJsonContains($response);
     }
     
+    protected function showAll()
+    {
+        $this->activityOne->activityType->insert($this->connection);
+        $this->activityTwo->activityType->insert($this->connection);
+        
+        $this->activityOne->insert($this->connection);
+        $this->activityTwo->insert($this->connection);
+        $this->get($this->activityUri, $this->personnel->token);
+    }
     public function test_showAll_200()
     {
-        $response = [
-            "total" => 2,
-            "list" => [
-                [
-                    "id" => $this->activityOne->id,
-                    "name" => $this->activityOne->name,
-                    "startTime" => $this->activityOne->startDateTime,
-                    "endTime" => $this->activityOne->endDateTime,
-                    "cancelled" => $this->activityOne->cancelled,
-                ],
-                [
-                    "id" => $this->activityTwo->id,
-                    "name" => $this->activityTwo->name,
-                    "startTime" => $this->activityTwo->startDateTime,
-                    "endTime" => $this->activityTwo->endDateTime,
-                    "cancelled" => $this->activityTwo->cancelled,
-                ],
-            ],
+        $this->showAll();
+        $this->seeStatusCode(200);
+        
+        $totalResponse = ['total' => 2];
+        
+        $activityOneResponse = [
+            "id" => $this->activityOne->id,
+            "name" => $this->activityOne->name,
+            "startTime" => $this->activityOne->startDateTime,
+            "endTime" => $this->activityOne->endDateTime,
+            "cancelled" => $this->activityOne->cancelled,
         ];
-        $this->get($this->activityUri, $this->coordinator->personnel->token)
-                ->seeJsonContains($response)
-                ->seeStatusCode(200);
+        $this->seeJsonContains($activityOneResponse);
+        
+        $activityTwoResponse = [
+            "id" => $this->activityTwo->id,
+            "name" => $this->activityTwo->name,
+            "startTime" => $this->activityTwo->startDateTime,
+            "endTime" => $this->activityTwo->endDateTime,
+            "cancelled" => $this->activityTwo->cancelled,
+        ];
+        $this->seeJsonContains($activityTwoResponse);
     }
+    public function test_showAll_filterForm()
+    {
+        $this->activityOne->startDateTime = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->endDateTime = (new \DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->startDateTime = (new \DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->endDateTime = (new \DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        
+        $this->activityUri .= "?from=" . (new \DateTimeImmutable('+12 hours'))->format('Y-m-d H:i:s');
+        $this->showAll();
+        
+        $totalResponse = ['total' => 1];
+        $this->seeJsonContains($totalResponse);
+        $activityResponse = [
+            'id' => $this->activityOne->id,
+        ];
+        $this->seeJsonContains($activityResponse);
+    }
+    public function test_showAll_filterTo()
+    {
+        $this->activityOne->startDateTime = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->endDateTime = (new \DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->startDateTime = (new \DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->endDateTime = (new \DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        
+        $this->activityUri .= "?to=" . (new \DateTimeImmutable('+12 hours'))->format('Y-m-d H:i:s');
+        $this->showAll();
+        
+        $totalResponse = ['total' => 1];
+        $this->seeJsonContains($totalResponse);
+        $activityResponse = [
+            'id' => $this->activityTwo->id,
+        ];
+        $this->seeJsonContains($activityResponse);
+    }
+    public function test_showAll_filterActivityTypeIdList()
+    {
+        $this->activityUri .= "?activityTypeIdList[]={$this->activityOne->activityType->id}";
+        $this->showAll();
+        
+        $totalResponse = ['total' => 1];
+        $this->seeJsonContains($totalResponse);
+        $activityResponse = [
+            'id' => $this->activityOne->id,
+        ];
+        $this->seeJsonContains($activityResponse);
+    }
+    public function test_showAll_filterCancelledStatus()
+    {
+        $this->activityTwo->cancelled = true;
+        
+        $this->activityUri .= "?cancelledStatus=false";
+        $this->showAll();
+        
+        $totalResponse = ['total' => 1];
+        $this->seeJsonContains($totalResponse);
+        $activityResponse = [
+            'id' => $this->activityOne->id,
+        ];
+        $this->seeJsonContains($activityResponse);
+    }
+    public function test_showAll_setOrder()
+    {
+        $this->activityOne->startDateTime = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->endDateTime = (new \DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->startDateTime = (new \DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->endDateTime = (new \DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        
+        $this->activityUri .= "?order=DESC&page=1&pageSize=1";;
+        $this->showAll();
+        
+        $totalResponse = ['total' => 2];
+        $this->seeJsonContains($totalResponse);
+        $activityResponse = [
+            'id' => $this->activityOne->id,
+        ];
+        $this->seeJsonContains($activityResponse);
+    }
+    
 }

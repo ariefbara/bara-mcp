@@ -3,6 +3,7 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
 use Illuminate\Database\Connection;
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Record;
 
@@ -42,6 +43,11 @@ class RecordOfActivityType implements Record
     public function persistSelf(Connection $connection): void
     {
         $connection->table("ActivityType")->insert($this->toArrayForDbEntry());
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('ActivityType')->insert($this->toArrayForDbEntry());
     }
 
 }

@@ -20,9 +20,12 @@
     </editor-bookmarks>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/adi/workspace/php/bara-mcp/tests/Controllers/Personnel/ProgramConsultation/ConsultationSessionControllerTest.php</file>
-            <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Personnel/ProgramConsultation/ConsultationSessionController.php</file>
-            <file>file:/home/adi/workspace/php/bara-mcp/routes/personnel.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Application/Service/Firm/Program/ActivityRepository.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ActivityController.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Application/Service/Firm/Program/ViewActivity.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Infrastructure/Persistence/Doctrine/Repository/DoctrineActivityRepository.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Infrastructure/QueryFilter/InviteeFilter.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Infrastructure/QueryFilter/ActivityFilter.php</file>
         </group>
     </open-files>
 </project-private>
