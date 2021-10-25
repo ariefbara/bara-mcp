@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Activity\Invitee;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\Activity\RecordOfInvitee,
-    Record,
-    Shared\RecordOfFormRecord
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\Activity\RecordOfInvitee;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class RecordOfInviteeReport implements Record
 {
@@ -37,6 +36,12 @@ class RecordOfInviteeReport implements Record
             "FormRecord_id" => $this->formRecord->id,
             "id" => $this->id,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->formRecord->insert($connection);
+        $connection->table('InviteeReport')->insert($this->toArrayForDbEntry());
     }
 
 }
