@@ -421,5 +421,162 @@ $this->disableExceptionHandling();
         ];
         $this->seeInDatabase("ConsultantActivityLog", $consultantActivityLog);
     }
+    
+    public function declare()
+    {
+        $this->post($this->consultationSessionUri, $this->declareConsultationSessionRequest, $this->personnel->token);
+    }
+    public function test_declare_201()
+    {
+        $this->declare();
+        $this->seeStatusCode(201);
+        
+        $response = [
+            "startTime" => $this->declareConsultationSessionRequest['startTime'],
+            "endTime" => $this->declareConsultationSessionRequest['endTime'],
+            "media" => $this->declareConsultationSessionRequest['media'],
+            "address" => $this->declareConsultationSessionRequest['address'],
+            "sessionType" => 'DECLARED',
+            "approvedByMentor" => true,
+            "consultationSetup" => [
+                "id" => $this->consultationSession->consultationSetup->id,
+                "name" => $this->consultationSession->consultationSetup->name,
+                "consultantFeedbackForm" => [
+                    "id" => $this->consultationSession->consultationSetup->consultantFeedbackForm->id,
+                    "name" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->name,
+                    "description" => $this->consultationSession->consultationSetup->consultantFeedbackForm->form->description,
+                    "stringFields" => [
+                        [
+                            'id' => $this->stringField->id,
+                            'name' => $this->stringField->name,
+                            'description' => $this->stringField->description,
+                            'placeholder' => $this->stringField->placeholder,
+                            'mandatory' => $this->stringField->mandatory,
+                            'defaultValue' => $this->stringField->defaultValue,
+                            'maxValue' => $this->stringField->maxValue,
+                            'minValue' => $this->stringField->minValue,
+                            'position' => $this->stringField->position,
+                        ],
+                    ],
+                    "integerFields" => [],
+                    "textAreaFields" => [],
+                    "attachmentFields" => [],
+                    "singleSelectFields" => [],
+                    "multiSelectFields" => [],
+                ],
+            ],
+            "participant" => [
+                "id" => $this->consultationSession->participant->id,
+                "client" => null,
+                "user" => [
+                    "id" => $this->userParticipant->user->id,
+                    "name" => $this->userParticipant->user->getFullName(),
+                ],
+                "team" => null,
+            ],
+            "consultantFeedback" => null,
+        ];
+        $this->seeJsonContains($response);
+        
+        $record = [
+            "startDateTime" => $this->declareConsultationSessionRequest['startTime'],
+            "endDateTime" => $this->declareConsultationSessionRequest['endTime'],
+            "media" => $this->declareConsultationSessionRequest['media'],
+            "address" => $this->declareConsultationSessionRequest['address'],
+            "sessionType" => ConsultationSessionType::DECLARED_TYPE,
+            "approvedByMentor" => true,
+            'ConsultationSetup_id' => $this->consultationSetup->id,
+            'participant_id' => $this->participant->id,
+        ];
+        $this->seeInDatabase('ConsultationSession', $record);
+    }
+    
+    protected function cancel()
+    {
+        $this->connection->table('ConsultationSession')->truncate();
+        $this->consultationSession->insert($this->connection);
+        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/cancel";
+        $this->patch($uri, [], $this->personnel->token);
+    }
+    public function test_cancel_200()
+    {
+        $this->cancel();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'id' => $this->consultationSession->id,
+            'cancelled' => true,
+        ];
+        $this->seeJsonContains($response);
+        
+        $record = [
+            'id' => $this->consultationSession->id,
+            'cancelled' => true,
+        ];
+        $this->seeInDatabase('ConsultationSession', $record);
+    }
+    public function test_cancel_nonDeclaredType_403()
+    {
+        $this->consultationSession->sessionType = ConsultationSessionType::HANDSHAKING_TYPE;
+        $this->cancel();
+        $this->seeStatusCode(403);
+    }
+    public function test_cancel_alreadyCancelled_403()
+    {
+        $this->consultationSession->cancelled = true;
+        $this->cancel();
+        $this->seeStatusCode(403);
+    }
+    
+    protected function deny()
+    {
+        $this->connection->table('ConsultationSession')->truncate();
+        $this->consultationSession->insert($this->connection);
+        $uri = $this->consultationSessionUri . "/{$this->consultationSession->id}/deny";
+        $this->patch($uri, [], $this->personnel->token);
+    }
+    public function test_deny_200()
+    {
+        $this->deny();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'id' => $this->consultationSession->id,
+            'approvedByMentor' => false,
+            'cancelled' => true,
+        ];
+        $this->seeJsonContains($response);
+        
+        $record = [
+            'id' => $this->consultationSession->id,
+            'approvedByMentor' => false,
+            'cancelled' => true,
+        ];
+        $this->seeInDatabase('ConsultationSession', $record);
+    }
+    public function test_deny_nonDeclaredSession_403()
+    {
+        $this->consultationSession->sessionType = ConsultationSessionType::HANDSHAKING_TYPE;
+        $this->deny();
+        $this->seeStatusCode(403);
+    }
+    public function test_deny_alreadyApproved_403()
+    {
+        $this->consultationSession->approvedByMentor = true;
+        $this->deny();
+        $this->seeStatusCode(403);
+    }
+    public function test_deny_alreadyDenied_403()
+    {
+        $this->consultationSession->approvedByMentor = false;
+        $this->deny();
+        $this->seeStatusCode(403);
+    }
+    public function test_deny_cancelledSession_403()
+    {
+        $this->consultationSession->cancelled = true;
+        $this->deny();
+        $this->seeStatusCode(403);
+    }
 
 }
