@@ -20,12 +20,23 @@ class DoctrineParticipantSummaryRepository implements ParticipantSummaryReposito
         $this->em = $em;
     }
 
-    public function allParticipantsSummaryInProgram(string $programId, int $page, int $pageSize): array
+    public function allParticipantsSummaryInProgram(string $programId, int $page, int $pageSize, ?string $searchByParticipantName): array
     {
         $offset = $pageSize * ($page - 1);
+        
+        $params = [
+            "programId" => $programId,
+        ];
+        
+        $searchByParticipantNameClause = "";
+        if (!empty($searchByParticipantName)) {
+            $searchByParticipantNameClause = "HAVING participantName LIKE :participantName";
+            $params['participantName'] = "%$searchByParticipantName%";
+        }
+        
         $statement = <<<_STATEMENT
 SELECT 
-    _b.participantId, 
+    _b.participantId participantId, 
     COALESCE(_c.userName, _d.clientName, _e.teamName) participantName, 
     _b.participantRating,
     _b.totalCompletedMission,
@@ -82,29 +93,54 @@ LEFT JOIN (
     FROM TeamParticipant
         LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
 )_e ON _e.participantId = _b.participantId
+$searchByParticipantNameClause
 ORDER BY _b.totalCompletedMission DESC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
         $query = $this->em->getConnection()->prepare($statement);
-        $params = [
-            "programId" => $programId,
-        ];
         $query->execute($params);
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getTotalActiveParticipantInProgram(string $programId): int
+    public function getTotalActiveParticipantInProgram(string $programId, ?string $searchByParticipantName): int
     {
-        $statement = <<<_STATEMENT
-SELECT COUNT(Participant.id) total
-FROM Participant
-WHERE Participant.Program_id = :programId
-    AND Participant.active = true
-_STATEMENT;
-        $query = $this->em->getConnection()->prepare($statement);
         $params = [
             "programId" => $programId,
         ];
+        
+        $searchByParticipantNameClause = "";
+        if (!empty($searchByParticipantName)) {
+            $searchByParticipantNameClause = "HAVING participantName LIKE :participantName";
+            $params['participantName'] = "%$searchByParticipantName%";
+        }
+        
+        $statement = <<<_STATEMENT
+SELECT COUNT(_a.participantId) total
+FROM (
+    SELECT Participant.id participantId, COALESCE(_c.userName, _d.clientName, _e.teamName) participantName
+    FROM Participant
+    LEFT JOIN (
+        SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
+        FROM UserParticipant
+            LEFT JOIN User ON User.id = UserParticipant.User_id
+    )_c ON _c.participantId = Participant.id
+    LEFT JOIN (
+        SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
+        FROM ClientParticipant
+            LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    )_d ON _d.participantId = Participant.id
+    LEFT JOIN (
+        SELECT Team.name teamName, TeamParticipant.Participant_id participantId
+        FROM TeamParticipant
+            LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+    )_e ON _e.participantId = Participant.id
+    WHERE Participant.Program_id = :programId
+        AND Participant.active = true
+    GROUP BY Participant.id
+    $searchByParticipantNameClause
+)_a
+_STATEMENT;
+        $query = $this->em->getConnection()->prepare($statement);
         $query->execute($params);
 
         $result = $query->fetchAll(PDO::FETCH_ASSOC);

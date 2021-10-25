@@ -414,6 +414,29 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->get($this->participantSummaryUri, $this->removedCoordinator->personnel->token)
                 ->seeStatusCode(403);
     }
+    public function test_showAll_searchByParticipantName_200()
+    {
+        $response = [
+            "total" => 1,
+            "list" => [
+                [
+                    "id" => $this->participantOne_team->id,
+                    "name" => $this->teamParticipant->team->name,
+                    "totalCompletedMission" => null,
+                    "totalMission" => "3",
+                    "lastCompletedTime" => null,
+                    "lastMissionId" => null,
+                    "lastMissionName" => null,
+                    "participantRating" => null,
+                ],
+            ],
+        ];
+        $uri = $this->participantSummaryUri . "?searchByParticipantName=team";
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeJsonContains($response)
+                ->seeStatusCode(200);
+        
+    }
     
     public function test_showAllMetricAchievement_200()
     {
