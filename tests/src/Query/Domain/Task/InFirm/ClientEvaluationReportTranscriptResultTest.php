@@ -14,7 +14,7 @@ class ClientEvaluationReportTranscriptResultTest extends TestBase
     protected $result;
     protected $transcriptTable;
     protected $evaluationReport;
-    protected $spreadsheet;
+    protected $spreadsheet, $summaryStyleView = true;
     
     protected function setUp(): void
     {
@@ -46,13 +46,13 @@ class ClientEvaluationReportTranscriptResultTest extends TestBase
     
     protected function saveToSpreadsheet()
     {
-        $this->result->saveToSpreadsheet($this->spreadsheet);
+        $this->result->saveToSpreadsheet($this->spreadsheet, $this->summaryStyleView);
     }
     public function test_saveToSpreadsheet_saveAllTranscriptTableToSpreadsheet()
     {
         $this->transcriptTable->expects($this->once())
                 ->method('saveToSpreadsheet')
-                ->with($this->spreadsheet);
+                ->with($this->spreadsheet, $this->summaryStyleView);
         $this->saveToSpreadsheet();
     }
     

@@ -19,6 +19,7 @@ class TranscriptTableTest extends TestBase
     
     protected $evaluationReport;
     protected $spreadsheet, $worksheet;
+    protected $summaryStyleView = true;
 
     protected function setUp(): void
     {
@@ -93,7 +94,7 @@ class TranscriptTableTest extends TestBase
         $this->spreadsheet->expects($this->any())
                 ->method('createSheet')
                 ->willReturn($this->worksheet);
-        $this->transcriptTable->saveToSpreadsheet($this->spreadsheet);
+        $this->transcriptTable->saveToSpreadsheet($this->spreadsheet, $this->summaryStyleView);
     }
     public function test_saveToSpreadsheet_createSheetAndSetTitle()
     {
@@ -109,6 +110,7 @@ class TranscriptTableTest extends TestBase
     {
         $this->clientTranscriptTableOne->expects($this->once())
                 ->method('toSimplifiedTranscriptFormatArray')
+                ->with($this->summaryStyleView)
                 ->willReturn($transcriptOneTable = [
                     ['mentor', 'mentor one name', 'mentor two name'],
                     ['field one label', 'field 11 value', 'field 21 value'],
@@ -116,6 +118,7 @@ class TranscriptTableTest extends TestBase
                 ]);
         $this->clientTranscriptTableTwo->expects($this->once())
                 ->method('toSimplifiedTranscriptFormatArray')
+                ->with($this->summaryStyleView)
                 ->willReturn($transcriptTwoTable = [
                     ['mentor', 'mentor one name', 'mentor two name'],
                     ['field one label', 'field 11 value', 'field 21 value'],

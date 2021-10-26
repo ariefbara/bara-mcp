@@ -45,16 +45,18 @@ class EvaluationReportSummaryController extends ManagerBaseController
 
     public function downloadTranscriptXls()
     {
+        $summaryStyleView = $this->filterBooleanOfQueryRequest('summaryStyleView') ? true : false;
+
         $result = new ClientEvaluationReportTranscriptResult();
         $this->generateFirmEvaluationReportTranscript($result);
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->removeSheetByIndex($spreadsheet->getActiveSheetIndex());
-        $result->saveToSpreadsheet($spreadsheet);
+        $result->saveToSpreadsheet($spreadsheet, $summaryStyleView);
 
         $writer = new Xlsx($spreadsheet);
 
-        return $this->sendXlsDownloadResponse($writer);
+        return $this->sendXlsDownloadResponse($writer, 'evaluation-report-transcript.xls');
     }
 
     protected function generateFirmEvaluationReportSummary(ClientEvaluationReportSummaryResult $result): void

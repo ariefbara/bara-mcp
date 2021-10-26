@@ -23,7 +23,9 @@ class ClientTranscriptTableTest extends TestBase
     
     protected $evaluationReport, $mentorName = 'mentor name';
     protected $spreadsheet, $worksheet;
-    
+    protected $summaryStyleView = false;
+
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -144,13 +146,22 @@ class ClientTranscriptTableTest extends TestBase
     
     protected function toSimplifiedTranscriptFormatArray()
     {
-        return $this->clientTranscripTable->toSimplifiedTranscriptFormatArray();
+        return $this->clientTranscripTable->toSimplifiedTranscriptFormatArray($this->summaryStyleView);
     }
     public function test_toSimplifiedTranscriptFormatArray_returnSummaryTableSimplifiedTranscriptFormatResult()
     {
         $mentorHeaderColumn = new StaticHeaderColumn(1, 'mentor');
         $this->summaryTable->expects($this->once())
                 ->method('toArrayTranscriptSimplifiedFormat')
+                ->with([$mentorHeaderColumn, $this->headerColumnOne, $this->headerColumnTwo]);
+        $this->toSimplifiedTranscriptFormatArray();
+    }
+    public function test_toSimplifiedTranscriptFormatArray_summaryStyleViewSet_returnSummaryTableSimplifiedTranscriptFormatResultInSummaryStyle()
+    {
+        $this->summaryStyleView = true;
+        $mentorHeaderColumn = new StaticHeaderColumn(1, 'mentor');
+        $this->summaryTable->expects($this->once())
+                ->method('toArraySummarySimplifiedFormat')
                 ->with([$mentorHeaderColumn, $this->headerColumnOne, $this->headerColumnTwo]);
         $this->toSimplifiedTranscriptFormatArray();
     }

@@ -35,10 +35,10 @@ class ClientEvaluationReportTranscriptResult implements IFirmEvaluationReportSum
         }
     }
 
-    public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
+    public function saveToSpreadsheet(Spreadsheet $spreadsheet, bool $summaryStyleView = false): void
     {
         foreach ($this->transcriptTables as $transcriptTable) {
-            $transcriptTable->saveToSpreadsheet($spreadsheet);
+            $transcriptTable->saveToSpreadsheet($spreadsheet, $summaryStyleView);
         }
     }
 
