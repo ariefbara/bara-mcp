@@ -16,14 +16,16 @@ class ViewParticipantSummary
         $this->participantSummaryRepository = $participantSummaryRepository;
     }
 
-    public function showAll(string $programId, int $page, int $pageSize)
+    public function showAll(string $programId, int $page, int $pageSize, ?string $searchByParticipantName)
     {
-        return $this->participantSummaryRepository->allParticipantsSummaryInProgram($programId, $page, $pageSize);
+        return $this->participantSummaryRepository
+                ->allParticipantsSummaryInProgram($programId, $page, $pageSize, $searchByParticipantName);
     }
 
-    public function getTotalActvieParticipants(string $programId): int
+    public function getTotalActvieParticipants(string $programId, ?string $searchByParticipantName): int
     {
-        return $this->participantSummaryRepository->getTotalActiveParticipantInProgram($programId);
+        return $this->participantSummaryRepository
+                ->getTotalActiveParticipantInProgram($programId, $searchByParticipantName);
     }
 
     public function showAllWithMetricAchievement(

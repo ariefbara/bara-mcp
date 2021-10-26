@@ -13,12 +13,13 @@ class ParticipantSummaryController extends AsProgramCoordinatorBaseController
     {
         $this->authorizedUserIsProgramCoordinator($programId);
         
+        $searchByParticipantName = $this->stripTagQueryRequest('searchByParticipantName');
         $service = $this->buildViewService();
-        
-        $participantSummaries = $service->showAll($programId, $this->getPage(), $this->getPageSize());
+        $participantSummaries = $service
+                ->showAll($programId, $this->getPage(), $this->getPageSize(), $searchByParticipantName);
         
         $result = [];
-        $result["total"] = $service->getTotalActvieParticipants($programId);
+        $result["total"] = $service->getTotalActvieParticipants($programId, $searchByParticipantName);
         foreach ($participantSummaries as $participantSummary) {
             $result["list"][] = [
                 "id" => $participantSummary["participantId"],
@@ -44,7 +45,7 @@ class ParticipantSummaryController extends AsProgramCoordinatorBaseController
         $participants = $service->showAllWithMetricAchievement(
                 $this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $orderType);
         $result = [];
-        $result["total"] = $service->getTotalActvieParticipants($programId);
+        $result["total"] = $service->getTotalActvieParticipants($programId, null);
         foreach ($participants as $participant) {
             $result["list"][] = [
                 "id" => $participant["participantId"],
