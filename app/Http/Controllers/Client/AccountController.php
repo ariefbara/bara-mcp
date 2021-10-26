@@ -14,6 +14,13 @@ use Query\ {
 
 class AccountController extends ClientBaseController
 {
+    public function show()
+    {
+        $viewService = $this->buildViewService();
+        $client = $viewService->showById($this->firmId(), $this->clientId());
+        return $this->singleQueryResponse($this->arrayDataOfClient($client));
+    }
+    
     public function updateProfile()
     {
         $clientRepository = $this->em->getRepository(Client2::class);

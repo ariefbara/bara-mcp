@@ -6,6 +6,7 @@ $clientAggregate = [
     'middleware' => 'clientJwtAuth',
 ];
 $router->group($clientAggregate, function () use ($router) {
+    $router->get("/profile", ["uses" => "AccountController@show"]);
     $router->patch("/update-profile", ["uses" => "AccountController@updateProfile"]);
     $router->patch("/change-password", ["uses" => "AccountController@changePassword"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
