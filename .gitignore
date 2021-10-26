@@ -1,11 +1,9 @@
 /vendor
 /proxy
+/nbproject
 /.idea
 Homestead.json
 Homestead.yaml
 .env
 .phpunit.result.cache
 /src/Config/BaseConfig.php
-nbproject/private/private.xml
-nbproject/private/private.xml
-nbproject/private/private.xml
