@@ -16,6 +16,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 
 class ConsultationSession extends EntityContainEvents
 {
@@ -49,13 +50,19 @@ class ConsultationSession extends EntityContainEvents
      * @var DateTimeInterval
      */
     protected $startEndTime;
-    
+
     /**
      * 
      * @var ConsultationChannel
      */
     protected $channel;
     
+    /**
+     * 
+     * @var ConsultationSessionType
+     */
+    protected $sessionType;
+
     /**
      *
      * @var bool
@@ -76,7 +83,8 @@ class ConsultationSession extends EntityContainEvents
 
     function __construct(
             ProgramConsultant $programConsultant, string $id, Participant $participant,
-            ConsultationSetup $consultationSetup, DateTimeInterval $startEndTime, ConsultationChannel $channel)
+            ConsultationSetup $consultationSetup, DateTimeInterval $startEndTime, ConsultationChannel $channel,
+            ConsultationSessionType $sessionType)
     {
         $this->programConsultant = $programConsultant;
         $this->id = $id;
@@ -84,11 +92,12 @@ class ConsultationSession extends EntityContainEvents
         $this->consultationSetup = $consultationSetup;
         $this->startEndTime = $startEndTime;
         $this->channel = $channel;
+        $this->sessionType = $sessionType;
         $this->cancelled = false;
-        
+
         $this->consultationSessionActivityLogs = new ArrayCollection();
         $this->logActivity("Jadwal Konsultasi Disepakati");
-        
+
         $event = new CommonEvent(EventList::CONSULTATION_SESSION_SCHEDULED_BY_CONSULTANT, $this->id);
         $this->recordEvent($event);
     }
@@ -111,16 +120,43 @@ class ConsultationSession extends EntityContainEvents
             $formRecord = $this->consultationSetup->createFormRecordForConsultantFeedback($id, $formRecordData);
             $this->consultantFeedback = new ConsultantFeedback($this, $id, $formRecord, $participantRating);
         }
-        
+
         $this->logActivity("consultant report submitted");
     }
-    
+
     protected function logActivity(string $message): void
     {
         $id = Uuid::generateUuid4();
         $consultationSessionActivityLog = new ConsultationSessionActivityLog(
                 $this, $id, $message, $this->programConsultant);
         $this->consultationSessionActivityLogs->add($consultationSessionActivityLog);
+    }
+
+    public function cancel(): void
+    {
+        if (!$this->sessionType->canBeCancelled()) {
+            throw RegularException::forbidden('forbidden: unable to cancel handsaking session');
+        }
+        $this->cancelled = true;
+    }
+
+    public function deny(): void
+    {
+        $this->sessionType = $this->sessionType->deny();
+        $this->cancelled = true;
+    }
+
+    public function approve(): void
+    {
+        $this->sessionType = $this->sessionType->approve();
+    }
+    
+    public function assertManageableByMentor(ProgramConsultant $mentor): void
+    {
+        if ($this->programConsultant !== $mentor || $this->cancelled) {
+            throw RegularException::forbidden(
+                    'forbidden: consultation session is unmanageable, either already cancelled or doesn\'t belongs to mentor');
+        }
     }
 
 }

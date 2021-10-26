@@ -59,6 +59,30 @@ class ConsultantTest extends TestBase
             ->willReturn(true);
         $this->assertFalse($this->executeCanAcceptConsultationRequest());
     }
+    
+    protected function assertUsableInProgram()
+    {
+        $this->consultant->assertUsableInProgram($this->program);
+    }
+    public function test_assertUsableInProgram_usableConsultant_void()
+    {
+        $this->assertUsableInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInProgram_inactiveConsultant_forbidden()
+    {
+        $this->consultant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: unuseable mentor, either inactive or belongs to different program');
+    }
+    public function test_assertUsableInProgram_belongsToDifferentProgram_forbidden()
+    {
+        $this->consultant->program = $this->buildMockOfClass(Program::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: unuseable mentor, either inactive or belongs to different program');
+    }
 }
 
 class TestableConsultant extends Consultant

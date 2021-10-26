@@ -14,13 +14,14 @@ use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 use Tests\TestBase;
 
 class ConsultationSessionTest extends TestBase
 {
 
     protected $consultationSetup, $participant, $consultant;
-    protected $id = 'consultationSession-id', $startEndTime, $channel;
+    protected $id = 'consultationSession-id', $startEndTime, $channel, $sessionType;
     protected $consultationSession;
     protected $consultationRequest;
     protected $participantFeedback, $mentorRating = 4;
@@ -37,11 +38,12 @@ class ConsultationSessionTest extends TestBase
         $this->consultant->expects($this->any())->method("isActive")->willReturn(true);
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
+        $this->sessionType = $this->buildMockOfClass(ConsultationSessionType::class);
         $this->teamMember = $this->buildMockOfClass(TeamMembership::class);
 
         $this->consultationSession = new TestableConsultationSession(
                 $this->participant, 'consultationSession-id', $this->consultationSetup, $this->consultant,
-                $this->startEndTime, $this->channel, $this->teamMember);
+                $this->startEndTime, $this->channel, $this->sessionType, $this->teamMember);
         $this->consultationSession->consultationSessionActivityLogs->clear();
 
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
@@ -56,7 +58,7 @@ class ConsultationSessionTest extends TestBase
     {
         return new TestableConsultationSession(
                 $this->participant, $this->id, $this->consultationSetup, $this->consultant, $this->startEndTime,
-                $this->channel, $this->teamMember);
+                $this->channel, $this->sessionType, $this->teamMember);
     }
     public function test_construct_setProperties()
     {
@@ -67,6 +69,7 @@ class ConsultationSessionTest extends TestBase
         $this->assertEquals($this->consultant, $consultationSession->consultant);
         $this->assertEquals($this->startEndTime, $consultationSession->startEndTime);
         $this->assertEquals($this->channel, $consultationSession->channel);
+        $this->assertSame($this->sessionType, $consultationSession->sessionType);
         $this->assertFalse($consultationSession->cancelled);
     }
     public function test_construct_recordOfferedConsultationSessionAccepetedEvent()
@@ -89,7 +92,7 @@ class ConsultationSessionTest extends TestBase
             $consultant->expects($this->any())->method("isActive")->willReturn(false);
             return new TestableConsultationSession(
                     $this->participant, $this->id, $this->consultationSetup, $consultant, $this->startEndTime, 
-                    $this->channel, $this->teamMember);
+                    $this->channel, $this->sessionType, $this->teamMember);
         };
         $errorDetail = "forbidden: inactive mentor can't give consultation";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
@@ -157,6 +160,59 @@ class ConsultationSessionTest extends TestBase
         $errorDetail = "forbidden: can send report on cancelled session";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+    
+    protected function cancel()
+    {
+        $this->sessionType->expects($this->any())
+                ->method('canBeCancelled')
+                ->willReturn(true);
+        $this->consultationSession->cancel();
+    }
+    public function test_cancel_setCancelled()
+    {
+        $this->cancel();
+        $this->assertTrue($this->consultationSession->cancelled);
+    }
+    public function test_cancel_TypeCannotBeCancelled_forbidden()
+    {
+        $this->sessionType->expects($this->once())
+                ->method('canBeCancelled')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->cancel();
+        }, 'Forbidden', 'forbidden: unable to cancel session, either uncancellable (non declared type) or already cancelled');
+    }
+    public function test_cancel_alreadyCancelled_forbidden()
+    {
+        $this->consultationSession->cancelled = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->cancel();
+        }, 'Forbidden', 'forbidden: unable to cancel session, either uncancellable (non declared type) or already cancelled');
+    }
+    
+    protected function assertManageableByParticipant()
+    {
+        $this->consultationSession->assertManageableByParticipant($this->participant);
+    }
+    public function test_assertManageableByParticipant_manageableByParticipant_void()
+    {
+        $this->assertManageableByParticipant();
+        $this->markAsSuccess();
+    }
+    public function test_assertManageableByParticipant_differentParticipant_forbidden()
+    {
+        $this->consultationSession->participant = $this->buildMockOfClass(Participant::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByParticipant();
+        }, 'Forbidden', 'forbidden: unmanaged consultation session, either inactive session or belongs to different participant');
+    }
+    public function test_assertManageableByParticipant_cancelledSession_forbidden()
+    {
+        $this->consultationSession->cancelled = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByParticipant();
+        }, 'Forbidden', 'forbidden: unmanaged consultation session, either inactive session or belongs to different participant');
+    }
 
 }
 
@@ -166,6 +222,7 @@ class TestableConsultationSession extends ConsultationSession
     public $recordedEvents;
     public $consultationSetup, $id, $participant, $consultant, $startEndTime;
     public $channel;
+    public $sessionType;
     public $cancelled = false;
     public $participantFeedback;
     public $consultationSessionActivityLogs;

@@ -9,6 +9,7 @@ use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession\Partic
 use Query\Domain\Model\Firm\Program\Participant;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 
 class ConsultationSession
 {
@@ -54,6 +55,12 @@ class ConsultationSession
      * @var bool
      */
     protected $cancelled;
+    
+    /**
+     * 
+     * @var ConsultationSessionType
+     */
+    protected $sessionType;
 
     /**
      *
@@ -136,6 +143,16 @@ class ConsultationSession
     public function getAddress(): ?string
     {
         return $this->channel->getAddress();
+    }
+    
+    public function getSessionTypeDisplayValue(): ?string
+    {
+        return $this->sessionType->getSessionTypeDisplayValue();
+    }
+    
+    public function isApprovedByMentor(): ?bool
+    {
+        return $this->sessionType->isApprovedByMentor();
     }
 
     public function hasConsultantFeedback(): bool

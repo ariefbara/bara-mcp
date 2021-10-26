@@ -38,6 +38,11 @@
                   use-column-prefix="false" 
         />
         
+        <embedded name="sessionType" 
+                  class="SharedContext\Domain\ValueObject\ConsultationSessionType" 
+                  use-column-prefix="false" 
+        />
+        
         <one-to-one field="participantFeedback" 
                     target-entity="Participant\Domain\Model\Participant\ConsultationSession\ParticipantFeedback"
                     mapped-by="consultationSession"

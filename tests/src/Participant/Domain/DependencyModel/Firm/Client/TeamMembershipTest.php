@@ -49,6 +49,7 @@ class TeamMembershipTest extends TestBase
     protected $programRegistration;
     protected $programsProfileForm, $registrantProfile;
     protected $participantProfile;
+    protected $participantTask;
 
     protected function setUp(): void
     {
@@ -88,6 +89,8 @@ class TeamMembershipTest extends TestBase
         $this->registrantProfile = $this->buildMockOfClass(RegistrantProfile::class);
         
         $this->participantProfile = $this->buildMockOfClass(ParticipantProfile::class);
+        
+        $this->participantTask = $this->buildMockOfInterface(\Participant\Domain\Model\ITaskExecutableByParticipant::class);
     }
 
     protected function setAssetsNotBelongsToTeam($asset)
@@ -706,6 +709,32 @@ class TeamMembershipTest extends TestBase
         $this->assertAssetDoesntBelongsToTeamForbiddenError(function (){
             $this->executeRemoveParticipantProfile();
         });
+    }
+    
+    protected function executeTeamParticipantTask()
+    {
+        $this->teamMembership->executeTeamParticipantTask($this->teamProgramParticipation, $this->participantTask);
+    }
+    public function test_executeTeamParticipantTask_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executeTeamParticipantTask();
+        }, 'Forbidden', 'forbidden: only active team member can make this request');
+    }
+    public function test_executeTeamParticipantTask_teamParticipantExecuteParticipantTask()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('executeParticipantTask')
+                ->with($this->participantTask);
+        $this->executeTeamParticipantTask();
+    }
+    public function test_executeTeamParticipantTask_assertTeamParticipantBelongsToTeam()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('assertBelongsToTeam')
+                ->with($this->team);
+        $this->executeTeamParticipantTask();
     }
 }
 

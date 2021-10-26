@@ -28,6 +28,8 @@
             <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Domain/Task/Client/ClientTranscriptTableCollection.php</file>
             <file>file:/home/adi/workspace/php/bara-mcp/routes/client.php</file>
             <file>file:/home/adi/workspace/php/bara-mcp/tests/Controllers/Client/EvaluationReportTrasncriptControllerTest.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Client/AsTeamMember/ProgramParticipation/ConsultationSessionController.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Client/ProgramParticipation/ConsultationSessionController.php</file>
         </group>
     </open-files>
 </project-private>

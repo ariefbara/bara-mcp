@@ -147,6 +147,8 @@ $router->group($clientAggregate, function () use ($router) {
             $router->put("/{consultationSessionId}/submit-report", ["uses" => "$controller@submitReport"]);
             $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);
+            $router->post("", ["uses" => "$controller@declare"]);
+            $router->patch("/{consultationSessionId}/cancel", ["uses" => "$controller@cancel"]);
         });
         
         $router->group(['prefix' => '/metric-assignment-reports'], function () use($router) {
@@ -517,7 +519,9 @@ $router->group($clientAggregate, function () use ($router) {
                 $controller = "ConsultationSessionController";
                 $router->put("/{consultationSessionId}/submit-report", ["uses" => "$controller@submitReport"]);
                 $router->get("", ["uses" => "$controller@showAll"]);
+                $router->post("", ["uses" => "$controller@declare"]);
                 $router->get("/{consultationSessionId}", ["uses" => "$controller@show"]);
+                $router->patch("/{consultationSessionId}/cancel", ["uses" => "$controller@cancel"]);
             });
             
             $router->group(['prefix' => '/metric-assignment-reports'], function () use($router) {

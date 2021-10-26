@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant\ConsultationSession;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\Program\Participant\RecordOfConsultationSession,
-    Record,
-    Shared\RecordOfFormRecord
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class RecordOfParticipantFeedback implements Record
 {
@@ -41,6 +40,12 @@ class RecordOfParticipantFeedback implements Record
             "id" => $this->id,
             "mentorRating" => $this->mentorRating,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->formRecord->insert($connection);
+        $connection->table('ParticipantFeedback')->insert($this->toArrayForDbEntry());
     }
 
 }

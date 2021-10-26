@@ -23,6 +23,7 @@ use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Resources\Application\Event\ContainEvents;
+use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
@@ -165,6 +166,18 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
     public function cancelObjectiveProgressReportSubmission(ObjectiveProgressReport $objectiveProgressReport): void
     {
         $this->programParticipation->cancelObjectiveProgressReportSubmission($objectiveProgressReport);
+    }
+    
+    public function executeParticipantTask(ITaskExecutableByParticipant $task): void
+    {
+        $this->programParticipation->executeParticipantTask($task);
+    }
+    
+    public function assertBelongsToTeam(Team $team): void
+    {
+        if ($this->team !== $team) {
+            throw RegularException::forbidden('forbidden: participant doesn\'t belongs to team');
+        }
     }
 
 }

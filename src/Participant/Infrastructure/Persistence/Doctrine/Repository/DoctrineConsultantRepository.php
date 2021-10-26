@@ -2,19 +2,16 @@
 
 namespace Participant\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Participant\ {
-    Application\Service\Firm\Program\ConsultantRepository,
-    Domain\DependencyModel\Firm\Program\Consultant,
-    Domain\Model\ClientParticipant,
-    Domain\Model\UserParticipant
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Participant\Application\Service\Firm\Program\ConsultantRepository;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\UserParticipant;
+use Participant\Domain\Task\Dependency\Firm\Program\MentorRepository;
 use Resources\Exception\RegularException;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository
+class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, MentorRepository
 {
 
     public function aConsultantInProgramWhereClientParticipate(string $firmId, string $clientId,

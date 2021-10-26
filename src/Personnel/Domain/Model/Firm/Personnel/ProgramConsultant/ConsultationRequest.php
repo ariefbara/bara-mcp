@@ -18,6 +18,7 @@ use Resources\ValidationRule;
 use Resources\ValidationService;
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 
 class ConsultationRequest extends EntityContainEvents
 {
@@ -146,9 +147,10 @@ class ConsultationRequest extends EntityContainEvents
 
     public function createConsultationSession(string $consultationSessionId): ConsultationSession
     {
+        $sessionType = new ConsultationSessionType(ConsultationSessionType::HANDSHAKING_TYPE, null);
         return new ConsultationSession(
                 $this->programConsultant, $consultationSessionId, $this->participant, $this->consultationSetup,
-                $this->startEndTime, $this->channel);
+                $this->startEndTime, $this->channel, $sessionType);
     }
 
     public function isOfferedConsultationRequestConflictedWith(ConsultationRequest $other): bool

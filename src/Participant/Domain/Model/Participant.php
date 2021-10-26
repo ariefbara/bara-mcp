@@ -30,9 +30,12 @@ use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Resources\Domain\Model\EntityContainEvents;
+use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 
 class Participant extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
@@ -102,13 +105,13 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      * @var ArrayCollection
      */
     protected $completedMissions;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $profiles;
-    
+
     /**
      * 
      * @var ArrayCollection
@@ -119,12 +122,14 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
     {
         
     }
+
     function assertActive(): void
     {
         if (!$this->active) {
             throw RegularException::forbidden('forbidden: only active program participant can make this request');
         }
     }
+
     protected function assertAssetIsManageable(ManageableByParticipant $asset, string $assetName): void
     {
         if (!$asset->isManageableByParticipant($this)) {
@@ -317,8 +322,8 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             $errorDetail = "forbidden: unable to submit profile from other program's profile template";
             throw RegularException::forbidden($errorDetail);
         }
-        
-        $p = function (ParticipantProfile $profile) use ($programsProfileForm){
+
+        $p = function (ParticipantProfile $profile) use ($programsProfileForm) {
             return $profile->anActiveProfileCorrespondWithProgramsProfileForm($programsProfileForm);
         };
         if (!empty($profile = $this->profiles->filter($p)->first())) {
@@ -329,7 +334,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             $this->profiles->add($participantProfile);
         }
     }
-    
+
     public function removeProfile(ParticipantProfile $participantProfile): void
     {
         $this->assertActive();
@@ -339,7 +344,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         }
         $participantProfile->remove();
     }
-    
+
     protected function assertNoExistingOKRPeriodInConflictWith(OKRPeriod $okrPeriod): void
     {
         $p = function (OKRPeriod $existingOKRPeriod) use ($okrPeriod) {
@@ -349,6 +354,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
             throw RegularException::conflict('conflict: okr period in conflict with existing okr period');
         }
     }
+
     public function createOKRPeriod(string $okrPeriodId, OKRPeriodData $okrPeriodData): OKRPeriod
     {
         $this->assertActive();
@@ -356,6 +362,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $this->assertNoExistingOKRPeriodInConflictWith($okrPeriod);
         return $okrPeriod;
     }
+
     public function updateOKRPeriod(OKRPeriod $okrPeriod, OKRPeriodData $okrPeriodData): void
     {
         $this->assertActive();
@@ -363,21 +370,23 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $okrPeriod->update($okrPeriodData);
         $this->assertNoExistingOKRPeriodInConflictWith($okrPeriod);
     }
+
     public function cancelOKRPeriod(OKRPeriod $okrPeriod): void
     {
         $this->assertActive();
         $this->assertAssetIsManageable($okrPeriod, 'okr period');
         $okrPeriod->cancel();
     }
-    
+
     public function submitObjectiveProgressReport(
-            Objective $objective, string $objectiveProgressReportId, 
+            Objective $objective, string $objectiveProgressReportId,
             ObjectiveProgressReportData $objectiveProgressReportData): ObjectiveProgressReport
     {
         $this->assertActive();
         $this->assertAssetIsManageable($objective, 'objective');
         return $objective->submitReport($objectiveProgressReportId, $objectiveProgressReportData);
     }
+
     public function updateObjectiveProgressReport(
             ObjectiveProgressReport $objectiveProgressReport, ObjectiveProgressReportData $objectiveProgressReportData): void
     {
@@ -385,11 +394,33 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $this->assertAssetIsManageable($objectiveProgressReport, 'objective progress report');
         $objectiveProgressReport->update($objectiveProgressReportData);
     }
+
     public function cancelObjectiveProgressReportSubmission(ObjectiveProgressReport $objectiveProgressReport): void
     {
         $this->assertActive();
         $this->assertAssetIsManageable($objectiveProgressReport, 'objective progress report');
         $objectiveProgressReport->cancel();
+    }
+    
+    public function executeParticipantTask(ITaskExecutableByParticipant $task): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active participant can make this request');
+        }
+        $task->execute($this);
+    }
+
+    public function declareConsultationSession(
+            string $consultationSessionId, ConsultationSetup $consultationSetup, Consultant $consultant,
+            DateTimeInterval $startEndTime, ConsultationChannel $channel): ConsultationSession
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active participant can make this request');
+        }
+        $consultationSetup->assertUsableInProgram($this->program);
+        $consultant->assertUsableInProgram($this->program);
+        $sessionType = new ConsultationSessionType(ConsultationSessionType::DECLARED_TYPE, null);
+        return new ConsultationSession($this, $consultationSessionId, $consultationSetup, $consultant, $startEndTime, $channel, $sessionType);
     }
 
 }
