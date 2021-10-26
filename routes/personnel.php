@@ -202,6 +202,8 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->delete("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@cancel"]);
         $router->get("/dedicated-mentors/{dedicatedMentorId}", ["uses" => "DedicatedMentorController@show"]);
         
+        $router->get("/activities/{activityId}/attendees", ["uses" => "ActivityAttendeeController@showAll"]);
+        $router->get("/attendees/{attendeeId}", ["uses" => "ActivityAttendeeController@show"]);
     });
     
     $asProgramConsultantAggregate = [

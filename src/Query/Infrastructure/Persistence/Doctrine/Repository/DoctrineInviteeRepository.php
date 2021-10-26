@@ -18,14 +18,15 @@ use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorActivity;
 use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorInvitee;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantActivity;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
-use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\Dependency\Firm\Program\ActivityType\Activity\AttendeeRepository;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineInviteeRepository extends EntityRepository implements InviteeRepository, InterfaceForAuthorization, InterfaceForPersonnel
+class DoctrineInviteeRepository extends EntityRepository implements InviteeRepository, InterfaceForAuthorization, InterfaceForPersonnel,
+        AttendeeRepository
 {
 
     protected function applyFilter(QueryBuilder $qb, ?InviteeFilter $inviteeFilter): void
@@ -761,6 +762,62 @@ class DoctrineInviteeRepository extends EntityRepository implements InviteeRepos
         $this->applyFilter($qb, $inviteeFilter);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allAttendeesInActivityOfProgram(
+            string $programId, string $activityId, int $page, int $pageSize, ?bool $cancelledStatus, 
+            ?bool $attendedStatus)
+    {
+        $params = [
+            'programId' => $programId,
+            'activityId' => $activityId,
+        ];
+        
+        $qb = $this->createQueryBuilder('invitee');
+        $qb->select('invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->andWhere($qb->expr()->eq('activity.id', ':activityId'))
+                ->leftJoin('activity.activityType', 'activityType')
+                ->leftJoin('activityType.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->orderBy('invitee.anInitiator', 'DESC')
+                ->setParameters($params);
+        
+        if (isset($cancelledStatus)) {
+            $qb->andWhere($qb->expr()->eq('invitee.cancelled', ':cancelledStatus'))
+                    ->setParameter('cancelledStatus', $cancelledStatus);
+        }
+        
+        if (isset($attendedStatus)) {
+            $qb->andWhere($qb->expr()->eq('invitee.attended', ':attendedStatus'))
+                    ->setParameter('attendedStatus', $attendedStatus);
+        }
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function anAttendeeInProgram(string $programId, string $attendeeId): Invitee
+    {
+        $params = [
+            'programId' => $programId,
+            'inviteeId' => $attendeeId,
+        ];
+        
+        $qb = $this->createQueryBuilder('invitee');
+        $qb->select('invitee')
+                ->andWhere($qb->expr()->eq('invitee.id', ':inviteeId'))
+                ->leftJoin('invitee.activity', 'activity')
+                ->leftJoin('activity.activityType', 'activityType')
+                ->leftJoin('activityType.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: attendee not found');
+        }
     }
 
 }

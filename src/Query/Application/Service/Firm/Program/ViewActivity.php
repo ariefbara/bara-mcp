@@ -3,6 +3,7 @@
 namespace Query\Application\Service\Firm\Program;
 
 use Query\Domain\Model\Firm\Program\Activity;
+use Query\Infrastructure\QueryFilter\ActivityFilter;
 
 class ViewActivity
 {
@@ -31,9 +32,9 @@ class ViewActivity
      * @param int $pageSize
      * @return Activity[]
      */
-    public function showAll(string $firmId, string $programId, int $page, int $pageSize)
+    public function showAll(string $firmId, string $programId, int $page, int $pageSize, ActivityFilter $activityFilter)
     {
-        return $this->activityRepository->allActivitiesInProgram($firmId, $programId, $page, $pageSize);
+        return $this->activityRepository->allActivitiesInProgram($firmId, $programId, $page, $pageSize, $activityFilter);
     }
 
 }

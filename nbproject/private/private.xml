@@ -30,6 +30,10 @@
             <file>file:/home/adi/workspace/php/bara-mcp/tests/Controllers/Client/EvaluationReportTrasncriptControllerTest.php</file>
             <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Client/AsTeamMember/ProgramParticipation/ConsultationSessionController.php</file>
             <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Client/ProgramParticipation/ConsultationSessionController.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Program/Activity/Invitee/InviteeReport.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ActivityAttendeeController.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/app/Http/Controllers/Personnel/AsProgramCoordinator/ActivityReportController.php</file>
+            <file>file:/home/adi/workspace/php/bara-mcp/src/Query/Domain/Model/Firm/Program/Activity/Invitee.php</file>
         </group>
     </open-files>
 </project-private>
