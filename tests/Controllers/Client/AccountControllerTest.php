@@ -23,6 +23,25 @@ class AccountControllerTest extends ClientTestCase
         parent::tearDown();
     }
     
+    protected function show()
+    {
+        $uri = $this->clientUri . '/profile';
+        $this->get($uri, $this->client->token);
+    }
+    public function test_show_200()
+    {
+        $this->show();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'id' => $this->client->id,
+            'firstName' => $this->client->firstName,
+            'lastName' => $this->client->lastName,
+            'email' => $this->client->email,
+        ];
+        $this->seeJsonContains($response);
+    }
+    
     public function test_updateProfile()
     {
         $response = [
