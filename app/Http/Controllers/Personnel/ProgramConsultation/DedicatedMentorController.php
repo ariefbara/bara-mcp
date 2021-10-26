@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
 use Query\Application\Service\Consultant\ViewDedicatedMentor;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
+use Query\Domain\Model\Firm\Team;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
 
 class DedicatedMentorController extends ProgramConsultationBaseController
 {
@@ -19,7 +23,15 @@ class DedicatedMentorController extends ProgramConsultationBaseController
         $result = [];
         $result['total'] = count($dedicatedMentors);
         foreach ($dedicatedMentors as $dedicatedMentor) {
-            $result['list'][] = $this->arrayDataOfDedicatedMentor($dedicatedMentor);
+            $result['list'][] = [
+                'id' => $dedicatedMentor->getId(),
+                'modifiedTime' => $dedicatedMentor->getModifiedTimeString(),
+                'cancelled' => $dedicatedMentor->isCancelled(),
+                'participant' => [
+                    'id' => $dedicatedMentor->getParticipant()->getId(),
+                    'name' => $dedicatedMentor->getParticipant()->getName(),
+                ],
+            ];
         }
         return $this->listQueryResponse($result);
     }
@@ -39,8 +51,46 @@ class DedicatedMentorController extends ProgramConsultationBaseController
             'cancelled' => $dedicatedMentor->isCancelled(),
             'participant' => [
                 'id' => $dedicatedMentor->getParticipant()->getId(),
-                'name' => $dedicatedMentor->getParticipant()->getName(),
+                'team' => $this->arrayDataOfTeam($dedicatedMentor->getParticipant()->getTeamParticipant()),
+                'client' => $this->arrayDataOfClient($dedicatedMentor->getParticipant()->getClientParticipant()),
+                'user' => $this->arrayDataOfUser($dedicatedMentor->getParticipant()->getUserParticipant()),
             ],
+        ];
+    }
+    protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
+    {
+        return empty($teamParticipant) ? null : [
+            'id' => $teamParticipant->getTeam()->getId(),
+            'name' => $teamParticipant->getTeam()->getName(),
+            'members' => $this->arrayDataOfTeamMembers($teamParticipant->getTeam()),
+        ];
+    }
+    protected function arrayDataOfTeamMembers(Team $team): array
+    {
+        $members = [];
+        foreach ($team->iterateActiveMember() as $member) {
+            $members[] = [
+                'id' => $member->getId(),
+                'client' => [
+                    'id' => $member->getClient()->getId(),
+                    'name' => $member->getClient()->getFullName(),
+                ],
+            ];
+        }
+        return $members;
+    }
+    protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
+    {
+        return empty($clientParticipant) ? null : [
+            'id' => $clientParticipant->getClient()->getId(),
+            'name' => $clientParticipant->getClient()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
+    {
+        return empty($userParticipant) ? null : [
+            'id' => $userParticipant->getUser()->getId(),
+            'name' => $userParticipant->getUser()->getFullName(),
         ];
     }
 

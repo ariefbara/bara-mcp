@@ -6,6 +6,9 @@ use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfDedicatedMentor;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfMember;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
 
 class DedicatedMentorControllerTest extends ProgramConsultationTestCase
 {
@@ -13,7 +16,9 @@ class DedicatedMentorControllerTest extends ProgramConsultationTestCase
     protected $dedicatedMentorOne;
     protected $dedicatedMentorTwo;
     protected $clientParticipantOne;
-    protected $clientParticipantTwo;
+    protected $teamParticipantTwo;
+    protected $memberOne;
+    protected $memberTwo;
 
     protected function setUp(): void
     {
@@ -21,6 +26,8 @@ class DedicatedMentorControllerTest extends ProgramConsultationTestCase
         $this->dedicatedMentorUri = $this->programConsultationUri . "/dedicated-mentors";
         $this->connection->table('Participant')->truncate();
         $this->connection->table('Client')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('T_Member')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('DedicatedMentor')->truncate();
         
@@ -33,8 +40,13 @@ class DedicatedMentorControllerTest extends ProgramConsultationTestCase
         $clientOne = new RecordOfClient($firm, '1');
         $clientTwo = new RecordOfClient($firm, '2');
         
+        $teamOne = new RecordOfTeam($firm, $clientTwo, '1');
+        
+        $this->memberOne = new RecordOfMember($teamOne, $clientOne, '1');
+        $this->memberTwo = new RecordOfMember($teamOne, $clientTwo, '2');
+        
         $this->clientParticipantOne = new RecordOfClientParticipant($clientOne, $participantOne);
-        $this->clientParticipantTwo = new RecordOfClientParticipant($clientTwo, $participantTwo);
+        $this->teamParticipantTwo = new RecordOfTeamProgramParticipation($teamOne, $participantTwo);
         
         $this->dedicatedMentorOne = new RecordOfDedicatedMentor($participantOne, $this->programConsultation, '1');
         $this->dedicatedMentorTwo = new RecordOfDedicatedMentor($participantTwo, $this->programConsultation, '2');
@@ -45,31 +57,62 @@ class DedicatedMentorControllerTest extends ProgramConsultationTestCase
         $this->connection->table('Participant')->truncate();
         $this->connection->table('Client')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('T_Member')->truncate();
         $this->connection->table('DedicatedMentor')->truncate();
     }
     
     protected function executeShow()
     {
-        $this->clientParticipantOne->client->insert($this->connection);
-        $this->clientParticipantOne->insert($this->connection);
+        $this->teamParticipantTwo->team->insert($this->connection);
+        $this->teamParticipantTwo->insert($this->connection);
         
-        $this->dedicatedMentorOne->participant->insert($this->connection);
-        $this->dedicatedMentorOne->insert($this->connection);
+        $this->memberOne->client->insert($this->connection);
+        $this->memberTwo->client->insert($this->connection);
         
-        $uri = $this->dedicatedMentorUri . "/{$this->dedicatedMentorOne->id}";
+        $this->memberOne->insert($this->connection);
+        $this->memberTwo->insert($this->connection);
+        
+        $this->dedicatedMentorTwo->insert($this->connection);
+        
+        $uri = $this->dedicatedMentorUri . "/{$this->dedicatedMentorTwo->id}";
         $this->get($uri, $this->programConsultation->personnel->token);
+echo $uri;
     }
     public function test_show_200()
     {
         $this->executeShow();
         $this->seeStatusCode(200);
+        
         $response = [
-            'id' => $this->dedicatedMentorOne->id,
-            'modifiedTime' => $this->dedicatedMentorOne->modifiedTime,
-            'cancelled' => $this->dedicatedMentorOne->cancelled,
+            'id' => $this->dedicatedMentorTwo->id,
+            'modifiedTime' => $this->dedicatedMentorTwo->modifiedTime,
+            'cancelled' => $this->dedicatedMentorTwo->cancelled,
             'participant' => [
-                'id' => $this->dedicatedMentorOne->participant->id,
-                'name' => $this->clientParticipantOne->client->getFullName(),
+                'id' => $this->dedicatedMentorTwo->participant->id,
+                'client' => null,
+                'team' => [
+                    'id' => $this->teamParticipantTwo->team->id,
+                    'name' => $this->teamParticipantTwo->team->name,
+                    'members' => [
+                        [
+                            'id' => $this->memberOne->id,
+                            'client' => [
+                                'id' => $this->memberOne->client->id,
+                                'name' => $this->memberOne->client->getFullName(),
+                            ],
+                        ],
+                        [
+                            'id' => $this->memberTwo->id,
+                            'client' => [
+                                'id' => $this->memberTwo->client->id,
+                                'name' => $this->memberTwo->client->getFullName(),
+                            ],
+                        ],
+                    ],
+                ],
+                'user' => null,
             ],
         ];
         $this->seeJsonContains($response);
@@ -78,16 +121,19 @@ class DedicatedMentorControllerTest extends ProgramConsultationTestCase
     
     protected function executeShowAll(?string $uri = null)
     {
-        $this->clientParticipantOne->client->insert($this->connection);
+        $this->teamParticipantTwo->team->insert($this->connection);
+        
+        $this->memberOne->client->insert($this->connection);
+        $this->memberTwo->client->insert($this->connection);
+        
+        $this->memberOne->insert($this->connection);
+        $this->memberTwo->insert($this->connection);
+        
         $this->clientParticipantOne->insert($this->connection);
+        $this->teamParticipantTwo->insert($this->connection);
         
-        $this->clientParticipantTwo->client->insert($this->connection);
-        $this->clientParticipantTwo->insert($this->connection);
-        
-//        $this->dedicatedMentorOne->participant->insert($this->connection);
         $this->dedicatedMentorOne->insert($this->connection);
         
-//        $this->dedicatedMentorTwo->participant->insert($this->connection);
         $this->dedicatedMentorTwo->insert($this->connection);
         
         $uri = $uri ?? $this->dedicatedMentorUri;
@@ -118,7 +164,7 @@ class DedicatedMentorControllerTest extends ProgramConsultationTestCase
             'cancelled' => $this->dedicatedMentorTwo->cancelled,
             'participant' => [
                 'id' => $this->dedicatedMentorTwo->participant->id,
-                'name' => $this->clientParticipantTwo->client->getFullName(),
+                'name' => $this->teamParticipantTwo->team->name,
             ],
         ];
         $this->seeJsonContains($dedicatedMentorTwoResponse);
