@@ -168,28 +168,28 @@ class EvaluationReportSummaryTest extends ManagerTestCase
     }
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Form')->truncate();
-//        $this->connection->table('StringField')->truncate();
-//        $this->connection->table('IntegerField')->truncate();
-//        $this->connection->table('TextAreaField')->truncate();
-//        $this->connection->table('FeedbackForm')->truncate();
-//        $this->connection->table('Program')->truncate();
-//        $this->connection->table('EvaluationPlan')->truncate();
-//        $this->connection->table('Participant')->truncate();
-//        $this->connection->table('Client')->truncate();
-//        $this->connection->table('ClientParticipant')->truncate();
-//        $this->connection->table('Team')->truncate();
-//        $this->connection->table('TeamParticipant')->truncate();
-//        $this->connection->table('T_Member')->truncate();
-//        $this->connection->table('Personnel')->truncate();
-//        $this->connection->table('Consultant')->truncate();
-//        $this->connection->table('DedicatedMentor')->truncate();
-//        $this->connection->table('FormRecord')->truncate();
-//        $this->connection->table('StringFieldRecord')->truncate();
-//        $this->connection->table('IntegerFieldRecord')->truncate();
-//        $this->connection->table('TextAreaFieldRecord')->truncate();
-//        $this->connection->table('MentorEvaluationReport')->truncate();
+        parent::tearDown();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('StringField')->truncate();
+        $this->connection->table('IntegerField')->truncate();
+        $this->connection->table('TextAreaField')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
+        $this->connection->table('Program')->truncate();
+        $this->connection->table('EvaluationPlan')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('T_Member')->truncate();
+        $this->connection->table('Personnel')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
+        $this->connection->table('FormRecord')->truncate();
+        $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('IntegerFieldRecord')->truncate();
+        $this->connection->table('TextAreaFieldRecord')->truncate();
+        $this->connection->table('MentorEvaluationReport')->truncate();
     }
     
     protected function summary()
@@ -647,8 +647,6 @@ class EvaluationReportSummaryTest extends ManagerTestCase
         $this->textAreaRecord_221_fr22_taf_21->insert($this->connection);
         
         $this->get($this->evaluationReportTranscriptUri, $this->manager->token);
-var_dump($this->manager->token);
-var_dump($this->evaluationReportTranscriptUri);
     }
     public function test_transcript_200()
     {

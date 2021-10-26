@@ -49,7 +49,7 @@ class TranscriptTable
         }
     }
 
-    public function saveToSpreadsheet(Spreadsheet $spreadsheet): void
+    public function saveToSpreadsheet(Spreadsheet $spreadsheet, bool $summaryStyleView = false): void
     {
         $worksheet = $spreadsheet->createSheet();
         $sheetTitle = preg_replace("/[^A-Za-z0-9 _-]/", '', $this->participant->getName());
@@ -67,7 +67,8 @@ class TranscriptTable
                     [$participantTranscripTable->getEvaluationPlanName()],
                 ]);
             }
-            $transcripTable = array_merge($transcripTable, $participantTranscripTable->toSimplifiedTranscriptFormatArray());
+            $transcripTable = array_merge(
+                    $transcripTable, $participantTranscripTable->toSimplifiedTranscriptFormatArray($summaryStyleView));
         }
         
         $worksheet->fromArray($transcripTable);
