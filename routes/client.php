@@ -23,6 +23,9 @@ $router->group($clientAggregate, function () use ($router) {
     $router->get('/evaluation-reports', ['uses' => "EvaluationReportController@showAll"]);
     $router->get('/evaluation-reports/{id}', ['uses' => "EvaluationReportController@show"]);
     
+    $router->get('/evaluation-report-transcript', ['uses' => "EvaluationReportTranscriptController@show"]);
+    $router->get('/download-evaluation-report-transcript-xls', ['uses' => "EvaluationReportTranscriptController@downloadXls"]);
+    
     $router->group(['prefix' => '/clients'], function () use($router) {
         $controller = "ClientController";
         $router->get("", ["uses" => "$controller@showAll"]);

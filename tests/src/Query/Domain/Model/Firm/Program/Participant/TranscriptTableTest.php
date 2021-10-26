@@ -12,13 +12,15 @@ use Tests\TestBase;
 
 class TranscriptTableTest extends TestBase
 {
-    protected $participant, $participantId = 'participant-id', $participantName = 'participant name';
+    protected $participant, $participantId = 'participant-id', $participantName = 'participant name', 
+            $programName = 'program name', $teamName = 'team name', $programId = 'programId';
     protected $transcriptTable;
     protected $participantTranscriptTableOne, $evaluationPlanOneName = 'evaluation plan one name';
     protected $participantTranscriptTableTwo, $evaluationPlanTwoName = 'evaluation plan two name';
     
     protected $evaluationReport, $evaluationPlan;
     protected $spreadsheet, $worksheet;
+    protected $summaryStyleView = false;
 
     protected function setUp(): void
     {
@@ -191,6 +193,117 @@ class TranscriptTableTest extends TestBase
                 $evaluationPlanTwoTable,
             ],
         ], $this->transcriptTable->toRelationalArray());
+    }
+    
+    protected function saveAsProgramSheet()
+    {
+        $this->spreadsheet->expects($this->any())
+                ->method('createSheet')
+                ->willReturn($this->worksheet);
+        
+        $this->participant->expects($this->any())->method('getProgramName')->willReturn($this->programName);
+        $this->participant->expects($this->any())->method('getTeamName')->willReturn($this->teamName);
+        $this->transcriptTable->saveAsProgramSheet($this->spreadsheet, $this->summaryStyleView);
+    }
+    public function test_saveAsProgramSheet_createSheetAndSetTitle()
+    {
+        $this->worksheet->expects($this->once())
+                ->method('setTitle')
+                ->with("{$this->programName} - {$this->teamName}");
+        $this->saveAsProgramSheet();
+    }
+    public function test_saveAsProgramSheet_containInvalidSheetCharacter_removeCharacter()
+    {
+        $this->programName = 'program&#$#$^ name';
+        $this->teamName = 'team &@#%@#@#!#@#@)name';
+        $this->worksheet->expects($this->once())
+                ->method('setTitle')
+                ->with("program name - team name");
+        $this->saveAsProgramSheet();
+    }
+    public function test_saveAsProgramSheet_emptyTeamName_setProgramAsTitle()
+    {
+        $this->teamName = '';
+        $this->worksheet->expects($this->once())
+                ->method('setTitle')
+                ->with($this->programName);
+        $this->saveAsProgramSheet();
+    }
+    public function test_saveAsProgramSheet_saveAllParticipantTranscriptTableToWorksheet()
+    {
+        $this->participantTranscriptTableOne->expects($this->once())
+                ->method('toSimplifiedTranscriptFormatArray')
+                ->willReturn($transcriptOneTable = [
+                    ['mentor', 'mentor one name', 'mentor two name'],
+                    ['field one label', 'field 11 value', 'field 21 value'],
+                    ['field two label', 'field 12 value', 'field 22 value'],
+                ]);
+        $this->participantTranscriptTableTwo->expects($this->once())
+                ->method('toSimplifiedTranscriptFormatArray')
+                ->willReturn($transcriptTwoTable = [
+                    ['mentor', 'mentor one name', 'mentor two name'],
+                    ['field one label', 'field 11 value', 'field 21 value'],
+                    ['field two label', 'field 12 value', 'field 22 value'],
+                ]);
+        $transcriptTable = [
+            [$this->evaluationPlanOneName],
+            ['mentor', 'mentor one name', 'mentor two name'],
+            ['field one label', 'field 11 value', 'field 21 value'],
+            ['field two label', 'field 12 value', 'field 22 value'],
+            [],
+            [$this->evaluationPlanTwoName],
+            ['mentor', 'mentor one name', 'mentor two name'],
+            ['field one label', 'field 11 value', 'field 21 value'],
+            ['field two label', 'field 12 value', 'field 22 value'],
+        ];
+        $this->worksheet->expects($this->once())
+                ->method('fromArray')
+                ->with($transcriptTable);
+        $this->saveAsProgramSheet();
+    }
+    
+    protected function toRelationalArrayOfProgram()
+    {
+        $this->participant->expects($this->any())->method('getProgramName')->willReturn($this->programName);
+        $this->participant->expects($this->any())->method('getProgramId')->willReturn($this->programId);
+        return $this->transcriptTable->toRelationalArrayOfProgram();
+    }
+    public function test_toRelationalArrayOfProgram_returnAllParticipantTranscriptTableRelationalArrayOfProgram()
+    {
+        $this->participantTranscriptTableOne->expects($this->once())
+                ->method('toRelationalArray')
+                ->willReturn($evaluationPlanOneTable = [
+                    'id' => 'evaluation-plan-one-id',
+                    'name' => 'evaluation plan one name',
+                    'summaryTable' => [
+                        'header' => ['mentor', 'field one label', 'field two label'],
+                        'entries' => [
+                            ['mentor one name', 'field 11 value', 'field 12value'],
+                            ['mentor two name', 'field 21 value', 'field 22value'],
+                        ],
+                    ],
+                ]);
+        $this->participantTranscriptTableTwo->expects($this->once())
+                ->method('toRelationalArray')
+                ->willReturn($evaluationPlanTwoTable = [
+                    'id' => 'evaluation-plan-one-id',
+                    'name' => 'evaluation plan two name',
+                    'summaryTable' => [
+                        'header' => ['mentor', 'field one label', 'field two label'],
+                        'entries' => [
+                            ['mentor one name', 'field 11 value', 'field 12value'],
+                            ['mentor two name', 'field 21 value', 'field 22value'],
+                        ],
+                    ],
+                ]);
+        $this->assertEquals([
+            'programId' => $this->programId,
+            'programName' => $this->programName,
+            'evaluationPlans' => [
+                $evaluationPlanOneTable,
+                $evaluationPlanTwoTable,
+            ],
+        ], $this->toRelationalArrayOfProgram());
     }
 }
 

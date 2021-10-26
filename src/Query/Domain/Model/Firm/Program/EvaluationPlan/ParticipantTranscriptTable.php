@@ -67,11 +67,15 @@ class ParticipantTranscriptTable implements IContainSummaryTable
         return $this->evaluationPlan->getName();
     }
     
-    public function toSimplifiedTranscriptFormatArray(): array
+    public function toSimplifiedTranscriptFormatArray(bool $summaryStyleView = false): array
     {
         $mentorHeaderColumn = new StaticHeaderColumn(1, 'mentor');
         $headerColumns = array_merge([$mentorHeaderColumn], $this->headerColumns);
-        return $this->summaryTable->toArrayTranscriptSimplifiedFormat($headerColumns);
+        if ($summaryStyleView) {
+            return $this->summaryTable->toArraySummarySimplifiedFormat($headerColumns);
+        } else {
+            return $this->summaryTable->toArrayTranscriptSimplifiedFormat($headerColumns);
+        }
     }
     
     public function toRelationalArray(): array

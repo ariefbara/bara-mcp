@@ -276,7 +276,7 @@ class Controller extends BaseController
         );
     }
     
-    protected function sendXlsDownloadResponse(Xlsx $writer)
+    protected function sendXlsDownloadResponse(Xlsx $writer, string $filename = 'evaluation-report-summary.xls')
     {
         $callback = function() use($writer) {
             $file = fopen('php://output', 'w');
@@ -287,7 +287,7 @@ class Controller extends BaseController
         
         $headers = [
             "Content-type" => "application/vnd.ms-excel",
-            "Content-Disposition" => "attachment; filename=evaluation-report-summary.xls",
+            "Content-Disposition" => "attachment; filename={$filename}",
             "Pragma" => "no-cache",
             "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
             "Expires" => "0"
