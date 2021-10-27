@@ -19,6 +19,7 @@ use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue;
+use Query\Domain\Model\Firm\Team;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 
@@ -131,7 +132,22 @@ class ParticipantController extends AsProgramCoordinatorBaseController
         return empty($teamParticipant) ? null : [
             "id" => $teamParticipant->getTeam()->getId(),
             "name" => $teamParticipant->getTeam()->getName(),
+            'members' => $this->arrayDataOfTeamMembers($teamParticipant->getTeam()),
         ];
+    }
+    protected function arrayDataOfTeamMembers(?Team $team): array
+    {
+        $members = [];
+        foreach ($team->iterateActiveMember() as $member) {
+            $members[] = [
+                'id' => $member->getId(),
+                'client' => [
+                    'id' => $member->getClient()->getId(),
+                    'name' => $member->getClient()->getFullName(),
+                ],
+            ];
+        }
+        return $members;
     }
 
     protected function arrayDataOfMetricAssignment(?MetricAssignment $metricAssignment): ?array
