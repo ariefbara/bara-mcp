@@ -28,6 +28,7 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
         $qb->select('client')
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->orderBy('client.id', 'ASC')
                 ->setParameters($params);
 
         if (isset($activatedStatus)) {
