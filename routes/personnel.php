@@ -378,6 +378,9 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/evaluation-plans", ["uses" => "EvaluationPlanController@showAll"]);
         $router->get("/evaluation-plans/{evaluationPlanId}", ["uses" => "EvaluationPlanController@show"]);
         
+        $router->get("/consultation-setups", ["uses" => "ConsultationSetupController@showAll"]);
+        $router->get("/consultation-setups/{id}", ["uses" => "ConsultationSetupController@show"]);
+        
     });
     
     $coordinatorAggregate = [

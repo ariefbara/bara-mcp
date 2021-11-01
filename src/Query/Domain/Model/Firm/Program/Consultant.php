@@ -159,5 +159,13 @@ class Consultant
     {
         return $this->personnel->getName();
     }
+    
+    public function executeTaskInProgram(ITaskInProgramExecutableByConsultant $task): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active consultant can make this request');
+        }
+        $task->executeTaskInProgram($this->program);
+    }
 
 }
