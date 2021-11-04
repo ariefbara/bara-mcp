@@ -201,7 +201,7 @@ class ActivityAttendeeControllerTest extends AsProgramCoordinatorTestCase
             'coordinator' => null,
             'consultant' => null,
             'participant' => null,
-            'report' => null,
+            'reportSubmitted' => false,
         ];
         $this->seeJsonContains($managerAttendeeResponse);
         
@@ -215,7 +215,7 @@ class ActivityAttendeeControllerTest extends AsProgramCoordinatorTestCase
             ],
             'consultant' => null,
             'participant' => null,
-            'report' => null,
+            'reportSubmitted' => false,
         ];
         $this->seeJsonContains($coordinatorAttendeeResponse);
         
@@ -229,7 +229,7 @@ class ActivityAttendeeControllerTest extends AsProgramCoordinatorTestCase
                 'name' => $this->consultantAttendee->consultant->personnel->getFullName(),
             ],
             'participant' => null,
-            'report' => null,
+            'reportSubmitted' => false,
         ];
         $this->seeJsonContains($consultantAttendeeResponse);
         
@@ -243,25 +243,7 @@ class ActivityAttendeeControllerTest extends AsProgramCoordinatorTestCase
                 'id' => $this->participantAttendee->participant->id,
                 'name' => $this->clientParticipant->client->getFullName(),
             ],
-            'report' => [
-                'submitTime' => $this->participantAttendeeReport->formRecord->submitTime,
-                'stringFieldRecords' => [],
-                'integerFieldRecords' => [
-                    [
-                        'id' => $this->integerFieldRecord->id,
-                        'value' => $this->integerFieldRecord->value,
-                        'integerField' => [
-                            'id' => $this->integerFieldRecord->integerField->id,
-                            'name' => $this->integerFieldRecord->integerField->name,
-                            'position' => $this->integerFieldRecord->integerField->position,
-                        ],
-                    ],
-                ],
-                'textAreaFieldRecords' => [],
-                'attachmentFieldRecords' => [],
-                'singleSelectFieldRecords' => [],
-                'multiSelectFieldRecords' => [],
-            ],
+            'reportSubmitted' => true,
         ];
         $this->seeJsonContains($participantAttendeeResponse);
     }

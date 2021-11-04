@@ -29,7 +29,15 @@ class ActivityAttendeeController extends AsProgramCoordinatorBaseController
         $result = [];
         $result['total'] = count($task->result);
         foreach ($task->result as $invitee) {
-            $result['list'][] = $this->arrayDataOfInvitee($invitee);
+            $result['list'][] = [
+                "id" => $invitee->getId(),
+                "anInitiator" => $invitee->isAnInitiator(),
+                "manager" => $this->arrayDataOfManager($invitee->getManagerInvitee()),
+                "coordinator" => $this->arrayDataOfCoordinator($invitee->getCoordinatorInvitee()),
+                "consultant" => $this->arrayDataOfConsultant($invitee->getConsultantInvitee()),
+                "participant" => $this->arrayDataOfParticipant($invitee->getParticipantInvitee()),
+                'reportSubmitted' => !empty($invitee->getReport()),
+            ];
         }
         return $this->listQueryResponse($result);
     }

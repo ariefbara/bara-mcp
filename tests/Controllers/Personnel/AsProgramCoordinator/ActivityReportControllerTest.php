@@ -119,6 +119,7 @@ class ActivityReportControllerTest extends AsProgramCoordinatorTestCase
         ];
         
         $uri = $this->asProgramCoordinatorUri . "/activity-reports/{$this->activityReportOne->id}";
+echo $uri;
         $this->get($uri, $this->coordinator->personnel->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);
