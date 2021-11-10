@@ -42,7 +42,7 @@ class FormDataBuilder
     public function build(): FormData
     {
         $name = $this->stripTagsVariable($this->request->input('name'));
-        $description = $this->stripTagsVariable($this->request->input('description'));
+        $description = $this->request->input('description');
         $formData = new FormData($name, $description);
         $this->attachStringFieldDataToFormData($formData);
         $this->attachIntegerFieldDataToFormData($formData);
