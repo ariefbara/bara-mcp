@@ -9,6 +9,8 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
 use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
@@ -202,6 +204,15 @@ class ProgramConsultant extends EntityContainEvents
         $type = new ConsultationSessionType(ConsultationSessionType::DECLARED_TYPE, true);
         return new ConsultationSession(
                 $this, $consultationSessionId, $participant, $consultationSetup, $startEndTime, $channel, $type);
+    }
+
+    public function createMentoringSlot(
+            string $mentoringSlotId, ConsultationSetup $consultationSetup, MentoringSlotData $mentoringSlotData): MentoringSlot
+    {
+        if (!$consultationSetup->usableInProgram($this->programId)) {
+            throw RegularException::forbidden('forbidden: unuseable consultation setup');
+        }
+        return new MentoringSlot($this, $mentoringSlotId, $consultationSetup, $mentoringSlotData);
     }
 
 }

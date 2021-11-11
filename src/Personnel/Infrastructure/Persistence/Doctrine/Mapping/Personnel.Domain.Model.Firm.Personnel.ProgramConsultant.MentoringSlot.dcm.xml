@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot" 
+            table="MentoringSlot"
+            repository-class="Personnel\Infrastructure\Persistence\Doctrine\Repository\DoctrineMentoringSlotRepository"
+    >
+        
+        <many-to-one  field="mentor" 
+                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant"
+        >
+            <join-column name="Mentor_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="cancelled" type="boolean" />
+        <embedded name="schedule" class="SharedContext\Domain\ValueObject\Schedule" use-column-prefix="false" />
+        <field name="capacity" type="smallint" nullable="false" />
+        
+        <many-to-one  field="consultationSetup" 
+                      target-entity="Personnel\Domain\Model\Firm\Program\ConsultationSetup"
+        >
+            <join-column name="ConsultationSetup_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        
+        <one-to-many field="bookedSlots" 
+                     target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot\BookedMentoringSlot" 
+                     mapped-by="mentoringSlot"
+        />
+        
+    </entity>
+</doctrine-mapping>

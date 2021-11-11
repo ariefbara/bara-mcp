@@ -42,5 +42,10 @@ abstract class TimeInterval
                 && $this->getEndTimeStamp() === $other->getEndTimeStamp();
     }
     
+    public function isAlreadyPassed(): bool
+    {
+        return $this->getEndTimeStamp() < (new \DateTimeImmutable())->getTimestamp();
+    }
+    
 }
 

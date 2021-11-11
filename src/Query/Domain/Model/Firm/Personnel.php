@@ -238,5 +238,13 @@ class Personnel
         $this->assertActive();
         return $task->viewAssetBelongsToPersonnel($this->id);
     }
+    
+    public function executeTask(TaskExecutableByPersonnel $task): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active personnel can make this request');
+        }
+        $task->execute($this->id);
+    }
 
 }

@@ -9,6 +9,12 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     
+    $router->post('/program-consultation/{consultantId}/mentoring-slots/create-multiple-slot', ['uses' => "MentoringSlotController@createMultipleSlot"]);
+    $router->patch('/program-consultation/{consultantId}/mentoring-slots/{id}', ['uses' => "MentoringSlotController@update"]);
+    $router->delete('/program-consultation/{consultantId}/mentoring-slots/{id}', ['uses' => "MentoringSlotController@cancel"]);
+    $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
+    $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+    
     $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
     $router->get('/metric-assignment-reports', ['uses' => "MetricAssignmentReportController@showAll"]);
