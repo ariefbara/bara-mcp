@@ -111,6 +111,9 @@ $router->group($clientAggregate, function () use ($router) {
         
         $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
         
+        $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+        $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
+        
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
             $router->post("", ["uses" => "$controller@addRoot"]);

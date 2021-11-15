@@ -116,4 +116,12 @@ class MentoringSlot
                 ->andWhere(Criteria::expr()->eq('cancelled', false));
         return $this->bookedSlots->matching($criteria)->getIterator();
     }
+    
+    public function activeBookedSlotCount(): int
+    {
+        $p = function (BookedMentoringSlot $bookedSlot) {
+            return !$bookedSlot->getCancelled();
+        };
+        return $this->bookedSlots->filter($p)->count();
+    }
 }

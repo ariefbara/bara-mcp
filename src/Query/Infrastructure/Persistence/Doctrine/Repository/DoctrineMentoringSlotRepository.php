@@ -123,7 +123,7 @@ class DoctrineMentoringSlotRepository extends EntityRepository implements Mentor
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameters($params);
         
-        $this->applyFilter($qb, $filter);
+        $this->applyFilter($qb, $mentoringSlotFilter);
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

@@ -37,6 +37,12 @@ class MentoringSlotFilter
      */
     protected $cancelledStatus;
 
+    /**
+     * 
+     * @var bool|null
+     */
+    protected $bookingAvailabilityStatus;
+
     public function getConsultantId(): ?string
     {
         return $this->consultantId;
@@ -60,6 +66,11 @@ class MentoringSlotFilter
     public function getCancelledStatus(): ?bool
     {
         return $this->cancelledStatus;
+    }
+
+    public function getBookingAvailabilityStatus(): ?bool
+    {
+        return $this->bookingAvailabilityStatus;
     }
 
     public function setConsultantId(?string $consultantId)
@@ -89,6 +100,12 @@ class MentoringSlotFilter
     public function setCancelledStatus(?bool $cancelledStatus)
     {
         $this->cancelledStatus = $cancelledStatus;
+        return $this;
+    }
+
+    public function setBookingAvailabilityStatus(?bool $bookingAvailabilityStatus)
+    {
+        $this->bookingAvailabilityStatus = $bookingAvailabilityStatus;
         return $this;
     }
 
