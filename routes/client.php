@@ -109,6 +109,8 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);
         $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
         
+        $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
+        
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
             $router->post("", ["uses" => "$controller@addRoot"]);

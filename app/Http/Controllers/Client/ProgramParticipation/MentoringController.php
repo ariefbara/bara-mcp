@@ -1,40 +1,38 @@
 <?php
 
-namespace App\Http\Controllers\Personnel;
+namespace App\Http\Controllers\Client\ProgramParticipation;
 
 use Query\Domain\Task\Dependency\MentoringFilter;
-use Query\Domain\Task\Personnel\ViewAllMentoringPayload;
-use Query\Domain\Task\Personnel\ViewAllMentoringTask;
+use Query\Domain\Task\Dependency\MentoringFilter\MentoringSlotFilter;
+use Query\Domain\Task\Participant\ShowAllMentoringPayload;
+use Query\Domain\Task\Participant\ShowAllMentoringTask;
 use Query\Infrastructure\Persistence\Doctrine\Repository\CustomDoctrineMentoringRepository;
 
-class MentoringController extends PersonnelBaseController
+class MentoringController extends ClientParticipantBaseController
 {
-    public function showAll()
+    public function showAll($programParticipationId)
     {
         $mentoringRepository = new CustomDoctrineMentoringRepository($this->em);
         
-        $mentoringFilter = (new MentoringFilter())
+        $filter = (new MentoringFilter())
                 ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
                 ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
                 ->setOrderDirection($this->stripTagQueryRequest('order'));
         $mentoringSlotFilterRequest = $this->request->query('mentoringSlotFilter');
         if (isset($mentoringSlotFilterRequest)) {
-            $mentoringSlotFilter = new MentoringFilter\MentoringSlotFilter();
-            if (isset($mentoringSlotFilterRequest['bookingAvailableStatus'])) {
-                    $mentoringSlotFilter->setBookingAvailableStatus($this->filterBooleanOfVariable($mentoringSlotFilterRequest['bookingAvailableStatus']));
-            }
+            $mentoringSlotFilter = new MentoringSlotFilter();
             if (isset($mentoringSlotFilterRequest['cancelledStatus'])) {
                     $mentoringSlotFilter->setCancelledStatus($this->filterBooleanOfVariable($mentoringSlotFilterRequest['cancelledStatus']));
             }
             if (isset($mentoringSlotFilterRequest['reportCompletedStatus'])) {
                     $mentoringSlotFilter->setReportCompletedStatus($this->filterBooleanOfVariable($mentoringSlotFilterRequest['reportCompletedStatus']));
             }
-            $mentoringFilter->setMentoringSlotFilter($mentoringSlotFilter);
+            $filter->setMentoringSlotFilter($mentoringSlotFilter);
         }
         
-        $payload = new ViewAllMentoringPayload($this->getPage(), $this->getPageSize(), $mentoringFilter);
-        $task = new ViewAllMentoringTask($mentoringRepository, $payload);
-        $this->executePersonnelQueryTask($task);
+        $payload = new ShowAllMentoringPayload($this->getPage(), $this->getPageSize(), $filter);
+        $task = new ShowAllMentoringTask($mentoringRepository, $payload);
+        $this->executeQueryParticipantTask($programParticipationId, $task);
         
         return $this->listQueryResponse($task->results);
     }
