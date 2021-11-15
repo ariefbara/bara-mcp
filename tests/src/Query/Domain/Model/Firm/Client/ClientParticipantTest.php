@@ -4,6 +4,7 @@ namespace Query\Domain\Model\Firm\Client;
 
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
+use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
@@ -19,6 +20,7 @@ class ClientParticipantTest extends TestBase
     protected $page = 1, $pageSize = 25;
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
     protected $task;
+    protected $taskInProgram;
 
     protected function setUp(): void
     {
@@ -35,6 +37,7 @@ class ClientParticipantTest extends TestBase
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
         
         $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        $this->taskInProgram = $this->buildMockOfInterface(ITaskInProgramExecutableByParticipant::class);
     }
     
     public function test_viewLearningMaterial_returnParticipantsViewLearningMaterialResult()
@@ -94,6 +97,18 @@ class ClientParticipantTest extends TestBase
                 ->method('executeTask')
                 ->with($this->task);
         $this->clientParticipant->executeTask($this->task);
+    }
+    
+    protected function executeTaskInProgram()
+    {
+        $this->clientParticipant->executeTaskInProgram($this->taskInProgram);
+    }
+    public function test_executeTaskInProgram_executeParticipantTaskExecution()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeTaskInProgram')
+                ->with($this->taskInProgram);
+        $this->executeTaskInProgram();
     }
 }
 

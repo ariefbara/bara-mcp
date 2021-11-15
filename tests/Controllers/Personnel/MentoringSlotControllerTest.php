@@ -150,7 +150,7 @@ class MentoringSlotControllerTest extends MentorTestCase
         
         $this->consultationSetupOne->insert($this->connection);
         
-        $this->mentoringSlotOne->insertq($this->connection);
+        $this->mentoringSlotOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/program-consultation/{$this->mentorOne->id}/mentoring-slots/{$this->mentoringSlotOne->id}";
         $this->patch($uri, $this->updateRequest, $this->personnel->token);
@@ -194,7 +194,7 @@ class MentoringSlotControllerTest extends MentorTestCase
         ];
         $this->seeInDatabase('MentoringSlot', $mentoringSlotRecord);
     }
-    public function test_update_newScheduleIsAlreadPassed_400()
+    public function test_update_newScheduleNotAnUpcoming_400()
     {
         $this->updateRequest['startTime'] = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
         $this->update();
@@ -215,7 +215,7 @@ class MentoringSlotControllerTest extends MentorTestCase
         
         $this->consultationSetupOne->insert($this->connection);
         
-        $this->mentoringSlotOne->insertq($this->connection);
+        $this->mentoringSlotOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/program-consultation/{$this->mentorOne->id}/mentoring-slots/{$this->mentoringSlotOne->id}";
         $this->delete($uri, [], $this->personnel->token);
@@ -252,9 +252,10 @@ class MentoringSlotControllerTest extends MentorTestCase
         
         $this->consultationSetupOne->insert($this->connection);
         
-        $this->mentoringSlotOne->insertq($this->connection);
+        $this->mentoringSlotOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/mentoring-slots/{$this->mentoringSlotOne->id}";
+echo $uri;
         $this->get($uri, $this->personnel->token);
     }
     public function test_show_200()
@@ -297,8 +298,8 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->consultationSetupOne->insert($this->connection);
         $this->consultationSetupTwo->insert($this->connection);
         
-        $this->mentoringSlotOne->insertq($this->connection);
-        $this->mentoringSlotTwo->insertq($this->connection);
+        $this->mentoringSlotOne->insert($this->connection);
+        $this->mentoringSlotTwo->insert($this->connection);
         
         $uri = $this->personnelUri . "/mentoring-slots";
         $this->get($uri, $this->personnel->token);

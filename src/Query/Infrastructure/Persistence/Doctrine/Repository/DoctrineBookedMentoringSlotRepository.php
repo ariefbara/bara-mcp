@@ -3,9 +3,11 @@
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlot;
 use Query\Domain\Task\Dependency\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlotFilter;
 use Query\Domain\Task\Dependency\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlotRepository;
+use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineBookedMentoringSlotRepository extends EntityRepository implements BookedMentoringSlotRepository
@@ -27,6 +29,12 @@ class DoctrineBookedMentoringSlotRepository extends EntityRepository implements 
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: booked mentoring slot not found');
+        }
     }
 
     public function allBookedMentoringSlotsBelongsToPersonnel(
@@ -61,6 +69,28 @@ class DoctrineBookedMentoringSlotRepository extends EntityRepository implements 
         }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aBookedMentoringSlotBelongsToParticipant(string $participantId, string $id): BookedMentoringSlot
+    {
+        $params = [
+            'participantId' => $participantId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('bookedMentoringSlot');
+        $qb->select('bookedMentoringSlot')
+                ->andWhere($qb->expr()->eq('bookedMentoringSlot.id', ':id'))
+                ->leftJoin('bookedMentoringSlot.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: booked mentoring slot not found');
+        }
     }
 
 }

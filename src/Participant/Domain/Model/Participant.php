@@ -9,10 +9,12 @@ use Participant\Domain\DependencyModel\Firm\Client\AssetBelongsToTeamInterface;
 use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\Consultant\MentoringSlot;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
 use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant\BookedMentoringSlot;
 use Participant\Domain\Model\Participant\CompletedMission;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
@@ -401,7 +403,7 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $this->assertAssetIsManageable($objectiveProgressReport, 'objective progress report');
         $objectiveProgressReport->cancel();
     }
-    
+
     public function executeParticipantTask(ITaskExecutableByParticipant $task): void
     {
         if (!$this->active) {
@@ -420,7 +422,21 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $consultationSetup->assertUsableInProgram($this->program);
         $consultant->assertUsableInProgram($this->program);
         $sessionType = new ConsultationSessionType(ConsultationSessionType::DECLARED_TYPE, null);
-        return new ConsultationSession($this, $consultationSessionId, $consultationSetup, $consultant, $startEndTime, $channel, $sessionType);
+        return new ConsultationSession($this, $consultationSessionId, $consultationSetup, $consultant, $startEndTime,
+                $channel, $sessionType);
+    }
+
+    public function bookMentoringSlot(string $bookedMentoringSlotId, MentoringSlot $mentoringSlot): BookedMentoringSlot
+    {
+        if (!$mentoringSlot->usableInProgram($this->program)) {
+            throw RegularException::forbidden('forbidden: uanble to place booking on unusable mentoring slot');
+        }
+        if (!$mentoringSlot->canAcceptBookingFrom($this)) {
+            $errorDetail = 'forbidden: unable to place booking, either its full or you already made booking';
+            throw RegularException::forbidden($errorDetail);
+        }
+        $bookedMentoringSlot = new BookedMentoringSlot($this, $bookedMentoringSlotId, $mentoringSlot);
+        return $bookedMentoringSlot;
     }
 
 }

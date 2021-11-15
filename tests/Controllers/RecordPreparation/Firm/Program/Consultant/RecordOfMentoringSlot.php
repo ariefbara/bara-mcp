@@ -58,7 +58,7 @@ class RecordOfMentoringSlot implements Record
         ];
     }
 
-    public function insertq(ConnectionInterface $connection): void
+    public function insert(ConnectionInterface $connection): void
     {
         $connection->table('MentoringSlot')->insert($this->toArrayForDbEntry());
     }

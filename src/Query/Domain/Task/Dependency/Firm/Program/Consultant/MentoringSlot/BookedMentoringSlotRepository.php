@@ -11,4 +11,7 @@ interface BookedMentoringSlotRepository
 
     public function allBookedMentoringSlotsBelongsToPersonnel(
             string $personnelId, int $page, int $pageSize, BookedMentoringSlotFilter $filter);
+    
+    public function aBookedMentoringSlotBelongsToParticipant(string $participantId, string $id): BookedMentoringSlot;
+    
 }

@@ -52,6 +52,7 @@ class ParticipantTest extends TestBase
     protected $participantTask;
     
     protected $startEndTime, $channel;
+    protected $mentoringSlot;
 
     protected function setUp(): void
     {
@@ -113,6 +114,8 @@ class ParticipantTest extends TestBase
         
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
+        
+        $this->mentoringSlot = $this->buildMockOfClass(Consultant\MentoringSlot::class);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -674,6 +677,43 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->declareConsultationSession();
         }, 'Forbidden', 'forbidden: only active participant can make this request');
+    }
+    
+    protected function bookMentoringSlot()
+    {
+        $this->mentoringSlot->expects($this->any())
+                ->method('canAcceptBookingFrom')
+                ->with($this->participant)
+                ->willReturn(true);
+        $this->mentoringSlot->expects($this->any())
+                ->method('usableInProgram')
+                ->with($this->participant->program)
+                ->willReturn(true);
+        return $this->participant->bookMentoringSlot('bookedMentoringSlotId', $this->mentoringSlot);
+    }
+    public function test_bookMentoringSlot_returnBookedMentoringSlot()
+    {
+        $this->assertInstanceOf(Participant\BookedMentoringSlot::class, $this->bookMentoringSlot());
+    }
+    public function test_bookMentoringSlot_mentoringSlotCannotAcceptBookingFromParticipant()
+    {
+        $this->mentoringSlot->expects($this->once())
+                ->method('canAcceptBookingFrom')
+                ->with($this->participant)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->bookMentoringSlot();
+        }, 'Forbidden', 'forbidden: unable to place booking, either its full or you already made booking');
+    }
+    public function test_bookMentoringSlot_unusableMentoringSlot()
+    {
+        $this->mentoringSlot->expects($this->once())
+                ->method('usableInProgram')
+                ->with($this->participant->program)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->bookMentoringSlot();
+        }, 'Forbidden', 'forbidden: uanble to place booking on unusable mentoring slot');
     }
 }
 

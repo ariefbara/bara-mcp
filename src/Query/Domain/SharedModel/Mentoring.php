@@ -2,8 +2,8 @@
 
 namespace Query\Domain\SharedModel;
 
-use SharedContext\Domain\Model\Mentoring\MentorReport;
-use SharedContext\Domain\Model\Mentoring\ParticipantReport;
+use Query\Domain\SharedModel\Mentoring\MentorReport;
+use Query\Domain\SharedModel\Mentoring\ParticipantReport;
 
 class Mentoring
 {
@@ -25,7 +25,7 @@ class Mentoring
      * @var MentorReport|null
      */
     protected $mentorReport;
-    
+
     public function getId(): string
     {
         return $this->id;
@@ -41,7 +41,6 @@ class Mentoring
         return $this->mentorReport;
     }
 
-    
     protected function __construct()
     {
         

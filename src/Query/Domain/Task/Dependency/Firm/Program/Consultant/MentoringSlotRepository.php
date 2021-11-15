@@ -7,13 +7,13 @@ use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot;
 interface MentoringSlotRepository
 {
 
-    public function allMentoringSlotsBelongsToPersonnel(string $personnelId, int $page, int $pageSize, MentoringSlotFilter $filter);
+    public function allMentoringSlotsBelongsToPersonnel(
+            string $personnelId, int $page, int $pageSize, MentoringSlotFilter $filter);
 
-    /**
-     * 
-     * @param string $personnelId
-     * @param string $id
-     * @return MentoringSlot
-     */
-    public function aMentoringSlotBelongsToPersonnel(string $personnelId, string $id);
+    public function aMentoringSlotBelongsToPersonnel(string $personnelId, string $id): MentoringSlot;
+
+    public function allMentoringSlotInProgram(
+            string $programId, int $page, int $pageSize, MentoringSlotFilter $mentoringSlotFilter);
+
+    public function aMentoringSlotInProgram(string $programId, string $id): MentoringSlot;
 }
