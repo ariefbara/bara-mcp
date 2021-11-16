@@ -115,6 +115,7 @@ class BookedMentoringSlotController extends ClientParticipantBaseController
         }
         $data = (new FormRecordToArrayDataConverter())->convert($participantReport);
         $data['mentorRating'] = $participantReport->getMentorRating();
+        $data['id'] = $participantReport->getId();
         return $data;
     }
 

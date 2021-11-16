@@ -457,6 +457,40 @@ class BookedMentoringSlotControllerTest extends ParticipantTestCase
         ];
         $this->seeInDatabase('StringFieldRecord', $stringFieldRecord);
     }
+    public function test_submitReport_alreadyReported_update_200()
+    {
+        $this->mentoringSlotOne->startTime = new DateTimeImmutable('-24 hours');
+        $this->mentoringSlotOne->endTime = new DateTimeImmutable('-22 hours');
+        $this->participantReportOne->insert($this->connection);
+        $this->stringFieldRecordOne->insert($this->connection);
+        
+        $this->submitReport();
+        $this->seeStatusCode(200);
+        
+        $participantReportResponse = [
+            'id' => $this->participantReportOne->id,
+            'mentorRating' => $this->submitReportRequest['mentorRating'],
+        ];
+        $this->seeJsonContains($participantReportResponse);
+        
+        $stringFieldRecordResponse = [
+            'id' => $this->stringFieldRecordOne->id,
+            'value' => $this->submitReportRequest['stringFieldRecords'][0]['value'],
+        ];
+        $this->seeJsonContains($stringFieldRecordResponse);
+        
+        $participantReportRecord = [
+            'id' => $this->participantReportOne->id,
+            'mentorRating' => $this->submitReportRequest['mentorRating'],
+        ];
+        $this->seeInDatabase('ParticipantReport', $participantReportRecord);
+        
+        $stringFieldRecordRecord = [
+            'id' => $this->stringFieldRecordOne->id,
+            'value' => $this->submitReportRequest['stringFieldRecords'][0]['value'],
+        ];
+        $this->seeInDatabase('StringFieldRecord', $stringFieldRecordRecord);
+    }
     public function test_submitReport_notPastSchedule_403()
     {
         $this->submitReport();
