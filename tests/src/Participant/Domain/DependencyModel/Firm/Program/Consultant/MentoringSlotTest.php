@@ -3,21 +3,25 @@
 namespace Participant\Domain\DependencyModel\Firm\Program\Consultant;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Participant\Domain\DependencyModel\Firm\IContainParticipantReport;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\Model\Participant;
 use Participant\Domain\Model\Participant\BookedMentoringSlot;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\Schedule;
 use Tests\TestBase;
 
 class MentoringSlotTest extends TestBase
 {
 
-    protected $mentoringSlot, $schedule, $consultant;
+    protected $mentoringSlot, $schedule, $consultant, $consultationSetup;
     protected $bookedMentoringSlot;
 
     protected $program;
     protected $participant;
+    protected $mentoring, $formRecordData, $mentorRating = 9;
 
     protected function setUp(): void
     {
@@ -27,6 +31,9 @@ class MentoringSlotTest extends TestBase
         $this->mentoringSlot->consultant = $this->consultant;
         $this->schedule = $this->buildMockOfClass(Schedule::class);
         $this->mentoringSlot->schedule = $this->schedule;
+        
+        $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
+        $this->mentoringSlot->consultationSetup = $this->consultationSetup;
 
         $this->bookedMentoringSlot = $this->buildMockOfClass(BookedMentoringSlot::class);
         $this->mentoringSlot->bookedSlots = new ArrayCollection();
@@ -34,6 +41,9 @@ class MentoringSlotTest extends TestBase
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->participant = $this->buildMockOfClass(Participant::class);
+        
+        $this->mentoring = $this->buildMockOfInterface(IContainParticipantReport::class);
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
     }
     
     protected function usableInProgram()
@@ -118,6 +128,30 @@ class MentoringSlotTest extends TestBase
             $this->assertCancelBookingAllowed();
         }, 'Forbidden', 'forbidden: can only cancel booking on upcoming schedule');
     }
+    
+    protected function processReportIn()
+    {
+        $this->schedule->expects($this->any())
+                ->method('isAlreadyPassed')
+                ->willReturn(true);
+        $this->mentoringSlot->processReportIn($this->mentoring, $this->formRecordData, $this->mentorRating);
+    }
+    public function test_processReportIn_forwardToConsultationSetup()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('processReportIn')
+                ->with($this->mentoring, $this->formRecordData, $this->mentorRating);
+        $this->processReportIn();
+    }
+    public function test_processReportIn_notPastSchedule_forbidden()
+    {
+        $this->schedule->expects($this->once())
+                ->method('isAlreadyPassed')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->processReportIn();
+        }, 'Forbidden', 'forbidden: can only submit report on past mentoring');
+    }
 }
 
 class TestableMentoringSlot extends MentoringSlot
@@ -128,6 +162,7 @@ class TestableMentoringSlot extends MentoringSlot
     public $cancelled = false;
     public $schedule;
     public $capacity = 5;
+    public $consultationSetup;
     public $bookedSlots;
 
     function __construct()

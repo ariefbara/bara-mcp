@@ -8,26 +8,61 @@ use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfMentorin
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Shared\Form\RecordOfStringField;
+use Tests\Controllers\RecordPreparation\Shared\FormRecord\RecordOfStringFieldRecord;
+use Tests\Controllers\RecordPreparation\Shared\Mentoring\RecordOfParticipantReport;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfMentoring;
 
 class BookedMentoringSlotControllerTest extends ParticipantTestCase
 {
+    protected $feedbackFormOne;
+    protected $stringFieldOne;
+
     protected $mentoringSlotOne;
     protected $mentoringSlotTwo;
     
     protected $bookedMentoringSlotOne;
     protected $bookedMentoringSlotTwo;
     
+    protected $participantReportOne;
+    protected $stringFieldRecordOne;
+    
+    protected $submitReportRequest;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('StringField')->truncate();
+        $this->connection->table('IntegerField')->truncate();
+        $this->connection->table('TextAreaField')->truncate();
+        $this->connection->table('AttachmentField')->truncate();
+        $this->connection->table('SingleSelectField')->truncate();
+        $this->connection->table('MultiSelectField')->truncate();
+        
+        $this->connection->table('FormRecord')->truncate();
+        $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('IntegerFieldRecord')->truncate();
+        $this->connection->table('TextAreaFieldRecord')->truncate();
+        $this->connection->table('AttachmentFieldRecord')->truncate();
+        $this->connection->table('SingleSelectFieldRecord')->truncate();
+        $this->connection->table('MultiSelectFieldRecord')->truncate();
+        
+        $this->connection->table('FeedbackForm')->truncate();
+        
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
         $this->connection->table('Mentoring')->truncate();
+        $this->connection->table('MentorReport')->truncate();
+        $this->connection->table('ParticipantReport')->truncate();
+        
         $this->connection->table('BookedMentoringSlot')->truncate();
         
         $participant = $this->clientParticipant->participant;
@@ -40,6 +75,10 @@ class BookedMentoringSlotControllerTest extends ParticipantTestCase
         $consultantOne = new RecordOfConsultant($program, $personnelOne, '1');
         $consultantTwo = new RecordOfConsultant($program, $personnelTwo, '2');
         
+        $formOne = new RecordOfForm('1');
+        $this->stringFieldOne = new RecordOfStringField($formOne, '1');
+        $this->feedbackFormOne = new RecordOfFeedbackForm($firm, $formOne);
+        
         $consultationSetupOne = new RecordOfConsultationSetup($program, null, null, '1');
         $consultationSetupTwo = new RecordOfConsultationSetup($program, null, null, '2');
         
@@ -51,16 +90,56 @@ class BookedMentoringSlotControllerTest extends ParticipantTestCase
         
         $this->bookedMentoringSlotOne = new RecordOfBookedMentoringSlot($this->mentoringSlotOne, $mentoringOne, $participant);
         $this->bookedMentoringSlotTwo = new RecordOfBookedMentoringSlot($this->mentoringSlotTwo, $mentoringTwo, $participant);
+        
+        $formRecordOne = new RecordOfFormRecord($formOne, '1');
+        $this->stringFieldRecordOne = new RecordOfStringFieldRecord($formRecordOne, $this->stringFieldOne, '1');
+        $this->participantReportOne = new RecordOfParticipantReport($mentoringOne, $formRecordOne, '1');
+        
+        $this->submitReportRequest = [
+            'mentorRating' => 9,
+            'stringFieldRecords' => [
+                [
+                    'fieldId' => $this->stringFieldOne->id,
+                    'value' => 'new string field value',
+                ],
+            ],
+            'integerFieldRecords' => [],
+            'textAreaFieldRecords' => [],
+            'attachmentFieldRecords' => [],
+            'singleSelectFieldRecords' => [],
+            'multiSelectFieldRecords' => [],
+        ];
     }
     
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('StringField')->truncate();
+        $this->connection->table('IntegerField')->truncate();
+        $this->connection->table('TextAreaField')->truncate();
+        $this->connection->table('AttachmentField')->truncate();
+        $this->connection->table('SingleSelectField')->truncate();
+        $this->connection->table('MultiSelectField')->truncate();
+        
+        $this->connection->table('FormRecord')->truncate();
+        $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('IntegerFieldRecord')->truncate();
+        $this->connection->table('TextAreaFieldRecord')->truncate();
+        $this->connection->table('AttachmentFieldRecord')->truncate();
+        $this->connection->table('SingleSelectFieldRecord')->truncate();
+        $this->connection->table('MultiSelectFieldRecord')->truncate();
+        
+        $this->connection->table('FeedbackForm')->truncate();
+        
         $this->connection->table('Personnel')->truncate();
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
         $this->connection->table('Mentoring')->truncate();
+        $this->connection->table('MentorReport')->truncate();
+        $this->connection->table('ParticipantReport')->truncate();
+        
         $this->connection->table('BookedMentoringSlot')->truncate();
     }
     
@@ -285,5 +364,124 @@ class BookedMentoringSlotControllerTest extends ParticipantTestCase
         
         $this->show();
         $this->seeStatusCode(404);
+    }
+    
+    protected function submitReport()
+    {
+        $this->clientParticipant->participant->program->insert($this->connection);
+        $this->clientParticipant->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->consultant->personnel->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->consultant->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->consultationSetup->participantFeedbackForm = $this->feedbackFormOne;
+        $this->bookedMentoringSlotOne->mentoringSlot->consultationSetup->participantFeedbackForm->insert($this->connection);
+        $this->stringFieldOne->insert($this->connection);
+        $this->bookedMentoringSlotOne->mentoringSlot->consultationSetup->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->insert($this->connection);
+        $this->bookedMentoringSlotOne->insert($this->connection);
+        
+        $uri = $this->clientParticipantUri . "/booked-mentoring-slots/{$this->bookedMentoringSlotOne->mentoring->id}/submit-report";
+        $this->put($uri, $this->submitReportRequest, $this->clientParticipant->client->token);
+    }
+    public function test_submitReport_200()
+    {
+        $this->mentoringSlotOne->startTime = new DateTimeImmutable('-24 hours');
+        $this->mentoringSlotOne->endTime = new DateTimeImmutable('-22 hours');
+        $this->submitReport();
+        $this->seeStatusCode(200);
+        
+        $consultationSetupResponse = [
+            'id' => $this->mentoringSlotOne->consultationSetup->id,
+            'name' => $this->mentoringSlotOne->consultationSetup->name,
+            'participantFeedbackForm' => [
+                'id' => $this->feedbackFormOne->id,
+                'name' => $this->feedbackFormOne->form->name,
+                'description' => $this->feedbackFormOne->form->description,
+                'stringFields' => [
+                    [
+                        "id" => $this->stringFieldOne->id,
+                        "name" => $this->stringFieldOne->name,
+                        "description" => $this->stringFieldOne->description,
+                        "position" => $this->stringFieldOne->position,
+                        "mandatory" => $this->stringFieldOne->mandatory,
+                        "defaultValue" => $this->stringFieldOne->defaultValue,
+                        "minValue" => $this->stringFieldOne->minValue,
+                        "maxValue" => $this->stringFieldOne->maxValue,
+                        "placeholder" => $this->stringFieldOne->placeholder,
+                    ],
+                ],
+                'integerFields' => [],
+                'textAreaFields' => [],
+                'attachmentFields' => [],
+                'singleSelectFields' => [],
+                'multiSelectFields' => [],
+            ]
+        ];
+        $this->seeJsonContains($consultationSetupResponse);
+        
+        $participantReportResponse = [
+            'mentorRating' => $this->submitReportRequest['mentorRating'],
+            'submitTime' => $this->currentTimeString(),
+        ];
+        $this->seeJsonContains($participantReportResponse);
+        
+        $stringFieldRecordResponse = [
+            'stringField' => [
+                'id' => $this->stringFieldOne->id,
+                'name' => $this->stringFieldOne->name,
+                'position' => $this->stringFieldOne->position,
+            ],
+            'value' => $this->submitReportRequest['stringFieldRecords'][0]['value'],
+        ];
+        $this->seeJsonContains($stringFieldRecordResponse);
+        
+        $participantReportRecord = [
+            'mentorRating' => $this->submitReportRequest['mentorRating'],
+            'Mentoring_id' => $this->bookedMentoringSlotOne->mentoring->id,
+        ];
+        $this->seeInDatabase('ParticipantReport', $participantReportRecord);
+        
+        $formRecordRecord = [
+            'submitTime' => $this->currentTimeString(),
+            'Form_id' => $this->feedbackFormOne->form->id,
+        ];
+        $this->seeInDatabase('FormRecord', $formRecordRecord);
+        
+        $stringFieldRecord = [
+            'removed' => false,
+            'value' => $this->submitReportRequest['stringFieldRecords'][0]['value'],
+            'StringField_id' => $this->stringFieldOne->id,
+        ];
+        $this->seeInDatabase('StringFieldRecord', $stringFieldRecord);
+    }
+    public function test_submitReport_notPastSchedule_403()
+    {
+        $this->submitReport();
+        $this->seeStatusCode(403);
+    }
+    public function test_submitReport_unamagedBooking_cancelled_403()
+    {
+        $this->bookedMentoringSlotOne->cancelled = true;
+        $this->submitReport();
+        $this->seeStatusCode(403);
+    }
+    public function test_submitReport_unamagedBooking_notOwnBooking_403()
+    {
+        $program = $this->clientParticipant->participant->program;
+        $participant = new RecordOfParticipant($program, 'zzz');
+        $participant->insert($this->connection);
+        $this->bookedMentoringSlotOne->participant = $participant;
+        
+        $this->submitReport();
+        $this->seeStatusCode(403);
+    }
+    public function test_submitReport_inactiveParticipant_403()
+    {
+        $this->clientParticipant->participant->active = false;
+        $this->submitReport();
+        $this->seeStatusCode(403);
     }
 }

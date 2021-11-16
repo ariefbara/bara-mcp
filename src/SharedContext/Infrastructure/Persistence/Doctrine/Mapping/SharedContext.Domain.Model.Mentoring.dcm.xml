@@ -8,14 +8,14 @@
         
         <one-to-one field="mentorReport" 
                     target-entity="SharedContext\Domain\Model\Mentoring\MentorReport"
-                    mapped-by="Mentoring"
+                    mapped-by="mentoring"
         >
             <cascade><cascade-persist /></cascade>
         </one-to-one>
         
         <one-to-one field="participantReport" 
                     target-entity="SharedContext\Domain\Model\Mentoring\ParticipantReport"
-                    mapped-by="Mentoring"
+                    mapped-by="mentoring"
         >
             <cascade><cascade-persist /></cascade>
         </one-to-one>

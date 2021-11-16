@@ -5,6 +5,7 @@ namespace Participant\Domain\DependencyModel\Firm\Program;
 use DateInterval;
 use DateTimeImmutable;
 use Participant\Domain\DependencyModel\Firm\FeedbackForm;
+use Participant\Domain\DependencyModel\Firm\IContainParticipantReport;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Exception\RegularException;
@@ -46,7 +47,7 @@ class ConsultationSetup
 
     protected function __construct()
     {
-        ;
+        
     }
 
     public function programEquals(Program $program): bool
@@ -70,6 +71,12 @@ class ConsultationSetup
         if ($this->removed || $this->program !== $program) {
             throw RegularException::forbidden('forbidden: unuseable consultation setup, either inactive or belongs to other program');
         }
+    }
+    
+    public function processReportIn(
+            IContainParticipantReport $mentoring, FormRecordData $formRecordData, int $mentorRating): void
+    {
+        $this->participantFeedbackForm->processReportIn($mentoring, $formRecordData, $mentorRating);
     }
 
 }

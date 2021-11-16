@@ -3,11 +3,14 @@
 namespace Participant\Domain\DependencyModel\Firm\Program\Consultant;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Participant\Domain\DependencyModel\Firm\IContainParticipantReport;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant;
+use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\Model\Participant;
 use Participant\Domain\Model\Participant\BookedMentoringSlot;
 use Resources\Exception\RegularException;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\Schedule;
 
 class MentoringSlot
@@ -42,6 +45,12 @@ class MentoringSlot
      * @var int
      */
     protected $capacity;
+    
+    /**
+     * 
+     * @var ConsultationSetup
+     */
+    protected $consultationSetup;
 
     /**
      * 
@@ -78,6 +87,15 @@ class MentoringSlot
         if (!$this->schedule->isUpcoming()) {
             throw RegularException::forbidden('forbidden: can only cancel booking on upcoming schedule');
         }
+    }
+    
+    public function processReportIn(
+            IContainParticipantReport $mentoring, FormRecordData $formRecordData, int $mentorRating): void
+    {
+        if (!$this->schedule->isAlreadyPassed()) {
+            throw RegularException::forbidden('forbidden: can only submit report on past mentoring');
+        }
+        $this->consultationSetup->processReportIn($mentoring, $formRecordData, $mentorRating);
     }
 
 }

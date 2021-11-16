@@ -2,17 +2,22 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
+use App\Http\Controllers\FormRecordDataBuilder;
 use App\Http\Controllers\FormRecordToArrayDataConverter;
 use App\Http\Controllers\FormToArrayDataConverter;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant\MentoringSlot;
 use Participant\Domain\Model\Participant\BookedMentoringSlot as BookedMentoringSlot2;
+use Participant\Domain\Service\ClientFileInfoFinder;
 use Participant\Domain\Task\Participant\BookMentoringSlotPayload;
 use Participant\Domain\Task\Participant\BookMentoringSlotTask;
 use Participant\Domain\Task\Participant\CancelBookedMentoringSlotTask;
+use Participant\Domain\Task\Participant\SubmitBookedMentoringReportPayload;
+use Participant\Domain\Task\Participant\SubmitBookedMentoringReportTask;
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlot;
 use Query\Domain\SharedModel\Mentoring\ParticipantReport;
 use Query\Domain\Task\Participant\ShowBookedMentoringSlotTask;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class BookedMentoringSlotController extends ClientParticipantBaseController
 {
@@ -44,6 +49,22 @@ class BookedMentoringSlotController extends ClientParticipantBaseController
     {
         $bookedMentoringSlot = $this->buildAndExecuteSingleQueryTask($programParticipationId, $id)->result;
         return $this->singleQueryResponse($this->arrayDataOfBookedMentoringSlot($bookedMentoringSlot));
+    }
+    
+    public function submitReport($programParticipationId, $id)
+    {
+        $bookedMentoringSlotRepository = $this->em->getRepository(BookedMentoringSlot2::class);
+        $mentorRating = $this->integerOfInputRequest('mentorRating');
+
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        $fileInfoFinder = new ClientFileInfoFinder($fileInfoRepository, $this->firmId(), $this->clientId());        
+        $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
+        $payload = new SubmitBookedMentoringReportPayload($id,
+                $mentorRating, $formRecordData);
+        $task = new SubmitBookedMentoringReportTask($bookedMentoringSlotRepository, $payload);
+        $this->executeParticipantTask($programParticipationId, $task);
+        
+        return $this->show($programParticipationId, $id);
     }
 
     protected function buildAndExecuteSingleQueryTask($programParticipationId, $id): ShowBookedMentoringSlotTask
@@ -84,7 +105,6 @@ class BookedMentoringSlotController extends ClientParticipantBaseController
         }
         $data = (new FormToArrayDataConverter())->convert($feedbackForm);
         $data['id'] = $feedbackForm->getId();
-        $data['name'] = $feedbackForm->getName();
         return $data;
     }
 
@@ -94,7 +114,6 @@ class BookedMentoringSlotController extends ClientParticipantBaseController
             return null;
         }
         $data = (new FormRecordToArrayDataConverter())->convert($participantReport);
-        $data['id'] = $participantReport->getId();
         $data['mentorRating'] = $participantReport->getMentorRating();
         return $data;
     }

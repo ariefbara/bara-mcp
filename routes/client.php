@@ -117,6 +117,7 @@ $router->group($clientAggregate, function () use ($router) {
         $router->post('/mentoring-slots/{mentoringSlotId}/booked-mentoring-slots', ['uses' => "BookedMentoringSlotController@book"]);
         $router->delete('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@cancel"]);
         $router->get('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@show"]);
+        $router->put('/booked-mentoring-slots/{id}/submit-report', ['uses' => "BookedMentoringSlotController@submitReport"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";

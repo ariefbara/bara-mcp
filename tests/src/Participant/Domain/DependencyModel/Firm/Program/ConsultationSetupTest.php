@@ -3,15 +3,12 @@
 namespace Participant\Domain\DependencyModel\Firm\Program;
 
 use DateTimeImmutable;
-use Participant\Domain\DependencyModel\Firm\ {
-    FeedbackForm,
-    Program
-};
+use Participant\Domain\DependencyModel\Firm\FeedbackForm;
+use Participant\Domain\DependencyModel\Firm\IContainParticipantReport;
+use Participant\Domain\DependencyModel\Firm\Program;
 use Resources\Domain\ValueObject\DateTimeInterval;
-use SharedContext\Domain\Model\SharedEntity\ {
-    FormRecord,
-    FormRecordData
-};
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
 class ConsultationSetupTest extends TestBase
@@ -22,6 +19,8 @@ class ConsultationSetupTest extends TestBase
     protected $participantFeedbackForm;
     
     protected $startTime;
+    
+    protected $mentoring, $formRecordData, $mentorRating = 11;
 
     protected function setUp(): void
     {
@@ -35,6 +34,9 @@ class ConsultationSetupTest extends TestBase
         $this->consultationSetup->participantFeedbackForm = $this->participantFeedbackForm;
         
         $this->startTime = new DateTimeImmutable();
+        
+        $this->mentoring = $this->buildMockOfInterface(IContainParticipantReport::class);
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
     }
 
     public function test_programEquals_sameProgram_returnTrue()
@@ -98,6 +100,18 @@ class ConsultationSetupTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->assertUsableInProgram();
         }, 'Forbidden', 'forbidden: unuseable consultation setup, either inactive or belongs to other program');
+    }
+    
+    protected function processReportIn()
+    {
+        $this->consultationSetup->processReportIn($this->mentoring, $this->formRecordData, $this->mentorRating);
+    }
+    public function test_processReportIn_forwardRequestToParticipantFeedbackForm()
+    {
+        $this->participantFeedbackForm->expects($this->once())
+                ->method('processReportIn')
+                ->with($this->mentoring, $this->formRecordData, $this->mentorRating);
+        $this->processReportIn();
     }
 
 }

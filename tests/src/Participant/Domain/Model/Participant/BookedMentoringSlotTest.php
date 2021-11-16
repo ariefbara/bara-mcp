@@ -5,6 +5,8 @@ namespace Participant\Domain\Model\Participant;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant\MentoringSlot;
 use Participant\Domain\Model\Participant;
 use SharedContext\Domain\Model\Mentoring;
+use SharedContext\Domain\Model\SharedEntity\Form;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
 class BookedMentoringSlotTest extends TestBase
@@ -14,6 +16,8 @@ class BookedMentoringSlotTest extends TestBase
     protected $bookedMentoringSlot, $mentoring;
     
     protected $id = 'newId';
+    protected $mentorRating = 8, $formRecordData;
+    protected $form;
 
     protected function setUp(): void
     {
@@ -24,6 +28,9 @@ class BookedMentoringSlotTest extends TestBase
         
         $this->mentoring = $this->buildMockOfClass(Mentoring::class);
         $this->bookedMentoringSlot->mentoring = $this->mentoring;
+        
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        $this->form = $this->buildMockOfClass(Form::class);
     }
     
     protected function construct()
@@ -87,6 +94,30 @@ class BookedMentoringSlotTest extends TestBase
         $this->assertFalse($this->belongsToParticipant());
     }
     
+    protected function assertManageableByParticipant()
+    {
+        $this->bookedMentoringSlot->assertManageableByParticipant($this->participant);
+    }
+    public function test_assertManageableByParticipant_void()
+    {
+        $this->assertManageableByParticipant();
+        $this->markAsSuccess();
+    }
+    public function test_assertManageableByParticipant_cancelledSlot_forbidden()
+    {
+        $this->bookedMentoringSlot->cancelled = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByParticipant();
+        }, 'Forbidden', 'forbidden: booking already cancelled');
+    }
+    public function test_assertManageableByParticipant_differentParticipant_forbidden()
+    {
+        $this->bookedMentoringSlot->participant = $this->buildMockOfClass(Participant::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByParticipant();
+        }, 'Forbidden', 'forbidden: can only managed owned booking slot');
+    }
+    
     protected function cancel()
     {
         $this->bookedMentoringSlot->cancel();
@@ -101,6 +132,30 @@ class BookedMentoringSlotTest extends TestBase
         $this->mentoringSlot->expects($this->once())
                 ->method('assertCancelBookingAllowed');
         $this->cancel();
+    }
+    
+    protected function submitReport()
+    {
+        $this->bookedMentoringSlot->submitReport($this->mentorRating, $this->formRecordData);
+    }
+    public function test_submitReport_tellMentoringSlotToProcessReport()
+    {
+        $this->mentoringSlot->expects($this->once())
+                ->method('processReportIn')
+                ->with($this->bookedMentoringSlot, $this->formRecordData, $this->mentorRating);
+        $this->submitReport();
+    }
+    
+    protected function processReport()
+    {
+        $this->bookedMentoringSlot->processReport($this->form, $this->formRecordData, $this->mentorRating);
+    }
+    public function test_processReport_submitParticipantReportInMentoring()
+    {
+        $this->mentoring->expects($this->once())
+                ->method('submitParticipantReport')
+                ->with($this->form, $this->formRecordData, $this->mentorRating);
+        $this->processReport();
     }
 }
 
