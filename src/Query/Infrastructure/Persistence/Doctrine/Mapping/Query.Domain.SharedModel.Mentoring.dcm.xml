@@ -8,12 +8,12 @@
         
         <one-to-one field="mentorReport" 
                     target-entity="Query\Domain\SharedModel\Mentoring\MentorReport"
-                    mapped-by="Mentoring"
+                    mapped-by="mentoring"
         />
         
         <one-to-one field="participantReport" 
                     target-entity="Query\Domain\SharedModel\Mentoring\ParticipantReport"
-                    mapped-by="Mentoring"
+                    mapped-by="mentoring"
         />
         
     </entity>

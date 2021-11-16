@@ -11,7 +11,7 @@ class DoctrineBookedMentoringSlotRepository extends DoctrineEntityRepository imp
     
     public function add(BookedMentoringSlot $bookedMentoringSlot): void
     {
-        $this->getEntityManager()->flush($bookedMentoringSlot);
+        $this->getEntityManager()->persist($bookedMentoringSlot);
     }
 
     public function ofId(string $id): BookedMentoringSlot

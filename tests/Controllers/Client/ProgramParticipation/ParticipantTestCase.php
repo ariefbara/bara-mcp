@@ -29,6 +29,8 @@ class ParticipantTestCase extends ClientTestCase
         $program = new RecordOfProgram($firm, '99');
         $participant = new RecordOfParticipant($program, '99');
         $this->clientParticipant = new RecordOfClientParticipant($this->client, $participant);
+        
+        $this->clientParticipantUri = $this->clientUri . "/program-participations/{$this->clientParticipant->id}";
     }
     protected function tearDown(): void
     {

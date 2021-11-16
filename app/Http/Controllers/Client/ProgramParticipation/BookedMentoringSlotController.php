@@ -17,41 +17,40 @@ use Query\Domain\Task\Participant\ShowBookedMentoringSlotTask;
 class BookedMentoringSlotController extends ClientParticipantBaseController
 {
 
-    public function book($clientParticipantId)
+    public function book($programParticipationId, $mentoringSlotId)
     {
         $bookedMentoringSlotRepository = $this->em->getRepository(BookedMentoringSlot2::class);
         $mentoringSlotRepository = $this->em->getRepository(MentoringSlot::class);
-        $mentoringSlotId = $this->stripTagsInputRequest('mentoringSlotId');
         $payload = new BookMentoringSlotPayload($mentoringSlotId);
 
         $task = new BookMentoringSlotTask($bookedMentoringSlotRepository, $mentoringSlotRepository, $payload);
-        $this->executeParticipantTask($clientParticipantId, $task);
+        $this->executeParticipantTask($programParticipationId, $task);
 
         $bookedMentoringSlot = $this->buildAndExecuteSingleQueryTask(
-                        $clientParticipantId, $task->bookedMentoringSlotId)->result;
+                        $programParticipationId, $task->bookedMentoringSlotId)->result;
         return $this->commandCreatedResponse($this->arrayDataOfBookedMentoringSlot($bookedMentoringSlot));
     }
 
-    public function cancel($clientParticipantId, $id)
+    public function cancel($programParticipationId, $id)
     {
         $bookedMentoringSlotRepository = $this->em->getRepository(BookedMentoringSlot2::class);
         $task = new CancelBookedMentoringSlotTask($bookedMentoringSlotRepository, $id);
-        $this->executeParticipantTask($clientParticipantId, $task);
+        $this->executeParticipantTask($programParticipationId, $task);
 
-        return $this->show($clientParticipantId, $id);
+        return $this->show($programParticipationId, $id);
     }
 
-    public function show($clientParticipantId, $id)
+    public function show($programParticipationId, $id)
     {
-        $bookedMentoringSlot = $this->buildAndExecuteSingleQueryTask($clientParticipantId, $id)->result;
+        $bookedMentoringSlot = $this->buildAndExecuteSingleQueryTask($programParticipationId, $id)->result;
         return $this->singleQueryResponse($this->arrayDataOfBookedMentoringSlot($bookedMentoringSlot));
     }
 
-    protected function buildAndExecuteSingleQueryTask($clientParticipantId, $id): ShowBookedMentoringSlotTask
+    protected function buildAndExecuteSingleQueryTask($programParticipationId, $id): ShowBookedMentoringSlotTask
     {
         $bookedMentoringSlotRepository = $this->em->getRepository(BookedMentoringSlot::class);
         $task = new ShowBookedMentoringSlotTask($bookedMentoringSlotRepository, $id);
-        $this->executeQueryParticipantTask($clientParticipantId, $task);
+        $this->executeQueryParticipantTask($programParticipationId, $task);
         return $task;
     }
 

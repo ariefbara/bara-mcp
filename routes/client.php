@@ -114,6 +114,10 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
         $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
         
+        $router->post('/mentoring-slots/{mentoringSlotId}/booked-mentoring-slots', ['uses' => "BookedMentoringSlotController@book"]);
+        $router->delete('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@cancel"]);
+        $router->get('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@show"]);
+        
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
             $router->post("", ["uses" => "$controller@addRoot"]);

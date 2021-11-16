@@ -2,10 +2,288 @@
 
 namespace Tests\Controllers\Client\ProgramParticipation;
 
-use Tests\Controllers\Client\ProgramParticipationTestCase;
+use DateTimeImmutable;
+use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\MentoringSlot\RecordOfBookedMentoringSlot;
+use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfMentoringSlot;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfMentoring;
 
 class BookedMentoringSlotControllerTest extends ParticipantTestCase
 {
+    protected $mentoringSlotOne;
+    protected $mentoringSlotTwo;
+    
     protected $bookedMentoringSlotOne;
     protected $bookedMentoringSlotTwo;
+    
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->connection->table('Personnel')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('ConsultationSetup')->truncate();
+        $this->connection->table('MentoringSlot')->truncate();
+        $this->connection->table('Mentoring')->truncate();
+        $this->connection->table('BookedMentoringSlot')->truncate();
+        
+        $participant = $this->clientParticipant->participant;
+        $program = $participant->program;
+        $firm = $program->firm;
+        
+        $personnelOne = new RecordOfPersonnel($firm, '1');
+        $personnelTwo = new RecordOfPersonnel($firm, '2');
+        
+        $consultantOne = new RecordOfConsultant($program, $personnelOne, '1');
+        $consultantTwo = new RecordOfConsultant($program, $personnelTwo, '2');
+        
+        $consultationSetupOne = new RecordOfConsultationSetup($program, null, null, '1');
+        $consultationSetupTwo = new RecordOfConsultationSetup($program, null, null, '2');
+        
+        $this->mentoringSlotOne = new RecordOfMentoringSlot($consultantOne, $consultationSetupOne, '1');
+        $this->mentoringSlotTwo = new RecordOfMentoringSlot($consultantTwo, $consultationSetupTwo, '2');
+        
+        $mentoringOne = new RecordOfMentoring('1');
+        $mentoringTwo = new RecordOfMentoring('2');
+        
+        $this->bookedMentoringSlotOne = new RecordOfBookedMentoringSlot($this->mentoringSlotOne, $mentoringOne, $participant);
+        $this->bookedMentoringSlotTwo = new RecordOfBookedMentoringSlot($this->mentoringSlotTwo, $mentoringTwo, $participant);
+    }
+    
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        $this->connection->table('Personnel')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('ConsultationSetup')->truncate();
+        $this->connection->table('MentoringSlot')->truncate();
+        $this->connection->table('Mentoring')->truncate();
+        $this->connection->table('BookedMentoringSlot')->truncate();
+    }
+    
+    protected function book()
+    {
+        $this->clientParticipant->participant->program->insert($this->connection);
+        $this->clientParticipant->insert($this->connection);
+        
+        $this->mentoringSlotOne->consultant->personnel->insert($this->connection);
+        $this->mentoringSlotOne->consultant->insert($this->connection);
+        $this->mentoringSlotOne->consultationSetup->insert($this->connection);
+        $this->mentoringSlotOne->insert($this->connection);
+        
+        $uri = $this->clientParticipantUri . "/mentoring-slots/{$this->mentoringSlotOne->id}/booked-mentoring-slots";
+        $this->post($uri, [], $this->clientParticipant->client->token);
+    }
+    public function test_book_200()
+    {
+        $this->book();
+        $this->seeStatusCode(201);
+        
+        $response = [
+            'cancelled' => false,
+            'mentoringSlot' => [
+                'id' => $this->mentoringSlotOne->id,
+                'cancelled' => $this->mentoringSlotOne->cancelled,
+                'capacity' => $this->mentoringSlotOne->capacity,
+                'startTime' => $this->mentoringSlotOne->startTime->format('Y-m-d H:i:s'),
+                'endTime' => $this->mentoringSlotOne->endTime->format('Y-m-d H:i:s'),
+                'mediaType' => $this->mentoringSlotOne->mediaType,
+                'location' => $this->mentoringSlotOne->location,
+                'consultationSetup' => [
+                    'id' => $this->mentoringSlotOne->consultationSetup->id,
+                    'name' => $this->mentoringSlotOne->consultationSetup->name,
+                    'participantFeedbackForm' => null
+                ],
+            ],
+            'participantReport' => null,
+        ];
+        $this->seeJsonContains($response);
+        
+        $record = [
+            'MentoringSlot_id' => $this->mentoringSlotOne->id,
+            'cancelled' => false,
+            'Participant_id' => $this->clientParticipant->participant->id,
+        ];
+        $this->seeInDatabase('BookedMentoringSlot', $record);
+    }
+    public function test_book_fullCapacity_403()
+    {
+        $this->mentoringSlotOne->capacity = 1;
+        
+        $mentoring = new RecordOfMentoring('zzz');
+        $participant = new RecordOfParticipant($this->mentoringSlotOne->consultant->program, 'zzz');
+        $participant->insert($this->connection);
+        
+        $bookedMentoringSlot = new RecordOfBookedMentoringSlot($this->mentoringSlotOne, $mentoring, $participant);
+        $bookedMentoringSlot->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_notUpcomingSchedule_403()
+    {
+        $this->mentoringSlotOne->startTime = new DateTimeImmutable('-24 hours');
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_alreadyBooked_403()
+    {
+        $this->bookedMentoringSlotOne->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_unuseableMentoringSlot_cancelled_403()
+    {
+        $this->mentoringSlotOne->cancelled = true;;
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_unuseableMentoringSlot_fromDifferentProgram_403()
+    {
+        $firm = $this->clientParticipant->participant->program->firm;
+        
+        $program = new RecordOfProgram($firm, 'zzz');
+        $program->insert($this->connection);
+        
+        $personnel = new RecordOfPersonnel($firm, 'zzz');
+        $consultant = new RecordOfConsultant($program, $personnel, 'zzz');
+        
+        $consultationSetup = new RecordOfConsultationSetup($program, null, null, 'zzz');
+        
+        $this->mentoringSlotOne->consultant = $consultant;
+        $this->mentoringSlotOne->consultationSetup = $consultationSetup;
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_inactiveParticipant_403()
+    {
+        $this->clientParticipant->participant->active = false;
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    
+    protected function cancel()
+    {
+        $this->clientParticipant->participant->program->insert($this->connection);
+        $this->clientParticipant->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->consultant->personnel->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->consultant->insert($this->connection);
+        $this->bookedMentoringSlotOne->mentoringSlot->consultationSetup->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->insert($this->connection);
+        $this->bookedMentoringSlotOne->insert($this->connection);
+        
+        $uri = $this->clientParticipantUri . "/booked-mentoring-slots/{$this->bookedMentoringSlotOne->mentoring->id}";
+        $this->delete($uri, [], $this->clientParticipant->client->token);
+    }
+    public function test_cancel_200()
+    {
+        $this->cancel();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'id' => $this->bookedMentoringSlotOne->mentoring->id,
+            'cancelled' => true,
+            'mentoringSlot' => [
+                'id' => $this->mentoringSlotOne->id,
+                'cancelled' => $this->mentoringSlotOne->cancelled,
+                'capacity' => $this->mentoringSlotOne->capacity,
+                'startTime' => $this->mentoringSlotOne->startTime->format('Y-m-d H:i:s'),
+                'endTime' => $this->mentoringSlotOne->endTime->format('Y-m-d H:i:s'),
+                'mediaType' => $this->mentoringSlotOne->mediaType,
+                'location' => $this->mentoringSlotOne->location,
+                'consultationSetup' => [
+                    'id' => $this->mentoringSlotOne->consultationSetup->id,
+                    'name' => $this->mentoringSlotOne->consultationSetup->name,
+                    'participantFeedbackForm' => null
+                ],
+            ],
+            'participantReport' => null,
+        ];
+        $this->seeJsonContains($response);
+        
+        $record = [
+            'id' => $this->bookedMentoringSlotOne->mentoring->id,
+            'cancelled' => true,
+        ];
+        $this->seeInDatabase('BookedMentoringSlot', $record);
+    }
+    public function test_cancel_notAnUpcomingSchedule_403()
+    {
+        $this->bookedMentoringSlotOne->mentoringSlot->startTime = new \DateTimeImmutable('-2 hours');
+        $this->cancel();
+        $this->seeStatusCode(403);
+    }
+    public function test_cancel_unmanagedBookedMentoringSlot_belongsToOtherParticipant_403()
+    {
+        $program = $this->clientParticipant->participant->program;
+        $participant = new RecordOfParticipant($program, 'zzz');
+        $participant->insert($this->connection);
+        $this->bookedMentoringSlotOne->participant = $participant;
+        
+        $this->cancel();
+        $this->seeStatusCode(403);
+    }
+    
+    protected function show()
+    {
+        $this->clientParticipant->participant->program->insert($this->connection);
+        $this->clientParticipant->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->consultant->personnel->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->consultant->insert($this->connection);
+        $this->bookedMentoringSlotOne->mentoringSlot->consultationSetup->insert($this->connection);
+        
+        $this->bookedMentoringSlotOne->mentoringSlot->insert($this->connection);
+        $this->bookedMentoringSlotOne->insert($this->connection);
+        
+        $uri = $this->clientParticipantUri . "/booked-mentoring-slots/{$this->bookedMentoringSlotOne->mentoring->id}";
+        $this->get($uri, $this->clientParticipant->client->token);
+    }
+    public function test_show_200()
+    {
+        $this->show();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'id' => $this->bookedMentoringSlotOne->mentoring->id,
+            'cancelled' => false,
+            'mentoringSlot' => [
+                'id' => $this->mentoringSlotOne->id,
+                'cancelled' => $this->mentoringSlotOne->cancelled,
+                'capacity' => $this->mentoringSlotOne->capacity,
+                'startTime' => $this->mentoringSlotOne->startTime->format('Y-m-d H:i:s'),
+                'endTime' => $this->mentoringSlotOne->endTime->format('Y-m-d H:i:s'),
+                'mediaType' => $this->mentoringSlotOne->mediaType,
+                'location' => $this->mentoringSlotOne->location,
+                'consultationSetup' => [
+                    'id' => $this->mentoringSlotOne->consultationSetup->id,
+                    'name' => $this->mentoringSlotOne->consultationSetup->name,
+                    'participantFeedbackForm' => null
+                ],
+            ],
+            'participantReport' => null,
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_show_inviewableBookedMentoringSlot_belongsToOtherParticipant_404()
+    {
+        $program = $this->clientParticipant->participant->program;
+        $participant = new RecordOfParticipant($program, 'zzz');
+        $participant->insert($this->connection);
+        $this->bookedMentoringSlotOne->participant = $participant;
+        
+        $this->show();
+        $this->seeStatusCode(404);
+    }
 }
