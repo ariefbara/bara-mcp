@@ -41,6 +41,16 @@ class BookedMentoringSlot implements ContainMentorReport
     {
         
     }
+    
+    public function assertManageableByMentor(ProgramConsultant $mentor): void
+    {
+        if ($this->cancelled) {
+            throw RegularException::forbidden('forbidden: can only manage active booking');
+        }
+        if (!$this->mentoringSlot->belongsToMentor($mentor)) {
+            throw RegularException::forbidden('forbidden: can only manage booking on owned slot');
+        }
+    }
 
     public function belongsToMentor(ProgramConsultant $mentor): bool
     {

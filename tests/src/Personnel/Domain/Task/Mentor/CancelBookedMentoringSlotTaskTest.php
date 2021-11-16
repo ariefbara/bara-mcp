@@ -41,14 +41,11 @@ class CancelBookedMentoringSlotTaskTest extends MentorTaskTestBase
                 ->method('cancel');
         $this->execute();
     }
-    public function test_execute_bookedSlotDoesntBelongsToMentor_forbidden()
+    public function test_execute_assertBookedMentoringManageableByMentor()
     {
         $this->bookedSlot->expects($this->once())
-                ->method('belongsToMentor')
-                ->with($this->mentor)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function() {
-            $this->execute();
-        }, 'Forbidden', 'forbidden: can only manage owned booked slot');
+                ->method('assertManageableByMentor')
+                ->with($this->mentor);
+        $this->execute();
     }
 }

@@ -32,6 +32,32 @@ class BookedMentoringSlotTest extends TestBase
         $this->form = $this->buildMockOfClass(Form::class);
     }
     
+    protected function assertManageableByMentor()
+    {
+        $this->mentoringSlot->expects($this->any())
+                ->method('belongsToMentor')
+                ->with($this->mentor)
+                ->willReturn(true);
+        $this->bookedSlot->assertManageableByMentor($this->mentor);
+    }
+    public function test_assertManageableByMentor_cancelledBooking_forbidden()
+    {
+        $this->bookedSlot->cancelled = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByMentor();
+        }, 'Forbidden', 'forbidden: can only manage active booking');
+    }
+    public function test_assertManageableByMentor_mentoringSlotDoesntBelongsToMentor_forbidden()
+    {
+        $this->mentoringSlot->expects($this->once())
+                ->method('belongsToMentor')
+                ->with($this->mentor)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByMentor();
+        }, 'Forbidden', 'forbidden: can only manage booking on owned slot');
+    }
+    
     protected function belongsToMentor()
     {
         return $this->bookedSlot->belongsToMentor($this->mentor);

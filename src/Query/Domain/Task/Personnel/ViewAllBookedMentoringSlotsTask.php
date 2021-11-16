@@ -34,7 +34,7 @@ class ViewAllBookedMentoringSlotsTask implements TaskExecutableByPersonnel
         $this->payload = $payload;
     }
 
-    public function execute(string $personnelId): array
+    public function execute(string $personnelId): void
     {
         $this->results = $this->bookedMentoringSlotRepository->allBookedMentoringSlotsBelongsToPersonnel(
                 $personnelId, $this->payload->getPage(), $this->payload->getPageSize(), $this->payload->getFilter());

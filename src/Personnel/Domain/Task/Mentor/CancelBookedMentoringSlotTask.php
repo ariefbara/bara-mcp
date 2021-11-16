@@ -31,9 +31,7 @@ class CancelBookedMentoringSlotTask implements ITaskExecutableByMentor
     public function execute(ProgramConsultant $mentor): void
     {
         $bookedSlot = $this->bookedSlotRepository->ofId($this->bookedSlotId);
-        if (!$bookedSlot->belongsToMentor($mentor)) {
-            throw RegularException::forbidden('forbidden: can only manage owned booked slot');
-        }
+        $bookedSlot->assertManageableByMentor($mentor);
         $bookedSlot->cancel();
     }
 

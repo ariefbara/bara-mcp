@@ -28,6 +28,7 @@ class RecordOfBookedMentoringSlot implements Record
      * @var RecordOfParticipant
      */
     public $participant;
+    public $id;
     public $cancelled;
 
     public function __construct(RecordOfMentoringSlot $mentoringSlot, RecordOfMentoring $mentoring,
@@ -36,13 +37,14 @@ class RecordOfBookedMentoringSlot implements Record
         $this->mentoringSlot = $mentoringSlot;
         $this->mentoring = $mentoring;
         $this->participant = $participant;
+        $this->id = $this->mentoring->id;
         $this->cancelled = false;
     }
 
     public function toArrayForDbEntry()
     {
         return [
-            'id' => $this->mentoring->id,
+            'id' => $this->id,
             'cancelled' => $this->cancelled,
             'MentoringSlot_id' => $this->mentoringSlot->id,
             'Participant_id' => $this->participant->id,

@@ -53,32 +53,32 @@ class MentorReport implements ContainFormRecordInterface
         return $this->formRecord->getSubmitTimeString();
     }
 
-    public function getUnremovedAttachmentFieldRecords(): array
+    public function getUnremovedAttachmentFieldRecords()
     {
         return $this->formRecord->getUnremovedAttachmentFieldRecords();
     }
 
-    public function getUnremovedIntegerFieldRecords(): array
+    public function getUnremovedIntegerFieldRecords()
     {
         return $this->formRecord->getUnremovedIntegerFieldRecords();
     }
 
-    public function getUnremovedMultiSelectFieldRecords(): array
+    public function getUnremovedMultiSelectFieldRecords()
     {
         return $this->formRecord->getUnremovedMultiSelectFieldRecords();
     }
 
-    public function getUnremovedSingleSelectFieldRecords(): array
+    public function getUnremovedSingleSelectFieldRecords()
     {
         return $this->formRecord->getUnremovedSingleSelectFieldRecords();
     }
 
-    public function getUnremovedStringFieldRecords(): array
+    public function getUnremovedStringFieldRecords()
     {
         return $this->formRecord->getUnremovedStringFieldRecords();
     }
 
-    public function getUnremovedTextAreaFieldRecords(): array
+    public function getUnremovedTextAreaFieldRecords()
     {
         return $this->formRecord->getUnremovedTextAreaFieldRecords();
     }

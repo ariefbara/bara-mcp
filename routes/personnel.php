@@ -11,11 +11,16 @@ $router->group($personnelAggregate, function () use ($router) {
     
     $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
     
+    $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
+    $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+    
     $router->post('/program-consultation/{consultantId}/mentoring-slots/create-multiple-slot', ['uses' => "MentoringSlotController@createMultipleSlot"]);
     $router->patch('/program-consultation/{consultantId}/mentoring-slots/{id}', ['uses' => "MentoringSlotController@update"]);
     $router->delete('/program-consultation/{consultantId}/mentoring-slots/{id}', ['uses' => "MentoringSlotController@cancel"]);
-    $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
-    $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+    
+    $router->put('/program-consultation/{consultantId}/booked-mentorings/{id}/submit-report', ['uses' => "BookedMentoringController@submitReport"]);
+    $router->delete('/program-consultation/{consultantId}/booked-mentorings/{id}', ['uses' => "BookedMentoringController@cancel"]);
+    $router->get('/program-consultation/{consultantId}/booked-mentorings/{id}', ['uses' => "BookedMentoringController@show"]);
     
     $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);

@@ -25,7 +25,7 @@ class ViewBookedMentoringSlotTask implements TaskExecutableByPersonnel
      * 
      * @var BookedMentoringSlot|null
      */
-    protected $result;
+    public $result;
 
     public function __construct(BookedMentoringSlotRepository $bookedMentoringSlotRepository, string $id)
     {
@@ -33,7 +33,7 @@ class ViewBookedMentoringSlotTask implements TaskExecutableByPersonnel
         $this->id = $id;
     }
 
-    public function execute(string $personnelId): array
+    public function execute(string $personnelId): void
     {
         $this->result = $this->bookedMentoringSlotRepository
                 ->aBookedMentoringSlotBelongsToPersonnel($personnelId, $this->id);
