@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Controllers\Client\ProgramParticipation;
+namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use DateTimeImmutable;
 use Tests\Controllers\Client\ProgramParticipationTestCase;
@@ -12,7 +12,7 @@ use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfMentoring;
 
-class MentoringContollerTest extends ProgramParticipationTestCase
+class MentoringContollerTest extends \Tests\Controllers\Client\AsTeamMember\ProgramParticipationTestCase
 {
     protected $showAllUri;
 
@@ -98,7 +98,7 @@ class MentoringContollerTest extends ProgramParticipationTestCase
         $this->bookedMentoringSlot_211_ms21->insert($this->connection);
         $this->bookedMentoringSlot_112_ms11_otherParticipant->insert($this->connection);
         
-        $this->get($this->showAllUri, $this->programParticipation->client->token);
+        $this->get($this->showAllUri, $this->teamMember->client->token);
     }
     public function test_showAll_200()
     {
