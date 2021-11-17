@@ -477,6 +477,16 @@ $router->group($clientAggregate, function () use ($router) {
             
             $router->get('/summary', ['uses' => "SummaryController@show"]);
             
+            $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
+        
+            $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+            $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
+
+            $router->post('/mentoring-slots/{mentoringSlotId}/booked-mentoring-slots', ['uses' => "BookedMentoringSlotController@book"]);
+            $router->delete('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@cancel"]);
+            $router->get('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@show"]);
+            $router->put('/booked-mentoring-slots/{id}/submit-report', ['uses' => "BookedMentoringSlotController@submitReport"]);
+            
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";
                 $router->get("/all", ["uses" => "$controller@showAll"]);

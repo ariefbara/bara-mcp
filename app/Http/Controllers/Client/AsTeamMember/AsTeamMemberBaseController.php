@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Client\AsTeamMember;
 use App\Http\Controllers\Client\ClientBaseController;
 use Firm\Domain\Model\Firm\Team\Member as Member2;
 use Participant\Application\Service\Client\AsTeamMember\ExecuteTeamParticipantTask;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership as TeamMemberInParticipantBC;
 use Participant\Domain\Model\ITaskExecutableByParticipant;
+use Participant\Domain\Model\TeamProgramParticipation as TeamParticipantInParticipantBC;
 use Query\Application\Auth\Firm\Team\TeamAdminAuthorization;
 use Query\Application\Auth\Firm\Team\TeamMemberAuthorization;
+use Query\Application\Service\Client\TeamMember\ExecuteParticipantTask;
+use Query\Application\Service\Client\TeamMember\ExecuteProgramTask;
+use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant as ITaskExecutableByParticipant2;
+use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByParticipant;
 use Query\Domain\Model\Firm\Team\Member;
-use Participant\Domain\DependencyModel\Firm\Client\TeamMembership as TeamMemberInParticipantBC;
-use Participant\Domain\Model\TeamProgramParticipation as TeamParticipantInParticipantBC;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 
 class AsTeamMemberBaseController extends ClientBaseController
 {
@@ -45,6 +50,24 @@ class AsTeamMemberBaseController extends ClientBaseController
         $teamMemberRepository = $this->em->getRepository(TeamMemberInParticipantBC::class);
         $teamParticipantRepository = $this->em->getRepository(TeamParticipantInParticipantBC::class);
         (new ExecuteTeamParticipantTask($teamMemberRepository, $teamParticipantRepository))
+                ->execute($this->firmId(), $this->clientId(), $teamId, $teamParticipantId, $task);
+    }
+
+    protected function executeTeamParticipantQueryTask(
+            string $teamId, string $teamParticipantId, ITaskExecutableByParticipant2 $task): void
+    {
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $teamParticipantRepository = $this->em->getRepository(TeamProgramParticipation::class);
+        (new ExecuteParticipantTask($teamMemberRepository, $teamParticipantRepository))
+                ->execute($this->firmId(), $this->clientId(), $teamId, $teamParticipantId, $task);
+    }
+
+    protected function executeQueryInProgramTaskExecutableByTeamParticipant(
+            string $teamId, string $teamParticipantId, ITaskInProgramExecutableByParticipant $task): void
+    {
+        $teamMemberRepository = $this->em->getRepository(Member::class);
+        $teamParticipantRepository = $this->em->getRepository(TeamProgramParticipation::class);
+        (new ExecuteProgramTask($teamMemberRepository, $teamParticipantRepository))
                 ->execute($this->firmId(), $this->clientId(), $teamId, $teamParticipantId, $task);
     }
 

@@ -6,6 +6,7 @@ use Query\Domain\Event\LearningMaterialViewedByParticipantEvent;
 use Query\Domain\Event\LearningMaterialViewedByTeamMemberEvent;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
+use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByParticipant;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Service\Firm\ClientFinder;
 use Query\Domain\Service\Firm\Program\MentorRepository;
@@ -30,6 +31,7 @@ class MemberTest extends TestBase
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
     protected $mentorRepository, $mentorId = 'mentorId';
     protected $participantTask;
+    protected $programTask;
 
     protected function setUp(): void
     {
@@ -53,6 +55,7 @@ class MemberTest extends TestBase
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
         $this->mentorRepository = $this->buildMockOfInterface(MentorRepository::class);
         $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        $this->programTask = $this->buildMockOfInterface(ITaskInProgramExecutableByParticipant::class);
     }
     protected function assertNotAdminForbiddenError(callable $operation): void
     {
@@ -321,6 +324,38 @@ class MemberTest extends TestBase
         $this->assertRegularExceptionThrowed(function (){
             $this->executeTeamParticipantTask();
         }, 'Forbidden', 'forbidden: unmanaged program participation');
+    }
+    
+    protected function executeProgramTask()
+    {
+        $this->teamProgramParticipation->expects($this->any())
+                ->method('teamEquals')
+                ->willReturn(true);
+        $this->member->executeProgramTask($this->teamProgramParticipation, $this->programTask);
+    }
+    public function test_executeProgramTask_tellTeamParticipantToExecuteTaskInProgram()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('executeTaskInProgram')
+                ->with($this->programTask);
+        $this->executeProgramTask();
+    }
+    public function test_executeProgramTask_inactiveMember_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executeProgramTask();
+        }, 'Forbidden', 'forbidden: only active team member can make this request');
+    }
+    public function test_executeProgramTask_teamParticipantDoestBelongsToTeam_forbidden()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('teamEquals')
+                ->with($this->member->team)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executeProgramTask();
+        }, 'Forbidden', 'forbidden: can only access using owned program participation');
     }
     
 }
