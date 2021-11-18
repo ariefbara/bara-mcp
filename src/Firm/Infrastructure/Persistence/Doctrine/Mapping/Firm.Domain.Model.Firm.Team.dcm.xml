@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Firm\Domain\Model\Firm\Team" 
             table="Team" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamRepository"
     >
         
         <many-to-one  field="firm" 
@@ -11,6 +12,15 @@
         </many-to-one>
         
         <id name="id" type="guid" />
+        <field name="name" type="string" length="255" nullable="false"/>
+        <field name="createdTime" type="datetime_immutable" nullable="false"/>
+        
+        <one-to-many  field="members" 
+                      target-entity="Firm\Domain\Model\Firm\Team\Member"
+                      mapped-by="team"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
         
     </entity>
 </doctrine-mapping>

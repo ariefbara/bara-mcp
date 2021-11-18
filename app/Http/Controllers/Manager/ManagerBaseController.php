@@ -39,7 +39,7 @@ class ManagerBaseController extends Controller
         return $this->request->managerId;
     }
 
-    protected function executeTaskInFirm(ITaskInFirmExecutableByManager $task): void
+    protected function executeFirmQueryTask(ITaskInFirmExecutableByManager $task): void
     {
         $managerRepository = $this->em->getRepository(Manager::class);
         (new ExecuteTaskInFirm($managerRepository))
@@ -61,6 +61,13 @@ class ManagerBaseController extends Controller
         $programRepository = $this->em->getRepository(\Firm\Domain\Model\Firm\Program::class);
         (new \Firm\Application\Service\Manager\ExecuteTaskInProgram($managerRepository, $programRepository))
                 ->execute($this->firmId(), $this->managerId(), $programId, $task);
+    }
+
+    protected function executeFirmTaskExecutableByManager(\Firm\Domain\Model\Firm\FirmTaskExecutableByManager $task): void
+    {
+        $managerRepository = $this->em->getRepository(\Firm\Domain\Model\Firm\Manager::class);
+        (new \Firm\Application\Service\Manager\ExecuteFirmTask($managerRepository))
+                ->execute($this->firmId(), $this->managerId(), $task);
     }
 
 }

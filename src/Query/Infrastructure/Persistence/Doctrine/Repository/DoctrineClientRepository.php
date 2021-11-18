@@ -10,6 +10,7 @@ use Query\Application\Service\Firm\ClientRepository;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Service\Firm\ClientRepository as InterfaceForDomainService;
+use Query\Domain\Task\Dependency\Firm\ClientFilter;
 use Query\Domain\Task\Dependency\Firm\ClientRepository as ClientRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
@@ -197,6 +198,38 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
         }
         
         return $qb->getQuery()->getResult();
+    }
+
+    public function allClientsInFirm(string $firmId, ClientFilter $filter)
+    {
+        $params = [
+            'firmId' => $firmId,
+        ];
+        
+        $qb = $this->createQueryBuilder('client');
+        $qb->select('client')
+                ->leftJoin('client.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+        
+        if (!empty($filter->getName())) {
+            $qb->andWhere($qb->expr()->orX(
+                        $qb->expr()->like('client.personName.firstName', ':name'),
+                        $qb->expr()->like('client.personName.lastName', ':name')
+                    ))
+                    ->setParameter('name', "%{$filter->getName()}%");
+        }
+        if (!empty($filter->getEmail())) {
+            $qb->andWhere($qb->expr()->eq('client.email', ':email'))
+                    ->setParameter('email', $filter->getEmail());
+        }
+        $activatedStatus = $filter->getActivatedStatus();
+        if (isset($activatedStatus)) {
+            $qb->andWhere($qb->expr()->eq('client.activated', ':activatedStatus'))
+                    ->setParameter('activatedStatus', $activatedStatus);
+        }
+        
+        return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
     }
 
 }

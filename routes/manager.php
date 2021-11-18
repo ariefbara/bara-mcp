@@ -15,6 +15,15 @@ $router->group($managerAggregate, function () use ($router) {
     $router->get("/evaluation-report-transcript", ["uses" => "EvaluationReportSummaryController@transcript"]);
     $router->get("/download-evaluation-report-transcript-xls", ["uses" => "EvaluationReportSummaryController@downloadTranscriptXls"]);
     
+    $router->post("/clients", ["uses" => "ClientController@add"]);
+    $router->patch("/clients/{id}/activate", ["uses" => "ClientController@activate"]);
+    $router->get("/clients", ["uses" => "ClientController@showAll"]);
+    $router->get("/clients/{id}", ["uses" => "ClientController@show"]);
+    
+    $router->post("/teams", ["uses" => "TeamController@add"]);
+    $router->get("/teams", ["uses" => "TeamController@showAll"]);
+    $router->get("/teams/{id}", ["uses" => "TeamController@show"]);
+    
     $router->group(['prefix' => '/account'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/change-password", ["uses" => "$controller@changePassword"]);
@@ -88,12 +97,6 @@ $router->group($managerAggregate, function () use ($router) {
         $router->patch("/{bioFormId}/enable", ["uses" => "$controller@enable"]);
         $router->get("", ["uses" => "$controller@showAll"]);
         $router->get("/{bioFormId}", ["uses" => "$controller@show"]);
-    });
-    
-    $router->group(['prefix' => '/clients'], function () use($router) {
-        $controller = "ClientController";
-        $router->get("", ["uses" => "$controller@showAll"]);
-        $router->get("/{clientId}", ["uses" => "$controller@show"]);
     });
     
     $router->group(['prefix' => '/client-bios'], function () use($router) {

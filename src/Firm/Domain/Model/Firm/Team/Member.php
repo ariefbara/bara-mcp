@@ -2,20 +2,19 @@
 
 namespace Firm\Domain\Model\Firm\Team;
 
+use DateTimeImmutable;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program\ActivityType;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
-use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\Attendee;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
 use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
-use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team;
-use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\Model\EntityContainCommonEvents;
 use Resources\Exception\RegularException;
 
@@ -51,10 +50,28 @@ class Member extends EntityContainCommonEvents
      * @var bool
      */
     protected $active;
+    
+    /**
+     *
+     * @var string||null
+     */
+    protected $position;
+    
+    /**
+     *
+     * @var DateTimeImmutable
+     */
+    protected $joinTime;
 
-    protected function __construct()
+    public function __construct(Team $team, string $id, MemberData $memberData)
     {
-        
+        $this->team = $team;
+        $this->id = $id;
+        $this->client = $memberData->getClient();
+        $this->anAdmin = true;
+        $this->active = true;
+        $this->position = $memberData->getPosition();
+        $this->joinTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
     }
 
     public function initiateMeeting(

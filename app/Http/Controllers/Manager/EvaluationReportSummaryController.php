@@ -64,7 +64,7 @@ class EvaluationReportSummaryController extends ManagerBaseController
         $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
         $task = new GenerateFirmEvaluationReportSummaryTask(
                 $evaluationReportRepository, $this->getEvaluationReportSummaryFilter(), $result);
-        $this->executeTaskInFirm($task);
+        $this->executeFirmQueryTask($task);
     }
 
     protected function generateFirmEvaluationReportTranscript(ClientEvaluationReportTranscriptResult $result): void
@@ -73,7 +73,7 @@ class EvaluationReportSummaryController extends ManagerBaseController
         $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
         $task = new GenerateFirmEvaluationReportTranscriptTask(
                 $clientRepository, $evaluationReportRepository, $this->getEvaluationReportSummaryFilter(), $result);
-        $this->executeTaskInFirm($task);
+        $this->executeFirmQueryTask($task);
     }
 
     protected function getEvaluationReportSummaryFilter(): EvaluationReportSummaryFilter

@@ -2,6 +2,7 @@
 <doctrine-mapping>
     <entity name="Firm\Domain\Model\Firm\Client" 
             table="Client" 
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientRepository"
     >
         
         <many-to-one  field="firm" 
@@ -11,10 +12,17 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="activated" type="boolean" />
         <embedded name="personName" 
                   class="Resources\Domain\ValueObject\PersonName" 
                   use-column-prefix="false" />
+        <field name="email" type="string" length="255" nullable="false"/>
+        <embedded name="password" 
+                  class="Resources\Domain\ValueObject\Password" 
+                  use-column-prefix="false" />
+        <field name="signupTime" type="datetime_immutable" nullable="true"/>
+        <field name="activated" type="boolean" />
+        <field name="activationCode" type="string" length="64" nullable="true" />
+        <field name="activationCodeExpiredTime" type="datetime_immutable" nullable="true" />
         
     </entity>
 </doctrine-mapping>

@@ -7,6 +7,7 @@
         
         <many-to-one  field="team" 
                       target-entity="Firm\Domain\Model\Firm\Team"
+                      inversed-by="members"
         >
             <join-column name="Team_id" referenced-column-name="id" />
         </many-to-one>
@@ -21,6 +22,8 @@
         
         <field name="anAdmin" type="boolean" />
         <field name="active" type="boolean" />
+        <field name="position" type="string" length="255" nullable="true"/>
+        <field name="joinTime" type="datetime_immutable" nullable="false"/>
         
     </entity>
 </doctrine-mapping>

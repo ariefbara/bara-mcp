@@ -4,7 +4,11 @@ namespace Firm\Domain\Model;
 
 use Firm\Domain\Model\Firm\BioSearchFilter;
 use Firm\Domain\Model\Firm\BioSearchFilterData;
+use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\ClientRegistrationData;
 use Firm\Domain\Model\Firm\FirmFileInfo;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Model\Firm\TeamData;
 use Query\Domain\Model\FirmWhitelableInfo;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
@@ -90,5 +94,15 @@ class Firm
             $this->bioSearchFilter->update($bioSearchFilterData);
         }
     }
+
+    public function createClient(string $clientId, ClientRegistrationData $clientRegistrationData): Client
+    {
+        return new Client($this, $clientId, $clientRegistrationData);
+    }
     
+    public function createTeam(string $teamId, TeamData $teamData): Team
+    {
+        return new Team($this, $teamId, $teamData);
+    }
+
 }

@@ -63,14 +63,13 @@ class Team
         return $this->name;
     }
 
-    public function getCreator(): Client
+    public function getCreator(): ?Client
     {
         return $this->creator;
     }
 
     protected function __construct()
     {
-        ;
     }
 
     public function getCreatedTimeString(): string

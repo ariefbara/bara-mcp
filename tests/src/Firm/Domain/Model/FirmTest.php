@@ -4,8 +4,13 @@ namespace Firm\Domain\Model;
 
 use Firm\Domain\Model\Firm\BioSearchFilter;
 use Firm\Domain\Model\Firm\BioSearchFilterData;
+use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\ClientRegistrationData;
 use Firm\Domain\Model\Firm\FirmFileInfo;
 use Firm\Domain\Model\Firm\ProfileForm;
+use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Model\Firm\Team\MemberData;
+use Firm\Domain\Model\Firm\TeamData;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use Tests\TestBase;
 
@@ -18,7 +23,10 @@ class FirmTest extends TestBase
     protected $profileForm;
     protected $bioSearchFilterData;
     protected $bioSearchFilter;
+    protected $clientId = 'clientId', $clientRegistrationData;
     
+    protected $teamId = 'teamId', $teamName = 'new team name', $client, $memberPosition = 'new member position';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -31,6 +39,9 @@ class FirmTest extends TestBase
         $this->bioSearchFilterData = $this->buildMockOfClass(BioSearchFilterData::class);
         $this->bioSearchFilter = $this->buildMockOfClass(BioSearchFilter::class);
         
+        $this->clientRegistrationData = new ClientRegistrationData('firstname', 'lastname', 'client@email.org', 'password123');
+        
+        $this->client = $this->buildMockOfClass(Client::class);
     }
     
     public function test_createFileInfo_returnFirmFileInfo()
@@ -73,6 +84,26 @@ class FirmTest extends TestBase
                 ->method('update')
                 ->with($this->bioSearchFilterData);
         $this->executeSetBioSearchFilter();
+    }
+    
+    protected function createClient()
+    {
+        return $this->firm->createClient($this->clientId, $this->clientRegistrationData);
+    }
+    public function test_createClient_returnClient()
+    {
+        $this->assertInstanceOf(Client::class, $this->createClient());
+    }
+    
+    protected function createTeam()
+    {
+        $teamData = new TeamData($this->teamName);
+        $teamData->addMemberData(new MemberData($this->client, $this->memberPosition));
+        return $this->firm->createTeam($this->teamId, $teamData);
+    }
+    public function test_createTeam_returnTeam()
+    {
+        $this->assertInstanceOf(Team::class, $this->createTeam());
     }
     
 }

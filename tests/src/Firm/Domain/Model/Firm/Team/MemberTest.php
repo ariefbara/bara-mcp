@@ -19,9 +19,12 @@ use Tests\TestBase;
 
 class MemberTest extends TestBase
 {
-    protected $member;
-    protected $client;
     protected $team;
+    protected $client;
+    protected $member;
+    
+    protected $id = 'newId', $position = 'new position';
+
     protected $meetingId = "meetingId", $teamParticipant, $meetingType, $meetingData;
     protected $attendeeFinder, $attendee;
     protected $user;
@@ -33,11 +36,10 @@ class MemberTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->member = new TestableMember();
         $this->team = $this->buildMockOfClass(Team::class);
-        $this->member->team = $this->team;
         $this->client = $this->buildMockOfClass(Client::class);
-        $this->member->client = $this->client;
+        $memberData = new MemberData($this->client, 'position');
+        $this->member = new TestableMember($this->team, 'id', $memberData);
         
         $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
@@ -60,6 +62,27 @@ class MemberTest extends TestBase
         
         $this->participantAttendee = $this->buildMockOfClass(ParticipantAttendee::class);
         $this->task = $this->buildMockOfClass(ITaskExecutableByMeetingInitiator::class);
+    }
+    
+    protected function getMemberData()
+    {
+        return new MemberData($this->client, $this->position);
+    }
+    
+    protected function construct()
+    {
+        return new TestableMember($this->team, $this->id, $this->getMemberData());
+    }
+    public function test_construct_setProperties()
+    {
+        $member = $this->construct();
+        $this->assertSame($this->team, $member->team);
+        $this->assertSame($this->id, $member->id);
+        $this->assertSame($this->client, $member->client);
+        $this->assertTrue($member->anAdmin);
+        $this->assertTrue($member->active);
+        $this->assertSame($this->position, $member->position);
+        $this->assertEquals(\Resources\DateTimeImmutableBuilder::buildYmdHisAccuracy(), $member->joinTime);
     }
     
     protected function setAttendeeDoesntBelongsToTeam()
@@ -303,15 +326,11 @@ class MemberTest extends TestBase
 
 class TestableMember extends Member
 {
-     public $team;
-     public $id = 'member-id';
-     public $client;
-     public $anAdmin;
-     public $active = true;
-     public $recordedEvents;
-     
-     function __construct()
-     {
-         parent::__construct();
-     }
+    public $team;
+    public $id;
+    public $client;
+    public $anAdmin;
+    public $active;
+    public $position;
+    public $joinTime;
 }

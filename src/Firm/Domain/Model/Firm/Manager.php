@@ -379,5 +379,13 @@ class Manager implements CanAttendMeeting
         }
         $task->executeInProgram($program);
     }
+    
+    public function executeFirmTask(FirmTaskExecutableByManager $task): void
+    {
+        if ($this->removed) {
+            throw RegularException::forbidden("forbidden: only active manager can make this request");
+        }
+        $task->executeInFirm($this->firm);
+    }
 
 }
