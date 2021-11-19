@@ -14,6 +14,7 @@ class TeamControllerTest extends EnhanceManagerTestCase
     protected $member_12_t1;
     
     protected $addRequest;
+    protected $addMemberRequest;
 
     protected $showAllUri;
     
@@ -49,6 +50,11 @@ class TeamControllerTest extends EnhanceManagerTestCase
                     'position' => 'member two position',
                 ],
             ],
+        ];
+        
+        $this->addMemberRequest = [
+            'clientId' => $this->clientOne->id,
+            'position' => 'new position',
         ];
     }
     protected function tearDown(): void
@@ -136,6 +142,122 @@ class TeamControllerTest extends EnhanceManagerTestCase
     {
         $this->addRequest['members'] = [];
         $this->add();
+        $this->seeStatusCode(403);
+    }
+    
+    protected function addMember()
+    {
+        $this->insertPreparedManagerRecord();
+        
+        $this->clientOne->insert($this->connection);
+        
+        $this->teamOne->insert($this->connection);
+        
+        $uri = $this->managerUri . "/teams/{$this->teamOne->id}/members";
+        $this->post($uri, $this->addMemberRequest, $this->managerOne->token);
+    }
+    public function test_addMember_200()
+    {
+        $this->addMember();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'position' => $this->addMemberRequest['position'],
+            'anAdmin' => true,
+            'client' => [
+                'id' => $this->clientOne->id,
+                'name' => $this->clientOne->getFullName(),
+            ],
+        ];
+        $this->seeJsonContains($response);
+        
+        $memberRecord = [
+            'Team_id' => $this->teamOne->id,
+            'Client_id' => $this->clientOne->id,
+            'position' => $this->addMemberRequest['position'],
+            'anAdmin' => true,
+            'active' => true,
+        ];
+        $this->seeInDatabase('T_Member', $memberRecord);
+    }
+    public function test_addMember_unmanagedClient_inactive_403()
+    {
+        $this->clientOne->activated = false;
+        $this->addMember();
+        $this->seeStatusCode(403);
+    }
+    public function test_addMember_unmanagedClient_belongsToOtherFirm_403()
+    {
+        $firm = new \Tests\Controllers\RecordPreparation\RecordOfFirm('zzz');
+        $firm->insert($this->connection);
+        $this->clientOne->firm = $firm;
+        
+        $this->addMember();
+        $this->seeStatusCode(403);
+    }
+    public function test_addMember_clientAlreadyActiveMember_403()
+    {
+        $this->member_11_t1->insert($this->connection);
+        
+        $this->addMember();
+        $this->seeStatusCode(403);
+    }
+    public function test_addMember_clientAlreadyInactiveMember_enableExistingMembership()
+    {
+        $this->member_11_t1->active = false;
+        $this->member_11_t1->insert($this->connection);
+        
+        $this->addMember();
+        $this->seeStatusCode(200);
+        
+        $memberRecord = [
+            'id' => $this->member_11_t1->id,
+            'active' => true,
+        ];
+        $this->seeInDatabase('T_Member', $memberRecord);
+    }
+    public function test_addMember_unmanagedTeam_belongsToOtherFirm_403()
+    {
+        $firm = new \Tests\Controllers\RecordPreparation\RecordOfFirm('zzz');
+        $firm->insert($this->connection);
+        $this->teamOne->firm = $firm;
+        
+        $this->addMember();
+        $this->seeStatusCode(403);
+    }
+    
+    protected function disableMember()
+    {
+        $this->insertPreparedManagerRecord();
+        $this->teamOne->insert($this->connection);
+        $this->member_11_t1->insert($this->connection);
+        
+        $uri = $this->managerUri . "/teams/{$this->teamOne->id}/members/{$this->member_11_t1->id}";
+        $this->delete($uri, [], $this->managerOne->token);
+    }
+    public function test_disableMember_200()
+    {
+        $this->disableMember();
+        $this->seeStatusCode(200);
+        $memberRecord = [
+            'id' => $this->member_11_t1->id,
+            'active' => false
+        ];
+        $this->seeInDatabase('T_Member', $memberRecord);
+    }
+    public function test_disableMember_unamangedMember_alreadyInactive_403()
+    {
+        $this->member_11_t1->active = false;
+        $this->disableMember();
+        $this->seeStatusCode(403);
+    }
+    public function test_disableMember_unamangedMember_belongsToTeamInOtherFirm_403()
+    {
+        $firm = new \Tests\Controllers\RecordPreparation\RecordOfFirm('zzz');
+        $firm->insert($this->connection);
+        $this->teamOne->firm = $firm;
+        
+        $this->disableMember();
         $this->seeStatusCode(403);
     }
     

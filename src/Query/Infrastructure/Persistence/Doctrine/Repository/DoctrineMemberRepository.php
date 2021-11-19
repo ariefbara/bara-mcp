@@ -11,10 +11,11 @@ use Query\Application\Service\Firm\Program\TeamMemberRepository;
 use Query\Application\Service\Firm\Team\MemberRepository;
 use Query\Application\Service\TeamMember\TeamMemberRepository as TeamMemberRepository2;
 use Query\Domain\Model\Firm\Team\Member;
+use Query\Domain\Task\Dependency\Firm\Team\MemberRepository as MemberRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository, TeamMemberRepository, TeamMemberRepository2, TeamMemberRepository3
+class DoctrineMemberRepository extends EntityRepository implements MemberRepository, InterfaceForAuthorization, TeamMembershipRepository, TeamMemberRepository, TeamMemberRepository2, TeamMemberRepository3, MemberRepository2
 {
 
     public function aTeamMembershipOfClient(string $firmId, string $clientId, string $teamMembershipId): Member
@@ -303,6 +304,29 @@ class DoctrineMemberRepository extends EntityRepository implements MemberReposit
             throw RegularException::notFound('not found: team member not found');
         }
         
+    }
+
+    public function aMemberOfTeamInFirm(string $firmId, string $id): Member
+    {
+        $parameters = [
+            'firmId' => $firmId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('teamMember');
+        $qb->select('teamMember')
+                ->andWhere($qb->expr()->eq('teamMember.id', ':id'))
+                ->leftJoin('teamMember.team', 'team')
+                ->leftJoin('team.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: team member not found');
+        }
     }
 
 }

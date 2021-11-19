@@ -4,8 +4,13 @@ namespace App\Http\Controllers\Manager;
 
 use Firm\Domain\Model\Firm\Client as Client2;
 use Firm\Domain\Model\Firm\Team as Team2;
+use Firm\Domain\Model\Firm\Team as Team3;
+use Firm\Domain\Task\InFirm\AddTeamMemberPayload;
+use Firm\Domain\Task\InFirm\AddTeamMemberTask;
 use Firm\Domain\Task\InFirm\AddTeamPayload;
 use Firm\Domain\Task\InFirm\AddTeamTask;
+use Firm\Domain\Task\InFirm\DisableTeamMemberPayload;
+use Firm\Domain\Task\InFirm\DisableTeamMemberTask;
 use Firm\Domain\Task\InFirm\MemberDataRequest;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Team;
@@ -13,6 +18,7 @@ use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Task\Dependency\Firm\TeamFilter;
 use Query\Domain\Task\Dependency\PaginationFilter;
 use Query\Domain\Task\InFirm\ShowAllTeamTask;
+use Query\Domain\Task\InFirm\ShowTeamMemberTask;
 use Query\Domain\Task\InFirm\ShowTeamTask;
 
 class TeamController extends ManagerBaseController
@@ -35,6 +41,33 @@ class TeamController extends ManagerBaseController
         
         $team = $this->getTeamFromShowTeamTaskExecution($task->addedTeamId);
         return $this->commandCreatedResponse($this->arrayDataOfTeam($team));
+    }
+    
+    public function addMember($teamId)
+    {
+        $teamRepository = $this->em->getRepository(Team3::class);
+        $clientRepository = $this->em->getRepository(Client2::class);
+        $clientId = $this->stripTagsInputRequest('clientId');
+        $position = $this->stripTagsInputRequest('position');
+        $memberDataRequest = new MemberDataRequest($clientId, $position);
+        $payload = new AddTeamMemberPayload($teamId, $memberDataRequest);
+        $task = new AddTeamMemberTask($teamRepository, $clientRepository, $payload);
+        $this->executeFirmTaskExecutableByManager($task);
+        
+        $memberRepository = $this->em->getRepository(Member::class);
+        $queryTask = new ShowTeamMemberTask($memberRepository, $task->addedMemberId);
+        $this->executeFirmQueryTask($queryTask);
+        $member = $queryTask->result;
+        return $this->singleQueryResponse($this->arrayDataOfMember($member));
+    }
+    
+    public function disableMember($teamId, $id)
+    {
+        $teamRepository = $this->em->getRepository(Team3::class);
+        $payload = new DisableTeamMemberPayload($teamId, $id);
+        $task = new DisableTeamMemberTask($teamRepository, $payload);
+        $this->executeFirmTaskExecutableByManager($task);
+        return $this->commandOkResponse();
     }
     
     public function show($id)

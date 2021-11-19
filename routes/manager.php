@@ -21,6 +21,8 @@ $router->group($managerAggregate, function () use ($router) {
     $router->get("/clients/{id}", ["uses" => "ClientController@show"]);
     
     $router->post("/teams", ["uses" => "TeamController@add"]);
+    $router->post("/teams/{teamId}/members", ["uses" => "TeamController@addMember"]);
+    $router->delete("/teams/{teamId}/members/{id}", ["uses" => "TeamController@disableMember"]);
     $router->get("/teams", ["uses" => "TeamController@showAll"]);
     $router->get("/teams/{id}", ["uses" => "TeamController@show"]);
     

@@ -50,18 +50,23 @@ class Member extends EntityContainCommonEvents
      * @var bool
      */
     protected $active;
-    
+
     /**
      *
      * @var string||null
      */
     protected $position;
-    
+
     /**
      *
      * @var DateTimeImmutable
      */
     protected $joinTime;
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
     public function __construct(Team $team, string $id, MemberData $memberData)
     {
@@ -127,6 +132,28 @@ class Member extends EntityContainCommonEvents
         $this->assertActive();
         $teamParticipant->assertBelongsToTeam($this->team);
         $teamParticipant->executeTaskAsMeetingInitiator($participantAttendee, $task);
+    }
+
+    public function correspondWithClient(Client $client): bool
+    {
+        return $this->client === $client;
+    }
+
+    public function enable(?string $position): void
+    {
+        if ($this->active) {
+            throw RegularException::forbidden('forbidden: already active member');
+        }
+        $this->active = true;
+        $this->position = $position;
+    }
+    
+    public function disable(): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: already inactive member');
+        }
+        $this->active = false;
     }
 
 }

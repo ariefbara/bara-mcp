@@ -15,6 +15,7 @@ use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Service\MeetingAttendeeBelongsToTeamFinder;
+use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
 
 class MemberTest extends TestBase
@@ -82,7 +83,7 @@ class MemberTest extends TestBase
         $this->assertTrue($member->anAdmin);
         $this->assertTrue($member->active);
         $this->assertSame($this->position, $member->position);
-        $this->assertEquals(\Resources\DateTimeImmutableBuilder::buildYmdHisAccuracy(), $member->joinTime);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $member->joinTime);
     }
     
     protected function setAttendeeDoesntBelongsToTeam()
@@ -320,6 +321,55 @@ class MemberTest extends TestBase
                 ->method('assertBelongsToTeam')
                 ->with($this->team);
         $this->executeTaskAsMemberOfTeamParticipantMeetingInitiator();
+    }
+    
+    protected function correspondWithClient()
+    {
+        return $this->member->correspondWithClient($this->client);
+    }
+    public function test_correspondWithClient_sameClient_returnTrue()
+    {
+        $this->assertTrue($this->correspondWithClient());
+    }
+    public function test_correspondWithClient_differentClient_returnFalse()
+    {
+        $this->member->client = $this->buildMockOfClass(Client::class);
+        $this->assertFalse($this->correspondWithClient());
+    }
+    
+    protected function enable()
+    {
+        $this->member->enable($this->position);
+    }
+    public function test_enable_setActiveAndUpdatePosition()
+    {
+        $this->member->active = false;
+        $this->enable();
+        $this->assertTrue($this->member->active);
+        $this->assertSame($this->position, $this->member->position);
+    }
+    public function test_enable_alreadyActiveMember_forbidden()
+    {
+        $this->assertRegularExceptionThrowed(function() {
+            $this->enable();
+        }, 'Forbidden', 'forbidden: already active member');
+    }
+    
+    protected function disable()
+    {
+        $this->member->disable();
+    }
+    public function test_disable_setInactive()
+    {
+        $this->disable();
+        $this->assertFalse($this->member->active);
+    }
+    public function test_disable_alreadyInactiveMember_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->disable();
+        }, 'Forbidden', 'forbidden: already inactive member');
     }
     
 }

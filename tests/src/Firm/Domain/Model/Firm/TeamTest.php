@@ -12,9 +12,10 @@ class TeamTest extends TestBase
 {
     protected $firm;
     protected $clientOne, $clientTwo;
-    protected $team;
+    protected $team, $member;
     
     protected $id = 'newId', $name = 'new team name', $memberPosition = 'new member position';
+    protected $memberId = 'memberId';
 
     protected function setUp(): void
     {
@@ -26,6 +27,10 @@ class TeamTest extends TestBase
         $teamData = new TeamData('team name');
         $teamData->addMemberData(new MemberData($this->clientOne, 'position'));
         $this->team = new TestableTeam($this->firm, 'id', $teamData);
+        
+        $this->member = $this->buildMockOfClass(Member::class);
+        $this->team->members->clear();
+        $this->team->members->add($this->member);
     }
     
     protected function getTeamData()
@@ -68,6 +73,23 @@ class TeamTest extends TestBase
         }, 'Forbidden', 'forbidden: team must have at least one member');
     }
     
+    protected function assertManageableInFirm()
+    {
+        $this->team->assertManageableInFirm($this->firm);
+    }
+    public function test_assertManageableInFirm_sameFirm_void()
+    {
+        $this->assertManageableInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertManageableInFirm_differentFirm_forbidden()
+    {
+        $this->team->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableInFirm();
+        }, 'Forbidden', 'forbidden: can only manage team in same firm');
+    }
+    
     public function test_idEquals_sameId_returnTrue()
     {
         $this->assertTrue($this->team->idEquals($this->team->id));
@@ -75,6 +97,72 @@ class TeamTest extends TestBase
     public function test_idEquals_differentId_returnFalse()
     {
         $this->assertFalse($this->team->idEquals("differentId"));
+    }
+    
+    protected function addMember()
+    {
+        $memberData = new MemberData($this->clientOne, $this->memberPosition);
+        return $this->team->addMember($memberData);
+    }
+    public function test_addMember_addClientAsNewMember()
+    {
+        $this->addMember();
+        $this->assertEquals(2, $this->team->members->count());
+        $this->assertInstanceOf(Member::class, $this->team->members->last());
+    }
+    public function test_addMember_alreadyContainMemberCorrespondWithSameClient_enableCorrepondingMember()
+    {
+        $this->member->expects($this->once())
+                ->method('correspondWithClient')
+                ->with($this->clientOne)
+                ->willReturn(true);
+        $this->member->expects($this->once())
+                ->method('enable')
+                ->with($this->memberPosition);
+        $this->addMember();
+    }
+    public function test_addMember_alreadyContainMemberCorrespondWithSameClient_preventAddingAsNewMember()
+    {
+        $this->member->expects($this->once())
+                ->method('correspondWithClient')
+                ->with($this->clientOne)
+                ->willReturn(true);
+        $this->addMember();
+        $this->assertEquals(1, $this->team->members->count());
+    }
+    public function test_addMember_returnMemberId()
+    {
+        $this->member->expects($this->once())
+                ->method('correspondWithClient')
+                ->with($this->clientOne)
+                ->willReturn(true);
+        $this->member->expects($this->once())
+                ->method('getId')
+                ->willReturn($this->memberId);
+        $this->assertEquals($this->memberId, $this->addMember());
+    }
+    
+    protected function disableMember()
+    {
+        $this->member->expects($this->any())
+                ->method('getId')
+                ->willReturn($this->memberId);
+        $this->team->disableMember($this->memberId);
+    }
+    public function test_disableMember_disableCorrespondMember()
+    {
+        $this->member->expects($this->once())
+                ->method('disable');
+        $this->disableMember();
+    }
+    public function test_disableMember_noCorrepondingMemberFound_notFound()
+    {
+        $this->member->expects($this->any())
+                ->method('getId')
+                ->willReturn('differentMember');
+        $this->assertRegularExceptionThrowed(function() {
+            $this->disableMember();
+        }, 'Not Found', 'not found: team member not found');
     }
 }
 
