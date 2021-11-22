@@ -25,6 +25,13 @@ class ActivityController extends AsProgramCoordinatorBaseController
             }
         }
         
+        $initiatorTypeList = $this->request->query('initiatorTypeList');
+        if (is_array($initiatorTypeList)) {
+            foreach ($initiatorTypeList as $userType) {
+                $activityFilter->addInitiatorTypeList($userType);
+            }
+        }
+        
         $activities = $this->buildViewService()
                 ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activityFilter);
         

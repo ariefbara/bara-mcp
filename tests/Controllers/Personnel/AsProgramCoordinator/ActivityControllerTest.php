@@ -2,6 +2,8 @@
 
 namespace Tests\Controllers\Personnel\AsProgramCoordinator;
 
+use DateTimeImmutable;
+use Tests\Controllers\RecordPreparation\Firm\Program\ActivityType\RecordOfActivityParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfActivity;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfActivityType;
 
@@ -11,6 +13,10 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
     protected $activityOne;
     protected $activityTwo;
     
+    protected $activityParticipant_11_a1;
+    protected $activityParticipant_21_a2;
+
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -18,6 +24,7 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
         
         $this->connection->table("ActivityType")->truncate();
         $this->connection->table("Activity")->truncate();
+        $this->connection->table("ActivityParticipant")->truncate();
         
         $program = $this->coordinator->program;
         
@@ -26,12 +33,16 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
         
         $this->activityOne = new RecordOfActivity($activityTypeOne, 1);
         $this->activityTwo = new RecordOfActivity($activityTypeTwo, 2);
+        
+        $this->activityParticipant_11_a1 = new RecordOfActivityParticipant($activityTypeOne, null, '11');
+        $this->activityParticipant_21_a2 = new RecordOfActivityParticipant($activityTypeTwo, null, '21');
     }
     protected function tearDown(): void
     {
         parent::tearDown();
         $this->connection->table("ActivityType")->truncate();
         $this->connection->table("Activity")->truncate();
+        $this->connection->table("ActivityParticipant")->truncate();
     }
     
     protected function show()
@@ -66,6 +77,9 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
         $this->activityOne->activityType->insert($this->connection);
         $this->activityTwo->activityType->insert($this->connection);
         
+        $this->activityParticipant_11_a1->insert($this->connection);
+        $this->activityParticipant_21_a2->insert($this->connection);
+        
         $this->activityOne->insert($this->connection);
         $this->activityTwo->insert($this->connection);
         $this->get($this->activityUri, $this->personnel->token);
@@ -97,12 +111,12 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
     }
     public function test_showAll_filterForm()
     {
-        $this->activityOne->startDateTime = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
-        $this->activityOne->endDateTime = (new \DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
-        $this->activityTwo->startDateTime = (new \DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
-        $this->activityTwo->endDateTime = (new \DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->startDateTime = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->endDateTime = (new DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->startDateTime = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->endDateTime = (new DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
         
-        $this->activityUri .= "?from=" . (new \DateTimeImmutable('+12 hours'))->format('Y-m-d H:i:s');
+        $this->activityUri .= "?from=" . (new DateTimeImmutable('+12 hours'))->format('Y-m-d H:i:s');
         $this->showAll();
         
         $totalResponse = ['total' => 1];
@@ -114,12 +128,12 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
     }
     public function test_showAll_filterTo()
     {
-        $this->activityOne->startDateTime = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
-        $this->activityOne->endDateTime = (new \DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
-        $this->activityTwo->startDateTime = (new \DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
-        $this->activityTwo->endDateTime = (new \DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->startDateTime = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->endDateTime = (new DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->startDateTime = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->endDateTime = (new DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
         
-        $this->activityUri .= "?to=" . (new \DateTimeImmutable('+12 hours'))->format('Y-m-d H:i:s');
+        $this->activityUri .= "?to=" . (new DateTimeImmutable('+12 hours'))->format('Y-m-d H:i:s');
         $this->showAll();
         
         $totalResponse = ['total' => 1];
@@ -157,10 +171,10 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
     }
     public function test_showAll_setOrder()
     {
-        $this->activityOne->startDateTime = (new \DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
-        $this->activityOne->endDateTime = (new \DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
-        $this->activityTwo->startDateTime = (new \DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
-        $this->activityTwo->endDateTime = (new \DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->startDateTime = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:s');
+        $this->activityOne->endDateTime = (new DateTimeImmutable('+25 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->startDateTime = (new DateTimeImmutable('-24 hours'))->format('Y-m-d H:i:s');
+        $this->activityTwo->endDateTime = (new DateTimeImmutable('-23 hours'))->format('Y-m-d H:i:s');
         
         $this->activityUri .= "?order=DESC&page=1&pageSize=1";;
         $this->showAll();
@@ -171,6 +185,27 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
             'id' => $this->activityOne->id,
         ];
         $this->seeJsonContains($activityResponse);
+    }
+    public function test_showAll_usingInitiatorTypeFilter_200()
+    {
+        $this->activityParticipant_11_a1->participantType = 'manager';
+        
+        $this->activityUri .= "?initiatorTypeList[]=manager";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        
+        $totalResponse = ['total' => 0];
+        $this->seeJsonContains($totalResponse);
+        
+        $activityOneResponse = [
+            "id" => $this->activityOne->id,
+            "name" => $this->activityOne->name,
+            "startTime" => $this->activityOne->startDateTime,
+            "endTime" => $this->activityOne->endDateTime,
+            "cancelled" => $this->activityOne->cancelled,
+        ];
+        $this->seeJsonContains($activityOneResponse);
+        
     }
     
 }

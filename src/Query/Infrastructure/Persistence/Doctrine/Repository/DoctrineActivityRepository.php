@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\Program\ActivityRepository;
 use Query\Domain\Model\Firm\Program\Activity;
+use Query\Domain\Model\Firm\Program\ActivityType\ActivityParticipant;
 use Query\Infrastructure\QueryFilter\ActivityFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
@@ -105,6 +106,17 @@ class DoctrineActivityRepository extends EntityRepository implements ActivityRep
         
         if (!empty($activityFilter->getOrder())) {
             $qb->orderBy('activity.startEndTime.startDateTime', $activityFilter->getOrder());
+        }
+        
+        if (!empty($activityFilter->getInitiatorTypeList())) {
+            $participantQb = $this->getEntityManager()->createQueryBuilder();
+            $participantQb->select('a_activityType.id')
+                    ->from(ActivityParticipant::class, 'a_activityParticipant')
+                    ->andWhere($participantQb->expr()->in('a_activityParticipant.participantType.participantType', ':initiatorTypeList'))
+                    ->andWhere($participantQb->expr()->eq('a_activityParticipant.participantPriviledge.canInitiate', 'true'))
+                    ->leftJoin('a_activityParticipant.activityType', 'a_activityType');
+            $qb->andWhere($qb->expr()->in('activityType.id', $participantQb->getDQL()))
+                    ->setParameter('initiatorTypeList', $activityFilter->getInitiatorTypeList());
         }
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);

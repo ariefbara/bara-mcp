@@ -39,6 +39,12 @@ class ActivityFilter
      */
     protected $activityTypeIdList = [];
 
+    /**
+     * 
+     * @var string[]
+     */
+    protected $initiatorTypeList = [];
+
     const ASCENDING = 'ASC';
     const DESCENDING = 'DESC';
 
@@ -65,6 +71,11 @@ class ActivityFilter
     public function getActivityTypeIdList(): array
     {
         return $this->activityTypeIdList;
+    }
+
+    public function getInitiatorTypeList(): array
+    {
+        return $this->initiatorTypeList;
     }
 
     public function __construct()
@@ -99,10 +110,16 @@ class ActivityFilter
         $this->order = $order;
         return $this;
     }
-    
+
     public function addActivityTypeId(string $activityTypeId): self
     {
         $this->activityTypeIdList[] = $activityTypeId;
+        return $this;
+    }
+    
+    public function addInitiatorTypeList(string $userType): self
+    {
+        $this->initiatorTypeList[] = $userType;
         return $this;
     }
 
