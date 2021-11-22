@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
 use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
@@ -18,10 +19,9 @@ class ClientParticipantTest extends TestBase
     protected $id = 'newClientParticipantId';
     protected $registrant;
     protected $meetingId = "meetingId", $meetingType, $meetingData;
-    
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
-    
     protected $participantAttendee, $task;
+    protected $program;
 
     protected function setUp(): void
     {
@@ -42,6 +42,8 @@ class ClientParticipantTest extends TestBase
         
         $this->participantAttendee = $this->buildMockOfClass(ParticipantAttendee::class);
         $this->task = $this->buildMockOfInterface(ITaskExecutableByMeetingInitiator::class);
+        
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
     public function test_construct_setProperties()
@@ -150,6 +152,29 @@ class ClientParticipantTest extends TestBase
                 ->method('assertBelongsToParticipant')
                 ->with($this->participant);
         $this->executeTaskAsParticipantMeetinInitiator();
+    }
+    
+    protected function correspondWithProgram()
+    {
+        return $this->clientParticipant->correspondWithProgram($this->program);
+    }
+    public function test_correspondWithProgram_forwardRequestToParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program);
+        $this->correspondWithProgram();
+    }
+    
+    protected function enable()
+    {
+        $this->clientParticipant->enable();
+    }
+    public function test_enable_enableParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method('reenroll');
+        $this->enable();
     }
     
 }

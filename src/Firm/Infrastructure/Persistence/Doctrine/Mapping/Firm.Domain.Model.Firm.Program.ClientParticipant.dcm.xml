@@ -9,6 +9,7 @@
                      target-entity="Firm\Domain\Model\Firm\Program\Participant"
                      inversed-by="clientParticipant"
         >
+            <cascade><cascade-persist /></cascade>
             <join-column name="Participant_id" referenced-column-name="id" />
         </one-to-one>
         

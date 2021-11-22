@@ -3,14 +3,18 @@
 namespace Firm\Domain\Model\Firm;
 
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\ClientParticipant;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
 use Resources\Exception\RegularException;
+use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
 
@@ -71,6 +75,12 @@ class Client
      */
     protected $activationCodeExpiredTime;
     
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $clientParticipants;
+
     protected function setEmail(string $email): void
     {
         ValidationService::build()
@@ -129,6 +139,24 @@ class Client
     {
         return $missionComment->receiveReply(
                         $replyId, $missionCommentData, $this->id, $this->personName->getFullName());
+    }
+    
+    public function addIntoProgram(Program $program): string
+    {
+        $program->assertCanAcceptParticipantOfType('client');
+        $p = function(ClientParticipant $clientParticipant) use($program) {
+            return $clientParticipant->correspondWithProgram($program);
+        };
+        $clientParticipant = $this->clientParticipants->filter($p)->first();
+        if (!empty($clientParticipant)) {
+            $clientParticipant->enable();
+        } else {
+            $id = Uuid::generateUuid4();
+            $participant = new Participant($program, $id);
+            $clientParticipant = new ClientParticipant($participant, $id, $this);
+            $this->clientParticipants->add($clientParticipant);
+        }
+        return $clientParticipant->getId();
     }
 
 }

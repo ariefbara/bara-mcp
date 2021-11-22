@@ -26,6 +26,11 @@ $router->group($managerAggregate, function () use ($router) {
     $router->get("/teams", ["uses" => "TeamController@showAll"]);
     $router->get("/teams/{id}", ["uses" => "TeamController@show"]);
     
+    $router->put("/programs/{programId}/client-participants", ["uses" => "ProgramParticipantController@addClientParticipant"]);
+    $router->put("/programs/{programId}/team-participants", ["uses" => "ProgramParticipantController@addTeamParticipant"]);
+    $router->get("/participants", ["uses" => "ProgramParticipantController@showAll"]);
+    $router->get("/participants/{id}", ["uses" => "ProgramParticipantController@show"]);
+    
     $router->group(['prefix' => '/account'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/change-password", ["uses" => "$controller@changePassword"]);

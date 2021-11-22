@@ -2,10 +2,14 @@
 
 namespace Firm\Domain\Model\Firm;
 
+use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\ClientParticipant;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
 
@@ -13,12 +17,14 @@ class ClientTest extends TestBase
 {
     protected $firm;
     protected $client, $personName, $fullName = 'client name';
-    
+    protected $clientParticipant;
+
     protected $id = 'newId', $firstname = 'newfirstname', $lastname = 'newlastname', $email = 'newclient@email.org', 
             $password = 'newpassword123';
 
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
-    
+    protected $program;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -27,6 +33,10 @@ class ClientTest extends TestBase
         $this->client = new TestableClient($this->firm, 'id', $clientRegistrationData);
         $this->client->activated = false;
         
+        $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
+        $this->client->clientParticipants = new ArrayCollection();
+        $this->client->clientParticipants->add($this->clientParticipant);
+        
         $this->personName = $this->buildMockOfClass(PersonName::class);
         $this->personName->expects($this->any())->method('getFullName')->willReturn($this->fullName);
         $this->client->personName = $this->personName;
@@ -34,6 +44,8 @@ class ClientTest extends TestBase
         $this->mission = $this->buildMockOfClass(Mission::class);
         $this->missionComment = $this->buildMockOfClass(MissionComment::class);
         $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
+        
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
     protected function getClientRegistrationData()
@@ -53,7 +65,7 @@ class ClientTest extends TestBase
         $this->assertEquals(new PersonName($this->firstname, $this->lastname), $client->personName);
         $this->assertSame($this->email, $client->email);
         $this->assertTrue($client->password->match($this->password));
-        $this->assertEquals(\Resources\DateTimeImmutableBuilder::buildYmdHisAccuracy(), $client->signupTime);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $client->signupTime);
         $this->assertTrue($client->activated);
         $this->assertNull($client->activationCode);
         $this->assertNull($client->activationCodeExpiredTime);
@@ -111,7 +123,7 @@ class ClientTest extends TestBase
     protected function activate()
     {
         $this->client->activationCode = 'random-activation-string';
-        $this->client->activationCodeExpiredTime = new \Monolog\DateTimeImmutable('+1 hours');
+        $this->client->activationCodeExpiredTime = new DateTimeImmutable('+1 hours');
         $this->client->activate();
     }
     public function test_activate_setActivatedAndResetAllActivationRelatedData()
@@ -145,6 +157,54 @@ class ClientTest extends TestBase
                 ->with($this->missionCommentId, $this->missionCommentData, $this->client->id, $this->fullName);
         $this->executeReplyMissionComment();
     }
+    
+    protected function addIntoProgram()
+    {
+        return $this->client->addIntoProgram($this->program);
+    }
+    public function test_addIntoProgram_addClientParticipantToCollection()
+    {
+        $this->addIntoProgram();
+        $this->assertEquals(2, $this->client->clientParticipants->count());
+        $this->assertInstanceOf(ClientParticipant::class, $this->client->clientParticipants->last());
+    }
+    public function test_addIntoProgram_alreadyParticipateInSameProgram_enableCurrentParticipation()
+    {
+        $this->clientParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->clientParticipant->expects($this->once())
+                ->method('enable');
+        $this->addIntoProgram();
+    }
+    public function test_addIntoProgram_alreadyParticipateInSameProgram_preventAddNewClient()
+    {
+        $this->clientParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->addIntoProgram();
+        $this->assertEquals(1, $this->client->clientParticipants->count());
+    }
+    public function test_addIntoProgram_returnClientParticipantId()
+    {
+        $this->clientParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->clientParticipant->expects($this->once())
+                ->method('getId')
+                ->willReturn($clientParticipantId = 'clientParticipantId');
+        $this->assertSame($clientParticipantId, $this->addIntoProgram());
+    }
+    public function test_addIntoProgram_assertProgramCanAcceptClientType()
+    {
+        $this->program->expects($this->once())
+                ->method('assertCanAcceptParticipantOfType')
+                ->with('client');
+        $this->addIntoProgram();
+    }
 }
 
 class TestableClient extends Client
@@ -158,5 +218,5 @@ class TestableClient extends Client
     public $activated;
     public $activationCode;
     public $activationCodeExpiredTime;
-    
+    public $clientParticipants;
 }

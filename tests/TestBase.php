@@ -10,13 +10,13 @@ use SharedContext\Domain\ValueObject\LabelData;
 
 class TestBase extends TestCase
 {
+
     protected function setUp(): void
     {
         parent::setUp();
     }
-    
-    protected function assertRegularExceptionThrowed(callable $operation,
-        string $message, string $errorDetail)
+
+    protected function assertRegularExceptionThrowed(callable $operation, string $message, string $errorDetail)
     {
         try {
             $operation();
@@ -26,21 +26,27 @@ class TestBase extends TestCase
             $this->assertEquals($errorDetail, $e->getErrorDetail());
         }
     }
-    
+
     protected function YmdHisStringOfCurrentTime(): string
     {
         return (new DateTime())->format('Y-m-d H:i:s');
     }
-    
-    function markAsSuccess() {
+
+    function markAsSuccess()
+    {
         $this->assertEquals(1, 1);
     }
-    protected function buildMockOfClass(string $className) {
+
+    protected function buildMockOfClass(string $className): MockObject
+    {
         return $this->getMockBuilder($className)->disableOriginalConstructor()->getMock();
     }
-    protected function buildMockOfInterface(string $className) {
+
+    protected function buildMockOfInterface(string $className): MockObject
+    {
         return $this->getMockBuilder($className)->getMock();
     }
+
     protected function setMockDataContainValidLabelData(MockObject $mockData): void
     {
         $labelData = $this->buildMockOfClass(LabelData::class);
@@ -51,6 +57,5 @@ class TestBase extends TestCase
                 ->method('getLabelData')
                 ->willReturn($labelData);
     }
-    
-}
 
+}

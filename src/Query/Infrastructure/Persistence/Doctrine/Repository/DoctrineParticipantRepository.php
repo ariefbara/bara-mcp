@@ -11,6 +11,7 @@ use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService;
+use Query\Domain\Task\Dependency\Firm\Program\ParticipantFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantRepository as ParticipantRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
@@ -304,6 +305,56 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
                 ))
                 ->setParameters($params);
         return $qb->getQuery()->getResult();
+    }
+
+    public function aProgramParticipantInFirm(string $firmId, string $id): Participant
+    {
+        $parameters = [
+            'firmId' => $firmId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('participant');
+        $qb->select('participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':id'))
+                ->leftJoin('participant.program', 'program')
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: program participant not found');
+        }
+    }
+
+    public function allProgramParticipantsInFirm(string $firmId, ParticipantFilter $filter)
+    {
+        $parameters = [
+            'firmId' => $firmId,
+        ];
+        
+        $qb = $this->createQueryBuilder('participant');
+        $qb->select('participant')
+                ->leftJoin('participant.program', 'program')
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($parameters);
+        
+        if (!empty($filter->getProgramIdList())) {
+            $qb->andWhere($qb->expr()->in('program.id', ':programIdList'))
+                    ->setParameter('programIdList', $filter->getProgramIdList());
+        }
+        
+        $activeStatus = $filter->getActiveStatus();
+        if (isset($activeStatus)) {
+            $qb->andWhere($qb->expr()->eq('participant.active', ':activeStatus'))
+                    ->setParameter('activeStatus', $activeStatus);
+        }
+        
+        return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
     }
 
 }

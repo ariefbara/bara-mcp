@@ -313,5 +313,25 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         $firmFileInfo->assertUsableInFirm($this->firm);
     }
+    
+    public function assertCanAcceptParticipantOfType(string $type): void
+    {
+        if (!$this->participantTypes->hasType($type)) {
+            throw RegularException::forbidden("forbidden: {$type} in not accomodate in this program");
+        }
+    }
+    
+    public function assertUsableInFirm(Firm $firm): void
+    {
+        if (!$this->published) {
+            throw RegularException::forbidden('forbidden: unable to use unpublished program');
+        }
+        if ($this->removed) {
+            throw RegularException::forbidden('forbidden: unable to use removed program');
+        }
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('forbidden: can only owned program');
+        }
+    }
 
 }

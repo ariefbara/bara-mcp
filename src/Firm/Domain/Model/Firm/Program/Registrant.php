@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Resources\Exception\RegularException;
 
@@ -122,9 +123,9 @@ class Registrant
         return empty($this->clientRegistrant) ? false : $this->clientRegistrant->clientEquals($client);
     }
 
-    public function correspondWithTeam(string $teamId): bool
+    public function correspondWithTeam(Team $team): bool
     {
-        return isset($this->teamRegistrant) ? $this->teamRegistrant->teamIdEquals($teamId) : false;
+        return isset($this->teamRegistrant) ? $this->teamRegistrant->teamEquals($team) : false;
     }
 
     protected function assertUnconcluded(): void

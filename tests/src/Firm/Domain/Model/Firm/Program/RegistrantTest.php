@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Registrant\RegistrantProfile;
+use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Tests\TestBase;
 
@@ -23,7 +24,7 @@ class RegistrantTest extends TestBase
     
     protected $participantId = 'participantId';
     
-    protected $user, $client, $teamId = "clientId";
+    protected $user, $client, $team;
 
     protected function setUp(): void
     {
@@ -46,6 +47,7 @@ class RegistrantTest extends TestBase
         
         $this->user = $this->buildMockOfClass(User::class);
         $this->client = $this->buildMockOfClass(Client::class);
+        $this->team = $this->buildMockOfClass(Team::class);
     }
     
     protected function executeAccept()
@@ -138,10 +140,10 @@ class RegistrantTest extends TestBase
         $this->executeCreateParticipant();
     }
     
-    public function test_correspondWithUser_returnUserRegistrantUserIdEqualsResult()
+    public function test_correspondWithUser_returnUserRegistrantUserEqualsResult()
     {
         $this->userRegistrant->expects($this->once())
-                ->method('userIdEquals')
+                ->method('userEquals')
                 ->with($this->user);
         $this->registrant->correspondWithUser($this->user);
     }
@@ -164,17 +166,22 @@ class RegistrantTest extends TestBase
         $this->registrant->correspondWithClient($this->client);
     }
     
+    protected function correspondWithTeam()
+    {
+        return $this->registrant->correspondWithTeam($this->team);
+    }
     public function test_correspondWithTeam_emptyTeamRegistrant_returnFalse()
     {
-        $this->assertFalse($this->registrant->correspondWithTeam($this->teamId));
+        $this->assertFalse($this->correspondWithTeam());
     }
-    public function test_correspondWithTeam_hasTeamRegistrant_returnTeamRegistrantsTeamIdEqualsResult()
+    public function test_correspondWithTeam_hasTeamRegistrant_returnTeamRegistrantsTeamEqualsResult()
     {
         $this->registrant->teamRegistrant = $this->teamRegistrant;
         $this->teamRegistrant->expects($this->once())
-                ->method('teamIdEquals')
-                ->with($this->teamId);
-        $this->registrant->correspondWithTeam($this->teamId);
+                ->method('teamEquals')
+                ->with($this->team)
+                ->willReturn(true);
+        $this->assertTrue($this->correspondWithTeam());
     }
 
 }

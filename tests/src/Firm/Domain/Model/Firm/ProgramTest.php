@@ -51,6 +51,7 @@ class ProgramTest extends TestBase
     
     protected $sponsorId = 'sponsor-id', $sponsorData;
     protected $firmFileInfo;
+    protected $type = 'client';
 
     protected function setUp(): void
     {
@@ -460,6 +461,62 @@ class ProgramTest extends TestBase
                 ->method('assertUsableInFirm')
                 ->with($this->program->firm);
         $this->assertFileUsable();
+    }
+    
+    protected function assertCanAcceptParticipantOfType()
+    {
+        $this->participantTypes->expects($this->any())
+                ->method('hasType')
+                ->with($this->type)
+                ->willReturn(true);
+        $this->program->assertCanAcceptParticipantOfType($this->type);
+    }
+    public function test_assertCanAcceptParticipantOfType_typeContainedInparticipantTypesList_void()
+    {
+        $this->assertCanAcceptParticipantOfType();
+        $this->markAsSuccess();
+    }
+    public function test_assertCanAcceptParticipantOfType_typeNotContainedInparticipantTypesList_forbidden()
+    {
+        $this->participantTypes->expects($this->once())
+                ->method('hasType')
+                ->with($this->type)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertCanAcceptParticipantOfType();
+        }, 'Forbidden', "forbidden: {$this->type} in not accomodate in this program");
+    }
+    
+    protected function assertUsableInFirm()
+    {
+        $this->program->published = true;
+        $this->program->assertUsableInFirm($this->firm);
+    }
+    public function test_assertUsableInFirm_activeProgramInSameFirm()
+    {
+        $this->assertUsableInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInFirm_unpublishedProgram_forbidden()
+    {
+        $this->program->published = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->program->assertUsableInFirm($this->firm);
+        }, 'Forbidden', 'forbidden: unable to use unpublished program');
+    }
+    public function test_assertUsableInFirm_removedProgram_forbidden()
+    {
+        $this->program->removed = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInFirm();
+        }, 'Forbidden', 'forbidden: unable to use removed program');
+    }
+    public function test_assertUsableInFirm_differentFirm_forbidden()
+    {
+        $this->program->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInFirm();
+        }, 'Forbidden', 'forbidden: can only owned program');
     }
 }
 

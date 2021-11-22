@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Team;
 
 class TeamRegistrant
 {
@@ -20,21 +21,21 @@ class TeamRegistrant
 
     /**
      *
-     * @var string
+     * @var Team
      */
-    protected $teamId;
+    protected $team;
     
     protected function __construct()
     {
     }
     
-    public function teamIdEquals(string $teamId): bool
+    public function teamEquals(Team $team): bool
     {
-        return $this->teamId === $teamId;
+        return $this->team === $team;
     }
     
     public function createParticipant(Program $program, string $participantId): Participant
     {
-        return Participant::participantForTeam($program, $participantId, $this->teamId);
+        return Participant::participantForTeam($program, $participantId, $this->team);
     }
 }

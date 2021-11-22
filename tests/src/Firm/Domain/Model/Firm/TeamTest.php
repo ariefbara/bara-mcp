@@ -2,7 +2,9 @@
 
 namespace Firm\Domain\Model\Firm;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team\Member;
 use Firm\Domain\Model\Firm\Team\MemberData;
 use Resources\DateTimeImmutableBuilder;
@@ -12,10 +14,11 @@ class TeamTest extends TestBase
 {
     protected $firm;
     protected $clientOne, $clientTwo;
-    protected $team, $member;
+    protected $team, $member, $teamParticipant;
     
     protected $id = 'newId', $name = 'new team name', $memberPosition = 'new member position';
     protected $memberId = 'memberId';
+    protected $program;
 
     protected function setUp(): void
     {
@@ -27,10 +30,14 @@ class TeamTest extends TestBase
         $teamData = new TeamData('team name');
         $teamData->addMemberData(new MemberData($this->clientOne, 'position'));
         $this->team = new TestableTeam($this->firm, 'id', $teamData);
+        $this->team->teamParticipants = new ArrayCollection();
+        $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
+        $this->team->teamParticipants->add($this->teamParticipant);
         
         $this->member = $this->buildMockOfClass(Member::class);
         $this->team->members->clear();
         $this->team->members->add($this->member);
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
     protected function getTeamData()
@@ -164,6 +171,71 @@ class TeamTest extends TestBase
             $this->disableMember();
         }, 'Not Found', 'not found: team member not found');
     }
+    
+    protected function addToProgram()
+    {
+        return $this->team->addToProgram($this->program);
+    }
+    public function test_addToProgram_addTeamParticipantToCollection()
+    {
+        $this->addToProgram();
+        $this->assertEquals(2, $this->team->teamParticipants->count());
+        $this->assertInstanceOf(TeamParticipant::class, $this->team->teamParticipants->last());
+    }
+    public function test_addToProgram_formerParticipantOfSameProgram_enablePreviousParticipation()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->teamParticipant->expects($this->once())
+                ->method('enable');
+        $this->addToProgram();
+    }
+    public function test_addToProgram_formerParticipantOfSameProgram_preventAddNewParticipant()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->addToProgram();
+        $this->assertEquals(1, $this->team->teamParticipants->count());
+    }
+    public function test_addToProgram_returnTeamParticipantId()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->teamParticipant->expects($this->once())
+                ->method('getId')
+                ->willReturn($teamParticipantId = 'teamParticipantId');
+        $this->assertEquals($teamParticipantId, $this->addToProgram());
+    }
+    public function test_addToProgram_assertProgramCanAcceptTeamTypeParticipant()
+    {
+        $this->program->expects($this->once())
+                ->method('assertCanAcceptParticipantOfType')
+                ->with('team');
+        $this->addToProgram();
+    }
+    
+    protected function assertUsableInFirm()
+    {
+        $this->team->assertUsableInFirm($this->firm);
+    }
+    public function test_assertUsableInFirm_sameFirm_void()
+    {
+        $this->assertUsableInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInFirm_differentFirm_forbidden()
+    {
+        $this->team->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInFirm();
+        }, 'Forbidden', 'forbidden: unable to use team from different firm');
+    }
 }
 
 class TestableTeam extends Team
@@ -173,4 +245,5 @@ class TestableTeam extends Team
     public $name;
     public $createdTime;
     public $members;
+    public $teamParticipants;
 }

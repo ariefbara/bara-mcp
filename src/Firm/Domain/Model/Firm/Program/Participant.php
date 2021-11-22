@@ -169,10 +169,10 @@ class Participant implements AssetInProgram, CanAttendMeeting
         return $participant;
     }
 
-    public static function participantForTeam(Program $program, string $id, string $teamId): self
+    public static function participantForTeam(Program $program, string $id, Team $team): self
     {
         $participant = new static($program, $id);
-        $participant->teamParticipant = new TeamParticipant($participant, $id, $teamId);
+        $participant->teamParticipant = new TeamParticipant($participant, $id, $team);
         return $participant;
     }
 
@@ -318,6 +318,11 @@ class Participant implements AssetInProgram, CanAttendMeeting
             $participantAttendee = new ParticipantAttendee($this, $id, $meeting, false);
             $this->meetingInvitations->add($participantAttendee);
         }
+    }
+    
+    public function correspondWithProgram(Program $program): bool
+    {
+        return $this->program === $program;
     }
 
 }

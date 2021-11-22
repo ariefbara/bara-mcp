@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
 use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
@@ -14,23 +15,23 @@ use Tests\TestBase;
 class TeamParticipantTest extends TestBase
 {
     protected $participant;
-    protected $teamParticipant;
-    protected $id = "newId", $teamId = "newTeamId";
-    protected $registrant;
     protected $team;
+    protected $teamParticipant;
+    protected $id = "newId";
+    protected $registrant;
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData, $client;
     protected $participantAttendee, $task;
+    protected $program;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->participant = $this->buildMockOfClass(Participant::class);
-        $this->teamParticipant = new TestableTeamParticipant($this->participant, "id", "teamId");
+        $this->team = $this->buildMockOfClass(Team::class);
+        $this->teamParticipant = new TestableTeamParticipant($this->participant, "id", $this->team);
         
         $this->registrant = $this->buildMockOfClass(Registrant::class);
-        
-        $this->team = $this->buildMockOfClass(Team::class);
         
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
@@ -42,22 +43,20 @@ class TeamParticipantTest extends TestBase
 
         $this->participantAttendee = $this->buildMockOfClass(ParticipantAttendee::class);
         $this->task = $this->buildMockOfInterface(ITaskExecutableByMeetingInitiator::class);
+        
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
     public function test_construct_setProperties()
     {
-        $teamParticipant = new TestableTeamParticipant($this->participant, $this->id, $this->teamId);
+        $teamParticipant = new TestableTeamParticipant($this->participant, $this->id, $this->team);
         $this->assertEquals($this->participant, $teamParticipant->participant);
         $this->assertEquals($this->id, $teamParticipant->id);
-        $this->assertEquals($this->teamId, $teamParticipant->teamId);
+        $this->assertEquals($this->team, $teamParticipant->team);
     }
     
     protected function executeAssertBelongsToTeam()
     {
-        $this->team->expects($this->any())
-                ->method('idEquals')
-                ->with($this->teamParticipant->teamId)
-                ->willReturn(true);
         $this->teamParticipant->assertBelongsToTeam($this->team);
     }
     public function test_assertBelongsToTeam_sameTeam_void()
@@ -67,29 +66,32 @@ class TeamParticipantTest extends TestBase
     }
     public function test_assertBelongsToTeam_differentTeam_forbidden()
     {
-        $this->team->expects($this->once())
-                ->method('idEquals')
-                ->with($this->teamParticipant->teamId)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function (){
+        $this->teamParticipant->team = $this->buildMockOfClass(Team::class);
+        $this->assertRegularExceptionThrowed(function() {
             $this->executeAssertBelongsToTeam();
-        }, 'Forbidden', "forbidden: program participation doesn't belongs to team");
+        }, 'Forbidden', 'forbidden: can only access owned asset');
     }
     
     public function test_correspondWithRegistrant_returnRegistrantCorrespondWithTeamResult()
     {
         $this->registrant->expects($this->once())
                 ->method("correspondWithTeam")
-                ->with($this->teamParticipant->teamId);
+                ->with($this->teamParticipant->team);
         $this->teamParticipant->correspondWithRegistrant($this->registrant);
     }
     
-    public function test_belongsToTeam_returnTeamsIdEqualsResult()
+    protected function belongsToTeam()
     {
-        $this->team->expects($this->once())
-                ->method("idEquals")
-                ->with($this->teamParticipant->teamId);
-        $this->teamParticipant->belongsToTeam($this->team);
+        return $this->teamParticipant->belongsToTeam($this->team);
+    }
+    public function test_belongsToTeam_sameTeam_returnTrue()
+    {
+        $this->assertTrue($this->belongsToTeam());
+    }
+    public function test_belongsToTeam_differentTeam_returnFalse()
+    {
+        $this->teamParticipant->team = $this->buildMockOfClass(Team::class);
+        $this->assertFalse($this->belongsToTeam());
     }
     
     public function test_initiateMeeting_returnParticipantsInitiateMeetingResult()
@@ -182,11 +184,34 @@ class TeamParticipantTest extends TestBase
                 ->with($this->participant);
         $this->executeTaskAsMeetingInitiator();
     }
+    
+    protected function correspondWithProgram()
+    {
+        return $this->teamParticipant->correspondWithProgram($this->program);
+    }
+    public function test_correspondWithProgram_returnParticipantsProgramCorrepondencyResult()
+    {
+        $this->participant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program);
+        $this->correspondWithProgram();
+    }
+    
+    protected function enable()
+    {
+        $this->teamParticipant->enable();
+    }
+    public function test_enable_reenrollParticipnat()
+    {
+        $this->participant->expects($this->once())
+                ->method('reenroll');
+        $this->enable();
+    }
 }
 
 class TestableTeamParticipant extends TeamParticipant
 {
     public $participant;
-    public $id = "id";
-    public $teamId = "teamId";
+    public $id;
+    public $team;
 }

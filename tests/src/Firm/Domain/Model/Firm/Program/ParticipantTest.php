@@ -153,14 +153,14 @@ class ParticipantTest extends TestBase
 
     public function test_participantForTeam_setProperties()
     {
-        $participant = TestableParticipant::participantForTeam($this->program, $this->id, $this->teamId);
+        $participant = TestableParticipant::participantForTeam($this->program, $this->id, $this->team);
         $this->assertEquals($this->program, $participant->program);
         $this->assertEquals($this->id, $participant->id);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
         $this->assertTrue($participant->active);
         $this->assertNull($participant->note);
 
-        $teamParticipant = new TeamParticipant($participant, $this->id, $this->teamId);
+        $teamParticipant = new TeamParticipant($participant, $this->id, $this->team);
         $this->assertEquals($teamParticipant, $participant->teamParticipant);
         $this->assertNull($participant->userParticipant);
         $this->assertNull($participant->clientParticipant);
@@ -522,6 +522,20 @@ class ParticipantTest extends TestBase
                 ->method('assertUsableInProgram')
                 ->with($this->program);
         $this->executeInviteToMeeting();
+    }
+    
+    protected function correspondWithProgram()
+    {
+        return $this->participant->correspondWithProgram($this->program);
+    }
+    public function test_correspondWithProgram_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->correspondWithProgram());
+    }
+    public function test_correspondWithProgram_differentProgram_returnFalse()
+    {
+        $this->participant->program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->correspondWithProgram());
     }
     
 }

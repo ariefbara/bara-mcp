@@ -12,7 +12,12 @@
         </one-to-one>
         
         <id name="id" type="guid" />
-        <field name="teamId" column="Team_id" type="guid" nullable="false"/>
+        
+        <many-to-one  field="team" 
+                      target-entity="Firm\Domain\Model\Firm\Team"
+        >
+            <join-column name="Team_id" referenced-column-name="id" />
+        </many-to-one>
         
     </entity>
 </doctrine-mapping>

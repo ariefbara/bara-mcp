@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting\ITaskExecutableByMeetingInitiator;
 use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
@@ -29,32 +30,37 @@ class TeamParticipant
 
     /**
      *
-     * @var string
+     * @var Team
      */
-    protected $teamId;
+    protected $team;
 
-    public function __construct(Participant $participant, string $id, string $teamId)
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function __construct(Participant $participant, string $id, Team $team)
     {
         $this->participant = $participant;
         $this->id = $id;
-        $this->teamId = $teamId;
+        $this->team = $team;
     }
-    
+
     public function assertBelongsToTeam(Team $team): void
     {
-        if (!$team->idEquals($this->teamId)) {
-            throw RegularException::forbidden("forbidden: program participation doesn't belongs to team");
+        if ($this->team !== $team) {
+            throw RegularException::forbidden("forbidden: can only access owned asset");
         }
     }
 
     public function correspondWithRegistrant(Registrant $registrant): bool
     {
-        return $registrant->correspondWithTeam($this->teamId);
+        return $registrant->correspondWithTeam($this->team);
     }
 
     public function belongsToTeam(Team $team): bool
     {
-        return $team->idEquals($this->teamId);
+        return $this->team === $team;
     }
 
     public function initiateMeeting(string $meetingId, ActivityType $meetingType, MeetingData $meetingData): Meeting
@@ -79,12 +85,22 @@ class TeamParticipant
         $missionCommentData->addRolePath('participant', $this->id);
         return $client->replyMissionComment($missionComment, $replyId, $missionCommentData);
     }
-    
+
     public function executeTaskAsMeetingInitiator(
             ParticipantAttendee $participantAttendee, ITaskExecutableByMeetingInitiator $task): void
     {
         $participantAttendee->assertBelongsToParticipant($this->participant);
         $participantAttendee->executeTaskAsMeetingInitiator($task);
+    }
+
+    public function correspondWithProgram(Program $program): bool
+    {
+        return $this->participant->correspondWithProgram($program);
+    }
+
+    public function enable(): void
+    {
+        $this->participant->reenroll();
     }
 
 }

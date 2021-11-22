@@ -6,6 +6,8 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team\Member;
 use Firm\Domain\Model\Firm\Team\MemberData;
 use Resources\DateTimeImmutableBuilder;
@@ -46,7 +48,13 @@ class Team
      * @var ArrayCollection
      */
     protected $members;
-
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $teamParticipants;
+    
     function getId(): string
     {
         return $this->id;
@@ -112,6 +120,31 @@ class Team
             throw RegularException::notFound('not found: team member not found');
         }
         $member->disable();
+    }
+    
+    public function addToProgram(Program $program): string
+    {
+        $program->assertCanAcceptParticipantOfType('team');
+        $p = function(TeamParticipant $teamParticipant) use($program) {
+            return $teamParticipant->correspondWithProgram($program);
+        };
+        $teamParticipant = $this->teamParticipants->filter($p)->first();
+        if (!empty($teamParticipant)) {
+            $teamParticipant->enable();
+        } else {
+            $id = Uuid::generateUuid4();
+            $participant = new Participant($program, $id);
+            $teamParticipant = new TeamParticipant($participant, $id, $this);
+            $this->teamParticipants->add($teamParticipant);
+        }
+        return $teamParticipant->getId();
+    }
+    
+    public function assertUsableInFirm(Firm $firm): void
+    {
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('forbidden: unable to use team from different firm');
+        }
     }
 
 }
