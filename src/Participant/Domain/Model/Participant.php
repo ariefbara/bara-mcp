@@ -20,6 +20,8 @@ use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\ManageableByParticipant;
+use Participant\Domain\Model\Participant\MentoringRequest;
+use Participant\Domain\Model\Participant\MentoringRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment;
 use Participant\Domain\Model\Participant\MetricAssignment\MetricAssignmentReport;
 use Participant\Domain\Model\Participant\OKRPeriod;
@@ -119,6 +121,18 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      * @var ArrayCollection
      */
     protected $okrPeriods;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $mentoringRequests;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $bookedMentorings;
 
     protected function __construct()
     {
@@ -437,6 +451,30 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         }
         $bookedMentoringSlot = new BookedMentoringSlot($this, $bookedMentoringSlotId, $mentoringSlot);
         return $bookedMentoringSlot;
+    }
+    
+    public function requestMentoring(
+            string $mentoringRequestId, Consultant $mentor, ConsultationSetup $consultationSetup, 
+            MentoringRequestData $mentoringRequestData): MentoringRequest
+    {
+        $mentor->assertUsableInProgram($this->program);
+        $consultationSetup->assertUsableInProgram($this->program);
+        return new MentoringRequest($this, $mentoringRequestId, $mentor, $consultationSetup, $mentoringRequestData);
+    }
+    
+    public function assertNoConflictWithScheduledOrPotentialSchedule(Participant\ContainSchedule $mentoringSchedule): void
+    {
+        $mentoringRequestFilter = function(MentoringRequest $mentoringRequest) use($mentoringSchedule) {
+            return $mentoringRequest->aScheduledOrPotentialScheduleInConflictWith($mentoringSchedule);
+        };
+        $bookedMentoringFilter = function(BookedMentoringSlot $bookedMentoring) use($mentoringSchedule) {
+            return $bookedMentoring->aScheduledOrPotentialScheduleInConflictWith($mentoringSchedule);
+        };
+        if (!empty($this->mentoringRequests->filter($mentoringRequestFilter)->count())
+                || !empty($this->bookedMentorings->filter($bookedMentoringFilter)->count())
+        ) {
+            throw RegularException::forbidden('forbidden: schedule in conflict with existing schedule or potential schedule');
+        }
     }
 
 }

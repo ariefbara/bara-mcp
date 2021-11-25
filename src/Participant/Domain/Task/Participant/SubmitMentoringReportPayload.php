@@ -4,14 +4,14 @@ namespace Participant\Domain\Task\Participant;
 
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
-class SubmitBookedMentoringReportPayload
+class SubmitMentoringReportPayload
 {
 
     /**
      * 
      * @var string|null
      */
-    protected $bookedMentoringSlotId;
+    protected $id;
 
     /**
      * 
@@ -25,9 +25,9 @@ class SubmitBookedMentoringReportPayload
      */
     protected $formRecordData;
 
-    public function getBookedMentoringSlotId(): ?string
+    public function getId(): ?string
     {
-        return $this->bookedMentoringSlotId;
+        return $this->id;
     }
 
     public function getMentorRating(): ?int
@@ -40,9 +40,9 @@ class SubmitBookedMentoringReportPayload
         return $this->formRecordData;
     }
 
-    public function __construct(?string $bookedMentoringSlotId, ?int $mentorRating, ?FormRecordData $formRecordData)
+    public function __construct(?string $id, ?int $mentorRating, ?FormRecordData $formRecordData)
     {
-        $this->bookedMentoringSlotId = $bookedMentoringSlotId;
+        $this->id = $id;
         $this->mentorRating = $mentorRating;
         $this->formRecordData = $formRecordData;
     }

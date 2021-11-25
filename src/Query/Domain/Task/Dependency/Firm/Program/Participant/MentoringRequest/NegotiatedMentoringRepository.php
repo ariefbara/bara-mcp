@@ -1,0 +1,11 @@
+<?php
+
+namespace Query\Domain\Task\Dependency\Firm\Program\Participant;
+
+use Query\Domain\Model\Firm\Program\Participant\MentoringRequest\NegotiatedMentoring;
+
+interface NegotiatedMentoringRepository
+{
+
+    public function aNegotiatedMentoringBelongsToParticipant(string $participantId, string $id): NegotiatedMentoring;
+}

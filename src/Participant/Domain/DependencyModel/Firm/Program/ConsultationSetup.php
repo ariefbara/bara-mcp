@@ -11,6 +11,7 @@ use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\Schedule;
 
 class ConsultationSetup
 {
@@ -77,6 +78,11 @@ class ConsultationSetup
             IContainParticipantReport $mentoring, FormRecordData $formRecordData, int $mentorRating): void
     {
         $this->participantFeedbackForm->processReportIn($mentoring, $formRecordData, $mentorRating);
+    }
+    
+    public function calculateScheduleEndTime(DateTimeImmutable $startTime): DateTimeImmutable
+    {
+        return $startTime->add(new DateInterval("PT{$this->sessionDuration}M"));
     }
 
 }

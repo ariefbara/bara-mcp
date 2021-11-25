@@ -2,14 +2,16 @@
 
 namespace Participant\Domain\Model\Participant;
 
+use Participant\Domain\DependencyModel\Firm\IContainParticipantReport;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant\MentoringSlot;
 use Participant\Domain\Model\Participant;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\Mentoring;
 use SharedContext\Domain\Model\SharedEntity\Form;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\Schedule;
 
-class BookedMentoringSlot implements \Participant\Domain\DependencyModel\Firm\IContainParticipantReport
+class BookedMentoringSlot implements IContainParticipantReport, ContainSchedule
 {
 
     /**
@@ -90,6 +92,16 @@ class BookedMentoringSlot implements \Participant\Domain\DependencyModel\Firm\IC
     public function processReport(Form $form, FormRecordData $formRecordData, int $mentorRating): void
     {
         $this->mentoring->submitParticipantReport($form, $formRecordData, $mentorRating);
+    }
+
+    public function aScheduledOrPotentialScheduleInConflictWith(ContainSchedule $other): bool
+    {
+        return $other !== $this && !$this->cancelled && $this->mentoringSlot->scheduleInConflictWith($other);
+    }
+
+    public function scheduleIntersectWith(Schedule $other): bool
+    {
+        return $this->mentoringSlot->scheduleIntersectWith($other);
     }
 
 }

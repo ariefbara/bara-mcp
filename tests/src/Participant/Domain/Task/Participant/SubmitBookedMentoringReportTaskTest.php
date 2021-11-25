@@ -29,7 +29,7 @@ class SubmitBookedMentoringReportTaskTest extends TaskExecutableByParticipantTes
                 ->willReturn($this->bookedMentoringSlot);
         
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
-        $this->payload = new SubmitBookedMentoringReportPayload(
+        $this->payload = new SubmitMentoringReportPayload(
                 $this->bookedMentoringSlotId, $this->mentorRating, $this->formRecordData);
         
         $this->task = new SubmitBookedMentoringReportTask($this->bookedMentoringSlotRepository, $this->payload);

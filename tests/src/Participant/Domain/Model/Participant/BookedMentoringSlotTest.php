@@ -7,6 +7,7 @@ use Participant\Domain\Model\Participant;
 use SharedContext\Domain\Model\Mentoring;
 use SharedContext\Domain\Model\SharedEntity\Form;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\Schedule;
 use Tests\TestBase;
 
 class BookedMentoringSlotTest extends TestBase
@@ -18,6 +19,8 @@ class BookedMentoringSlotTest extends TestBase
     protected $id = 'newId';
     protected $mentorRating = 8, $formRecordData;
     protected $form;
+    protected $otherMentoring;
+    protected $otherSchedule;
 
     protected function setUp(): void
     {
@@ -31,6 +34,8 @@ class BookedMentoringSlotTest extends TestBase
         
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         $this->form = $this->buildMockOfClass(Form::class);
+        $this->otherMentoring = $this->buildMockOfInterface(ContainSchedule::class);
+        $this->otherSchedule = $this->buildMockOfClass(Schedule::class);
     }
     
     protected function construct()
@@ -156,6 +161,46 @@ class BookedMentoringSlotTest extends TestBase
                 ->method('submitParticipantReport')
                 ->with($this->form, $this->formRecordData, $this->mentorRating);
         $this->processReport();
+    }
+    
+    protected function inConflictWith()
+    {
+        $this->mentoringSlot->expects($this->any())
+                ->method('scheduleInConflictWith')
+                ->with($this->otherMentoring)
+                ->willReturn(true);
+        return $this->bookedMentoringSlot->aScheduledOrPotentialScheduleInConflictWith($this->otherMentoring);
+    }
+    public function test_inConflictWith_returnMentoringSlotScheduleInConflictWithComparison()
+    {
+        $this->mentoringSlot->expects($this->once())
+                ->method('scheduleInConflictWith')
+                ->with($this->otherMentoring)
+                ->willReturn(true);
+        $this->assertTrue($this->inConflictWith());
+    }
+    public function test_inConflictWith_cancelledBooking_returnFalse()
+    {
+        $this->bookedMentoringSlot->cancelled = true;
+        $this->assertFalse($this->inConflictWith());
+    }
+    public function test_inConflictWith_comparedWithSelf_returnFalse()
+    {
+        $this->otherMentoring = $this->bookedMentoringSlot;
+        $this->assertFalse($this->inConflictWith());
+    }
+    
+    protected function scheduleIntersectWith()
+    {
+        return $this->bookedMentoringSlot->scheduleIntersectWith($this->otherSchedule);
+    }
+    public function test_schduleIntersectWith_returnScheduleIntersectWithComparison()
+    {
+        $this->mentoringSlot->expects($this->once())
+                ->method('scheduleIntersectWith')
+                ->with($this->otherSchedule)
+                ->willReturn(true);
+        $this->assertTrue($this->scheduleIntersectWith());
     }
 }
 

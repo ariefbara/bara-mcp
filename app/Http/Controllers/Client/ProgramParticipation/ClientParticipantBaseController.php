@@ -15,11 +15,11 @@ use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByParticipant;
 class ClientParticipantBaseController extends ClientBaseController
 {
 
-    public function executeParticipantTask(string $clientParticipantId, ITaskExecutableByParticipant $task): void
+    public function executeParticipantTask(string $programParticipationId, ITaskExecutableByParticipant $task): void
     {
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
         (new ExecuteParticipantTask($clientParticipantRepository))
-                ->execute($this->firmId(), $this->clientId(), $clientParticipantId, $task);
+                ->execute($this->firmId(), $this->clientId(), $programParticipationId, $task);
     }
 
     protected function executeQueryTaskInProgram(
@@ -30,11 +30,11 @@ class ClientParticipantBaseController extends ClientBaseController
                 ->execute($this->firmId(), $this->clientId(), $clientParticipantId, $task);
     }
 
-    protected function executeQueryParticipantTask(string $clientParticipantId, ITaskExecutableByParticipant2 $task): void
+    protected function executeQueryParticipantTask(string $programParticipationId, ITaskExecutableByParticipant2 $task): void
     {
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
         (new ExecuteParticipantTask2($clientParticipantRepository))
-                ->execute($this->firmId(), $this->clientId(), $clientParticipantId, $task);
+                ->execute($this->firmId(), $this->clientId(), $programParticipationId, $task);
     }
 
 }

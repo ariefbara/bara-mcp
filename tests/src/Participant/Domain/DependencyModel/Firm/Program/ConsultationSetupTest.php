@@ -113,6 +113,16 @@ class ConsultationSetupTest extends TestBase
                 ->with($this->mentoring, $this->formRecordData, $this->mentorRating);
         $this->processReportIn();
     }
+    
+    protected function calculateScheduleEndTime()
+    {
+        return $this->consultationSetup->calculateScheduleEndTime($this->startTime);
+    }
+    public function test_calculateScheduleEndTime_returnCalculdatedEndTime()
+    {
+        $endTime = new \DateTimeImmutable('+45 minutes');
+        $this->assertEquals($endTime->format('Y-m-d H:i:s'), $this->calculateScheduleEndTime()->format('Y-m-d H:i:s'));
+    }
 
 }
 

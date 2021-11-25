@@ -97,5 +97,15 @@ class MentoringSlot
         }
         $this->consultationSetup->processReportIn($mentoring, $formRecordData, $mentorRating);
     }
+    
+    public function scheduleInConflictWith(Participant\ContainSchedule $mentoringSchedule): bool
+    {
+        return $mentoringSchedule->scheduleIntersectWith($this->schedule);
+    }
+    
+    public function scheduleIntersectWith(Schedule $other): bool
+    {
+        return $this->schedule->intersectWith($other);
+    }
 
 }

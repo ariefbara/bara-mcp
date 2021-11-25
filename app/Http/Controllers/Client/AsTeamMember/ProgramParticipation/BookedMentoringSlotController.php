@@ -12,7 +12,7 @@ use Participant\Domain\Service\ClientFileInfoFinder;
 use Participant\Domain\Task\Participant\BookMentoringSlotPayload;
 use Participant\Domain\Task\Participant\BookMentoringSlotTask;
 use Participant\Domain\Task\Participant\CancelBookedMentoringSlotTask;
-use Participant\Domain\Task\Participant\SubmitBookedMentoringReportPayload;
+use Participant\Domain\Task\Participant\SubmitMentoringReportPayload;
 use Participant\Domain\Task\Participant\SubmitBookedMentoringReportTask;
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlot;
@@ -60,7 +60,7 @@ class BookedMentoringSlotController extends AsTeamMemberBaseController
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
         $fileInfoFinder = new ClientFileInfoFinder($fileInfoRepository, $this->firmId(), $this->clientId());        
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
-        $payload = new SubmitBookedMentoringReportPayload($id,
+        $payload = new SubmitMentoringReportPayload($id,
                 $mentorRating, $formRecordData);
         $task = new SubmitBookedMentoringReportTask($bookedMentoringSlotRepository, $payload);
         $this->executeTeamParticipantTask($teamId, $teamProgramParticipationId, $task);

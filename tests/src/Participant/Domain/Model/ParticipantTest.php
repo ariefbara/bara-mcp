@@ -53,6 +53,11 @@ class ParticipantTest extends TestBase
     
     protected $startEndTime, $channel;
     protected $mentoringSlot;
+    
+    protected $mentoringRequest;
+    protected $bookedMentoring;
+    protected $mentoringRequestId = 'mentoringRequestId', $mentoringRequestData;
+    protected $mentoringSchedule;
 
     protected function setUp(): void
     {
@@ -116,6 +121,18 @@ class ParticipantTest extends TestBase
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
         
         $this->mentoringSlot = $this->buildMockOfClass(Consultant\MentoringSlot::class);
+        
+        $this->bookedMentoring = $this->buildMockOfClass(Participant\BookedMentoringSlot::class);
+        $this->participant->bookedMentorings = new ArrayCollection();
+        $this->participant->bookedMentorings->add($this->bookedMentoring);
+        
+        $this->mentoringRequest = $this->buildMockOfClass(Participant\MentoringRequest::class);
+        $this->participant->mentoringRequests = new ArrayCollection();
+        $this->participant->mentoringRequests->add($this->mentoringRequest);
+        
+        
+        $this->mentoringRequestData = new Participant\MentoringRequestData(new \DateTimeImmutable('+24 hours'), 'online', 'google');
+        $this->mentoringSchedule = $this->buildMockOfInterface(Participant\ContainSchedule::class);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -715,6 +732,60 @@ class ParticipantTest extends TestBase
             $this->bookMentoringSlot();
         }, 'Forbidden', 'forbidden: uanble to place booking on unusable mentoring slot');
     }
+    
+    protected function requestMentoring()
+    {
+        return $this->participant->requestMentoring(
+                $this->mentoringRequestId, $this->consultant, $this->consultationSetup, $this->mentoringRequestData);
+    }
+    public function test_requestMentoring_returnMentoringRequest()
+    {
+        $this->assertInstanceOf(Participant\MentoringRequest::class, $this->requestMentoring());
+    }
+    public function test_requestMentoring_assertMentorUsableInProgram()
+    {
+        $this->consultant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->requestMentoring();
+    }
+    public function test_requestMentoring_assertConsultationSetupUsableInProgram()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->program);
+        $this->requestMentoring();
+    }
+    
+    protected function assertNoConflictWithScheduledOrPotentialSchedule()
+    {
+        $this->participant->assertNoConflictWithScheduledOrPotentialSchedule($this->mentoringSchedule);
+    }
+    public function test_assertNoConflictWithScheduledOrPotentialSchedule_noConflictWithExistingMentoringRequestOfBookedMentoring_void()
+    {
+        $this->assertNoConflictWithScheduledOrPotentialSchedule();
+        $this->markAsSuccess();
+    }
+    public function test_assertNoConflictWithScheduledOrPotentialSchedule_conflictWithExistingRequest_forbidden()
+    {
+        $this->mentoringRequest->expects($this->once())
+                ->method('aScheduledOrPotentialScheduleInConflictWith')
+                ->with($this->mentoringSchedule)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertNoConflictWithScheduledOrPotentialSchedule();
+        }, 'Forbidden', 'forbidden: schedule in conflict with existing schedule or potential schedule');
+    }
+    public function test_assertNoConflictWithScheduledOrPotentialSchedule_conflictWithExistingBooking_forbidden()
+    {
+        $this->bookedMentoring->expects($this->once())
+                ->method('aScheduledOrPotentialScheduleInConflictWith')
+                ->with($this->mentoringSchedule)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertNoConflictWithScheduledOrPotentialSchedule();
+        }, 'Forbidden', 'forbidden: schedule in conflict with existing schedule or potential schedule');
+    }
 }
 
 class TestableParticipant extends Participant
@@ -733,6 +804,8 @@ class TestableParticipant extends Participant
     public $completedMissions;
     public $profiles;
     public $okrPeriods;
+    public $mentoringRequests;
+    public $bookedMentorings;
 
     function __construct()
     {

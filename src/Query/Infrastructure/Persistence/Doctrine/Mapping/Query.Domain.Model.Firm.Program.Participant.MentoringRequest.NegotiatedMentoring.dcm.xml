@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\MentoringRequest\NegotiatedMentoring" 
+            table="NegotiatedMentoring"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineNegotiatedMentoringRepository"
+    >
+        
+        <one-to-one field="mentoringRequest" 
+                    target-entity="Query\Domain\Model\Firm\Program\Participant\MentoringRequest"
+                    inversed-by="negotiatedMentoring"
+        >
+            <join-column name="MentoringRequest_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="mentoring" 
+                    target-entity="Query\Domain\SharedModel\Mentoring"
+        >
+            <join-column name="Mentoring_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

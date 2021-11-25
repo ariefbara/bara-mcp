@@ -9,6 +9,7 @@ use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\Model\Participant;
 use Participant\Domain\Model\Participant\BookedMentoringSlot;
+use Participant\Domain\Model\Participant\ContainSchedule;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\Schedule;
 use Tests\TestBase;
@@ -22,6 +23,8 @@ class MentoringSlotTest extends TestBase
     protected $program;
     protected $participant;
     protected $mentoring, $formRecordData, $mentorRating = 9;
+    protected $otherMentoring;
+    protected $otherSchedule;
 
     protected function setUp(): void
     {
@@ -44,6 +47,8 @@ class MentoringSlotTest extends TestBase
         
         $this->mentoring = $this->buildMockOfInterface(IContainParticipantReport::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        $this->otherMentoring = $this->buildMockOfInterface(ContainSchedule::class);
+        $this->otherSchedule = $this->buildMockOfClass(Schedule::class);
     }
     
     protected function usableInProgram()
@@ -151,6 +156,32 @@ class MentoringSlotTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->processReportIn();
         }, 'Forbidden', 'forbidden: can only submit report on past mentoring');
+    }
+    
+    protected function scheduleInConflictWith()
+    {
+        return $this->mentoringSlot->scheduleInConflictWith($this->otherMentoring);
+    }
+    public function test_inConflictWith_returnOtherScheduleIntersectWithComparison()
+    {
+        $this->otherMentoring->expects($this->once())
+                ->method('scheduleIntersectWith')
+                ->with($this->schedule)
+                ->willReturn(true);
+        $this->assertTrue($this->scheduleInConflictWith());
+    }
+    
+    protected function scheduleIntersectWith()
+    {
+        return $this->mentoringSlot->scheduleIntersectWith($this->otherSchedule);
+    }
+    public function test_schduleIntersectWith_returnScheduleIntersectWithComparison()
+    {
+        $this->schedule->expects($this->once())
+                ->method('intersectWith')
+                ->with($this->otherSchedule)
+                ->willReturn(true);
+        $this->assertTrue($this->scheduleIntersectWith());
     }
 }
 
