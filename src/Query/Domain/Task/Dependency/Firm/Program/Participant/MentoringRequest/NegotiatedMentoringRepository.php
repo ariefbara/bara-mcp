@@ -1,6 +1,6 @@
 <?php
 
-namespace Query\Domain\Task\Dependency\Firm\Program\Participant;
+namespace Query\Domain\Task\Dependency\Firm\Program\Participant\MentoringRequest;
 
 use Query\Domain\Model\Firm\Program\Participant\MentoringRequest\NegotiatedMentoring;
 

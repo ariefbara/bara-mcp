@@ -24,11 +24,11 @@ class NegotiatedMentoringController extends ClientParticipantBaseController
         $mentorRating = $this->integerOfInputRequest('mentorRating');
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
         $fileInfoFinder = new ClientFileInfoFinder($fileInfoRepository, $this->firmId(), $this->clientId());
-        $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder));
+        $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
         
         $payload = new SubmitMentoringReportPayload($id, $mentorRating, $formRecordData);
         $task = new SubmitNegotiatedMentoringReportTask($negotiatedMentoringRepository, $payload);
-        $this->executeParticipantTask($clientParticipantId, $task);
+        $this->executeParticipantTask($programParticipationId, $task);
         
         return $this->show($programParticipationId, $id);
     }
@@ -37,7 +37,7 @@ class NegotiatedMentoringController extends ClientParticipantBaseController
     {
         $negotiatedMentoringRepository = $this->em->getRepository(NegotiatedMentoring::class);
         $task = new ShowNegotiatedMentoringTask($negotiatedMentoringRepository, $id);
-        $this->executeQueryParticipantTask($clientParticipantId, $task);
+        $this->executeQueryParticipantTask($programParticipationId, $task);
         
         return $this->singleQueryResponse($this->arrayDataOfNegotiatedMentoring($task->result));
     }

@@ -39,8 +39,7 @@ class Mentoring
         if (isset($this->mentorReport)) {
             $this->mentorReport->update($participantRating, $form, $formRecordData);
         } else {
-            $id = Uuid::generateUuid4();
-            $this->mentorReport = new MentorReport($this, $id, $participantRating, $form, $formRecordData);
+            $this->mentorReport = new MentorReport($this, $this->id, $participantRating, $form, $formRecordData);
         }
     }
     
@@ -49,8 +48,7 @@ class Mentoring
         if (isset($this->participantReport)) {
             $this->participantReport->update($mentorRating, $form, $formRecordData);
         } else {
-            $id = Uuid::generateUuid4();
-            $this->participantReport = new ParticipantReport($this, $id, $mentorRating, $form, $formRecordData);
+            $this->participantReport = new ParticipantReport($this, $this->id, $mentorRating, $form, $formRecordData);
         }
     }
 

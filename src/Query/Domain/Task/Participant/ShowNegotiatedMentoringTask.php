@@ -4,7 +4,7 @@ namespace Query\Domain\Task\Participant;
 
 use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Participant\MentoringRequest\NegotiatedMentoring;
-use Query\Domain\Task\Dependency\Firm\Program\Participant\NegotiatedMentoringRepository;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\MentoringRequest\NegotiatedMentoringRepository;
 
 class ShowNegotiatedMentoringTask implements ITaskExecutableByParticipant
 {

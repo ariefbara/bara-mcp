@@ -39,6 +39,7 @@ class RecordOfNegotiatedMentoring implements Record
     
     public function insert(ConnectionInterface $connection): void
     {
+        $this->mentoring->insert($connection);
         $connection->table('NegotiatedMentoring')->insert($this->toArrayForDbEntry());
     }
 

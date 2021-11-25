@@ -4,7 +4,7 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\NoResultException;
 use Query\Domain\Model\Firm\Program\Participant\MentoringRequest\NegotiatedMentoring;
-use Query\Domain\Task\Dependency\Firm\Program\Participant\NegotiatedMentoringRepository;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\MentoringRequest\NegotiatedMentoringRepository;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
@@ -20,7 +20,7 @@ class DoctrineNegotiatedMentoringRepository extends DoctrineEntityRepository imp
 
         $qb = $this->createQueryBuilder('negotiatedMentoring');
         $qb->select('negotiatedMentoring')
-                ->andWhere($qb->expr()->eq('negotiatedMentoring.id', ':negotiatedMentoringId'))
+                ->andWhere($qb->expr()->eq('negotiatedMentoring.id', ':id'))
                 ->leftJoin('negotiatedMentoring.mentoringRequest', 'mentoringRequest')
                 ->leftJoin('mentoringRequest.participant', 'participant')
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))

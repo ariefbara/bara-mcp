@@ -125,7 +125,7 @@ $router->group($clientAggregate, function () use ($router) {
         $router->patch('/mentoring-requests/{id}/accept', ['uses' => "MentoringRequestController@accept"]);
         $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
         
-        $router->get('/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
+        $router->put('/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
         $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
