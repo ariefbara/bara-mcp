@@ -14,7 +14,7 @@ use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\Schedule;
 use SharedContext\Domain\ValueObject\ScheduleData;
 
-class MentoringSlot
+class MentoringSlot implements ContainSchedule
 {
 
     /**
@@ -58,7 +58,7 @@ class MentoringSlot
      * @var ArrayCollection
      */
     protected $bookedSlots;
-    
+
     protected function setSchedule(ScheduleData $scheduleData): void
     {
         $this->schedule = new Schedule($scheduleData);
@@ -86,7 +86,7 @@ class MentoringSlot
         $this->setSchedule($mentoringSlotData->getScheduleData());
         $this->setCapacity($mentoringSlotData->getCapacity());
     }
-    
+
     public function isUpcomingSchedule(): bool
     {
         return $this->schedule->isUpcoming();
@@ -107,7 +107,7 @@ class MentoringSlot
         };
         if (!$this->bookedSlots->filter($p)->isEmpty()) {
             throw RegularException::forbidden(
-                    'bad request: unable to change mentoring slot setting because an active booking is exist');
+                            'bad request: unable to change mentoring slot setting because an active booking is exist');
         }
         $this->setSchedule($mentoringSlotData->getScheduleData());
         $this->setCapacity($mentoringSlotData->getCapacity());
@@ -119,7 +119,7 @@ class MentoringSlot
             throw RegularException::forbidden('forbidden: can only cancel an upcoming schedule');
         }
         $this->cancelled = true;
-        
+
         $p = function (BookedMentoringSlot $bookedMentoringSlot) {
             return $bookedMentoringSlot->isActiveBooking();
         };
@@ -127,13 +127,24 @@ class MentoringSlot
             $activeBookingSlot->cancel();
         }
     }
-    
-    public function processReportIn(ContainMentorReport $mentoring, FormRecordData $formRecordData, ?int $participantRating): void
+
+    public function processReportIn(ContainMentorReport $mentoring, FormRecordData $formRecordData,
+            ?int $participantRating): void
     {
         if (!$this->schedule->isAlreadyPassed()) {
             throw RegularException::forbidden('forbidden: can only process report on past mentoring');
         }
         $this->consultationSetup->processReportIn($mentoring, $formRecordData, $participantRating);
+    }
+
+    public function isActiveSlotInConflictWith(ContainSchedule $otherEvent): bool
+    {
+        return $this !== $otherEvent && !$this->cancelled && $otherEvent->scheduleInConflictWith($this->schedule);
+    }
+
+    public function scheduleInConflictWith(Schedule $otherSchedule): bool
+    {
+        return $this->schedule->intersectWith($otherSchedule);
     }
 
 }

@@ -9,6 +9,8 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ContainSchedule;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
 use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
@@ -60,6 +62,18 @@ class ProgramConsultant extends EntityContainEvents
      * @var ArrayCollection
      */
     protected $consultationSessions;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $mentoringRequests;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $mentoringSlots;
 
     protected function __construct()
     {
@@ -213,6 +227,23 @@ class ProgramConsultant extends EntityContainEvents
             throw RegularException::forbidden('forbidden: unuseable consultation setup');
         }
         return new MentoringSlot($this, $mentoringSlotId, $consultationSetup, $mentoringSlotData);
+    }
+    
+    public function assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule(ContainSchedule $containSchedule): void
+    {
+        $p = function(MentoringRequest $mentoringRequest) use($containSchedule) {
+            return $mentoringRequest->isScheduledOrOfferedRequestInConflictWith($containSchedule);
+        };
+        if (!empty($this->mentoringRequests->filter($p)->count())) {
+            throw RegularException::forbidden('forbidden: schedule in conflict with scheduled or proposed request');
+        }
+        
+        $mentoringSlotFilter = function(MentoringSlot $mentoringSlot) use($containSchedule) {
+            return $mentoringSlot->isActiveSlotInConflictWith($containSchedule);
+        };
+        if (!empty($this->mentoringSlots->filter($mentoringSlotFilter)->count())) {
+            throw RegularException::forbidden('forbidden: schedule in conflict with existing slot');
+        }
     }
 
 }

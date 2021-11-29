@@ -7,11 +7,16 @@ use Tests\TestBase;
 class MentoringRequestStatusTest extends TestBase
 {
     protected $status;
-    
+    protected $exptectedStatusList;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->status = new TestableMentoringRequestStatus(MentoringRequestStatus::OFFERED);
+        $this->exptectedStatusList = [
+            MentoringRequestStatus::REQUESTED,
+            MentoringRequestStatus::OFFERED,
+        ];
     }
     
     protected function isConcluded()
@@ -67,6 +72,57 @@ class MentoringRequestStatusTest extends TestBase
         }, 'Forbidden', 'forbidden: can only accept offered mentoring request');
     }
     
+    protected function reject()
+    {
+        return $this->status->reject();
+    }
+    public function test_reject_scenario_expectedResult()
+    {
+        $status = $this->reject();
+        $this->assertEquals(MentoringRequestStatus::REJECTED, $status->value);
+    }
+    public function test_reject_alreadyConcluded_forbidden()
+    {
+        $this->status->value = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->reject();
+        }, 'Forbidden', 'forbidden: unable to reject concluded request');
+    }
+    
+    protected function approve()
+    {
+        return $this->status->approve();
+    }
+    public function test_approve_scenario_expectedResult()
+    {
+        $this->status->value = MentoringRequestStatus::REQUESTED;
+        $status = $this->approve();
+        $this->assertEquals(MentoringRequestStatus::APPROVED_BY_MENTOR, $status->value);
+    }
+    public function test_approve_nonRequestedStatus_forbidden()
+    {
+        $this->assertRegularExceptionThrowed(function() {
+            $this->approve();
+        }, 'Forbidden', 'forbidden: can only approve requested mentoring request');
+    }
+    
+    protected function offer()
+    {
+        return $this->status->offer();
+    }
+    public function test_offer_scenario_expectedResult()
+    {
+        $status = $this->offer();
+        $this->assertEquals(MentoringRequestStatus::OFFERED, $status->value);
+    }
+    public function test_offer_alreadyConcluded_forbidden()
+    {
+        $this->status->value = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->offer();
+        }, 'Forbidden', 'forbidden: unable to offer concluded request');
+    }
+    
     protected function isScheduledOrPotentialSchedule()
     {
         return $this->status->isScheduledOrPotentialSchedule();
@@ -89,6 +145,20 @@ class MentoringRequestStatusTest extends TestBase
     {
         $this->status->value = MentoringRequestStatus::REQUESTED;
         $this->assertTrue($this->isScheduledOrPotentialSchedule());
+    }
+    
+    protected function statusIn()
+    {
+        return $this->status->statusIn($this->exptectedStatusList);
+    }
+    public function test_statusIn_statusIncludedInExpectedList_returnTrue()
+    {
+        $this->assertTrue($this->statusIn());
+    }
+    public function test_statusIn_statusExcludedInExpectedList_returnTrue()
+    {
+        $this->status->value = MentoringRequestStatus::CANCELLED;
+        $this->assertFalse($this->statusIn());
     }
 }
 

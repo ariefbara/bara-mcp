@@ -94,9 +94,6 @@ class MentoringRequest implements ContainSchedule
         if ($this->requestStatus->isConcluded()) {
             throw RegularException::forbidden('forbidden: can only update active mentoring request');
         }
-        if (!$this->schedule->isUpcoming()) {
-            throw RegularException::forbidden('forbidden: can only update upcoming schedule');
-        }
         $this->setSchedule($mentoringRequestData);
         $this->requestStatus = new MentoringRequestStatus(MentoringRequestStatus::REQUESTED);
     }

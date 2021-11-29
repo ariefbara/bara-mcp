@@ -8,4 +8,6 @@ interface MentoringRequestRepository
 {
 
     public function aMentoringRequestBelongsToParticipant(string $participantId, string $id): MentoringRequest;
+
+    public function aMentoringRequestBelongsToPersonnel(string $personnelId, string $id): MentoringRequest;
 }

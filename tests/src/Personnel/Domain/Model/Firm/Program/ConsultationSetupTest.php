@@ -93,6 +93,22 @@ class ConsultationSetupTest extends TestBase
         $this->processReportIn();
     }
     
+    protected function calculateMentoringScheduleEndTimeFrom()
+    {
+        return $this->consultationSetup->calculateMentoringScheduleEndTimeFrom($this->startTime);
+    }
+    public function test_calculateMentoringScheduleEndTimeFrom_returnEndTimeCalculation()
+    {
+        $this->assertEquals((new \DateTimeImmutable('+45 minutes'))->format('Y-m-d H:i:s'), 
+                $this->calculateMentoringScheduleEndTimeFrom()->format('Y-m-d H:i:s'));
+    }
+    public function test_calculateMentoringScheduleEndTimeFrom_differentTimeSignature()
+    {
+        $this->startTime = new \DateTimeImmutable('+200 minutes');
+        $this->assertEquals((new \DateTimeImmutable('+245 minutes'))->format('Y-m-d H:i:s'), 
+                $this->calculateMentoringScheduleEndTimeFrom()->format('Y-m-d H:i:s'));
+    }
+    
 }
 
 class TestableConsultationSetup extends ConsultationSetup

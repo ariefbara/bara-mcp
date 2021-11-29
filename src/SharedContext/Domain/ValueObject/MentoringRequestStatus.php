@@ -48,6 +48,36 @@ class MentoringRequestStatus extends BaseEnum
         $acceptedStatus->value = self::ACCEPTED_BY_PARTICIPANT;
         return $acceptedStatus;
     }
+    
+    public function reject(): self
+    {
+        if ($this->isConcluded()) {
+            throw RegularException::forbidden('forbidden: unable to reject concluded request');
+        }
+        $rejectedStatus = clone($this);
+        $rejectedStatus->value = self::REJECTED;
+        return $rejectedStatus;
+    }
+    
+    public function approve(): self
+    {
+        if ($this->value !== self::REQUESTED) {
+            throw RegularException::forbidden('forbidden: can only approve requested mentoring request');
+        }
+        $approvedStatus = clone($this);
+        $approvedStatus->value = self::APPROVED_BY_MENTOR;
+        return $approvedStatus;
+    }
+    
+    public function offer(): self
+    {
+        if ($this->isConcluded()) {
+            throw RegularException::forbidden('forbidden: unable to offer concluded request');
+        }
+        $offeredStatus = clone($this);
+        $offeredStatus->value = self::OFFERED;
+        return $offeredStatus;
+    }
 
     public function isScheduledOrPotentialSchedule(): bool
     {
@@ -61,6 +91,11 @@ class MentoringRequestStatus extends BaseEnum
     public function getDisplayValue(): string
     {
         return self::DISPLAY_VALUE[$this->value];
+    }
+    
+    public function statusIn(array $exptectedStatusList): bool
+    {
+        return in_array($this->value, $exptectedStatusList);
     }
 
 }

@@ -8,7 +8,7 @@ use App\Http\Controllers\Personnel\ProgramConsultation\ProgramConsultationBaseCo
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot\BookedMentoringSlot as BookedMentoringSlot2;
 use Personnel\Domain\Service\PersonnelFileInfoFinder;
 use Personnel\Domain\Task\Mentor\CancelBookedMentoringSlotTask;
-use Personnel\Domain\Task\Mentor\SubmitBookedMentoringSlotReportPayload;
+use Personnel\Domain\Task\Mentor\SubmitMentoringReportPayload;
 use Personnel\Domain\Task\Mentor\SubmitBookedMentoringSlotReportTask;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlot;
 use Query\Domain\SharedModel\Mentoring\MentorReport;
@@ -37,7 +37,7 @@ class BookedMentoringController extends ProgramConsultationBaseController
         $fileInfoFinder = new PersonnelFileInfoFinder($fileInfoRepository, $this->firmId(), $this->personnelId());
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
         
-        $payload = new SubmitBookedMentoringSlotReportPayload($id, $participantRating, $formRecordData);
+        $payload = new SubmitMentoringReportPayload($id, $participantRating, $formRecordData);
         $task = new SubmitBookedMentoringSlotReportTask($bookedSlotRepository, $payload);
         $this->executeMentorTaskInPersonnelContext($consultantId, $task);
         

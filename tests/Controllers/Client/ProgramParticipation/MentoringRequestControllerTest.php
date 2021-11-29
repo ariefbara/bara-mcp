@@ -308,12 +308,12 @@ class MentoringRequestControllerTest extends ExtendedClientParticipantTestCase
         $this->update();
         $this->seeStatusCode(400);
     }
-    public function test_update_updatingNonUpcomingSchedule_403()
+    public function test_update_updatingNonUpcomingSchedule_200()
     {
         $this->mentoringRequestOne->startTime = (new DateTimeImmutable('-30 minutes'))->format('Y-m-d H:i:s');
         $this->mentoringRequestOne->endTime = (new DateTimeImmutable('+30 minutes'))->format('Y-m-d H:i:s');
         $this->update();
-        $this->seeStatusCode(403);
+        $this->seeStatusCode(200);
     }
     public function test_update_inConflictWithOtherRequest_requested_403()
     {

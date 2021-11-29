@@ -135,15 +135,6 @@ class MentoringRequestTest extends TestBase
             $this->update();
         }, 'Bad Request', 'bad request: can only request upcomming mentoring schedule');
     }
-    public function test_update_updateNonUpcomingSchedule_forbidden()
-    {
-        $this->schedule->expects($this->once())
-                ->method('isUpcoming')
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function() {
-            $this->update();
-        }, 'Forbidden', 'forbidden: can only update upcoming schedule');
-    }
     public function test_update_assertScheduleNotInConflictWithParticipantScheduleOrPotentialSchedule()
     {
         $this->participant->expects($this->once())

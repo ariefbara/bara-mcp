@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Personnel;
 
 use App\Http\Controllers\Controller;
+use Personnel\Domain\Model\Firm\Personnel\ITaskExecutableByMentor;
 use Query\Application\Auth\Firm\AuthorizeUserIsActiveFirmPersonnel;
 use Query\Application\Service\Personnel\ExecuteQueryTask;
 use Query\Domain\Model\Firm\Personnel;
@@ -38,6 +39,13 @@ class PersonnelBaseController extends Controller
         $personnelRepository = $this->em->getRepository(Personnel::class);
         (new ExecuteQueryTask($personnelRepository))
                 ->execute($this->firmId(), $this->personnelId(), $task);
+    }
+    
+    protected function executeMentorTaskInPersonnelContext(string $mentorId, ITaskExecutableByMentor $task): void
+    {
+        $mentorRepository = $this->em->getRepository(\Personnel\Domain\Model\Firm\Personnel\ProgramConsultant::class);
+        (new \Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ExecuteTask($mentorRepository))
+                ->execute($this->firmId(), $this->personnelId(), $mentorId, $task);
     }
 
 }

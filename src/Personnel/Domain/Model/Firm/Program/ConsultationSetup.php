@@ -75,4 +75,9 @@ class ConsultationSetup
         $this->consultantFeedbackForm->processReportIn($mentoring, $formRecordData, $participantRating);
     }
     
+    public function calculateMentoringScheduleEndTimeFrom(\DateTimeImmutable $startTime): \DateTimeImmutable
+    {
+        return $startTime->add(new DateInterval("PT{$this->sessionDuration}M"));
+    }
+    
 }

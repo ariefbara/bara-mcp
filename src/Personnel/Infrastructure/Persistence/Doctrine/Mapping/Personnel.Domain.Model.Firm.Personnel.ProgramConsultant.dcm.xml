@@ -20,9 +20,20 @@
         >
             <cascade><cascade-persist /></cascade>
         </one-to-many>
+        
         <one-to-many field="consultationRequests" 
                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest"
                      mapped-by="programConsultant"
+        />
+        
+        <one-to-many field="mentoringRequests" 
+                     target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest"
+                     mapped-by="mentor"
+        />
+        
+        <one-to-many field="mentoringSlots" 
+                     target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot"
+                     mapped-by="mentor"
         />
         
     </entity>

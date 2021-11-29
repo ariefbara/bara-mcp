@@ -23,6 +23,8 @@ class MentoringSlotTest extends TestBase
     protected $id = 'newId', $startTime, $endTime, $mediaType = 'media type', $location = 'location', $capacity = 5;
     
     protected $containMentorReport, $formRecordData, $participantRating = 9;
+    protected $containSchedule;
+    protected $otherSchedule;
 
     protected function setUp(): void
     {
@@ -47,6 +49,8 @@ class MentoringSlotTest extends TestBase
         $this->containMentorReport = $this->buildMockOfInterface(ContainMentorReport::class);
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         
+        $this->containSchedule = $this->buildMockOfInterface(ContainSchedule::class);
+        $this->otherSchedule = $this->buildMockOfClass(Schedule::class);
     }
     
     protected function getScheduleData()
@@ -215,6 +219,51 @@ class MentoringSlotTest extends TestBase
             $this->processReportIn();
         }, 'Forbidden', 'forbidden: can only process report on past mentoring');
                 
+    }
+    
+    protected function isActiveSlotInConflictWith()
+    {
+        $this->containSchedule->expects($this->any())
+                ->method('scheduleInConflictWith')
+                ->with($this->mentoringSlot->schedule)
+                ->willReturn(true);
+        return $this->mentoringSlot->isActiveSlotInConflictWith($this->containSchedule);
+    }
+    public function test_isActiveSlotInConflictWith_activeWithWithConflictedSchedule_returnTrue()
+    {
+        $this->assertTrue($this->isActiveSlotInConflictWith());
+    }
+    public function test_isActiveSlotInConflictWith_noConflict_returnFalse()
+    {
+        $this->containSchedule->expects($this->once())
+                ->method('scheduleInConflictWith')
+                ->with($this->mentoringSlot->schedule)
+                ->willReturn(false);
+        $this->assertFalse($this->isActiveSlotInConflictWith());
+    }
+    public function test_isActiveSlotInConflictWith_cancelledSlot_returnFalse()
+    {
+        $this->mentoringSlot->cancelled = true;
+        $this->assertFalse($this->isActiveSlotInConflictWith());
+    }
+    public function test_isActiveSlotInConflictWith_comparedToSameMentoringSlot_returnFalse()
+    {
+        $this->schedule->expects($this->any())
+                ->method('intersectWith')
+                ->willReturn(true);
+        $this->assertFalse($this->mentoringSlot->isActiveSlotInConflictWith($this->mentoringSlot));
+    }
+    
+    protected function scheduleInConflictWith()
+    {
+        return $this->mentoringSlot->scheduleInConflictWith($this->otherSchedule);
+    }
+    public function test_scheduleInConflictWith_returnScheduleIntersectWithComparison()
+    {
+        $this->schedule->expects($this->once())
+                ->method('intersectWith')
+                ->with($this->otherSchedule);
+        $this->scheduleInConflictWith();
     }
 }
 

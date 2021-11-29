@@ -17,13 +17,13 @@ class SubmitBookedMentoringSlotReportTask implements ITaskExecutableByMentor
 
     /**
      * 
-     * @var SubmitBookedMentoringSlotReportPayload
+     * @var SubmitMentoringReportPayload
      */
     protected $payload;
 
     public function __construct(
             BookedMentoringSlotRepository $bookedMentoringSlotRepository,
-            SubmitBookedMentoringSlotReportPayload $payload)
+            SubmitMentoringReportPayload $payload)
     {
         $this->bookedMentoringSlotRepository = $bookedMentoringSlotRepository;
         $this->payload = $payload;
@@ -32,7 +32,7 @@ class SubmitBookedMentoringSlotReportTask implements ITaskExecutableByMentor
     public function execute(ProgramConsultant $mentor): void
     {
         $bookedMentoringSlot = $this->bookedMentoringSlotRepository
-                ->ofId($this->payload->getBookedMentoringSlotId());
+                ->ofId($this->payload->getId());
         $bookedMentoringSlot->assertManageableByMentor($mentor);
         $bookedMentoringSlot->submitReport($this->payload->getFormRecordData(), $this->payload->getParticipantRating());
     }
