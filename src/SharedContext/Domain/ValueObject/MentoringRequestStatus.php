@@ -21,7 +21,7 @@ class MentoringRequestStatus extends BaseEnum
         self::CANCELLED => 'cancelled by participant',
         self::REJECTED => 'rejected by mentor',
         self::APPROVED_BY_MENTOR => 'approved by mentor',
-        self::ACCEPTED_BY_PARTICIPANT => 'accepted b participant',
+        self::ACCEPTED_BY_PARTICIPANT => 'accepted by participant',
     ];
 
     public function isConcluded(): bool

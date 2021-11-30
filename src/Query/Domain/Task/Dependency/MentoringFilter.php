@@ -3,13 +3,14 @@
 namespace Query\Domain\Task\Dependency;
 
 use DateTimeImmutable;
+use Query\Domain\Task\Dependency\MentoringFilter\MentoringRequestFilter;
 use Query\Domain\Task\Dependency\MentoringFilter\MentoringSlotFilter;
 use ReflectionClass;
 use Resources\Exception\RegularException;
 
 class MentoringFilter
 {
-    
+
     const ASC = 'ASC';
     const DESC = 'DESC';
 
@@ -33,18 +34,24 @@ class MentoringFilter
 
     /**
      * 
-     * @var MentoringSlotFilter|null
+     * @var MentoringSlotFilter
      */
     protected $mentoringSlotFilter;
 
-    public function getFrom(): ?DateTimeImmutable
+    /**
+     * 
+     * @var MentoringRequestFilter
+     */
+    protected $mentoringRequestFilter;
+
+    public function getMentoringSlotFilter(): MentoringSlotFilter
     {
-        return $this->from;
+        return $this->mentoringSlotFilter;
     }
 
-    public function getTo(): ?DateTimeImmutable
+    public function getMentoringRequestFilter(): MentoringRequestFilter
     {
-        return $this->to;
+        return $this->mentoringRequestFilter;
     }
 
     public function getOrderDirection(): ?string
@@ -52,9 +59,11 @@ class MentoringFilter
         return $this->orderDirection;
     }
 
-    public function getMentoringSlotFilter(): ?MentoringSlotFilter
+    public function __construct(
+            MentoringSlotFilter $mentoringSlotFilter, MentoringRequestFilter $mentoringRequestFilter)
     {
-        return $this->mentoringSlotFilter;
+        $this->mentoringSlotFilter = $mentoringSlotFilter;
+        $this->mentoringRequestFilter = $mentoringRequestFilter;
     }
 
     public function setFrom(?DateTimeImmutable $from)
@@ -81,15 +90,22 @@ class MentoringFilter
         return $this;
     }
 
-    public function setMentoringSlotFilter(?MentoringSlotFilter $mentoringSlotFilter)
+    public function getSqlFromClause(string $tableName, array &$parameters): ?string
     {
-        $this->mentoringSlotFilter = $mentoringSlotFilter;
-        return $this;
+        if (empty($this->from)) {
+            return null;
+        }
+        $parameters['from'] = $this->from->format('Y-m-d H:i:s');
+        return "AND $tableName.startTime > :from";
     }
 
-    public function __construct()
+    public function getSqlToClause(string $tableName, array &$parameters): ?string
     {
-        
+        if (empty($this->to)) {
+            return null;
+        }
+        $parameters['to'] = $this->to->format('Y-m-d H:i:s');
+        return "AND $tableName.endTime < :to";
     }
 
 }

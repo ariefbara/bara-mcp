@@ -3,18 +3,32 @@
 namespace Tests\Controllers\Personnel;
 
 use DateTimeImmutable;
+use SharedContext\Domain\ValueObject\MentoringRequestStatus;
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\MentoringSlot\RecordOfBookedMentoringSlot;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfMentoringSlot;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MentoringRequest\RecordOfNegotiatedMentoring;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMentoringRequest;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
+use Tests\Controllers\RecordPreparation\Shared\Mentoring\RecordOfMentorReport;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfMentoring;
 
 class MentoringContollerTest extends PersonnelTestCase
 {
     protected $showAllUri;
+    
+    protected $clientParticipantOne;
+    protected $teamParticipantTwo;
 
     protected $consultantOne;
     protected $consultantTwo;
@@ -24,22 +38,39 @@ class MentoringContollerTest extends PersonnelTestCase
     protected $mentoringSlot_21_c2;
     protected $mentoringSlot_31_c3;
     
+    protected $mentoringRequest_11_c1;
+    protected $mentoringRequest_21_c2;
+    protected $mentoringRequest_31_c3;
+    
+    protected $negotiatedMentoring_11_mr11;
+
     protected $bookedMentoringSlot_111_ms11;
     protected $bookedMentoringSlot_112_ms11;
     
     protected $mentorReport_111_bms111;
     protected $mentorReport_112_bms112;
+    protected $mentorReport_nm11;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->connection->table('Program')->truncate();
         $this->connection->table('Consultant')->truncate();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
-        $this->connection->table('Mentoring')->truncate();
-        $this->connection->table('Participant')->truncate();
         $this->connection->table('BookedMentoringSlot')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
+        $this->connection->table('NegotiatedMentoring')->truncate();
+        $this->connection->table('Mentoring')->truncate();
+        $this->connection->table('MentorReport')->truncate();
+        $this->connection->table('FormRecord')->truncate();
         
         $this->showAllUri = $this->personnelUri . "/mentorings";
         
@@ -54,36 +85,75 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->consultantTwo = new RecordOfConsultant($programTwo, $this->personnel, '2');
         $this->consultantThree_otherPersonnel = new RecordOfConsultant($programOne, $otherPersonnel, '3');
         
-        $consultationSetupOne = new RecordOfConsultationSetup($programOne, null, null, '1');
-        $consultationSetupTwo = new RecordOfConsultationSetup($programTwo, null, null, '2');
+        $clientOne = new RecordOfClient($firm, '1');
+        $teamOne = new RecordOfTeam($firm, $clientOne, '1');
+        
+        $participantOne = new RecordOfParticipant($programOne, '1');
+        $participantTwo = new RecordOfParticipant($programTwo, '2');
+        
+        $this->clientParticipantOne = new RecordOfClientParticipant($clientOne, $participantOne);
+        $this->teamParticipantTwo = new RecordOfTeamProgramParticipation($teamOne, $participantTwo);
+        
+        $formOne = new RecordOfForm('1');
+        $feedbackFormOne = new RecordOfFeedbackForm($firm, $formOne);
+        
+        $consultationSetupOne = new RecordOfConsultationSetup($programOne, $feedbackFormOne, $feedbackFormOne, '1');
+        $consultationSetupTwo = new RecordOfConsultationSetup($programTwo, $feedbackFormOne, $feedbackFormOne, '2');
         
         $this->mentoringSlot_11_c1 = new RecordOfMentoringSlot($this->consultantOne, $consultationSetupOne, '11');
         $this->mentoringSlot_21_c2 = new RecordOfMentoringSlot($this->consultantTwo, $consultationSetupTwo, '21');
         $this->mentoringSlot_31_c3 = new RecordOfMentoringSlot($this->consultantThree_otherPersonnel, $consultationSetupOne, '31');
         
+        $this->mentoringRequest_11_c1 = new RecordOfMentoringRequest($participantOne, $this->consultantOne, $consultationSetupOne, '11');
+        $this->mentoringRequest_11_c1->requestStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $this->mentoringRequest_21_c2 = new RecordOfMentoringRequest($participantTwo, $this->consultantTwo, $consultationSetupTwo, '21');
+        $this->mentoringRequest_31_c3 = new RecordOfMentoringRequest($participantOne, $this->consultantThree_otherPersonnel, $consultationSetupOne, '31');
+        
         $mentoringOne = new RecordOfMentoring('1');
         $mentoringTwo = new RecordOfMentoring('2');
+        $mentoringThree = new RecordOfMentoring('3');
         
-        $participantOne = new RecordOfParticipant($programOne, '1');
-        $participantTwo = new RecordOfParticipant($programOne, '2');
+        $formRecordOne = new RecordOfFormRecord($formOne, 'bms111');
+        $formRecordTwo = new RecordOfFormRecord($formOne, 'bms112');
+        $formRecordThree = new RecordOfFormRecord($formOne, 'nm11');
+        
+        $this->negotiatedMentoring_11_mr11 = new RecordOfNegotiatedMentoring($this->mentoringRequest_11_c1, $mentoringThree);
         
         $this->bookedMentoringSlot_111_ms11 = new RecordOfBookedMentoringSlot($this->mentoringSlot_11_c1, $mentoringOne, $participantOne);
         $this->bookedMentoringSlot_112_ms11 = new RecordOfBookedMentoringSlot($this->mentoringSlot_11_c1, $mentoringTwo, $participantTwo);
+        
+        $this->mentorReport_111_bms111 = new RecordOfMentorReport($mentoringOne, $formRecordOne, 'bms111');
+        $this->mentorReport_112_bms112 = new RecordOfMentorReport($mentoringTwo, $formRecordTwo, 'bms112');
+        $this->mentorReport_nm11 = new RecordOfMentorReport($mentoringThree, $formRecordThree, 'nm11');
     }
     protected function tearDown(): void
     {
         parent::tearDown();
         $this->connection->table('Program')->truncate();
         $this->connection->table('Consultant')->truncate();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
-        $this->connection->table('Mentoring')->truncate();
-        $this->connection->table('Participant')->truncate();
         $this->connection->table('BookedMentoringSlot')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
+        $this->connection->table('NegotiatedMentoring')->truncate();
+        $this->connection->table('Mentoring')->truncate();
+        $this->connection->table('MentorReport')->truncate();
+        $this->connection->table('FormRecord')->truncate();
     }
     
     protected function showAll()
     {
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->clientParticipantOne->insert($this->connection);
+        $this->teamParticipantTwo->team->insert($this->connection);
+        $this->teamParticipantTwo->insert($this->connection);
         
         $this->consultantOne->program->insert($this->connection);
         $this->consultantTwo->program->insert($this->connection);
@@ -101,11 +171,18 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->mentoringSlot_21_c2->insert($this->connection);
         $this->mentoringSlot_31_c3->insert($this->connection);
         
-        $this->bookedMentoringSlot_111_ms11->participant->insert($this->connection);
-        $this->bookedMentoringSlot_112_ms11->participant->insert($this->connection);
-        
         $this->bookedMentoringSlot_111_ms11->insert($this->connection);
         $this->bookedMentoringSlot_112_ms11->insert($this->connection);
+        
+        $this->mentoringRequest_11_c1->insert($this->connection);
+        $this->mentoringRequest_21_c2->insert($this->connection);
+        $this->mentoringRequest_31_c3->insert($this->connection);
+        
+        $this->negotiatedMentoring_11_mr11->insert($this->connection);
+        
+        $this->mentorReport_111_bms111->insert($this->connection);
+        $this->mentorReport_112_bms112->insert($this->connection);
+        $this->mentorReport_nm11->insert($this->connection);
         
         $this->get($this->showAllUri, $this->personnel->token);
     }
@@ -114,14 +191,9 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->showAll();
         $this->seeStatusCode(200);
         $response = [
-            'total' => '2',
+            'total' => '4',
             'list' => [
                 [
-                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
-                    'bookedSlotCount' => '2',
-                    'capacity' => strval($this->mentoringSlot_11_c1->capacity),
-                    'submittedReportCount' => '0',
-                    'cancelled' => '0',
                     'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
                     'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
                     'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
@@ -129,13 +201,19 @@ class MentoringContollerTest extends PersonnelTestCase
                     'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
                     'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
                     'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
                 ],
                 [
-                    'mentoringSlotId' => $this->mentoringSlot_21_c2->id,
-                    'bookedSlotCount' => null,
-                    'capacity' => strval($this->mentoringSlot_21_c2->capacity),
-                    'submittedReportCount' => null,
-                    'cancelled' => '0',
                     'startTime' => $this->mentoringSlot_21_c2->startTime->format('Y-m-d H:i:s'),
                     'endTime' => $this->mentoringSlot_21_c2->endTime->format('Y-m-d H:i:s'),
                     'mentorId' => $this->mentoringSlot_21_c2->consultant->id,
@@ -143,6 +221,57 @@ class MentoringContollerTest extends PersonnelTestCase
                     'programName' => $this->mentoringSlot_21_c2->consultant->program->name,
                     'consultationSetupId' => $this->mentoringSlot_21_c2->consultationSetup->id,
                     'consultationSetupName' => $this->mentoringSlot_21_c2->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_21_c2->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_21_c2->capacity),
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_21_c2->startTime,
+                    'endTime' => $this->mentoringRequest_21_c2->endTime,
+                    'mentorId' => $this->mentoringRequest_21_c2->mentor->id,
+                    'programId' => $this->mentoringRequest_21_c2->mentor->program->id,
+                    'programName' => $this->mentoringRequest_21_c2->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_21_c2->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_21_c2->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_21_c2->id,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_21_c2->requestStatus],
+                    'participantId' => $this->mentoringRequest_21_c2->participant->id,
+                    'participantName' => $this->teamParticipantTwo->team->name,
                 ],
             ],
         ];
@@ -159,14 +288,9 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->showAll();
         $this->seeStatusCode(200);
         $response = [
-            'total' => '2',
+            'total' => '4',
             'list' => [
                 [
-                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
-                    'bookedSlotCount' => '2',
-                    'capacity' => strval($this->mentoringSlot_11_c1->capacity),
-                    'submittedReportCount' => '0',
-                    'cancelled' => '0',
                     'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
                     'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
                     'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
@@ -174,6 +298,17 @@ class MentoringContollerTest extends PersonnelTestCase
                     'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
                     'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
                     'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
                 ],
             ],
         ];
@@ -183,6 +318,8 @@ class MentoringContollerTest extends PersonnelTestCase
     {
         $this->mentoringSlot_11_c1->startTime = (new DateTimeImmutable('+300 hours'));
         $this->mentoringSlot_11_c1->endTime = (new DateTimeImmutable('+302 hours'));
+        $this->mentoringRequest_11_c1->startTime = (new DateTimeImmutable('+350 hours'))->format('Y-m-d H:i:s');
+        $this->mentoringRequest_11_c1->endTime = (new DateTimeImmutable('+351 hours'))->format('Y-m-d H:i:s');
         
         $from = (new \DateTimeImmutable('+250 hours'))->format('Y-m-d H:i:s');
         $this->showAllUri .= "?from={$from}";
@@ -190,14 +327,9 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->showAll();
         $this->seeStatusCode(200);
         $response = [
-            'total' => '1',
+            'total' => '2',
             'list' => [
                 [
-                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
-                    'bookedSlotCount' => '2',
-                    'capacity' => strval($this->mentoringSlot_11_c1->capacity),
-                    'submittedReportCount' => '0',
-                    'cancelled' => '0',
                     'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
                     'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
                     'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
@@ -205,6 +337,37 @@ class MentoringContollerTest extends PersonnelTestCase
                     'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
                     'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
                     'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
                 ],
             ],
         ];
@@ -214,6 +377,8 @@ class MentoringContollerTest extends PersonnelTestCase
     {
         $this->mentoringSlot_11_c1->startTime = (new DateTimeImmutable('-302 hours'));
         $this->mentoringSlot_11_c1->endTime = (new DateTimeImmutable('-300 hours'));
+        $this->mentoringRequest_11_c1->startTime = (new DateTimeImmutable('-351 hours'))->format('Y-m-d H:i:s');
+        $this->mentoringRequest_11_c1->endTime = (new DateTimeImmutable('-350 hours'))->format('Y-m-d H:i:s');
         
         $to = (new \DateTimeImmutable('-250 hours'))->format('Y-m-d H:i:s');
         $this->showAllUri .= "?to={$to}";
@@ -221,14 +386,9 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->showAll();
         $this->seeStatusCode(200);
         $response = [
-            'total' => '1',
+            'total' => '2',
             'list' => [
                 [
-                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
-                    'bookedSlotCount' => '2',
-                    'capacity' => strval($this->mentoringSlot_11_c1->capacity),
-                    'submittedReportCount' => '0',
-                    'cancelled' => '0',
                     'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
                     'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
                     'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
@@ -236,6 +396,37 @@ class MentoringContollerTest extends PersonnelTestCase
                     'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
                     'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
                     'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
                 ],
             ],
         ];
@@ -248,15 +439,11 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->showAllUri .= "?mentoringSlotFilter[cancelledStatus]=true";
         
         $this->showAll();
+        $this->seeStatusCode(200);
         $response = [
-            'total' => '1',
+            'total' => '3',
             'list' => [
                 [
-                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
-                    'bookedSlotCount' => '2',
-                    'capacity' => strval($this->mentoringSlot_11_c1->capacity),
-                    'submittedReportCount' => '0',
-                    'cancelled' => '1',
                     'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
                     'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
                     'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
@@ -264,9 +451,353 @@ class MentoringContollerTest extends PersonnelTestCase
                     'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
                     'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
                     'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => strval($this->mentoringSlot_11_c1->cancelled),
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_21_c2->startTime,
+                    'endTime' => $this->mentoringRequest_21_c2->endTime,
+                    'mentorId' => $this->mentoringRequest_21_c2->mentor->id,
+                    'programId' => $this->mentoringRequest_21_c2->mentor->program->id,
+                    'programName' => $this->mentoringRequest_21_c2->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_21_c2->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_21_c2->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_21_c2->id,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_21_c2->requestStatus],
+                    'participantId' => $this->mentoringRequest_21_c2->participant->id,
+                    'participantName' => $this->teamParticipantTwo->team->name,
                 ],
             ],
         ];
         $this->seeJsonContains($response);
     }
+    public function test_showAll_mentoringSlotsBookingAvailableStatusFilter_200()
+    {
+        $this->mentoringSlot_11_c1->capacity = 2;
+        $this->showAllUri .= "?mentoringSlotFilter[bookingAvailableStatus]=false";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $response = [
+            'total' => '3',
+            'list' => [
+                [
+                    'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
+                    'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
+                    'programId' => $this->mentoringSlot_11_c1->consultant->program->id,
+                    'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
+                    'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_21_c2->startTime,
+                    'endTime' => $this->mentoringRequest_21_c2->endTime,
+                    'mentorId' => $this->mentoringRequest_21_c2->mentor->id,
+                    'programId' => $this->mentoringRequest_21_c2->mentor->program->id,
+                    'programName' => $this->mentoringRequest_21_c2->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_21_c2->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_21_c2->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_21_c2->id,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_21_c2->requestStatus],
+                    'participantId' => $this->mentoringRequest_21_c2->participant->id,
+                    'participantName' => $this->teamParticipantTwo->team->name,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_showAll_mentoringSlotsReportCompletedStatusFilter_200()
+    {
+        $this->showAllUri .= "?mentoringSlotFilter[reportCompletedStatus]=true";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $response = [
+            'total' => '3',
+            'list' => [
+                [
+                    'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
+                    'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
+                    'programId' => $this->mentoringSlot_11_c1->consultant->program->id,
+                    'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
+                    'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_21_c2->startTime,
+                    'endTime' => $this->mentoringRequest_21_c2->endTime,
+                    'mentorId' => $this->mentoringRequest_21_c2->mentor->id,
+                    'programId' => $this->mentoringRequest_21_c2->mentor->program->id,
+                    'programName' => $this->mentoringRequest_21_c2->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_21_c2->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_21_c2->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_21_c2->id,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_21_c2->requestStatus],
+                    'participantId' => $this->mentoringRequest_21_c2->participant->id,
+                    'participantName' => $this->teamParticipantTwo->team->name,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_showAll_mentoringRequestsStatusListFilter_200()
+    {
+        $approvedStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $acceptedStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->showAllUri .= "?mentoringRequestFilter[requestStatusList][]=$approvedStatus";
+        $this->showAllUri .= "&mentoringRequestFilter[requestStatusList][]=$acceptedStatus";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $response = [
+            'total' => '3',
+            'list' => [
+                [
+                    'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
+                    'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
+                    'programId' => $this->mentoringSlot_11_c1->consultant->program->id,
+                    'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
+                    'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringSlot_21_c2->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlot_21_c2->endTime->format('Y-m-d H:i:s'),
+                    'mentorId' => $this->mentoringSlot_21_c2->consultant->id,
+                    'programId' => $this->mentoringSlot_21_c2->consultant->program->id,
+                    'programName' => $this->mentoringSlot_21_c2->consultant->program->name,
+                    'consultationSetupId' => $this->mentoringSlot_21_c2->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringSlot_21_c2->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_21_c2->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_21_c2->capacity),
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_showAll_mentoringRequestReportCompletedStatusFilter_200()
+    {
+        $this->showAllUri .= "?mentoringRequestFilter[reportCompletedStatus]=true";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $response = [
+            'total' => '3',
+            'list' => [
+                [
+                    'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
+                    'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
+                    'programId' => $this->mentoringSlot_11_c1->consultant->program->id,
+                    'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
+                    'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
+                    'bookedMentoringCount' => '2',
+                    'mentoringSlotSubmittedReportCount' => '2',
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringSlot_21_c2->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlot_21_c2->endTime->format('Y-m-d H:i:s'),
+                    'mentorId' => $this->mentoringSlot_21_c2->consultant->id,
+                    'programId' => $this->mentoringSlot_21_c2->consultant->program->id,
+                    'programName' => $this->mentoringSlot_21_c2->consultant->program->name,
+                    'consultationSetupId' => $this->mentoringSlot_21_c2->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringSlot_21_c2->consultationSetup->name,
+                    'mentoringSlotId' => $this->mentoringSlot_21_c2->id,
+                    'mentoringSlotCapacity' => strval($this->mentoringSlot_21_c2->capacity),
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => '0',
+                    'mentoringRequestId' => null,
+                    'negotiatedMentoringId' => null,
+                    'mentorReportId' => null,
+                    'mentoringRequestStatus' => null,
+                    'participantId' => null,
+                    'participantName' => null,
+                ],
+                [
+                    'startTime' => $this->mentoringRequest_11_c1->startTime,
+                    'endTime' => $this->mentoringRequest_11_c1->endTime,
+                    'mentorId' => $this->mentoringRequest_11_c1->mentor->id,
+                    'programId' => $this->mentoringRequest_11_c1->mentor->program->id,
+                    'programName' => $this->mentoringRequest_11_c1->mentor->program->name,
+                    'consultationSetupId' => $this->mentoringRequest_11_c1->consultationSetup->id,
+                    'consultationSetupName' => $this->mentoringRequest_11_c1->consultationSetup->name,
+                    'mentoringSlotId' => null,
+                    'mentoringSlotCapacity' => null,
+                    'bookedMentoringCount' => null,
+                    'mentoringSlotSubmittedReportCount' => null,
+                    'mentoringSlotCancelledStatus' => null,
+                    'mentoringRequestId' => $this->mentoringRequest_11_c1->id,
+                    'negotiatedMentoringId' => $this->negotiatedMentoring_11_mr11->id,
+                    'mentorReportId' => $this->mentorReport_nm11->id,
+                    'mentoringRequestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequest_11_c1->requestStatus],
+                    'participantId' => $this->mentoringRequest_11_c1->participant->id,
+                    'participantName' => $this->clientParticipantOne->client->getFullName(),
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    
 }

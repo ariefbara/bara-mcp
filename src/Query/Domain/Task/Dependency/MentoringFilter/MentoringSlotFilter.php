@@ -23,21 +23,6 @@ class MentoringSlotFilter
      */
     protected $reportCompletedStatus;
 
-    public function getBookingAvailableStatus(): ?bool
-    {
-        return $this->bookingAvailableStatus;
-    }
-
-    public function getCancelledStatus(): ?bool
-    {
-        return $this->cancelledStatus;
-    }
-
-    public function getReportCompletedStatus(): ?bool
-    {
-        return $this->reportCompletedStatus;
-    }
-
     public function setBookingAvailableStatus(?bool $bookingAvailableStatus)
     {
         $this->bookingAvailableStatus = $bookingAvailableStatus;
@@ -59,6 +44,35 @@ class MentoringSlotFilter
     public function __construct()
     {
         
+    }
+    
+    public function getSqlBookingAvailableStatusClause(string $bookedCountColumnName, string $capacityColumnName): ?string
+    {
+        if ($this->bookingAvailableStatus === true) {
+            return "AND $bookedCountColumnName < $capacityColumnName";
+        } elseif ($this->bookingAvailableStatus === false) {
+            return "AND $bookedCountColumnName = $capacityColumnName";
+        }
+        return null;
+    }
+    
+    public function getSqlCancelldStatusClause(string $tableName, array &$parameters): ?string
+    {
+        if (isset($this->cancelledStatus)) {
+            $parameters['cancelledStatus'] = $this->cancelledStatus;
+            return "AND $tableName.cancelled = :cancelledStatus";
+        }
+        return null;
+    }
+    
+    public function getSqlReportCompletedStatusClause(string $submittedReportCountColumnName, string $bookedCountColumnName): ?string
+    {
+        if ($this->reportCompletedStatus === true) {
+            return "AND $submittedReportCountColumnName = $bookedCountColumnName";
+        } elseif ($this->reportCompletedStatus === false) {
+            return "AND $submittedReportCountColumnName < $bookedCountColumnName";
+        }
+        return null;
     }
 
 }
