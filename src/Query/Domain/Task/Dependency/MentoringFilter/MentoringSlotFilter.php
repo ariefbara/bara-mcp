@@ -65,12 +65,23 @@ class MentoringSlotFilter
         return null;
     }
     
-    public function getSqlReportCompletedStatusClause(string $submittedReportCountColumnName, string $bookedCountColumnName): ?string
+    public function getSqlMentorReportCompletedStatusClause(string $submittedReportCountColumnName, string $bookedCountColumnName): ?string
     {
         if ($this->reportCompletedStatus === true) {
             return "AND $submittedReportCountColumnName = $bookedCountColumnName";
         } elseif ($this->reportCompletedStatus === false) {
             return "AND $submittedReportCountColumnName < $bookedCountColumnName";
+        }
+        return null;
+    }
+    
+    public function getSqlParticipantReportCompletedStatusClause(string $participantReportIdColumnName): ?string
+    {
+        if ($this->reportCompletedStatus === true) {
+            return "AND $participantReportIdColumnName IS NOT NULL";
+            return "AND $submittedReportCountColumnName = $bookedCountColumnName";
+        } elseif ($this->reportCompletedStatus === false) {
+            return "AND $participantReportIdColumnName IS NULL";
         }
         return null;
     }

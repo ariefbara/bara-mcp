@@ -24,7 +24,15 @@ class RecordOfMentoringSlot implements Record
     public $consultationSetup;
     public $id;
     public $cancelled;
+    /**
+     * 
+     * @var DateTimeImmutable
+     */
     public $startTime;
+    /**
+     * 
+     * @var DateTimeImmutable
+     */
     public $endTime;
     public $mediaType;
     public $location;
