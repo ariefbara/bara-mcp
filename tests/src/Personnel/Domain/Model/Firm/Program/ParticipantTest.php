@@ -75,6 +75,30 @@ class ParticipantTest extends TestBase
         $this->participant->active = false;
         $this->assertFalse($this->manageableInProgram());
     }
+    
+    protected function assertUsableInProgram()
+    {
+        $this->participant->assertUsableInProgram($this->programId);
+    }
+    public function test_assertUsableInProgram_activeParticipantOfSameProgram_void()
+    {
+        $this->assertUsableInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInProgram_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: can only use active participant in same program');
+    }
+    public function test_assertUsableInProgram_differentProgram_forbidden()
+    {
+        $this->participant->programId = 'differentProgram';
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: can only use active participant in same program');
+    }
 }
 
 class TestableParticipant extends Participant

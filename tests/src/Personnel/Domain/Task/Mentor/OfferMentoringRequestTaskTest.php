@@ -14,7 +14,7 @@ class OfferMentoringRequestTaskTest extends MentorTaskTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupMentoringRequestRelatedTask();
+        $this->setMentoringRequestRelatedTask();
         
         $this->mentoringRequestData = new MentoringRequestData(new DateTimeImmutable('+24 hours'), 'media', 'location');
         $this->task = new OfferMentoringRequestTask(

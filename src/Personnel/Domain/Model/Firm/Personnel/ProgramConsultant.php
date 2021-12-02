@@ -10,6 +10,7 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ContainSchedule;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\DeclaredMentoring;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
@@ -23,6 +24,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
 use SharedContext\Domain\ValueObject\ConsultationSessionType;
+use SharedContext\Domain\ValueObject\ScheduleData;
 
 class ProgramConsultant extends EntityContainEvents
 {
@@ -244,6 +246,16 @@ class ProgramConsultant extends EntityContainEvents
         if (!empty($this->mentoringSlots->filter($mentoringSlotFilter)->count())) {
             throw RegularException::forbidden('forbidden: schedule in conflict with existing slot');
         }
+    }
+    
+    public function declareMentoring(
+            string $declaredMentoringId, Participant $participant, ConsultationSetup $consultationSetup, 
+            ScheduleData $scheduleData): DeclaredMentoring
+    {
+        $this->assertActive();
+        $participant->assertUsableInProgram($this->programId);
+        $consultationSetup->assertUsableInProgram($this->programId);
+        return new DeclaredMentoring($this, $declaredMentoringId, $participant, $consultationSetup, $scheduleData);
     }
 
 }

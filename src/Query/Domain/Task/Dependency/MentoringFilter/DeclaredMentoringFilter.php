@@ -2,14 +2,14 @@
 
 namespace Query\Domain\Task\Dependency\MentoringFilter;
 
-class MentoringRequestFilter
+class DeclaredMentoringFilter
 {
 
     /**
      * 
      * @var int[]
      */
-    protected $requestStatusList = [];
+    protected $declaredStatusList;
 
     /**
      * 
@@ -21,10 +21,10 @@ class MentoringRequestFilter
     {
         
     }
-    
-    public function addRequestStatus(int $requestStatus)
+
+    public function addDeclaredStatus(int $declaredStatus)
     {
-        $this->requestStatusList[] = $requestStatus;
+        $this->declaredStatusList[] = $declaredStatus;
         return $this;
     }
 
@@ -36,15 +36,15 @@ class MentoringRequestFilter
     
     public function getSqlRequestStatusClause(string $tableName, array &$parameters): ?string
     {
-        if (empty($this->requestStatusList)) {
+        if (empty($this->declaredStatusList)) {
             return null;
         }
         $statuses = '';
-        foreach ($this->requestStatusList as $key => $requestStatus) {
+        foreach ($this->declaredStatusList as $key => $declaredStatus) {
             $statuses .= empty($statuses) ? ":status$key" : ", :status$key";
-            $parameters["status$key"] = $requestStatus;
+            $parameters["status$key"] = $declaredStatus;
         }
-        return "AND $tableName.requestStatus IN ($statuses)";
+        return "AND $tableName.declaredStatus IN ($statuses)";
     }
     
     public function getSqlReportCompletedStatusClause(string $reportColumnName): ?string

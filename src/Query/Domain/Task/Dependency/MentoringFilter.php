@@ -3,6 +3,7 @@
 namespace Query\Domain\Task\Dependency;
 
 use DateTimeImmutable;
+use Query\Domain\Task\Dependency\MentoringFilter\DeclaredMentoringFilter;
 use Query\Domain\Task\Dependency\MentoringFilter\MentoringRequestFilter;
 use Query\Domain\Task\Dependency\MentoringFilter\MentoringSlotFilter;
 use ReflectionClass;
@@ -44,6 +45,12 @@ class MentoringFilter
      */
     protected $mentoringRequestFilter;
 
+    /**
+     * 
+     * @var DeclaredMentoringFilter
+     */
+    protected $declaredMentoringFilter;
+
     public function getMentoringSlotFilter(): MentoringSlotFilter
     {
         return $this->mentoringSlotFilter;
@@ -54,16 +61,23 @@ class MentoringFilter
         return $this->mentoringRequestFilter;
     }
 
+    public function getDeclaredMentoringFilter(): DeclaredMentoringFilter
+    {
+        return $this->declaredMentoringFilter;
+    }
+
     public function getOrderDirection(): ?string
     {
         return $this->orderDirection;
     }
 
     public function __construct(
-            MentoringSlotFilter $mentoringSlotFilter, MentoringRequestFilter $mentoringRequestFilter)
+            MentoringSlotFilter $mentoringSlotFilter, MentoringRequestFilter $mentoringRequestFilter,
+            DeclaredMentoringFilter $declaredMentoringFilter)
     {
         $this->mentoringSlotFilter = $mentoringSlotFilter;
         $this->mentoringRequestFilter = $mentoringRequestFilter;
+        $this->declaredMentoringFilter = $declaredMentoringFilter;
     }
 
     public function setFrom(?DateTimeImmutable $from)

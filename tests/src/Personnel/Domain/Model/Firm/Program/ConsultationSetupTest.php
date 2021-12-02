@@ -109,6 +109,30 @@ class ConsultationSetupTest extends TestBase
                 $this->calculateMentoringScheduleEndTimeFrom()->format('Y-m-d H:i:s'));
     }
     
+    protected function assertUsableInProgram()
+    {
+        $this->consultationSetup->assertUsableInProgram($this->programId);
+    }
+    public function test_assertusableInProgram_activeConsultationSetupOfSameProgram_void()
+    {
+        $this->assertUsableInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInProgram_differentProgram_forbidden()
+    {
+        $this->consultationSetup->programId = 'differentProgramId';
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: can only use active consultation setup in same program');
+    }
+    public function test_assertUsableInProgram_inactiveConsultationSetup_forbidden()
+    {
+        $this->consultationSetup->removed = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: can only use active consultation setup in same program');
+    }
+    
 }
 
 class TestableConsultationSetup extends ConsultationSetup

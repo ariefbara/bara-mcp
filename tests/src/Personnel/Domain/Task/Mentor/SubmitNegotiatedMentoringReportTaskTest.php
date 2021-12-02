@@ -13,7 +13,7 @@ class SubmitNegotiatedMentoringReportTaskTest extends MentorTaskTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupNegotiatedMentoringRelatedTask();
+        $this->setNegotiatedMentoringRelatedTask();
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         $payload = new SubmitMentoringReportPayload(
                 $this->negotiatedMentoringId, $this->participantRating, $this->formRecordData);

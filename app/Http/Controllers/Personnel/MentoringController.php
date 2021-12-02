@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Personnel;
 
 use Query\Domain\Task\Dependency\MentoringFilter;
+use Query\Domain\Task\Dependency\MentoringFilter\DeclaredMentoringFilter;
 use Query\Domain\Task\Personnel\ViewAllMentoringPayload;
 use Query\Domain\Task\Personnel\ViewAllMentoringTask;
 use Query\Infrastructure\Persistence\Doctrine\Repository\CustomDoctrineMentoringRepository;
@@ -40,7 +41,20 @@ class MentoringController extends PersonnelBaseController
             }
         }
         
-        $mentoringFilter = (new MentoringFilter($mentoringSlotFilter, $mentoringRequestFilter))
+        $declaredMentoringFilter = new DeclaredMentoringFilter();
+        $declaredMentoringFilterQuery = $this->request->query('declaredMentoringFilter');
+        if (isset($declaredMentoringFilterQuery)) {
+            if (isset($declaredMentoringFilterQuery['reportCompletedStatus'])) {
+                $declaredMentoringFilter->setReportCompletedStatus($this->filterBooleanOfVariable($declaredMentoringFilterQuery['reportCompletedStatus']));
+            }
+            if (isset($declaredMentoringFilterQuery['declaredStatusList'])) {
+                foreach ($declaredMentoringFilterQuery['declaredStatusList'] as $declaredStatus) {
+                    $declaredMentoringFilter->addDeclaredStatus($this->integerOfVariable($declaredStatus));
+                }
+            }
+        }
+        
+        $mentoringFilter = (new MentoringFilter($mentoringSlotFilter, $mentoringRequestFilter, $declaredMentoringFilter))
                 ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
                 ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
                 ->setOrderDirection($this->stripTagQueryRequest('order'));

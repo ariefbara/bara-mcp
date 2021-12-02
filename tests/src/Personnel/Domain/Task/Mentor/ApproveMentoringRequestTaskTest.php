@@ -11,7 +11,7 @@ class ApproveMentoringRequestTaskTest extends MentorTaskTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupMentoringRequestRelatedTask();
+        $this->setMentoringRequestRelatedTask();
         $this->task = new ApproveMentoringRequestTask($this->mentoringRequestRepository, $this->mentoringRequestId);
     }
     

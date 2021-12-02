@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\DeclaredMentoring" 
+            table="DeclaredMentoring"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineDeclaredMentoringRepository"
+    >
+        
+        <many-to-one  field="mentor" 
+                      target-entity="Query\Domain\Model\Firm\Program\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="consultationSetup" 
+                      target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup"
+        >
+            <join-column name="ConsultationSetup_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <embedded name="declaredStatus" class="SharedContext\Domain\ValueObject\DeclaredMentoringStatus" use-column-prefix="false" />
+        <embedded name="schedule" class="SharedContext\Domain\ValueObject\Schedule" use-column-prefix="false" />
+        
+        <one-to-one field="mentoring" 
+                    target-entity="Query\Domain\SharedModel\Mentoring"
+        >
+            <join-column name="Mentoring_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

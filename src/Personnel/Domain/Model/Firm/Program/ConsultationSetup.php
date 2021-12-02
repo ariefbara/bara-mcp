@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\ContainMentorReport;
 use Personnel\Domain\Model\Firm\FeedbackForm;
 use Resources\Domain\ValueObject\DateTimeInterval;
+use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
@@ -78,6 +79,13 @@ class ConsultationSetup
     public function calculateMentoringScheduleEndTimeFrom(\DateTimeImmutable $startTime): \DateTimeImmutable
     {
         return $startTime->add(new DateInterval("PT{$this->sessionDuration}M"));
+    }
+    
+    public function assertUsableInProgram(string $programId): void
+    {
+        if (!$this->usableInProgram($programId)) {
+            throw RegularException::forbidden('forbidden: can only use active consultation setup in same program');
+        }
     }
     
 }

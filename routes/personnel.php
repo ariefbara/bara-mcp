@@ -38,6 +38,14 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/offer', ['uses' => "MentoringRequestController@offer"]);
     $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
     
+    $router->post('/mentors/{mentorId}/declared-mentorings', ['uses' => "DeclaredMentoringController@declare"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+    $router->put('/mentors/{mentorId}/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+    $router->get('declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
+    
     $router->put('/mentors/{mentorId}/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
     $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
     

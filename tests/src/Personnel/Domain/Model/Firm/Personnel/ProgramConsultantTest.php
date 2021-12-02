@@ -10,6 +10,7 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ContainSchedule;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\DeclaredMentoring;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
@@ -40,6 +41,7 @@ class ProgramConsultantTest extends TestBase
     protected $mentoringRequest;
     protected $mentoringSlot;
     protected $containSchedule;
+    protected $declaredMentoringId = 'declaredMentoringId';
 
     protected function setUp(): void
     {
@@ -83,10 +85,10 @@ class ProgramConsultantTest extends TestBase
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
 
-        $scheduleData = new ScheduleData(
+        $this->scheduleData = new ScheduleData(
                 new \DateTimeImmutable('+24 hours'), new \DateTimeImmutable('+25 hours'), 'online',
                 'http://meet.google.com/random');
-        $this->mentoringSlotData = new MentoringSlotData($scheduleData, 4);
+        $this->mentoringSlotData = new MentoringSlotData($this->scheduleData, 4);
         
         $this->containSchedule = $this->buildMockOfInterface(ContainSchedule::class);
         
@@ -414,6 +416,40 @@ class ProgramConsultantTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule();
         }, 'Forbidden', 'forbidden: schedule in conflict with existing slot');
+    }
+    
+    protected function declareMentoring()
+    {
+        $startTime = new DateTimeImmutable('-25 hours');
+        $endTime = new DateTimeImmutable('-24 hours');
+        $scheduleData = new ScheduleData($startTime, $endTime, 'media type', 'location');
+        return $this->programConsultant->declareMentoring(
+                $this->declaredMentoringId, $this->participant, $this->consultationSetup, $scheduleData);
+    }
+    public function test_declareMentoring_returnDeclaredMentoring()
+    {
+        $this->assertInstanceOf(DeclaredMentoring::class, $this->declareMentoring());
+    }
+    public function test_declareMentoring_inactiveMentor_forbidden()
+    {
+        $this->programConsultant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->declareMentoring();
+        }, 'Forbidden', 'forbidden: only active consultant can make this request');
+    }
+    public function test_declareMentoring_assertConsultationSetupUsableInProgram()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->declareMentoring();
+    }
+    public function test_declareMentoring_assertParticipantUsableInProgram()
+    {
+        $this->participant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->declareMentoring();
     }
 }
 
