@@ -628,5 +628,17 @@ class DeclaredMentoringControllerTest extends ExtendedTeamParticipantTestCase
         ];
         $this->seeJsonContains($response);
     }
+    public function test_show_inactiveParticipant_403()
+    {
+        $this->teamParticipant->participant->active = false;
+        $this->show();
+        $this->seeStatusCode(403);
+    }
+    public function test_show_inactiveMember_403()
+    {
+        $this->teamMember->active = false;
+        $this->show();
+        $this->seeStatusCode(403);
+    }
 
 }
