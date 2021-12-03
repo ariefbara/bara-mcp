@@ -112,7 +112,6 @@ class NegotiatedMentoringControllerTest extends ExtendedTeamParticipantTestCase
         $this->negotiatedMentoringOne->insert($this->connection);
         
         $uri = $this->teamParticipantUri . "/negotiated-mentorings/{$this->negotiatedMentoringOne->id}/submit-report";
-echo $uri;
         $this->put($uri, $this->submitReportRequest, $this->teamMember->client->token);
     }
     public function test_submit_200()

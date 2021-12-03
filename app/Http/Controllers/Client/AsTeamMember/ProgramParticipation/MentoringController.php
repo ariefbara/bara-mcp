@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
 use Query\Domain\Task\Dependency\MentoringFilter;
+use Query\Domain\Task\Dependency\MentoringFilter\DeclaredMentoringFilter;
 use Query\Domain\Task\Dependency\MentoringFilter\MentoringRequestFilter;
 use Query\Domain\Task\Dependency\MentoringFilter\MentoringSlotFilter;
 use Query\Domain\Task\Participant\ShowAllMentoringPayload;
@@ -40,7 +41,20 @@ class MentoringController extends AsTeamMemberBaseController
             }
         }
         
-        $filter = (new MentoringFilter($mentoringSlotFilter, $mentoringRequestFilter))
+        $declaredMentoringFilter = new DeclaredMentoringFilter();
+        $declaredMentoringFilterQuery = $this->request->query('declaredMentoringFilter');
+        if (isset($declaredMentoringFilterQuery)) {
+            if (isset($declaredMentoringFilterQuery['reportCompletedStatus'])) {
+                $declaredMentoringFilter->setReportCompletedStatus($this->filterBooleanOfVariable($declaredMentoringFilterQuery['reportCompletedStatus']));
+            }
+            if (isset($declaredMentoringFilterQuery['declaredStatusList'])) {
+                foreach ($declaredMentoringFilterQuery['declaredStatusList'] as $declaredStatus) {
+                    $declaredMentoringFilter->addDeclaredStatus($this->integerOfVariable($declaredStatus));
+                }
+            }
+        }
+        
+        $filter = (new MentoringFilter($mentoringSlotFilter, $mentoringRequestFilter, $declaredMentoringFilter))
                 ->setFrom($this->dateTimeImmutableOfQueryRequest('from'))
                 ->setTo($this->dateTimeImmutableOfQueryRequest('to'))
                 ->setOrderDirection($this->stripTagQueryRequest('order'));
