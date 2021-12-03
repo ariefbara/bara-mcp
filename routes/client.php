@@ -128,6 +128,14 @@ $router->group($clientAggregate, function () use ($router) {
         $router->put('/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
         $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
         
+        $router->post('/declared-mentorings', ['uses' => "DeclaredMentoringController@declare"]);
+        $router->patch('/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+        $router->patch('/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+        $router->patch('/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+        $router->patch('/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+        $router->put('/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+        $router->get('/declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
+        
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
             $router->post("", ["uses" => "$controller@addRoot"]);

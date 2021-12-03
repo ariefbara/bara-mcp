@@ -34,4 +34,26 @@ class DoctrineDeclaredMentoringRepository extends DoctrineEntityRepository imple
         }
     }
 
+    public function aDeclaredMentoringBelongsToParticipant(string $participantId, string $id): DeclaredMentoring
+    {
+        $parameters = [
+            'participantId' => $participantId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('declaredMentoring');
+        $qb->select('declaredMentoring')
+                ->andWhere($qb->expr()->eq('declaredMentoring.id', ':id'))
+                ->leftJoin('declaredMentoring.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: declared mentoring not found');
+        }
+    }
+
 }

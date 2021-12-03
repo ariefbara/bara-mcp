@@ -7,6 +7,7 @@ use Tests\TestBase;
 class DeclaredMentoringStatusTest extends TestBase
 {
     protected $declaredStatus;
+    protected $declaredStatus_declaredByParticipant;
     protected $statusValue;
     protected $declaredStatusList;
 
@@ -14,6 +15,7 @@ class DeclaredMentoringStatusTest extends TestBase
     {
         parent::setUp();
         $this->declaredStatus = new TestableDeclaredMentoringStatus(DeclaredMentoringStatus::DECLARED_BY_MENTOR);
+        $this->declaredStatus_declaredByParticipant = new TestableDeclaredMentoringStatus(DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT);
         $this->statusValue = DeclaredMentoringStatus::DECLARED_BY_MENTOR;
         $this->declaredStatusList = [
             DeclaredMentoringStatus::DECLARED_BY_MENTOR,
@@ -100,6 +102,57 @@ class DeclaredMentoringStatusTest extends TestBase
     {
         $this->declaredStatus->value = DeclaredMentoringStatus::CANCELLED;
         $this->assertFalse($this->statusIn());
+    }
+    
+    protected function cancelParticipantDeclaration()
+    {
+        return $this->declaredStatus_declaredByParticipant->cancelParticipantDeclaration();
+    }
+    public function test_cancelParticipantDeclaration_returnCancelledStatus()
+    {
+        $cancelledStatus = new TestableDeclaredMentoringStatus(DeclaredMentoringStatus::CANCELLED);
+        $this->assertEquals($cancelledStatus, $this->cancelParticipantDeclaration());
+    }
+    public function test_cancelParticipantDeclaration_notDeclaredByParticipant_forbidden()
+    {
+        $this->declaredStatus_declaredByParticipant->value = DeclaredMentoringStatus::DECLARED_BY_MENTOR;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->cancelParticipantDeclaration();
+        }, 'Forbidden', 'forbidden: can only cancel declaration in declared by participant state');
+    }
+    
+    protected function approveMentorDeclaration()
+    {
+        return $this->declaredStatus->approveMentorDeclaration();
+    }
+    public function test_approveMentorDeclaration_returnApprovedByParticipantStatus()
+    {
+        $cancelledStatus = new TestableDeclaredMentoringStatus(DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT);
+        $this->assertEquals($cancelledStatus, $this->approveMentorDeclaration());
+    }
+    public function test_approveMentorDeclaration_notDeclaredByParticipant_forbidden()
+    {
+        $this->declaredStatus->value = DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->approveMentorDeclaration();
+        }, 'Forbidden', 'forbidden: can only approve mentoring declaration from mentor');
+    }
+    
+    protected function denyMentorDeclaration()
+    {
+        return $this->declaredStatus->denyMentorDeclaration();
+    }
+    public function test_denyMentorDeclaration_returnApprovedByParticipantStatus()
+    {
+        $cancelledStatus = new TestableDeclaredMentoringStatus(DeclaredMentoringStatus::DENIED_BY_PARTICIPANT);
+        $this->assertEquals($cancelledStatus, $this->denyMentorDeclaration());
+    }
+    public function test_denyMentorDeclaration_notDeclaredByParticipant_forbidden()
+    {
+        $this->declaredStatus->value = DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->denyMentorDeclaration();
+        }, 'Forbidden', 'forbidden: can only deny mentoring declaration from mentor');
     }
 }
 

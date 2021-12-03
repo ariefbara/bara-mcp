@@ -74,4 +74,34 @@ class DeclaredMentoringStatus extends BaseEnum
     {
         return in_array($this->value, $declaredStatusList);
     }
+    
+    public function cancelParticipantDeclaration(): self
+    {
+        if ($this->value !== self::DECLARED_BY_PARTICIPANT) {
+            throw RegularException::forbidden('forbidden: can only cancel declaration in declared by participant state');
+        }
+        $cancelldStatus = clone $this;
+        $cancelldStatus->value = self::CANCELLED;
+        return $cancelldStatus;
+    }
+    
+    public function approveMentorDeclaration(): self
+    {
+        if ($this->value !== self::DECLARED_BY_MENTOR) {
+            throw RegularException::forbidden('forbidden: can only approve mentoring declaration from mentor');
+        }
+        $approvedStatus = clone $this;
+        $approvedStatus->value = self::APPROVED_BY_PARTICIPANT;
+        return $approvedStatus;
+    }
+    
+    public function denyMentorDeclaration(): self
+    {
+        if ($this->value !== self::DECLARED_BY_MENTOR) {
+            throw RegularException::forbidden('forbidden: can only deny mentoring declaration from mentor');
+        }
+        $deniedStatus = clone $this;
+        $deniedStatus->value = self::DENIED_BY_PARTICIPANT;
+        return $deniedStatus;
+    }
 }

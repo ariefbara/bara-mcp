@@ -14,7 +14,7 @@ class SubmitNegotiatedMentoringReportTaskTest extends TaskExecutableByParticipan
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupNegotiatedMentoringRelatedAsset();
+        $this->setNegotiatedMentoringRelatedAsset();
         
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
         $payload = new SubmitMentoringReportPayload($this->negotiatedMentoringId, $this->mentorRating, $this->formRecordData);

@@ -8,4 +8,6 @@ interface DeclaredMentoringRepository
 {
 
     public function aDeclaredMentoringBelongsToPersonnel(string $personnelId, string $id): DeclaredMentoring;
+
+    public function aDeclaredMentoringBelongsToParticipant(string $participantId, string $id): DeclaredMentoring;
 }

@@ -19,6 +19,7 @@ use Participant\Domain\Model\Participant\CompletedMission;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\DeclaredMentoring;
 use Participant\Domain\Model\Participant\ManageableByParticipant;
 use Participant\Domain\Model\Participant\MentoringRequest;
 use Participant\Domain\Model\Participant\MentoringRequestData;
@@ -40,6 +41,7 @@ use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
 use SharedContext\Domain\ValueObject\ConsultationSessionType;
+use SharedContext\Domain\ValueObject\ScheduleData;
 
 class Participant extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
@@ -121,13 +123,13 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      * @var ArrayCollection
      */
     protected $okrPeriods;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $mentoringRequests;
-    
+
     /**
      * 
      * @var ArrayCollection
@@ -452,29 +454,37 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $bookedMentoringSlot = new BookedMentoringSlot($this, $bookedMentoringSlotId, $mentoringSlot);
         return $bookedMentoringSlot;
     }
-    
+
     public function requestMentoring(
-            string $mentoringRequestId, Consultant $mentor, ConsultationSetup $consultationSetup, 
+            string $mentoringRequestId, Consultant $mentor, ConsultationSetup $consultationSetup,
             MentoringRequestData $mentoringRequestData): MentoringRequest
     {
         $mentor->assertUsableInProgram($this->program);
         $consultationSetup->assertUsableInProgram($this->program);
         return new MentoringRequest($this, $mentoringRequestId, $mentor, $consultationSetup, $mentoringRequestData);
     }
-    
+
     public function assertNoConflictWithScheduledOrPotentialSchedule(Participant\ContainSchedule $mentoringSchedule): void
     {
-        $mentoringRequestFilter = function(MentoringRequest $mentoringRequest) use($mentoringSchedule) {
+        $mentoringRequestFilter = function (MentoringRequest $mentoringRequest) use ($mentoringSchedule) {
             return $mentoringRequest->aScheduledOrPotentialScheduleInConflictWith($mentoringSchedule);
         };
-        $bookedMentoringFilter = function(BookedMentoringSlot $bookedMentoring) use($mentoringSchedule) {
+        $bookedMentoringFilter = function (BookedMentoringSlot $bookedMentoring) use ($mentoringSchedule) {
             return $bookedMentoring->aScheduledOrPotentialScheduleInConflictWith($mentoringSchedule);
         };
-        if (!empty($this->mentoringRequests->filter($mentoringRequestFilter)->count())
-                || !empty($this->bookedMentorings->filter($bookedMentoringFilter)->count())
+        if (!empty($this->mentoringRequests->filter($mentoringRequestFilter)->count()) || !empty($this->bookedMentorings->filter($bookedMentoringFilter)->count())
         ) {
             throw RegularException::forbidden('forbidden: schedule in conflict with existing schedule or potential schedule');
         }
+    }
+
+    public function declareMentoring(
+            string $declaredMentoringId, Consultant $mentor, ConsultationSetup $consultationSetup,
+            ScheduleData $scheduleData): Participant\DeclaredMentoring
+    {
+        $mentor->assertUsableInProgram($this->program);
+        $consultationSetup->assertUsableInProgram($this->program);
+        return new DeclaredMentoring($this, $declaredMentoringId, $mentor, $consultationSetup, $scheduleData);
     }
 
 }

@@ -11,9 +11,9 @@ class RequestMentoringTaskTest extends TaskExecutableByParticipantTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupMentoringRequestRelatedAsset();
-        $this->setupMentorRelatedAsset();
-        $this->setupConsultationSetupRelatedAsset();
+        $this->setMentoringRequestRelatedAsset();
+        $this->setMentorRelatedAsset();
+        $this->setConsultationSetupRelatedAsset();
         
         $this->mentoringRequestData = new \Participant\Domain\Model\Participant\MentoringRequestData(
                 new \DateTimeImmutable('+24 hours'), 

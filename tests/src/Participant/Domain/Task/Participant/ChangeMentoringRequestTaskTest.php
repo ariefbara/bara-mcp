@@ -14,7 +14,7 @@ class ChangeMentoringRequestTaskTest extends TaskExecutableByParticipantTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupMentoringRequestRelatedAsset();
+        $this->setMentoringRequestRelatedAsset();
         
         $this->mentoringRequestData = new MentoringRequestData(new DateTimeImmutable('+24 hours'), 'online', 'google meet');
         $payload = new ChangeMentoringRequestPayload($this->mentoringRequestId, $this->mentoringRequestData);

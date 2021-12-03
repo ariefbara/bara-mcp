@@ -11,7 +11,7 @@ class AcceptMentoringOfferingTaskTest extends TaskExecutableByParticipantTestBas
     protected function setUp(): void
     {
         parent::setUp();
-        $this->setupMentoringRequestRelatedAsset();
+        $this->setMentoringRequestRelatedAsset();
         $this->task = new AcceptMentoringOfferingTask($this->mentoringRequestRepository, $this->mentoringRequestId);
     }
     

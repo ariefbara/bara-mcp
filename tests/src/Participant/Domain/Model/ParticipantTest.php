@@ -11,10 +11,15 @@ use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
 use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
+use Participant\Domain\Model\Participant\BookedMentoringSlot;
 use Participant\Domain\Model\Participant\CompletedMission;
 use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
+use Participant\Domain\Model\Participant\ContainSchedule;
+use Participant\Domain\Model\Participant\DeclaredMentoring;
+use Participant\Domain\Model\Participant\MentoringRequest;
+use Participant\Domain\Model\Participant\MentoringRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
@@ -24,6 +29,7 @@ use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ScheduleData;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -58,6 +64,8 @@ class ParticipantTest extends TestBase
     protected $bookedMentoring;
     protected $mentoringRequestId = 'mentoringRequestId', $mentoringRequestData;
     protected $mentoringSchedule;
+    
+    protected $declaredMentoringId = 'declaredMentoringId', $mentoringDeclarationScheduleData;
 
     protected function setUp(): void
     {
@@ -122,17 +130,21 @@ class ParticipantTest extends TestBase
         
         $this->mentoringSlot = $this->buildMockOfClass(Consultant\MentoringSlot::class);
         
-        $this->bookedMentoring = $this->buildMockOfClass(Participant\BookedMentoringSlot::class);
+        $this->bookedMentoring = $this->buildMockOfClass(BookedMentoringSlot::class);
         $this->participant->bookedMentorings = new ArrayCollection();
         $this->participant->bookedMentorings->add($this->bookedMentoring);
         
-        $this->mentoringRequest = $this->buildMockOfClass(Participant\MentoringRequest::class);
+        $this->mentoringRequest = $this->buildMockOfClass(MentoringRequest::class);
         $this->participant->mentoringRequests = new ArrayCollection();
         $this->participant->mentoringRequests->add($this->mentoringRequest);
         
         
-        $this->mentoringRequestData = new Participant\MentoringRequestData(new \DateTimeImmutable('+24 hours'), 'online', 'google');
-        $this->mentoringSchedule = $this->buildMockOfInterface(Participant\ContainSchedule::class);
+        $this->mentoringRequestData = new MentoringRequestData(new \DateTimeImmutable('+24 hours'), 'online', 'google');
+        $this->mentoringSchedule = $this->buildMockOfInterface(ContainSchedule::class);
+        
+        $this->mentoringDeclarationScheduleData = new ScheduleData(
+                new \DateTimeImmutable('-25 hours'), new \DateTimeImmutable('-24 hours'), 'media type', 'location');
+        
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -710,7 +722,7 @@ class ParticipantTest extends TestBase
     }
     public function test_bookMentoringSlot_returnBookedMentoringSlot()
     {
-        $this->assertInstanceOf(Participant\BookedMentoringSlot::class, $this->bookMentoringSlot());
+        $this->assertInstanceOf(BookedMentoringSlot::class, $this->bookMentoringSlot());
     }
     public function test_bookMentoringSlot_mentoringSlotCannotAcceptBookingFromParticipant()
     {
@@ -740,7 +752,7 @@ class ParticipantTest extends TestBase
     }
     public function test_requestMentoring_returnMentoringRequest()
     {
-        $this->assertInstanceOf(Participant\MentoringRequest::class, $this->requestMentoring());
+        $this->assertInstanceOf(MentoringRequest::class, $this->requestMentoring());
     }
     public function test_requestMentoring_assertMentorUsableInProgram()
     {
@@ -785,6 +797,31 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->assertNoConflictWithScheduledOrPotentialSchedule();
         }, 'Forbidden', 'forbidden: schedule in conflict with existing schedule or potential schedule');
+    }
+    
+    protected function declareMentoring()
+    {
+        return $this->participant->declareMentoring(
+                $this->declaredMentoringId, $this->consultant, $this->consultationSetup, 
+                $this->mentoringDeclarationScheduleData);
+    }
+    public function test_declareMentoring_returnDeclaredMentoring()
+    {
+        $this->assertInstanceOf(DeclaredMentoring::class, $this->declareMentoring());
+    }
+    public function test_declareMentoring_assertMentorUsableInProgram()
+    {
+        $this->consultant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->participant->program);
+        $this->declareMentoring();
+    }
+    public function test_declareMentoring_assertConsultationSetupInProgram()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->participant->program);
+        $this->declareMentoring();
     }
 }
 
