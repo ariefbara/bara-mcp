@@ -504,6 +504,14 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@show"]);
             $router->put('/booked-mentoring-slots/{id}/submit-report', ['uses' => "BookedMentoringSlotController@submitReport"]);
             
+            $router->post('/declared-mentorings', ['uses' => "DeclaredMentoringController@declare"]);
+            $router->patch('/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+            $router->patch('/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+            $router->patch('/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+            $router->patch('/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+            $router->put('/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+            $router->get('/declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
+            
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";
                 $router->get("/all", ["uses" => "$controller@showAll"]);

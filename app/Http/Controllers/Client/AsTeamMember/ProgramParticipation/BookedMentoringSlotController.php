@@ -8,12 +8,12 @@ use App\Http\Controllers\FormRecordToArrayDataConverter;
 use App\Http\Controllers\FormToArrayDataConverter;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant\MentoringSlot;
 use Participant\Domain\Model\Participant\BookedMentoringSlot as BookedMentoringSlot2;
-use Participant\Domain\Service\ClientFileInfoFinder;
+use Participant\Domain\Service\TeamFileInfoFinder;
 use Participant\Domain\Task\Participant\BookMentoringSlotPayload;
 use Participant\Domain\Task\Participant\BookMentoringSlotTask;
 use Participant\Domain\Task\Participant\CancelBookedMentoringSlotTask;
-use Participant\Domain\Task\Participant\SubmitMentoringReportPayload;
 use Participant\Domain\Task\Participant\SubmitBookedMentoringReportTask;
+use Participant\Domain\Task\Participant\SubmitMentoringReportPayload;
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlot;
 use Query\Domain\SharedModel\Mentoring\ParticipantReport;
@@ -56,9 +56,9 @@ class BookedMentoringSlotController extends AsTeamMemberBaseController
     {
         $bookedMentoringSlotRepository = $this->em->getRepository(BookedMentoringSlot2::class);
         $mentorRating = $this->integerOfInputRequest('mentorRating');
-
+        
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
-        $fileInfoFinder = new ClientFileInfoFinder($fileInfoRepository, $this->firmId(), $this->clientId());        
+        $fileInfoFinder = new TeamFileInfoFinder($fileInfoRepository, $teamId);
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
         $payload = new SubmitMentoringReportPayload($id,
                 $mentorRating, $formRecordData);
