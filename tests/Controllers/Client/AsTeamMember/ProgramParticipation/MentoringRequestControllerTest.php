@@ -266,7 +266,6 @@ class MentoringRequestControllerTest extends ExtendedTeamParticipantTestCase
         $this->mentoringRequestOne->insert($this->connection);
         
         $uri = $this->teamParticipantUri . "/mentoring-requests/{$this->mentoringRequestOne->id}/update";
-echo $uri;
         $this->patch($uri, $this->updateRequest, $this->teamMember->client->token);
     }
     public function test_update_200()
