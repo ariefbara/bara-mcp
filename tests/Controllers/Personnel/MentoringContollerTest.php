@@ -364,34 +364,23 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->showAll();
         $this->seeStatusCode(200);
         
-        $response = [
-            'total' => '6',
-            'list' => [
-                [
-                    'startTime' => $this->mentoringSlot_11_c1->startTime->format('Y-m-d H:i:s'),
-                    'endTime' => $this->mentoringSlot_11_c1->endTime->format('Y-m-d H:i:s'),
-                    'mentorId' => $this->mentoringSlot_11_c1->consultant->id,
-                    'programId' => $this->mentoringSlot_11_c1->consultant->program->id,
-                    'programName' => $this->mentoringSlot_11_c1->consultant->program->name,
-                    'consultationSetupId' => $this->mentoringSlot_11_c1->consultationSetup->id,
-                    'consultationSetupName' => $this->mentoringSlot_11_c1->consultationSetup->name,
-                    'mentoringSlotId' => $this->mentoringSlot_11_c1->id,
-                    'mentoringSlotCapacity' => strval($this->mentoringSlot_11_c1->capacity),
-                    'bookedMentoringCount' => '2',
-                    'mentoringSlotSubmittedReportCount' => '2',
-                    'mentoringSlotCancelledStatus' => '0',
-                    'mentoringRequestId' => null,
-                    'negotiatedMentoringId' => null,
-                    'mentorReportId' => null,
-                    'mentoringRequestStatus' => null,
-                    'declaredMentoringId' => null,
-                    'declaredMentoringStatus' => null,
-                    'participantId' => null,
-                    'participantName' => null,
-                ],
-            ],
-        ];
-        $this->seeJsonContains($response);
+        $totalResponse = ['total' => '6'];
+        $this->seeJsonContains($totalResponse);
+        
+        $mentoringSlotOneResponse = ['mentoringSlotId' => $this->mentoringSlot_11_c1->id];
+        $this->seeJsonContains($mentoringSlotOneResponse);
+        $mentoringSlotTwoResponse = ['mentoringSlotId' => $this->mentoringSlot_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringSlotTwoResponse);
+        
+        $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
+        $this->seeJsonDoesntContains($mentoringRequestOneResponse);
+        $mentoringRequestTwoResponse = ['mentoringRequestId' => $this->mentoringRequest_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringRequestTwoResponse);
+        
+        $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
+        $this->seeJsonDoesntContains($declaredMentoringOneResponse);
+        $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
+        $this->seeJsonDoesntContains($declaredMentoringTwoResponse);
     }
     public function test_showAll_fromFilter_200()
     {
@@ -407,17 +396,24 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $this->showAll();
         $this->seeStatusCode(200);
+        
         $totalResponse = ['total' => '3'];
         $this->seeJsonContains($totalResponse);
         
         $mentoringSlotOneResponse = ['mentoringSlotId' => $this->mentoringSlot_11_c1->id];
         $this->seeJsonContains($mentoringSlotOneResponse);
+        $mentoringSlotTwoResponse = ['mentoringSlotId' => $this->mentoringSlot_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringSlotTwoResponse);
         
         $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
         $this->seeJsonContains($mentoringRequestOneResponse);
+        $mentoringRequestTwoResponse = ['mentoringRequestId' => $this->mentoringRequest_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringRequestTwoResponse);
         
         $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
         $this->seeJsonContains($declaredMentoringOneResponse);
+        $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
+        $this->seeJsonDoesntContains($declaredMentoringTwoResponse);
     }
     public function test_showAll_toFilter_200()
     {
@@ -439,12 +435,18 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $mentoringSlotOneResponse = ['mentoringSlotId' => $this->mentoringSlot_11_c1->id];
         $this->seeJsonContains($mentoringSlotOneResponse);
+        $mentoringSlotTwoResponse = ['mentoringSlotId' => $this->mentoringSlot_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringSlotTwoResponse);
         
         $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
         $this->seeJsonContains($mentoringRequestOneResponse);
+        $mentoringRequestTwoResponse = ['mentoringRequestId' => $this->mentoringRequest_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringRequestTwoResponse);
         
         $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
         $this->seeJsonContains($declaredMentoringOneResponse);
+        $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
+        $this->seeJsonDoesntContains($declaredMentoringTwoResponse);
     }
     public function test_showAll_mentoringSlotsCancelledFilter_200()
     {
@@ -460,6 +462,8 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $mentoringSlotOneResponse = ['mentoringSlotId' => $this->mentoringSlot_11_c1->id];
         $this->seeJsonContains($mentoringSlotOneResponse);
+        $mentoringSlotTwoResponse = ['mentoringSlotId' => $this->mentoringSlot_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringSlotTwoResponse);
         
         $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
         $this->seeJsonContains($mentoringRequestOneResponse);
@@ -483,6 +487,8 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $mentoringSlotOneResponse = ['mentoringSlotId' => $this->mentoringSlot_11_c1->id];
         $this->seeJsonContains($mentoringSlotOneResponse);
+        $mentoringSlotTwoResponse = ['mentoringSlotId' => $this->mentoringSlot_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringSlotTwoResponse);
         
         $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
         $this->seeJsonContains($mentoringRequestOneResponse);
@@ -505,6 +511,8 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $mentoringSlotOneResponse = ['mentoringSlotId' => $this->mentoringSlot_11_c1->id];
         $this->seeJsonContains($mentoringSlotOneResponse);
+        $mentoringSlotTwoResponse = ['mentoringSlotId' => $this->mentoringSlot_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringSlotTwoResponse);
         
         $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
         $this->seeJsonContains($mentoringRequestOneResponse);
@@ -535,6 +543,8 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
         $this->seeJsonContains($mentoringRequestOneResponse);
+        $mentoringRequestTwoResponse = ['mentoringRequestId' => $this->mentoringRequest_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringRequestTwoResponse);
         
         $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
         $this->seeJsonContains($declaredMentoringOneResponse);
@@ -557,6 +567,8 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
         $this->seeJsonContains($mentoringRequestOneResponse);
+        $mentoringRequestTwoResponse = ['mentoringRequestId' => $this->mentoringRequest_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringRequestTwoResponse);
         
         $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
         $this->seeJsonContains($declaredMentoringOneResponse);
@@ -587,6 +599,8 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
         $this->seeJsonContains($declaredMentoringOneResponse);
+        $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
+        $this->seeJsonDoesntContains($declaredMentoringTwoResponse);
     }
     public function test_showAll_declaredMentoringReportCompletedStatusFilter_200()
     {
@@ -609,7 +623,8 @@ class MentoringContollerTest extends PersonnelTestCase
         
         $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
         $this->seeJsonContains($declaredMentoringOneResponse);
-var_dump($this->response->content());
+        $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
+        $this->seeJsonDoesntContains($declaredMentoringTwoResponse);
     }
     
 }

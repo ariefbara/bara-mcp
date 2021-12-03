@@ -286,6 +286,8 @@ SELECT
     _a.mentoringRequestId,
     _a.negotiatedMentoringId,
     _a.mentoringRequestStatus,
+    _a.declaredMentoringId,
+    _a.declaredMentoringStatus,
     _a.participantReportId
 FROM (
     SELECT 
@@ -298,11 +300,15 @@ FROM (
         null as mentoringRequestId,
         null as negotiatedMentoringId,
         null as mentoringRequestStatus,
+        null declaredMentoringId,
+        null declaredMentoringStatus,
         ParticipantReport.id participantReportId
     FROM BookedMentoringSlot
+    LEFT JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
     LEFT JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
     LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = BookedMentoringSlot.Mentoring_id
-    WHERE BookedMentoringSlot.Participant_id = :participantId
+    WHERE Participant.id = :participantId
+        AND Participant.active = true
         {$filter->getSqlFromClause('MentoringSlot', $parameters)}
         {$filter->getSqlToClause('MentoringSlot', $parameters)}
         {$filter->getMentoringSlotFilter()->getSqlCancelldStatusClause('BookedMentoringSlot', $parameters)}
@@ -327,15 +333,52 @@ FROM (
             WHEN 4 THEN 'approved by mentor'
             WHEN 5 THEN 'accepted by participant'
         END as mentoringRequestStatus,
+        null declaredMentoringId,
+        null declaredMentoringStatus,
         ParticipantReport.id participantReportId
     FROM MentoringRequest
+    LEFT JOIN Participant ON Participant.id = MentoringRequest.Participant_id
     LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
     LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = NegotiatedMentoring.Mentoring_id
-    WHERE MentoringRequest.Participant_id = :participantId
+    WHERE Participant.id = :participantId
+        AND Participant.active = true
         {$filter->getSqlFromClause('MentoringRequest', $parameters)}
         {$filter->getSqlToClause('MentoringRequest', $parameters)}
         {$filter->getMentoringRequestFilter()->getSqlRequestStatusClause('MentoringRequest', $parameters)}
         {$filter->getMentoringRequestFilter()->getSqlReportCompletedStatusClause('ParticipantReport.id')}
+        
+    UNION
+        
+    SELECT 
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.Consultant_id mentorId,
+        DeclaredMentoring.ConsultationSetup_id consultationSetupId,
+        null as bookedMentoringId,
+        null as bookedMentoringCancelledStatus,
+        null mentoringRequestId,
+        null negotiatedMentoringId,
+        null mentoringRequestStatus,
+        DeclaredMentoring.id declaredMentoringId,
+        CASE DeclaredMentoring.declaredStatus
+            WHEN 1 THEN 'declared by mentor'
+            WHEN 2 THEN 'declared by participant'
+            WHEN 3 THEN 'cancelled'
+            WHEN 4 THEN 'approved by mentor'
+            WHEN 5 THEN 'denied by mentor'
+            WHEN 6 THEN 'approved by participant'
+            WHEN 7 THEN 'denied by participant'
+        END as declaredMentoringStatus,
+        ParticipantReport.id participantReportId
+    FROM DeclaredMentoring
+    LEFT JOIN Participant ON Participant.id = DeclaredMentoring.Participant_id
+    LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = DeclaredMentoring.Mentoring_id
+    WHERE Participant.id = :participantId
+        AND Participant.active = true
+        {$filter->getSqlFromClause('DeclaredMentoring', $parameters)}
+        {$filter->getSqlToClause('DeclaredMentoring', $parameters)}
+        {$filter->getDeclaredMentoringFilter()->getSqlRequestStatusClause('DeclaredMentoring', $parameters)}
+        {$filter->getDeclaredMentoringFilter()->getSqlReportCompletedStatusClause('ParticipantReport.id')}
 )_a
 LEFT JOIN Consultant ON Consultant.id = _a.mentorId
 LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
@@ -359,11 +402,13 @@ _STATEMENT;
         $statement = <<<_STATEMENT
 SELECT COUNT(*) total
 FROM (
-    SELECT BookedMentoringSlot.id bookedMentoringId, null as mentoringRequestId
+    SELECT BookedMentoringSlot.id bookedMentoringId, null as mentoringRequestId, null declaredMentoringId
     FROM BookedMentoringSlot
+    LEFT JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
     LEFT JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
     LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = BookedMentoringSlot.Mentoring_id
-    WHERE BookedMentoringSlot.Participant_id = :participantId
+    WHERE Participant.id = :participantId
+        AND Participant.active = true
         {$filter->getSqlFromClause('MentoringSlot', $parameters)}
         {$filter->getSqlToClause('MentoringSlot', $parameters)}
         {$filter->getMentoringSlotFilter()->getSqlCancelldStatusClause('BookedMentoringSlot', $parameters)}
@@ -371,15 +416,30 @@ FROM (
         
     UNION
         
-    SELECT null as bookedMentoringId, MentoringRequest.id mentoringRequestId
+    SELECT null as bookedMentoringId, MentoringRequest.id mentoringRequestId, null declaredMentoringId
     FROM MentoringRequest
+    LEFT JOIN Participant ON Participant.id = MentoringRequest.Participant_id
     LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
     LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = NegotiatedMentoring.Mentoring_id
-    WHERE MentoringRequest.Participant_id = :participantId
+    WHERE Participant.id = :participantId
+        AND Participant.active = true
         {$filter->getSqlFromClause('MentoringRequest', $parameters)}
         {$filter->getSqlToClause('MentoringRequest', $parameters)}
         {$filter->getMentoringRequestFilter()->getSqlRequestStatusClause('MentoringRequest', $parameters)}
         {$filter->getMentoringRequestFilter()->getSqlReportCompletedStatusClause('ParticipantReport.id')}
+    
+    UNION
+    
+    SELECT null bookedMentoringId, null mentoringRequestId, DeclaredMentoring.id declaredMentoringId
+    FROM DeclaredMentoring
+    LEFT JOIN Participant ON Participant.id = DeclaredMentoring.Participant_id
+    LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = DeclaredMentoring.Mentoring_id
+    WHERE Participant.id = :participantId
+        AND Participant.active = true
+        {$filter->getSqlFromClause('DeclaredMentoring', $parameters)}
+        {$filter->getSqlToClause('DeclaredMentoring', $parameters)}
+        {$filter->getDeclaredMentoringFilter()->getSqlRequestStatusClause('DeclaredMentoring', $parameters)}
+        {$filter->getDeclaredMentoringFilter()->getSqlReportCompletedStatusClause('ParticipantReport.id')}
 )_a
 _STATEMENT;
         $query = $this->em->getConnection()->prepare($statement);
