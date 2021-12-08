@@ -173,7 +173,7 @@ class MentoringSlotController extends ProgramConsultationBaseController
                 'name' => $bookedMentoringSlot->getParticipant()->getName(),
             ],
             'mentorReport' => $this->arrayDataOfMentorReport($bookedMentoringSlot->getMentorReport()),
-            'participantReport' => $this->arrayDataOfParticipantReport($bookedMentoringSlot->getParticipant()),
+            'participantReport' => $this->arrayDataOfParticipantReport($bookedMentoringSlot->getParticipantReport()),
         ];
     }
     protected function arrayDataOfMentorReport(?MentorReport $mentorReport): ?array
