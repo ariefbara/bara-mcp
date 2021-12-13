@@ -56,6 +56,7 @@ class DoctrineMentoringSlotRepository extends EntityRepository implements Mentor
                 ->leftJoin('mentoringSlot.mentor', 'mentor')
                 ->leftJoin('mentor.personnel', 'personnel')
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->addOrderBy('mentoringSlot.schedule.startTime', 'ASC')
                 ->setParameters($params)
                 ->setMaxResults(1);
 
@@ -121,6 +122,7 @@ class DoctrineMentoringSlotRepository extends EntityRepository implements Mentor
                 ->leftJoin('mentoringSlot.mentor', 'mentor')
                 ->leftJoin('mentor.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->addOrderBy('mentoringSlot.schedule.startTime', 'ASC')
                 ->setParameters($params);
         
         $this->applyFilter($qb, $mentoringSlotFilter);

@@ -10,6 +10,7 @@ use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class MentoringSlotControllerTest extends MentorTestCase
 {
+    protected $showAllUri;
     protected $consultationSetupOne;
     protected $consultationSetupTwo;
     protected $mentoringSlotOne;
@@ -25,6 +26,8 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
+        
+        $this->showAllUri = $this->personnelUri . "/mentoring-slots";
         
         $firm = $this->personnel->firm;
         
@@ -301,8 +304,7 @@ echo $uri;
         $this->mentoringSlotOne->insert($this->connection);
         $this->mentoringSlotTwo->insert($this->connection);
         
-        $uri = $this->personnelUri . "/mentoring-slots";
-        $this->get($uri, $this->personnel->token);
+        $this->get($this->showAllUri, $this->personnel->token);
     }
     public function test_showAll_200()
     {
@@ -332,6 +334,42 @@ echo $uri;
 
                     ],
                 ],
+                [
+                    'id' => $this->mentoringSlotTwo->id,
+                    'cancelled' => false,
+                    'startTime' => $this->mentoringSlotTwo->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlotTwo->endTime->format('Y-m-d H:i:s'),
+                    'mediaType' => $this->mentoringSlotTwo->mediaType,
+                    'location' => $this->mentoringSlotTwo->location,
+                    'capacity' => $this->mentoringSlotTwo->capacity,
+                    'consultationSetup' => [
+                        'id' => $this->mentoringSlotTwo->consultationSetup->id,
+                        'name' => $this->mentoringSlotTwo->consultationSetup->name,
+                    ],
+                    'consultant' => [
+                        'id' => $this->mentoringSlotTwo->consultant->id,
+                        'program' => [
+                            'id' => $this->mentoringSlotTwo->consultant->program->id,
+                            'name' => $this->mentoringSlotTwo->consultant->program->name,
+                        ],
+
+                    ],
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_showAll_200_orderByStartTimeAscending()
+    {
+        $this->mentoringSlotOne->startTime = new DateTimeImmutable('+200 hours');
+        $this->mentoringSlotOne->startTime = new DateTimeImmutable('+202 hours');
+        
+        $this->showAllUri .= "?page=1&pageSize=1";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $response = [
+            'total' => 2,
+            'list' => [
                 [
                     'id' => $this->mentoringSlotTwo->id,
                     'cancelled' => false,

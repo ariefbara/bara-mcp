@@ -349,4 +349,41 @@ class MentoringSlotControllerTest extends ProgramParticipationTestCase
         ];
         $this->seeJsonContains($response);
     }
+    public function test_showAll_200_orderByStartTimeASC()
+    {
+        $this->mentoringSlotOne->startTime = new \DateTimeImmutable('+200 hours');
+        $this->mentoringSlotOne->endTime = new \DateTimeImmutable('+201 hours');
+        
+        $this->showAllUri .= "?page=1&pageSize=1";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'total' => 2,
+            'list' => [
+                [
+                    'id' => $this->mentoringSlotTwo->id,
+                    'cancelled' => $this->mentoringSlotTwo->cancelled,
+                    'startTime' => $this->mentoringSlotTwo->startTime->format('Y-m-d H:i:s'),
+                    'endTime' => $this->mentoringSlotTwo->endTime->format('Y-m-d H:i:s'),
+                    'mediaType' => $this->mentoringSlotTwo->mediaType,
+                    'location' => $this->mentoringSlotTwo->location,
+                    'capacity' => $this->mentoringSlotTwo->capacity,
+                    'bookedSlotCount' => 0,
+                    'consultant' => [
+                        'id' => $this->mentoringSlotTwo->consultant->id,
+                        'personnel' => [
+                            'id' => $this->mentoringSlotTwo->consultant->personnel->id,
+                            'name' => $this->mentoringSlotTwo->consultant->personnel->getFullName(),
+                        ],
+                    ],
+                    'consultationSetup' => [
+                        'id' => $this->mentoringSlotTwo->consultationSetup->id,
+                        'name' => $this->mentoringSlotTwo->consultationSetup->name,
+                    ],
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
 }
