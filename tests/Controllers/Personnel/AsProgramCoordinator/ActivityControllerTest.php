@@ -194,7 +194,7 @@ class ActivityControllerTest extends AsProgramCoordinatorTestCase
         $this->showAll();
         $this->seeStatusCode(200);
         
-        $totalResponse = ['total' => 0];
+        $totalResponse = ['total' => 1];
         $this->seeJsonContains($totalResponse);
         
         $activityOneResponse = [
