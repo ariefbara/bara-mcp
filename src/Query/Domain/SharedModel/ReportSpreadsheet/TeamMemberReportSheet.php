@@ -78,9 +78,16 @@ class TeamMemberReportSheet implements ISheetContainer
                     $this->inspectedClientList);
             foreach ($individualNames as $individualName) {
                 $this->reportSheet->insertIntoCell($this->individualColNumber, $individualName);
-                $this->teamColumn->insertCorrespondingReportValue($report);
+                if (isset($this->teamColumn)) {
+                    $this->teamColumn->insertCorrespondingReportValue($report);
+                }
                 $this->reportSheet->includeReport($report);
             }
+        } else {
+            if (isset($this->teamColumn)) {
+                $this->teamColumn->insertCorrespondingReportValue($report);
+            }
+            $this->reportSheet->includeReport($report);
         }
     }
 

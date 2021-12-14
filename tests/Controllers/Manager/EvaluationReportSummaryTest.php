@@ -1078,10 +1078,4 @@ class EvaluationReportSummaryTest extends ManagerTestCase
         $this->seeJsonContains($response);
     }
     
-    public function test_summaryByFeedbackForm()
-    {
-        $this->summary();
-        $uri = $this->managerUri . "/download-evaluation-report-summary-xls-group-by-feedback-form?singleSheetMode=true";
-        $this->get($uri, $this->manager->token);
-    }
 }

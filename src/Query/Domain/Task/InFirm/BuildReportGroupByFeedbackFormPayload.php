@@ -2,7 +2,7 @@
 
 namespace Query\Domain\Task\InFirm;
 
-class BuildReportSpreadsheetGroupByFeedbackFormTaskPayload
+class BuildReportGroupByFeedbackFormPayload
 {
 
     /**

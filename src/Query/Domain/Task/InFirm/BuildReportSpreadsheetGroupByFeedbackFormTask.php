@@ -32,7 +32,7 @@ class BuildReportSpreadsheetGroupByFeedbackFormTask implements ITaskInFirmExecut
 
     /**
      * 
-     * @var BuildReportSpreadsheetGroupByFeedbackFormTaskPayload
+     * @var BuildReportGroupByFeedbackFormPayload
      */
     protected $payload;
 
@@ -44,7 +44,7 @@ class BuildReportSpreadsheetGroupByFeedbackFormTask implements ITaskInFirmExecut
 
     public function __construct(
             FeedbackFormRepository $feedbackFormRepository, ClientRepository $clientRepository,
-            ISpreadsheet $spreadsheet, BuildReportSpreadsheetGroupByFeedbackFormTaskPayload $payload)
+            ISpreadsheet $spreadsheet, BuildReportGroupByFeedbackFormPayload $payload)
     {
         $this->feedbackFormRepository = $feedbackFormRepository;
         $this->clientRepository = $clientRepository;

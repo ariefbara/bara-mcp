@@ -11,7 +11,9 @@ use Query\Application\Service\Client\ConsultationSessionRepository;
 use Query\Application\Service\Client\ParticipantInviteeRepository;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Client\ClientBio;
+use Query\Domain\Model\Firm\Client\ClientTranscriptSpreadsheetGroupByFeedbackForm;
 use Query\Domain\Service\DataFinder;
+use Query\Domain\SharedModel\ISpreadsheet;
 use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
@@ -224,6 +226,12 @@ class Client
             throw RegularException::forbidden('forbidden: only active client can make this request');
         }
         $task->execute($this->id);
+    }
+    
+    public function createTranscriptSpreadsheetGroupByFeedbackForm(
+            ISpreadsheet $spreadsheet, array $feedbackFormSheetsBuilderCallback): ClientTranscriptSpreadsheetGroupByFeedbackForm
+    {
+        return new ClientTranscriptSpreadsheetGroupByFeedbackForm($this, $spreadsheet, $feedbackFormSheetsBuilderCallback);
     }
 
 }

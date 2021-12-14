@@ -13,8 +13,9 @@ use Query\Domain\SharedModel\ReportSpreadsheet\CustomFieldColumnsPayload;
 use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheetPayload;
 use Query\Domain\SharedModel\ReportSpreadsheet\TeamMemberReportSheetPayload;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
+use Query\Domain\Task\InFirm\BuildFirmClientTranscriptWorkbookGroupByFeedbackFormTask;
+use Query\Domain\Task\InFirm\BuildReportGroupByFeedbackFormPayload;
 use Query\Domain\Task\InFirm\BuildReportSpreadsheetGroupByFeedbackFormTask;
-use Query\Domain\Task\InFirm\BuildReportSpreadsheetGroupByFeedbackFormTaskPayload;
 use Query\Domain\Task\InFirm\ClientEvaluationReportSummaryResult;
 use Query\Domain\Task\InFirm\ClientEvaluationReportTranscriptResult;
 use Query\Domain\Task\InFirm\FeedbackFormReportSheetRequest;
@@ -22,6 +23,7 @@ use Query\Domain\Task\InFirm\GenerateFirmEvaluationReportSummaryTask;
 use Query\Domain\Task\InFirm\GenerateFirmEvaluationReportTranscriptTask;
 use Query\Domain\Task\InFirm\WriteEvaluationReportToSpreadsheetTask;
 use Query\Infrastructure\Persistence\InMemory\FlatArraySpreadsheet;
+use Query\Infrastructure\Persistence\InMemory\FlatArrayWorkbook;
 
 class EvaluationReportSummaryController extends ManagerBaseController
 {
@@ -89,11 +91,50 @@ class EvaluationReportSummaryController extends ManagerBaseController
         return $this->sendXlsDownloadResponse($writer, 'evaluation-report-summary.xls');
     }
     
+    public function downloadTranscriptXlsGroupByFeedbackForm()
+    {
+        $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
+        $workbook = new FlatArrayWorkbook();
+        $reportSpreadsheet = $this->buildAndExecuteFirmClientTranscriptWorkbookGroupByFeedbackForm($workbook);
+        $task = new WriteEvaluationReportToSpreadsheetTask(
+                $evaluationReportRepository, $reportSpreadsheet, $this->getEvaluationReportSummaryFilter());
+        $this->executeFirmQueryTask($task);
+        
+        $singleSheetMode = $this->filterBooleanOfQueryRequest('singleSheetMode');
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->removeSheetByIndex($spreadsheet->getActiveSheetIndex());
+        $workbook->writeToXlsSpreadsheet($spreadsheet, $singleSheetMode);
+        
+        $writer = new Xlsx($spreadsheet);
+
+        return $this->sendXlsDownloadResponse($writer, 'client-transcripts.xls');
+    }
+    
+    protected function buildAndExecuteFirmClientTranscriptWorkbookGroupByFeedbackForm($workbook)
+    {
+        $clientRepository = $this->em->getRepository(Client::class);
+        $feedbackFormRepository = $this->em->getRepository(FeedbackForm::class);
+        $payload = $this->getBuildReportGroupByFeedbackFormPayload();
+        $task = new BuildFirmClientTranscriptWorkbookGroupByFeedbackFormTask($clientRepository, $feedbackFormRepository, $workbook, $payload);
+        $this->executeFirmQueryTask($task);
+        return $task->result;
+    }
+    
     protected function buildAndExecuteReportSpreadsheetGroupByFeedbackFormTask(ISpreadsheet $spreadsheet): FirmReportSpreadsheetGroupByFeedbackForm
     {
         $feedbackFormRepository = $this->em->getRepository(FeedbackForm::class);
         $clientRepository = $this->em->getRepository(Client::class);
-        $payload = new BuildReportSpreadsheetGroupByFeedbackFormTaskPayload();
+        $payload = $this->getBuildReportGroupByFeedbackFormPayload();
+        $task = new BuildReportSpreadsheetGroupByFeedbackFormTask(
+                $feedbackFormRepository, $clientRepository, $spreadsheet, $payload);
+        $this->executeFirmQueryTask($task);
+        return $task->result;
+    }
+    
+    protected function getBuildReportGroupByFeedbackFormPayload(): BuildReportGroupByFeedbackFormPayload
+    {
+        $payload = new BuildReportGroupByFeedbackFormPayload();
+        
         $clientIdList = $this->request->query('clientIdList');
         if (!empty($clientIdList)) {
             foreach ($clientIdList as $clientId) {
@@ -136,10 +177,7 @@ class EvaluationReportSummaryController extends ManagerBaseController
                 $payload->reportFeedbackForm($feedbackFormReportSheetRequest);
             }
         }
-        $task = new BuildReportSpreadsheetGroupByFeedbackFormTask(
-                $feedbackFormRepository, $clientRepository, $spreadsheet, $payload);
-        $this->executeFirmQueryTask($task);
-        return $task->result;
+        return $payload;
     }
 
     protected function generateFirmEvaluationReportSummary(ClientEvaluationReportSummaryResult $result): void
@@ -165,7 +203,7 @@ class EvaluationReportSummaryController extends ManagerBaseController
         $evaluationPlanIdList = $this->request->query('evaluationPlanIdList');
         $clientIdList = $this->request->query('clientIdList');
         $personnelIdList = $this->request->query('personnelIdList');
-        $feedbackFormIdList = $this->request->query('feedbackFormIdList');
+        $inspectedFeedbackFormList = $this->request->query('inspectedFeedbackFormList');
 
         if (!empty($evaluationPlanIdList)) {
             foreach ($evaluationPlanIdList as $evaluationPlanId) {
@@ -182,9 +220,9 @@ class EvaluationReportSummaryController extends ManagerBaseController
                 $evaluationReportSummaryFilter->addPersonnelId($this->stripTagsVariable($personnelId));
             }
         }
-        if (!empty($feedbackFormIdList)) {
-            foreach ($feedbackFormIdList as $feedbackFormId) {
-                $evaluationReportSummaryFilter->addFeedbackFormId($this->stripTagsVariable($feedbackFormId));
+        if (!empty($inspectedFeedbackFormList)) {
+            foreach ($inspectedFeedbackFormList as $inspectedFeedbackForm) {
+                $evaluationReportSummaryFilter->addFeedbackFormId($this->stripTagsVariable($inspectedFeedbackForm['id']));
             }
         }
         return $evaluationReportSummaryFilter;
