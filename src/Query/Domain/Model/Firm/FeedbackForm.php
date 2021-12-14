@@ -3,9 +3,12 @@
 namespace Query\Domain\Model\Firm;
 
 use Query\Domain\Model\Firm;
+use Query\Domain\Model\Firm\FeedbackForm\FeedbackFormReportSheet;
 use Query\Domain\Model\Firm\Program\EvaluationPlan\IContainSummaryTable;
 use Query\Domain\Model\Shared\ContainFormInterface;
 use Query\Domain\Model\Shared\Form;
+use Query\Domain\SharedModel\ReportSpreadsheet\CustomFieldColumnsPayload;
+use Query\Domain\SharedModel\ReportSpreadsheet\ISheetContainer;
 
 class FeedbackForm implements ContainFormInterface
 {
@@ -108,6 +111,22 @@ class FeedbackForm implements ContainFormInterface
             IContainSummaryTable $containSummaryTable, int $startColNumber): void
     {
         $this->form->appendAllFieldsAsHeaderColumnOfSummaryTable($containSummaryTable, $startColNumber);
+    }
+    
+    public function buildFeedbackFormReportSheet(ISheetContainer $reportSheet, ?CustomFieldColumnsPayload $payload = null): FeedbackFormReportSheet
+    {
+        $reportSheet->setLabel($this->form->getName());
+        if (isset($payload)) {
+            $inspectedFieldList = $payload->getInspectedFieldList();
+            foreach ($inspectedFieldList as $colNumber => $fieldId) {
+                $reportSheet->addFieldColumn($this->form->getFieldByIdOrDie($fieldId), $colNumber);
+            }
+        } else {
+            foreach ($this->form->iterateAllFieldsOrderedByPosition() as $field) {
+                $reportSheet->addFieldColumn($field, null);
+            }
+        }
+        return new FeedbackFormReportSheet($this, $reportSheet);
     }
 
 }

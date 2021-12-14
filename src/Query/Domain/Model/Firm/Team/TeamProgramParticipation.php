@@ -17,6 +17,7 @@ use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team;
+use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\Program\MentorRepository;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
@@ -197,5 +198,10 @@ class TeamProgramParticipation implements ContainEvents
     public function executeTask(ITaskExecutableByParticipant $task): void
     {
         $this->programParticipation->executeTask($task);
+    }
+    
+    public function getMemberNameListCorrespondWithinInspection(InspectedClientList $inspectedClientList): iterable
+    {
+        return $this->team->getListOfActiveMemberWithinInspection($inspectedClientList);
     }
 }

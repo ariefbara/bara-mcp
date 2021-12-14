@@ -3,10 +3,12 @@
 namespace Query\Domain\Model\Shared\Form;
 
 use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Query\Domain\Model\Shared\Form;
+use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheet\IField as IField2;
 use Resources\Domain\ValueObject\IntegerRange;
 
-class StringField implements IField
+class StringField implements IField, IField2
 {
 
     /**
@@ -129,6 +131,11 @@ class StringField implements IField
     public function getLabel(): string
     {
         return $this->getName();
+    }
+
+    public function getCorrespondingValueFromEvaluationReport(EvaluationReport $report)
+    {
+        return $report->getStringFieldRecordValueCorrespondWith($this);
     }
 
 }

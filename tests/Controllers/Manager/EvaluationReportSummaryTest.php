@@ -151,12 +151,18 @@ class EvaluationReportSummaryTest extends ManagerTestCase
         $formRecord_22_form2 = new RecordOfFormRecord($formTwo, '22');
         
         $this->stringRecord_111_fr11_sf11 = new RecordOfStringFieldRecord($formRecord_11_form1, $this->stringField_11, '111');
+        $this->stringRecord_111_fr11_sf11->value = 'string value 111';
         $this->stringRecord_121_fr12_sf11 = new RecordOfStringFieldRecord($formRecord_12_form1, $this->stringField_11, '121');
+        $this->stringRecord_121_fr12_sf11->value = 'string value 121';
         
         $this->integerRecord_111_fr11_if11 = new RecordOfIntegerFieldRecord($formRecord_11_form1, $this->integerField_11, '111');
+        $this->integerRecord_111_fr11_if11->value = 111.111;
         $this->integerRecord_121_fr12_if11 = new RecordOfIntegerFieldRecord($formRecord_12_form1, $this->integerField_11, '121');
+        $this->integerRecord_121_fr12_if11->value = 121.121;
         $this->integerRecord_211_fr21_if21 = new RecordOfIntegerFieldRecord($formRecord_21_form2, $this->integerField_21, '211');
+        $this->integerRecord_211_fr21_if21->value = 211.211;
         $this->integerRecord_221_fr22_if21 = new RecordOfIntegerFieldRecord($formRecord_22_form2, $this->integerField_21, '221');
+        $this->integerRecord_221_fr22_if21->value = 221.221;
         
         $this->textAreaRecord_211_fr21_taf21 = new RecordOfTextAreaFieldRecord($formRecord_21_form2, $this->textAreaField_21, '211');
         $this->textAreaRecord_221_fr22_taf_21 = new RecordOfTextAreaFieldRecord($formRecord_22_form2, $this->textAreaField_21, '221');
@@ -168,28 +174,28 @@ class EvaluationReportSummaryTest extends ManagerTestCase
     }
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('StringField')->truncate();
-        $this->connection->table('IntegerField')->truncate();
-        $this->connection->table('TextAreaField')->truncate();
-        $this->connection->table('FeedbackForm')->truncate();
-        $this->connection->table('Program')->truncate();
-        $this->connection->table('EvaluationPlan')->truncate();
-        $this->connection->table('Participant')->truncate();
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('ClientParticipant')->truncate();
-        $this->connection->table('Team')->truncate();
-        $this->connection->table('TeamParticipant')->truncate();
-        $this->connection->table('T_Member')->truncate();
-        $this->connection->table('Personnel')->truncate();
-        $this->connection->table('Consultant')->truncate();
-        $this->connection->table('DedicatedMentor')->truncate();
-        $this->connection->table('FormRecord')->truncate();
-        $this->connection->table('StringFieldRecord')->truncate();
-        $this->connection->table('IntegerFieldRecord')->truncate();
-        $this->connection->table('TextAreaFieldRecord')->truncate();
-        $this->connection->table('MentorEvaluationReport')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('Form')->truncate();
+//        $this->connection->table('StringField')->truncate();
+//        $this->connection->table('IntegerField')->truncate();
+//        $this->connection->table('TextAreaField')->truncate();
+//        $this->connection->table('FeedbackForm')->truncate();
+//        $this->connection->table('Program')->truncate();
+//        $this->connection->table('EvaluationPlan')->truncate();
+//        $this->connection->table('Participant')->truncate();
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('ClientParticipant')->truncate();
+//        $this->connection->table('Team')->truncate();
+//        $this->connection->table('TeamParticipant')->truncate();
+//        $this->connection->table('T_Member')->truncate();
+//        $this->connection->table('Personnel')->truncate();
+//        $this->connection->table('Consultant')->truncate();
+//        $this->connection->table('DedicatedMentor')->truncate();
+//        $this->connection->table('FormRecord')->truncate();
+//        $this->connection->table('StringFieldRecord')->truncate();
+//        $this->connection->table('IntegerFieldRecord')->truncate();
+//        $this->connection->table('TextAreaFieldRecord')->truncate();
+//        $this->connection->table('MentorEvaluationReport')->truncate();
     }
     
     protected function summary()
@@ -1070,5 +1076,12 @@ class EvaluationReportSummaryTest extends ManagerTestCase
             ],
         ];
         $this->seeJsonContains($response);
+    }
+    
+    public function test_summaryByFeedbackForm()
+    {
+        $this->summary();
+        $uri = $this->managerUri . "/download-evaluation-report-summary-xls-group-by-feedback-form?singleSheetMode=true";
+        $this->get($uri, $this->manager->token);
     }
 }

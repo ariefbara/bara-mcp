@@ -19,6 +19,7 @@ use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\DataFinder;
@@ -324,6 +325,16 @@ class Participant extends EntityContainEvents
     public function getProgramId(): string
     {
         return $this->program->getId();
+    }
+    
+    public function getListOfIndividualParticipantNameOrMemberNameOfTeamParticipantWithinInspection(
+            InspectedClientList $inspectedclientList): iterable
+    {
+        if (isset($this->teamParticipant)) {
+            return $this->teamParticipant->getMemberNameListCorrespondWithinInspection($inspectedclientList);
+        } else {
+            return [$this->getName()];
+        }
     }
 
 }

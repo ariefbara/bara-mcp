@@ -12,6 +12,7 @@ $router->group($managerAggregate, function () use ($router) {
     
     $router->get("/evaluation-report-summary", ["uses" => "EvaluationReportSummaryController@summary"]);
     $router->get("/download-evaluation-report-summary-xls", ["uses" => "EvaluationReportSummaryController@downloadSummaryXls"]);
+    $router->get("/download-evaluation-report-summary-xls-group-by-feedback-form", ["uses" => "EvaluationReportSummaryController@downloadSummaryXlsGroupByFeedbackForm"]);
     $router->get("/evaluation-report-transcript", ["uses" => "EvaluationReportSummaryController@transcript"]);
     $router->get("/download-evaluation-report-transcript-xls", ["uses" => "EvaluationReportSummaryController@downloadTranscriptXls"]);
     

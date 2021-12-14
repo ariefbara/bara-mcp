@@ -2,7 +2,6 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Auth\Firm\ClientRepository as InterfaceForAuthorization;
 use Query\Application\Service\Client\ClientRepository as InterfaceForClient;
@@ -14,8 +13,9 @@ use Query\Domain\Task\Dependency\Firm\ClientFilter;
 use Query\Domain\Task\Dependency\Firm\ClientRepository as ClientRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineClientRepository extends EntityRepository implements ClientRepository, InterfaceForDomainService, InterfaceForAuthorization,
+class DoctrineClientRepository extends DoctrineEntityRepository implements ClientRepository, InterfaceForDomainService, InterfaceForAuthorization,
         InterfaceForClient, ClientRepository2
 {
 
@@ -230,6 +230,11 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
         }
         
         return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
+    }
+
+    public function aClientOfId(string $id): Client
+    {
+        return $this->findOneByIdOrDie($id, 'client');
     }
 
 }

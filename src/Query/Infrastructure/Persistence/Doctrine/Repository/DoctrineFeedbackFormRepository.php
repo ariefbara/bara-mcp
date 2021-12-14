@@ -2,20 +2,15 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\{
-    EntityRepository,
-    NoResultException
-};
-use Query\{
-    Application\Service\Firm\FeedbackFormRepository,
-    Domain\Model\Firm\FeedbackForm
-};
-use Resources\{
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\FeedbackFormRepository;
+use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Task\Dependency\Firm\FeedbackFormRepository as FeedbackFormRepository2;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineFeedbackFormRepository extends EntityRepository implements FeedbackFormRepository
+class DoctrineFeedbackFormRepository extends DoctrineEntityRepository implements FeedbackFormRepository, FeedbackFormRepository2
 {
 
     public function all(string $firmId, int $page, int $pageSize)
@@ -54,6 +49,11 @@ class DoctrineFeedbackFormRepository extends EntityRepository implements Feedbac
             $errorDetail = "not found: feedback form not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function aFeedbackFormOfId(string $id): FeedbackForm
+    {
+        return $this->findOneByIdOrDie($id, 'feedback form');
     }
 
 }

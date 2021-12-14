@@ -13,4 +13,6 @@ interface ClientRepository
     public function allClientsInFirm(string $firmId, ClientFilter $filter);
 
     public function aClientInFirm(string $firmId, string $clientId): Client;
+    
+    public function aClientOfId(string $id): Client;
 }

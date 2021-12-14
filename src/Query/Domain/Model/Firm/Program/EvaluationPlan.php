@@ -3,9 +3,11 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\FeedbackForm\FeedbackFormReportSheet;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\EvaluationPlan\IContainSummaryTable;
-use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\SharedModel\ReportSpreadsheet\CustomFieldColumnsPayload;
+use Query\Domain\SharedModel\ReportSpreadsheet\ISheetContainer;
 
 class EvaluationPlan
 {
@@ -45,7 +47,7 @@ class EvaluationPlan
      * @var FeedbackForm
      */
     protected $reportForm;
-    
+
     /**
      * 
      * @var Mission|null
@@ -91,7 +93,7 @@ class EvaluationPlan
     {
         
     }
-    
+
 //    public function toArrayOfSummaryTableHeader(): array
 //    {
 //        return array_merge(['Participant', 'Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
@@ -106,11 +108,21 @@ class EvaluationPlan
 //    {
 //        return array_merge(['Mentor'], $this->reportForm->toArrayOfSummaryTableHeader());
 //    }
-    
+
     public function appendAllFieldsAsHeaderColumnOfSummaryTable(
             IContainSummaryTable $containSummaryTable, int $startColNumber): void
     {
         $this->reportForm->appendAllFieldsAsHeaderColumnOfSummaryTable($containSummaryTable, $startColNumber);
     }
-    
+
+    public function buildFeedbackFormReportSheet(ISheetContainer $reportSheet): FeedbackFormReportSheet
+    {
+        return $this->reportForm->buildFeedbackFormReportSheet($reportSheet);
+    }
+
+    public function feedbackFormEquals(FeedbackForm $feedbackForm): bool
+    {
+        return $this->reportForm === $feedbackForm;
+    }
+
 }

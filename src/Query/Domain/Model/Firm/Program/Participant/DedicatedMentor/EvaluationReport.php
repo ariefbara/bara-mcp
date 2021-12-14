@@ -4,9 +4,11 @@ namespace Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 
 use DateTimeImmutable;
 use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\EvaluationPlan;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
+use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
 use Query\Domain\Model\Shared\ContainFormRecordInterface;
 use Query\Domain\Model\Shared\Form\AttachmentField;
 use Query\Domain\Model\Shared\Form\IContainFieldRecord;
@@ -22,6 +24,8 @@ use Query\Domain\Model\Shared\FormRecord\MultiSelectFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\SingleSelectFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\StringFieldRecord;
 use Query\Domain\Model\Shared\FormRecord\TextAreaFieldRecord;
+use Query\Domain\SharedModel\ReportSpreadsheet\CustomFieldColumnsPayload;
+use Query\Domain\SharedModel\ReportSpreadsheet\ISheetContainer;
 
 class EvaluationReport implements IContainFieldRecord, ContainFormRecordInterface
 {
@@ -155,22 +159,22 @@ class EvaluationReport implements IContainFieldRecord, ContainFormRecordInterfac
     {
         return $this->formRecord->getUnremovedAttachmentFieldRecords();
     }
-    
+
     public function evaluationPlanEquals(EvaluationPlan $evaluationPlan): bool
     {
         return $this->evaluationPlan === $evaluationPlan;
     }
-        
+
     public function getListOfClientPlusTeamName(): array
     {
         return $this->dedicatedMentor->getListOfClientPlusTeamName();
     }
-    
+
     public function getMentorName(): string
     {
         return $this->dedicatedMentor->getMentorName();
     }
-    
+
     public function getMentorPlusTeamName(): string
     {
         return $this->dedicatedMentor->getMentorPlusTeamName();
@@ -180,7 +184,7 @@ class EvaluationReport implements IContainFieldRecord, ContainFormRecordInterfac
     {
         return $this->dedicatedMentor->correspondWithClient($client);
     }
-    
+
     public function getFileInfoListOfAttachmentFieldRecordCorrespondWith(AttachmentField $attachmentField): ?string
     {
         return $this->formRecord->getFileInfoListOfAttachmentFieldRecordCorrespondWith($attachmentField);
@@ -210,20 +214,43 @@ class EvaluationReport implements IContainFieldRecord, ContainFormRecordInterfac
     {
         return $this->formRecord->getTextAreaFieldRecordValueCorrespondWith($textAreaField);
     }
-    
+
     public function getParticipantName(): string
     {
         return $this->dedicatedMentor->getParticipantName();
     }
-    
+
     public function getParticipant(): Participant
     {
         return $this->dedicatedMentor->getParticipant();
     }
-    
+
     public function correspondWithParticipant(Participant $participant): bool
     {
         return $this->dedicatedMentor->correspondWithParticipant($participant);
+    }
+
+    public function getTeamName(): ?string
+    {
+        return $this->dedicatedMentor->getTeamName();
+    }
+
+    public function getListOfIndividualParticipantNameOrMemberNameOfTeamParticipantWithinInspection(
+            InspectedClientList $inspectedClientList): iterable
+    {
+        return $this->dedicatedMentor->getListOfIndividualParticipantNameOrMemberNameOfTeamParticipantWithinInspection($inspectedClientList);
+    }
+
+    public function buildFeedbackFormReportSheetAndIncludeReport(ISheetContainer $reportSheet): FeedbackForm\FeedbackFormReportSheet
+    {
+        $feedbackFormReportSheet = $this->evaluationPlan->buildFeedbackFormReportSheet($reportSheet);
+        $feedbackFormReportSheet->includeReport($this);
+        return $feedbackFormReportSheet;
+    }
+
+    public function isIncludeableInFeedbackForm(FeedbackForm $feedbackForm): bool
+    {
+        return $this->evaluationPlan->feedbackFormEquals($feedbackForm);
     }
 
 }

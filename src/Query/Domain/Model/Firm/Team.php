@@ -41,7 +41,7 @@ class Team
      * @var DateTimeImmutable
      */
     protected $createdTime;
-    
+
     /**
      * 
      * @var ArrayCollection
@@ -70,13 +70,14 @@ class Team
 
     protected function __construct()
     {
+        
     }
 
     public function getCreatedTimeString(): string
     {
         return $this->createdTime->format("Y-m-d H:i:s");
     }
-    
+
     /**
      * 
      * @return Member[]
@@ -87,7 +88,7 @@ class Team
                 ->andWhere(Criteria::expr()->eq('active', true));
         return $this->members->matching($criteria)->getIterator();
     }
-    
+
     public function hasActiveMemberCorrespondWithClient(Client $client): bool
     {
         $p = function (Member $member) use ($client) {
@@ -96,12 +97,24 @@ class Team
         return !empty($this->members->filter($p)->count());
         return false;
     }
-    
+
     public function getListOfActiveMemberPlusTeamName(): array
     {
         $result = [];
         foreach ($this->iterateActiveMember() as $member) {
             $result[] = "{$member->getClientName()} (of team: $this->name)";
+        }
+        return $result;
+    }
+
+    public function getListOfActiveMemberWithinInspection(Member\InspectedClientList $inspectedClientList): iterable
+    {
+        $result = [];
+        $p = function (Member $member) use ($inspectedClientList) {
+            return $member->isActiveMemberWithinInspection($inspectedClientList);
+        };
+        foreach ($this->members->filter($p)->getIterator() as $member) {
+            $result[] = $member->getClientName();
         }
         return $result;
     }

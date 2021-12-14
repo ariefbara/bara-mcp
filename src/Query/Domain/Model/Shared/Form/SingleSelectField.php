@@ -3,11 +3,13 @@
 namespace Query\Domain\Model\Shared\Form;
 
 use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\IField;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Query\Domain\Model\Shared\Form;
 use Query\Domain\Model\Shared\Form\SelectField\Option;
 use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheet\IField as IField2;
 
-class SingleSelectField implements IField
+class SingleSelectField implements IField, IField2
 {
 
     /**
@@ -112,6 +114,11 @@ class SingleSelectField implements IField
     public function getLabel(): string
     {
         return $this->getName();
+    }
+
+    public function getCorrespondingValueFromEvaluationReport(EvaluationReport $report)
+    {
+        return $report->getSingleSelectFieldRecordSelectedOptionNameCorrespondWith($this);
     }
 
 }

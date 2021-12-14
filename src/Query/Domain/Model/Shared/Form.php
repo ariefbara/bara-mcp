@@ -6,6 +6,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm\Program\EvaluationPlan\IContainSummaryTable;
 use Query\Domain\Model\Firm\Program\EvaluationPlan\SummaryTable\HeaderColumn;
+use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheet\IField;
+use Resources\Exception\RegularException;
 
 class Form
 {
@@ -147,7 +149,7 @@ class Form
      */
     protected $sortedFields;
 
-    protected function iterateAllFieldsOrderedByPosition()
+    public function iterateAllFieldsOrderedByPosition()
     {
         if (!isset($this->sortedFields)) {
             $this->sortedFields = new ArrayCollection();
@@ -183,6 +185,31 @@ class Form
             $containSummaryTable->addHeaderColumn(new HeaderColumn($startColNumber, $field));
             $startColNumber++;
         }
+    }
+    
+    public function getFieldByIdOrDie(string $fieldId): ?IField
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('id', $fieldId));
+        if (!empty($field = $this->integerFields->matching($criteria)->first())) {
+            return  $field;
+        }
+        if (!empty($field = $this->stringFields->matching($criteria)->first())) {
+            return  $field;
+        }
+        if (!empty($field = $this->textAreaFields->matching($criteria)->first())) {
+            return  $field;
+        }
+        if (!empty($field = $this->attachmentFields->matching($criteria)->first())) {
+            return  $field;
+        }
+        if (!empty($field = $this->singleSelectFields->matching($criteria)->first())) {
+            return  $field;
+        }
+        if (!empty($field = $this->multiSelectFields->matching($criteria)->first())) {
+            return  $field;
+        }
+        throw RegularException::notFound('not found: field not found');
     }
 
 }

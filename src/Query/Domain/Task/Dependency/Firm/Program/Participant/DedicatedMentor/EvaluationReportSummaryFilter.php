@@ -9,31 +9,32 @@ class EvaluationReportSummaryFilter
      * 
      * @var array
      */
-    protected $evaluationPlanIdList;
+    protected $evaluationPlanIdList = [];
 
     /**
      * 
      * @var array
      */
-    protected $participantIdList;
+    protected $participantIdList = [];
 
     /**
      * 
      * @var array
      */
-    protected $mentorIdList;
+    protected $mentorIdList = [];
 
     /**
      * 
      * @var array
      */
-    protected $clientIdList;
-    
+    protected $clientIdList = [];
+
     /**
      * 
      * @var array
      */
-    protected $personnelIdList;
+    protected $personnelIdList = [];
+    protected $feedbackFormIdList = [];
 
     public function getEvaluationPlanIdList(): array
     {
@@ -54,13 +55,17 @@ class EvaluationReportSummaryFilter
     {
         return $this->clientIdList;
     }
-    
+
     public function getPersonnelIdList(): array
     {
         return $this->personnelIdList;
     }
 
-    
+    public function getFeedbackFormIdList()
+    {
+        return $this->feedbackFormIdList;
+    }
+
     public function __construct()
     {
         $this->evaluationPlanIdList = [];
@@ -93,10 +98,16 @@ class EvaluationReportSummaryFilter
         $this->clientIdList[] = $clientId;
         return $this;
     }
-    
+
     public function addPersonnelId(string $personnelId): self
     {
         $this->personnelIdList[] = $personnelId;
+        return $this;
+    }
+
+    public function addFeedbackFormId(string $feedbackFormId): self
+    {
+        $this->feedbackFormIdList[] = $feedbackFormId;
         return $this;
     }
 

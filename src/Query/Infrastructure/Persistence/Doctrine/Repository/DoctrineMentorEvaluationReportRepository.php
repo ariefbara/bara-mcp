@@ -298,6 +298,11 @@ _STATEMENT;
                     ))
                     ->setParameter('clientIdList', $clientIdList);
         }
+        if (!empty($feedbackFormIdList = $filter->getFeedbackFormIdList())) {
+            $qb->leftJoin('evaluationPlan.reportForm', 'feedbackForm')
+                    ->andWhere($qb->expr()->in('feedbackForm.id', ':feedbackFormIdList'))
+                    ->setParameter('feedbackFormIdList', $feedbackFormIdList);
+        }
         return $qb->getQuery()->getResult();
     }
 

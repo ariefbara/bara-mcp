@@ -19,6 +19,7 @@ use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team;
+use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
 use Query\Domain\Model\Firm\Team\Member\TeamMemberActivityLog;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\ClientFinder;
@@ -438,6 +439,11 @@ class Member extends EntityContainEvents
             throw RegularException::forbidden('forbidden: unmanaged program participation');
         }
         $teamParticipant->executeTask($task);
+    }
+    
+    public function isActiveMemberWithinInspection(InspectedClientList $inspectedClientList): bool
+    {
+        return $this->active && $inspectedClientList->isInspectingClient($this->client);
     }
 
 }
