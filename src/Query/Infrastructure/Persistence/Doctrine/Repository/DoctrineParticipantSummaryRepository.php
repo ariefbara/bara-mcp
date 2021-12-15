@@ -63,7 +63,7 @@ LEFT JOIN (
     LEFT OUTER JOIN (
         SELECT CM.Participant_id, ___a.totalCompletedMission, ___a.lastCompletedTime, CM.Mission_id
         FROM (
-            SELECT Participant_id, COUNT(id) totalCompletedMission, MAX(completedTime) lastCompletedTime
+            SELECT Participant_id, COUNT(DISTINCT Mission_id) totalCompletedMission, MAX(completedTime) lastCompletedTime
             FROM CompletedMission
             GROUP BY Participant_id
         )___a

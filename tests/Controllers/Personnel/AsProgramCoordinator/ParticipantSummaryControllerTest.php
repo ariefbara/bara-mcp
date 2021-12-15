@@ -168,6 +168,8 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->completedMission_01->completedTime = (new DateTime("-12 hours"))->format("Y-m-d H:i:s");
         $this->completedMission_02 = new RecordOfCompletedMission($this->participant_client, $this->missionTwo, "02");
         $this->completedMission_02->completedTime = (new DateTime("-24 hours"))->format("Y-m-d H:i:s");
+        $this->completedMission_03 = new RecordOfCompletedMission($this->participant_client, $this->missionTwo, "03");
+        $this->completedMission_03->completedTime = (new DateTime("-25 hours"))->format("Y-m-d H:i:s");
         $this->completedMission_20 = new RecordOfCompletedMission($this->participantTwo_clientinactive, $this->mission, "20");
         $this->completedMission_20->completedTime = (new DateTime("-24 hours"))->format("Y-m-d H:i:s");
         $this->completedMission_30 = new RecordOfCompletedMission($this->participantThree_user, $this->mission, "30");
@@ -177,6 +179,7 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table("CompletedMission")->insert($this->completedMission_00->toArrayForDbEntry());
         $this->connection->table("CompletedMission")->insert($this->completedMission_01->toArrayForDbEntry());
         $this->connection->table("CompletedMission")->insert($this->completedMission_02->toArrayForDbEntry());
+        $this->connection->table("CompletedMission")->insert($this->completedMission_03->toArrayForDbEntry());
         $this->connection->table("CompletedMission")->insert($this->completedMission_20->toArrayForDbEntry());
         $this->connection->table("CompletedMission")->insert($this->completedMission_30->toArrayForDbEntry());
         $this->connection->table("CompletedMission")->insert($this->completedMission_32->toArrayForDbEntry());
@@ -386,7 +389,6 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
                 ->seeJsonContains($participantThreeResponse)
                 ->seeStatusCode(200);
     }
-    
     public function test_showAll_paginationSet()
     {
         $response = [
