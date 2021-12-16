@@ -3,8 +3,11 @@
 namespace Tests\Controllers\Personnel;
 
 use DateTimeImmutable;
+use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfMentoringSlot;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMentoringRequest;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfFeedbackForm;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
@@ -15,7 +18,9 @@ class MentoringSlotControllerTest extends MentorTestCase
     protected $consultationSetupTwo;
     protected $mentoringSlotOne;
     protected $mentoringSlotTwo;
-    
+    protected $mentoringSlot_12_m1;
+    protected $mentoringRequestOne;
+
     protected $createMultiSlotRequest;
     protected $updateRequest;
 
@@ -26,6 +31,8 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
         
         $this->showAllUri = $this->personnelUri . "/mentoring-slots";
         
@@ -43,6 +50,16 @@ class MentoringSlotControllerTest extends MentorTestCase
                 
         $this->mentoringSlotOne = new RecordOfMentoringSlot($this->mentorOne, $this->consultationSetupOne, '1');
         $this->mentoringSlotTwo = new RecordOfMentoringSlot($this->mentorTwo, $this->consultationSetupTwo, '2');
+        $this->mentoringSlot_12_m1 = new RecordOfMentoringSlot($this->mentorOne, $this->consultationSetupOne, '12');
+        $this->mentoringSlot_12_m1->startTime = new \DateTimeImmutable('+48 hours');
+        $this->mentoringSlot_12_m1->endTime = new \DateTimeImmutable('+49 hours');
+        
+        $participantOne = new RecordOfParticipant($programOne, '1');
+        
+        $this->mentoringRequestOne = new RecordOfMentoringRequest(
+                $participantOne, $this->mentorOne, $this->consultationSetupOne, '1');
+        $this->mentoringRequestOne->startTime = (new \DateTimeImmutable('+48 hours'));
+        $this->mentoringRequestOne->endTime = (new \DateTimeImmutable('+49 hours'));
         
         $this->createMultiSlotRequest = [
             'consultationSetupId' => $this->consultationSetupOne->id,
@@ -80,6 +97,8 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
     }
     
     protected function createMultiSlot()
@@ -145,6 +164,73 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->createMultiSlot();
         $this->seeStatusCode(403);
     }
+    public function test_createMultiSlot_inConflictWithExistingRequest_Approved_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->createMultiSlot();
+        $this->seeStatusCode(403);
+    }
+    public function test_createMultiSlot_inConflictWithExistingRequest_Accepted_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->createMultiSlot();
+        $this->seeStatusCode(403);
+    }
+    public function test_createMultiSlot_inConflictWithExistingRequest_offered_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::OFFERED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->createMultiSlot();
+        $this->seeStatusCode(403);
+    }
+    public function test_createMultiSlot_inConflictWithExistingRequest_requested_200()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::REQUESTED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->createMultiSlot();
+        $this->seeStatusCode(200);
+    }
+    public function test_createMultiSlot_inConflictWithExistingRequest_cancelled_200()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::CANCELLED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->createMultiSlot();
+        $this->seeStatusCode(200);
+    }
+    public function test_createMultiSlot_inConflictWithExistingRequest_rejected_200()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::REJECTED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->createMultiSlot();
+        $this->seeStatusCode(200);
+    }
+    public function test_createMultiSlot_inConflictWithMentoringSlot_403()
+    {
+        $this->mentoringSlotOne->insert($this->connection);
+        $this->createMultiSlot();
+        $this->seeStatusCode(403);
+    }
+    public function test_createMultiSlot_inConflictWithInactiveMentoringSlot_200()
+    {
+        $this->mentoringSlotOne->cancelled = true;
+        $this->mentoringSlotOne->insert($this->connection);
+        $this->createMultiSlot();
+        $this->seeStatusCode(200);
+    }
     
     protected function update()
     {
@@ -209,6 +295,73 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->mentoringSlotOne->endTime = new DateTimeImmutable('-24 hours');
         $this->update();
         $this->seeStatusCode(403);
+    }
+    public function test_update_inConflictWithExistingRequest_Approved_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->update();
+        $this->seeStatusCode(403);
+    }
+    public function test_update_inConflictWithExistingRequest_Accepted_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->update();
+        $this->seeStatusCode(403);
+    }
+    public function test_update_inConflictWithExistingRequest_offered_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::OFFERED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->update();
+        $this->seeStatusCode(403);
+    }
+    public function test_update_inConflictWithExistingRequest_requested_200()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::REQUESTED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->update();
+        $this->seeStatusCode(200);
+    }
+    public function test_update_inConflictWithExistingRequest_cancelled_200()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::CANCELLED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->update();
+        $this->seeStatusCode(200);
+    }
+    public function test_update_inConflictWithExistingRequest_rejected_200()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::REJECTED;
+        $this->mentoringRequestOne->participant->insert($this->connection);
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->update();
+        $this->seeStatusCode(200);
+    }
+    public function test_update_inConflictWithMentoringSlot_403()
+    {
+        $this->mentoringSlot_12_m1->insert($this->connection);
+        $this->update();
+        $this->seeStatusCode(403);
+    }
+    public function test_update_inConflictWithInactiveMentoringSlot_200()
+    {
+        $this->mentoringSlot_12_m1->cancelled = true;
+        $this->mentoringSlot_12_m1->insert($this->connection);
+        $this->update();
+        $this->seeStatusCode(200);
     }
     
     protected function cancel()

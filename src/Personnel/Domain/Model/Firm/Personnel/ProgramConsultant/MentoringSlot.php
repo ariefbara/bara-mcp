@@ -65,6 +65,7 @@ class MentoringSlot implements ContainSchedule
         if (!$this->schedule->isUpcoming()) {
             throw RegularException::badRequest('bad request: mentoring slot must be an upcoming schedule');
         }
+        $this->mentor->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule($this);
     }
 
     protected function setCapacity(int $capacity): void

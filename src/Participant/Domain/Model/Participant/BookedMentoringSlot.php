@@ -51,6 +51,7 @@ class BookedMentoringSlot implements IContainParticipantReport, ContainSchedule
         $this->cancelled = false;
         $this->mentoringSlot = $mentoringSlot;
         $this->mentoring = new Mentoring($id);
+        $this->participant->assertNoConflictWithScheduledOrPotentialSchedule($this);
     }
 
     public function isActive(): bool

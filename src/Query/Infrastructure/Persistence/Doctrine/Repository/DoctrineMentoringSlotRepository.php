@@ -79,6 +79,7 @@ class DoctrineMentoringSlotRepository extends EntityRepository implements Mentor
                 ->leftJoin('mentoringSlot.mentor', 'mentor')
                 ->leftJoin('mentor.personnel', 'personnel')
                 ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->addOrderBy('mentoringSlot.schedule.startTime', 'ASC')
                 ->setParameters($params);
         
         $this->applyFilter($qb, $filter);

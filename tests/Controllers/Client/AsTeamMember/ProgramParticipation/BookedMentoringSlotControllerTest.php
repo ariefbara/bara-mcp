@@ -3,9 +3,11 @@
 namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use DateTimeImmutable;
+use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 use Tests\Controllers\Client\AsTeamMember\ProgramParticipationTestCase;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\MentoringSlot\RecordOfBookedMentoringSlot;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfMentoringSlot;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMentoringRequest;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
@@ -29,6 +31,8 @@ class BookedMentoringSlotControllerTest extends ProgramParticipationTestCase
     
     protected $bookedMentoringSlotOne;
     protected $bookedMentoringSlotTwo;
+    
+    protected $mentoringRequestOne;
     
     protected $participantReportOne;
     protected $stringFieldRecordOne;
@@ -65,6 +69,7 @@ class BookedMentoringSlotControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ParticipantReport')->truncate();
         
         $this->connection->table('BookedMentoringSlot')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
         
         $participant = $this->programParticipation->participant;
         $program = $participant->program;
@@ -91,6 +96,8 @@ class BookedMentoringSlotControllerTest extends ProgramParticipationTestCase
         
         $this->bookedMentoringSlotOne = new RecordOfBookedMentoringSlot($this->mentoringSlotOne, $mentoringOne, $participant);
         $this->bookedMentoringSlotTwo = new RecordOfBookedMentoringSlot($this->mentoringSlotTwo, $mentoringTwo, $participant);
+        
+        $this->mentoringRequestOne = new RecordOfMentoringRequest($participant, $consultantOne, $consultationSetupOne, '1');
         
         $formRecordOne = new RecordOfFormRecord($formOne, '1');
         $this->stringFieldRecordOne = new RecordOfStringFieldRecord($formRecordOne, $this->stringFieldOne, '1');
@@ -142,6 +149,8 @@ class BookedMentoringSlotControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ParticipantReport')->truncate();
         
         $this->connection->table('BookedMentoringSlot')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
+
     }
     
     protected function book()
@@ -238,6 +247,71 @@ class BookedMentoringSlotControllerTest extends ProgramParticipationTestCase
         
         $this->book();
         $this->seeStatusCode(403);
+    }
+    public function test_book_inConflictWithExistingRequest_requested_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::REQUESTED;
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_inConflictWithExistingRequest_approved_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_inConflictWithExistingRequest_accepted_403()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_inConflictWithExistingRequest_cancelled_201()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::CANCELLED;
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(201);
+    }
+    public function test_book_inConflictWithExistingRequest_rejected_201()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::REJECTED;
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(201);
+    }
+    public function test_book_inConflictWithExistingRequest_offered_201()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::OFFERED;
+        $this->mentoringRequestOne->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(201);
+    }
+    public function test_book_inConflictWithExistingBookedMentoring_403()
+    {
+        $this->bookedMentoringSlotTwo->mentoringSlot->insert($this->connection);
+        $this->bookedMentoringSlotTwo->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(403);
+    }
+    public function test_book_inConflictWithExistingBookedMentoring_cancelledBooking_201()
+    {
+        $this->bookedMentoringSlotTwo->cancelled = true;
+        $this->bookedMentoringSlotTwo->mentoringSlot->insert($this->connection);
+        $this->bookedMentoringSlotTwo->insert($this->connection);
+        
+        $this->book();
+        $this->seeStatusCode(201);
     }
     
     protected function cancel()

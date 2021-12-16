@@ -51,6 +51,12 @@ class BookedMentoringSlotTest extends TestBase
         $this->assertFalse($bookedMentoringSlot->cancelled);
         $this->assertInstanceOf(Mentoring::class, $bookedMentoringSlot->mentoring);
     }
+    public function test_construct_assertNoConflictWithParticipantOtherScheduleOrPotentialSchedule()
+    {
+        $this->participant->expects($this->once())
+                ->method('assertNoConflictWithScheduledOrPotentialSchedule');
+        $this->construct();
+    }
     
     protected function isActive()
     {

@@ -91,6 +91,12 @@ class MentoringSlotTest extends TestBase
             $this->construct();
         }, 'Bad Request', 'bad request: mentoring slot capacity is mandatory');
     }
+    public function test_construct_assertScheduleNotInConflictWithMentorsOtherScheduleOrPotentialSchedule()
+    {
+        $this->mentor->expects($this->once())
+                ->method('assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule');
+        $this->construct();
+    }
     
     protected function isUpcomingSchedule()
     {
