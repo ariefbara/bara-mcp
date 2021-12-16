@@ -382,7 +382,7 @@ class MentoringContollerTest extends PersonnelTestCase
         $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
         $this->seeJsonDoesntContains($declaredMentoringTwoResponse);
     }
-    public function test_showAll_fromFilter_200()
+    public function test_showAll_fromFilter_200_includeOngoingMentoring()
     {
         $this->mentoringSlot_11_c1->startTime = (new DateTimeImmutable('+300 hours'));
         $this->mentoringSlot_11_c1->endTime = (new DateTimeImmutable('+302 hours'));
@@ -391,7 +391,7 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->declaredMentoring_11_c1->startTime = (new DateTimeImmutable('+400 hours'))->format('Y-m-d H:i:s');
         $this->declaredMentoring_11_c1->endTime = (new DateTimeImmutable('+401 hours'))->format('Y-m-d H:i:s');
         
-        $from = (new \DateTimeImmutable('+250 hours'))->format('Y-m-d H:i:s');
+        $from = (new \DateTimeImmutable('+301 hours'))->format('Y-m-d H:i:s');
         $this->showAllUri .= "?from={$from}";
         
         $this->showAll();

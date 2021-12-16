@@ -110,7 +110,7 @@ class MentoringFilter
             return null;
         }
         $parameters['from'] = $this->from->format('Y-m-d H:i:s');
-        return "AND $tableName.startTime > :from";
+        return "AND $tableName.endTime >= :from";
     }
 
     public function getSqlToClause(string $tableName, array &$parameters): ?string
