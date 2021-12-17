@@ -3,10 +3,10 @@
 namespace Query\Domain\Model\Shared\FormRecord;
 
 use Query\Domain\Model\Shared\Form\IntegerField;
-use Query\Domain\Model\Shared\Form\StringField;
 use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IFieldRecord;
 
-class IntegerFieldRecord
+class IntegerFieldRecord implements IFieldRecord
 {
 
     /**
@@ -71,6 +71,11 @@ class IntegerFieldRecord
     public function isActiveFieldRecordCorrespondWith(IntegerField $integerField): bool
     {
         return !$this->removed && $this->integerField === $integerField;
+    }
+
+    public function correspondWithFieldName(string $fieldName): bool
+    {
+        return $this->integerField->getName() === $fieldName;
     }
 
 }

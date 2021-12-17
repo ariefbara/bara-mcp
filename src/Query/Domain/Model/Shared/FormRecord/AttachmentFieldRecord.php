@@ -8,8 +8,9 @@ use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Shared\Form\AttachmentField;
 use Query\Domain\Model\Shared\FormRecord;
 use Query\Domain\Model\Shared\FormRecord\AttachmentFieldRecord\AttachedFile;
+use Query\Domain\Model\Shared\IFieldRecord;
 
-class AttachmentFieldRecord
+class AttachmentFieldRecord implements IFieldRecord
 {
 
     /**
@@ -94,6 +95,16 @@ class AttachmentFieldRecord
                     "\r\n$storageFolder{$attachedFile->getFileLocation()}";
         }
         return $result;
+    }
+
+    public function correspondWithFieldName(string $fieldName): bool
+    {
+        return $this->attachmentField->getName() === $fieldName;
+    }
+
+    public function getValue()
+    {
+        return $this->getStringOfAttachedFileLocationList();
     }
 
 }

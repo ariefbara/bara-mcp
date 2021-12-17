@@ -4,10 +4,10 @@ namespace Query\Domain\SharedModel\ReportSpreadsheet;
 
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
-use Query\Domain\SharedModel\ReportSpreadsheet\TeamMemberReportSheet\IndividualColumn;
+use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheet\IField;
 use Query\Domain\SharedModel\ReportSpreadsheet\TeamMemberReportSheet\TeamColumn;
 
-class TeamMemberReportSheet implements ISheetContainer
+class TeamMemberReportSheet implements ISheetContainer, IReportSheet
 {
 
     /**
@@ -63,7 +63,7 @@ class TeamMemberReportSheet implements ISheetContainer
         $this->reportSheet->addHeaderColumnLabel($colNumber, $label);
     }
 
-    public function addFieldColumn(ReportSheet\IField $field, ?int $colNumber): void
+    public function addFieldColumn(IField $field, ?int $colNumber): void
     {
         if (is_null($colNumber)) {
             $colNumber = 1 + $this->reportSheet->getColumnCount() + intval(isset($this->teamColumn)) + intval(isset($this->individualColNumber));
@@ -71,7 +71,7 @@ class TeamMemberReportSheet implements ISheetContainer
         $this->reportSheet->addFieldColumn($field, $colNumber);
     }
 
-    public function includeReport(EvaluationReport $report): void
+    public function includeReport(EvaluationReport $report): bool
     {
         if (isset($this->individualColNumber)) {
             $individualNames = $report->getListOfIndividualParticipantNameOrMemberNameOfTeamParticipantWithinInspection(
@@ -89,6 +89,7 @@ class TeamMemberReportSheet implements ISheetContainer
             }
             $this->reportSheet->includeReport($report);
         }
+        return true;
     }
 
     public function insertIntoCell(int $colNumber, $value): void

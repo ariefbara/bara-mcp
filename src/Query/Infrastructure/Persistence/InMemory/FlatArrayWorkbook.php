@@ -8,7 +8,7 @@ use Query\Domain\SharedModel\IWorkbook;
 
 class FlatArrayWorkbook implements IWorkbook
 {
-    
+
     /**
      * 
      * @var FlatArraySpreadsheet[]
@@ -29,11 +29,15 @@ class FlatArrayWorkbook implements IWorkbook
 
     public function writeToXlsSpreadsheet(Spreadsheet $spreadsheet, ?bool $singleSheetMode = false)
     {
+        if (empty($this->spreadsheets)) {
+            $spreadsheet->createSheet();
+        }
         if ($singleSheetMode) {
             $worksheet = $spreadsheet->createSheet();
             $reportTable = [];
             foreach ($this->spreadsheets as $reportSpreadsheet) {
-                $reportTable = array_merge($reportTable, [['']], [[$reportSpreadsheet->getLabel()]], $reportSpreadsheet->getTableSheet());
+                $reportTable = array_merge($reportTable, [['']], [[$reportSpreadsheet->getLabel()]],
+                        $reportSpreadsheet->getTableSheet());
             }
             $worksheet->fromArray($reportTable);
         } else {

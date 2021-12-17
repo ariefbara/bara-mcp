@@ -53,6 +53,12 @@ class ReportSheetPayload
      */
     protected $submitTimeColNumber;
 
+    /**
+     * 
+     * @var FieldNameColumnPayload[]
+     */
+    protected $fieldNameColumnPayloadList = [];
+
     public function isEvaluationInspected(): ?bool
     {
         return $this->evaluationInspected;
@@ -93,6 +99,15 @@ class ReportSheetPayload
         return $this->submitTimeColNumber;
     }
 
+    /**
+     * 
+     * @return FieldNameColumnPayload[]
+     */
+    public function getFieldNameColumnPayloadList(): array
+    {
+        return $this->fieldNameColumnPayloadList;
+    }
+
     public function __construct()
     {
         
@@ -123,6 +138,12 @@ class ReportSheetPayload
     {
         $this->submitTimeInspected = true;
         $this->submitTimeColNumber = $colNumber;
+        return $this;
+    }
+
+    public function addFieldNameColumnPayload(ReportSheet\FieldNameColumnPayload $fieldNameColumnPayload): self
+    {
+        $this->fieldNameColumnPayloadList[] = $fieldNameColumnPayload;
         return $this;
     }
 

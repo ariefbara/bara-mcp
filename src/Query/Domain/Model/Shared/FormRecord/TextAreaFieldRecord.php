@@ -2,12 +2,11 @@
 
 namespace Query\Domain\Model\Shared\FormRecord;
 
-use Query\Domain\Model\Shared\ {
-    Form\TextAreaField,
-    FormRecord
-};
+use Query\Domain\Model\Shared\Form\TextAreaField;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IFieldRecord;
 
-class TextAreaFieldRecord
+class TextAreaFieldRecord implements IFieldRecord
 {
 
     /**
@@ -72,6 +71,11 @@ class TextAreaFieldRecord
     public function isActiveFieldRecordCorrespondWith(TextAreaField $textAreaField): bool
     {
         return !$this->removed && $this->textAreaField === $textAreaField;
+    }
+
+    public function correspondWithFieldName(string $fieldName): bool
+    {
+        return $this->textAreaField->getName() === $fieldName;
     }
 
 }

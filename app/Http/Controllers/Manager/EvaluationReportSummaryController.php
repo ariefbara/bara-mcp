@@ -7,15 +7,19 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\FirmReportSpreadsheetGroupByFeedbackForm;
+use Query\Domain\Model\Firm\FirmSingleTableReportSpreadsheet;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Query\Domain\SharedModel\ISpreadsheet;
 use Query\Domain\SharedModel\ReportSpreadsheet\CustomFieldColumnsPayload;
+use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheet\FieldNameColumnPayload;
 use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheetPayload;
 use Query\Domain\SharedModel\ReportSpreadsheet\TeamMemberReportSheetPayload;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
 use Query\Domain\Task\InFirm\BuildFirmClientTranscriptWorkbookGroupByFeedbackFormTask;
 use Query\Domain\Task\InFirm\BuildReportGroupByFeedbackFormPayload;
 use Query\Domain\Task\InFirm\BuildReportSpreadsheetGroupByFeedbackFormTask;
+use Query\Domain\Task\InFirm\BuildSingleTableReportSpreadsheetPayload;
+use Query\Domain\Task\InFirm\BuildSingleTableReportSpreadsheetTask;
 use Query\Domain\Task\InFirm\ClientEvaluationReportSummaryResult;
 use Query\Domain\Task\InFirm\ClientEvaluationReportTranscriptResult;
 use Query\Domain\Task\InFirm\FeedbackFormReportSheetRequest;
@@ -91,6 +95,25 @@ class EvaluationReportSummaryController extends ManagerBaseController
         return $this->sendXlsDownloadResponse($writer, 'evaluation-report-summary.xls');
     }
     
+    public function downloadSingleTableSummaryXls()
+    {
+        $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
+        $flatArraySpreadsheet = new FlatArraySpreadsheet();
+        $reportSpreadsheet = $this->buildAndExecuteSingleTableReportSpreadsheetTask($flatArraySpreadsheet);
+        
+        $task = new WriteEvaluationReportToSpreadsheetTask(
+                $evaluationReportRepository, $reportSpreadsheet, $this->getEvaluationReportSummaryFilter());
+        $this->executeFirmQueryTask($task);
+        
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->removeSheetByIndex($spreadsheet->getActiveSheetIndex());
+        $flatArraySpreadsheet->writeToXlsSpreadsheet($spreadsheet);
+        
+        $writer = new Xlsx($spreadsheet);
+
+        return $this->sendXlsDownloadResponse($writer, 'evaluation-report-summary.xls');
+    }
+    
     public function downloadTranscriptXlsGroupByFeedbackForm()
     {
         $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
@@ -127,6 +150,22 @@ class EvaluationReportSummaryController extends ManagerBaseController
         $payload = $this->getBuildReportGroupByFeedbackFormPayload();
         $task = new BuildReportSpreadsheetGroupByFeedbackFormTask(
                 $feedbackFormRepository, $clientRepository, $spreadsheet, $payload);
+        $this->executeFirmQueryTask($task);
+        return $task->result;
+    }
+    
+    protected function buildAndExecuteSingleTableReportSpreadsheetTask(ISpreadsheet $spreadsheet): FirmSingleTableReportSpreadsheet
+    {
+        $payload = new BuildSingleTableReportSpreadsheetPayload($this->getTeamMemberReportSheetPayload());
+        $clientIdList = $this->request->query('clientIdList');
+        if (!empty($clientIdList)) {
+            foreach ($clientIdList as $clientId) {
+                $payload->inspectClient($this->stripTagsVariable($clientId));
+            }
+        }
+        
+        $clientRepository = $this->em->getRepository(Client::class);
+        $task = new BuildSingleTableReportSpreadsheetTask($clientRepository, $spreadsheet, $payload);
         $this->executeFirmQueryTask($task);
         return $task->result;
     }
@@ -178,6 +217,44 @@ class EvaluationReportSummaryController extends ManagerBaseController
             }
         }
         return $payload;
+    }
+    
+    protected function getTeamMemberReportSheetPayload(): TeamMemberReportSheetPayload
+    {
+        $evaluationColNumber = $this->request->query('evaluationColNumber');
+        $mentorColNumber = $this->request->query('mentorColNumber');
+        $submitTimeColNumber = $this->request->query('submitTimeColNumber');
+        $teamColNumber = $this->request->query('teamColNumber');
+        $individualColNumber = $this->request->query('individualColNumber');
+        $fieldNameColumnList = $this->request->query('fieldNameColumnList');
+        
+        $reportSheetPayload = new ReportSheetPayload();
+        if (isset($evaluationColNumber)) {
+            $reportSheetPayload->inspectEvaluation($this->integerOfVariable($evaluationColNumber));
+        }
+        if (isset($mentorColNumber)) {
+            $reportSheetPayload->inspectEvaluator($this->integerOfVariable($mentorColNumber));
+        }
+        if (isset($submitTimeColNumber)) {
+            $reportSheetPayload->inspectSubmitTime($this->integerOfVariable($submitTimeColNumber));
+        }
+        if (isset($fieldNameColumnList)) {
+            foreach ($fieldNameColumnList as $fieldNameColumn) {
+                $fieldName = $this->stripTagsVariable($fieldNameColumn['name']);
+                $colNumber = $this->stripTagsVariable($fieldNameColumn['colNumber']);
+                $fieldNameColumnPayload = new FieldNameColumnPayload($fieldName, $colNumber);
+                $reportSheetPayload->addFieldNameColumnPayload($fieldNameColumnPayload);
+            }
+        }
+        
+        $teamMemberReportSheetPayload = new TeamMemberReportSheetPayload($reportSheetPayload);
+        if (isset($teamColNumber)) {
+            $teamMemberReportSheetPayload->inspectTeam($this->integerOfVariable($teamColNumber));
+        }
+        if (isset($individualColNumber)) {
+            $teamMemberReportSheetPayload->inspectIndividual($this->integerOfVariable($individualColNumber));
+        }
+        return $teamMemberReportSheetPayload;
     }
 
     protected function generateFirmEvaluationReportSummary(ClientEvaluationReportSummaryResult $result): void

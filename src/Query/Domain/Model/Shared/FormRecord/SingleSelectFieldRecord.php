@@ -2,13 +2,12 @@
 
 namespace Query\Domain\Model\Shared\FormRecord;
 
-use Query\Domain\Model\Shared\ {
-    Form\SelectField\Option,
-    Form\SingleSelectField,
-    FormRecord
-};
+use Query\Domain\Model\Shared\Form\SelectField\Option;
+use Query\Domain\Model\Shared\Form\SingleSelectField;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IFieldRecord;
 
-class SingleSelectFieldRecord
+class SingleSelectFieldRecord implements IFieldRecord
 {
 
     /**
@@ -78,6 +77,16 @@ class SingleSelectFieldRecord
     public function getSelectedOptionName(): ?string
     {
         return isset($this->option) ? $this->option->getName() : null;
+    }
+
+    public function correspondWithFieldName(string $fieldName): bool
+    {
+        return $this->singleSelectField->getName() === $fieldName;
+    }
+
+    public function getValue()
+    {
+        return $this->getSelectedOptionName();
     }
 
 }

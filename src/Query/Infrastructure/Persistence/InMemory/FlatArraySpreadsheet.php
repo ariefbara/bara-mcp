@@ -54,6 +54,9 @@ class FlatArraySpreadsheet implements ISpreadsheet
 
     public function writeToXlsSpreadsheet(Spreadsheet $spreadsheet, ?bool $singleSheetMode = false)
     {
+        if (empty($this->sheets)) {
+            $spreadsheet->createSheet();
+        }
         if ($singleSheetMode) {
             $worksheet = $spreadsheet->createSheet();
             $reportTable = [];

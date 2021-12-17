@@ -2,12 +2,11 @@
 
 namespace Query\Domain\Model\Shared\FormRecord;
 
-use Query\Domain\Model\Shared\ {
-    Form\StringField,
-    FormRecord
-};
+use Query\Domain\Model\Shared\Form\StringField;
+use Query\Domain\Model\Shared\FormRecord;
+use Query\Domain\Model\Shared\IFieldRecord;
 
-class StringFieldRecord
+class StringFieldRecord implements IFieldRecord
 {
 
     /**
@@ -72,6 +71,11 @@ class StringFieldRecord
     public function isActiveFieldRecordCorrespondWith(StringField $stringField): bool
     {
         return !$this->removed && $this->stringField === $stringField;
+    }
+
+    public function correspondWithFieldName(string $fieldName): bool
+    {
+        return $this->stringField->getName() === $fieldName;
     }
 
 }

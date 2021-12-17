@@ -314,5 +314,22 @@ class FormRecord
         $fieldRecord = $this->multiSelectFieldRecords->filter($p)->first();
         return empty($fieldRecord)? null : $fieldRecord->getStringOfSelectedOptionNameList();
     }
+    
+    public function getRecordValueOfFieldWithName(string $fieldName)
+    {
+        $p = function(IFieldRecord $fieldRecord) use ($fieldName) {
+            return $fieldRecord->correspondWithFieldName($fieldName);
+        };
+        $fieldRecord = $this->integerFieldRecords->filter($p)->first() ?:
+                $this->stringFieldRecords->filter($p)->first() ?:
+                $this->textAreaFieldRecords->filter($p)->first() ?:
+                $this->singleSelectFieldRecords->filter($p)->first() ?:
+                $this->multiSelectFieldRecords->filter($p)->first() ?:
+                $this->attachmentFieldRecords->filter($p)->first();
+        
+        if (!empty($fieldRecord)) {
+            return $fieldRecord->getValue();
+        }
+    }
 
 }

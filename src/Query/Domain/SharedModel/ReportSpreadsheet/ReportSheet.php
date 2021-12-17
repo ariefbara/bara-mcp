@@ -59,6 +59,13 @@ class ReportSheet implements ISheetContainer
         }
     }
     
+    protected function setFieldNameColumns(ReportSheetPayload $payload): void
+    {
+        foreach ($payload->getFieldNameColumnPayloadList() as $fieldNameColumnPayload) {
+            $this->reportColumns[] = new ReportSheet\FieldNameColumn($this, $fieldNameColumnPayload);
+        }
+    }
+    
     public function getColumnCount(): int
     {
         return count($this->reportColumns);
@@ -72,6 +79,7 @@ class ReportSheet implements ISheetContainer
         $this->setEvaluatorColumn($payload);
         $this->setEvaluateeColumn($payload);
         $this->setSubmitTimeColumn($payload);
+        $this->setFieldNameColumns($payload);
     }
 
     public function addHeaderColumnLabel(int $colNumber, string $label): void
@@ -87,12 +95,13 @@ class ReportSheet implements ISheetContainer
         $this->reportColumns[] = new FieldColumn($this, $colNumber, $field);
     }
 
-    public function includeReport(EvaluationReport $report): void
+    public function includeReport(EvaluationReport $report): bool
     {
         foreach ($this->reportColumns as $reportColumn) {
             $reportColumn->insertCorrespondingReportValue($report);
         }
         $this->nextEntryRowNumber++;
+        return true;
     }
 
     public function insertIntoCell(int $colNumber, $value): void

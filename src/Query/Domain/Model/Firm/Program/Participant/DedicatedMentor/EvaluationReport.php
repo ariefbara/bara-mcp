@@ -252,5 +252,10 @@ class EvaluationReport implements IContainFieldRecord, ContainFormRecordInterfac
     {
         return $this->evaluationPlan->feedbackFormEquals($feedbackForm);
     }
+    
+    public function getRecordValueOfFieldWithName(string $fieldName)
+    {
+        return $this->formRecord->getRecordValueOfFieldWithName($fieldName);
+    }
 
 }

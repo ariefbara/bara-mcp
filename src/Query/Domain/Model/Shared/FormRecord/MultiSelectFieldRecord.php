@@ -7,8 +7,9 @@ use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Shared\Form\MultiSelectField;
 use Query\Domain\Model\Shared\FormRecord;
 use Query\Domain\Model\Shared\FormRecord\MultiSelectFieldRecord\SelectedOption;
+use Query\Domain\Model\Shared\IFieldRecord;
 
-class MultiSelectFieldRecord
+class MultiSelectFieldRecord implements IFieldRecord
 {
 
     /**
@@ -91,6 +92,16 @@ class MultiSelectFieldRecord
             $result .= empty($result)? $selectedOption->getOptionName() : "\r\n{$selectedOption->getOptionName()}";
         }
         return $result;
+    }
+
+    public function correspondWithFieldName(string $fieldName): bool
+    {
+        return $this->multiSelectField->getName() === $fieldName;
+    }
+
+    public function getValue()
+    {
+        return $this->getStringOfSelectedOptionNameList();
     }
 
 }
