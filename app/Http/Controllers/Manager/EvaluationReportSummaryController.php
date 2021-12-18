@@ -6,6 +6,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\FeedbackForm;
+use Query\Domain\Model\Firm\FirmClientSingleTableTranscriptSpreadsheet;
 use Query\Domain\Model\Firm\FirmReportSpreadsheetGroupByFeedbackForm;
 use Query\Domain\Model\Firm\FirmSingleTableReportSpreadsheet;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
@@ -15,6 +16,7 @@ use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheet\FieldNameColumnPayloa
 use Query\Domain\SharedModel\ReportSpreadsheet\ReportSheetPayload;
 use Query\Domain\SharedModel\ReportSpreadsheet\TeamMemberReportSheetPayload;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\DedicatedMentor\EvaluationReportSummaryFilter;
+use Query\Domain\Task\InFirm\BuildClientSingleTableTranscriptSpreadsheetTask;
 use Query\Domain\Task\InFirm\BuildFirmClientTranscriptWorkbookGroupByFeedbackFormTask;
 use Query\Domain\Task\InFirm\BuildReportGroupByFeedbackFormPayload;
 use Query\Domain\Task\InFirm\BuildReportSpreadsheetGroupByFeedbackFormTask;
@@ -133,6 +135,26 @@ class EvaluationReportSummaryController extends ManagerBaseController
         return $this->sendXlsDownloadResponse($writer, 'client-transcripts.xls');
     }
     
+    public function downloadSingleTableTranscriptXls()
+    {
+        $evaluationReportRepository = $this->em->getRepository(EvaluationReport::class);
+        $flatArraySpreadsheet = new FlatArraySpreadsheet();
+        $reportSpreadsheet = $this->buildAndExecuteSingleTableTrasncriptTask($flatArraySpreadsheet);
+        
+        $task = new WriteEvaluationReportToSpreadsheetTask(
+                $evaluationReportRepository, $reportSpreadsheet, $this->getEvaluationReportSummaryFilter());
+        $this->executeFirmQueryTask($task);
+        
+        $singleSheetMode = $this->filterBooleanOfQueryRequest('singleSheetMode');
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->removeSheetByIndex($spreadsheet->getActiveSheetIndex());
+        $flatArraySpreadsheet->writeToXlsSpreadsheet($spreadsheet, $singleSheetMode);
+        
+        $writer = new Xlsx($spreadsheet);
+
+        return $this->sendXlsDownloadResponse($writer, 'client-transcript.xls');
+    }
+    
     protected function buildAndExecuteFirmClientTranscriptWorkbookGroupByFeedbackForm($workbook)
     {
         $clientRepository = $this->em->getRepository(Client::class);
@@ -166,6 +188,21 @@ class EvaluationReportSummaryController extends ManagerBaseController
         
         $clientRepository = $this->em->getRepository(Client::class);
         $task = new BuildSingleTableReportSpreadsheetTask($clientRepository, $spreadsheet, $payload);
+        $this->executeFirmQueryTask($task);
+        return $task->result;
+    }
+    
+    protected function buildAndExecuteSingleTableTrasncriptTask(ISpreadsheet $spreadsheet): FirmClientSingleTableTranscriptSpreadsheet
+    {
+        $payload = new BuildSingleTableReportSpreadsheetPayload($this->getTeamMemberReportSheetPayload());
+        $clientIdList = $this->request->query('clientIdList');
+        if (!empty($clientIdList)) {
+            foreach ($clientIdList as $clientId) {
+                $payload->inspectClient($this->stripTagsVariable($clientId));
+            }
+        }
+        $clientRepository = $this->em->getRepository(Client::class);
+        $task = new BuildClientSingleTableTranscriptSpreadsheetTask($clientRepository, $payload, $spreadsheet);
         $this->executeFirmQueryTask($task);
         return $task->result;
     }

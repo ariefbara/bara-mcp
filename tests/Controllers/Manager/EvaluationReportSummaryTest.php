@@ -1080,11 +1080,4 @@ class EvaluationReportSummaryTest extends ManagerTestCase
         $this->seeJsonContains($response);
     }
     
-    public function test_removeMe()
-    {
-        $this->summary();
-        $uri = $this->managerUri . "/download-single-table-evaluation-report-summary-xls?individualColNumber=1&teamColNumber=2&evaluationColNumber=3&mentorColNumber=4&submitTimeColNumber=5&fieldNameColumnList[0][name]=Nilai&fieldNameColumnList[0][colNumber]=6";
-        $this->get($uri, $this->manager->token);
-    }
-    
 }

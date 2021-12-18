@@ -17,6 +17,7 @@ $router->group($managerAggregate, function () use ($router) {
     $router->get("/evaluation-report-transcript", ["uses" => "EvaluationReportSummaryController@transcript"]);
     $router->get("/download-evaluation-report-transcript-xls", ["uses" => "EvaluationReportSummaryController@downloadTranscriptXls"]);
     $router->get("/download-evaluation-report-transcript-xls-group-by-feedback-form", ["uses" => "EvaluationReportSummaryController@downloadTranscriptXlsGroupByFeedbackForm"]);
+    $router->get("/download-single-table-evaluation-report-transcript-xls", ["uses" => "EvaluationReportSummaryController@downloadSingleTableTranscriptXls"]);
     
     $router->post("/clients", ["uses" => "ClientController@add"]);
     $router->patch("/clients/{id}/activate", ["uses" => "ClientController@activate"]);
