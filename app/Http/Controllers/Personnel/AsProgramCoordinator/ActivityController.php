@@ -32,20 +32,9 @@ class ActivityController extends AsProgramCoordinatorBaseController
             }
         }
         
-        $activities = $this->buildViewService()
+        $result = $this->buildViewService()
                 ->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activityFilter);
         
-        $result = [];
-        $result["total"] = count($activities);
-        foreach ($activities as $activity) {
-            $result["list"][] = [
-                "id" => $activity->getId(),
-                "name" => $activity->getName(),
-                "startTime" => $activity->getStartTimeString(),
-                "endTime" => $activity->getEndTimeString(),
-                "cancelled" => $activity->isCancelled(),
-            ];
-        }
         return $this->listQueryResponse($result);
     }
     public function show($programId, $activityId)
