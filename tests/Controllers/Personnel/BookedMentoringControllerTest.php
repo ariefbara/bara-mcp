@@ -34,8 +34,18 @@ class BookedMentoringControllerTest extends MentorTestCase
         parent::setUp();
         $this->connection->table('Form')->truncate();
         $this->connection->table('StringField')->truncate();
+        $this->connection->table('IntegerField')->truncate();
+        $this->connection->table('TextAreaField')->truncate();
+        $this->connection->table('AttachmentField')->truncate();
+        $this->connection->table('SingleSelectField')->truncate();
+        $this->connection->table('MultiSelectField')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('IntegerFieldRecord')->truncate();
+        $this->connection->table('TextAreaFieldRecord')->truncate();
+        $this->connection->table('AttachmentFieldRecord')->truncate();
+        $this->connection->table('SingleSelectFieldRecord')->truncate();
+        $this->connection->table('MultiSelectFieldRecord')->truncate();
         
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -89,6 +99,11 @@ class BookedMentoringControllerTest extends MentorTestCase
         $this->connection->table('StringField')->truncate();
         $this->connection->table('FormRecord')->truncate();
         $this->connection->table('StringFieldRecord')->truncate();
+        $this->connection->table('IntegerFieldRecord')->truncate();
+        $this->connection->table('TextAreaFieldRecord')->truncate();
+        $this->connection->table('AttachmentFieldRecord')->truncate();
+        $this->connection->table('SingleSelectFieldRecord')->truncate();
+        $this->connection->table('MultiSelectFieldRecord')->truncate();
         
         $this->connection->table('FeedbackForm')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -234,7 +249,29 @@ class BookedMentoringControllerTest extends MentorTestCase
                 'consultationSetup' => [
                     'id' => $this->mentoringSlotOne->consultationSetup->id,
                     'name' => $this->mentoringSlotOne->consultationSetup->name,
-                    'mentorFeedbackForm' => null
+                    'mentorFeedbackForm' => [
+                        'id' => $this->mentoringSlotOne->consultationSetup->consultantFeedbackForm->id,
+                        'name' => $this->mentoringSlotOne->consultationSetup->consultantFeedbackForm->form->name,
+                        'description' => $this->mentoringSlotOne->consultationSetup->consultantFeedbackForm->form->description,
+                        'stringFields' => [
+                            [
+                                "id" => $this->stringField->id,
+                                "name" => $this->stringField->name,
+                                "description" => $this->stringField->description,
+                                "position" => $this->stringField->position,
+                                "mandatory" => $this->stringField->mandatory,
+                                "defaultValue" => $this->stringField->defaultValue,
+                                "minValue" => $this->stringField->minValue,
+                                "maxValue" => $this->stringField->maxValue,
+                                "placeholder" => $this->stringField->placeholder,
+                            ]
+                        ],
+                        'integerFields' => [],
+                        'textAreaFields' => [],
+                        'attachmentFields' => [],
+                        'singleSelectFields' => [],
+                        'multiSelectFields' => [],
+                    ],
                 ],
             ],
         ];
