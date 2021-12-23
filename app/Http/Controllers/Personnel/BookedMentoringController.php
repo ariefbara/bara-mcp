@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Personnel;
 
 use App\Http\Controllers\FormRecordDataBuilder;
 use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
 use App\Http\Controllers\Personnel\ProgramConsultation\ProgramConsultationBaseController;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot\BookedMentoringSlot as BookedMentoringSlot2;
 use Personnel\Domain\Service\PersonnelFileInfoFinder;
 use Personnel\Domain\Task\Mentor\CancelBookedMentoringSlotTask;
-use Personnel\Domain\Task\Mentor\SubmitMentoringReportPayload;
 use Personnel\Domain\Task\Mentor\SubmitBookedMentoringSlotReportTask;
+use Personnel\Domain\Task\Mentor\SubmitMentoringReportPayload;
+use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlot;
 use Query\Domain\SharedModel\Mentoring\MentorReport;
 use Query\Domain\SharedModel\Mentoring\ParticipantReport;
@@ -64,6 +66,20 @@ class BookedMentoringController extends ProgramConsultationBaseController
             ],
             'mentorReport' => $this->arrayDataOfMentorReport($bookedMentoringSlot->getMentorReport()),
             'participantReport' => $this->arrayDataOfParticipantReport($bookedMentoringSlot->getParticipantReport()),
+            'mentoringSlot' => [
+                'id' => $bookedMentoringSlot->getMentoringSlot()->getId(),
+                'cancelled' => $bookedMentoringSlot->getMentoringSlot()->getCancelled(),
+                'capacity' => $bookedMentoringSlot->getMentoringSlot()->getCapacity(),
+                'startTime' => $bookedMentoringSlot->getMentoringSlot()->getStartTimeString(),
+                'endTime' => $bookedMentoringSlot->getMentoringSlot()->getEndTimeString(),
+                'mediaType' => $bookedMentoringSlot->getMentoringSlot()->getMediaType(),
+                'location' => $bookedMentoringSlot->getMentoringSlot()->getLocation(),
+                'consultationSetup' => [
+                    'id' => $bookedMentoringSlot->getMentoringSlot()->getConsultationSetup()->getId(),
+                    'name' => $bookedMentoringSlot->getMentoringSlot()->getConsultationSetup()->getName(),
+                    'mentorFeedbackForm' => $this->arrayDataOfFeedbackForm($bookedMentoringSlot->getMentoringSlot()->getConsultationSetup()->getConsultantFeedbackForm()),
+                ],
+            ],
         ];
     }
     protected function arrayDataOfMentorReport(?MentorReport $mentorReport): ?array
@@ -85,5 +101,14 @@ class BookedMentoringController extends ProgramConsultationBaseController
         $participantReportData['id'] = $participantReport->getId();
         $participantReportData['mentorRating'] = $participantReport->getMentorRating();
         return $participantReportData;
+    }
+    protected function arrayDataOfFeedbackForm(?FeedbackForm $feedbackForm): ?array
+    {
+        if (empty($feedbackForm)) {
+            return null;
+        }
+        $data = (new FormToArrayDataConverter())->convert($feedbackForm);
+        $data['id'] = $feedbackForm->getId();
+        return $data;
     }
 }

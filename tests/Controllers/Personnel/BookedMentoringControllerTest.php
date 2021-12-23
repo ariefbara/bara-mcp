@@ -23,6 +23,7 @@ class BookedMentoringControllerTest extends MentorTestCase
 {
     protected $clientParticipantOne;
     protected $stringField;
+    protected $mentoringSlotOne;
     protected $bookedMentoringSlotOne;
     protected $mentorReport;
     protected $stringFieldRecord;
@@ -53,10 +54,10 @@ class BookedMentoringControllerTest extends MentorTestCase
         $this->stringField = new RecordOfStringField($formOne, '1');
         $consultantFeedbackFormOne = new RecordOfFeedbackForm($firm, $formOne);
         $consultationSetup = new RecordOfConsultationSetup($program, null, $consultantFeedbackFormOne, '1');
-        $mentoringSlotOne = new RecordOfMentoringSlot($this->mentorOne, $consultationSetup, '1');
+        $this->mentoringSlotOne = new RecordOfMentoringSlot($this->mentorOne, $consultationSetup, '1');
         $mentoringOne = new RecordOfMentoring('1');
         $participantOne = new RecordOfParticipant($program, '1');
-        $this->bookedMentoringSlotOne = new RecordOfBookedMentoringSlot($mentoringSlotOne, $mentoringOne, $participantOne);
+        $this->bookedMentoringSlotOne = new RecordOfBookedMentoringSlot($this->mentoringSlotOne, $mentoringOne, $participantOne);
         
         $formRecordOne = new RecordOfFormRecord($formOne, '1');
         $this->mentorReport = new RecordOfMentorReport($mentoringOne, $formRecordOne, '1');
@@ -222,6 +223,20 @@ class BookedMentoringControllerTest extends MentorTestCase
                 'multiSelectFieldRecords' => [],
             ],
             'participantReport' => null,
+            'mentoringSlot' => [
+                'id' => $this->mentoringSlotOne->id,
+                'cancelled' => $this->mentoringSlotOne->cancelled,
+                'capacity' => $this->mentoringSlotOne->capacity,
+                'startTime' => $this->mentoringSlotOne->startTime->format('Y-m-d H:i:s'),
+                'endTime' => $this->mentoringSlotOne->endTime->format('Y-m-d H:i:s'),
+                'mediaType' => $this->mentoringSlotOne->mediaType,
+                'location' => $this->mentoringSlotOne->location,
+                'consultationSetup' => [
+                    'id' => $this->mentoringSlotOne->consultationSetup->id,
+                    'name' => $this->mentoringSlotOne->consultationSetup->name,
+                    'mentorFeedbackForm' => null
+                ],
+            ],
         ];
         $this->seeJsonContains($response);
     }
