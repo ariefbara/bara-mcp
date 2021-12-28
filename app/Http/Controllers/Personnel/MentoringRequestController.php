@@ -72,8 +72,8 @@ class MentoringRequestController extends PersonnelBaseController
             'participant' => [
                 'id' => $mentoringRequest->getParticipant()->getId(),
                 'client' => $this->arrayDataOfClient($mentoringRequest->getParticipant()->getClientParticipant()),
-                'team' => $this->arrayDataOfClient($mentoringRequest->getParticipant()->getTeamParticipant()),
-                'user' => $this->arrayDataOfClient($mentoringRequest->getParticipant()->getUserParticipant()),
+                'team' => $this->arrayDataOfTeam($mentoringRequest->getParticipant()->getTeamParticipant()),
+                'user' => $this->arrayDataOfUser($mentoringRequest->getParticipant()->getUserParticipant()),
             ],
             'consultationSetup' => [
                 'id' => $mentoringRequest->getConsultationSetup()->getId(),
