@@ -121,7 +121,6 @@ class NegotiatedMentoringControllerTest extends PersonnelTestCase
     }
     public function test_submit_200()
     {
-$this->disableExceptionHandling();
         $this->submitReport();
         $this->seeStatusCode(200);
         
