@@ -7,7 +7,7 @@ use App\Http\Controllers\FormRecordDataBuilder;
 use App\Http\Controllers\FormRecordToArrayDataConverter;
 use App\Http\Controllers\FormToArrayDataConverter;
 use Participant\Domain\Model\Participant\MentoringRequest\NegotiatedMentoring as NegotiatedMentoring2;
-use Participant\Domain\Service\ClientFileInfoFinder;
+use Participant\Domain\Service\TeamFileInfoFinder;
 use Participant\Domain\Task\Participant\SubmitMentoringReportPayload;
 use Participant\Domain\Task\Participant\SubmitNegotiatedMentoringReportTask;
 use Query\Domain\Model\Firm\FeedbackForm;
@@ -24,7 +24,7 @@ class NegotiatedMentoringController extends AsTeamMemberBaseController
         
         $mentorRating = $this->integerOfInputRequest('mentorRating');
         $fileInfoRepository = $this->em->getRepository(FileInfo::class);
-        $fileInfoFinder = new ClientFileInfoFinder($fileInfoRepository, $this->firmId(), $this->clientId());
+        $fileInfoFinder = new TeamFileInfoFinder($fileInfoRepository, $teamId);
         $formRecordData = (new FormRecordDataBuilder($this->request, $fileInfoFinder))->build();
         
         $payload = new SubmitMentoringReportPayload($id, $mentorRating, $formRecordData);
