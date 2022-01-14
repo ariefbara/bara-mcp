@@ -19,7 +19,7 @@
             <join-column name="FirmFileInfo_idOfLogo" referenced-column-name="id" />
         </one-to-one>
         
-        <field name="displaySetting" type="string" length="255" nullable="true"/>
+        <field name="displaySetting" type="string" length="2048" nullable="true"/>
         
         <field name="suspended" type="boolean" />
         

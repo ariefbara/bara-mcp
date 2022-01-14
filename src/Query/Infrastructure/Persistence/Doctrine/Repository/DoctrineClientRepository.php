@@ -210,6 +210,7 @@ class DoctrineClientRepository extends DoctrineEntityRepository implements Clien
         $qb->select('client')
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->orderBy('client.id', 'ASC')
                 ->setParameters($params);
         
         if (!empty($filter->getName())) {

@@ -346,7 +346,6 @@ class ProgramParticipantControllerTest extends EnhanceManagerTestCase
         $this->clientParticipant_11_p1c1->insert($this->connection);
         $this->clientParticipant_21_p2c1->insert($this->connection);
         $this->teamParticipant_12_p1t2->insert($this->connection);
-        
         $this->get($this->showAllUri, $this->managerOne->token);
     }
     public function test_showAll_200()
