@@ -95,6 +95,7 @@ class ProgramController extends ManagerBaseController
                 "id" => $program->getId(),
                 "name" => $program->getName(),
                 "published" => $program->isPublished(),
+                "participantTypes" => $program->getParticipantTypeValues(),
             ];
         }
         return $this->listQueryResponse($result);
