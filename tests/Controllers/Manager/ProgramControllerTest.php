@@ -201,11 +201,13 @@ class ProgramControllerTest extends ProgramTestCase
                     "id" => $this->program->id,
                     "name" => $this->program->name,
                     "published" => $this->program->published,
+                    "participantTypes" => explode(',', $this->program->participantTypes),
                 ],
                 [
                     "id" => $this->programOne->id,
                     "name" => $this->programOne->name,
                     "published" => $this->programOne->published,
+                    "participantTypes" => explode(',', $this->programOne->participantTypes),
                 ],
             ],
         ];
