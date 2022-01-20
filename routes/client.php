@@ -18,6 +18,7 @@ $router->group($clientAggregate, function () use ($router) {
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     $router->get('/firm/info', ['uses' => "FirmController@show"]);
     $router->get('/firm/bio-search-filter', ['uses' => "FirmController@showBioSearchFilter"]);
+    $router->get('/schedules', ['uses' => "ScheduleController@showAll"]);
     
     $router->get('/active-individual-and-team-program-participation', ['uses' => "ActiveIndividualAndTeamProgramParticipationController@showAll"]);
     
