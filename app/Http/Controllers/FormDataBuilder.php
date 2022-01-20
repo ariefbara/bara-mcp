@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Firm\Domain\Model\Shared\ {
-    Form\AttachmentFieldData,
-    Form\FieldData,
-    Form\IntegerFieldData,
-    Form\MultiSelectFieldData,
-    Form\SelectField\OptionData,
-    Form\SelectFieldData,
-    Form\SingleSelectFieldData,
-    Form\StringFieldData,
-    Form\TextAreaFieldData,
-    FormData
-};
+use Firm\Domain\Model\Shared\Form\AttachmentFieldData;
+use Firm\Domain\Model\Shared\Form\FieldData;
+use Firm\Domain\Model\Shared\Form\IntegerFieldData;
+use Firm\Domain\Model\Shared\Form\MultiSelectFieldData;
+use Firm\Domain\Model\Shared\Form\SectionData;
+use Firm\Domain\Model\Shared\Form\SelectField\OptionData;
+use Firm\Domain\Model\Shared\Form\SelectFieldData;
+use Firm\Domain\Model\Shared\Form\SingleSelectFieldData;
+use Firm\Domain\Model\Shared\Form\StringFieldData;
+use Firm\Domain\Model\Shared\Form\TextAreaFieldData;
+use Firm\Domain\Model\Shared\FormData;
 use Illuminate\Http\Request;
 
 class FormDataBuilder
@@ -50,6 +49,7 @@ class FormDataBuilder
         $this->attachAttachmentFieldDataToFormData($formData);
         $this->attachSingleSelectFieldDataToFormData($formData);
         $this->attachMultiSelectFieldDataToFormData($formData);
+        $this->attachSectionDataToFormData($formData);
         return $formData;
     }
     protected function attachStringFieldDataToFormData(FormData $formData): void
@@ -179,6 +179,21 @@ class FormDataBuilder
             $optionId = (isset($optionRequest['id']))? htmlentities($optionRequest['id'], ENT_QUOTES, 'UTF-8'): null;
             
             $selectFieldData->pushOptionData($optionData, $optionId);
+        }
+    }
+    protected function attachSectionDataToFormData(FormData $formData): void
+    {
+        if (!$this->request->exists('sections')) {
+            return;
+        }
+        foreach ($this->request->input('sections') as $sectionRequest) {
+            $name = $this->stripTagsVariable($sectionRequest['name']);
+            $position = $this->stripTagsVariable($sectionRequest['position']);
+            
+            $sectionData = new SectionData($name, $position);
+            $sectionId = (isset($sectionRequest['id']))? htmlentities($sectionRequest['id'], ENT_QUOTES, 'UTF-8'): null;
+            
+            $formData->pushSectionData($sectionData, $sectionId);
         }
     }
 }

@@ -32,6 +32,10 @@
                       target-entity="Query\Domain\Model\Shared\Form\MultiSelectField"
                       mapped-by="form"
         />
+        <one-to-many  field="sections" 
+                      target-entity="Query\Domain\Model\Shared\Form\Section"
+                      mapped-by="form"
+        />
                 
     </entity>
 </doctrine-mapping>

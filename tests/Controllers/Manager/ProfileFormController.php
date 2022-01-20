@@ -19,6 +19,7 @@ class ProfileFormController extends ManagerTestCase
         "singleSelectFields" => [],
         "multiSelectFields" => [],
         "attachmentFields" => [],
+        "sections" => [],
     ];
     
     protected function setUp(): void
@@ -104,6 +105,7 @@ class ProfileFormController extends ManagerTestCase
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         
         $uri = $this->profileFormUri . "/{$this->profileFormOne->id}";

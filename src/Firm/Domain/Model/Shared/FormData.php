@@ -2,14 +2,13 @@
 
 namespace Firm\Domain\Model\Shared;
 
-use Firm\Domain\Model\Shared\Form\ {
-    AttachmentFieldData,
-    IntegerFieldData,
-    MultiSelectFieldData,
-    SingleSelectFieldData,
-    StringFieldData,
-    TextAreaFieldData
-};
+use Firm\Domain\Model\Shared\Form\AttachmentFieldData;
+use Firm\Domain\Model\Shared\Form\IntegerFieldData;
+use Firm\Domain\Model\Shared\Form\MultiSelectFieldData;
+use Firm\Domain\Model\Shared\Form\SectionData;
+use Firm\Domain\Model\Shared\Form\SingleSelectFieldData;
+use Firm\Domain\Model\Shared\Form\StringFieldData;
+use Firm\Domain\Model\Shared\Form\TextAreaFieldData;
 use Resources\Domain\Data\DataCollection;
 
 class FormData
@@ -53,6 +52,12 @@ class FormData
      */
     protected $multiSelectFieldDataCollection;
 
+    /**
+     *
+     * @var DataCollection
+     */
+    protected $sectionDataCollection;
+
     function getName()
     {
         return $this->name;
@@ -93,6 +98,11 @@ class FormData
         return $this->multiSelectFieldDataCollection;
     }
 
+    public function getSectionDataCollection(): DataCollection
+    {
+        return $this->sectionDataCollection;
+    }
+
     function __construct($name, $description)
     {
         $this->name = $name;
@@ -104,12 +114,14 @@ class FormData
         $this->singleSelectFieldDataCollection = new DataCollection();
         $this->multiSelectFieldDataCollection = new DataCollection();
         $this->attachmentFieldDataCollection = new DataCollection();
+        $this->sectionDataCollection = new DataCollection();
     }
 
     public function pushStringFieldData(StringFieldData $stringFieldData, ?string $stringFieldId): void
     {
         $this->stringFieldDataCollection->push($stringFieldData, $stringFieldId);
     }
+
     public function pullStringFieldDataOfId(string $stringFieldId): ?StringFieldData
     {
         return $this->stringFieldDataCollection->pull($stringFieldId);
@@ -119,6 +131,7 @@ class FormData
     {
         $this->integerFieldDataCollection->push($integerFieldData, $integerFieldId);
     }
+
     public function pullIntegerFieldDataOfId(string $integerFieldId): ?IntegerFieldData
     {
         return $this->integerFieldDataCollection->pull($integerFieldId);
@@ -128,6 +141,7 @@ class FormData
     {
         $this->textAreaFieldDataCollection->push($textAreaFieldData, $textAreaFieldId);
     }
+
     public function pullTextAreaFieldDataOfId(string $textAreaFieldId): ?TextAreaFieldData
     {
         return $this->textAreaFieldDataCollection->pull($textAreaFieldId);
@@ -137,6 +151,7 @@ class FormData
     {
         $this->singleSelectFieldDataCollection->push($singleSelectFieldData, $singleSelectFieldId);
     }
+
     public function pullSingleSelectFieldDataOfId(string $singleSelectFieldId): ?SingleSelectFieldData
     {
         return $this->singleSelectFieldDataCollection->pull($singleSelectFieldId);
@@ -146,6 +161,7 @@ class FormData
     {
         $this->multiSelectFieldDataCollection->push($multiSelectFieldData, $multiSelectFieldId);
     }
+
     public function pullMultiSelectFieldDataOfId(string $multiSelectFieldId): ?MultiSelectFieldData
     {
         return $this->multiSelectFieldDataCollection->pull($multiSelectFieldId);
@@ -155,9 +171,18 @@ class FormData
     {
         $this->attachmentFieldDataCollection->push($attachmentFieldData, $attachmentFieldId);
     }
+
     public function pullAttachmentFieldDataOfId(string $attachmentFieldId): ?AttachmentFieldData
     {
         return $this->attachmentFieldDataCollection->pull($attachmentFieldId);
     }
 
+    public function pushSectionData(SectionData $sectionData, ?string $sectionId): void
+    {
+        $this->sectionDataCollection->push($sectionData, $sectionId);
+    }
+    public function pullSectionDataOfId(string $sectionId): ?SectionData
+    {
+        return $this->sectionDataCollection->pull($sectionId);
+    }
 }

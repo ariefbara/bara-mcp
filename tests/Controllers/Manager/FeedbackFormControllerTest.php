@@ -41,6 +41,7 @@ $this->disableExceptionHandling();
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         $this->post($this->feedbackFormUri, $this->feedbackFormInput, $this->manager->token)
                 ->seeStatusCode(201)
@@ -81,6 +82,7 @@ $this->disableExceptionHandling();
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         $uri = $this->feedbackFormUri . "/{$this->feedbackForm->id}";
         $this->patch($uri, $this->feedbackFormInput, $this->manager->token)
@@ -140,6 +142,7 @@ $this->disableExceptionHandling();
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         $uri = $this->feedbackFormUri . "/{$this->feedbackForm->id}";
         $this->get($uri, $this->manager->token)

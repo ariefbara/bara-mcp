@@ -2,14 +2,13 @@
 
 namespace Query\Domain\Model\Shared;
 
-use Query\Domain\Model\Shared\Form\ {
-    AttachmentField,
-    IntegerField,
-    MultiSelectField,
-    SingleSelectField,
-    StringField,
-    TextAreaField
-};
+use Query\Domain\Model\Shared\Form\AttachmentField;
+use Query\Domain\Model\Shared\Form\IntegerField;
+use Query\Domain\Model\Shared\Form\MultiSelectField;
+use Query\Domain\Model\Shared\Form\Section;
+use Query\Domain\Model\Shared\Form\SingleSelectField;
+use Query\Domain\Model\Shared\Form\StringField;
+use Query\Domain\Model\Shared\Form\TextAreaField;
 
 interface ContainFormInterface
 {
@@ -53,4 +52,11 @@ interface ContainFormInterface
      * @return MultiSelectField[]
      */
     public function getUnremovedMultiSelectFields();
+
+    /**
+     * 
+     * @return Section[]
+     */
+    public function getUnremovedSections();
+    
 }

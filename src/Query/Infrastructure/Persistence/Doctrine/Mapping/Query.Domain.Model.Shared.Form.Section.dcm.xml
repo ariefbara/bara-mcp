@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Shared\Form\Section" 
+            table="Section"
+    >
+        <many-to-one  field="form" 
+                      target-entity="Query\Domain\Model\Shared\Form"
+                      inversed-by="sections"
+        >
+            <join-column name="Form_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="name" type="string" length="255" nullable="true"/>
+        <field name="position" type="string" length="255" nullable="true"/>
+        <field name="removed" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

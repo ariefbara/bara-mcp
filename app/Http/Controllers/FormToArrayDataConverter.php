@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Query\Domain\Model\Shared\{
-    ContainFormInterface,
-    Form\AttachmentField,
-    Form\IntegerField,
-    Form\MultiSelectField,
-    Form\SelectField\Option,
-    Form\SingleSelectField,
-    Form\StringField,
-    Form\TextAreaField
-};
+use Query\Domain\Model\Shared\ContainFormInterface;
+use Query\Domain\Model\Shared\Form\AttachmentField;
+use Query\Domain\Model\Shared\Form\IntegerField;
+use Query\Domain\Model\Shared\Form\MultiSelectField;
+use Query\Domain\Model\Shared\Form\Section;
+use Query\Domain\Model\Shared\Form\SelectField\Option;
+use Query\Domain\Model\Shared\Form\SingleSelectField;
+use Query\Domain\Model\Shared\Form\StringField;
+use Query\Domain\Model\Shared\Form\TextAreaField;
 
 class FormToArrayDataConverter
 {
@@ -32,6 +31,7 @@ class FormToArrayDataConverter
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
 
         foreach ($form->getUnremovedStringFields() as $stringField) {
@@ -51,6 +51,9 @@ class FormToArrayDataConverter
         }
         foreach ($form->getUnremovedAttachmentFields() as $attachmentField) {
             $data['attachmentFields'][] = $this->arrayDataOfAttachmentField($attachmentField);
+        }
+        foreach ($form->getUnremovedSections() as $section) {
+            $data['sections'][] = $this->arrayDataOfSection($section);
         }
 
         return $data;
@@ -156,6 +159,15 @@ class FormToArrayDataConverter
             "name" => $option->getName(),
             "description" => $option->getDescription(),
             "position" => $option->getPosition(),
+        ];
+    }
+
+    protected function arrayDataOfSection(Section $section): array
+    {
+        return [
+            'id' => $section->getId(),
+            'name' => $section->getName(),
+            'position' => $section->getPosition(),
         ];
     }
 

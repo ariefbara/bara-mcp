@@ -66,6 +66,12 @@ class Form
      */
     protected $multiSelectFields;
 
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $sections;
+
     function getId(): string
     {
         return $this->id;
@@ -109,6 +115,11 @@ class Form
     function getUnremovedMultiSelectFields()
     {
         return $this->multiSelectFields->matching($this->nonRemovedCriteria())->getIterator();
+    }
+
+    function getUnremovedSections()
+    {
+        return $this->sections->matching($this->nonRemovedCriteria())->getIterator();
     }
 
     protected function __construct()

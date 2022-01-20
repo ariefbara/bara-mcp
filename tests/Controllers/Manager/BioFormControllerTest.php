@@ -20,6 +20,7 @@ class BioFormControllerTest extends ManagerTestCase
         "singleSelectFields" => [],
         "multiSelectFields" => [],
         "attachmentFields" => [],
+        "sections" => [],
     ];
 
     protected function setUp(): void
@@ -144,6 +145,7 @@ class BioFormControllerTest extends ManagerTestCase
             "singleSelectFields" => [],
             "multiSelectFields" => [],
             "attachmentFields" => [],
+            "sections" => [],
         ];
         $uri = $this->bioFormUri . "/{$this->bioFormOne->form->id}";
         $this->get($uri, $this->manager->token)

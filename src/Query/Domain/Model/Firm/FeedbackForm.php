@@ -129,4 +129,9 @@ class FeedbackForm implements ContainFormInterface
         return new FeedbackFormReportSheet($this, $reportSheet);
     }
 
+    public function getUnremovedSections()
+    {
+        return $this->form->getUnremovedSections();
+    }
+
 }

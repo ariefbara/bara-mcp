@@ -2,14 +2,13 @@
 
 namespace Firm\Domain\Model\Shared;
 
-use Firm\Domain\Model\Shared\Form\ {
-    AttachmentFieldData,
-    IntegerFieldData,
-    MultiSelectFieldData,
-    SingleSelectFieldData,
-    StringFieldData,
-    TextAreaFieldData
-};
+use Firm\Domain\Model\Shared\Form\AttachmentFieldData;
+use Firm\Domain\Model\Shared\Form\IntegerFieldData;
+use Firm\Domain\Model\Shared\Form\MultiSelectFieldData;
+use Firm\Domain\Model\Shared\Form\SectionData;
+use Firm\Domain\Model\Shared\Form\SingleSelectFieldData;
+use Firm\Domain\Model\Shared\Form\StringFieldData;
+use Firm\Domain\Model\Shared\Form\TextAreaFieldData;
 use Resources\Domain\Data\DataCollection;
 use Tests\TestBase;
 
@@ -18,7 +17,7 @@ class FormDataTest extends TestBase
     protected $formData;
     protected $collection; 
     protected $stringFieldData, $integerFieldData, $textAreaFieldData, $singleSelectFieldData, $multiSelectFieldData, 
-            $attachmentFieldData;
+            $attachmentFieldData, $sectionData;
     protected $fieldId = 'fieldId';
 
     protected function setUp(): void
@@ -31,7 +30,8 @@ class FormDataTest extends TestBase
         $this->formData->textAreaFieldDataCollection = $this->collection;
         $this->formData->singleSelectFieldDataCollection = $this->collection;
         $this->formData->multiSelectFieldDataCollection = $this->collection;
-        $this->formData->attachmentFieldDataCollection= $this->collection;
+        $this->formData->attachmentFieldDataCollection = $this->collection;
+        $this->formData->sectionDataCollection = $this->collection;
         
         $this->stringFieldData = $this->buildMockOfClass(StringFieldData::class);
         $this->integerFieldData = $this->buildMockOfClass(IntegerFieldData::class);
@@ -39,6 +39,7 @@ class FormDataTest extends TestBase
         $this->singleSelectFieldData = $this->buildMockOfClass(SingleSelectFieldData::class);
         $this->multiSelectFieldData = $this->buildMockOfClass(MultiSelectFieldData::class);
         $this->attachmentFieldData = $this->buildMockOfClass(AttachmentFieldData::class);
+        $this->sectionData = $this->buildMockOfClass(SectionData::class);
     }
     public function test_construct_setProperties()
     {
@@ -51,6 +52,7 @@ class FormDataTest extends TestBase
         $this->assertInstanceOf(DataCollection::class, $formData->singleSelectFieldDataCollection);
         $this->assertInstanceOf(DataCollection::class, $formData->multiSelectFieldDataCollection);
         $this->assertInstanceOf(DataCollection::class, $formData->attachmentFieldDataCollection);
+        $this->assertInstanceOf(DataCollection::class, $formData->sectionDataCollection);
     }
     
     public function test_pushStringFieldData_pushStringFieldDataToCollection()
@@ -148,11 +150,28 @@ class FormDataTest extends TestBase
                 ->willReturn($this->attachmentFieldData);
         $this->assertEquals($this->attachmentFieldData, $this->formData->pullAttachmentFieldDataOfId($this->fieldId));
     }
+    
+    public function test_pushSectionData_pushSectionDataToCollection()
+    {
+        $this->collection->expects($this->once())
+                ->method('push')
+                ->with($this->sectionData, $this->fieldId);
+        $this->formData->pushSectionData($this->sectionData, $this->fieldId);
+    }
+    public function test_pullSectionDataOfId_returnDataFromCollectionPullMethod()
+    {
+        $this->collection->expects($this->once())
+                ->method('pull')
+                ->with($this->fieldId)
+                ->willReturn($this->sectionData);
+        $this->assertEquals($this->sectionData, $this->formData->pullSectionDataOfId($this->fieldId));
+    }
 }
 
 class TestableFormData extends FormData
 {
     public $name, $description;
     public $stringFieldDataCollection, $integerFieldDataCollection, $textAreaFieldDataCollection, 
-            $attachmentFieldDataCollection, $singleSelectFieldDataCollection, $multiSelectFieldDataCollection;
+            $attachmentFieldDataCollection, $singleSelectFieldDataCollection, $multiSelectFieldDataCollection,
+            $sectionDataCollection;
 }

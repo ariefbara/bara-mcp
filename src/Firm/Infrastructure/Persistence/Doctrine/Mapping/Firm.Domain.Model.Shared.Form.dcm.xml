@@ -44,6 +44,12 @@
         >
             <cascade><cascade-persist /></cascade>
         </one-to-many>
+        <one-to-many  field="sections" 
+                      target-entity="Firm\Domain\Model\Shared\Form\Section"
+                      mapped-by="form"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
                 
     </entity>
 </doctrine-mapping>

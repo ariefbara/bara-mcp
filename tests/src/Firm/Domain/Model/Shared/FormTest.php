@@ -10,6 +10,8 @@ use Firm\Domain\Model\Shared\Form\IntegerField;
 use Firm\Domain\Model\Shared\Form\IntegerFieldData;
 use Firm\Domain\Model\Shared\Form\MultiSelectField;
 use Firm\Domain\Model\Shared\Form\MultiSelectFieldData;
+use Firm\Domain\Model\Shared\Form\Section;
+use Firm\Domain\Model\Shared\Form\SectionData;
 use Firm\Domain\Model\Shared\Form\SelectFieldData;
 use Firm\Domain\Model\Shared\Form\SingleSelectField;
 use Firm\Domain\Model\Shared\Form\SingleSelectFieldData;
@@ -33,21 +35,24 @@ class FormTest extends TestBase
             $textAreaFieldData,
             $attachmentFieldData,
             $singleSelectFieldData,
-            $multiSelectFieldData;
+            $multiSelectFieldData,
+            $sectionData;
     protected
             $stringFieldDataCollection,
             $integerFieldDataCollection,
             $textAreaFieldDataCollection,
             $attachmentFieldDataCollection,
             $singleSelectFieldDataCollection,
-            $multiSelectFieldDataCollection;
+            $multiSelectFieldDataCollection,
+            $sectionDataCollection;
     protected
             $stringField, $stringFieldId = 'stringFieldId',
             $integerField, $integerFieldId = 'integerFieldId',
             $textAreaField, $textAreaFieldId = 'textAreaFieldId',
             $attachmentField, $attachmentFieldId = 'attachmentFieldId',
             $singleSelectField, $singleSelectFieldId = 'singleSelectFieldId',
-            $multiSelectField, $multiSelectFieldId = 'multiSelectFieldId';
+            $multiSelectField, $multiSelectFieldId = 'multiSelectFieldId',
+            $section, $sectionId = 'sectionId';
     
     protected $bioSearchFilterData, $bioFormSearchFilterRequest, $comparisonType = 1;
 
@@ -79,6 +84,10 @@ class FormTest extends TestBase
         $this->attachmentField->expects($this->any())
                 ->method('getId')
                 ->willReturn($this->attachmentFieldId);
+        $this->section = $this->buildMockOfClass(Section::class);
+        $this->section->expects($this->any())
+                ->method('getId')
+                ->willReturn($this->sectionId);
 
         $formData = new FormData('name', 'description');
         $this->form = new TestableForm('id', $formData);
@@ -89,6 +98,7 @@ class FormTest extends TestBase
         $this->form->singleSelectFields->add($this->singleSelectField);
         $this->form->multiSelectFields->add($this->multiSelectField);
         $this->form->attachmentFields->add($this->attachmentField);
+        $this->form->sections->add($this->section);
 
         $fieldData = new FieldData('name', 'description', 'position', true);
         $selectFieldData = new SelectFieldData($fieldData);
@@ -99,6 +109,7 @@ class FormTest extends TestBase
         $this->singleSelectFieldData = new SingleSelectFieldData($selectFieldData, '');
         $this->multiSelectFieldData = new MultiSelectFieldData($selectFieldData, null, null);
         $this->attachmentFieldData = new AttachmentFieldData($fieldData, null, null);
+        $this->sectionData = new SectionData('section name', 'section position');
         
         $this->stringFieldDataCollection = new DataCollection();
         $this->stringFieldDataCollection->push($this->stringFieldData, null);
@@ -112,6 +123,8 @@ class FormTest extends TestBase
         $this->multiSelectFieldDataCollection->push($this->multiSelectFieldData, null);
         $this->attachmentFieldDataCollection = new DataCollection();
         $this->attachmentFieldDataCollection->push($this->attachmentFieldData, null);
+        $this->sectionDataCollection = new DataCollection();
+        $this->sectionDataCollection->push($this->sectionData, null);
 
         $this->formData = $this->buildMockOfClass(FormData::class);
         $this->formData->expects($this->any())
@@ -132,6 +145,9 @@ class FormTest extends TestBase
         $this->formData->expects($this->any())
                 ->method('getAttachmentFieldDataCollection')
                 ->willReturn($this->attachmentFieldDataCollection);
+        $this->formData->expects($this->any())
+                ->method('getSectionDataCollection')
+                ->willReturn($this->sectionDataCollection);
         
         $this->bioSearchFilterData = $this->buildMockOfClass(BioSearchFilterData::class);
         $this->bioFormSearchFilterRequest = new BioFormSearchFilterRequest('form-id');
@@ -200,6 +216,12 @@ class FormTest extends TestBase
         $this->assertEquals(1, $form->attachmentFields->count());
         $this->assertInstanceOf(AttachmentField::class, $form->attachmentFields->first());
     }
+    public function test_construct_containSectionData_addSectionToCollection()
+    {
+        $form = $this->executeConstruct();
+        $this->assertEquals(1, $form->sections->count());
+        $this->assertInstanceOf(Section::class, $form->sections->first());
+    }
 
     protected function executeUpdate()
     {
@@ -227,6 +249,10 @@ class FormTest extends TestBase
                 ->method('pullAttachmentFieldDataOfId')
                 ->with($this->attachmentFieldId)
                 ->willReturn($this->attachmentFieldData);
+        $this->formData->expects($this->any())
+                ->method('pullSectionDataOfId')
+                ->with($this->sectionId)
+                ->willReturn($this->sectionData);
 
         $this->formData->expects($this->any())
                 ->method('getName')
@@ -414,6 +440,32 @@ class FormTest extends TestBase
                 ->method('remove');
         $this->executeUpdate();
     }
+    public function test_update_sectionInCollectionHasCorrespondingData_updateThisField()
+    {
+        $this->section->expects($this->once())
+                ->method('update')
+                ->with($this->sectionData);
+        $this->executeUpdate();
+    }
+    public function test_update_sectionInCollectionAlreadyRemoved_ignoreThisField()
+    {
+        $this->section->expects($this->once())
+                ->method('isRemoved')
+                ->willReturn(true);
+        $this->section->expects($this->never())
+                ->method('update');
+        $this->executeUpdate();
+    }
+    public function test_update_sectionInCollectionHasNoCorrespondingData_removeThisField()
+    {
+        $this->formData->expects($this->once())
+                ->method('pullSectionDataOfId')
+                ->with($this->sectionId)
+                ->willReturn(null);
+        $this->section->expects($this->once())
+                ->method('remove');
+        $this->executeUpdate();
+    }
     
     protected function executeSetFieldFiltersToBioSearchFilter()
     {
@@ -511,6 +563,7 @@ class TestableForm extends Form
 {
 
     public $id, $name, $description;
-    public $stringFields, $integerFields, $textAreaFields, $singleSelectFields, $multiSelectFields, $attachmentFields;
+    public $stringFields, $integerFields, $textAreaFields, $singleSelectFields, $multiSelectFields, $attachmentFields, 
+            $sections;
 
 }

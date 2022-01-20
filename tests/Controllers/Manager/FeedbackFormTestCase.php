@@ -24,6 +24,7 @@ class FeedbackFormTestCase extends ManagerTestCase
         "singleSelectFields" => [],
         "multiSelectFields" => [],
         "attachmentFields" => [],
+        "sections" => [],
     ];
     protected $feedbackFormResponse = [
         "stringFields" => [],
@@ -32,6 +33,7 @@ class FeedbackFormTestCase extends ManagerTestCase
         "singleSelectFields" => [],
         "multiSelectFields" => [],
         "attachmentFields" => [],
+        "sections" => [],
     ];
 
 
@@ -48,6 +50,7 @@ class FeedbackFormTestCase extends ManagerTestCase
         $this->connection->table('AttachmentField')->truncate();
         $this->connection->table('SingleSelectField')->truncate();
         $this->connection->table('MultiSelectField')->truncate();
+        $this->connection->table('Section')->truncate();
         
         $this->connection->table('SelectField')->truncate();
         $this->connection->table('T_Option')->truncate();
@@ -74,6 +77,7 @@ class FeedbackFormTestCase extends ManagerTestCase
         $this->connection->table('AttachmentField')->truncate();
         $this->connection->table('SingleSelectField')->truncate();
         $this->connection->table('MultiSelectField')->truncate();
+        $this->connection->table('Section')->truncate();
         
         $this->connection->table('SelectField')->truncate();
         $this->connection->table('T_Option')->truncate();

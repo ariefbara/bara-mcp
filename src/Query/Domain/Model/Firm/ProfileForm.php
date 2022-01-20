@@ -82,4 +82,9 @@ class ProfileForm implements ContainFormInterface
         return $this->form->getUnremovedTextAreaFields();
     }
 
+    public function getUnremovedSections()
+    {
+        return $this->form->getUnremovedSections();
+    }
+
 }

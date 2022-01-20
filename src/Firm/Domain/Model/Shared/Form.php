@@ -8,6 +8,7 @@ use Firm\Domain\Model\Firm\BioSearchFilterData;
 use Firm\Domain\Model\Shared\Form\AttachmentField;
 use Firm\Domain\Model\Shared\Form\IntegerField;
 use Firm\Domain\Model\Shared\Form\MultiSelectField;
+use Firm\Domain\Model\Shared\Form\Section;
 use Firm\Domain\Model\Shared\Form\SingleSelectField;
 use Firm\Domain\Model\Shared\Form\StringField;
 use Firm\Domain\Model\Shared\Form\TextAreaField;
@@ -73,6 +74,12 @@ class Form
      * @var ArrayCollection
      */
     protected $multiSelectFields;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $sections;
 
     protected function setName(string $name): void
     {
@@ -95,6 +102,7 @@ class Form
         $this->singleSelectFields = new ArrayCollection();
         $this->multiSelectFields = new ArrayCollection();
         $this->attachmentFields = new ArrayCollection();
+        $this->sections = new ArrayCollection();
 
         $this->addStringFields($formData);
         $this->addIntegerFields($formData);
@@ -102,6 +110,7 @@ class Form
         $this->addSingleSelectFields($formData);
         $this->addMultiSelectFields($formData);
         $this->addAttachmentFields($formData);
+        $this->addSections($formData);
     }
 
     public function update(FormData $formData): void
@@ -115,6 +124,7 @@ class Form
         $this->setSingleSelectFields($formData);
         $this->setMultiSelectFields($formData);
         $this->setAttachmentFields($formData);
+        $this->setSections($formData);
     }
 
     protected function addStringFields(FormData $formData): void
@@ -168,6 +178,15 @@ class Form
             $id = Uuid::generateUuid4();
             $attachmentField = new AttachmentField($this, $id, $attachmentFieldData);
             $this->attachmentFields->add($attachmentField);
+        }
+    }
+
+    protected function addSections(FormData $formData): void
+    {
+        foreach ($formData->getSectionDataCollection() as $sectionData) {
+            $id = Uuid::generateUuid4();
+            $section = new Section($this, $id, $sectionData);
+            $this->sections->add($section);
         }
     }
 
@@ -247,6 +266,19 @@ class Form
             }
         }
         $this->addAttachmentFields($formData);
+    }
+
+    protected function setSections(FormData $formData): void
+    {
+        foreach ($this->sections->matching($this->nonRemovedCriteria())->getIterator() as $section) {
+            $sectionData = $formData->pullSectionDataOfId($section->getId());
+            if ($sectionData == null) {
+                $section->remove();
+            } else {
+                $section->update($sectionData);
+            }
+        }
+        $this->addSections($formData);
     }
 
     protected function nonRemovedCriteria(): Criteria

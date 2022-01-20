@@ -26,6 +26,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
         "singleSelectFields" => [],
         "multiSelectFields" => [],
         "attachmentFields" => [],
+        "sections" => [],
     ];
     protected $worksheetFormResponse = [
         "stringFields" => [],
@@ -34,6 +35,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
         "singleSelectFields" => [],
         "multiSelectFields" => [],
         "attachmentFields" => [],
+        "sections" => [],
     ];
     
     protected function setUp(): void
@@ -49,6 +51,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
         $this->connection->table('AttachmentField')->truncate();
         $this->connection->table('SingleSelectField')->truncate();
         $this->connection->table('MultiSelectField')->truncate();
+        $this->connection->table('Section')->truncate();
         
         $this->connection->table('SelectField')->truncate();
         $this->connection->table('T_Option')->truncate();
@@ -84,6 +87,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
         $this->connection->table('AttachmentField')->truncate();
         $this->connection->table('SingleSelectField')->truncate();
         $this->connection->table('MultiSelectField')->truncate();
+        $this->connection->table('Section')->truncate();
         
         $this->connection->table('SelectField')->truncate();
         $this->connection->table('T_Option')->truncate();
@@ -103,6 +107,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         $this->post($this->worksheetFormUri, $this->worksheetFormInput, $this->manager->token)
                 ->seeStatusCode(201)
@@ -143,6 +148,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         $uri = $this->worksheetFormUri . "/{$this->worksheetForm->id}";
         $this->patch($uri, $this->worksheetFormInput, $this->manager->token)
@@ -202,6 +208,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         $uri = $this->worksheetFormUri . "/{$this->worksheetForm->id}";
         $this->get($uri, $this->manager->token)
@@ -220,6 +227,7 @@ class WorksheetFormControllerTest extends ManagerTestCase
             "attachmentFields" => [],
             "singleSelectFields" => [],
             "multiSelectFields" => [],
+            "sections" => [],
         ];
         $uri = $this->worksheetFormUri . "/{$this->globalWorksheetForm->id}";
         $this->get($uri, $this->manager->token)

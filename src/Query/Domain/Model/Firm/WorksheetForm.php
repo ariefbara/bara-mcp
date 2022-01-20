@@ -100,4 +100,9 @@ class WorksheetForm implements ContainFormInterface
         return empty($this->firm);
     }
 
+    public function getUnremovedSections()
+    {
+        return $this->form->getUnremovedSections();
+    }
+
 }
