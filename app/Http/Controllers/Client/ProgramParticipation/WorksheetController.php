@@ -2,25 +2,21 @@
 
 namespace App\Http\Controllers\Client\ProgramParticipation;
 
-use App\Http\Controllers\{
-    Client\ClientBaseController,
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter
-};
-use Participant\{
-    Application\Service\ClientParticipant\WorksheetAddBranch,
-    Application\Service\ClientParticipant\WorksheetAddRoot,
-    Application\Service\ClientParticipant\WorksheetRemove,
-    Application\Service\ClientParticipant\WorksheetUpdate,
-    Domain\DependencyModel\Firm\Program\Mission,
-    Domain\Model\ClientParticipant,
-    Domain\Model\Participant\Worksheet as Worksheet2,
-    Domain\Service\ClientFileInfoFinder
-};
-use Query\{
-    Application\Service\Firm\Client\ProgramParticipation\ViewWorksheet,
-    Domain\Model\Firm\Program\Participant\Worksheet
-};
+use App\Http\Controllers\Client\ClientBaseController;
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use Participant\Application\Service\ClientParticipant\WorksheetAddBranch;
+use Participant\Application\Service\ClientParticipant\WorksheetAddRoot;
+use Participant\Application\Service\ClientParticipant\WorksheetRemove;
+use Participant\Application\Service\ClientParticipant\WorksheetUpdate;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\Model\ClientParticipant;
+use Participant\Domain\Model\Participant\Worksheet as Worksheet2;
+use Participant\Domain\Service\ClientFileInfoFinder;
+use Query\Application\Service\Firm\Client\ProgramParticipation\ViewWorksheet;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Infrastructure\QueryFilter\WorksheetFilter;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class WorksheetController extends ClientBaseController
@@ -89,7 +85,7 @@ class WorksheetController extends ClientBaseController
     public function showAll($programParticipationId)
     {
         $service = $this->buildViewService();
-        $worksheetFilter = (new \Query\Infrastructure\QueryFilter\WorksheetFilter())
+        $worksheetFilter = (new WorksheetFilter())
                 ->setMissionId($this->stripTagQueryRequest("missionId"))
                 ->setParentId($this->stripTagQueryRequest("parentId"))
                 ->setHasParent($this->filterBooleanOfQueryRequest("hasParent"));
@@ -129,12 +125,9 @@ class WorksheetController extends ClientBaseController
             "id" => $worksheet->getMission()->getId(),
             "name" => $worksheet->getMission()->getName(),
             "position" => $worksheet->getMission()->getPosition(),
-            "worksheetForm" => [
-                "id" => $worksheet->getMission()->getWorksheetForm()->getId(),
-                "name" => $worksheet->getMission()->getWorksheetForm()->getName(),
-                "description" => $worksheet->getMission()->getWorksheetForm()->getDescription(),
-            ],
         ];
+        $data['mission']['worksheetForm'] = (new FormToArrayDataConverter())->convert($worksheet->getMission()->getWorksheetForm());
+        $data['mission']['worksheetForm']['id'] = $worksheet->getMission()->getWorksheetForm()->getId();
         foreach ($worksheet->getActiveChildren() as $childWorksheet) {
             $data["children"][] = $this->arrayDataOfChildWorksheet($childWorksheet);
         }
