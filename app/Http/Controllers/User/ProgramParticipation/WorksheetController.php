@@ -2,26 +2,21 @@
 
 namespace App\Http\Controllers\User\ProgramParticipation;
 
-use App\Http\Controllers\ {
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter,
-    User\UserBaseController
-};
-use Participant\ {
-    Application\Service\UserParticipant\RemoveWorksheet,
-    Application\Service\UserParticipant\SubmitBranchWorksheet,
-    Application\Service\UserParticipant\SubmitRootWorksheet,
-    Application\Service\UserParticipant\UpdateWorksheet,
-    Domain\DependencyModel\Firm\Program\Mission,
-    Domain\Model\Participant\Worksheet as Worksheet2,
-    Domain\Model\UserParticipant,
-    Domain\Service\UserFileInfoFinder
-};
-use Query\ {
-    Application\Service\User\ProgramParticipation\ViewWorksheet,
-    Domain\Model\Firm\Program\Participant\Worksheet,
-    Infrastructure\QueryFilter\WorksheetFilter
-};
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use App\Http\Controllers\User\UserBaseController;
+use Participant\Application\Service\UserParticipant\RemoveWorksheet;
+use Participant\Application\Service\UserParticipant\SubmitBranchWorksheet;
+use Participant\Application\Service\UserParticipant\SubmitRootWorksheet;
+use Participant\Application\Service\UserParticipant\UpdateWorksheet;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\Model\Participant\Worksheet as Worksheet2;
+use Participant\Domain\Model\UserParticipant;
+use Participant\Domain\Service\UserFileInfoFinder;
+use Query\Application\Service\User\ProgramParticipation\ViewWorksheet;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Infrastructure\QueryFilter\WorksheetFilter;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class WorksheetController extends UserBaseController
@@ -128,12 +123,9 @@ class WorksheetController extends UserBaseController
             "id" => $worksheet->getMission()->getId(),
             "name" => $worksheet->getMission()->getName(),
             "position" => $worksheet->getMission()->getPosition(),
-            "worksheetForm" => [
-                "id" => $worksheet->getMission()->getWorksheetForm()->getId(),
-                "name" => $worksheet->getMission()->getWorksheetForm()->getName(),
-                "description" => $worksheet->getMission()->getWorksheetForm()->getDescription(),
-            ],
         ];
+        $data['mission']['worksheetForm'] = (new FormToArrayDataConverter())->convert($worksheet->getMission()->getWorksheetForm());
+        $data['mission']['worksheetForm']['id'] = $worksheet->getMission()->getWorksheetForm()->getId();
         foreach ($worksheet->getActiveChildren() as $childWorksheet) {
             $data["children"][] = $this->arrayDataOfChildWorksheet($childWorksheet);
         }

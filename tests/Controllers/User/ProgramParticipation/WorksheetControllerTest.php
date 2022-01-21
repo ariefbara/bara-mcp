@@ -141,6 +141,13 @@ class WorksheetControllerTest extends WorksheetTestCase
                 "id" => $this->branchMission->worksheetForm->id,
                 "name" => $this->branchMission->worksheetForm->form->name,
                 "description" => $this->branchMission->worksheetForm->form->description,
+                "stringFields" => [],
+                "integerFields" => [],
+                "textAreaFields" => [],
+                "attachmentFields" => [],
+                "singleSelectFields" => [],
+                "multiSelectFields" => [],
+                "sections" => [],
             ],
         ];
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
@@ -301,6 +308,13 @@ class WorksheetControllerTest extends WorksheetTestCase
                 'id' => $this->worksheetOne->mission->worksheetForm->id,
                 'name' => $this->worksheetOne->mission->worksheetForm->form->name,
                 'description' => $this->worksheetOne->mission->worksheetForm->form->description,
+                "stringFields" => [],
+                "integerFields" => [],
+                "textAreaFields" => [],
+                "attachmentFields" => [],
+                "singleSelectFields" => [],
+                "multiSelectFields" => [],
+                "sections" => [],
             ],
         ];
         $this->worksheetResponse['parent'] = [
