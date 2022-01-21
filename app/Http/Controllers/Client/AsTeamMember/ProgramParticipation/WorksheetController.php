@@ -2,25 +2,21 @@
 
 namespace App\Http\Controllers\Client\AsTeamMember\ProgramParticipation;
 
-use App\Http\Controllers\{
-    Client\AsTeamMember\AsTeamMemberBaseController,
-    FormRecordDataBuilder,
-    FormRecordToArrayDataConverter
-};
-use Participant\{
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitBranchWorksheet,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitRootWorksheet,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\UpdateWorksheet,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\DependencyModel\Firm\Program\Mission,
-    Domain\Model\Participant\Worksheet as Worksheet2,
-    Domain\Model\TeamProgramParticipation,
-    Domain\Service\TeamFileInfoFinder
-};
-use Query\{
-    Application\Service\Firm\Team\ProgramParticipation\ViewWorksheetRepository,
-    Domain\Model\Firm\Program\Participant\Worksheet
-};
+use App\Http\Controllers\Client\AsTeamMember\AsTeamMemberBaseController;
+use App\Http\Controllers\FormRecordDataBuilder;
+use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitBranchWorksheet;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\SubmitRootWorksheet;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\UpdateWorksheet;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\Model\Participant\Worksheet as Worksheet2;
+use Participant\Domain\Model\TeamProgramParticipation;
+use Participant\Domain\Service\TeamFileInfoFinder;
+use Query\Application\Service\Firm\Team\ProgramParticipation\ViewWorksheetRepository;
+use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Infrastructure\QueryFilter\WorksheetFilter;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class WorksheetController extends AsTeamMemberBaseController
@@ -79,7 +75,7 @@ class WorksheetController extends AsTeamMemberBaseController
         $this->authorizeClientIsActiveTeamMember($teamId);
         
         $service = $this->buildViewService();
-        $worksheetFilter = (new \Query\Infrastructure\QueryFilter\WorksheetFilter())
+        $worksheetFilter = (new WorksheetFilter())
                 ->setHasParent($this->filterBooleanOfQueryRequest("hasParent"))
                 ->setMissionId($this->stripTagQueryRequest("missionId"))
                 ->setParentId($this->stripTagQueryRequest("parentId"));
@@ -130,6 +126,9 @@ class WorksheetController extends AsTeamMemberBaseController
                 "description" => $worksheet->getMission()->getWorksheetForm()->getDescription(),
             ],
         ];
+        $data['mission']['worksheetForm'] = (new FormToArrayDataConverter())->convert($worksheet->getMission()->getWorksheetForm());
+        $data['mission']['worksheetForm']['id'] = $worksheet->getMission()->getWorksheetForm()->getId();
+        
         foreach ($worksheet->getActiveChildren() as $childWorksheet) {
             $data["children"][] = $this->arrayDataOfChildWorksheet($childWorksheet);
         }
