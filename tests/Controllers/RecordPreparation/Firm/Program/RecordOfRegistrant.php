@@ -3,21 +3,20 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfProgram,
-    Record
-};
-
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfRegistrant implements Record
 {
+
     /**
      *
      * @var RecordOfProgram
      */
     public $program;
     public $id, $registeredTime, $concluded = false, $note = null;
-    
+
     function __construct(RecordOfProgram $program, $index)
     {
         $this->program = $program;
@@ -27,7 +26,6 @@ class RecordOfRegistrant implements Record
         $this->note = null;
     }
 
-    
     public function toArrayForDbEntry()
     {
         return [
@@ -37,6 +35,11 @@ class RecordOfRegistrant implements Record
             "concluded" => $this->concluded,
             "note" => $this->note,
         ];
+    }
+
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('Registrant')->insert($this->toArrayForDbEntry());
     }
 
 }

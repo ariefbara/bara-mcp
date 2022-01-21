@@ -50,6 +50,7 @@ $router->group($clientAggregate, function () use ($router) {
         $controller = "ProgramController";
         $router->get("", ["uses" => "$controller@showAll"]);
         $router->get("/team-types", ["uses" => "$controller@showAllProgramForTeam"]);
+        $router->get("/all-available", ["uses" => "$controller@showAllAvailablePrograms"]);
         $router->get("/{programId}", ["uses" => "$controller@show"]);
     });
     
