@@ -110,6 +110,8 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get('/activity-logs/all', ['uses' => "ActivityLogController@showAll"]);
         $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);
         $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
+        $router->get('/mission-summary', ['uses' => "MissionSummaryController@show"]);
+        $router->get('/schedules', ['uses' => "ScheduleController@showAll"]);
         
         $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
         

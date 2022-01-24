@@ -7,3 +7,4 @@ Homestead.yaml
 .env
 .phpunit.result.cache
 /src/Config/BaseConfig.php
+.htaccess

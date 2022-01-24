@@ -3,12 +3,10 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet;
 
 use DateTimeImmutable;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\Participant\RecordOfWorksheet,
-    Firm\Program\RecordOfMission,
-    Firm\Program\RecordOfParticipant,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfCompletedMission implements Record
 {
@@ -42,6 +40,11 @@ class RecordOfCompletedMission implements Record
             "id" => $this->id,
             "completedTime" => $this->completedTime,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('CompletedMission')->insert($this->toArrayForDbEntry());
     }
 
 }
