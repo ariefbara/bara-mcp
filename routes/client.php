@@ -112,6 +112,9 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
         $router->get('/mission-summary', ['uses' => "MissionSummaryController@show"]);
         $router->get('/schedules', ['uses' => "ScheduleController@showAll"]);
+        $router->get('/mission-comments', ['uses' => "MissionCommentController@showAll"]);
+        $router->get('/mission-comments/{id}', ['uses' => "MissionCommentController@show"]);
+        $router->get('/metric-summary', ['uses' => "MetricSummaryController@show"]);
         
         $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
         

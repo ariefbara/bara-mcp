@@ -2,10 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfProgram,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfMetric implements Record
 {
@@ -43,6 +42,11 @@ class RecordOfMetric implements Record
             "maximumValue" => $this->maxValue,
             "higherIsBetter" => $this->higherIsBetter,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('Metric')->insert($this->toArrayForDbEntry());
     }
 
 }

@@ -2,10 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\Participant\RecordOfMetricAssignment,
-    Record
-};
+use DateTimeImmutable;
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfMetricAssignmentReport implements Record
 {
@@ -25,8 +25,8 @@ class RecordOfMetricAssignmentReport implements Record
     {
         $this->metricAssignment = $metricAssignment;
         $this->id = "metricAssignmentReport-$index-id";
-        $this->observationTime = (new \DateTimeImmutable("-1 days"))->format("Y-m-d H:i:s");
-        $this->submitTime = (new \DateTimeImmutable())->format("Y-m-d H:i:s");
+        $this->observationTime = (new DateTimeImmutable("-1 days"))->format("Y-m-d H:i:s");
+        $this->submitTime = (new DateTimeImmutable())->format("Y-m-d H:i:s");
         $this->approved = null;
         $this->note = null;
         $this->removed = false;
@@ -43,6 +43,11 @@ class RecordOfMetricAssignmentReport implements Record
             "note" => $this->note,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('MetricAssignmentReport')->insert($this->toArrayForDbEntry());
     }
 
 }
