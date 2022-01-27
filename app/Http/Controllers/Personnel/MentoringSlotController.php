@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Personnel;
 
 use App\Http\Controllers\FormRecordToArrayDataConverter;
+use App\Http\Controllers\FormToArrayDataConverter;
 use App\Http\Controllers\Personnel\ProgramConsultation\ProgramConsultationBaseController;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
@@ -12,6 +13,7 @@ use Personnel\Domain\Task\Mentor\CreateMultipleMentoringSlotPayload;
 use Personnel\Domain\Task\Mentor\CreateMultipleMentoringSlotTask;
 use Personnel\Domain\Task\Mentor\UpdateMentoringSlotPayload;
 use Personnel\Domain\Task\Mentor\UpdateMentoringSlotTask;
+use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot as MentoringSlot2;
 use Query\Domain\SharedModel\Mentoring\MentorReport;
 use Query\Domain\SharedModel\Mentoring\ParticipantReport;
@@ -152,6 +154,7 @@ class MentoringSlotController extends ProgramConsultationBaseController
             'consultationSetup' => [
                 'id' => $mentoringSlot->getConsultationSetup()->getId(),
                 'name' => $mentoringSlot->getConsultationSetup()->getName(),
+                'mentorFeedbackForm' => $this->arrayDataOfMentorFeedbackForm($mentoringSlot->getConsultationSetup()->getConsultantFeedbackForm()),
             ],
             'consultant' => [
                 'id' => $mentoringSlot->getMentor()->getId(),
@@ -195,5 +198,14 @@ class MentoringSlotController extends ProgramConsultationBaseController
         $participantReportData['id'] = $participantReport->getId();
         $participantReportData['mentorRating'] = $participantReport->getMentorRating();
         return $participantReportData;
+    }
+    protected function arrayDataOfMentorFeedbackForm(?FeedbackForm $feedbackForm): ?array
+    {
+        if (empty($feedbackForm)) {
+            return null;
+        }
+        $data = (new FormToArrayDataConverter())->convert($feedbackForm);
+        $data['id'] = $feedbackForm->getId();
+        return $data;
     }
 }

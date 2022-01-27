@@ -106,6 +106,7 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->mentorOne->program->insert($this->connection);
         $this->mentorOne->insert($this->connection);
         
+        $this->consultationSetupOne->consultantFeedbackForm->insert($this->connection);
         $this->consultationSetupOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/program-consultation/{$this->mentorOne->id}/mentoring-slots/create-multiple-slot";
@@ -237,6 +238,7 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->mentorOne->program->insert($this->connection);
         $this->mentorOne->insert($this->connection);
         
+        $this->consultationSetupOne->consultantFeedbackForm->insert($this->connection);
         $this->consultationSetupOne->insert($this->connection);
         
         $this->mentoringSlotOne->insert($this->connection);
@@ -260,6 +262,17 @@ class MentoringSlotControllerTest extends MentorTestCase
             'consultationSetup' => [
                 'id' => $this->mentoringSlotOne->consultationSetup->id,
                 'name' => $this->mentoringSlotOne->consultationSetup->name,
+                'mentorFeedbackForm' => [
+                    'id' => $this->consultationSetupOne->consultantFeedbackForm->id,
+                    'name' => $this->consultationSetupOne->consultantFeedbackForm->form->name,
+                    'description' => $this->consultationSetupOne->consultantFeedbackForm->form->description,
+                    'stringFields' => [],
+                    'integerFields' => [],
+                    'textAreaFields' => [],
+                    'attachmentFields' => [],
+                    'singleSelectFields' => [],
+                    'multiSelectFields' => [],
+                ],
             ],
             'consultant' => [
                 'id' => $this->mentoringSlotOne->consultant->id,
@@ -369,6 +382,7 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->mentorOne->program->insert($this->connection);
         $this->mentorOne->insert($this->connection);
         
+        $this->consultationSetupOne->consultantFeedbackForm->insert($this->connection);
         $this->consultationSetupOne->insert($this->connection);
         
         $this->mentoringSlotOne->insert($this->connection);
@@ -406,12 +420,12 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->mentorOne->program->insert($this->connection);
         $this->mentorOne->insert($this->connection);
         
+        $this->consultationSetupOne->consultantFeedbackForm->insert($this->connection);
         $this->consultationSetupOne->insert($this->connection);
         
         $this->mentoringSlotOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/mentoring-slots/{$this->mentoringSlotOne->id}";
-echo $uri;
         $this->get($uri, $this->personnel->token);
     }
     public function test_show_200()
@@ -430,6 +444,17 @@ echo $uri;
             'consultationSetup' => [
                 'id' => $this->mentoringSlotOne->consultationSetup->id,
                 'name' => $this->mentoringSlotOne->consultationSetup->name,
+                'mentorFeedbackForm' => [
+                    'id' => $this->consultationSetupOne->consultantFeedbackForm->id,
+                    'name' => $this->consultationSetupOne->consultantFeedbackForm->form->name,
+                    'description' => $this->consultationSetupOne->consultantFeedbackForm->form->description,
+                    'stringFields' => [],
+                    'integerFields' => [],
+                    'textAreaFields' => [],
+                    'attachmentFields' => [],
+                    'singleSelectFields' => [],
+                    'multiSelectFields' => [],
+                ],
             ],
             'consultant' => [
                 'id' => $this->mentoringSlotOne->consultant->id,
@@ -450,6 +475,8 @@ echo $uri;
         
         $this->mentorOne->insert($this->connection);
         $this->mentorTwo->insert($this->connection);
+        
+        $this->consultationSetupOne->consultantFeedbackForm->insert($this->connection);
         
         $this->consultationSetupOne->insert($this->connection);
         $this->consultationSetupTwo->insert($this->connection);
