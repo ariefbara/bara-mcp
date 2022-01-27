@@ -25,20 +25,32 @@ class PasswordTest extends TestBase
         $this->assertNotEmpty($vo->getPassword());
         $this->assertTrue(password_verify($this->password, $vo->getPassword()));
     }
-    function test_construct_invalidPasswordFormat() {
-        /**
-         * Password must at least 8 character contain alphabet and number
-         */
-//         $this->password = 'short1';
-//         $this->password = 'noNumberCharacter';
-        $this->password = '123123123123123';
-
-        $operation = function (){
+    public function test_construct_lengthLessThanEight_400()
+    {
+        $this->password = "short1";
+        $this->assertRegularExceptionThrowed(function(){
             $this->executeConstruct();
-        };
-        
-        $errorDetail = "bad request: password required at least 8 character long contain alphabet and number";
-        $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
+        }, 'Bad Request', 'bad request: minimum password length is 8 character and must contain combination of alphabet and number');
+    }
+    public function test_construct_withoutNumber_400()
+    {
+        $this->password = "passwordwithoutnumber*&(*&";
+        $this->assertRegularExceptionThrowed(function(){
+            $this->executeConstruct();
+        }, 'Bad Request', 'bad request: minimum password length is 8 character and must contain combination of alphabet and number');
+    }
+    public function test_construct_withoutAlphabet_400()
+    {
+        $this->password = "213123123*(*$%!@#2323";
+        $this->assertRegularExceptionThrowed(function(){
+            $this->executeConstruct();
+        }, 'Bad Request', 'bad request: minimum password length is 8 character and must contain combination of alphabet and number');
+    }
+    public function test_construct_containSpecialCharacter()
+    {
+        $this->password = "*#&^$*&#^HKJHKJHjhskdjfh231231";
+        $this->executeConstruct();
+        $this->markAsSuccess();
     }
     function test_match_matchedPassword_returnTrue() {
         $this->assertTrue($this->vo->match($this->password));
