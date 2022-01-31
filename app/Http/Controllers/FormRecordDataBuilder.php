@@ -33,7 +33,7 @@ class FormRecordDataBuilder
 
     protected function stripTagsVariable($var): ?string
     {
-        return isset($var) ? htmlentities($var, ENT_QUOTES, 'UTF-8') : null;
+        return isset($var) ? $var : null;
     }
 
     protected function floatOfVariable($var): ?float

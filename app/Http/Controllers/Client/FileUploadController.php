@@ -21,7 +21,7 @@ class FileUploadController extends ClientBaseController
     {
         $service = $this->buildUploadService();
         
-        $name = htmlentities($this->request->header('fileName'), ENT_QUOTES, 'UTF-8');
+        $name = $this->request->header('fileName');
         $size = filter_var($this->request->header('Content-Length'), FILTER_SANITIZE_NUMBER_FLOAT);
         $fileInfoData = new FileInfoData($name, floatval($size));
         $fileInfoData->addFolder("client_{$this->clientId()}");
