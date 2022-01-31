@@ -15,6 +15,7 @@ class FeedbackFormTest extends TestBase
     protected $form;
     
     protected $formRecordId = 'formRecordId', $formRecordData;
+    protected $mentoring, $mentorRating = 6;
 
 
     protected function setUp(): void
@@ -26,11 +27,25 @@ class FeedbackFormTest extends TestBase
         $this->feedbackForm->form = $this->form;
         
         $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
+        
+        $this->mentoring = $this->buildMockOfInterface(IContainParticipantReport::class);
     }
     public function test_createFormRecord_returnFormRecord()
     {
         $formRecord = new FormRecord($this->form, $this->formRecordId, $this->formRecordData);
         $this->assertEquals($formRecord, $this->feedbackForm->createFormRecord($this->formRecordId, $this->formRecordData));
+    }
+    
+    protected function processReportIn()
+    {
+        $this->feedbackForm->processReportIn($this->mentoring, $this->formRecordData, $this->mentorRating);
+    }
+    public function test_processReportIn_processMentoringReport()
+    {
+        $this->mentoring->expects($this->once())
+                ->method('processReport')
+                ->with($this->form, $this->formRecordData, $this->mentorRating);
+        $this->processReportIn();
     }
 }
 

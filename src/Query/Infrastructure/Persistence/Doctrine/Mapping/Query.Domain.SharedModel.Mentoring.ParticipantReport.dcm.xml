@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\SharedModel\Mentoring\ParticipantReport" 
+            table="ParticipantReport"
+    >
+        
+        <one-to-one field="mentoring" 
+                    target-entity="Query\Domain\SharedModel\Mentoring"
+                    inversed-by="ParticipantReport"
+        >
+            <join-column name="Mentoring_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="mentorRating" type="smallint" nullable="true" />
+        
+        <one-to-one field="formRecord" 
+                    target-entity="Query\Domain\Model\Shared\FormRecord"
+        >
+            <join-column name="FormRecord_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

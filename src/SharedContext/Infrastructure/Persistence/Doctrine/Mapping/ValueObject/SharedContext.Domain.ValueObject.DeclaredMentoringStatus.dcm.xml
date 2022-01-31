@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\DeclaredMentoringStatus">
+        <field name="value" column="declaredStatus" type="smallint" nullable="false"/>
+    </embeddable>
+</doctrine-mapping>

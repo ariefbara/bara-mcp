@@ -48,7 +48,7 @@ FROM (
         Mission.name lastMissionName,
         Participant.Program_id programId
     FROM Participant
-    LEFT OUTER JOIN (
+    LEFT JOIN (
         SELECT CM.Participant_id, ___a.totalCompletedMission, ___a.lastCompletedTime, CM.Mission_id
         FROM (
             SELECT Participant_id, COUNT(id) totalCompletedMission, MAX(completedTime) lastCompletedTime

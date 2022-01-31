@@ -125,6 +125,11 @@ class Controller extends BaseController
     {
         return isset($var) ? filter_var($var, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
     }
+    
+    protected function dateTimeImmutableOfVariable($var): ?DateTimeImmutable
+    {
+        return isset($var) ? new DateTimeImmutable($var) : null;
+    }
 
     protected function commandCreatedResponse(array $result)
     {

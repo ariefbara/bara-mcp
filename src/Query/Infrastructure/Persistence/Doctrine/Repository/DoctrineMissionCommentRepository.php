@@ -5,11 +5,13 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\NoResultException;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
+use Query\Domain\Task\Dependency\Firm\Program\Mission\MissionCommentFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Mission\MissionCommentRepository as MissionCommentRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineMissionCommentRepository extends DoctrineEntityRepository implements MissionCommentRepository
+class DoctrineMissionCommentRepository extends DoctrineEntityRepository implements MissionCommentRepository, MissionCommentRepository2
 {
     
     public function aMissionCommentInProgram(string $programId, string $missionCommentId): MissionComment
@@ -52,6 +54,23 @@ class DoctrineMissionCommentRepository extends DoctrineEntityRepository implemen
                 ->setParameters($params);
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allMissionCommentInProgram(string $programId, MissionCommentFilter $filter)
+    {
+        $params = [
+            'programId' => $programId,
+        ];
+        
+        $qb = $this->createQueryBuilder('missionComment');
+        $qb->select('missionComment')
+                ->leftJoin('missionComment.mission', 'mission')
+                ->leftJoin('mission.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->addOrderBy('missionComment.modifiedTime', $filter->getOrder())
+                ->setParameters($params);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $filter->getPagination()->getPage(), $filter->getPagination()->getPageSize());
     }
 
 }

@@ -4,6 +4,7 @@ namespace Query\Domain\Model\Firm\Team;
 
 use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
+use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
@@ -21,6 +22,7 @@ class TeamProgramParticipationTest extends TestBase
     
     protected $client;
     protected $task;
+    protected $programTask;
 
     protected function setUp(): void
     {
@@ -38,6 +40,7 @@ class TeamProgramParticipationTest extends TestBase
         $this->client = $this->buildMockOfClass(Client::class);
         
         $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        $this->programTask = $this->buildMockOfClass(ITaskInProgramExecutableByParticipant::class);
     }
     
     public function test_viewLearningMaterial_returnProgramParticipationViewLearningMaterialResult()
@@ -91,6 +94,18 @@ class TeamProgramParticipationTest extends TestBase
                 ->method('executeTask')
                 ->with($this->task);
         $this->teamProgramParticipation->executeTask($this->task);
+    }
+    
+    protected function executeTaskInProgram()
+    {
+        $this->teamProgramParticipation->executeTaskInProgram($this->programTask);
+    }
+    public function test_executeTaskInProgram_forwardToParticipant()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('executeTaskInProgram')
+                ->with($this->programTask);
+        $this->executeTaskInProgram();
     }
 }
 

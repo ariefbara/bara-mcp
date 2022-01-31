@@ -3,10 +3,9 @@
 namespace Personnel\Domain\Model\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\{
-    ConsultationRequest,
-    ConsultationSession
-};
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Resources\Exception\RegularException;
 
 class Participant
 {
@@ -56,6 +55,13 @@ class Participant
     public function manageableInProgram(string $programId): bool
     {
         return $this->programId === $programId && $this->active;
+    }
+    
+    public function assertUsableInProgram(string $programId): void
+    {
+        if (!$this->active || $this->programId !== $programId) {
+            throw RegularException::forbidden('forbidden: can only use active participant in same program');
+        }
     }
 
 }

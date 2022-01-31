@@ -32,5 +32,10 @@ class PaginationPayload
         $this->page = $page;
         $this->pageSize = $pageSize;
     }
+    
+    public function getOffset(): int
+    {
+        return $this->pageSize * ($this->page - 1);
+    }
 
 }

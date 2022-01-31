@@ -18,6 +18,7 @@ $router->group($clientAggregate, function () use ($router) {
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     $router->get('/firm/info', ['uses' => "FirmController@show"]);
     $router->get('/firm/bio-search-filter', ['uses' => "FirmController@showBioSearchFilter"]);
+    $router->get('/schedules', ['uses' => "ScheduleController@showAll"]);
     
     $router->get('/active-individual-and-team-program-participation', ['uses' => "ActiveIndividualAndTeamProgramParticipationController@showAll"]);
     
@@ -49,6 +50,7 @@ $router->group($clientAggregate, function () use ($router) {
         $controller = "ProgramController";
         $router->get("", ["uses" => "$controller@showAll"]);
         $router->get("/team-types", ["uses" => "$controller@showAllProgramForTeam"]);
+        $router->get("/all-available", ["uses" => "$controller@showAllAvailablePrograms"]);
         $router->get("/{programId}", ["uses" => "$controller@show"]);
     });
     
@@ -108,6 +110,38 @@ $router->group($clientAggregate, function () use ($router) {
         $router->get('/activity-logs/all', ['uses' => "ActivityLogController@showAll"]);
         $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);
         $router->get('/activity-logs/shared', ['uses' => "ActivityLogController@showSharedActivityLogs"]);
+        $router->get('/mission-summary', ['uses' => "MissionSummaryController@show"]);
+        $router->get('/schedules', ['uses' => "ScheduleController@showAll"]);
+        $router->get('/mission-comments', ['uses' => "MissionCommentController@showAll"]);
+        $router->get('/mission-comments/{id}', ['uses' => "MissionCommentController@show"]);
+        $router->get('/metric-summary', ['uses' => "MetricSummaryController@show"]);
+        
+        $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
+        
+        $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+        $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
+        
+        $router->post('/mentoring-slots/{mentoringSlotId}/booked-mentoring-slots', ['uses' => "BookedMentoringSlotController@book"]);
+        $router->delete('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@cancel"]);
+        $router->get('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@show"]);
+        $router->put('/booked-mentoring-slots/{id}/submit-report', ['uses' => "BookedMentoringSlotController@submitReport"]);
+        
+        $router->post('/mentoring-requests', ['uses' => "MentoringRequestController@submitRequest"]);
+        $router->delete('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@cancel"]);
+        $router->patch('/mentoring-requests/{id}/update', ['uses' => "MentoringRequestController@update"]);
+        $router->patch('/mentoring-requests/{id}/accept', ['uses' => "MentoringRequestController@accept"]);
+        $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
+        
+        $router->put('/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
+        $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
+        
+        $router->post('/declared-mentorings', ['uses' => "DeclaredMentoringController@declare"]);
+        $router->patch('/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+        $router->patch('/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+        $router->patch('/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+        $router->patch('/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+        $router->put('/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+        $router->get('/declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
         
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
@@ -466,6 +500,33 @@ $router->group($clientAggregate, function () use ($router) {
         $router->group($teamProgramParticipationAggregate, function () use ($router) {
             
             $router->get('/summary', ['uses' => "SummaryController@show"]);
+            
+            $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
+        
+            $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+            $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
+
+            $router->post('/mentoring-slots/{mentoringSlotId}/booked-mentoring-slots', ['uses' => "BookedMentoringSlotController@book"]);
+            $router->delete('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@cancel"]);
+            $router->get('/booked-mentoring-slots/{id}', ['uses' => "BookedMentoringSlotController@show"]);
+            $router->put('/booked-mentoring-slots/{id}/submit-report', ['uses' => "BookedMentoringSlotController@submitReport"]);
+            
+            $router->post('/mentoring-requests', ['uses' => "MentoringRequestController@submitRequest"]);
+            $router->delete('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@cancel"]);
+            $router->patch('/mentoring-requests/{id}/update', ['uses' => "MentoringRequestController@update"]);
+            $router->patch('/mentoring-requests/{id}/accept', ['uses' => "MentoringRequestController@accept"]);
+            $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
+
+            $router->put('/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
+            $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
+            
+            $router->post('/declared-mentorings', ['uses' => "DeclaredMentoringController@declare"]);
+            $router->patch('/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+            $router->patch('/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+            $router->patch('/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+            $router->patch('/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+            $router->put('/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+            $router->get('/declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
             
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";

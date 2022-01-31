@@ -63,5 +63,15 @@
                       mapped-by="participant"
         />
         
+        <one-to-many field="mentoringRequests" 
+                     target-entity="Participant\Domain\Model\Participant\MentoringRequest" 
+                     mapped-by="participant"
+        />
+        
+        <one-to-many field="bookedMentorings" 
+                     target-entity="Participant\Domain\Model\Participant\BookedMentoringSlot" 
+                     mapped-by="participant"
+        />
+        
     </entity>
 </doctrine-mapping>

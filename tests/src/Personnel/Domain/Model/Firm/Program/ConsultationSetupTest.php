@@ -3,12 +3,11 @@
 namespace Personnel\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
+use Personnel\Domain\Model\Firm\ContainMentorReport;
 use Personnel\Domain\Model\Firm\FeedbackForm;
 use Resources\Domain\ValueObject\DateTimeInterval;
-use SharedContext\Domain\Model\SharedEntity\ {
-    FormRecord,
-    FormRecordData
-};
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
 class ConsultationSetupTest extends TestBase
@@ -19,7 +18,7 @@ class ConsultationSetupTest extends TestBase
     protected $participantFeedbackForm;
     protected $consultantFeedbackForm;
 
-
+    protected $containMentorReport, $formRecordData, $participantRating = 7;
 
     protected function setUp(): void
     {
@@ -33,6 +32,9 @@ class ConsultationSetupTest extends TestBase
         $this->consultationSetup->participantFeedbackForm = $this->participantFeedbackForm;
         $this->consultantFeedbackForm = $this->buildMockOfClass(FeedbackForm::class);
         $this->consultationSetup->consultantFeedbackForm = $this->consultantFeedbackForm;
+        
+        $this->containMentorReport = $this->buildMockOfInterface(ContainMentorReport::class);
+        $this->formRecordData = $this->buildMockOfClass(FormRecordData::class);
     }
     protected function executeGetSessionStartEndTimeOf()
     {
@@ -77,6 +79,58 @@ class ConsultationSetupTest extends TestBase
     {
         $this->consultationSetup->removed = true;
         $this->assertFalse($this->usableInProgram());
+    }
+    
+    protected function processReportIn()
+    {
+        $this->consultationSetup->processReportIn($this->containMentorReport, $this->formRecordData, $this->participantRating);
+    }
+    public function test_processReportIn_forwardRequestToConsultantFeedbackForm()
+    {
+        $this->consultantFeedbackForm->expects($this->once())
+                ->method('processReportIn')
+                ->with($this->containMentorReport, $this->formRecordData, $this->participantRating);
+        $this->processReportIn();
+    }
+    
+    protected function calculateMentoringScheduleEndTimeFrom()
+    {
+        return $this->consultationSetup->calculateMentoringScheduleEndTimeFrom($this->startTime);
+    }
+    public function test_calculateMentoringScheduleEndTimeFrom_returnEndTimeCalculation()
+    {
+        $this->assertEquals((new \DateTimeImmutable('+45 minutes'))->format('Y-m-d H:i:s'), 
+                $this->calculateMentoringScheduleEndTimeFrom()->format('Y-m-d H:i:s'));
+    }
+    public function test_calculateMentoringScheduleEndTimeFrom_differentTimeSignature()
+    {
+        $this->startTime = new \DateTimeImmutable('+200 minutes');
+        $this->assertEquals((new \DateTimeImmutable('+245 minutes'))->format('Y-m-d H:i:s'), 
+                $this->calculateMentoringScheduleEndTimeFrom()->format('Y-m-d H:i:s'));
+    }
+    
+    protected function assertUsableInProgram()
+    {
+        $this->consultationSetup->assertUsableInProgram($this->programId);
+    }
+    public function test_assertusableInProgram_activeConsultationSetupOfSameProgram_void()
+    {
+        $this->assertUsableInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertUsableInProgram_differentProgram_forbidden()
+    {
+        $this->consultationSetup->programId = 'differentProgramId';
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: can only use active consultation setup in same program');
+    }
+    public function test_assertUsableInProgram_inactiveConsultationSetup_forbidden()
+    {
+        $this->consultationSetup->removed = true;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertUsableInProgram();
+        }, 'Forbidden', 'forbidden: can only use active consultation setup in same program');
     }
     
 }

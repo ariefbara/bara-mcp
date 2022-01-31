@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\SharedModel\Mentoring" 
+            table="Mentoring"
+    >
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="mentorReport" 
+                    target-entity="Query\Domain\SharedModel\Mentoring\MentorReport"
+                    mapped-by="mentoring"
+        />
+        
+        <one-to-one field="participantReport" 
+                    target-entity="Query\Domain\SharedModel\Mentoring\ParticipantReport"
+                    mapped-by="mentoring"
+        />
+        
+    </entity>
+</doctrine-mapping>

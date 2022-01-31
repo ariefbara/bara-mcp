@@ -3,10 +3,9 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\RecordOfProgram,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfRegistrationPhase implements Record
 {
@@ -38,6 +37,11 @@ class RecordOfRegistrationPhase implements Record
             "endDate" => $this->endDate,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('RegistrationPhase')->insert($this->toArrayForDbEntry());
     }
 
 }

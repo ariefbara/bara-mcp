@@ -9,6 +9,11 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ContainSchedule;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\DeclaredMentoring;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
 use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
@@ -16,7 +21,7 @@ use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
 use Resources\Application\Event\Event;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
-use SharedContext\Domain\ValueObject\ConsultationSessionType;
+use SharedContext\Domain\ValueObject\ScheduleData;
 use Tests\TestBase;
 
 class ProgramConsultantTest extends TestBase
@@ -27,15 +32,16 @@ class ProgramConsultantTest extends TestBase
     protected $otherConsultationRequest;
     protected $consultationSession;
     protected $consultationRequestData;
-    
     protected $consultantCommentId = 'newCommentId', $worksheet, $message = 'new comment message';
     protected $comment;
-    
     protected $asset;
-    
     protected $task;
-    
     protected $consultationSessionId = 'consultationSessionId', $participant, $consultationSetup, $startEndTime, $channel;
+    protected $mentoringSlotId = 'mentoringSlotId', $mentoringSlotData;
+    protected $mentoringRequest;
+    protected $mentoringSlot;
+    protected $containSchedule;
+    protected $declaredMentoringId = 'declaredMentoringId';
 
     protected function setUp(): void
     {
@@ -44,6 +50,14 @@ class ProgramConsultantTest extends TestBase
         $this->programConsultant->consultationRequests = new ArrayCollection();
         $this->programConsultant->consultationSessions = new ArrayCollection();
         $this->programConsultant->personnel = $this->buildMockOfClass(Personnel::class);
+        
+        $this->programConsultant->mentoringRequests = new ArrayCollection();
+        $this->mentoringRequest = $this->buildMockOfClass(MentoringRequest::class);
+        $this->programConsultant->mentoringRequests->add($this->mentoringRequest);
+        
+        $this->programConsultant->mentoringSlots = new ArrayCollection();
+        $this->mentoringSlot = $this->buildMockOfClass(MentoringSlot::class);
+        $this->programConsultant->mentoringSlots->add($this->mentoringSlot);
 
         $this->consultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
         $this->otherConsultationRequest = $this->buildMockOfClass(ConsultationRequest::class);
@@ -58,18 +72,26 @@ class ProgramConsultantTest extends TestBase
 
         $this->consultationRequestData = $this->buildMockOfClass(ConsultationRequestData::class);
         $this->consultationRequestData->expects($this->any())->method("getStartTime")->willReturn(new DateTimeImmutable());
-        
+
         $this->worksheet = $this->buildMockOfClass(Worksheet::class);
         $this->comment = $this->buildMockOfClass(Comment::class);
-        
+
         $this->asset = $this->buildMockOfInterface(IUsableInProgram::class);
-        
+
         $this->task = $this->buildMockOfInterface(ITaskExecutableByMentor::class);
-        
+
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
+
+        $this->scheduleData = new ScheduleData(
+                new \DateTimeImmutable('+24 hours'), new \DateTimeImmutable('+25 hours'), 'online',
+                'http://meet.google.com/random');
+        $this->mentoringSlotData = new MentoringSlotData($this->scheduleData, 4);
+        
+        $this->containSchedule = $this->buildMockOfInterface(ContainSchedule::class);
+        
     }
 
     protected function executeAcceptConsultationRequest()
@@ -129,17 +151,17 @@ class ProgramConsultantTest extends TestBase
         $this->consultationRequest->expects($this->once())
                 ->method('createConsultationSession')
                 ->willReturn($consultationSession = $this->buildMockOfClass(ConsultationSession::class));
-        
+
         $event = $this->buildMockOfInterface(Event::class);
         $consultationSession->expects($this->once())->method("pullRecordedEvents")->willReturn([$event]);
-        
+
         $this->executeAcceptConsultationRequest();
         $this->assertEquals([$event], $this->programConsultant->recordedEvents);
     }
     public function test_accept_inactiveConsultant_forbidden()
     {
         $this->programConsultant->active = false;
-        $operation = function (){
+        $operation = function () {
             $this->executeAcceptConsultationRequest();
         };
         $errorDetail = "forbidden: only active consultant can make this request";
@@ -150,7 +172,8 @@ class ProgramConsultantTest extends TestBase
     {
         $this->consultationRequest->expects($this->any())
                 ->method('offer');
-        $this->programConsultant->offerConsultationRequestTime($this->consultationRequestId, $this->consultationRequestData);
+        $this->programConsultant->offerConsultationRequestTime($this->consultationRequestId,
+                $this->consultationRequestData);
     }
     public function test_offerConsultationRequestTime_offerTimeToConsultationRequest()
     {
@@ -187,26 +210,27 @@ class ProgramConsultantTest extends TestBase
     {
         $event = $this->buildMockOfInterface(Event::class);
         $this->consultationRequest->expects($this->once())->method("pullRecordedEvents")->willReturn([$event]);
-        
+
         $this->executeOfferConsultationRequestTime();
         $this->assertEquals([$event], $this->programConsultant->recordedEvents);
     }
     public function test_offer_inactiveConsultant_forbidden()
     {
         $this->programConsultant->active = false;
-        $operation = function (){
+        $operation = function () {
             $this->executeOfferConsultationRequestTime();
         };
         $errorDetail = "forbidden: only active consultant can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    
+
     protected function executeSubmitNewCommentOnWorksheet()
     {
         $this->worksheet->expects($this->any())
                 ->method("belongsToParticipantInProgram")
                 ->willReturn(true);
-        return $this->programConsultant->submitNewCommentOnWorksheet($this->consultantCommentId, $this->worksheet, $this->message);
+        return $this->programConsultant->submitNewCommentOnWorksheet($this->consultantCommentId, $this->worksheet,
+                        $this->message);
     }
     public function test_submitNewCommentOnWorksheet_returnConsultantComment()
     {
@@ -216,7 +240,7 @@ class ProgramConsultantTest extends TestBase
     public function test_submitNewComment_inactiveConsultant_forbiddenError()
     {
         $this->programConsultant->active = false;
-        $operation = function (){
+        $operation = function () {
             $this->executeSubmitNewCommentOnWorksheet();
         };
         $errorDetail = "forbidden: only active consultant can make this request";
@@ -228,19 +252,20 @@ class ProgramConsultantTest extends TestBase
                 ->method("belongsToParticipantInProgram")
                 ->with($this->programConsultant->programId)
                 ->willReturn(false);
-        $operation = function (){
+        $operation = function () {
             $this->executeSubmitNewCommentOnWorksheet();
         };
         $errorDetail = "forbidden: can only manage asset related to your program";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    
+
     protected function executeSubmitReplyOnWorksheetComment()
     {
         $this->comment->expects($this->any())
                 ->method("belongsToParticipantInProgram")
                 ->willReturn(true);
-        return $this->programConsultant->submitReplyOnWorksheetComment($this->consultantCommentId, $this->comment, $this->message);
+        return $this->programConsultant->submitReplyOnWorksheetComment($this->consultantCommentId, $this->comment,
+                        $this->message);
     }
     public function test_submitReplyOnWorksheetComment_returnConsultantRepliedComment()
     {
@@ -250,13 +275,13 @@ class ProgramConsultantTest extends TestBase
                 ->with($this->consultantCommentId, $this->message)
                 ->willReturn($reply);
         $consultantComment = new ConsultantComment($this->programConsultant, $this->consultantCommentId, $reply);
-        
+
         $this->assertEquals($consultantComment, $this->executeSubmitReplyOnWorksheetComment());
     }
     public function test_submitReplyOnWorksheetComment_inactiveConsultant_forbiddenError()
     {
         $this->programConsultant->active = false;
-        $operation = function (){
+        $operation = function () {
             $this->executeSubmitReplyOnWorksheetComment();
         };
         $errorDetail = "forbidden: only active consultant can make this request";
@@ -268,13 +293,13 @@ class ProgramConsultantTest extends TestBase
                 ->method("belongsToParticipantInProgram")
                 ->with($this->programConsultant->programId)
                 ->willReturn(false);
-        $operation = function (){
+        $operation = function () {
             $this->executeSubmitReplyOnWorksheetComment();
         };
         $errorDetail = "forbidden: can only manage asset related to your program";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
-    
+
     public function test_verifyAssetUsable_assertAssetUsable()
     {
         $this->asset->expects($this->once())
@@ -282,7 +307,7 @@ class ProgramConsultantTest extends TestBase
                 ->with($this->programConsultant->programId);
         $this->programConsultant->verifyAssetUsable($this->asset);
     }
-    
+
     protected function executeTask()
     {
         $this->programConsultant->executeTask($this->task);
@@ -297,11 +322,11 @@ class ProgramConsultantTest extends TestBase
     public function test_executeTask_inactiveMentor_forbidden()
     {
         $this->programConsultant->active = false;
-        $this->assertRegularExceptionThrowed(function() {
+        $this->assertRegularExceptionThrowed(function () {
             $this->executeTask();
         }, 'Forbidden', 'forbidden: only active mentor can make this request');
     }
-    
+
     protected function declareConsultationSession()
     {
         $this->consultationSetup->expects($this->any())
@@ -311,7 +336,8 @@ class ProgramConsultantTest extends TestBase
                 ->method('manageableInProgram')
                 ->willReturn(true);
         return $this->programConsultant->declareConsultationSession(
-                $this->consultationSessionId, $this->participant, $this->consultationSetup, $this->startEndTime, $this->channel);
+                        $this->consultationSessionId, $this->participant, $this->consultationSetup, $this->startEndTime,
+                        $this->channel);
     }
     public function test_declareConsultatioNSession_returnDeclaredConsultationSession()
     {
@@ -323,7 +349,7 @@ class ProgramConsultantTest extends TestBase
                 ->method('usableInProgram')
                 ->with($this->programConsultant->programId)
                 ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function() {
+        $this->assertRegularExceptionThrowed(function () {
             $this->declareConsultationSession();
         }, 'Forbidden', 'forbidden: unuseable consultation setup');
     }
@@ -333,9 +359,97 @@ class ProgramConsultantTest extends TestBase
                 ->method('manageableInProgram')
                 ->with($this->programConsultant->programId)
                 ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function() {
+        $this->assertRegularExceptionThrowed(function () {
             $this->declareConsultationSession();
         }, 'Forbidden', 'forbidden: unamanged participant');
+    }
+
+    protected function createMentoringSlot()
+    {
+        $this->consultationSetup->expects($this->any())
+                ->method('usableInProgram')
+                ->with($this->programConsultant->programId)
+                ->willReturn(true);
+        return $this->programConsultant->createMentoringSlot(
+                        $this->mentoringSlotId, $this->consultationSetup, $this->mentoringSlotData);
+    }
+    public function test_createMentoringSlot_returnMentoringSlot()
+    {
+        $this->assertInstanceOf(MentoringSlot::class, $this->createMentoringSlot());
+    }
+    public function test_createMentoringSlot_unuseableConsultationSetup_forbidden()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('usableInProgram')
+                ->with($this->programConsultant->programId)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->createMentoringSlot();
+        }, 'Forbidden', 'forbidden: unuseable consultation setup');
+    }
+
+    protected function assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule()
+    {
+        $this->programConsultant->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule($this->containSchedule);
+    }
+    public function test_assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule_noConflicedEvent_void()
+    {
+        $this->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule();
+        $this->markAsSuccess();
+    }
+    public function test_assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule_conflictWithScheduledOrOfferedRequest_forbidden()
+    {
+        $this->mentoringRequest->expects($this->once())
+                ->method('isScheduledOrOfferedRequestInConflictWith')
+                ->with($this->containSchedule)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule();
+        }, 'Forbidden', 'forbidden: schedule in conflict with scheduled or proposed request');
+    }
+    public function test_assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule_conflictWithActiveMentoringSlot_forbidden()
+    {
+        $this->mentoringSlot->expects($this->once())
+                ->method('isActiveSlotInConflictWith')
+                ->with($this->containSchedule)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule();
+        }, 'Forbidden', 'forbidden: schedule in conflict with existing slot');
+    }
+    
+    protected function declareMentoring()
+    {
+        $startTime = new DateTimeImmutable('-25 hours');
+        $endTime = new DateTimeImmutable('-24 hours');
+        $scheduleData = new ScheduleData($startTime, $endTime, 'media type', 'location');
+        return $this->programConsultant->declareMentoring(
+                $this->declaredMentoringId, $this->participant, $this->consultationSetup, $scheduleData);
+    }
+    public function test_declareMentoring_returnDeclaredMentoring()
+    {
+        $this->assertInstanceOf(DeclaredMentoring::class, $this->declareMentoring());
+    }
+    public function test_declareMentoring_inactiveMentor_forbidden()
+    {
+        $this->programConsultant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->declareMentoring();
+        }, 'Forbidden', 'forbidden: only active consultant can make this request');
+    }
+    public function test_declareMentoring_assertConsultationSetupUsableInProgram()
+    {
+        $this->consultationSetup->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->declareMentoring();
+    }
+    public function test_declareMentoring_assertParticipantUsableInProgram()
+    {
+        $this->participant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->declareMentoring();
     }
 }
 
@@ -346,10 +460,11 @@ class TestableProgramConsultant extends ProgramConsultant
     public $programId = "programId";
     public $consultationRequests, $consultationSessions;
     public $recordedEvents;
+    public $mentoringRequests;
+    public $mentoringSlots;
 
     public function __construct()
     {
-        ;
     }
 
 }

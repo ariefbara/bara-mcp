@@ -6,6 +6,8 @@ use Query\Application\Service\Firm\ProgramView;
 use Query\Domain\Model\Firm\FirmFileInfo;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Task\Client\ViewAllAvailableProgramsTask;
+use Query\Domain\Task\PaginationPayload;
 
 class ProgramController extends ClientBaseController
 {
@@ -39,6 +41,15 @@ class ProgramController extends ClientBaseController
             $result["list"][] = $this->arrayDataOfProgram($program);
         }
         return $this->listQueryResponse($result);
+    }
+    
+    public function showAllAvailablePrograms()
+    {
+        $programRepository = $this->em->getRepository(Program::class);
+        $payload = new PaginationPayload($this->getPage(), $this->getPageSize());
+        $task = new ViewAllAvailableProgramsTask($programRepository, $payload);
+        $this->executeQueryTask($task);
+        return $task->result;
     }
     
     protected function arrayDataOfProgram(Program $program): array

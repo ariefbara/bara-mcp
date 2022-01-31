@@ -72,12 +72,12 @@ class ConsultationSetup
         return $this->sessionDuration;
     }
 
-    function getParticipantFeedbackForm(): FeedbackForm
+    function getParticipantFeedbackForm(): ?FeedbackForm
     {
         return $this->participantFeedbackForm;
     }
 
-    function getConsultantFeedbackForm(): FeedbackForm
+    function getConsultantFeedbackForm(): ?FeedbackForm
     {
         return $this->consultantFeedbackForm;
     }

@@ -13,6 +13,7 @@ use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationSession;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
+use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
@@ -432,7 +433,8 @@ class Member extends EntityContainEvents
         return $this->client->getFullName();
     }
     
-    public function executeTeamParticipantTask(TeamProgramParticipation $teamParticipant, ITaskExecutableByParticipant $task): void
+    public function executeTeamParticipantTask(
+            TeamProgramParticipation $teamParticipant, ITaskExecutableByParticipant $task): void
     {
         $this->assertActive();
         if (!$teamParticipant->teamEquals($this->team)) {
@@ -444,6 +446,18 @@ class Member extends EntityContainEvents
     public function isActiveMemberWithinInspection(InspectedClientList $inspectedClientList): bool
     {
         return $this->active && $inspectedClientList->isInspectingClient($this->client);
+    }
+
+    public function executeProgramTask(
+            TeamProgramParticipation $teamParticipant, ITaskInProgramExecutableByParticipant $task): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active team member can make this request');
+        }
+        if (!$teamParticipant->teamEquals($this->team)) {
+            throw RegularException::forbidden('forbidden: can only access using owned program participation');
+        }
+        $teamParticipant->executeTaskInProgram($task);
     }
 
 }

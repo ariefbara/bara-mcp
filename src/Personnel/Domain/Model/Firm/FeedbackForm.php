@@ -2,11 +2,9 @@
 
 namespace Personnel\Domain\Model\Firm;
 
-use SharedContext\Domain\Model\SharedEntity\ {
-    Form,
-    FormRecord,
-    FormRecordData
-};
+use SharedContext\Domain\Model\SharedEntity\Form;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 
 class FeedbackForm
@@ -38,11 +36,15 @@ class FeedbackForm
 
     protected function __construct()
     {
-        ;
     }
     
     public function createFormRecord(string $id, FormRecordData $formRecordData): FormRecord
     {
         return new FormRecord($this->form, $id, $formRecordData);
+    }
+    
+    public function processReportIn(ContainMentorReport $mentoring, FormRecordData $formRecordData, ?int $participantRating): void
+    {
+        $mentoring->processReport($this->form, $formRecordData, $participantRating);
     }
 }

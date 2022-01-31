@@ -24,6 +24,7 @@ class ParticipantTest extends TestBase
     protected $clientParticipant;
     protected $client;
     protected $task;
+    protected $taskInProgram;
 
     protected function setUp(): void
     {
@@ -43,6 +44,7 @@ class ParticipantTest extends TestBase
         $this->client = $this->buildMockOfClass(Client::class);
         
         $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        $this->taskInProgram = $this->buildMockOfInterface(ITaskInProgramExecutableByParticipant::class);
     }
     protected function assertInactiveParticipant(callable $operation)
     {
@@ -195,6 +197,25 @@ class ParticipantTest extends TestBase
         $this->participant->active = false;
         $this->assertRegularExceptionThrowed(function (){
             $this->executeTask();
+        }, 'Forbidden', 'forbidden: only active participant can make this request');
+    }
+    
+    protected function executeTaskInProgram()
+    {
+        $this->participant->executeTaskInProgram($this->taskInProgram);
+    }
+    public function test_executeTaskInProgram_executeTask()
+    {
+        $this->taskInProgram->expects($this->once())
+                ->method('executeTaskInProgram')
+                ->with($this->participant->program->getId());
+        $this->executeTaskInProgram();
+    }
+    public function test_executeTaskInProgram_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executeTaskInProgram();
         }, 'Forbidden', 'forbidden: only active participant can make this request');
     }
 }

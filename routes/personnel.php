@@ -9,6 +9,19 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/notifications', ['uses' => "NotificationController@showAll"]);
     $router->post('/file-uploads', ['uses' => "FileUploadController@upload"]);
     
+    $router->get('/mentorings', ['uses' => "MentoringController@showAll"]);
+    
+    $router->get('/mentoring-slots/{id}', ['uses' => "MentoringSlotController@show"]);
+    $router->get('/mentoring-slots', ['uses' => "MentoringSlotController@showAll"]);
+    
+    $router->post('/program-consultation/{consultantId}/mentoring-slots/create-multiple-slot', ['uses' => "MentoringSlotController@createMultipleSlot"]);
+    $router->patch('/program-consultation/{consultantId}/mentoring-slots/{id}', ['uses' => "MentoringSlotController@update"]);
+    $router->delete('/program-consultation/{consultantId}/mentoring-slots/{id}', ['uses' => "MentoringSlotController@cancel"]);
+    
+    $router->put('/program-consultation/{consultantId}/booked-mentorings/{id}/submit-report', ['uses' => "BookedMentoringController@submitReport"]);
+    $router->delete('/program-consultation/{consultantId}/booked-mentorings/{id}', ['uses' => "BookedMentoringController@cancel"]);
+    $router->get('/program-consultation/{consultantId}/booked-mentorings/{id}', ['uses' => "BookedMentoringController@show"]);
+    
     $router->get('/consultation-requests', ['uses' => "ConsultationRequestController@showAll"]);
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
     $router->get('/metric-assignment-reports', ['uses' => "MetricAssignmentReportController@showAll"]);
@@ -19,6 +32,22 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->delete('/dedicated-mentors/{dedicatedMentorId}/evaluation-reports/{id}', ['uses' => "MentorEvaluationReportController@cancel"]);
     $router->get('/programs/{programId}/evaluation-reports', ['uses' => "MentorEvaluationReportController@showAll"]);
     $router->get('/evaluation-reports/{id}', ['uses' => "MentorEvaluationReportController@show"]);
+    
+    $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/approve', ['uses' => "MentoringRequestController@approve"]);
+    $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/reject', ['uses' => "MentoringRequestController@reject"]);
+    $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/offer', ['uses' => "MentoringRequestController@offer"]);
+    $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
+    
+    $router->post('/mentors/{mentorId}/declared-mentorings', ['uses' => "DeclaredMentoringController@declare"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+    $router->put('/mentors/{mentorId}/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+    $router->get('declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
+    
+    $router->put('/mentors/{mentorId}/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
+    $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";

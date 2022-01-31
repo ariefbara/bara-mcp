@@ -337,4 +337,12 @@ class Participant extends EntityContainEvents
         }
     }
 
+    public function executeTaskInProgram(ITaskInProgramExecutableByParticipant $task): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('forbidden: only active participant can make this request');
+        }
+        $task->executeTaskInProgram($this->program->getId());
+    }
+
 }

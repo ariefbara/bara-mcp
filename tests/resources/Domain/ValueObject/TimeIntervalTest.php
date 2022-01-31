@@ -199,6 +199,21 @@ class TimeIntervalTest extends TestBase
         $this->assertFalse($this->executeSameValueAs());
     }
     
+    protected function isAlreadyPassed()
+    {
+        return $this->vo->isAlreadyPassed();
+    }
+    public function test_isAlreadyPassed_endTimeInPass_returnTrue()
+    {
+        $this->vo->endTime = new \DateTimeImmutable('-1 hours');
+        $this->assertTrue($this->isAlreadyPassed());
+    }
+    public function test_isAlreadyPassed_endTimeInFuture_returnFalse()
+    {
+        $this->vo->endTime = new \DateTimeImmutable('+1 hours');
+        $this->assertFalse($this->isAlreadyPassed());
+    }
+    
 }
 
 class TestableTimeInterval extends TimeInterval{

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest" 
+            table="MentoringRequest"
+            repository-class="Personnel\Infrastructure\Persistence\Doctrine\Repository\DoctrineMentoringRequestRepository"
+    >
+        
+        <many-to-one  field="mentor" 
+                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant"
+                      inversed-by="mentoringRequests"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        <id name="id" type="guid" />
+        
+        <many-to-one  field="participant" 
+                      target-entity="Personnel\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <embedded name="requestStatus" class="SharedContext\Domain\ValueObject\MentoringRequestStatus" use-column-prefix="false" />
+        <embedded name="schedule" class="SharedContext\Domain\ValueObject\Schedule" use-column-prefix="false" />
+        
+        <many-to-one  field="consultationSetup" 
+                      target-entity="Personnel\Domain\Model\Firm\Program\ConsultationSetup"
+        >
+            <join-column name="ConsultationSetup_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="negotiatedMentoring" 
+                    target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest\NegotiatedMentoring"
+                    mapped-by="mentoringRequest"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\MentoringRequest" 
+            table="MentoringRequest"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineMentoringRequestRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="requestStatus" class="SharedContext\Domain\ValueObject\MentoringRequestStatus" use-column-prefix="false" />
+        <embedded name="schedule" class="SharedContext\Domain\ValueObject\Schedule" use-column-prefix="false" />
+        
+        <many-to-one  field="mentor" 
+                      target-entity="Query\Domain\Model\Firm\Program\Consultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="consultationSetup" 
+                      target-entity="Query\Domain\Model\Firm\Program\ConsultationSetup"
+        >
+            <join-column name="ConsultationSetup_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <one-to-one field="negotiatedMentoring" 
+                    target-entity="Query\Domain\Model\Firm\Program\Participant\MentoringRequest\NegotiatedMentoring"
+                    mapped-by="mentoringRequest"
+        />
+        
+    </entity>
+</doctrine-mapping>
