@@ -4,22 +4,18 @@ namespace App\Http\Controllers\Client\AsTeamMember\AsProgramParticipant\Mission;
 
 use App\Http\Controllers\Client\AsTeamMember\AsProgramParticipant\AsProgramParticipantBaseController;
 use Config\EventList;
-use Participant\ {
-    Application\Listener\LearningMaterialAccessedByTeamMemberListener,
-    Application\Service\Firm\Client\TeamMembership\ProgramParticipation\LogViewLearningMaterialActivity,
-    Domain\DependencyModel\Firm\Client\TeamMembership,
-    Domain\Model\Participant,
-    Domain\Model\Participant\ViewLearningMaterialActivityLog
-};
-use Query\ {
-    Application\Service\Firm\Client\AsTeamMember\AsProgramParticipant\ViewLearningMaterialDetail,
-    Application\Service\Firm\Program\Mission\ViewLearningMaterial,
-    Domain\Model\Firm\Program\Mission\LearningMaterial,
-    Domain\Model\Firm\Team\Member,
-    Domain\Model\Firm\Team\TeamProgramParticipation,
-    Domain\Service\LearningMaterialFinder,
-    Domain\Service\TeamProgramParticipationFinder
-};
+use Participant\Application\Listener\LearningMaterialAccessedByTeamMemberListener;
+use Participant\Application\Service\Firm\Client\TeamMembership\ProgramParticipation\LogViewLearningMaterialActivity;
+use Participant\Domain\DependencyModel\Firm\Client\TeamMembership;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
+use Query\Application\Service\Firm\Client\AsTeamMember\AsProgramParticipant\ViewLearningMaterialDetail;
+use Query\Application\Service\Firm\Program\Mission\ViewLearningMaterial;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Model\Firm\Team\Member;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Service\TeamProgramParticipationFinder;
 use Resources\Application\Event\Dispatcher;
 
 class LearningMaterialController extends AsProgramParticipantBaseController
@@ -45,11 +41,21 @@ class LearningMaterialController extends AsProgramParticipantBaseController
 
     protected function arrayDataOfLearningMaterial(LearningMaterial $learningMaterial): array
     {
+        $learningAttachments = [];
+        foreach ($learningMaterial->iterateAllActiveLearningAttachments() as $learningAttachment) {
+            $learningAttachments[] = [
+                'id' => $learningAttachment->getId(),
+                'firmFileInfo' => [
+                    'id' => $learningAttachment->getFirmFileInfo()->getId(),
+                    'path' => $learningAttachment->getFirmFileInfo()->getFullyQualifiedFileName(),
+                ],
+            ];
+        }
         return [
             "id" => $learningMaterial->getId(),
             "name" => $learningMaterial->getName(),
             "content" => $learningMaterial->getContent(),
-            "removed" => $learningMaterial->isRemoved(),
+            'learningAttachments' => $learningAttachments,
         ];
     }
 
