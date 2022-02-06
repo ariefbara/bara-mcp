@@ -27,10 +27,21 @@ class LearningMaterialController extends AsProgramConsultantBaseController
     
     protected function arrayDataOfLearningMaterial(LearningMaterial $learningMaterial): array
     {
+        $learningAttachments = [];
+        foreach ($learningMaterial->iterateAllActiveLearningAttachments() as $learningAttachment) {
+            $learningAttachments[] = [
+                'id' => $learningAttachment->getId(),
+                'firmFileInfo' => [
+                    'id' => $learningAttachment->getFirmFileInfo()->getId(),
+                    'path' => $learningAttachment->getFirmFileInfo()->getFullyQualifiedFileName(),
+                ],
+            ];
+        }
         return [
             "id" => $learningMaterial->getId(),
             "name" => $learningMaterial->getName(),
             "content" => $learningMaterial->getContent(),
+            'learningAttachments' => $learningAttachments,
         ];
     }
 
