@@ -2,21 +2,16 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\Program\Mission\LearningMaterialRepository,
-    Application\Service\Firm\Program\Mission\MissionCompositionId,
-    Domain\Model\Firm\Program\Mission\LearningMaterial
-};
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Firm\Program\Mission\LearningMaterialRepository;
+use Firm\Application\Service\Firm\Program\Mission\MissionCompositionId;
+use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Firm\Domain\Task\Dependency\Firm\Program\Mission\LearningMaterialRepository as LearningMaterialRepository2;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
+use Resources\Uuid;
 
-class DoctrineLearningMaterialRepository extends EntityRepository implements LearningMaterialRepository
+class DoctrineLearningMaterialRepository extends DoctrineEntityRepository implements LearningMaterialRepository, LearningMaterialRepository2
 {
 
     public function add(LearningMaterial $learningMaterial): void
@@ -24,11 +19,6 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
         $em = $this->getEntityManager();
         $em->persist($learningMaterial);
         $em->flush();
-    }
-
-    public function nextIdentity(): string
-    {
-        return Uuid::generateUuid4();
     }
 
     public function ofId(MissionCompositionId $missionCompositionId, string $learningMaterialId): LearningMaterial
@@ -60,6 +50,11 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aLearningMaterialOfId(string $id): LearningMaterial
+    {
+        return $this->findOneByIdOrDie($id, 'learning material');
     }
 
 }

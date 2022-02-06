@@ -17,6 +17,8 @@ use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
 use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Firm\Domain\Model\Firm\Program\Mission\LearningMaterialData;
 use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
@@ -333,5 +335,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
             throw RegularException::forbidden('forbidden: can only owned program');
         }
     }
-
+    
+    public function assertAccessibleInFirm(Firm $firm): void
+    {
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('forbidden: can only access entity belongs to firm');
+        }
+    }
+    
 }

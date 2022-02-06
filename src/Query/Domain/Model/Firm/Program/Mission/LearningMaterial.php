@@ -2,7 +2,10 @@
 
 namespace Query\Domain\Model\Firm\Program\Mission;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm\Program\Mission;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial\LearningAttachment;
 
 class LearningMaterial
 {
@@ -37,6 +40,12 @@ class LearningMaterial
      */
     protected $removed = false;
 
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $learningAttachments;
+
     function getMission(): Mission
     {
         return $this->mission;
@@ -64,7 +73,27 @@ class LearningMaterial
 
     protected function __construct()
     {
-        ;
+        
+    }
+
+    /**
+     * 
+     * @return LearningAttachment[]
+     */
+    public function iterateAllLearningAttachments()
+    {
+        return $this->learningAttachments->getIterator();
+    }
+
+    /**
+     * 
+     * @return LearningAttachment[]
+     */
+    public function iterateAllActiveLearningAttachments()
+    {
+        $criteria = Criteria::create()
+                ->where(Criteria::expr()->eq('disabled', false));
+        return $this->learningAttachments->matching($criteria)->getIterator();
     }
 
 }

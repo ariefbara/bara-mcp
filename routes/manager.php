@@ -35,6 +35,12 @@ $router->group($managerAggregate, function () use ($router) {
     $router->get("/participants", ["uses" => "ProgramParticipantController@showAll"]);
     $router->get("/participants/{id}", ["uses" => "ProgramParticipantController@show"]);
     
+    $router->post("/missions/{missionId}/learning-materials", ["uses" => "LearningMaterialController@add"]);
+    $router->patch("/learning-materials/{id}", ["uses" => "LearningMaterialController@update"]);
+    $router->delete("/learning-materials/{id}", ["uses" => "LearningMaterialController@remove"]);
+    $router->get("/learning-materials", ["uses" => "LearningMaterialController@showAll"]);
+    $router->get("/learning-materials/{id}", ["uses" => "LearningMaterialController@show"]);
+    
     $router->group(['prefix' => '/account'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/change-password", ["uses" => "$controller@changePassword"]);

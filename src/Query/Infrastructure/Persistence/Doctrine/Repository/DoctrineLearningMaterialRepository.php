@@ -2,21 +2,18 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Query\ {
-    Application\Service\Firm\Program\Mission\LearningMaterialRepository,
-    Domain\Model\Firm\Program\Mission\LearningMaterial,
-    Domain\Service\LearningMaterialRepository as InterfaceForDomainService
-};
-use Resources\ {
-    Exception\RegularException,
-    Infrastructure\Persistence\Doctrine\PaginatorBuilder
-};
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NoResultException;
+use Query\Application\Service\Firm\Program\Mission\LearningMaterialRepository;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Service\LearningMaterialRepository as InterfaceForDomainService;
+use Query\Domain\Task\Dependency\Firm\Program\Mission\LearningMaterialFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Mission\LearningMaterialRepository as LearningMaterialRepository2;
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineLearningMaterialRepository extends EntityRepository implements LearningMaterialRepository, InterfaceForDomainService
+class DoctrineLearningMaterialRepository extends EntityRepository implements LearningMaterialRepository, InterfaceForDomainService,
+        LearningMaterialRepository2
 {
 
     public function all(string $firmId, string $programId, string $missionId, int $page, int $pageSize)
@@ -77,7 +74,7 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
             "programId" => $programId,
             "learningMaterialId" => $learningMaterialId,
         ];
-        
+
         $qb = $this->createQueryBuilder("learningMaterial");
         $qb->select("learningMaterial")
                 ->andWhere($qb->expr()->eq("learningMaterial.id", ":learningMaterialId"))
@@ -86,13 +83,61 @@ class DoctrineLearningMaterialRepository extends EntityRepository implements Lea
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = "not found: learning material not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function aLearningMaterialInFirm(string $firmId, string $id): LearningMaterial
+    {
+        $params = [
+            'firmId' => $firmId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('learningMaterial');
+        $qb->select('learningMaterial')
+                ->andWhere($qb->expr()->eq('learningMaterial.id', ':id'))
+                ->leftJoin('learningMaterial.mission', 'mission')
+                ->leftJoin('mission.program', 'program')
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setMaxResults(1)
+                ->setParameters($params);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: learning material not found');
+        }
+    }
+
+    public function allLearningMaterialInFirm(string $firmId, LearningMaterialFilter $filter)
+    {
+        $params = [
+            'firmId' => $firmId,
+        ];
+        
+        $qb = $this->createQueryBuilder('learningMaterial');
+        $qb->select('learningMaterial')
+                ->leftJoin('learningMaterial.mission', 'mission')
+                ->leftJoin('mission.program', 'program')
+                ->leftJoin('program.firm', 'firm')
+                ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
+                ->setParameters($params);
+        
+        if (!empty($filter->getMissionId())) {
+            $qb->andWhere($qb->expr()->eq('mission.id', ':missionId'))
+                    ->setParameter('missionId', $filter->getMissionId());
+        }
+        
+        $page = $filter->getPagination()->getPage();
+        $pageSize = $filter->getPagination()->getPageSize();
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }

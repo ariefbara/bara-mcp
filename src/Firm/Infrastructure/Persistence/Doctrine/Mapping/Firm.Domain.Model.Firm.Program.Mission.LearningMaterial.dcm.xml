@@ -14,5 +14,12 @@
         <field name="content" type="text" nullable="true"/>
         <field name="removed" type="boolean" />
         
+        <one-to-many  field="learningAttachments" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Mission\LearningMaterial\LearningAttachment"
+                      mapped-by="learningMaterial"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

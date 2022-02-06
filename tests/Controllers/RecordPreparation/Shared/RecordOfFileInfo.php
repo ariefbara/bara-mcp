@@ -32,5 +32,18 @@ class RecordOfFileInfo implements Record
     {
         $connection->table("FileInfo")->insert($this->toArrayForDbEntry());
     }
+    
+    public function getFullyPath(): string
+    {
+        $path = '';
+        $folders = [];
+        if (!empty($this->folders)) {
+            $folders = explode(',', $this->folders);
+        }
+        foreach ($folders as $folder) {
+            $path .= DIRECTORY_SEPARATOR . $folder;
+        }
+        return $path . DIRECTORY_SEPARATOR . $this->name;
+    }
 
 }

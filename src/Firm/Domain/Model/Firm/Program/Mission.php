@@ -7,6 +7,8 @@ use Firm\Application\Service\Manager\ManageableByFirm;
 use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Firm\Domain\Model\Firm\Program\Mission\LearningMaterialData;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\WorksheetForm;
@@ -148,6 +150,16 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm, AssetInProgram
             string $missionCommentId, MissionCommentData $missionCommentData, string $userId, string $userName): MissionComment
     {
         return new MissionComment($this, $missionCommentId, $missionCommentData, $userId, $userName);
+    }
+    
+    public function addLearningMaterial(string $learningMaterialId, LearningMaterialData $learningMaterialData): LearningMaterial
+    {
+        return new LearningMaterial($this, $learningMaterialId, $learningMaterialData);
+    }
+    
+    public function assertAccessibleInFirm(Firm $firm): void
+    {
+        $this->program->assertAccessibleInFirm($firm);
     }
 
 }

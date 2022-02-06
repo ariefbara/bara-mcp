@@ -5,6 +5,9 @@ namespace Firm\Domain\Model\Firm\Program;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Firm\Domain\Model\Firm\Program\Mission\LearningMaterialData;
+use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\WorksheetForm;
 use Tests\TestBase;
@@ -18,6 +21,7 @@ class MissionTest extends TestBase
     protected $id = 'mission-id', $name = 'new mission name', $description = 'new mission description', $position = 'mission positioin';
     protected $firm;
     protected $missionCommentId = 'mission-comment-id', $missionCommentData, $userId = 'user-id', $userName = 'user name';
+    protected $learningMaterialId = 'learning-material-id', $learningMaterialData;
 
     protected function setUp(): void
     {
@@ -33,6 +37,7 @@ class MissionTest extends TestBase
         $this->firm = $this->buildMockOfClass(Firm::class);
         
         $this->missionCommentData = new MissionCommentData('message');
+        $this->learningMaterialData = new LearningMaterialData('name', 'content');
     }
     protected function getMissionData()
     {
@@ -175,8 +180,29 @@ class MissionTest extends TestBase
     }
     public function test_receiveComment_returnMissionComment()
     {
-        $missionComment = new Mission\MissionComment($this->mission, $this->missionCommentId, $this->missionCommentData, $this->userId, $this->userName);
+        $missionComment = new MissionComment($this->mission, $this->missionCommentId, $this->missionCommentData, $this->userId, $this->userName);
         $this->assertEquals($missionComment, $this->executeReceiveComment());
+    }
+    
+    protected function addLearningMaterial()
+    {
+        return $this->mission->addLearningMaterial($this->learningMaterialId, $this->learningMaterialData);
+    }
+    public function test_addLearningMaterial_returnLearningMaterial()
+    {
+        $this->assertInstanceOf(LearningMaterial::class, $this->addLearningMaterial());
+    }
+    
+    protected function assertAccessibleInFirm()
+    {
+        $this->mission->assertAccessibleInFirm($this->firm);
+    }
+    public function test_assertAccessibleInFirm_assertProgramAccessibleInFirm()
+    {
+        $this->program->expects($this->once())
+                ->method('assertAccessibleInFirm')
+                ->with($this->firm);
+        $this->assertAccessibleInFirm();
     }
 }
 

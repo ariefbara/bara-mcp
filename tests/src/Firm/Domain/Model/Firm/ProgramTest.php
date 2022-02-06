@@ -518,6 +518,23 @@ class ProgramTest extends TestBase
             $this->assertUsableInFirm();
         }, 'Forbidden', 'forbidden: can only owned program');
     }
+    
+    protected function assertAccessibleInFirm()
+    {
+        $this->program->assertAccessibleInFirm($this->firm);
+    }
+    public function test_assertAccessibleInFirm_sameFirm_void()
+    {
+        $this->assertAccessibleInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertAccessibleInFirm_differentFirm_forbidden()
+    {
+        $this->program->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(function(){
+            $this->assertAccessibleInFirm();
+        }, 'Forbidden', 'forbidden: can only access entity belongs to firm');
+    }
 }
 
 class TestableProgram extends Program

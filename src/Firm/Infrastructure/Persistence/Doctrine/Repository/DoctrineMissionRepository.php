@@ -7,11 +7,12 @@ use Firm\Application\Service\Firm\Program\MissionRepository;
 use Firm\Application\Service\Firm\Program\ProgramCompositionId;
 use Firm\Application\Service\Manager\MissionRepository as InterfaceForManager;
 use Firm\Domain\Model\Firm\Program\Mission;
+use Firm\Domain\Task\Dependency\Firm\Program\MissionRepository as MissionRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 use Resources\Uuid;
 
-class DoctrineMissionRepository extends DoctrineEntityRepository implements MissionRepository, InterfaceForManager
+class DoctrineMissionRepository extends DoctrineEntityRepository implements MissionRepository, InterfaceForManager, MissionRepository2
 {
 
     public function add(Mission $mission): void

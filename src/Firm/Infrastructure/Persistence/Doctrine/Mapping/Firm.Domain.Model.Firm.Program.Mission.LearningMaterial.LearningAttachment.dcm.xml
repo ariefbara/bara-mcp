@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Mission\LearningMaterial\LearningAttachment" 
+            table="LearningAttachment"
+    >
+        
+        <many-to-one  field="learningMaterial" 
+                      target-entity="Firm\Domain\Model\Firm\Program\Mission\LearningMaterial"
+                      inversed-by="learningAttachments"
+        >
+            <join-column name="LearningMaterial_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="disabled" type="boolean" />
+        
+        <many-to-one  field="firmFileInfo" 
+                      target-entity="Firm\Domain\Model\Firm\FirmFileInfo"
+        >
+            <join-column name="FirmFileInfo_id" referenced-column-name="id" />
+        </many-to-one>
+        
+    </entity>
+</doctrine-mapping>
