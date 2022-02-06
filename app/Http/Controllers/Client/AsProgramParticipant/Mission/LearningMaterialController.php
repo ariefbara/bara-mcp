@@ -4,19 +4,15 @@ namespace App\Http\Controllers\Client\AsProgramParticipant\Mission;
 
 use App\Http\Controllers\Client\AsProgramParticipant\AsProgramParticipantBaseController;
 use Config\EventList;
-use Participant\{
-    Application\Listener\LearningMaterialAccessedByParticipantListener,
-    Application\Service\Participant\LogViewLearningMaterialActivity,
-    Domain\Model\Participant,
-    Domain\Model\Participant\ViewLearningMaterialActivityLog
-};
-use Query\{
-    Application\Service\Firm\Client\AsProgramParticipant\ViewLearningMaterialDetail,
-    Application\Service\Firm\Program\Mission\ViewLearningMaterial,
-    Domain\Model\Firm\Client\ClientParticipant,
-    Domain\Model\Firm\Program\Mission\LearningMaterial,
-    Domain\Service\LearningMaterialFinder
-};
+use Participant\Application\Listener\LearningMaterialAccessedByParticipantListener;
+use Participant\Application\Service\Participant\LogViewLearningMaterialActivity;
+use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
+use Query\Application\Service\Firm\Client\AsProgramParticipant\ViewLearningMaterialDetail;
+use Query\Application\Service\Firm\Program\Mission\ViewLearningMaterial;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
+use Query\Domain\Service\LearningMaterialFinder;
 use Resources\Application\Event\Dispatcher;
 
 class LearningMaterialController extends AsProgramParticipantBaseController
@@ -43,10 +39,21 @@ class LearningMaterialController extends AsProgramParticipantBaseController
 
     protected function arrayDataOfLearningMaterial(LearningMaterial $learningMaterial): array
     {
+        $learningAttachments = [];
+        foreach ($learningMaterial->iterateAllActiveLearningAttachments() as $learningAttachment) {
+            $learningAttachments[] = [
+                'id' => $learningAttachment->getId(),
+                'firmFileInfo' => [
+                    'id' => $learningAttachment->getFirmFileInfo()->getId(),
+                    'path' => $learningAttachment->getFirmFileInfo()->getFullyQualifiedFileName(),
+                ],
+            ];
+        }
         return [
             "id" => $learningMaterial->getId(),
             "name" => $learningMaterial->getName(),
             "content" => $learningMaterial->getContent(),
+            'learningAttachments' => $learningAttachments,
         ];
     }
 
