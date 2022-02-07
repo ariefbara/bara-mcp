@@ -163,6 +163,7 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
         $programOneResponse = [
             'programId' => $this->programOne->id,
             'programName' => $this->programOne->name,
+            'programType' => $this->programOne->programType,
             'programStrictMissionOrder' => strval(intval($this->programOne->strictMissionOrder)),
             'programIllustration' => "",
             'participantId' => $this->programParticipationOne->id,
@@ -178,6 +179,7 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
         $programTwoResponse = [
             'programId' => $this->programTwo->id,
             'programName' => $this->programTwo->name,
+            'programType' => $this->programTwo->programType,
             'programStrictMissionOrder' => strval(intval($this->programTwo->strictMissionOrder)),
             'programIllustration' => "firms/2/{$this->programTwo->illustration->fileInfo->name}",
             'participantId' => $this->programParticipationTwo->id,

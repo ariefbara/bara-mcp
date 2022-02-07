@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\ProgramType">
+        <field name="value" column="programType" type="string" length="18" nullable="false">
+            <options>
+                <option name="default">incubation</option>
+                <option name="fixed">false</option>
+            </options>
+        </field>
+    </embeddable>
+</doctrine-mapping>

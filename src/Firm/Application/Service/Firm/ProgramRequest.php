@@ -35,6 +35,12 @@ class ProgramRequest
      */
     protected $firmFileInfoIdOfIllustration;
 
+    /**
+     * 
+     * @var string|null
+     */
+    protected $programType;
+
     public function getName(): ?string
     {
         return $this->name;
@@ -60,16 +66,22 @@ class ProgramRequest
         return $this->firmFileInfoIdOfIllustration;
     }
 
+    public function getProgramType(): ?string
+    {
+        return $this->programType;
+    }
+
     public function __construct(
-            ?string $name, ?string $description, ?bool $strictMissionOrder, ?string $firmFileInfoIdOfIllustration)
+            ?string $name, ?string $description, ?bool $strictMissionOrder, ?string $firmFileInfoIdOfIllustration,
+            ?string $programType)
     {
         $this->name = $name;
         $this->description = $description;
         $this->strictMissionOrder = $strictMissionOrder;
-        $this->participantTypes = [];
         $this->firmFileInfoIdOfIllustration = $firmFileInfoIdOfIllustration;
+        $this->programType = $programType;
     }
-    
+
     public function addParticipantType(string $type): void
     {
         $this->participantTypes[] = $type;

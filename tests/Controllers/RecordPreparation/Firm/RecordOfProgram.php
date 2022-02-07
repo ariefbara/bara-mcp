@@ -23,6 +23,7 @@ class RecordOfProgram implements Record
      */
     public $illustration;
     public $strictMissionOrder;
+    public $programType;
 
     public function __construct(?RecordOfFirm $firm, $index)
     {
@@ -34,6 +35,7 @@ class RecordOfProgram implements Record
         $this->participantTypes = ParticipantTypes::CLIENT_TYPE . "," . ParticipantTypes::USER_TYPE . "," . ParticipantTypes::TEAM_TYPE;
         $this->illustration = null;
         $this->removed = false;
+        $this->programType = \SharedContext\Domain\ValueObject\ProgramType::INCUBATION;
     }
 
     public function toArrayForDbEntry()
@@ -48,6 +50,7 @@ class RecordOfProgram implements Record
             "participantTypes" => $this->participantTypes,
             "removed" => $this->removed,
             "FirmFileInfo_idOfIllustration" => empty($this->illustration) ? null : $this->illustration->id,
+            'programType' => $this->programType,
         ];
     }
     

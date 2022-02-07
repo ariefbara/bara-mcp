@@ -31,6 +31,7 @@ class ProgramControllerTest extends ProgramTestCase
             "strictMissionOrder" => true,
             "firmFileInfoIdOfIllustration" => $this->firmFileInfoOne->id,
             "participantTypes" => ["client", "user"],
+            "programType" => 'course',
         ];
     }
     
@@ -57,6 +58,7 @@ class ProgramControllerTest extends ProgramTestCase
             "participantTypes" => $this->programInput['participantTypes'],
             "strictMissionOrder" => $this->programInput['strictMissionOrder'],
             "published" => false,
+            "programType" => $this->programInput['programType'],
             "illustration" => [
                 "id" => $this->firmFileInfoOne->id,
                 "url" => "/{$this->firmFileInfoOne->fileInfo->name}"
@@ -73,6 +75,7 @@ class ProgramControllerTest extends ProgramTestCase
             "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,
             "published" => false,
             "removed" => false,
+            "programType" => $this->programInput['programType'],
         ];
         $this->seeInDatabase('Program', $programRecord);
     }
@@ -99,6 +102,7 @@ class ProgramControllerTest extends ProgramTestCase
             "description" => $this->programInput['description'],
             "participantTypes" => $this->programInput['participantTypes'],
             "published" => $this->program->published,
+            "programType" => $this->programInput['programType'],
             "illustration" => [
                 "id" => $this->firmFileInfoOne->id,
                 "url" => "/{$this->firmFileInfoOne->fileInfo->name}"
@@ -113,6 +117,7 @@ class ProgramControllerTest extends ProgramTestCase
             "published" => $this->program->published,
             "removed" => false,
             "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,
+            "programType" => $this->programInput['programType'],
         ];
         $this->seeInDatabase('Program', $programmeRecord);
     }
@@ -178,6 +183,7 @@ class ProgramControllerTest extends ProgramTestCase
             "description" => $this->program->description,
             "strictMissionOrder" => $this->program->strictMissionOrder,
             "published" => $this->program->published,
+            "programType" => $this->program->programType,
             "illustration" => null,
         ];
         $uri = "{$this->programUri}/{$this->program->id}";
@@ -201,12 +207,14 @@ class ProgramControllerTest extends ProgramTestCase
                     "id" => $this->program->id,
                     "name" => $this->program->name,
                     "published" => $this->program->published,
+                    "programType" => $this->program->programType,
                     "participantTypes" => explode(',', $this->program->participantTypes),
                 ],
                 [
                     "id" => $this->programOne->id,
                     "name" => $this->programOne->name,
                     "published" => $this->programOne->published,
+                    "programType" => $this->programOne->programType,
                     "participantTypes" => explode(',', $this->programOne->participantTypes),
                 ],
             ],

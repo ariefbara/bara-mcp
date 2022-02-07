@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Program\Sponsor;
+use SharedContext\Domain\ValueObject\ProgramType;
 
 class Program
 {
@@ -57,6 +58,12 @@ class Program
      * @var bool
      */
     protected $strictMissionOrder;
+
+    /**
+     * 
+     * @var ProgramType
+     */
+    protected $programType;
 
     /**
      *
@@ -147,6 +154,11 @@ class Program
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('disabled', false));
         return $this->sponsors->matching($criteria)->getIterator();
+    }
+    
+    public function getProgramTypeString(): string
+    {
+        return $this->programType->getValue();
     }
 
 }

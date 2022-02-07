@@ -24,7 +24,9 @@ class ProgramController extends ManagerBaseController
         $description = $this->stripTagsInputRequest('description');
         $strictMissionOrder = $this->filterBooleanOfInputRequest('strictMissionOrder');
         $firmFileInfoIdOfIllustration = $this->stripTagsInputRequest("firmFileInfoIdOfIllustration");
-        $programRequest = new ProgramRequest($name, $description, $strictMissionOrder, $firmFileInfoIdOfIllustration);
+        $programType = $this->stripTagsInputRequest('programType');
+        $programRequest = new ProgramRequest(
+                $name, $description, $strictMissionOrder, $firmFileInfoIdOfIllustration, $programType);
         
         foreach ($this->request->input('participantTypes') as $participantType) {
             $programRequest->addParticipantType($participantType);
@@ -96,6 +98,7 @@ class ProgramController extends ManagerBaseController
                 "name" => $program->getName(),
                 "published" => $program->isPublished(),
                 "participantTypes" => $program->getParticipantTypeValues(),
+                "programType" => $program->getProgramTypeString(),
             ];
         }
         return $this->listQueryResponse($result);
@@ -115,6 +118,7 @@ class ProgramController extends ManagerBaseController
             "strictMissionOrder" => $program->isStrictMissionOrder(),
             "published" => $program->isPublished(),
             "illustration" => $illustration,
+            "programType" => $program->getProgramTypeString(),
         ];
     }
 

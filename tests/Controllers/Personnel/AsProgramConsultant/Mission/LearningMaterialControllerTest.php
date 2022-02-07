@@ -62,7 +62,6 @@ class LearningMaterialControllerTest extends MissionTestCase
         $this->learningAttachmentTwo->insert($this->connection);
         
         $this->learningMaterialUri .= "/{$this->learningMaterialOne->id}";
-echo $this->learningMaterialUri;
         $this->get($this->learningMaterialUri, $this->consultant->personnel->token);
     }
     public function test_show_200()
