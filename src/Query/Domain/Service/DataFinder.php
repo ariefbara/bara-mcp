@@ -126,7 +126,10 @@ SELECT
     _b.achievement,
     _b.completedMetric,
     _b.totalAssignedMetric,
-    _b.reportId
+    _b.reportId,
+    _d.learningMaterialId lastViewLearningMaterialId,
+    _d.learningMaterialName lastViewLearningMaterialName,
+    _d.missionId missionIdOflastViewLearningMaterial
 FROM (
     SELECT Program.id programId, 
         Program.name programName, 
@@ -207,6 +210,31 @@ LEFT JOIN (
     WHERE Mission.Published = true
     GROUP BY programId
 )_c ON _c.programId = _a.programId
+LEFT JOIN (
+    SELECT 
+        _d2.participantId,
+        _d2.learningMaterialId,
+        LearningMaterial.name learningMaterialName,
+        LearningMaterial.Mission_id missionId
+    FROM (
+        SELECT
+            ViewLearningMaterialActivityLog.Participant_id participantId,
+            MAX(ActivityLog.occuredTime) as lastViewTime
+        FROM ViewLearningMaterialActivityLog
+            LEFT JOIN ActivityLog ON ActivityLog.id = ViewLearningMaterialActivityLog.ActivityLog_id
+        GROUP BY participantId
+    )_d1
+    LEFT JOIN (
+        SELECT
+            ViewLearningMaterialActivityLog.Participant_id participantId,
+            ViewLearningMaterialActivityLog.LearningMaterial_id learningMaterialId,
+            ActivityLog.occuredTime
+        FROM ViewLearningMaterialActivityLog
+            LEFT JOIN ActivityLog ON ActivityLog.id = ViewLearningMaterialActivityLog.ActivityLog_id
+    )_d2 ON _d2.occuredTime = _d1.lastViewTime AND _d2.participantId = _d1.participantId
+    LEFT JOIN LearningMaterial ON LearningMaterial.id = _d2.learningMaterialId
+    LIMIT 1
+)_d ON _d.participantId = _a.participantId
 ORDER BY _b.totalCompletedMission DESC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;

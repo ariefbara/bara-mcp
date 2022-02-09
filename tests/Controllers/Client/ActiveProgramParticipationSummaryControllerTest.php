@@ -4,14 +4,17 @@ namespace Tests\Controllers\Client;
 
 use DateTime;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
+use Tests\Controllers\RecordPreparation\Firm\Program\Mission\RecordOfLearningMaterial;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\ConsultationSession\RecordOfConsultantFeedback;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfConsultationSession;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfViewLearningMaterialActivityLog;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfActivityLog;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
@@ -39,6 +42,9 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
     protected $consultantFeedback_11;
     protected $consultantFeedback_12;
     protected $consultantFeedback_21;
+    
+    protected $viewLearningMaterialActivityLogOne_pp1m11;
+    protected $viewLearningMaterialActivityLogTwo_pp1m12;
 
     protected function setUp(): void
     {
@@ -53,6 +59,18 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
         $this->connection->table('ConsultantFeedback')->truncate();
         $this->connection->table('FirmFileInfo')->truncate();
         $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('Program')->truncate();
+        $this->connection->table('Mission')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('CompletedMission')->truncate();
+        $this->connection->table('ConsultationSession')->truncate();
+        $this->connection->table('ConsultantFeedback')->truncate();
+        $this->connection->table('FirmFileInfo')->truncate();
+        $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('LearningMaterial')->truncate();
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ViewLearningMaterialActivityLog')->truncate();
         
         $firm = $this->client->firm;
         $clientTwo = new RecordOfClient($firm, '2');
@@ -137,6 +155,15 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
         $this->connection->table('ConsultantFeedback')->insert($this->consultantFeedback_11->toArrayForDbEntry());
         $this->connection->table('ConsultantFeedback')->insert($this->consultantFeedback_12->toArrayForDbEntry());
         $this->connection->table('ConsultantFeedback')->insert($this->consultantFeedback_21->toArrayForDbEntry());
+        
+        $learningMaterialOne = new RecordOfLearningMaterial($this->mission_11, '1');
+        $learningMaterialTwo = new RecordOfLearningMaterial($this->mission_12, '2');
+        
+        $activityLogOne = new RecordOfActivityLog('1');
+        $activityLogTwo = new RecordOfActivityLog('2');
+        
+        $this->viewLearningMaterialActivityLogOne_pp1m11 = new RecordOfViewLearningMaterialActivityLog($participantOne, $learningMaterialOne, $activityLogOne);
+        $this->viewLearningMaterialActivityLogTwo_pp1m12 = new RecordOfViewLearningMaterialActivityLog($participantOne, $learningMaterialTwo, $activityLogTwo);
     }
     protected function tearDown(): void
     {
@@ -150,11 +177,28 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
         $this->connection->table('ConsultantFeedback')->truncate();
         $this->connection->table('FirmFileInfo')->truncate();
         $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('LearningMaterial')->truncate();
+        $this->connection->table('ActivityLog')->truncate();
+        $this->connection->table('ViewLearningMaterialActivityLog')->truncate();
+    }
+    
+    protected function showAll()
+    {
+        $this->viewLearningMaterialActivityLogOne_pp1m11->learningMaterial->insert($this->connection);
+        $this->viewLearningMaterialActivityLogTwo_pp1m12->learningMaterial->insert($this->connection);
+        
+        $this->viewLearningMaterialActivityLogOne_pp1m11->insert($this->connection);
+        $this->viewLearningMaterialActivityLogTwo_pp1m12->insert($this->connection);
+        
+        $this->get($this->activeProgramParticipationSummaryUri, $this->client->token);
     }
     
     public function test_showAll_200()
     {
-        $this->get($this->activeProgramParticipationSummaryUri, $this->client->token);
+        $this->viewLearningMaterialActivityLogOne_pp1m11->activityLog->occuredTime = (new \DateTime('-45 days'))->format('Y-m-d H:i:s');
+        $this->viewLearningMaterialActivityLogTwo_pp1m12->activityLog->occuredTime = (new \DateTime('-30 days'))->format('Y-m-d H:i:s');
+        
+        $this->showAll();
         $this->seeStatusCode(200);
         
         $totalResponse = ['total' => 2];
@@ -173,6 +217,9 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
             'lastCompletedTime' => $this->completedMission_11->completedTime,
             'lastMissionId' => $this->completedMission_11->mission->id,
             'lastMissionName' => $this->completedMission_11->mission->name,
+            'lastViewLearningMaterialId' => $this->viewLearningMaterialActivityLogTwo_pp1m12->learningMaterial->id,
+            'lastViewLearningMaterialName' => $this->viewLearningMaterialActivityLogTwo_pp1m12->learningMaterial->name,
+            'missionIdOflastViewLearningMaterial' => $this->viewLearningMaterialActivityLogTwo_pp1m12->learningMaterial->mission->id,
         ];
         $this->seeJsonContains($programOneResponse);
         
@@ -189,6 +236,9 @@ class ActiveProgramParticipationSummaryControllerTest extends ClientTestCase
             'lastCompletedTime' => $this->completedMission_21->completedTime,
             'lastMissionId' => $this->completedMission_21->mission->id,
             'lastMissionName' => $this->completedMission_21->mission->name,
+            'lastViewLearningMaterialId' => null,
+            'lastViewLearningMaterialName' => null,
+            'missionIdOflastViewLearningMaterial' => null,
         ];
         $this->seeJsonContains($programTwoResponse);
     }

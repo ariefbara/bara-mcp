@@ -2,12 +2,11 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant;
 
-use Tests\Controllers\RecordPreparation\{
-    Firm\Program\Mission\RecordOfLearningMaterial,
-    Firm\Program\RecordOfParticipant,
-    Record,
-    Shared\RecordOfActivityLog
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\Mission\RecordOfLearningMaterial;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfActivityLog;
 
 class RecordOfViewLearningMaterialActivityLog implements Record
 {
@@ -49,6 +48,12 @@ class RecordOfViewLearningMaterialActivityLog implements Record
             "ActivityLog_id" => $this->activityLog->id,
             "id" => $this->id,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->activityLog->insert($connection);
+        $connection->table('ViewLearningMaterialActivityLog')->insert($this->toArrayForDbEntry());
     }
 
 }

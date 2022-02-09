@@ -3,6 +3,7 @@
 namespace Tests\Controllers\RecordPreparation\Shared;
 
 use DateTimeImmutable;
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfActivityLog implements Record
@@ -25,6 +26,11 @@ class RecordOfActivityLog implements Record
             "message" => $this->message,
             "occuredTime" => $this->occuredTime,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('ActivityLog')->insert($this->toArrayForDbEntry());
     }
 
 }
