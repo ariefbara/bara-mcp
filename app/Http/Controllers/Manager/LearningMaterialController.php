@@ -106,7 +106,7 @@ class LearningMaterialController extends ManagerBaseController
     protected function arrayDataOfLearningMaterial(LearningMaterial $learningMaterial): array
     {
         $learningAttachments = [];
-        foreach ($learningMaterial->iterateAllLearningAttachments() as $learningAttachment) {
+        foreach ($learningMaterial->iterateAllActiveLearningAttachments() as $learningAttachment) {
             $learningAttachments[] = [
                 'id' => $learningAttachment->getId(),
                 'disabled' => $learningAttachment->isDisabled(),

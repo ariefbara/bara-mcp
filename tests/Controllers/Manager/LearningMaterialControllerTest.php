@@ -249,16 +249,6 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         $this->update();
         $this->seeStatusCode(200);
         
-        $attachmentOneResponse = [
-            'id' => $this->learningAttachmentOne_lm1->id,
-            'disabled' => true,
-            'firmFileInfo' => [
-                'id' => $this->learningAttachmentOne_lm1->firmFileInfo->id,
-                'path' => $this->learningAttachmentOne_lm1->firmFileInfo->fileInfo->getFullyPath(),
-            ],
-        ];
-        $this->seeJsonContains($attachmentOneResponse);
-        
         $attachmentOneRecord = [
             'id' => $this->learningAttachmentOne_lm1->id,
             'disabled' => true,
@@ -411,6 +401,30 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
                         'path' => $this->learningAttachmentOne_lm1->firmFileInfo->fileInfo->getFullyPath(),
                     ],
                 ],
+                [
+                    'id' => $this->learningAttachmentTwo_lm2->id,
+                    'disabled' => $this->learningAttachmentTwo_lm2->disabled,
+                    'firmFileInfo' => [
+                        'id' => $this->learningAttachmentTwo_lm2->firmFileInfo->id,
+                        'path' => $this->learningAttachmentTwo_lm2->firmFileInfo->fileInfo->getFullyPath(),
+                    ],
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_show_excludeInactiveAttachment_200()
+    {
+        $this->learningAttachmentOne_lm1->disabled = true;
+        $this->show();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'id' => $this->learningMaterialOne_m1->id,
+            'name' => $this->learningMaterialOne_m1->name,
+            'content' => $this->learningMaterialOne_m1->content,
+            'removed' => false,
+            'learningAttachments' => [
                 [
                     'id' => $this->learningAttachmentTwo_lm2->id,
                     'disabled' => $this->learningAttachmentTwo_lm2->disabled,
