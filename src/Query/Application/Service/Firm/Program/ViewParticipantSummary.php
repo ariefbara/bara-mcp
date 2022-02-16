@@ -22,7 +22,7 @@ class ViewParticipantSummary
                 ->allParticipantsSummaryInProgram($programId, $page, $pageSize, $searchByParticipantName);
     }
 
-    public function getTotalActvieParticipants(string $programId, ?string $searchByParticipantName): int
+    public function getTotalActvieParticipants(string $programId, ?string $searchByParticipantName = null): int
     {
         return $this->participantSummaryRepository
                 ->getTotalActiveParticipantInProgram($programId, $searchByParticipantName);
