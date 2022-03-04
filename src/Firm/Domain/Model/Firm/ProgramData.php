@@ -35,6 +35,12 @@ class ProgramData
      */
     protected $illustration;
 
+    /**
+     * 
+     * @var string|null
+     */
+    protected $programType;
+
     public function getName(): ?string
     {
         return $this->name;
@@ -59,15 +65,21 @@ class ProgramData
     {
         return $this->illustration;
     }
+    
+    public function getProgramType(): ?string
+    {
+        return $this->programType;
+    }
 
     public function __construct(
-            ?string $name, ?string $description, ?bool $strictMissionOrder, ?FirmFileInfo $illustration)
+            ?string $name, ?string $description, ?bool $strictMissionOrder, ?FirmFileInfo $illustration,
+            ?string $programType)
     {
         $this->name = $name;
         $this->description = $description;
         $this->strictMissionOrder = $strictMissionOrder;
-        $this->participantTypes = [];
         $this->illustration = $illustration;
+        $this->programType = $programType;
     }
 
     public function addParticipantType(string $type): void

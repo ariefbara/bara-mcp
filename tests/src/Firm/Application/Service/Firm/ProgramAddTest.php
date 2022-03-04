@@ -7,6 +7,7 @@ use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\FirmFileInfo;
 use Firm\Domain\Model\Firm\ProgramData;
 use Query\Domain\Model\Firm\ParticipantTypes;
+use SharedContext\Domain\ValueObject\ProgramType;
 use Tests\TestBase;
 
 class ProgramAddTest extends TestBase
@@ -42,10 +43,10 @@ class ProgramAddTest extends TestBase
 
         $this->service = new ProgramAdd($this->programRepository, $this->firmRepository, $this->firmFileInfoRepository);
         
-        $this->programRequest = new ProgramRequest('name', 'description', true, $this->firmFileInfoId);
+        $this->programRequest = new ProgramRequest('name', 'description', true, $this->firmFileInfoId, ProgramType::INCUBATION);
         $this->programRequest->addParticipantType(ParticipantTypes::CLIENT_TYPE);
         
-        $this->programData = new ProgramData('name', 'description', true, $this->firmFileInfo);
+        $this->programData = new ProgramData('name', 'description', true, $this->firmFileInfo, ProgramType::INCUBATION);
         $this->programData->addParticipantType(ParticipantTypes::CLIENT_TYPE);
 //
 //        $this->programData = $this->buildMockOfClass(ProgramData::class);
@@ -78,7 +79,7 @@ class ProgramAddTest extends TestBase
     }
     public function test_execute_emptyIllustration()
     {
-        $this->programRequest = new ProgramRequest('name', 'description', true, null);
+        $this->programRequest = new ProgramRequest('name', 'description', true, null,  ProgramType::COURSE);
         $this->execute();
         $this->markAsSuccess();
     }

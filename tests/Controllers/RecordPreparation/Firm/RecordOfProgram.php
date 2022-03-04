@@ -5,6 +5,7 @@ namespace Tests\Controllers\RecordPreparation\Firm;
 use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
 use Query\Domain\Model\Firm\ParticipantTypes;
+use SharedContext\Domain\ValueObject\ProgramType;
 use Tests\Controllers\RecordPreparation\Record;
 use Tests\Controllers\RecordPreparation\RecordOfFirm;
 
@@ -17,6 +18,7 @@ class RecordOfProgram implements Record
      */
     public $firm;
     public $id, $name, $description, $participantTypes, $published = true, $removed = false;
+    public $programType;
     /**
      * 
      * @var RecordOfFirmFileInfo
@@ -32,6 +34,7 @@ class RecordOfProgram implements Record
         $this->description = "program $index description";
         $this->strictMissionOrder = false;
         $this->participantTypes = ParticipantTypes::CLIENT_TYPE . "," . ParticipantTypes::USER_TYPE . "," . ParticipantTypes::TEAM_TYPE;
+        $this->programType = ProgramType::INCUBATION;
         $this->illustration = null;
         $this->removed = false;
     }
@@ -46,6 +49,7 @@ class RecordOfProgram implements Record
             "strictMissionOrder" => $this->strictMissionOrder,
             "published" => $this->published,
             "participantTypes" => $this->participantTypes,
+            "programType" => $this->programType,
             "removed" => $this->removed,
             "FirmFileInfo_idOfIllustration" => empty($this->illustration) ? null : $this->illustration->id,
         ];

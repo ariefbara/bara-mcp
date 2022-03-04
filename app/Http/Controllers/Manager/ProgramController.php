@@ -11,7 +11,6 @@ use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\FirmFileInfo;
 use Firm\Domain\Model\Firm\Manager;
 use Firm\Domain\Model\Firm\Program;
-use Firm\Domain\Model\Firm\ProgramData;
 use Query\Application\Service\Firm\ProgramView;
 use Query\Domain\Model\Firm\Program as Program2;
 
@@ -24,7 +23,8 @@ class ProgramController extends ManagerBaseController
         $description = $this->stripTagsInputRequest('description');
         $strictMissionOrder = $this->filterBooleanOfInputRequest('strictMissionOrder');
         $firmFileInfoIdOfIllustration = $this->stripTagsInputRequest("firmFileInfoIdOfIllustration");
-        $programRequest = new ProgramRequest($name, $description, $strictMissionOrder, $firmFileInfoIdOfIllustration);
+        $programType = $this->stripTagsInputRequest('programType');
+        $programRequest = new ProgramRequest($name, $description, $strictMissionOrder, $firmFileInfoIdOfIllustration, $programType);
         
         foreach ($this->request->input('participantTypes') as $participantType) {
             $programRequest->addParticipantType($participantType);
@@ -96,6 +96,7 @@ class ProgramController extends ManagerBaseController
                 "name" => $program->getName(),
                 "published" => $program->isPublished(),
                 "participantTypes" => $program->getParticipantTypeValues(),
+                "programType" => $program->getProgramTypeValue(),
             ];
         }
         return $this->listQueryResponse($result);
@@ -112,6 +113,7 @@ class ProgramController extends ManagerBaseController
             "name" => $program->getName(),
             "description" => $program->getDescription(),
             "participantTypes" => $program->getParticipantTypeValues(),
+            "programType" => $program->getProgramTypeValue(),
             "strictMissionOrder" => $program->isStrictMissionOrder(),
             "published" => $program->isPublished(),
             "illustration" => $illustration,

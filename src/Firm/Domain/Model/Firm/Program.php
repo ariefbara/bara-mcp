@@ -17,8 +17,6 @@ use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
 use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\MetricData;
 use Firm\Domain\Model\Firm\Program\Mission;
-use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial;
-use Firm\Domain\Model\Firm\Program\Mission\LearningMaterialData;
 use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
@@ -33,6 +31,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
+use SharedContext\Domain\ValueObject\ProgramType;
 
 class Program extends EntityContainEvents implements AssetBelongsToFirm, ManageableByFirm
 {
@@ -66,6 +65,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var ParticipantTypes
      */
     protected $participantTypes;
+    
+    /**
+     * 
+     * @var ProgramType
+     */
+    protected $programType;
 
     /**
      *
@@ -151,6 +156,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->setDescription($programData->getDescription());
         $this->setIllustration($programData->getIllustration());
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
+        $this->programType = new ProgramType($programData->getProgramType());
         $this->strictMissionOrder = $programData->isStrictMissionOrder();
         $this->published = false;
         $this->removed = false;
@@ -167,6 +173,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->setDescription($programData->getDescription());
         $this->setIllustration($programData->getIllustration());
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
+        $this->programType = new ProgramType($programData->getProgramType());
         $this->strictMissionOrder = $programData->isStrictMissionOrder();
     }
 

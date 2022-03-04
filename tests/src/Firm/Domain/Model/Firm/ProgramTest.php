@@ -21,9 +21,11 @@ use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Firm\Program\Registrant;
 use Firm\Domain\Model\Firm\Program\Sponsor;
+use Firm\Domain\Model\Firm\Program\SponsorData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Domain\Event\CommonEvent;
+use SharedContext\Domain\ValueObject\ProgramType;
 use Tests\TestBase;
 
 class ProgramTest extends TestBase
@@ -52,12 +54,13 @@ class ProgramTest extends TestBase
     protected $sponsorId = 'sponsor-id', $sponsorData;
     protected $firmFileInfo;
     protected $type = 'client';
+    protected $programType = ProgramType::COURSE;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->firm = $this->buildMockOfClass(Firm::class);
-        $programData = new ProgramData('name', 'description', false, null);
+        $programData = new ProgramData('name', 'description', false, null, ProgramType::INCUBATION);
         $this->program = new TestableProgram($this->firm, 'id', $programData);
         $this->participantTypes = $this->buildMockOfClass(ParticipantTypes::class);
         $this->program->participantTypes = $this->participantTypes;
@@ -108,13 +111,14 @@ class ProgramTest extends TestBase
         $this->meeting = $this->buildMockOfClass(Meeting::class);
         $this->activityParticipant = $this->buildMockOfClass(ActivityParticipant::class);
         
-        $this->sponsorData = new Program\SponsorData('sponsor name', null, 'sponsor.web.id');
+        $this->sponsorData = new SponsorData('sponsor name', null, 'sponsor.web.id');
         $this->firmFileInfo = $this->buildMockOfClass(FirmFileInfo::class);
     }
 
     protected function getProgramData()
     {
-        $programData = new ProgramData($this->name, $this->description, $this->strictMissionOrder, $this->firmFileInfo);
+        $programData = new ProgramData(
+                $this->name, $this->description, $this->strictMissionOrder, $this->firmFileInfo, $this->programType);
         foreach ($this->types as $type) {
             $programData->addParticipantType($type);
         }
@@ -136,6 +140,9 @@ class ProgramTest extends TestBase
         $this->assertEquals($this->strictMissionOrder, $program->strictMissionOrder);
         $this->assertFalse($program->published);
         $this->assertFalse($program->removed);
+        
+        $programType = new ProgramType($this->programType);
+        $this->assertEquals($programType, $program->programType);
         
         $participantTypes = new ParticipantTypes($this->types);
         $this->assertEquals($participantTypes, $program->participantTypes);
@@ -179,6 +186,8 @@ class ProgramTest extends TestBase
         $this->assertEquals($this->firmFileInfo, $this->program->illustration);
         $this->assertEquals($this->strictMissionOrder, $this->program->strictMissionOrder);
         
+        $programType = new ProgramType($this->programType);
+        $this->assertEquals($programType, $this->program->programType);
         $participantTypes = new ParticipantTypes($this->types);
         $this->assertEquals($participantTypes, $this->program->participantTypes);
     }
@@ -541,6 +550,7 @@ class TestableProgram extends Program
 {
 
     public $firm, $id, $name, $description, $participantTypes, $published, $removed;
+    public $programType;
     public $illustration;
     public $strictMissionOrder;
     public $consultants, $coordinators;

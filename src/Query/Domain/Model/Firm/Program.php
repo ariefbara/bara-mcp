@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Program\Sponsor;
+use SharedContext\Domain\ValueObject\ProgramType;
 
 class Program
 {
@@ -45,6 +46,12 @@ class Program
      * @var ParticipantTypes
      */
     protected $participantTypes;
+    
+    /**
+     * 
+     * @var ProgramType
+     */
+    protected $programType;
 
     /**
      *
@@ -129,6 +136,11 @@ class Program
     public function getParticipantTypeValues(): array
     {
         return $this->participantTypes->getValues();
+    }
+    
+    public function getProgramTypeValue(): string
+    {
+        return $this->programType->getDisplayValue();
     }
 
     public function hasProfileForm(): bool

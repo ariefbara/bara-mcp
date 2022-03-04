@@ -6,6 +6,7 @@ use Firm\Domain\Model\Firm\FirmFileInfo;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\ProgramData;
 use Query\Domain\Model\Firm\ParticipantTypes;
+use SharedContext\Domain\ValueObject\ProgramType;
 use Tests\TestBase;
 
 class ProgramUpdateTest extends TestBase
@@ -39,10 +40,10 @@ class ProgramUpdateTest extends TestBase
         
         $this->service = new ProgramUpdate($this->programRepository, $this->firmFileInfoRepository);
         
-        $this->programRequest = new ProgramRequest('name', null, true, $this->firmFileInfoId);
+        $this->programRequest = new ProgramRequest('name', null, true, $this->firmFileInfoId, ProgramType::INCUBATION);
         $this->programRequest->addParticipantType(ParticipantTypes::CLIENT_TYPE);
         
-        $this->programData = new ProgramData('name', null, true, $this->firmFileInfo);
+        $this->programData = new ProgramData('name', null, true, $this->firmFileInfo, ProgramType::INCUBATION);
         $this->programData->addParticipantType(ParticipantTypes::CLIENT_TYPE);
     }
     
@@ -63,7 +64,7 @@ class ProgramUpdateTest extends TestBase
     }
     public function test_update_emptyIllustration()
     {
-        $this->programRequest = new ProgramRequest('name', null, true, null);
+        $this->programRequest = new ProgramRequest('name', null, true, null, ProgramType::INCUBATION);
         $this->execute();
         $this->markAsSuccess();
     }
