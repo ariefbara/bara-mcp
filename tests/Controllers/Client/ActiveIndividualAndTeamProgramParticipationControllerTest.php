@@ -109,7 +109,6 @@ class ActiveIndividualAndTeamProgramParticipationControllerTest extends ClientTe
         $this->teamParticipant_41->insert($this->connection);
         
         $this->get($this->activeIndividualAndTeamProgramParticipantControllerUri, $this->client->token);
-echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
     }
     public function test_showAll_200()
     {
@@ -129,6 +128,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'description' => $this->clientParticipation_11->participant->program->description,
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
+                            'programType' => $this->clientParticipation_11->participant->program->programType,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
                             "illustration" => null,
                         ],
@@ -145,6 +145,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            'programType' => $this->clientParticipation_21->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoTwo->id,
                                 'url' => "/firm/apur/{$this->firmFileInfoTwo->fileInfo->name}",
@@ -163,6 +164,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_31->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_31->participant->program->published,
                             'removed' => $this->teamParticipant_31->participant->program->removed,
+                            'programType' => $this->teamParticipant_31->participant->program->programType,
                             "illustration" => null,
                         ],
                         'team' => [
@@ -181,6 +183,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            'programType' => $this->teamParticipant_41->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoFour->id,
                                 'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
@@ -220,9 +223,10 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            'programType' => $this->clientParticipation_21->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoTwo->id,
-                                'url' => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                                'url' => "/firm/apur/{$this->firmFileInfoTwo->fileInfo->name}",
                             ],
                         ],
                         'team' => null,
@@ -238,6 +242,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_31->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_31->participant->program->published,
                             'removed' => $this->teamParticipant_31->participant->program->removed,
+                            'programType' => $this->teamParticipant_31->participant->program->programType,
                             "illustration" => null
                         ],
                         'team' => [
@@ -256,6 +261,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            'programType' => $this->teamParticipant_41->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoFour->id,
                                 'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
@@ -296,6 +302,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
+                            'programType' => $this->clientParticipation_11->participant->program->programType,
                             "illustration" => null,
                         ],
                         'team' => null,
@@ -311,6 +318,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_31->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_31->participant->program->published,
                             'removed' => $this->teamParticipant_31->participant->program->removed,
+                            'programType' => $this->teamParticipant_31->participant->program->programType,
                             "illustration" => null,
                         ],
                         'team' => [
@@ -329,6 +337,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            'programType' => $this->teamParticipant_41->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoFour->id,
                                 'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
@@ -368,6 +377,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
+                            'programType' => $this->clientParticipation_11->participant->program->programType,
                             "illustration" => null,
                         ],
                         'team' => null,
@@ -383,9 +393,10 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            'programType' => $this->clientParticipation_21->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoTwo->id,
-                                'url' => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                                'url' => "/firm/apur/{$this->firmFileInfoTwo->fileInfo->name}",
                             ],
                         ],
                         'team' => null,
@@ -401,6 +412,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            'programType' => $this->teamParticipant_41->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoFour->id,
                                 'url' => "/{$this->firmFileInfoFour->fileInfo->name}",
@@ -440,6 +452,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->clientParticipation_11->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_11->participant->program->published,
                             'removed' => $this->clientParticipation_11->participant->program->removed,
+                            'programType' => $this->clientParticipation_11->participant->program->programType,
                             "illustration" => null
                         ],
                         'team' => null,
@@ -455,9 +468,10 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->clientParticipation_21->participant->program->strictMissionOrder,
                             'published' => $this->clientParticipation_21->participant->program->published,
                             'removed' => $this->clientParticipation_21->participant->program->removed,
+                            'programType' => $this->clientParticipation_21->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoTwo->id,
-                                'url' => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                                'url' => "/firm/apur/{$this->firmFileInfoTwo->fileInfo->name}",
                             ],
                         ],
                         'team' => null,
@@ -473,6 +487,7 @@ echo $this->activeIndividualAndTeamProgramParticipantControllerUri;
                             'strictMissionOrder' => $this->teamParticipant_41->participant->program->strictMissionOrder,
                             'published' => $this->teamParticipant_41->participant->program->published,
                             'removed' => $this->teamParticipant_41->participant->program->removed,
+                            'programType' => $this->teamParticipant_41->participant->program->programType,
                             "illustration" => [
                                 'id' => $this->firmFileInfoFour->id,
                                 'url' => "/{$this->firmFileInfoFour->fileInfo->name}",

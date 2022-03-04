@@ -103,15 +103,15 @@ class ProgramControllerTest extends ClientTestCase
     
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table("Program")->truncate();
-//        $this->connection->table("RegistrationPhase")->truncate();
-//        $this->connection->table("Registrant")->truncate();
-//        $this->connection->table("ClientRegistrant")->truncate();
-//        $this->connection->table("Participant")->truncate();
-//        $this->connection->table("ClientParticipant")->truncate();
-//        $this->connection->table("FileInfo")->truncate();
-//        $this->connection->table("FirmFileInfo")->truncate();
+        parent::tearDown();
+        $this->connection->table("Program")->truncate();
+        $this->connection->table("RegistrationPhase")->truncate();
+        $this->connection->table("Registrant")->truncate();
+        $this->connection->table("ClientRegistrant")->truncate();
+        $this->connection->table("Participant")->truncate();
+        $this->connection->table("ClientParticipant")->truncate();
+        $this->connection->table("FileInfo")->truncate();
+        $this->connection->table("FirmFileInfo")->truncate();
     }
     
     protected function show()
@@ -130,6 +130,7 @@ class ProgramControllerTest extends ClientTestCase
         $response = [
             "id" => $this->programOne->id,
             "name" => $this->programOne->name,
+            "programType" => $this->programOne->programType,
             "description" => $this->programOne->description,
             "published" => $this->programOne->published,
             "participantTypes" => explode(",", $this->programOne->participantTypes),
@@ -163,6 +164,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     "id" => $this->programOne->id,
                     "name" => $this->programOne->name,
+                    "programType" => $this->programOne->programType,
                     "description" => $this->programOne->description,
                     "published" => $this->programOne->published,
                     "participantTypes" => explode(",", $this->programOne->participantTypes),
@@ -175,6 +177,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     "id" => $this->programTwo->id,
                     "name" => $this->programTwo->name,
+                    "programType" => $this->programTwo->programType,
                     "description" => $this->programTwo->description,
                     "published" => $this->programTwo->published,
                     "participantTypes" => explode(",", $this->programTwo->participantTypes),
@@ -222,6 +225,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     "id" => $this->programOne->id,
                     "name" => $this->programOne->name,
+                    "programType" => $this->programOne->programType,
                     "description" => $this->programOne->description,
                     "published" => $this->programOne->published,
                     "participantTypes" => explode(",", $this->programOne->participantTypes),
@@ -234,6 +238,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     "id" => $this->programTwo->id,
                     "name" => $this->programTwo->name,
+                    "programType" => $this->programTwo->programType,
                     "description" => $this->programTwo->description,
                     "published" => $this->programTwo->published,
                     "participantTypes" => explode(",", $this->programTwo->participantTypes),
@@ -304,6 +309,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     'id' => $this->programOne->id,
                     'name' => $this->programOne->name,
+                    'programType' => $this->programOne->programType,
                     'description' => $this->programOne->description,
                     'participantTypes' => $this->programOne->participantTypes,
                     'illustrationPaths' => $this->programOne->illustration->fileInfo->folders,
@@ -312,6 +318,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     'id' => $this->programTwo->id,
                     'name' => $this->programTwo->name,
+                    'programType' => $this->programTwo->programType,
                     'description' => $this->programTwo->description,
                     'participantTypes' => $this->programTwo->participantTypes,
                     'illustrationPaths' => $this->programTwo->illustration->fileInfo->folders,
@@ -320,6 +327,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     'id' => $this->programThree->id,
                     'name' => $this->programThree->name,
+                    'programType' => $this->programThree->programType,
                     'description' => $this->programThree->description,
                     'participantTypes' => $this->programThree->participantTypes,
                     'illustrationPaths' => null,
@@ -328,6 +336,7 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     'id' => $this->programFour->id,
                     'name' => $this->programFour->name,
+                    'programType' => $this->programFour->programType,
                     'description' => $this->programFour->description,
                     'participantTypes' => $this->programFour->participantTypes,
                     'illustrationPaths' => $this->programFour->illustration->fileInfo->folders,

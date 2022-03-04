@@ -37,6 +37,7 @@ class ActiveIndividualAndTeamProgramParticipationController extends ClientBaseCo
                 'strictMissionOrder' => $participant->getProgram()->isStrictMissionOrder(),
                 'published' => $participant->getProgram()->isPublished(),
                 'removed' => $participant->getProgram()->isRemoved(),
+                'programType' => $participant->getProgram()->getProgramTypeValue(),
                 "illustration" => $this->arrayDataOfIllustration($participant->getProgram()->getIllustration()),
             ],
             'team' => $this->arrayDataOfTeamParticipant($participant->getTeamParticipant()),

@@ -57,6 +57,7 @@ class ProgramController extends ClientBaseController
         return [
             "id" => $program->getId(),
             "name" => $program->getName(),
+            "programType" => $program->getProgramTypeValue(),
             "description" => $program->getDescription(),
             "published" => $program->isPublished(),
             "participantTypes" => $program->getParticipantTypeValues(),

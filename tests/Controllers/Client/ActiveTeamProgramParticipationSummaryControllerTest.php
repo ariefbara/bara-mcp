@@ -197,6 +197,7 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
                         [
                             'programId' => $this->programOne->id,
                             'programName' => $this->programOne->name,
+                            'programType' => $this->programOne->programType,
                             'programStrictMissionOrder' => strval(intval($this->programOne->strictMissionOrder)),
                             'participantId' => $this->programParticipation_11->id,
                             "programIllustration" => "",
@@ -214,6 +215,7 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
                         [
                             'programId' => $this->programTwo->id,
                             'programName' => $this->programTwo->name,
+                            'programType' => $this->programTwo->programType,
                             'programStrictMissionOrder' => strval(intval($this->programTwo->strictMissionOrder)),
                             'participantId' => $this->programParticipation_12->id,
                             'programIllustration' => "firms/2/{$this->programTwo->illustration->fileInfo->name}",
@@ -245,6 +247,7 @@ class ActiveTeamProgramParticipationSummaryControllerTest extends ClientTestCase
                         [
                             'programId' => $this->programOne->id,
                             'programName' => $this->programOne->name,
+                            'programType' => $this->programOne->programType,
                             'programStrictMissionOrder' => strval(intval($this->programOne->strictMissionOrder)),
                             'participantId' => $this->programParticipation_21->id,
                             "programIllustration" => "",

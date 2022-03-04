@@ -113,6 +113,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                 "name" => $this->program->name,
                 "hasProfileForm" => true,
                 "illustration" => null,
+                "programType" => $this->program->programType,
             ],
             "registeredTime" => (new DateTimeImmutable())->format('Y-m-d H:i:s'),
             "concluded" => false,
@@ -237,6 +238,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                 "name" => $this->programRegistration->registrant->program->name,
                 "hasProfileForm" => false,
                 "illustration" => null,
+                "programType" => $this->programRegistration->registrant->program->programType,
             ],
             "registeredTime" => $this->programRegistration->registrant->registeredTime,
             "concluded" => $this->programRegistration->registrant->concluded,
@@ -261,6 +263,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                         "name" => $this->programRegistration->registrant->program->name,
                         "hasProfileForm" => false,
                         "illustration" => null,
+                        "programType" => $this->programRegistration->registrant->program->programType,
                     ],
                     "registeredTime" => $this->programRegistration->registrant->registeredTime,
                     "concluded" => $this->programRegistration->registrant->concluded,
@@ -271,6 +274,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                     "program" => [
                         "id" => $this->concludedProgramRegistration->registrant->program->id,
                         "name" => $this->concludedProgramRegistration->registrant->program->name,
+                        "programType" => $this->concludedProgramRegistration->registrant->program->programType,
                         "hasProfileForm" => false,
                         "illustration" => [
                             "id" => $this->firmFileInfoTwo->id,
@@ -301,6 +305,7 @@ class ProgramRegistrationControllerTest extends ClientTestCase
                     "program" => [
                         "id" => $this->programRegistration->registrant->program->id,
                         "name" => $this->programRegistration->registrant->program->name,
+                        "programType" => $this->programRegistration->registrant->program->programType,
                         "hasProfileForm" => false,
                         "illustration" => null,
                     ],

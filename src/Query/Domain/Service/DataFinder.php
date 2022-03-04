@@ -113,6 +113,7 @@ _STATEMENT;
 SELECT 
     _a.programId,
     _a.programName,
+    _a.programType,
     _a.programStrictMissionOrder,
     _a.programIllustration,
     _b.participantId, 
@@ -129,6 +130,7 @@ SELECT
 FROM (
     SELECT Program.id programId, 
         Program.name programName, 
+        Program.programType, 
         Program.strictMissionOrder programStrictMissionOrder, 
         Participant.id participantId,
         CONCAT_WS('/', REPLACE(FileInfo.folders, ',', '/'), FileInfo.name) programIllustration
@@ -370,6 +372,7 @@ _STATEMENT;
 SELECT 
     _a.programId,
     _a.programName,
+    _a.programType,
     _a.programStrictMissionOrder,
     _a.programIllustration,
     _b.participantId, 
@@ -386,6 +389,7 @@ SELECT
 FROM (
     SELECT Program.id programId, 
         Program.name programName, 
+        Program.programType, 
         Program.strictMissionOrder programStrictMissionOrder, 
         Participant.id participantId,
         CONCAT_WS('/', REPLACE(FileInfo.folders, ',', '/'), FileInfo.name) programIllustration

@@ -120,6 +120,7 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
                                 'program' => [
                                     'id' => $this->teamOneProgramRegistrationOne->registrant->program->id,
                                     'name' => $this->teamOneProgramRegistrationOne->registrant->program->name,
+                                    'programType' => $this->teamOneProgramRegistrationOne->registrant->program->programType,
                                     "illustration" => null,
                                 ],
                             ],
@@ -129,6 +130,7 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
                                 'program' => [
                                     'id' => $this->teamOneProgramRegistrationThree->registrant->program->id,
                                     'name' => $this->teamOneProgramRegistrationThree->registrant->program->name,
+                                    'programType' => $this->teamOneProgramRegistrationThree->registrant->program->programType,
                                     "illustration" => [
                                         "id" => $this->firmFileInfoThree->id,
                                         "url" => "/{$this->firmFileInfoThree->fileInfo->name}",
@@ -150,6 +152,7 @@ class ActiveTeamProgramRegistrationControllerTest extends ClientTestCase
                                 'program' => [
                                     'id' => $this->teamThreeProgramRegistrationOne->registrant->program->id,
                                     'name' => $this->teamThreeProgramRegistrationOne->registrant->program->name,
+                                    'programType' => $this->teamThreeProgramRegistrationOne->registrant->program->programType,
                                     "illustration" => null,
                                 ],
                             ],

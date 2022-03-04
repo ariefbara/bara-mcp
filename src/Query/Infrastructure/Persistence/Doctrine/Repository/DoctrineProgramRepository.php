@@ -105,6 +105,7 @@ class DoctrineProgramRepository extends DoctrineEntityRepository implements Prog
 SELECT
     Program.id, 
     Program.name, 
+    Program.programType, 
     Program.description, 
     Program.participantTypes, 
     FileInfo.folders illustrationPaths,

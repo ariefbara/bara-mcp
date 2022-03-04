@@ -46,6 +46,7 @@ class ActiveTeamProgramRegistrationController extends ClientBaseController
                 'program' => [
                     'id' => $teamProgramRegistration->getProgram()->getId(),
                     'name' => $teamProgramRegistration->getProgram()->getName(),
+                    'programType' => $teamProgramRegistration->getProgram()->getProgramTypeValue(),
                     "illustration" => $this->arrayDataOfIllustration($teamProgramRegistration->getProgram()->getIllustration()),
                 ],
             ];

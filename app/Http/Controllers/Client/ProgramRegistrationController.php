@@ -68,6 +68,7 @@ class ProgramRegistrationController extends ClientBaseController
                 "id" => $programRegistration->getProgram()->getId(),
                 "name" => $programRegistration->getProgram()->getName(),
                 "hasProfileForm" => $programRegistration->getProgram()->hasProfileForm(),
+                "programType" => $programRegistration->getProgram()->getProgramTypeValue(),
                 "illustration" => $this->arrayDataOfIllustration($programRegistration->getProgram()->getIllustration()),
             ],
             "registeredTime" => $programRegistration->getRegisteredTimeString(),
