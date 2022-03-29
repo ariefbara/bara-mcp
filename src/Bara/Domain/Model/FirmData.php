@@ -35,6 +35,12 @@ class FirmData
      */
     protected $whitelableMailSenderName;
 
+    /**
+     * 
+     * @var float||null
+     */
+    protected $sharingPercentage;
+
     function getName(): ?string
     {
         return $this->name;
@@ -60,15 +66,31 @@ class FirmData
         return $this->whitelableMailSenderName;
     }
 
-    function __construct(
+    public function getSharingPercentage(): ?float
+    {
+        return $this->sharingPercentage;
+    }
+
+    public function __construct(
             ?string $name, ?string $identifier, ?string $whitelableUrl, ?string $whitelableMailSenderAddress,
-            ?string $whitelableMailSenderName)
+            ?string $whitelableMailSenderName, ?float $sharingPercentage)
     {
         $this->name = $name;
         $this->identifier = $identifier;
         $this->whitelableUrl = $whitelableUrl;
         $this->whitelableMailSenderAddress = $whitelableMailSenderAddress;
         $this->whitelableMailSenderName = $whitelableMailSenderName;
+        $this->sharingPercentage = $sharingPercentage;
     }
 
+//    function __construct(
+//            ?string $name, ?string $identifier, ?string $whitelableUrl, ?string $whitelableMailSenderAddress,
+//            ?string $whitelableMailSenderName)
+//    {
+//        $this->name = $name;
+//        $this->identifier = $identifier;
+//        $this->whitelableUrl = $whitelableUrl;
+//        $this->whitelableMailSenderAddress = $whitelableMailSenderAddress;
+//        $this->whitelableMailSenderName = $whitelableMailSenderName;
+//    }
 }

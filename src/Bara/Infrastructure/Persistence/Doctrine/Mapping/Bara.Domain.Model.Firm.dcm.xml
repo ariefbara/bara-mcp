@@ -12,6 +12,7 @@
                   class="Query\Domain\Model\FirmWhitelableInfo" 
                   use-column-prefix="false" />
         <field name="suspended" type="boolean" />
+        <field name="sharingPercentage" type="float" nullable="true"/>
         <one-to-many  field="managers" 
                       target-entity="Bara\Domain\Model\Firm\Manager"
                       mapped-by="firm"

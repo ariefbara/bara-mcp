@@ -16,7 +16,7 @@ class FirmTest extends TestBase
     protected $admin;
     protected $id = 'new-id', $name = 'new firm name', $identifier = 'new_firm_identifier',
             $whitelableUrl = 'http://barapraja.com/konsulta', $whitelableMailSenderAddress = 'noreply@barapraja.com',
-            $whitelableWhitelableSenderName = 'team konsulta barapraja';
+            $whitelableWhitelableSenderName = 'team konsulta barapraja', $sharingPercentage = 11.34;
     protected $managerData;
 
     protected function setUp(): void
@@ -34,7 +34,7 @@ class FirmTest extends TestBase
                 ->method('getPassword')
                 ->willReturn('password123');
 
-        $firmData = new FirmData('name', 'identifier', 'http://firm.com', 'admin@firm.com', 'firm name');
+        $firmData = new FirmData('name', 'identifier', 'http://firm.com', 'admin@firm.com', 'firm name', 0);
         $this->firm = new TestableFirm('id', $firmData, $this->managerData);
     }
 
@@ -42,7 +42,7 @@ class FirmTest extends TestBase
     {
         return new FirmData(
                 $this->name, $this->identifier, $this->whitelableUrl, $this->whitelableMailSenderAddress,
-                $this->whitelableWhitelableSenderName);
+                $this->whitelableWhitelableSenderName, $this->sharingPercentage);
     }
 
     private function executeConstruct()
@@ -60,6 +60,7 @@ class FirmTest extends TestBase
         $firmWhitelableInfo = new FirmWhitelableInfo($this->whitelableUrl, $this->whitelableMailSenderAddress,
                 $this->whitelableWhitelableSenderName);
         $this->assertEquals($firmWhitelableInfo, $firm->firmWhitelableInfo);
+        $this->assertEquals($firm->sharingPercentage, $this->sharingPercentage);
     }
 
     public function test_construct_setManager()
@@ -97,6 +98,20 @@ class FirmTest extends TestBase
         $errorDetail = 'bad request: firm identifier is required and must only contain alphanumeric, underscore and hypen character without whitespace';
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
+    public function test_construct_negativeSharingPercentageValue_400()
+    {
+        $this->sharingPercentage = -22.22;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->executeConstruct();
+        }, 'Bad Request', 'sharing percentage must be valid percentage value');
+    }
+    public function test_construct_overHundredSharingPercentageValue_400()
+    {
+        $this->sharingPercentage = 101;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->executeConstruct();
+        }, 'Bad Request', 'sharing percentage must be valid percentage value');
+    }
 
     public function test_suspend_setSuspendedTrue()
     {
@@ -110,6 +125,7 @@ class TestableFirm extends Firm
 {
 
     public $id, $name, $identifier, $suspended, $firmWhitelableInfo;
+    public $sharingPercentage;
     public $managers;
 
 }

@@ -63,8 +63,10 @@ class FirmController extends AdminBaseController
         $whitelableUrl = urldecode($this->stripTagsInputRequest('whitelableUrl'));
         $whitelableMailSenderAddress = $this->stripTagsInputRequest('whitelableMailSenderAddress');
         $whitelableMailSenderName = $this->stripTagsInputRequest('whitelableMailSenderName');
+        $sharingPercentage = $this->stripTagsInputRequest('sharingPercentage');
         return new FirmData(
-                $name, $identifier, $whitelableUrl, $whitelableMailSenderAddress, $whitelableMailSenderName);
+                $name, $identifier, $whitelableUrl, $whitelableMailSenderAddress, $whitelableMailSenderName,
+                $sharingPercentage);
     }
 
     private function getManagerData()
@@ -82,9 +84,10 @@ class FirmController extends AdminBaseController
             "id" => $firm->getId(),
             "name" => $firm->getName(),
             "identifier" => $firm->getIdentifier(),
-            'whitelableUrl' =>  $firm->getWhitelableUrl(),
-            'whitelableMailSenderAddress' =>  $firm->getWhitelableMailSenderAddress(),
-            'whitelableMailSenderName' =>  $firm->getWhitelableMailSenderName(),
+            'whitelableUrl' => $firm->getWhitelableUrl(),
+            'whitelableMailSenderAddress' => $firm->getWhitelableMailSenderAddress(),
+            'whitelableMailSenderName' => $firm->getWhitelableMailSenderName(),
+            'sharingPercentage' => $firm->getSharingPercentage(),
         ];
     }
 

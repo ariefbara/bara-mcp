@@ -42,6 +42,12 @@ class Firm
     protected $firmWhitelableInfo;
 
     /**
+     * 
+     * @var float||null
+     */
+    protected $sharingPercentage = 0;
+
+    /**
      *
      * @var bool
      */
@@ -73,6 +79,15 @@ class Firm
         $this->identifier = $identifier;
     }
 
+    protected function setSharingPercentage(?float $sharingPercentage): void
+    {
+        $errorDetail = 'sharing percentage must be valid percentage value';
+        ValidationService::build()
+                ->addRule(ValidationRule::optional(ValidationRule::between(0, 100)))
+                ->execute($sharingPercentage, $errorDetail);
+        $this->sharingPercentage = $sharingPercentage;
+    }
+
     function __construct(string $id, FirmData $firmData, ManagerData $managerData)
     {
         $this->id = $id;
@@ -81,6 +96,7 @@ class Firm
         $this->firmWhitelableInfo = new FirmWhitelableInfo(
                 $firmData->getWhitelableUrl(), $firmData->getWhitelableMailSenderAddress(),
                 $firmData->getWhitelableMailSenderName());
+        $this->setSharingPercentage($firmData->getSharingPercentage());
         $this->suspended = false;
 
         $this->managers = new ArrayCollection();

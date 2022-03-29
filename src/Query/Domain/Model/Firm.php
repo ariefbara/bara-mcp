@@ -29,6 +29,12 @@ class Firm
     protected $identifier;
 
     /**
+     * 
+     * @var float|null
+     */
+    protected $sharingPercentage;
+
+    /**
      *
      * @var FirmWhitelableInfo
      */
@@ -93,6 +99,11 @@ class Firm
         return $this->bioSearchFilter;
     }
 
+    public function getSharingPercentage(): ?float
+    {
+        return $this->sharingPercentage;
+    }
+
     protected function __construct()
     {
         
@@ -112,7 +123,7 @@ class Firm
     {
         return $this->firmWhitelableInfo->getMailSenderName();
     }
-    
+
     public function viewAllClients(ClientRepository $clientRepository, ClientSearchRequest $clientSearchRequest): array
     {
         $dataQuery = <<<_DATA
@@ -123,14 +134,14 @@ SELECT
     Client.email
 FROM Client
 _DATA;
-        
+
         $totalQuery = <<<_TOTAL
 SELECT COUNT(Client.id) total
 FROM Client
 _TOTAL;
-        
+
         $this->bioSearchFilter->modifyClientSearchQuery($dataQuery, $totalQuery, $clientSearchRequest);
-        
+
         $firmClause = <<<_CLAUSE
                 
 WHERE Client.Firm_id = '{$this->id}'
@@ -142,12 +153,11 @@ _CLAUSE;
 LIMIT {$clientSearchRequest->getOffset()}, {$clientSearchRequest->getPageSize()}
 _LIMIT;
         $totalQuery .= $firmClause;
-        
+
         return [
             'total' => $clientRepository->executeNativeQuery($totalQuery)[0]['total'],
             'list' => $clientRepository->executeNativeQuery($dataQuery),
         ];
-
     }
 
 }

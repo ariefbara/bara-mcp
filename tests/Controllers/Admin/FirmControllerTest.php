@@ -27,6 +27,7 @@ class FirmControllerTest extends AdminTestCase
         $this->addRequest = [
             "name" => 'new firm name',
             "identifier" => 'new_firm_identifier',
+            "sharingPercentage" => 5.5,
             'whitelableUrl' => 'http://new-firm.com/bara_konsulta',
             'whitelableMailSenderAddress' => 'noreply@new_firm.com',
             'whitelableMailSenderName' => 'firm mail sender name',
@@ -54,6 +55,7 @@ class FirmControllerTest extends AdminTestCase
             "whitelableUrl" => $this->addRequest['whitelableUrl'],
             "whitelableMailSenderAddress" => $this->addRequest['whitelableMailSenderAddress'],
             "whitelableMailSenderName" => $this->addRequest['whitelableMailSenderName'],
+            "sharingPercentage" => $this->addRequest['sharingPercentage'],
         ];
 
         $this->post($this->firmControllerUri, $this->addRequest, $this->admin->token)
@@ -66,6 +68,7 @@ class FirmControllerTest extends AdminTestCase
             "url" => $this->addRequest['whitelableUrl'],
             "mailSenderAddress" => $this->addRequest['whitelableMailSenderAddress'],
             "mailSenderName" => $this->addRequest['whitelableMailSenderName'],
+            "sharingPercentage" => $this->addRequest['sharingPercentage'],
         ];
         $this->seeInDatabase('Firm', $firmRecord);
         $managerRecord = [

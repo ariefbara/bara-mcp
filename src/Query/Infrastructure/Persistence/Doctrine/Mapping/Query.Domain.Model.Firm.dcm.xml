@@ -8,6 +8,7 @@
         <id name="id" type="guid" />
         <field name="name" type="string" length="255" nullable="false"/>
         <field name="identifier" type="string" length="255" nullable="false"/>
+        <field name="sharingPercentage" type="float" nullable="true"/>
         
         <embedded name="firmWhitelableInfo" 
                   class="Query\Domain\Model\FirmWhitelableInfo" 
