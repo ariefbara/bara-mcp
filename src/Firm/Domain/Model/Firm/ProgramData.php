@@ -41,6 +41,12 @@ class ProgramData
      */
     protected $programType;
 
+    /**
+     * 
+     * @var int|null
+     */
+    protected $price;
+
     public function getName(): ?string
     {
         return $this->name;
@@ -65,22 +71,39 @@ class ProgramData
     {
         return $this->illustration;
     }
-    
+
     public function getProgramType(): ?string
     {
         return $this->programType;
     }
 
+    public function getPrice(): ?int
+    {
+        return $this->price;
+    }
+
     public function __construct(
             ?string $name, ?string $description, ?bool $strictMissionOrder, ?FirmFileInfo $illustration,
-            ?string $programType)
+            ?string $programType, ?int $price)
     {
         $this->name = $name;
         $this->description = $description;
         $this->strictMissionOrder = $strictMissionOrder;
         $this->illustration = $illustration;
         $this->programType = $programType;
+        $this->price = $price;
     }
+
+//    public function __construct(
+//            ?string $name, ?string $description, ?bool $strictMissionOrder, ?FirmFileInfo $illustration,
+//            ?string $programType)
+//    {
+//        $this->name = $name;
+//        $this->description = $description;
+//        $this->strictMissionOrder = $strictMissionOrder;
+//        $this->illustration = $illustration;
+//        $this->programType = $programType;
+//    }
 
     public function addParticipantType(string $type): void
     {

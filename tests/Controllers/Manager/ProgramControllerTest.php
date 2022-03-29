@@ -32,6 +32,7 @@ class ProgramControllerTest extends ProgramTestCase
             "firmFileInfoIdOfIllustration" => $this->firmFileInfoOne->id,
             "participantTypes" => ["client", "user"],
             "programType" => "course",
+            "price" => 150000,
         ];
     }
     
@@ -58,6 +59,7 @@ class ProgramControllerTest extends ProgramTestCase
             "participantTypes" => $this->programInput['participantTypes'],
             "programType" => $this->programInput['programType'],
             "strictMissionOrder" => $this->programInput['strictMissionOrder'],
+            "price" => $this->programInput['price'],
             "published" => false,
             "illustration" => [
                 "id" => $this->firmFileInfoOne->id,
@@ -73,6 +75,7 @@ class ProgramControllerTest extends ProgramTestCase
             "strictMissionOrder" => $this->programInput['strictMissionOrder'],
             "participantTypes" => "client,user",
             "programType" => $this->programInput['programType'],
+            "price" => $this->programInput['price'],
             "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,
             "published" => false,
             "removed" => false,
@@ -102,6 +105,7 @@ class ProgramControllerTest extends ProgramTestCase
             "description" => $this->programInput['description'],
             "participantTypes" => $this->programInput['participantTypes'],
             "programType" => $this->programInput['programType'],
+            "price" => $this->programInput['price'],
             "published" => $this->program->published,
             "illustration" => [
                 "id" => $this->firmFileInfoOne->id,
@@ -115,6 +119,7 @@ class ProgramControllerTest extends ProgramTestCase
             "description" => $this->programInput['description'],
             "participantTypes" => "client,user",
             "programType" => $this->programInput['programType'],
+            "price" => $this->programInput['price'],
             "published" => $this->program->published,
             "removed" => false,
             "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,

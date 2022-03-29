@@ -25,6 +25,7 @@ class RecordOfProgram implements Record
      */
     public $illustration;
     public $strictMissionOrder;
+    public $price;
 
     public function __construct(?RecordOfFirm $firm, $index)
     {
@@ -37,6 +38,7 @@ class RecordOfProgram implements Record
         $this->programType = ProgramType::INCUBATION;
         $this->illustration = null;
         $this->removed = false;
+        $this->price = null;
     }
 
     public function toArrayForDbEntry()
@@ -51,6 +53,7 @@ class RecordOfProgram implements Record
             "participantTypes" => $this->participantTypes,
             "programType" => $this->programType,
             "removed" => $this->removed,
+            "price" => $this->price,
             "FirmFileInfo_idOfIllustration" => empty($this->illustration) ? null : $this->illustration->id,
         ];
     }

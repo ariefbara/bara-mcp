@@ -42,11 +42,17 @@ class Program
     protected $illustration;
 
     /**
+     * 
+     * @var int|null
+     */
+    protected $price;
+
+    /**
      *
      * @var ParticipantTypes
      */
     protected $participantTypes;
-    
+
     /**
      * 
      * @var ProgramType
@@ -123,6 +129,11 @@ class Program
         return $this->removed;
     }
 
+    public function getPrice(): ?int
+    {
+        return $this->price;
+    }
+
     protected function __construct()
     {
         
@@ -137,7 +148,7 @@ class Program
     {
         return $this->participantTypes->getValues();
     }
-    
+
     public function getProgramTypeValue(): string
     {
         return $this->programType->getDisplayValue();

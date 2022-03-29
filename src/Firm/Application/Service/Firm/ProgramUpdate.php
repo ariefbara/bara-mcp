@@ -31,7 +31,7 @@ class ProgramUpdate
                 null : $this->firmFileInfoRepository->ofId($programRequest->getFirmFileInfoIdOfIllustration());
         $programData = new ProgramData(
                 $programRequest->getName(), $programRequest->getDescription(), $programRequest->getStrictMissionOrder(),
-                $illustration, $programRequest->getProgramType());
+                $illustration, $programRequest->getProgramType(), $programRequest->getPrice());
         foreach ($programRequest->getParticipantTypes() as $participantType) {
             $programData->addParticipantType($participantType);
         }

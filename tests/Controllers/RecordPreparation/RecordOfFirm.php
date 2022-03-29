@@ -15,6 +15,7 @@ class RecordOfFirm implements Record
      */
     public $logo;
     public $displaySetting;
+    public $sharingPercentage;
     
     public function __construct($index)
     {
@@ -26,6 +27,7 @@ class RecordOfFirm implements Record
         $this->mailSenderName = "firm $index name";
         $this->logo = null;
         $this->displaySetting = null;
+        $this->sharingPercentage = null;
     }
     
     public function toArrayForDbEntry()
@@ -40,6 +42,7 @@ class RecordOfFirm implements Record
             "suspended" => $this->suspended,
             "FirmFileInfo_idOfLogo" => empty($this->logo)? null: $this->logo->id,
             "displaySetting" => $this->displaySetting,
+            "sharingPercentage" => $this->sharingPercentage,
         ];
     }
     

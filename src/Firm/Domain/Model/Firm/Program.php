@@ -89,6 +89,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var FirmFileInfo|null
      */
     protected $illustration;
+    
+    /**
+     * 
+     * @var int|null
+     */
+    protected $price;
 
     /**
      *
@@ -147,6 +153,10 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         }
         $this->illustration = $illustration;
     }
+    protected function setPrice(?int $price): void
+    {
+        $this->price = $price;
+    }
 
     function __construct(Firm $firm, $id, ProgramData $programData)
     {
@@ -160,6 +170,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->strictMissionOrder = $programData->isStrictMissionOrder();
         $this->published = false;
         $this->removed = false;
+        $this->setPrice($programData->getPrice());
     }
 
     public function belongsToFirm(Firm $firm): bool
@@ -175,6 +186,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->participantTypes = new ParticipantTypes($programData->getParticipantTypes());
         $this->programType = new ProgramType($programData->getProgramType());
         $this->strictMissionOrder = $programData->isStrictMissionOrder();
+        $this->setPrice($programData->getPrice());
     }
 
     public function publish(): void

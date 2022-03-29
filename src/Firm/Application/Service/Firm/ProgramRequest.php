@@ -41,6 +41,12 @@ class ProgramRequest
      */
     protected $programType;
 
+    /**
+     * 
+     * @var int|null
+     */
+    protected $price;
+
     public function getName(): ?string
     {
         return $this->name;
@@ -71,15 +77,20 @@ class ProgramRequest
         return $this->programType;
     }
 
-    public function __construct(
-            ?string $name, ?string $description, ?bool $strictMissionOrder, ?string $firmFileInfoIdOfIllustration,
-            ?string $programType)
+    public function getPrice(): ?int
+    {
+        return $this->price;
+    }
+    
+    public function __construct(?string $name, ?string $description, ?bool $strictMissionOrder,
+            ?string $firmFileInfoIdOfIllustration, ?string $programType, ?int $price)
     {
         $this->name = $name;
         $this->description = $description;
         $this->strictMissionOrder = $strictMissionOrder;
         $this->firmFileInfoIdOfIllustration = $firmFileInfoIdOfIllustration;
         $this->programType = $programType;
+        $this->price = $price;
     }
 
     public function addParticipantType(string $type): void

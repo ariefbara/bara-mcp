@@ -14,6 +14,7 @@
         <id name="id" type="guid" />
         <field name="name" type="string" length="256" nullable="false"/>
         <field name="description" type="text" nullable="true"/>
+        <field name="price" type="integer" nullable="true"/>
         
         <embedded name="participantTypes" 
                   class="Query\Domain\Model\Firm\ParticipantTypes" 
