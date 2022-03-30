@@ -47,6 +47,12 @@ class ProgramData
      */
     protected $price;
 
+    /**
+     * 
+     * @var bool||null
+     */
+    protected $autoAccept;
+
     public function getName(): ?string
     {
         return $this->name;
@@ -82,9 +88,14 @@ class ProgramData
         return $this->price;
     }
 
+    public function getAutoAccept(): ?bool
+    {
+        return $this->autoAccept;
+    }
+
     public function __construct(
             ?string $name, ?string $description, ?bool $strictMissionOrder, ?FirmFileInfo $illustration,
-            ?string $programType, ?int $price)
+            ?string $programType, ?int $price, ?bool $autoAccept)
     {
         $this->name = $name;
         $this->description = $description;
@@ -92,18 +103,8 @@ class ProgramData
         $this->illustration = $illustration;
         $this->programType = $programType;
         $this->price = $price;
+        $this->autoAccept = $autoAccept;
     }
-
-//    public function __construct(
-//            ?string $name, ?string $description, ?bool $strictMissionOrder, ?FirmFileInfo $illustration,
-//            ?string $programType)
-//    {
-//        $this->name = $name;
-//        $this->description = $description;
-//        $this->strictMissionOrder = $strictMissionOrder;
-//        $this->illustration = $illustration;
-//        $this->programType = $programType;
-//    }
 
     public function addParticipantType(string $type): void
     {

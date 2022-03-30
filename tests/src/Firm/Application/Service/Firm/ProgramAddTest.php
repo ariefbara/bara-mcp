@@ -43,10 +43,10 @@ class ProgramAddTest extends TestBase
 
         $this->service = new ProgramAdd($this->programRepository, $this->firmRepository, $this->firmFileInfoRepository);
         
-        $this->programRequest = new ProgramRequest('name', 'description', true, $this->firmFileInfoId, ProgramType::INCUBATION, null);
+        $this->programRequest = new ProgramRequest('name', 'description', true, $this->firmFileInfoId, ProgramType::INCUBATION, null, false);
         $this->programRequest->addParticipantType(ParticipantTypes::CLIENT_TYPE);
         
-        $this->programData = new ProgramData('name', 'description', true, $this->firmFileInfo, ProgramType::INCUBATION, null);
+        $this->programData = new ProgramData('name', 'description', true, $this->firmFileInfo, ProgramType::INCUBATION, null, false);
         $this->programData->addParticipantType(ParticipantTypes::CLIENT_TYPE);
 //
 //        $this->programData = $this->buildMockOfClass(ProgramData::class);
@@ -79,7 +79,7 @@ class ProgramAddTest extends TestBase
     }
     public function test_execute_emptyIllustration()
     {
-        $this->programRequest = new ProgramRequest('name', 'description', true, null,  ProgramType::COURSE, null);
+        $this->programRequest = new ProgramRequest('name', 'description', true, null,  ProgramType::COURSE, null, false);
         $this->execute();
         $this->markAsSuccess();
     }

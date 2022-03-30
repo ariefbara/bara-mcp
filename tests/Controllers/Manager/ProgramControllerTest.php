@@ -33,6 +33,7 @@ class ProgramControllerTest extends ProgramTestCase
             "participantTypes" => ["client", "user"],
             "programType" => "course",
             "price" => 150000,
+            "autoAccept" => true,
         ];
     }
     
@@ -60,6 +61,7 @@ class ProgramControllerTest extends ProgramTestCase
             "programType" => $this->programInput['programType'],
             "strictMissionOrder" => $this->programInput['strictMissionOrder'],
             "price" => $this->programInput['price'],
+            "autoAccept" => $this->programInput['autoAccept'],
             "published" => false,
             "illustration" => [
                 "id" => $this->firmFileInfoOne->id,
@@ -76,6 +78,7 @@ class ProgramControllerTest extends ProgramTestCase
             "participantTypes" => "client,user",
             "programType" => $this->programInput['programType'],
             "price" => $this->programInput['price'],
+            "autoAccept" => $this->programInput['autoAccept'],
             "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,
             "published" => false,
             "removed" => false,
@@ -106,6 +109,7 @@ class ProgramControllerTest extends ProgramTestCase
             "participantTypes" => $this->programInput['participantTypes'],
             "programType" => $this->programInput['programType'],
             "price" => $this->programInput['price'],
+            "autoAccept" => $this->programInput['autoAccept'],
             "published" => $this->program->published,
             "illustration" => [
                 "id" => $this->firmFileInfoOne->id,
@@ -120,6 +124,7 @@ class ProgramControllerTest extends ProgramTestCase
             "participantTypes" => "client,user",
             "programType" => $this->programInput['programType'],
             "price" => $this->programInput['price'],
+            "autoAccept" => $this->programInput['autoAccept'],
             "published" => $this->program->published,
             "removed" => false,
             "FirmFileInfo_idOfIllustration" => $this->firmFileInfoOne->id,

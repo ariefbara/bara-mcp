@@ -25,8 +25,10 @@ class ProgramController extends ManagerBaseController
         $firmFileInfoIdOfIllustration = $this->stripTagsInputRequest("firmFileInfoIdOfIllustration");
         $programType = $this->stripTagsInputRequest('programType');
         $price = $this->integerOfInputRequest('price');
+        $autoAccept = $this->filterBooleanOfInputRequest('autoAccept');
         $programRequest = new ProgramRequest(
-                $name, $description, $strictMissionOrder, $firmFileInfoIdOfIllustration, $programType, $price);
+                $name, $description, $strictMissionOrder, $firmFileInfoIdOfIllustration, $programType, $price, 
+                $autoAccept);
         
         foreach ($this->request->input('participantTypes') as $participantType) {
             $programRequest->addParticipantType($participantType);
@@ -120,6 +122,7 @@ class ProgramController extends ManagerBaseController
             "published" => $program->isPublished(),
             "illustration" => $illustration,
             "price" => $program->getPrice(),
+            "autoAccept" => $program->isAutoAccept(),
         ];
     }
 

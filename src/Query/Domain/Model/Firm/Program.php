@@ -46,6 +46,12 @@ class Program
      * @var int|null
      */
     protected $price;
+    
+    /**
+     * 
+     * @var bool
+     */
+    protected $autoAccept;
 
     /**
      *
@@ -132,6 +138,11 @@ class Program
     public function getPrice(): ?int
     {
         return $this->price;
+    }
+    
+    public function isAutoAccept(): bool
+    {
+        return $this->autoAccept;
     }
 
     protected function __construct()

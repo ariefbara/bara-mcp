@@ -33,7 +33,7 @@ class ProgramTest extends TestBase
     protected $program, $participantTypes;
     protected $firm;
     protected $id = 'program-id', $name = 'new name', $description = 'new description', $strictMissionOrder = true, 
-            $types = ['user', 'client'], $price = 350000;
+            $types = ['user', 'client'], $price = 350000, $autoAccept = true;
 
     protected $consultant;
     protected $coordinator;
@@ -61,7 +61,7 @@ class ProgramTest extends TestBase
     {
         parent::setUp();
         $this->firm = $this->buildMockOfClass(Firm::class);
-        $programData = new ProgramData('name', 'description', false, null, ProgramType::INCUBATION, null);
+        $programData = new ProgramData('name', 'description', false, null, ProgramType::INCUBATION, null, false);
         $this->program = new TestableProgram($this->firm, 'id', $programData);
         $this->participantTypes = $this->buildMockOfClass(ParticipantTypes::class);
         $this->program->participantTypes = $this->participantTypes;
@@ -120,7 +120,7 @@ class ProgramTest extends TestBase
     {
         $programData = new ProgramData(
                 $this->name, $this->description, $this->strictMissionOrder, $this->firmFileInfo, $this->programType, 
-                $this->price);
+                $this->price, $this->autoAccept);
         foreach ($this->types as $type) {
             $programData->addParticipantType($type);
         }
@@ -133,6 +133,7 @@ class ProgramTest extends TestBase
     }
     function test_construct_setProperties()
     {
+        $this->autoAccept = 0;
         $program = $this->executeConstruct();
         $this->assertEquals($this->firm, $program->firm);
         $this->assertEquals($this->id, $program->id);
@@ -143,6 +144,7 @@ class ProgramTest extends TestBase
         $this->assertFalse($program->published);
         $this->assertFalse($program->removed);
         $this->assertEquals($program->price, $this->price);
+        $this->assertEquals($program->autoAccept, $this->autoAccept);
         
         $programType = new ProgramType($this->programType);
         $this->assertEquals($programType, $program->programType);
@@ -166,7 +168,7 @@ class ProgramTest extends TestBase
                 ->with($this->firm);
         $this->executeConstruct();
     }
-    public function test_construct_nonIntegerPrice_400()
+    public function test_construct_nonIntegerPrice_typeError()
     {
         $this->price = 'non integer';
         $this->expectException(\TypeError::class);
@@ -195,6 +197,7 @@ class ProgramTest extends TestBase
         $this->assertEquals($this->firmFileInfo, $this->program->illustration);
         $this->assertEquals($this->strictMissionOrder, $this->program->strictMissionOrder);
         $this->assertEquals($this->price, $this->program->price);
+        $this->assertEquals($this->autoAccept, $this->program->autoAccept);
         
         $programType = new ProgramType($this->programType);
         $this->assertEquals($programType, $this->program->programType);
@@ -568,4 +571,5 @@ class TestableProgram extends Program
     public $recordedEvents;
     public $assignedProfileForms;
     public $price;
+    public $autoAccept;
 }

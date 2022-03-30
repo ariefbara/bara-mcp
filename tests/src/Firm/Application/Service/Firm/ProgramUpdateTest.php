@@ -40,10 +40,10 @@ class ProgramUpdateTest extends TestBase
         
         $this->service = new ProgramUpdate($this->programRepository, $this->firmFileInfoRepository);
         
-        $this->programRequest = new ProgramRequest('name', null, true, $this->firmFileInfoId, ProgramType::INCUBATION, null);
+        $this->programRequest = new ProgramRequest('name', null, true, $this->firmFileInfoId, ProgramType::INCUBATION, null, true);
         $this->programRequest->addParticipantType(ParticipantTypes::CLIENT_TYPE);
         
-        $this->programData = new ProgramData('name', null, true, $this->firmFileInfo, ProgramType::INCUBATION, null);
+        $this->programData = new ProgramData('name', null, true, $this->firmFileInfo, ProgramType::INCUBATION, null, true);
         $this->programData->addParticipantType(ParticipantTypes::CLIENT_TYPE);
     }
     
@@ -64,7 +64,7 @@ class ProgramUpdateTest extends TestBase
     }
     public function test_update_emptyIllustration()
     {
-        $this->programRequest = new ProgramRequest('name', null, true, null, ProgramType::INCUBATION, null);
+        $this->programRequest = new ProgramRequest('name', null, true, null, ProgramType::INCUBATION, null, true);
         $this->execute();
         $this->markAsSuccess();
     }

@@ -47,6 +47,12 @@ class ProgramRequest
      */
     protected $price;
 
+    /**
+     * 
+     * @var bool|null
+     */
+    protected $autoAccept;
+
     public function getName(): ?string
     {
         return $this->name;
@@ -81,9 +87,14 @@ class ProgramRequest
     {
         return $this->price;
     }
-    
+
+    public function getAutoAccept(): ?bool
+    {
+        return $this->autoAccept;
+    }
+
     public function __construct(?string $name, ?string $description, ?bool $strictMissionOrder,
-            ?string $firmFileInfoIdOfIllustration, ?string $programType, ?int $price)
+            ?string $firmFileInfoIdOfIllustration, ?string $programType, ?int $price, ?bool $autoAccept)
     {
         $this->name = $name;
         $this->description = $description;
@@ -91,6 +102,7 @@ class ProgramRequest
         $this->firmFileInfoIdOfIllustration = $firmFileInfoIdOfIllustration;
         $this->programType = $programType;
         $this->price = $price;
+        $this->autoAccept = $autoAccept;
     }
 
     public function addParticipantType(string $type): void

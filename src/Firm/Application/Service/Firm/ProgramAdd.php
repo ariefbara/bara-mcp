@@ -45,7 +45,8 @@ class ProgramAdd
                 null: $this->firmFileInfoRepository->ofId($programRequest->getFirmFileInfoIdOfIllustration());
         $programData = new ProgramData(
                 $programRequest->getName(), $programRequest->getDescription(), $programRequest->getStrictMissionOrder(),
-                $illustration, $programRequest->getProgramType(), $programRequest->getPrice());
+                $illustration, $programRequest->getProgramType(), $programRequest->getPrice(), 
+                $programRequest->getAutoAccept());
         foreach ($programRequest->getParticipantTypes() as $participantType) {
             $programData->addParticipantType($participantType);
         }

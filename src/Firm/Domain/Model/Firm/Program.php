@@ -95,6 +95,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var int|null
      */
     protected $price;
+    
+    /**
+     * 
+     * @var bool
+     */
+    protected $autoAccept;
 
     /**
      *
@@ -157,6 +163,10 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         $this->price = $price;
     }
+    protected function setAutoAccept(?bool $autoAccept): void
+    {
+        $this->autoAccept = $autoAccept;
+    }
 
     function __construct(Firm $firm, $id, ProgramData $programData)
     {
@@ -171,6 +181,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->published = false;
         $this->removed = false;
         $this->setPrice($programData->getPrice());
+        $this->setAutoAccept($programData->getAutoAccept());
     }
 
     public function belongsToFirm(Firm $firm): bool
@@ -187,6 +198,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->programType = new ProgramType($programData->getProgramType());
         $this->strictMissionOrder = $programData->isStrictMissionOrder();
         $this->setPrice($programData->getPrice());
+        $this->setAutoAccept($programData->getAutoAccept());
     }
 
     public function publish(): void

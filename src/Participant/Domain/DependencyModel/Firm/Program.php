@@ -31,6 +31,12 @@ class Program
      * @var bool
      */
     protected $removed = false;
+    
+    /**
+     * 
+     * @var int|null
+     */
+    protected $price;
 
     /**
      *
