@@ -26,6 +26,8 @@ class CustomDoctrineScheduleRepository implements ScheduleRepository
         $statement = <<<_STATEMENT
 SELECT
     startTime,
+    teamId,
+    participantId,
     bookedMentoringSlotId,
     negotiatedMentoringId,
     mentorName,
@@ -35,6 +37,8 @@ SELECT
 FROM (
     SELECT
         MentoringSlot.startTime startTime,
+        T_Member.Team_id teamId,
+        Participant.id participantId,
         BookedMentoringSlot.id bookedMentoringSlotId,
         null as negotiatedMentoringId,
         CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) mentorName,
@@ -45,15 +49,13 @@ FROM (
         LEFT JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
         LEFT JOIN Consultant ON Consultant.id = MentoringSlot.Mentor_id
         LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
-    WHERE BookedMentoringSlot.Participant_id IN (
-        SELECT Participant.id
-        FROM Participant
-            LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
-            LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
-            LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
-        WHERE Participant.active = true
+        LEFT JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
+        LEFT JOIN ClientParticipant ON Participant.id = ClientParticipant.Participant_id
+        LEFT JOIN TeamParticipant ON Participant.id = TeamParticipant.Participant_id
+        LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
+    WHERE (Participant.active = true
             AND (ClientParticipant.Client_id = :clientId OR (T_Member.Client_id = :clientId AND T_Member.active = true))
-    )
+        )
         AND BookedMentoringSlot.cancelled = false
         {$filter->getSqlFromClause('MentoringSlot.startTime', $parameters)}
         {$filter->getSqlToClause('MentoringSlot.startTime', $parameters)}
@@ -61,6 +63,8 @@ FROM (
     UNION
     SELECT
         MentoringRequest.startTime startTime,
+        T_Member.Team_id teamId,
+        Participant.id participantId,
         null as bookedMentoringSlotId,
         NegotiatedMentoring.id negotiatedMentoringId,
         CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) mentorName,
@@ -71,21 +75,21 @@ FROM (
         LEFT JOIN MentoringRequest ON MentoringRequest.id = NegotiatedMentoring.MentoringRequest_id
         LEFT JOIN Consultant ON Consultant.id = MentoringRequest.Consultant_id
         LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
-    WHERE MentoringRequest.Participant_id IN (
-        SELECT Participant.id
-        FROM Participant
-            LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
-            LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
-            LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
-        WHERE Participant.active = true
+        LEFT JOIN Participant ON Participant.id = MentoringRequest.Participant_id
+        LEFT JOIN ClientParticipant ON Participant.id = ClientParticipant.Participant_id
+        LEFT JOIN TeamParticipant ON Participant.id = TeamParticipant.Participant_id
+        LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
+    WHERE (Participant.active = true
             AND (ClientParticipant.Client_id = :clientId OR (T_Member.Client_id = :clientId AND T_Member.active = true))
-    )
+        )
         {$filter->getSqlFromClause('MentoringRequest.startTime', $parameters)}
         {$filter->getSqlToClause('MentoringRequest.startTime', $parameters)}
                 
     UNION
     SELECT
         Activity.startDateTime startTime,
+        T_Member.Team_id teamId,
+        Participant.id participantId,
         null as bookedMentoringSlotId,
         null as mentoringId,
         null as mentorName,
@@ -96,15 +100,13 @@ FROM (
         LEFT JOIN Invitee ON Invitee.id = ParticipantInvitee.Invitee_id
         LEFT JOIN Activity ON Activity.id = Invitee.Activity_id
         LEFT JOIN ActivityType ON ActivityType.id = Activity.ActivityType_id
-    WHERE ParticipantInvitee.Participant_id IN (
-        SELECT Participant.id
-        FROM Participant
-            LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
-            LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
-            LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
-        WHERE Participant.active = true
+        LEFT JOIN Participant ON Participant.id = ParticipantInvitee.Participant_id
+        LEFT JOIN ClientParticipant ON Participant.id = ClientParticipant.Participant_id
+        LEFT JOIN TeamParticipant ON Participant.id = TeamParticipant.Participant_id
+        LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
+    WHERE (Participant.active = true
             AND (ClientParticipant.Client_id = :clientId OR (T_Member.Client_id = :clientId AND T_Member.active = true))
-    )
+        )
         AND Invitee.cancelled = false
         {$filter->getSqlFromClause('Activity.startDateTime', $parameters)}
         {$filter->getSqlToClause('Activity.startDateTime', $parameters)}
