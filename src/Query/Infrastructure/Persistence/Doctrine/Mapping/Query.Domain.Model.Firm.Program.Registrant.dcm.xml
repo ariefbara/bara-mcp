@@ -11,10 +11,10 @@
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>
         
+        <embedded name="programSnapshot" class="SharedContext\Domain\ValueObject\ProgramSnapshot" column-prefix="program_" />
         <id name="id" type="guid" />
-        <field name="concluded" type="boolean" />
+        <embedded name="status" class="SharedContext\Domain\ValueObject\RegistrationStatus" use-column-prefix="false" />
         <field name="registeredTime" type="datetime_immutable" nullable="true"/>
-        <field name="note" type="string" length="255" nullable="true"/>
         
         <one-to-one  field="clientRegistrant" 
                      target-entity="Query\Domain\Model\Firm\Client\ClientRegistrant"

@@ -122,6 +122,24 @@ class ParticipantTest extends TestBase
     {
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', 'forbidden: inactive partiicpant');
     }
+    
+    protected function construct()
+    {
+        return new TestableParticipant($this->program, $this->id);
+    }
+    public function test_construct_setProperties()
+    {
+        $participant = $this->construct();
+        $this->assertSame($this->program, $participant->program);
+        $this->assertSame($this->id, $participant->id);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
+    }
+    public function test_construct_recordProgramParticipationAcceptedCommonEvent()
+    {
+        $event = new \Resources\Domain\Event\CommonEvent(\Config\EventList::PROGRAM_PARTICIPATION_ACCEPTED, $this->id);
+        $participant = $this->construct();
+        $this->assertEquals($event, $participant->recordedEvents[0]);
+    }
 
     public function test_participantForUser_setProperties()
     {
@@ -558,6 +576,8 @@ class TestableParticipant extends Participant
     public $consultationRequests;
     public $consultationSessions;
     public $dedicatedMentors;
+    //
+    public $recordedEvents;
 
     public function __construct(Program $program, string $id)
     {

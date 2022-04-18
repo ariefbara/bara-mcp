@@ -5,13 +5,18 @@ namespace Firm\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
+use Firm\Domain\Event\ProgramRegistrationReceived;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
+use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
+use SharedContext\Domain\ValueObject\ProgramSnapshot;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
-class Registrant
+class Registrant extends EntityContainEvents
 {
 
     /**
@@ -19,6 +24,12 @@ class Registrant
      * @var Program
      */
     protected $program;
+    
+    /**
+     * 
+     * @var ProgramSnapshot
+     */
+    protected $programSnapshot;
 
     /**
      *
@@ -27,22 +38,16 @@ class Registrant
     protected $id;
 
     /**
+     * 
+     * @var RegistrationStatus
+     */
+    protected $status;
+    
+    /**
      *
      * @var DateTimeImmutable
      */
     protected $registeredTime;
-
-    /**
-     *
-     * @var bool
-     */
-    protected $concluded;
-
-    /**
-     *
-     * @var string||null
-     */
-    protected $note;
 
     /**
      *
@@ -67,10 +72,17 @@ class Registrant
      * @var ArrayCollection
      */
     protected $profiles;
+    
 
-    protected function __construct()
+    function __construct(Program $program, ProgramSnapshot $programSnapshot, string $id)
     {
-        ;
+        $this->program = $program;
+        $this->programSnapshot = $programSnapshot;
+        $this->id = $id;
+        $this->status = $this->programSnapshot->generateInitialRegistrationStatus();
+        $this->registeredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
+        $event = new ProgramRegistrationReceived($this->id, $this->status);
+        $this->recordEvent($event);
     }
 
     public function getId(): string
@@ -80,16 +92,17 @@ class Registrant
 
     public function accept(): void
     {
-        $this->assertUnconcluded();
-        $this->concluded = true;
-        $this->note = 'accepted';
+//        $this->status = $this->status->accept();
+//        $this->assertUnconcluded();
+//        $this->concluded = true;
+//        $this->note = 'accepted';
     }
 
     public function reject(): void
     {
-        $this->assertUnconcluded();
-        $this->concluded = true;
-        $this->note = 'rejected';
+//        $this->assertUnconcluded();
+//        $this->concluded = true;
+//        $this->note = 'rejected';
     }
 
     public function createParticipant(string $participantId): Participant

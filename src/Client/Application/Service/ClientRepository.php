@@ -18,4 +18,6 @@ interface ClientRepository
     public function update(): void;
 
     public function containRecordWithEmail(string $firmIdentifier, string $email): bool;
+
+    public function aClientOfId(string $id): Client;
 }

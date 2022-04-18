@@ -8,14 +8,17 @@ use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Registrant\RegistrantProfile;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
+use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\ValueObject\ProgramSnapshot;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 use Tests\TestBase;
 
 class RegistrantTest extends TestBase
 {
-
+    protected $program, $programSnapshot;
     protected $registrant;
+    protected $registrationStatus;
     protected $profile;
-    protected $program;
     protected $userRegistrant;
     protected $clientRegistrant;
     protected $teamRegistrant;
@@ -29,14 +32,17 @@ class RegistrantTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->registrant = new TestableRegistrant();
+        
+        $this->program = $this->buildMockOfClass(Program::class);
+        $this->programSnapshot = $this->buildMockOfClass(ProgramSnapshot::class);
+        $this->registrant = new TestableRegistrant($this->program, $this->programSnapshot, 'id');
+        
+        $this->registrationStatus = $this->buildMockOfClass(RegistrationStatus::class);
+        $this->registrant->status = $this->registrationStatus;
         
         $this->profile = $this->buildMockOfClass(RegistrantProfile::class);
         $this->registrant->profiles = new ArrayCollection();
         $this->registrant->profiles->add($this->profile);
-        
-        $this->program = $this->buildMockOfClass(Program::class);
-        $this->registrant->program = $this->program;
         
         $this->userRegistrant = $this->buildMockOfClass(UserRegistrant::class);
         $this->registrant->userRegistrant = $this->userRegistrant;
@@ -50,18 +56,47 @@ class RegistrantTest extends TestBase
         $this->team = $this->buildMockOfClass(Team::class);
     }
     
+    //
+    protected function construct()
+    {
+        $this->programSnapshot->expects($this->any())
+                ->method('generateInitialRegistrationStatus')
+                ->willReturn($this->registrationStatus);
+        return new TestableRegistrant($this->program, $this->programSnapshot, $this->id);
+    }
+    public function test_construct_setProperties()
+    {
+        $registrant = $this->construct();
+        $this->assertSame($this->program, $registrant->program);
+        $this->assertSame($this->programSnapshot, $registrant->programSnapshot);
+        $this->assertSame($this->id, $registrant->id);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $registrant->registeredTime);
+    }
+    public function test_construct_setStatusFromProgramSnapshot()
+    {
+        $registrant = $this->construct();
+        $this->assertSame($this->registrationStatus, $registrant->status);
+    }
+    public function test_construct_storeProgramRegistrationReceivedEvent()
+    {
+        $event = new \Firm\Domain\Event\ProgramRegistrationReceived($this->id, $this->registrationStatus);
+        $registrant = $this->construct();
+        $this->assertEquals($event, $registrant->recordedEvents[0]);
+    }
+    
+/*
+    //
     protected function executeAccept()
     {
         $this->registrant->accept();
     }
-
     public function test_accept_setConcludedTrueAndNoteAccepted()
     {
+        
         $this->executeAccept();
-        $this->assertTrue($this->registrant->concluded);
-        $this->assertEquals('accepted', $this->registrant->note);
+        $status = new RegistrationStatus(RegistrationStatus::ACCEPTED);
+        $this->assertEquals($status, $this->registrant->status);
     }
-
     public function test_accept_alreadyConcluded_forbiddenError()
     {
         $this->registrant->concluded = true;
@@ -72,11 +107,11 @@ class RegistrantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
+    //
     protected function executeReject()
     {
         $this->registrant->reject();
     }
-
     public function test_reject_setConcludedFlagTrueAndNoteRejected()
     {
         $this->executeReject();
@@ -92,6 +127,7 @@ class RegistrantTest extends TestBase
         $errorDetail = "forbidden: application already concluded";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
+*/
     
     protected function executeCreateParticipant()
     {
@@ -189,17 +225,15 @@ class RegistrantTest extends TestBase
 class TestableRegistrant extends Registrant
 {
     public $program;
+    public $programSnapshot;
     public $id;
+    public $status;
     public $registeredTime;
-    public $concluded = false;
-    public $note = null;
     public $userRegistrant;
     public $clientRegistrant;
     public $teamRegistrant;
     public $profiles;
+    //
+    public $recordedEvents;
     
-    function __construct()
-    {
-        parent::__construct();
-    }
 }

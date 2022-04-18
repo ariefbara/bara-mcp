@@ -37,5 +37,11 @@ class EventList
     const MEETING_INVITATION_SENT = "meeting-invitation-sent";
     const MEETING_INVITATION_CANCELLED = "meeting-invitation-cancelled";
     const MEETING_SCHEDULE_CHANGED = "meeting-schedule-changed";
+    //
+    const CLIENT_HAS_APPLIED_TO_PROGRAM = 'client-has-applied-to-program';
+    //
+    const PROGRAM_APPLICATION_RECEIVED = 'program-application-received';
+    const PROGRAM_REGISTRATION_RECEIVED = 'program-registration-received';
+    const PROGRAM_PARTICIPATION_ACCEPTED = 'program-participation-accepted';
     
 }

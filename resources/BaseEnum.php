@@ -23,5 +23,11 @@ abstract class BaseEnum
     {
         return $this->value;
     }
+    
+    public function getValueName(): string
+    {
+        $c = new ReflectionClass($this);
+        return array_search($this->value, $c->getConstants());
+    }
 
 }

@@ -2,21 +2,15 @@
 
 namespace Client\Infrastructure\Persistence\Doctrine\Repository;
 
-use Client\ {
-    Application\Service\ClientRepository,
-    Domain\Model\Client
-};
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
+use Client\Application\Service\ClientRepository;
+use Client\Domain\Model\Client;
+use Doctrine\ORM\NoResultException;
 use Query\Domain\Model\Firm;
-use Resources\ {
-    Exception\RegularException,
-    Uuid
-};
+use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
+use Resources\Uuid;
 
-class DoctrineClientRepository extends EntityRepository implements ClientRepository
+class DoctrineClientRepository extends DoctrineEntityRepository implements ClientRepository
 {
 
     public function ofEmail(string $firmIdentifier, string $email): Client
@@ -92,20 +86,25 @@ class DoctrineClientRepository extends EntityRepository implements ClientReposit
                 ->from(Firm::class, 'firm')
                 ->andWhere($firmQb->expr()->eq('firm.identifier', ':firmIdentifier'))
                 ->setMaxResults(1);
-        
+
         $qb = $this->createQueryBuilder('client');
         $qb->select('1')
                 ->andWhere($qb->expr()->eq('client.email', ':email'))
                 ->andWhere($qb->expr()->in('client.firmId', $firmQb->getDQL()))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         return !empty($qb->getQuery()->getResult());
     }
 
     public function nextIdentity(): string
     {
         return Uuid::generateUuid4();
+    }
+
+    public function aClientOfId(string $id): Client
+    {
+        return $this->findOneByIdOrDie($id, 'client');
     }
 
 }

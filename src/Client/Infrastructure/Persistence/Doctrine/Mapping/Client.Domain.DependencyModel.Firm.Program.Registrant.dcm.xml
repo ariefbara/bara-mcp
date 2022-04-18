@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\DependencyModel\Firm\Program\Registrant" 
+            table="Registrant"
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineRegistrantRepository"
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Client\Domain\DependencyModel\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="status" class="SharedContext\Domain\ValueObject\RegistrationStatus" use-column-prefix="false" />
+        
+    </entity>
+</doctrine-mapping>

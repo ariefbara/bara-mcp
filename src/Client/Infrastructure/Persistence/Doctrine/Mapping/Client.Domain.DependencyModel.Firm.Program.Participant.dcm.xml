@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\DependencyModel\Firm\Program\Participant" 
+            table="Participant"
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantRepository"
+    >
+        
+        <many-to-one  field="program" 
+                      target-entity="Client\Domain\DependencyModel\Firm\Program"
+        >
+            <join-column name="Program_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="active" type="boolean" />
+        
+    </entity>
+</doctrine-mapping>

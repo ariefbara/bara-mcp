@@ -3,12 +3,12 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\Model\{
-    Firm\Client\ClientRegistrant,
-    Firm\Program,
-    Firm\Team\TeamProgramRegistration,
-    User\UserRegistrant
-};
+use Query\Domain\Model\Firm\Client\ClientRegistrant;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Team\TeamProgramRegistration;
+use Query\Domain\Model\User\UserRegistrant;
+use SharedContext\Domain\ValueObject\ProgramSnapshot;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class Registrant
 {
@@ -20,6 +20,12 @@ class Registrant
     protected $program;
 
     /**
+     * 
+     * @var ProgramSnapshot
+     */
+    protected $programSnapshot;
+
+    /**
      *
      * @var string
      */
@@ -27,21 +33,15 @@ class Registrant
 
     /**
      *
-     * @var bool
+     * @var RegistrationStatus
      */
-    protected $concluded;
+    protected $status;
 
     /**
      *
      * @var DateTimeImmutable
      */
     protected $registeredTime;
-
-    /**
-     *
-     * @var string||null
-     */
-    protected $note;
 
     /**
      *
@@ -71,9 +71,14 @@ class Registrant
         return $this->id;
     }
 
-    public function isConcluded(): bool
+    public function getProgramSnapshot(): ProgramSnapshot
     {
-        return $this->concluded;
+        return $this->programSnapshot;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status->getValueName();
     }
 
     public function getRegisteredTimeString(): string
@@ -81,14 +86,9 @@ class Registrant
         return $this->registeredTime->format('Y-m-d H:i:s');
     }
 
-    public function getNote(): ?string
-    {
-        return $this->note;
-    }
-
     protected function __construct()
     {
-        ;
+        
     }
 
     public function getClientRegistrant(): ?ClientRegistrant

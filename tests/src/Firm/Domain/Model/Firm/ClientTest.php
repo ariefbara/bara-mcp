@@ -205,6 +205,23 @@ class ClientTest extends TestBase
                 ->with('client');
         $this->addIntoProgram();
     }
+    
+    protected function assertBelongsInFirm()
+    {
+        $this->client->assertBelongsInFirm($this->firm);
+    }
+    public function test_assertBelongsInFirm_sameFirm_void()
+    {
+        $this->assertBelongsInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertBelongsInFirm_differentFirm_forbidden()
+    {
+        $this->client->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(function(){
+            $this->assertBelongsInFirm();
+        }, 'Forbidden', 'client is from different firm');
+    }
 }
 
 class TestableClient extends Client

@@ -39,5 +39,11 @@ class ClientBaseController extends Controller
         (new ExecuteTask($clientRepository))
                 ->execute($this->firmId(), $this->clientId(), $task);
     }
+    
+    protected function executeClientTask(\Client\Domain\Model\IClientTask $task, $payload): void
+    {
+        $clientRepository = $this->em->getRepository(\Client\Domain\Model\Client::class);
+        (new \Client\Application\Service\ExecuteTask($clientRepository))->execute($this->clientId(), $task, $payload);
+    }
 
 }

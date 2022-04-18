@@ -3,10 +3,13 @@
 namespace Client\Domain\Model;
 
 use Client\Domain\DependencyModel\Firm\BioForm;
+use Client\Domain\DependencyModel\Firm\Program;
+use Client\Domain\DependencyModel\Firm\Program\Registrant;
+use Client\Domain\Event\ClientHasAppliedToProgram;
 use Client\Domain\Model\Client\ClientBio;
 use Client\Domain\Model\Client\ClientFileInfo;
-use Client\Domain\Model\Client\ProgramParticipation;
-use Client\Domain\Model\Client\ProgramRegistration;
+use Client\Domain\Model\Client\ClientParticipant;
+use Client\Domain\Model\Client\ClientRegistrant;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -55,7 +58,7 @@ class Client extends EntityContainEvents
      * @var Password
      */
     protected $password;
-    
+
     /**
      *
      * @var DateTimeImmutable
@@ -92,23 +95,35 @@ class Client extends EntityContainEvents
      */
     protected $activated = false;
 
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $programRegistrations;
+//    /**
+//     *
+//     * @var ArrayCollection
+//     */
+//    protected $programRegistrations;
+//
+//    /**
+//     *
+//     * @var ArrayCollection
+//     */
+//    protected $programParticipations;
 
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $programParticipations;
-    
     /**
      * 
      * @var ArrayCollection
      */
     protected $clientBios;
+
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $clientRegistrants;
+
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $clientParticipants;
 
     protected function setEmail(string $email): void
     {
@@ -130,7 +145,7 @@ class Client extends EntityContainEvents
         $this->resetPasswordCode = null;
         $this->resetPasswordCodeExpiredTime = null;
         $this->activated = false;
-        
+
         $this->generateActivationCode();
     }
 
@@ -205,24 +220,24 @@ class Client extends EntityContainEvents
         $event = new CommonEvent(EventList::CLIENT_RESET_PASSWORD_CODE_GENERATED, $this->id);
         $this->recordEvent($event);
     }
-    
+
     public function createClientFileInfo(string $clientFileInfoId, FileInfoData $fileInfoData): ClientFileInfo
     {
         return new ClientFileInfo($this, $clientFileInfoId, $fileInfoData);
     }
 
-    public function registerToProgram(string $programRegistrationId, ProgramInterface $program): ProgramRegistration
-    {
-        $this->assertAccountActive();
-        if (!$program->firmIdEquals($this->firmId)) {
-            $errorDetail = 'forbidden: cannot register to program from different firm';
-            throw RegularException::forbidden($errorDetail);
-        }
-        $this->assertNoUnconcludedRegistrationToSameProgram($program);
-        $this->assertNoActiveParticipationInSameProgram($program);
-        return new ProgramRegistration($this, $programRegistrationId, $program);
-    }
-    
+//    public function registerToProgram(string $programRegistrationId, ProgramInterface $program): ProgramRegistration
+//    {
+//        $this->assertAccountActive();
+//        if (!$program->firmIdEquals($this->firmId)) {
+//            $errorDetail = 'forbidden: cannot register to program from different firm';
+//            throw RegularException::forbidden($errorDetail);
+//        }
+//        $this->assertNoUnconcludedRegistrationToSameProgram($program);
+//        $this->assertNoActiveParticipationInSameProgram($program);
+//        return new ProgramRegistration($this, $programRegistrationId, $program);
+//    }
+
     public function submitBio(BioForm $bioForm, FormRecordData $formRecordData): void
     {
         $this->assertAccountActive();
@@ -230,7 +245,7 @@ class Client extends EntityContainEvents
             $errorDetail = "forbidden: can only use asset in same firm";
             throw RegularException::forbidden($errorDetail);
         }
-        
+
         $p = function (ClientBio $clientBio) use ($bioForm) {
             return $clientBio->isActiveBioCorrespondWithForm($bioForm);
         };
@@ -242,7 +257,7 @@ class Client extends EntityContainEvents
             $this->clientBios->add($clientBio);
         }
     }
-    
+
     public function removeBio(ClientBio $clientBio): void
     {
         $this->assertAccountActive();
@@ -260,24 +275,65 @@ class Client extends EntityContainEvents
             throw RegularException::forbidden($errorDetail);
         }
     }
-    protected function assertNoUnconcludedRegistrationToSameProgram(ProgramInterface $program): void
+
+//    protected function assertNoUnconcludedRegistrationToSameProgram(ProgramInterface $program): void
+//    {
+//        $p = function (ProgramRegistration $programRegistration) use ($program) {
+//            return $programRegistration->isUnconcludedRegistrationToProgram($program);
+//        };
+//        if (!empty($this->programRegistrations->filter($p)->count())) {
+//            $errorDetail = 'forbidden: client already registered to this program';
+//            throw RegularException::forbidden($errorDetail);
+//        }
+//    }
+//
+//    protected function assertNoActiveParticipationInSameProgram(ProgramInterface $program): void
+//    {
+//        $p = function (ProgramParticipation $programParticipation) use ($program) {
+//            return $programParticipation->isActiveParticipantOfProgram($program);
+//        };
+//        if (!empty($this->programParticipations->filter($p)->count())) {
+//            $errorDetail = 'forbidden: client already active participant of this program';
+//            throw RegularException::forbidden($errorDetail);
+//        }
+//    }
+    
+    public function executeTask(IClientTask $task, $payload): void
     {
-        $p = function (ProgramRegistration $programRegistration) use ($program) {
-            return $programRegistration->isUnconcludedRegistrationToProgram($program);
-        };
-        if (!empty($this->programRegistrations->filter($p)->count())) {
-            $errorDetail = 'forbidden: client already registered to this program';
-            throw RegularException::forbidden($errorDetail);
+        if (!$this->activated) {
+            throw RegularException::forbidden('only active client can make this request');
         }
+        $task->execute($this, $payload);
     }
-    protected function assertNoActiveParticipationInSameProgram(ProgramInterface $program): void
+
+    public function applyToProgram(Program $program): void
     {
-        $p = function (ProgramParticipation $programParticipation) use ($program) {
-            return $programParticipation->isActiveParticipantOfProgram($program);
+        $registrationFilter = function (ClientRegistrant $clientRegistrant) use ($program) {
+            return $clientRegistrant->isActiveRegistrationCorrespondWithProgram($program);
         };
-        if (!empty($this->programParticipations->filter($p)->count())) {
-            $errorDetail = 'forbidden: client already active participant of this program';
-            throw RegularException::forbidden($errorDetail);
+        if (!empty($this->clientRegistrants->filter($registrationFilter)->count())) {
+            throw RegularException::forbidden('you have active registration to this program');
         }
+        
+        $participationFilter = function(ClientParticipant $clientParticipant) use ($program) {
+            return $clientParticipant->isActiveParticipationCorrespondWithProgram($program);
+        };
+        if (!empty($this->clientParticipants->filter($participationFilter)->count())) {
+            throw RegularException::forbidden('you are participating in this program');
+        }
+        
+        $event = new ClientHasAppliedToProgram($this->id, $program->getId());
+        $this->recordEvent($event);
     }
+
+    public function createClientRegistrant(string $clientRegistrantId, Registrant $registrant): ClientRegistrant
+    {
+        return new ClientRegistrant($this, $clientRegistrantId, $registrant);
+    }
+
+    public function createClientParticipant(string $clientParticipantId, Program\Participant $participant): ClientParticipant
+    {
+        return new ClientParticipant($this, $clientParticipantId, $participant);
+    }
+
 }

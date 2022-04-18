@@ -10,6 +10,7 @@ use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\Registrant;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
@@ -18,7 +19,7 @@ use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
 
-class Client
+class Client implements IProgramApplicant
 {
 
     /**
@@ -80,6 +81,12 @@ class Client
      * @var ArrayCollection
      */
     protected $clientParticipants;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $clientRegistrants;
 
     protected function setEmail(string $email): void
     {
@@ -157,6 +164,18 @@ class Client
             $this->clientParticipants->add($clientParticipant);
         }
         return $clientParticipant->getId();
+    }
+
+    public function assertBelongsInFirm(Firm $firm): void
+    {
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('client is from different firm');
+        }
+    }
+
+    public function getUserType(): string
+    {
+        return 'client';
     }
 
 }

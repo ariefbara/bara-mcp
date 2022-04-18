@@ -21,6 +21,7 @@ use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Firm\Program\Registrant;
+use Firm\Domain\Model\Firm\Program\RegistrationPhase;
 use Firm\Domain\Model\Firm\Program\Sponsor;
 use Firm\Domain\Model\Firm\Program\SponsorData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
@@ -31,6 +32,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
+use SharedContext\Domain\ValueObject\ProgramSnapshot;
 use SharedContext\Domain\ValueObject\ProgramType;
 
 class Program extends EntityContainEvents implements AssetBelongsToFirm, ManageableByFirm
@@ -59,6 +61,18 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var string
      */
     protected $description = null;
+    
+    /**
+     * 
+     * @var int|null
+     */
+    protected $price;
+    
+    /**
+     * 
+     * @var bool
+     */
+    protected $autoAccept;
 
     /**
      *
@@ -84,29 +98,17 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      */
     protected $strictMissionOrder;
     
-    /**
-     * 
-     * @var FirmFileInfo|null
-     */
-    protected $illustration;
     
-    /**
-     * 
-     * @var int|null
-     */
-    protected $price;
-    
-    /**
-     * 
-     * @var bool
-     */
-    protected $autoAccept;
-
     /**
      *
      * @var bool
      */
     protected $removed = false;
+    /**
+     * 
+     * @var FirmFileInfo|null
+     */
+    protected $illustration;
 
     /**
      *
@@ -137,6 +139,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var ArrayCollection
      */
     protected $assignedProfileForms;
+    
+    /**
+     *
+     * @var ArrayCollection
+     */
+    protected $registrationPhases;
 
     protected function setName(string $name)
     {
@@ -371,6 +379,41 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         if ($this->firm !== $firm) {
             throw RegularException::forbidden('forbidden: can only access entity belongs to firm');
+        }
+    }
+    
+    public function executeTask(IProgramTask $task, $payload): void
+    {
+        if ($this->removed) {
+            throw RegularException::forbidden('unable to access removed program');
+        }
+        $task->execute($this, $payload);
+    }
+    
+    public function receiveApplication(IProgramApplicant $applicant): void
+    {
+        if (!$this->published) {
+            throw RegularException::forbidden('unpublished program unable to accept application');
+        }
+        $p = function(RegistrationPhase $registrationPhase){
+            return $registrationPhase->isOpen();
+        };
+        if (empty($this->registrationPhases->filter($p)->count())) {
+            throw RegularException::forbidden('no open registration phase');
+        }
+        if (!$this->participantTypes->hasType($applicant->getUserType())) {
+            throw RegularException::forbidden("applicant of type {$applicant->getUserType()} is unsupported");
+        }
+        $applicant->assertBelongsInFirm($this->firm);
+        $id = Uuid::generateUuid4();
+        if ($this->autoAccept && empty($this->price)) {
+            $participant = new Participant($this, $id);
+            $this->participants->add($participant);
+            $this->aggregateEventsFromBranch($participant);
+        } else {
+            $registrant = new Registrant($this, new ProgramSnapshot($this->price, $this->autoAccept), $id);
+            $this->registrants->add($registrant);
+            $this->aggregateEventsFromBranch($registrant);
         }
     }
     

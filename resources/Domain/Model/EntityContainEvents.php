@@ -2,15 +2,18 @@
 
 namespace Resources\Domain\Model;
 
-use Resources\Application\Event\{
-    ContainEvents,
-    Event
-};
+use Resources\Application\Event\ContainEvents;
+use Resources\Application\Event\Event;
 
 abstract class EntityContainEvents implements ContainEvents
 {
 
     protected $recordedEvents = [];
+    /**
+     * 
+     * @var EntityContainEvents[]
+     */
+    protected $aggregatedEventsFromBranches = [];
 
     protected function recordEvent(Event $event): void
     {
@@ -21,6 +24,9 @@ abstract class EntityContainEvents implements ContainEvents
     {
         $recordedEvents = $this->recordedEvents;
         $this->recordedEvents = [];
+        foreach ($this->aggregatedEventsFromBranches as $brach) {
+            $recordedEvents = array_merge($recordedEvents, $brach->pullRecordedEvents());
+        }
         return $recordedEvents;
     }
     
@@ -29,6 +35,11 @@ abstract class EntityContainEvents implements ContainEvents
         foreach ($other->pullRecordedEvents() as $event) {
             $this->recordEvent($event);
         }
+    }
+    
+    protected function aggregateEventsFromBranch(EntityContainEvents $branch): void
+    {
+        $this->aggregatedEventsFromBranches[] = $branch;
     }
 
 }

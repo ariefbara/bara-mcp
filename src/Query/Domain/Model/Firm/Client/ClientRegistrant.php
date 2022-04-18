@@ -49,20 +49,15 @@ class ClientRegistrant
     {
         return $this->registrant->getProgram();
     }
-
-    public function isConcluded(): bool
+    
+    public function getStatus(): string
     {
-        return $this->registrant->isConcluded();
+        return $this->registrant->getStatus();
     }
 
     public function getRegisteredTimeString(): string
     {
         return $this->registrant->getRegisteredTimeString();
-    }
-
-    public function getNote(): ?string
-    {
-        return $this->registrant->getNote();
     }
 
 }

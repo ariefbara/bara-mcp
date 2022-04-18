@@ -2,6 +2,7 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Client;
@@ -18,11 +19,13 @@ use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
 use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
 
-class Participant implements AssetInProgram, CanAttendMeeting
+class Participant extends EntityContainEvents implements AssetInProgram, CanAttendMeeting
 {
 
     /**
@@ -134,6 +137,9 @@ class Participant implements AssetInProgram, CanAttendMeeting
         $this->note = null;
 
         $this->profiles = new ArrayCollection();
+        
+        $event = new CommonEvent(EventList::PROGRAM_PARTICIPATION_ACCEPTED, $this->id);
+        $this->recordEvent($event);
     }
 
     public function assertActive(): void

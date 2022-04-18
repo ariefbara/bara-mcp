@@ -6,9 +6,11 @@ use Tests\TestBase;
 
 class BaseEnumTest extends TestBase
 {
+    protected $enum;
     protected function setUp(): void
     {
         parent::setUp();
+        $this->enum = new TestableBaseEnum(TestableBaseEnum::ONE);
     }
     
     public function test_construct_setProperties()
@@ -22,6 +24,15 @@ class BaseEnumTest extends TestBase
             new TestableBaseEnum(123);
         };
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', 'bad request: invalid enum argument');
+    }
+    
+    protected function getValueName()
+    {
+        return $this->enum->getValueName();
+    }
+    public function test_getValueName_getConstantNameOfCorrespondingValue()
+    {
+        $this->assertEquals('ONE', $this->getValueName());
     }
 }
 

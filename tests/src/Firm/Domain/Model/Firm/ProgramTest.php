@@ -56,6 +56,11 @@ class ProgramTest extends TestBase
     protected $firmFileInfo;
     protected $type = 'client';
     protected $programType = ProgramType::COURSE;
+    //
+    protected $task, $payload = 'string represent task payload';
+    //
+    protected $applicant;
+    protected $registrationPhase;
 
     protected function setUp(): void
     {
@@ -71,6 +76,7 @@ class ProgramTest extends TestBase
         $this->program->registrants = new ArrayCollection();
         $this->program->participants = new ArrayCollection();
         $this->program->assignedProfileForms = new ArrayCollection();
+        $this->program->published = true;
 
         $this->consultant = $this->buildMockOfClass(Consultant::class);
         $this->program->consultants->add($this->consultant);
@@ -114,6 +120,14 @@ class ProgramTest extends TestBase
         
         $this->sponsorData = new SponsorData('sponsor name', null, 'sponsor.web.id');
         $this->firmFileInfo = $this->buildMockOfClass(FirmFileInfo::class);
+        //
+        $this->task = $this->buildMockOfInterface(IProgramTask::class);
+        //
+        $this->applicant = $this->buildMockOfInterface(IProgramApplicant::class);
+        //
+        $this->registrationPhase = $this->buildMockOfClass(Program\RegistrationPhase::class);
+        $this->program->registrationPhases = new ArrayCollection();
+        $this->program->registrationPhases->add($this->registrationPhase);
     }
 
     protected function getProgramData()
@@ -224,12 +238,12 @@ class ProgramTest extends TestBase
     }
     public function test_remove_setRemovedFlagTrue()
     {
+        $this->program->published = false;
         $this->program->remove();
         $this->assertTrue($this->program->removed);
     }
     public function test_remove_publishedProgram_forbidden()
     {
-        $this->program->published = true;
         $operation = function (){
             $this->executeRemove();
         };
@@ -557,6 +571,110 @@ class ProgramTest extends TestBase
             $this->assertAccessibleInFirm();
         }, 'Forbidden', 'forbidden: can only access entity belongs to firm');
     }
+    
+    protected function executeTask()
+    {
+        $this->program->executeTask($this->task, $this->payload);
+    }
+    public function test_executeTask_executeTask()
+    {
+        $this->task->expects($this->once())
+                ->method('execute')
+                ->with($this->program, $this->payload);
+        $this->executeTask();
+    }
+    public function test_executeTask_inactiveProgram_forbidden()
+    {
+        $this->program->removed = true;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->executeTask();
+        }, 'Forbidden', 'unable to access removed program');
+    }
+    
+    protected function receiveApplication()
+    {
+        $this->participantTypes->expects($this->any())
+                ->method('hasType')
+                ->willReturn(true);
+        $this->registrationPhase->expects($this->any())
+                ->method('isOpen')
+                ->willReturn(true);
+        $this->program->receiveApplication($this->applicant);
+    }
+    public function test_receiveApplication_unpublishProgram_forbidden()
+    {
+        $this->program->published = false;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->receiveApplication();
+        }, 'Forbidden', 'unpublished program unable to accept application');
+    }
+    public function test_receiveProgram_noOpenRegistrationPhase_forbidden()
+    {
+        $this->registrationPhase->expects($this->once())
+                ->method('isOpen')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function(){
+            $this->receiveApplication();
+        }, 'Forbidden', 'no open registration phase');
+    }
+    public function test_receiveApplication_assertApplicantBelongsInSameFirm()
+    {
+        $this->applicant->expects($this->once())
+                ->method('assertBelongsInFirm')
+                ->with($this->program->firm);
+        $this->receiveApplication();
+    }
+    public function test_receiveApplication_applicationTypeNotSupported_forbidden()
+    {
+        $this->applicant->expects($this->any())
+                ->method('getUserType')
+                ->willReturn('client');
+        $this->participantTypes->expects($this->once())
+                ->method('hasType')
+                ->with('client')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function(){
+            $this->receiveApplication();
+        }, 'Forbidden', 'applicant of type client is unsupported');
+    }
+    public function test_receiveApplication_freeProgramWithAutoAccept_addParticipant()
+    {
+        $this->program->price = null;
+        $this->program->autoAccept = true;
+        $this->receiveApplication();
+        $this->assertEquals(2, $this->program->participants->count());
+        $this->assertInstanceOf(Participant::class, $this->program->participants->last());
+    }
+    public function test_receiveApplication_freeProgramWithAutoAccept_addParticipantToAggregatedBranches()
+    {
+        $this->program->price = null;
+        $this->program->autoAccept = true;
+        $this->receiveApplication();
+        $this->assertInstanceOf(Participant::class, $this->program->aggregatedEventsFromBranches[0]);
+    }
+    public function test_receiveApplication_nonFreeProgramWithAutoAccept_addRegistrant()
+    {
+        $this->receiveApplication();
+        $this->assertEquals(2, $this->program->registrants->count());
+        $this->assertInstanceOf(Registrant::class, $this->program->registrants->last());
+    }
+    public function test_receiveApplication_nonFreeProgramWithAutoAccept_preventAddParticipant()
+    {
+        $this->receiveApplication();
+        $this->assertEquals(1, $this->program->participants->count());
+    }
+    public function test_receiveApplication_freeProgramWithAutoAccept_dontAddRegistrant()
+    {
+        $this->program->price = null;
+        $this->program->autoAccept = true;
+        $this->receiveApplication();
+        $this->assertEquals(1, $this->program->registrants->count());
+    }
+    public function test_receiveApplication_freeProgramWithAutoAccept_addRegistrantToAggregatedBrancesEvent()
+    {
+        $this->receiveApplication();
+        $this->assertInstanceOf(Registrant::class, $this->program->aggregatedEventsFromBranches[0]);
+    }
 }
 
 class TestableProgram extends Program
@@ -569,7 +687,9 @@ class TestableProgram extends Program
     public $consultants, $coordinators;
     public $participants, $registrants;
     public $recordedEvents;
+    public $aggregatedEventsFromBranches;
     public $assignedProfileForms;
     public $price;
     public $autoAccept;
+    public $registrationPhases;
 }

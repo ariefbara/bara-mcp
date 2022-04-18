@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
-    <entity name="Client\Domain\Model\Client\ProgramRegistration" 
-            table="ClientRegistrant" 
-            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineProgramRegistrationRepository"
+    <entity name="Client\Domain\Model\Client\ClientRegistrant" 
+            table="ClientRegistrant"
+            repository-class="Client\Infrastructure\Persistence\Doctrine\Repository\DoctrineClientRegistrantRepository"
     >
         
         <many-to-one  field="client" 
                       target-entity="Client\Domain\Model\Client"
-                      inversed-by="programRegistrations"
+                      inversed-by="ClientRegistrants"
         >
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>
+        
         <id name="id" type="guid" />
-        <one-to-one  field="registrant" 
-                     target-entity="Client\Domain\Model\Client\Registrant"
+        
+        <one-to-one field="registrant" 
+                    target-entity="Client\Domain\DependencyModel\Firm\Program\Registrant"
         >
             <join-column name="Registrant_id" referenced-column-name="id" />
-            <cascade><cascade-persist /></cascade>
         </one-to-one>
         
     </entity>

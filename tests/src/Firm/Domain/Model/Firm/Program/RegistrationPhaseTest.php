@@ -123,6 +123,7 @@ class RegistrationPhaseTest extends TestBase
                 ->willReturn(true);
         $this->assertFalse($this->registrationPhase->isOpen());
     }
+    
 }
 
 class TestableRegistrationPhase extends RegistrationPhase

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Client\Domain\DependencyModel\Firm" 
+            table="Firm"
+    >
+        
+        <id name="id" type="guid" />
+        
+    </entity>
+</doctrine-mapping>
