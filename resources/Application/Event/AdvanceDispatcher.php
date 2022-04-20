@@ -19,9 +19,20 @@ class AdvanceDispatcher
 
     /**
      * 
+     * @var Listener[]
+     */
+    protected $asynchronousListeners = [];
+
+    /**
+     * 
      * @var Event[]
      */
-    protected $dispatchedEvents = [];
+    public  $dispatchedEvents = [];
+    /**
+     * 
+     * @var Event[]
+     */
+    public $asynchronousEvents = [];
 
     public function addImmediateListener(string $eventName, Listener $listener): void
     {
@@ -40,11 +51,20 @@ class AdvanceDispatcher
             $this->postponedListeners[$eventName][] = $listener;
         }
     }
+    public function addAsynchronousListener(string $eventName, Listener $listener): void
+    {
+        $alreadyContainListener = isset($this->asynchronousListeners[$eventName]) ?
+                in_array($listener, $this->asynchronousListeners[$eventName]) : false;
+        if (!$alreadyContainListener) {
+            $this->asynchronousListeners[$eventName][] = $listener;
+        }
+    }
 
     public function dispatch(ContainEvents $containEvents): void
     {
         foreach ($containEvents->pullRecordedEvents() as $event) {
             $this->dispatchedEvents[] = $event;
+            $this->asynchronousEvents[] = $event;
             $this->publishEventToImmediateListeners($event);
         }
     }
@@ -53,6 +73,13 @@ class AdvanceDispatcher
     {
         foreach ($this->dispatchedEvents as $event) {
             $this->publishEventToPostponedListeners($event);
+        }
+    }
+
+    public function finalizeAsynchronous(): void
+    {
+        foreach ($this->asynchronousEvents as $event) {
+            $this->publishEventToAsynchronousListeners($event);
         }
     }
 
@@ -75,10 +102,21 @@ class AdvanceDispatcher
             $listener->handle($event);
         }
     }
+
+    private function publishEventToAsynchronousListeners(Event $event): void
+    {
+        if (!isset($this->asynchronousListeners[$event->getName()])) {
+            return;
+        }
+        foreach ($this->asynchronousListeners[$event->getName()] as $listener) {
+            $listener->handle($event);
+        }
+    }
     
     public function dispatchEvent(Event $event): void
     {
         $this->dispatchedEvents[] = $event;
+        $this->asynchronousEvents[] = $event;
         $this->publishEventToImmediateListeners($event);
     }
 

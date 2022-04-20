@@ -2,13 +2,23 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Config\EventList;
 use Doctrine\Common\Collections\ArrayCollection;
+use Firm\Domain\Event\ProgramRegistrationReceived;
 use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\IProgramApplicant;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
 use Firm\Domain\Model\Firm\Program\Registrant\RegistrantProfile;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
+use SharedContext\Domain\Model\Invoice;
+use SharedContext\Domain\Task\Dependency\InvoiceParameter;
+use SharedContext\Domain\Task\Dependency\PaymentGateway;
+use SharedContext\Domain\ValueObject\CustomerInfo;
+use SharedContext\Domain\ValueObject\ItemInfo;
 use SharedContext\Domain\ValueObject\ProgramSnapshot;
 use SharedContext\Domain\ValueObject\RegistrationStatus;
 use Tests\TestBase;
@@ -28,6 +38,13 @@ class RegistrantTest extends TestBase
     protected $participantId = 'participantId';
     
     protected $user, $client, $team;
+    //
+    protected $paymentGateway, $customerInfo;
+    protected $programItemInfo, $programSnapshotPrice = 40000, $programDescription = 'program description';
+    //
+    protected $registrantInvoice;
+    //
+    protected $applicant;
 
     protected function setUp(): void
     {
@@ -54,6 +71,14 @@ class RegistrantTest extends TestBase
         $this->user = $this->buildMockOfClass(User::class);
         $this->client = $this->buildMockOfClass(Client::class);
         $this->team = $this->buildMockOfClass(Team::class);
+        //
+        $this->paymentGateway = $this->buildMockOfInterface(PaymentGateway::class);
+        $this->customerInfo = $this->buildMockOfClass(CustomerInfo::class);
+        $this->programItemInfo = $this->buildMockOfClass(ItemInfo::class);
+        //
+        $this->registrantInvoice = $this->buildMockOfClass(RegistrantInvoice::class);
+        //
+        $this->applicant = $this->buildMockOfInterface(IProgramApplicant::class);
     }
     
     //
@@ -79,7 +104,7 @@ class RegistrantTest extends TestBase
     }
     public function test_construct_storeProgramRegistrationReceivedEvent()
     {
-        $event = new \Firm\Domain\Event\ProgramRegistrationReceived($this->id, $this->registrationStatus);
+        $event = new ProgramRegistrationReceived($this->id, $this->registrationStatus);
         $registrant = $this->construct();
         $this->assertEquals($event, $registrant->recordedEvents[0]);
     }
@@ -219,6 +244,71 @@ class RegistrantTest extends TestBase
                 ->willReturn(true);
         $this->assertTrue($this->correspondWithTeam());
     }
+    
+    //
+    protected function generateInvoice()
+    {
+        $this->programSnapshot->expects($this->any())
+                ->method('generateItemInfo')
+                ->willReturn($this->programItemInfo);
+        $this->programSnapshot->expects($this->once())
+                ->method('getPrice')
+                ->willReturn($this->programSnapshotPrice);
+        $this->registrant->generateInvoice($this->paymentGateway, $this->customerInfo);
+    }
+    public function test_generateInvoid_setRegistrantInvoice()
+    {
+        $description = 'tagihan pendaftaran program';
+        $invoiceDuration = 7*24*60*60;
+        $invoiceParameter = new InvoiceParameter(
+                $this->registrant->id, $this->programSnapshotPrice, $description, $invoiceDuration, 
+                $this->customerInfo, $this->programItemInfo);
+        $this->paymentGateway->expects($this->once())
+                ->method('generateInvoiceLink')
+                ->with($invoiceParameter)
+                ->willReturn($paymentLink = 'random string represent invoice link');
+        $invoice = new Invoice(
+                $this->registrant->id, DateTimeImmutableBuilder::buildYmdHisAccuracy('+7 days'), $paymentLink);
+        $registrantInvoice = new RegistrantInvoice($this->registrant, $this->registrant->id, $invoice);
+        $this->generateInvoice();
+        
+        $this->assertEquals($registrantInvoice, $this->registrant->registrantInvoice);
+    }
+    
+    //
+    protected function settleInvoicePayment()
+    {
+        $this->registrant->registrantInvoice = $this->registrantInvoice;
+        $this->registrant->settleInvoicePayment($this->applicant);
+    }
+    public function test_settleInvoicePayment_updateStatus()
+    {
+        $this->registrationStatus->expects($this->once())
+                ->method('settle')
+                ->willReturn($newStatus = $this->buildMockOfClass(RegistrationStatus::class));
+        $this->settleInvoicePayment();
+        $this->assertSame($newStatus, $this->registrant->status);
+    }
+    public function test_settleInvoicePayment_settleInvoice()
+    {
+        $this->registrantInvoice->expects($this->once())
+                ->method('settle');
+        $this->settleInvoicePayment();
+    }
+    public function test_settleInvoicePayment_noInvoice_Forbidden()
+    {
+        $this->registrant->registrantInvoice = null;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->registrant->settleInvoicePayment($this->applicant);
+        }, 'Forbidden', 'no invoice found');
+    }
+    public function test_settleInvoicePayment_addApplicantAsProgramParticipant()
+    {
+        $this->program->expects($this->once())
+                ->method('addApplicantAsParticipant')
+                ->with($this->applicant);
+        $this->settleInvoicePayment();
+    }
 
 }
 
@@ -233,7 +323,8 @@ class TestableRegistrant extends Registrant
     public $clientRegistrant;
     public $teamRegistrant;
     public $profiles;
+    public $registrantInvoice;
     //
     public $recordedEvents;
-    
+    public $aggregatedEventsFromBranches;
 }

@@ -5,6 +5,7 @@ namespace Query\Domain\Model\Firm\Program;
 use DateTimeImmutable;
 use Query\Domain\Model\Firm\Client\ClientRegistrant;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
 use Query\Domain\Model\Firm\Team\TeamProgramRegistration;
 use Query\Domain\Model\User\UserRegistrant;
 use SharedContext\Domain\ValueObject\ProgramSnapshot;
@@ -61,6 +62,12 @@ class Registrant
      */
     protected $teamRegistrant;
 
+    /**
+     * 
+     * @var RegistrantInvoice
+     */
+    protected $registrantInvoice;
+
     public function getProgram(): Program
     {
         return $this->program;
@@ -104,6 +111,11 @@ class Registrant
     public function getTeamRegistrant(): ?TeamProgramRegistration
     {
         return $this->teamRegistrant;
+    }
+
+    public function getRegistrantInvoice(): RegistrantInvoice
+    {
+        return $this->registrantInvoice;
     }
 
 }

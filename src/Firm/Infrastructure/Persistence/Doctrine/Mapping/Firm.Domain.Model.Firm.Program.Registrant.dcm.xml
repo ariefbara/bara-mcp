@@ -36,5 +36,12 @@
                       mapped-by="registrant"
         />
         
+        <one-to-one field="registrantInvoice" 
+                    target-entity="Firm\Domain\Model\Firm\Program\Registrant\RegistrantInvoice"
+                    mapped-by="registrant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
     </entity>
 </doctrine-mapping>

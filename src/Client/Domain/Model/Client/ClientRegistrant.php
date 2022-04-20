@@ -5,8 +5,11 @@ namespace Client\Domain\Model\Client;
 use Client\Domain\DependencyModel\Firm\Program;
 use Client\Domain\DependencyModel\Firm\Program\Registrant;
 use Client\Domain\Model\Client;
+use Config\EventList;
+use Resources\Domain\Event\CommonEvent;
+use Resources\Domain\Model\EntityContainEvents;
 
-class ClientRegistrant
+class ClientRegistrant extends EntityContainEvents
 {
 
     /**
@@ -32,6 +35,9 @@ class ClientRegistrant
         $this->client = $client;
         $this->id = $id;
         $this->registrant = $registrant;
+        
+        $event = new CommonEvent(EventList::CLIENT_REGISTRANT_CREATED, $this->id);
+        $this->recordEvent($event);
     }
 
     public function isActiveRegistrationCorrespondWithProgram(Program $program): bool

@@ -20,13 +20,16 @@ use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
 use Firm\Domain\Model\Firm\Program\Registrant;
+use Firm\Domain\Model\Firm\Program\RegistrationPhase;
 use Firm\Domain\Model\Firm\Program\Sponsor;
 use Firm\Domain\Model\Firm\Program\SponsorData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\Domain\Event\CommonEvent;
+use SharedContext\Domain\ValueObject\ItemInfo;
 use SharedContext\Domain\ValueObject\ProgramType;
 use Tests\TestBase;
+use TypeError;
 
 class ProgramTest extends TestBase
 {
@@ -125,7 +128,7 @@ class ProgramTest extends TestBase
         //
         $this->applicant = $this->buildMockOfInterface(IProgramApplicant::class);
         //
-        $this->registrationPhase = $this->buildMockOfClass(Program\RegistrationPhase::class);
+        $this->registrationPhase = $this->buildMockOfClass(RegistrationPhase::class);
         $this->program->registrationPhases = new ArrayCollection();
         $this->program->registrationPhases->add($this->registrationPhase);
     }
@@ -185,7 +188,7 @@ class ProgramTest extends TestBase
     public function test_construct_nonIntegerPrice_typeError()
     {
         $this->price = 'non integer';
-        $this->expectException(\TypeError::class);
+        $this->expectException(TypeError::class);
         $this->executeConstruct();
     }
     
@@ -675,6 +678,25 @@ class ProgramTest extends TestBase
         $this->receiveApplication();
         $this->assertInstanceOf(Registrant::class, $this->program->aggregatedEventsFromBranches[0]);
     }
+    
+    //
+    protected function addApplicantAsParticipant()
+    {
+        $this->program->addApplicantAsParticipant($this->applicant);
+    }
+    public function test_addProgramParticipant_addParticipant()
+    {
+        $this->addApplicantAsParticipant();
+        $this->assertEquals(2, $this->program->participants->count());
+        $this->assertInstanceOf(Participant::class, $this->program->participants->last());
+    }
+    public function test_addProgramParticipant_addApplicantProgramParticipation()
+    {
+        $this->applicant->expects($this->once())
+                ->method('addProgramParticipation');
+        $this->addApplicantAsParticipant();
+    }
+    
 }
 
 class TestableProgram extends Program

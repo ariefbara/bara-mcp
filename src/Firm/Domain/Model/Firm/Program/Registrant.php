@@ -7,12 +7,18 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Firm\Domain\Event\ProgramRegistrationReceived;
 use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\IProgramApplicant;
 use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
+use SharedContext\Domain\Model\Invoice;
+use SharedContext\Domain\Task\Dependency\InvoiceParameter;
+use SharedContext\Domain\Task\Dependency\PaymentGateway;
+use SharedContext\Domain\ValueObject\CustomerInfo;
 use SharedContext\Domain\ValueObject\ProgramSnapshot;
 use SharedContext\Domain\ValueObject\RegistrationStatus;
 
@@ -73,6 +79,11 @@ class Registrant extends EntityContainEvents
      */
     protected $profiles;
     
+    /**
+     * 
+     * @var RegistrantInvoice
+     */
+    protected $registrantInvoice;
 
     function __construct(Program $program, ProgramSnapshot $programSnapshot, string $id)
     {
@@ -147,6 +158,29 @@ class Registrant extends EntityContainEvents
             $errorDetail = "forbidden: application already concluded";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+    
+    public function generateInvoice(PaymentGateway $paymentGateway, CustomerInfo $customerInfo): void
+    {
+        $amount = $this->programSnapshot->getPrice();
+        $description = 'tagihan pendaftaran program';
+        $duration = 7*24*60*60;
+        $customerInfo;
+        $itemInfo = $this->programSnapshot->generateItemInfo();
+        $invoiceParameter = new InvoiceParameter($this->id, $amount, $description, $duration, $customerInfo, $itemInfo);
+        $paymentLink = $paymentGateway->generateInvoiceLink($invoiceParameter);
+        $invoice = new Invoice($this->id, DateTimeImmutableBuilder::buildYmdHisAccuracy('+7 days'), $paymentLink);
+        $this->registrantInvoice = new RegistrantInvoice($this, $this->id, $invoice);
+    }
+    
+    public function settleInvoicePayment(IProgramApplicant $applicant): void
+    {
+        if (empty($this->registrantInvoice)) {
+            throw RegularException::forbidden('no invoice found');
+        }
+        $this->status = $this->status->settle();
+        $this->registrantInvoice->settle();
+        $this->program->addApplicantAsParticipant($applicant);
     }
 
 }

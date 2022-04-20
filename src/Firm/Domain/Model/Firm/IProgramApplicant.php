@@ -12,4 +12,6 @@ interface IProgramApplicant
     public function assertBelongsInFirm(Firm $firm): void;
 
     public function getUserType(): string;
+    
+    public function addProgramParticipation(string $participantId, Participant $participant): void;
 }

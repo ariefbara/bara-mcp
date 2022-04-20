@@ -24,6 +24,8 @@ class ClientTest extends TestBase
 
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
     protected $program;
+    //
+    protected $participant, $participantId = 'participant-id';
 
     protected function setUp(): void
     {
@@ -46,6 +48,8 @@ class ClientTest extends TestBase
         $this->missionCommentData = $this->buildMockOfClass(MissionCommentData::class);
         
         $this->program = $this->buildMockOfClass(Program::class);
+        //
+        $this->participant = $this->buildMockOfClass(Program\Participant::class);
     }
     
     protected function getClientRegistrationData()
@@ -221,6 +225,27 @@ class ClientTest extends TestBase
         $this->assertRegularExceptionThrowed(function(){
             $this->assertBelongsInFirm();
         }, 'Forbidden', 'client is from different firm');
+    }
+    
+    protected function getClientCustomerInfo()
+    {
+        return $this->client->getClientCustomerInfo();
+    }
+    public function test_getClientCustomerInfo_returnCustomerInfo()
+    {
+        $customerInfo = new \SharedContext\Domain\ValueObject\CustomerInfo($this->fullName, $this->client->email);
+        $this->assertEquals($customerInfo, $this->getClientCustomerInfo());
+    }
+    
+    //
+    protected function addProgramParticipation()
+    {
+        $this->client->addProgramParticipation($this->participantId, $this->participant);
+    }
+    public function test_addProgramParticipant_addClientParticipant()
+    {
+        $this->addProgramParticipation();
+        $this->assertEquals(2, $this->client->clientParticipants->count());
     }
 }
 

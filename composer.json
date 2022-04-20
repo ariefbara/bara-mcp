@@ -49,6 +49,7 @@
             "Bara\\": "src/Bara",
             "Query\\": "src/Query",
             "Config\\": "src/Config",
+            "ExternalResource\\": "src/ExternalResource",
             "Resources\\": "resources/",
             "App\\": "app/"
         }

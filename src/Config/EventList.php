@@ -43,5 +43,8 @@ class EventList
     const PROGRAM_APPLICATION_RECEIVED = 'program-application-received';
     const PROGRAM_REGISTRATION_RECEIVED = 'program-registration-received';
     const PROGRAM_PARTICIPATION_ACCEPTED = 'program-participation-accepted';
+    const CLIENT_REGISTRANT_CREATED = 'client-registrant-created';
+    //
+    const PAYMENT_RECEIVED = 'payment-received';
     
 }

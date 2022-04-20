@@ -32,6 +32,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
+use SharedContext\Domain\ValueObject\ItemInfo;
 use SharedContext\Domain\ValueObject\ProgramSnapshot;
 use SharedContext\Domain\ValueObject\ProgramType;
 
@@ -61,13 +62,13 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var string
      */
     protected $description = null;
-    
+
     /**
      * 
      * @var int|null
      */
     protected $price;
-    
+
     /**
      * 
      * @var bool
@@ -79,7 +80,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var ParticipantTypes
      */
     protected $participantTypes;
-    
+
     /**
      * 
      * @var ProgramType
@@ -97,13 +98,13 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var bool
      */
     protected $strictMissionOrder;
-    
-    
+
     /**
      *
      * @var bool
      */
     protected $removed = false;
+
     /**
      * 
      * @var FirmFileInfo|null
@@ -139,7 +140,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var ArrayCollection
      */
     protected $assignedProfileForms;
-    
+
     /**
      *
      * @var ArrayCollection
@@ -159,7 +160,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         $this->description = $description;
     }
-    
+
     protected function setIllustration(?FirmFileInfo $illustration): void
     {
         if (isset($illustration)) {
@@ -167,10 +168,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         }
         $this->illustration = $illustration;
     }
+
     protected function setPrice(?int $price): void
     {
         $this->price = $price;
     }
+
     protected function setAutoAccept(?bool $autoAccept): void
     {
         $this->autoAccept = $autoAccept;
@@ -334,7 +337,7 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     {
         return $this->firm === $firm;
     }
-    
+
     public function inviteAllActiveParticipantsToMeeting(Meeting $meeting): void
     {
         $p = function (Participant $participant) {
@@ -344,24 +347,24 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
             $participant->inviteToMeeting($meeting);
         }
     }
-    
+
     public function createSponsor(string $sponsorId, SponsorData $sponsorData): Sponsor
     {
         return new Sponsor($this, $sponsorId, $sponsorData);
     }
-    
+
     public function assertFileUsable(FirmFileInfo $firmFileInfo): void
     {
         $firmFileInfo->assertUsableInFirm($this->firm);
     }
-    
+
     public function assertCanAcceptParticipantOfType(string $type): void
     {
         if (!$this->participantTypes->hasType($type)) {
             throw RegularException::forbidden("forbidden: {$type} in not accomodate in this program");
         }
     }
-    
+
     public function assertUsableInFirm(Firm $firm): void
     {
         if (!$this->published) {
@@ -374,14 +377,14 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
             throw RegularException::forbidden('forbidden: can only owned program');
         }
     }
-    
+
     public function assertAccessibleInFirm(Firm $firm): void
     {
         if ($this->firm !== $firm) {
             throw RegularException::forbidden('forbidden: can only access entity belongs to firm');
         }
     }
-    
+
     public function executeTask(IProgramTask $task, $payload): void
     {
         if ($this->removed) {
@@ -389,13 +392,13 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         }
         $task->execute($this, $payload);
     }
-    
+
     public function receiveApplication(IProgramApplicant $applicant): void
     {
         if (!$this->published) {
             throw RegularException::forbidden('unpublished program unable to accept application');
         }
-        $p = function(RegistrationPhase $registrationPhase){
+        $p = function (RegistrationPhase $registrationPhase) {
             return $registrationPhase->isOpen();
         };
         if (empty($this->registrationPhases->filter($p)->count())) {
@@ -411,10 +414,18 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
             $this->participants->add($participant);
             $this->aggregateEventsFromBranch($participant);
         } else {
-            $registrant = new Registrant($this, new ProgramSnapshot($this->price, $this->autoAccept), $id);
+            $registrant = new Registrant($this, new ProgramSnapshot($this->name, $this->price, $this->autoAccept), $id);
             $this->registrants->add($registrant);
             $this->aggregateEventsFromBranch($registrant);
         }
     }
     
+    public function addApplicantAsParticipant(IProgramApplicant $applicant): void
+    {
+        $id = Uuid::generateUuid4();
+        $participant = new Participant($this, $id);
+        $this->participants->add($participant);
+        $applicant->addProgramParticipation($id, $participant);
+    }
+
 }

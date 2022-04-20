@@ -31,5 +31,10 @@
                      mapped-by="programRegistration"
         />
         
+        <one-to-one field="registrantInvoice" 
+                    target-entity="Query\Domain\Model\Firm\Program\Registrant\RegistrantInvoice"
+                    mapped-by="registrant"
+        />
+        
     </entity>
 </doctrine-mapping>

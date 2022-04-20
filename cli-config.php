@@ -12,6 +12,7 @@ $isDevMode = true;//generate proxy manually if entity not found
 $generateDbPath = array(
     BASE_PATH . "/resources/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Query/Infrastructure/Persistence/Doctrine/Mapping",
+    BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ForTableCreation",
     BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
 );
 
@@ -38,8 +39,8 @@ $doctrineConfig->setProxyDir(dirname(__DIR__) . DIRECTORY_SEPARATOR . "mcp_proxy
 
  $conn = array(
     'driver' => 'pdo_mysql',
-    'user' => 'apur',
-    'password' => 'Bi$mill4h',
+    'user' => 'root',
+    'password' => 'APURac421199df74e5371524',
     'dbname' => 'bara_mcp'
  );
 //$conn = array(

@@ -4,6 +4,12 @@ namespace SharedContext\Domain\ValueObject;
 
 class ProgramSnapshot
 {
+    
+    /**
+     * 
+     * @var string
+     */
+    protected $name;
 
     /**
      * 
@@ -17,12 +23,23 @@ class ProgramSnapshot
      */
     protected $autoAccept;
 
-    public function __construct(?int $price, ?bool $autoAccept)
+    public function getPrice(): ?int
     {
+        return $this->price;
+    }
+
+    public function isAutoAccept(): ?bool
+    {
+        return $this->autoAccept;
+    }
+
+    public function __construct(string $name, ?int $price, ?bool $autoAccept)
+    {
+        $this->name = $name;
         $this->price = $price;
         $this->autoAccept = $autoAccept;
     }
-    
+
     public function generateInitialRegistrationStatus(): RegistrationStatus
     {
         if (!$this->autoAccept) {
@@ -32,6 +49,11 @@ class ProgramSnapshot
         } else {
             return new RegistrationStatus(RegistrationStatus::ACCEPTED);
         }
+    }
+    
+    public function generateItemInfo(): ItemInfo
+    {
+        return new ItemInfo($this->name, 1, $this->price, null, null);
     }
 
 }

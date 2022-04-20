@@ -10,7 +10,6 @@ use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant;
-use Firm\Domain\Model\Firm\Program\Registrant;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
@@ -18,6 +17,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
+use SharedContext\Domain\ValueObject\CustomerInfo;
 
 class Client implements IProgramApplicant
 {
@@ -176,6 +176,17 @@ class Client implements IProgramApplicant
     public function getUserType(): string
     {
         return 'client';
+    }
+    
+    public function getClientCustomerInfo(): CustomerInfo
+    {
+        return new CustomerInfo($this->personName->getFullName(), $this->email);
+    }
+
+    public function addProgramParticipation(string $participantId, Program\Participant $participant): void
+    {
+        $clientParticipant = new ClientParticipant($participant, $participantId, $this);
+        $this->clientParticipants->add($clientParticipant);
     }
 
 }

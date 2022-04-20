@@ -2,17 +2,14 @@
 
 namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Firm\ {
-    Application\Service\Firm\Program\RegistrantRepository,
-    Domain\Model\Firm\Program\Registrant
-};
+use Doctrine\ORM\NoResultException;
+use Firm\Application\Service\Firm\Program\RegistrantRepository;
+use Firm\Domain\Model\Firm\Program\Registrant;
+use Firm\Domain\Task\Dependency\Firm\Program\RegistrantRepository as RegistrantRepository2;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineRegistrantRepository extends EntityRepository implements RegistrantRepository
+class DoctrineRegistrantRepository extends DoctrineEntityRepository implements RegistrantRepository, RegistrantRepository2
 {
 
     public function ofId(string $firmId, string $programId, string $registrantId): Registrant
@@ -44,6 +41,11 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
     public function update(): void
     {
         $this->getEntityManager()->flush();
+    }
+
+    public function aRegistrantOfId(string $id): Registrant
+    {
+        return $this->findOneByIdOrDie($id, 'registrant');
     }
 
 }

@@ -47,6 +47,8 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->connection->table('ProgramsProfileForm')->truncate();
         $this->connection->table('FirmFileInfo')->truncate();
         $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('RegistrantInvoice')->truncate();
+        $this->connection->table('Invoice')->truncate();
         
         $firm = $this->client->firm;
         
@@ -171,18 +173,29 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->post($this->programRegistrationUri, $this->registrationInput, $this->inactiveClient->token)
             ->seeStatusCode(403);
     }
-    public function test_register_autoAcceptAndPaidProgram_setRegistrationStatusAsSettlementRequired()
+    public function test_register_autoAcceptAndPaidProgram_setRegistrationStatusAsSettlementRequiredAndSetInvoice()
     {
+$this->disableExceptionHandling();
         $this->program->autoAccept = true;
         $this->program->price = 100000;
         $this->register();
         $this->seeStatusCode(201);
         
-        $registrantRecord = [
-            'status' => RegistrationStatus::SETTLEMENT_REQUIRED,
-            'Program_id' => $this->program->id,
+        $invoiceResponse = [
+            'settled' => false,
         ];
-        $this->seeInDatabase('Registrant', $registrantRecord);
+        $this->seeJsonContains($invoiceResponse);
+        
+        $registrantEntry = [
+            'status' => RegistrationStatus::SETTLEMENT_REQUIRED,
+        ];
+        $this->seeInDatabase('Registrant', $registrantEntry);
+        
+        $invoiceEntry = [
+            'settled' => false,
+        ];
+        $this->seeInDatabase('Invoice', $invoiceEntry);
+$this->response->dump();
     }
     public function test_register_autoAcceptAndFreeProgram_setParticipant()
     {

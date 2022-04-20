@@ -6,6 +6,7 @@ use Client\Domain\Model\Client;
 use Client\Domain\Model\IClientTask;
 use Client\Domain\Task\Repository\Firm\Client\ClientRegistrantRepository;
 use Client\Domain\Task\Repository\Firm\Program\RegistrantRepository;
+use Resources\Application\Event\AdvanceDispatcher;
 
 class AddClientRegistrant implements IClientTask
 {
@@ -21,13 +22,21 @@ class AddClientRegistrant implements IClientTask
      * @var RegistrantRepository
      */
     protected $registrantRepository;
+
+    /**
+     * 
+     * @var AdvanceDispatcher
+     */
+    protected $dispatcher;
     public $addedClientRegistrantId;
 
     public function __construct(
-            ClientRegistrantRepository $clientRegistrantRepository, RegistrantRepository $registrantRepository)
+            ClientRegistrantRepository $clientRegistrantRepository, RegistrantRepository $registrantRepository,
+            AdvanceDispatcher $dispatcher)
     {
         $this->clientRegistrantRepository = $clientRegistrantRepository;
         $this->registrantRepository = $registrantRepository;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -42,6 +51,7 @@ class AddClientRegistrant implements IClientTask
         $clientRegistrant = $client->createClientRegistrant($payload, $registrant);
         $this->clientRegistrantRepository->add($clientRegistrant);
         $this->addedClientRegistrantId = $payload;
+        $this->dispatcher->dispatch($clientRegistrant);
     }
 
 }

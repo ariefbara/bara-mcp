@@ -126,6 +126,7 @@ $app->router->group(['namespace' => 'App\Http\Controllers'], function ($router) 
     require __DIR__.'/../routes/personnel.php';
     require __DIR__.'/../routes/client.php';
     require __DIR__.'/../routes/user.php';
+    require __DIR__.'/../routes/xendit.php';
 });
 
 return $app;

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Program\Registrant\RegistrantInvoice" 
+            table="RegistrantInvoice"
+    >
+        
+        <one-to-one field="registrant" 
+                    target-entity="Firm\Domain\Model\Firm\Program\Registrant"
+                    inversed-by="registrantInvoice"
+        >
+            <join-column name="Registrant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="invoice" 
+                    target-entity="SharedContext\Domain\Model\Invoice"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Invoice_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping>
     <embeddable name="SharedContext\Domain\ValueObject\ProgramSnapshot">
+        <field name="name" type="string" length="255" nullable="true"/>
         <field name="price" type="integer" nullable="true"/>
         <field name="autoAccept" type="boolean">
             <options>

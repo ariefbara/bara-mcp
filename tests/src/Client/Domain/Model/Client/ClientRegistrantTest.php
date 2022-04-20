@@ -2,6 +2,11 @@
 
 namespace Client\Domain\Model\Client;
 
+use Client\Domain\DependencyModel\Firm\Program;
+use Client\Domain\DependencyModel\Firm\Program\Registrant;
+use Client\Domain\Model\Client;
+use Config\EventList;
+use Resources\Domain\Event\CommonEvent;
 use Tests\TestBase;
 
 class ClientRegistrantTest extends TestBase
@@ -15,11 +20,11 @@ class ClientRegistrantTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = $this->buildMockOfClass(\Client\Domain\Model\Client::class);
-        $this->registrant = $this->buildMockOfClass(\Client\Domain\DependencyModel\Firm\Program\Registrant::class);
+        $this->client = $this->buildMockOfClass(Client::class);
+        $this->registrant = $this->buildMockOfClass(Registrant::class);
         $this->clientRegistrant = new TestableClientRegistrant($this->client, 'id', $this->registrant);
         
-        $this->program = $this->buildMockOfClass(\Client\Domain\DependencyModel\Firm\Program::class);
+        $this->program = $this->buildMockOfClass(Program::class);
     }
     
     protected function construct()
@@ -32,6 +37,12 @@ class ClientRegistrantTest extends TestBase
         $this->assertSame($this->client, $clientRegistrant->client);
         $this->assertSame($this->id, $clientRegistrant->id);
         $this->assertSame($this->registrant, $clientRegistrant->registrant);
+    }
+    public function test_construct_recordClientRegistrantAddedEvent()
+    {
+        $event = new CommonEvent(EventList::CLIENT_REGISTRANT_CREATED, $this->id);
+        $clientRegistrant = $this->construct();
+        $this->assertEquals($event, $clientRegistrant->recordedEvents[0]);
     }
     
     protected function isActiveRegistrationCorrespondWithProgram()
@@ -53,4 +64,5 @@ class TestableClientRegistrant extends ClientRegistrant
     public $client;
     public $id;
     public $registrant;
+    public $recordedEvents;
 }

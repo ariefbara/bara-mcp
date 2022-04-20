@@ -2,12 +2,10 @@
 
 namespace Query\Domain\Model\Firm\Client;
 
-use Query\Domain\Model\Firm\ {
-    Client,
-    Program,
-    Program\Registrant
-};
-
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Registrant;
+use Query\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
 
 class ClientRegistrant
 {
@@ -49,7 +47,7 @@ class ClientRegistrant
     {
         return $this->registrant->getProgram();
     }
-    
+
     public function getStatus(): string
     {
         return $this->registrant->getStatus();
@@ -58,6 +56,11 @@ class ClientRegistrant
     public function getRegisteredTimeString(): string
     {
         return $this->registrant->getRegisteredTimeString();
+    }
+
+    public function getRegistrantInvoice(): RegistrantInvoice
+    {
+        return $this->registrant->getRegistrantInvoice();
     }
 
 }

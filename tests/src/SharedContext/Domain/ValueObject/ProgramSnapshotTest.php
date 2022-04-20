@@ -6,6 +6,7 @@ use Tests\TestBase;
 
 class ProgramSnapshotTest extends TestBase
 {
+    protected $name = 'program name';
     protected $price = 1000000;
     protected $autoAccept = false;
     protected $snap;
@@ -13,12 +14,12 @@ class ProgramSnapshotTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->snap = new TestableProgramSnapshot(50000, false);
+        $this->snap = new TestableProgramSnapshot('name', 700000, false);
     }
     
     protected function construct()
     {
-        return new TestableProgramSnapshot($this->price, $this->autoAccept);
+        return new TestableProgramSnapshot($this->name, $this->price, $this->autoAccept);
     }
     public function test_construct_setProperties()
     {
@@ -50,10 +51,22 @@ class ProgramSnapshotTest extends TestBase
         $this->assertEquals($status, $this->generateInitialRegistrationStatus());
     }
     
+    //
+    protected function generateItemInfo()
+    {
+        return $this->snap->generateItemInfo();
+    }
+    public function test_generateItemInfo_returnItemInfo()
+    {
+        $itemInfo = new ItemInfo($this->snap->name, 1, $this->snap->price, null, null);
+        $this->assertEquals($itemInfo, $this->generateItemInfo());
+    }
+    
 }
 
 class TestableProgramSnapshot extends ProgramSnapshot
 {
+    public $name;
     public $price;
     public $autoAccept;
 }
