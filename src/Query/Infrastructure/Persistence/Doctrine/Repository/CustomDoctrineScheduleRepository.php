@@ -27,6 +27,8 @@ class CustomDoctrineScheduleRepository implements ScheduleRepository
 SELECT
     startTime,
     teamId,
+    programId,
+    programType,
     participantId,
     bookedMentoringSlotId,
     negotiatedMentoringId,
@@ -38,6 +40,8 @@ FROM (
     SELECT
         MentoringSlot.startTime startTime,
         T_Member.Team_id teamId,
+        Program.id programId,
+        Program.programType programType,
         Participant.id participantId,
         BookedMentoringSlot.id bookedMentoringSlotId,
         null as negotiatedMentoringId,
@@ -50,6 +54,7 @@ FROM (
         LEFT JOIN Consultant ON Consultant.id = MentoringSlot.Mentor_id
         LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
         LEFT JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
+        LEFT JOIN Program ON Program.id = Participant.Program_id
         LEFT JOIN ClientParticipant ON Participant.id = ClientParticipant.Participant_id
         LEFT JOIN TeamParticipant ON Participant.id = TeamParticipant.Participant_id
         LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
@@ -64,6 +69,8 @@ FROM (
     SELECT
         MentoringRequest.startTime startTime,
         T_Member.Team_id teamId,
+        Program.id programId,
+        Program.programType programType,
         Participant.id participantId,
         null as bookedMentoringSlotId,
         NegotiatedMentoring.id negotiatedMentoringId,
@@ -76,6 +83,7 @@ FROM (
         LEFT JOIN Consultant ON Consultant.id = MentoringRequest.Consultant_id
         LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
         LEFT JOIN Participant ON Participant.id = MentoringRequest.Participant_id
+        LEFT JOIN Program ON Program.id = Participant.Program_id
         LEFT JOIN ClientParticipant ON Participant.id = ClientParticipant.Participant_id
         LEFT JOIN TeamParticipant ON Participant.id = TeamParticipant.Participant_id
         LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id
@@ -89,6 +97,8 @@ FROM (
     SELECT
         Activity.startDateTime startTime,
         T_Member.Team_id teamId,
+        Program.id programId,
+        Program.programType programType,
         Participant.id participantId,
         null as bookedMentoringSlotId,
         null as mentoringId,
@@ -101,6 +111,7 @@ FROM (
         LEFT JOIN Activity ON Activity.id = Invitee.Activity_id
         LEFT JOIN ActivityType ON ActivityType.id = Activity.ActivityType_id
         LEFT JOIN Participant ON Participant.id = ParticipantInvitee.Participant_id
+        LEFT JOIN Program ON Program.id = Participant.Program_id
         LEFT JOIN ClientParticipant ON Participant.id = ClientParticipant.Participant_id
         LEFT JOIN TeamParticipant ON Participant.id = TeamParticipant.Participant_id
         LEFT JOIN T_Member ON T_Member.Team_id = TeamParticipant.Team_id

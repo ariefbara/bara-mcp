@@ -241,6 +241,8 @@ $this->disableExceptionHandling();
                 [
                     'startTime' => $this->negotiatedMentoringOne_m1cp1->mentoringRequest->startTime,
                     'teamId' => null,
+                    'programId' => $this->negotiatedMentoringOne_m1cp1->mentoringRequest->participant->program->id,
+                    'programType' => $this->negotiatedMentoringOne_m1cp1->mentoringRequest->participant->program->programType,
                     'participantId' => $this->negotiatedMentoringOne_m1cp1->mentoringRequest->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => $this->negotiatedMentoringOne_m1cp1->id,
@@ -252,6 +254,8 @@ $this->disableExceptionHandling();
                 [
                     'startTime' => $this->negotiatedMentoringThree_m2tp1->mentoringRequest->startTime,
                     'teamId' => $this->teamOne->id,
+                    'programId' => $this->negotiatedMentoringThree_m2tp1->mentoringRequest->participant->program->id,
+                    'programType' => $this->negotiatedMentoringThree_m2tp1->mentoringRequest->participant->program->programType,
                     'participantId' => $this->negotiatedMentoringThree_m2tp1->mentoringRequest->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => $this->negotiatedMentoringThree_m2tp1->id,
@@ -263,6 +267,8 @@ $this->disableExceptionHandling();
                 [
                     'startTime' => $this->bookedMentoringSlotOne_ms1cp1->mentoringSlot->startTime->format('Y-m-d H:i:s'),
                     'teamId' => null,
+                    'programId' => $this->bookedMentoringSlotOne_ms1cp1->participant->program->id,
+                    'programType' => $this->bookedMentoringSlotOne_ms1cp1->participant->program->programType,
                     'participantId' => $this->bookedMentoringSlotOne_ms1cp1->participant->id,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotOne_ms1cp1->id,
                     'negotiatedMentoringId' => null,
@@ -274,6 +280,8 @@ $this->disableExceptionHandling();
                 [
                     'startTime' => $this->bookedMentoringSlotThree_ms2tp1->mentoringSlot->startTime->format('Y-m-d H:i:s'),
                     'teamId' => $this->teamOne->id,
+                    'programId' => $this->bookedMentoringSlotThree_ms2tp1->participant->program->id,
+                    'programType' => $this->bookedMentoringSlotThree_ms2tp1->participant->program->programType,
                     'participantId' => $this->bookedMentoringSlotThree_ms2tp1->participant->id,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotThree_ms2tp1->id,
                     'negotiatedMentoringId' => null,
@@ -285,6 +293,8 @@ $this->disableExceptionHandling();
                 [
                     'startTime' => $this->participantInviteeOne_cp1->invitee->activity->startDateTime,
                     'teamId' => null,
+                    'programId' => $this->participantInviteeOne_cp1->participant->program->id,
+                    'programType' => $this->participantInviteeOne_cp1->participant->program->programType,
                     'participantId' => $this->participantInviteeOne_cp1->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => null,
@@ -296,6 +306,8 @@ $this->disableExceptionHandling();
                 [
                     'startTime' => $this->participantInviteeThree_tp1->invitee->activity->startDateTime,
                     'teamId' => $this->teamOne->id,
+                    'programId' => $this->participantInviteeThree_tp1->participant->program->id,
+                    'programType' => $this->participantInviteeThree_tp1->participant->program->programType,
                     'participantId' => $this->participantInviteeThree_tp1->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => null,
