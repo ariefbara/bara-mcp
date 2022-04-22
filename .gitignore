@@ -8,3 +8,5 @@ Homestead.yaml
 .phpunit.result.cache
 /src/Config/BaseConfig.php
 .htaccess
+.cli-config.php
+.composer.lock
