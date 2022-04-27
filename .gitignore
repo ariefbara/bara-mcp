@@ -8,3 +8,4 @@ Homestead.yaml
 .phpunit.result.cache
 /src/Config/BaseConfig.php
 .htaccess
+/app/Providers/DoctrineEntityManagerProvider.php
