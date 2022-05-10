@@ -45,9 +45,9 @@ class DoctrineEntityManagerProvider extends ServiceProvider
 /**
  * uncomment line 48-49 and comment line 50 if redis connection still failed
  */
-$cache = new \Doctrine\Common\Cache\ArrayCache();
-$config = Setup::createXMLMetadataConfiguration(self::PATH, env('DOCTRINE_IS_DEV_MODE'), null, $cache);
-                //$config = Setup::createXMLMetadataConfiguration(self::PATH, env('DOCTRINE_IS_DEV_MODE'));
+//$cache = new \Doctrine\Common\Cache\ArrayCache();
+//$config = Setup::createXMLMetadataConfiguration(self::PATH, env('DOCTRINE_IS_DEV_MODE'), null, $cache);
+                $config = Setup::createXMLMetadataConfiguration(self::PATH, env('DOCTRINE_IS_DEV_MODE'));
                 $config->setProxyDir(dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . "mcp_proxy");
                 return EntityManager::create($connection, $config);
             });

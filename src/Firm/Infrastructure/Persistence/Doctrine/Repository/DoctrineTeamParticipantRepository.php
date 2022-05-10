@@ -20,7 +20,8 @@ class DoctrineTeamParticipantRepository extends DoctrineEntityRepository impleme
         
         $qb = $this->createQueryBuilder("teamParticipant");
         $qb->select("teamParticipant")
-                ->andWhere($qb->expr()->eq("teamParticipant.teamId", ":teamId"))
+                ->leftJoin("teamParticipant.team", "team")
+                ->andWhere($qb->expr()->eq("team.id", ":teamId"))
                 ->leftJoin("teamParticipant.participant", "participant")
                 ->leftJoin("participant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
