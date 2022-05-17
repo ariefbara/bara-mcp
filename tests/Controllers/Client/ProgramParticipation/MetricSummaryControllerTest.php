@@ -84,12 +84,12 @@ class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
     
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Metric')->truncate();
-//        $this->connection->table('MetricAssignment')->truncate();
-//        $this->connection->table('AssignmentField')->truncate();
-//        $this->connection->table('MetricAssignmentReport')->truncate();
-//        $this->connection->table('AssignmentFieldValue')->truncate();
+        parent::tearDown();
+        $this->connection->table('Metric')->truncate();
+        $this->connection->table('MetricAssignment')->truncate();
+        $this->connection->table('AssignmentField')->truncate();
+        $this->connection->table('MetricAssignmentReport')->truncate();
+        $this->connection->table('AssignmentFieldValue')->truncate();
     }
     
     protected function show()
@@ -300,9 +300,9 @@ class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
         $assignmentFieldValueTwo_af2mar1->insert($this->connection);
         $assignmentFieldValueThree_af3mar1->insert($this->connection);
         
-//        $uri = "/api/client/program-participations/{$clientParticipant->participant->id}/metric-summary";
-//        $this->get($uri, $client->token);
-        $this->show();
+        $uri = "/api/client/program-participations/{$clientParticipant->participant->id}/metric-summary";
+        $this->get($uri, $client->token);
+//        $this->show();
         $this->seeStatusCode(200);
 $this->response->dump();
     }
