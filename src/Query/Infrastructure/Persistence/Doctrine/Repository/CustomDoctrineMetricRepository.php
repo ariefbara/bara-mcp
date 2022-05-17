@@ -49,6 +49,8 @@ LEFT JOIN (
                 MAX(MetricAssignmentReport.observationTime) lastApprovedObservationTime, 
                 MetricAssignmentReport.MetricAssignment_id metricAssignmentId
             FROM MetricAssignmentReport
+            LEFT JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+            LEFT JOIN Participant ON Participant.id = MetricAssignment.Participant_id
             WHERE MetricAssignmentReport.approved = true AND MetricAssignmentReport.removed = false
             GROUP BY MetricAssignmentReport.MetricAssignment_id
         )_a1a
@@ -70,6 +72,8 @@ LEFT JOIN (
                 MAX(MetricAssignmentReport.observationTime) lastApprovedObservationTime, 
                 MetricAssignmentReport.MetricAssignment_id metricAssignmentId
             FROM MetricAssignmentReport
+            LEFT JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+            LEFT JOIN Participant ON Participant.id = MetricAssignment.Participant_id
             WHERE MetricAssignmentReport.approved IS NULL AND MetricAssignmentReport.removed = false
             GROUP BY MetricAssignmentReport.MetricAssignment_id
         )_b1a
