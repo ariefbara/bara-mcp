@@ -2,24 +2,25 @@
 
 namespace Firm\Domain\Model\Firm;
 
+use Client\Domain\Model\Client\ClientParticipant;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
-use Firm\Domain\Model\Firm\Program\ClientParticipant;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\Registrant;
 use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Model\EntityContainEvents;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
 use Resources\Exception\RegularException;
-use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
 use SharedContext\Domain\ValueObject\CustomerInfo;
 
-class Client implements IProgramApplicant
+class Client extends EntityContainEvents implements IProgramApplicant
 {
 
     /**
@@ -148,23 +149,23 @@ class Client implements IProgramApplicant
                         $replyId, $missionCommentData, $this->id, $this->personName->getFullName());
     }
     
-    public function addIntoProgram(Program $program): string
-    {
-        $program->assertCanAcceptParticipantOfType('client');
-        $p = function(ClientParticipant $clientParticipant) use($program) {
-            return $clientParticipant->correspondWithProgram($program);
-        };
-        $clientParticipant = $this->clientParticipants->filter($p)->first();
-        if (!empty($clientParticipant)) {
-            $clientParticipant->enable();
-        } else {
-            $id = Uuid::generateUuid4();
-            $participant = new Participant($program, $id);
-            $clientParticipant = new ClientParticipant($participant, $id, $this);
-            $this->clientParticipants->add($clientParticipant);
-        }
-        return $clientParticipant->getId();
-    }
+//    public function addIntoProgram(Program $program): string
+//    {
+//        $program->assertCanAcceptParticipantOfType('client');
+//        $p = function(ClientParticipant $clientParticipant) use($program) {
+//            return $clientParticipant->correspondWithProgram($program);
+//        };
+//        $clientParticipant = $this->clientParticipants->filter($p)->first();
+//        if (!empty($clientParticipant)) {
+//            $clientParticipant->enable();
+//        } else {
+//            $id = Uuid::generateUuid4();
+//            $participant = new Participant($program, $id);
+//            $clientParticipant = new ClientParticipant($participant, $id, $this);
+//            $this->clientParticipants->add($clientParticipant);
+//        }
+//        return $clientParticipant->getId();
+//    }
 
     public function assertBelongsInFirm(Firm $firm): void
     {
@@ -183,10 +184,15 @@ class Client implements IProgramApplicant
         return new CustomerInfo($this->personName->getFullName(), $this->email);
     }
 
-    public function addProgramParticipation(string $participantId, Program\Participant $participant): void
+    public function addProgramParticipation(string $participantId, Participant $participant): void
     {
         $clientParticipant = new ClientParticipant($participant, $participantId, $this);
         $this->clientParticipants->add($clientParticipant);
+    }
+
+    public function addProgramRegistration(string $registrantId, Registrant $registrant): void
+    {
+        
     }
 
 }

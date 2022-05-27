@@ -107,6 +107,8 @@ SELECT
     Program.name, 
     Program.programType, 
     Program.description, 
+    Program.price, 
+    Program.autoAccept, 
     Program.participantTypes, 
     FileInfo.folders illustrationPaths,
     FileInfo.name illustrationName
@@ -132,7 +134,7 @@ WHERE Client.id = :clientId
         FROM ClientRegistrant
             LEFT JOIN Registrant ON Registrant.id = ClientRegistrant.Registrant_id
         WHERE ClientRegistrant.Client_id = :clientId
-            AND Registrant.concluded = false
+            AND Registrant.status IN (1, 2)
     )
     AND Program.id NOT IN (
         SELECT Participant.Program_id
@@ -178,7 +180,7 @@ FROM (
             FROM ClientRegistrant
                 LEFT JOIN Registrant ON Registrant.id = ClientRegistrant.Registrant_id
             WHERE ClientRegistrant.Client_id = :clientId
-                AND Registrant.concluded = false
+                AND Registrant.status IN (1, 2)
         )
         AND Program.id NOT IN (
             SELECT Participant.Program_id

@@ -1,12 +1,11 @@
 <?php
 
-namespace Query\Domain\Task\InFirm;
+namespace Query\Domain\Task\InProgram;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Query\Domain\Model\Firm\Client\TranscriptTable;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor\EvaluationReport;
 use Query\Domain\Task\InFirm\ClientEvaluationReportTranscriptResult;
-use Query\Domain\Task\InFirm\TestableClientEvaluationReportTranscriptResult;
 use Tests\TestBase;
 
 class ClientEvaluationReportTranscriptResultTest extends TestBase

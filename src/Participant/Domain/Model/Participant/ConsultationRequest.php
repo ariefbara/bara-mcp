@@ -21,6 +21,7 @@ use Resources\ValidationRule;
 use Resources\ValidationService;
 use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\ConsultationSessionType;
 
 class ConsultationRequest extends EntityContainEvents implements AssetBelongsToTeamInterface
 {
@@ -179,7 +180,7 @@ class ConsultationRequest extends EntityContainEvents implements AssetBelongsToT
     {
         return new ConsultationSession(
                 $this->participant, $consultationSessionId, $this->consultationSetup, $this->consultant,
-                $this->startEndTime, $this->channel, $teamMember);
+                $this->startEndTime, $this->channel, new ConsultationSessionType(ConsultationSessionType::HANDSHAKING_TYPE, true), $teamMember);
     }
 
     protected function assertNotConcluded(): void

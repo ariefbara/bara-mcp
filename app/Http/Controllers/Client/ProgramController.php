@@ -62,6 +62,8 @@ class ProgramController extends ClientBaseController
             "published" => $program->isPublished(),
             "participantTypes" => $program->getParticipantTypeValues(),
             "removed" => $program->isRemoved(),
+            "price" => $program->getPrice(),
+            "autoAccept" => $program->isAutoAccept(),
             "illustration" => $this->arrayDataOfIllustration($program->getIllustration()),
         ];
     }

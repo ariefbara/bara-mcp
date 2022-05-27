@@ -6,6 +6,7 @@ use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Client;
+use Firm\Domain\Model\Firm\IProgramApplicant;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
 use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
@@ -60,24 +61,6 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
 
     /**
      *
-     * @var UserParticipant|null
-     */
-    protected $clientParticipant;
-
-    /**
-     *
-     * @var UserParticipant|null
-     */
-    protected $userParticipant;
-
-    /**
-     *
-     * @var TeamParticipant|null
-     */
-    protected $teamParticipant;
-
-    /**
-     *
      * @var MetricAssignment|null
      */
     protected $metricAssignment;
@@ -128,13 +111,14 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
         return $this->active;
     }
 
-    public function __construct(Program $program, string $id)
+    public function __construct(Program $program, string $id, IProgramApplicant $applicant)
     {
         $this->program = $program;
         $this->id = $id;
         $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->active = true;
         $this->note = null;
+        $applicant->addProgramParticipation($this->id, $this);
 
         $this->profiles = new ArrayCollection();
         
@@ -159,27 +143,6 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
     public function belongsToProgram(Program $program): bool
     {
         return $this->program === $program;
-    }
-
-    public static function participantForUser(Program $program, string $id, User $user): self
-    {
-        $participant = new static($program, $id);
-        $participant->userParticipant = new UserParticipant($participant, $id, $user);
-        return $participant;
-    }
-
-    public static function participantForClient(Program $program, string $id, Client $client): self
-    {
-        $participant = new static($program, $id);
-        $participant->clientParticipant = new ClientParticipant($participant, $id, $client);
-        return $participant;
-    }
-
-    public static function participantForTeam(Program $program, string $id, Team $team): self
-    {
-        $participant = new static($program, $id);
-        $participant->teamParticipant = new TeamParticipant($participant, $id, $team);
-        return $participant;
     }
 
     public function receiveEvaluation(

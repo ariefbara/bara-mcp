@@ -27,7 +27,9 @@ class ParticipantTest extends TestBase
 {
 
     protected $program;
+    protected $applicant;
     protected $participant;
+    //
     protected $participantAttendee;
     protected $asset;
     protected $consultationRequest;
@@ -55,8 +57,9 @@ class ParticipantTest extends TestBase
     {
         parent::setUp();
         $this->program = $this->buildMockOfClass(Program::class);
+        $this->applicant = $this->buildMockOfInterface(\Firm\Domain\Model\Firm\IProgramApplicant::class);
 
-        $this->participant = new TestableParticipant($this->program, 'id');
+        $this->participant = new TestableParticipant($this->program, 'id', $this->applicant);
         $this->participant->consultationRequests = new ArrayCollection();
         $this->participant->consultationSessions = new ArrayCollection();
         $this->participant->meetingInvitations = new ArrayCollection();
@@ -75,7 +78,7 @@ class ParticipantTest extends TestBase
         
         $this->asset = $this->buildMockOfInterface(AssetInProgram::class);
         
-        $this->inactiveParticipant = new TestableParticipant($this->program, 'id');
+        $this->inactiveParticipant = new TestableParticipant($this->program, 'id', $this->applicant);
         $this->inactiveParticipant->active = false;
         $this->inactiveParticipant->note = 'booted';
         
@@ -125,7 +128,7 @@ class ParticipantTest extends TestBase
     
     protected function construct()
     {
-        return new TestableParticipant($this->program, $this->id);
+        return new TestableParticipant($this->program, $this->id, $this->applicant);
     }
     public function test_construct_setProperties()
     {
@@ -134,6 +137,12 @@ class ParticipantTest extends TestBase
         $this->assertSame($this->id, $participant->id);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
     }
+    public function test_construct_addApplicantProgramParticipation()
+    {
+        $this->applicant->expects($this->once())
+                ->method('addProgramParticipation');
+        $this->construct();
+    }
     public function test_construct_recordProgramParticipationAcceptedCommonEvent()
     {
         $event = new \Resources\Domain\Event\CommonEvent(\Config\EventList::PROGRAM_PARTICIPATION_ACCEPTED, $this->id);
@@ -141,49 +150,6 @@ class ParticipantTest extends TestBase
         $this->assertEquals($event, $participant->recordedEvents[0]);
     }
 
-    public function test_participantForUser_setProperties()
-    {
-        $participant = TestableParticipant::participantForUser($this->program, $this->id, $this->user);
-        $this->assertEquals($this->program, $participant->program);
-        $this->assertEquals($this->id, $participant->id);
-        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
-        $this->assertTrue($participant->active);
-        $this->assertNull($participant->note);
-
-        $userParticipant = new UserParticipant($participant, $this->id, $this->user);
-        $this->assertEquals($userParticipant, $participant->userParticipant);
-        $this->assertNull($participant->clientParticipant);
-    }
-
-    public function test_participantForClient_setProperties()
-    {
-        $participant = TestableParticipant::participantForClient($this->program, $this->id, $this->client);
-        $this->assertEquals($this->program, $participant->program);
-        $this->assertEquals($this->id, $participant->id);
-        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
-        $this->assertTrue($participant->active);
-        $this->assertNull($participant->note);
-
-        $clientParticipant = new ClientParticipant($participant, $this->id, $this->client);
-        $this->assertEquals($clientParticipant, $participant->clientParticipant);
-        $this->assertNull($participant->userParticipant);
-    }
-
-    public function test_participantForTeam_setProperties()
-    {
-        $participant = TestableParticipant::participantForTeam($this->program, $this->id, $this->team);
-        $this->assertEquals($this->program, $participant->program);
-        $this->assertEquals($this->id, $participant->id);
-        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
-        $this->assertTrue($participant->active);
-        $this->assertNull($participant->note);
-
-        $teamParticipant = new TeamParticipant($participant, $this->id, $this->team);
-        $this->assertEquals($teamParticipant, $participant->teamParticipant);
-        $this->assertNull($participant->userParticipant);
-        $this->assertNull($participant->clientParticipant);
-    }
-    
     public function test_asserActive_activeParticipant_void()
     {
         $this->participant->assertActive();
@@ -239,35 +205,6 @@ class ParticipantTest extends TestBase
         };
         $errorDetail = 'forbidden: already active participant';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
-
-    protected function executeCorrespondWithRegistrant()
-    {
-        return $this->participant->correspondWithRegistrant($this->registrant);
-    }
-    public function test_correspondWithRegistrant_returnClientParticipantsCorrespondWithRegistrantResult()
-    {
-        $this->clientParticipant->expects($this->once())
-                ->method('correspondWithRegistrant');
-        $this->executeCorrespondWithRegistrant();
-    }
-    public function test_correspondWithRegistrant_aUserParticipant_returnUserParticipantCorrespondWithRegistrantRegsult()
-    {
-        $this->participant->clientParticipant = null;
-        $this->participant->userParticipant = $this->userParticipant;
-
-        $this->userParticipant->expects($this->once())
-                ->method('correspondWithRegistrant');
-        $this->executeCorrespondWithRegistrant();
-    }
-    public function test_correspondWithRegistrant_aTeamParticipant_returnTeamParticipantCorrespondWithRegistrantResult()
-    {
-        $this->participant->clientParticipant = null;
-        $this->participant->teamParticipant = $this->teamParticipant;
-
-        $this->teamParticipant->expects($this->once())
-                ->method("correspondWithRegistrant");
-        $this->executeCorrespondWithRegistrant();
     }
 
     protected function executeAssignMetrics()
@@ -578,10 +515,5 @@ class TestableParticipant extends Participant
     public $dedicatedMentors;
     //
     public $recordedEvents;
-
-    public function __construct(Program $program, string $id)
-    {
-        parent::__construct($program, $id);
-    }
 
 }

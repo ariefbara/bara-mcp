@@ -27,16 +27,18 @@ class ClientRegistrant
      */
     protected $registrant;
 
-    protected function __construct()
+    public function __construct(Client $client, string $id, Registrant $registrant)
     {
-        
+        $this->client = $client;
+        $this->id = $id;
+        $this->registrant = $registrant;
     }
 
     public function generateInvoice(PaymentGateway $paymentGateway): void
     {
         $this->registrant->generateInvoice($paymentGateway, $this->client->getClientCustomerInfo());
     }
-    
+
     public function settleInvoicePayment(): void
     {
         $this->registrant->settleInvoicePayment($this->client);

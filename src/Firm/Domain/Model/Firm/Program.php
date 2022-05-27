@@ -408,13 +408,12 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
             throw RegularException::forbidden("applicant of type {$applicant->getUserType()} is unsupported");
         }
         $applicant->assertBelongsInFirm($this->firm);
-        $id = Uuid::generateUuid4();
         if ($this->autoAccept && empty($this->price)) {
-            $participant = new Participant($this, $id);
-            $this->participants->add($participant);
-            $this->aggregateEventsFromBranch($participant);
+            $this->addApplicantAsParticipant($applicant);
         } else {
-            $registrant = new Registrant($this, new ProgramSnapshot($this->name, $this->price, $this->autoAccept), $id);
+            $id = Uuid::generateUuid4();
+            $programSnapshot = new ProgramSnapshot($this->name, $this->price, $this->autoAccept);
+            $registrant = new Registrant($this, $programSnapshot, $id, $applicant);
             $this->registrants->add($registrant);
             $this->aggregateEventsFromBranch($registrant);
         }
@@ -423,9 +422,9 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     public function addApplicantAsParticipant(IProgramApplicant $applicant): void
     {
         $id = Uuid::generateUuid4();
-        $participant = new Participant($this, $id);
+        $participant = new Participant($this, $id, $applicant);
         $this->participants->add($participant);
-        $applicant->addProgramParticipation($id, $participant);
+        $this->aggregateEventsFromBranch($participant);
     }
 
 }
