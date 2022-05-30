@@ -54,6 +54,24 @@ class Registrant extends EntityContainEvents
      * @var DateTimeImmutable
      */
     protected $registeredTime;
+
+    /**
+     *
+     * @var UserRegistrant|null
+     */
+    protected $userRegistrant;
+
+    /**
+     *
+     * @var ClientRegistrant|null
+     */
+    protected $clientRegistrant;
+
+    /**
+     *
+     * @var TeamRegistrant|null
+     */
+    protected $teamRegistrant;
     
     /**
      * 
@@ -67,15 +85,13 @@ class Registrant extends EntityContainEvents
      */
     protected $registrantInvoice;
 
-    function __construct(Program $program, ProgramSnapshot $programSnapshot, string $id, IProgramApplicant $applicant)
+    function __construct(Program $program, ProgramSnapshot $programSnapshot, string $id)
     {
         $this->program = $program;
         $this->programSnapshot = $programSnapshot;
         $this->id = $id;
         $this->status = $this->programSnapshot->generateInitialRegistrationStatus();
         $this->registeredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
-        $applicant->addProgramRegistration($this->id, $this);
-        
         $event = new ProgramRegistrationReceived($this->id, $this->status);
         $this->recordEvent($event);
     }
@@ -100,49 +116,49 @@ class Registrant extends EntityContainEvents
 //        $this->note = 'rejected';
     }
 
-//    public function createParticipant(string $participantId): Participant
-//    {
-//        if (isset($this->userRegistrant)) {
-//            $participant = $this->userRegistrant->createParticipant($this->program, $participantId);
-//        }
-//        if (isset($this->clientRegistrant)) {
-//            $participant = $this->clientRegistrant->createParticipant($this->program, $participantId);
-//        }
-//        if (isset($this->teamRegistrant)) {
-//            $participant = $this->teamRegistrant->createParticipant($this->program, $participantId);
-//        }
-//        
-//        $criteria = Criteria::create()
-//                ->andWhere(Criteria::expr()->eq("removed", false));
-//        foreach ($this->profiles->matching($criteria)->getIterator() as $profile) {
-//            $profile->transferToParticipant($participant);
-//        }
-//        
-//        return $participant;
-//    }
+    public function createParticipant(string $participantId): Participant
+    {
+        if (isset($this->userRegistrant)) {
+            $participant = $this->userRegistrant->createParticipant($this->program, $participantId);
+        }
+        if (isset($this->clientRegistrant)) {
+            $participant = $this->clientRegistrant->createParticipant($this->program, $participantId);
+        }
+        if (isset($this->teamRegistrant)) {
+            $participant = $this->teamRegistrant->createParticipant($this->program, $participantId);
+        }
+        
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq("removed", false));
+        foreach ($this->profiles->matching($criteria)->getIterator() as $profile) {
+            $profile->transferToParticipant($participant);
+        }
+        
+        return $participant;
+    }
 
-//    public function correspondWithUser(User $user): bool
-//    {
-//        return empty($this->userRegistrant) ? false : $this->userRegistrant->userEquals($user);
-//    }
-//
-//    public function correspondWithClient(Client $client): bool
-//    {
-//        return empty($this->clientRegistrant) ? false : $this->clientRegistrant->clientEquals($client);
-//    }
-//
-//    public function correspondWithTeam(Team $team): bool
-//    {
-//        return isset($this->teamRegistrant) ? $this->teamRegistrant->teamEquals($team) : false;
-//    }
+    public function correspondWithUser(User $user): bool
+    {
+        return empty($this->userRegistrant) ? false : $this->userRegistrant->userEquals($user);
+    }
 
-//    protected function assertUnconcluded(): void
-//    {
-//        if ($this->concluded) {
-//            $errorDetail = "forbidden: application already concluded";
-//            throw RegularException::forbidden($errorDetail);
-//        }
-//    }
+    public function correspondWithClient(Client $client): bool
+    {
+        return empty($this->clientRegistrant) ? false : $this->clientRegistrant->clientEquals($client);
+    }
+
+    public function correspondWithTeam(Team $team): bool
+    {
+        return isset($this->teamRegistrant) ? $this->teamRegistrant->teamEquals($team) : false;
+    }
+
+    protected function assertUnconcluded(): void
+    {
+        if ($this->concluded) {
+            $errorDetail = "forbidden: application already concluded";
+            throw RegularException::forbidden($errorDetail);
+        }
+    }
     
     public function generateInvoice(PaymentGateway $paymentGateway, CustomerInfo $customerInfo): void
     {

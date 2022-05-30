@@ -73,7 +73,7 @@ class FirmData
 
     public function __construct(
             ?string $name, ?string $identifier, ?string $whitelableUrl, ?string $whitelableMailSenderAddress,
-            ?string $whitelableMailSenderName, ?float $sharingPercentage = null)
+            ?string $whitelableMailSenderName, ?float $sharingPercentage)
     {
         $this->name = $name;
         $this->identifier = $identifier;

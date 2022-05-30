@@ -2,9 +2,7 @@
 
 namespace Tests\Controllers\Client;
 
-use DateTimeImmutable;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use SharedContext\Domain\ValueObject\RegistrationStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientRegistrant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
@@ -75,24 +73,24 @@ class ProgramControllerTest extends ClientTestCase
         $this->programFour->illustration = $this->firmFileInfoThree;
         
         $this->registrationPhaseOne_p1 = new RecordOfRegistrationPhase($this->programOne, '1');
-        $this->registrationPhaseOne_p1->startDate = (new DateTimeImmutable('-30 days'))->format('Y-m-d');
-        $this->registrationPhaseOne_p1->endDate = (new DateTimeImmutable('+30 days'))->format('Y-m-d');
+        $this->registrationPhaseOne_p1->startDate = (new \DateTimeImmutable('-30 days'))->format('Y-m-d');
+        $this->registrationPhaseOne_p1->endDate = (new \DateTimeImmutable('+30 days'))->format('Y-m-d');
         
         $this->registrationPhaseTwo_p1 = new RecordOfRegistrationPhase($this->programOne, '2');
-        $this->registrationPhaseTwo_p1->startDate = (new DateTimeImmutable('+60 days'))->format('Y-m-d');
-        $this->registrationPhaseTwo_p1->endDate = (new DateTimeImmutable('+90 days'))->format('Y-m-d');
+        $this->registrationPhaseTwo_p1->startDate = (new \DateTimeImmutable('+60 days'))->format('Y-m-d');
+        $this->registrationPhaseTwo_p1->endDate = (new \DateTimeImmutable('+90 days'))->format('Y-m-d');
         
         $this->registrationPhaseThree_p2 = new RecordOfRegistrationPhase($this->programTwo, '3');
-        $this->registrationPhaseThree_p2->startDate = (new DateTimeImmutable())->format('Y-m-d');
-        $this->registrationPhaseThree_p2->endDate = (new DateTimeImmutable())->format('Y-m-d');
+        $this->registrationPhaseThree_p2->startDate = (new \DateTimeImmutable())->format('Y-m-d');
+        $this->registrationPhaseThree_p2->endDate = (new \DateTimeImmutable())->format('Y-m-d');
         
         $this->registrationPhaseFour_p3 = new RecordOfRegistrationPhase($this->programThree, '4');
-        $this->registrationPhaseFour_p3->startDate = (new DateTimeImmutable())->format('Y-m-d');
-        $this->registrationPhaseFour_p3->endDate = (new DateTimeImmutable('+60 days'))->format('Y-m-d');
+        $this->registrationPhaseFour_p3->startDate = (new \DateTimeImmutable())->format('Y-m-d');
+        $this->registrationPhaseFour_p3->endDate = (new \DateTimeImmutable('+60 days'))->format('Y-m-d');
         
         $this->registrationPhaseFive_p4 = new RecordOfRegistrationPhase($this->programFour, '5');
-        $this->registrationPhaseFive_p4->startDate = (new DateTimeImmutable('-60 days'))->format('Y-m-d');
-        $this->registrationPhaseFive_p4->endDate = (new DateTimeImmutable())->format('Y-m-d');
+        $this->registrationPhaseFive_p4->startDate = (new \DateTimeImmutable('-60 days'))->format('Y-m-d');
+        $this->registrationPhaseFive_p4->endDate = (new \DateTimeImmutable())->format('Y-m-d');
         
         $participantOne = new RecordOfParticipant($this->programOne, '1');
         $this->clientParticipantOne_p1 = new RecordOfClientParticipant($this->client, $participantOne);
@@ -134,8 +132,6 @@ class ProgramControllerTest extends ClientTestCase
             "name" => $this->programOne->name,
             "programType" => $this->programOne->programType,
             "description" => $this->programOne->description,
-            "price" => $this->programOne->price,
-            "autoAccept" => $this->programOne->autoAccept,
             "published" => $this->programOne->published,
             "participantTypes" => explode(",", $this->programOne->participantTypes),
             "removed" => $this->programOne->removed,
@@ -171,8 +167,6 @@ class ProgramControllerTest extends ClientTestCase
                     "programType" => $this->programOne->programType,
                     "description" => $this->programOne->description,
                     "published" => $this->programOne->published,
-                    "price" => $this->programOne->price,
-                    "autoAccept" => $this->programOne->autoAccept,
                     "participantTypes" => explode(",", $this->programOne->participantTypes),
                     "removed" => $this->programOne->removed,
                     "illustration" => [
@@ -186,8 +180,6 @@ class ProgramControllerTest extends ClientTestCase
                     "programType" => $this->programTwo->programType,
                     "description" => $this->programTwo->description,
                     "published" => $this->programTwo->published,
-                    "price" => $this->programTwo->price,
-                    "autoAccept" => $this->programTwo->autoAccept,
                     "participantTypes" => explode(",", $this->programTwo->participantTypes),
                     "removed" => $this->programTwo->removed,
                     "illustration" => [
@@ -236,8 +228,6 @@ class ProgramControllerTest extends ClientTestCase
                     "programType" => $this->programOne->programType,
                     "description" => $this->programOne->description,
                     "published" => $this->programOne->published,
-                    "price" => $this->programOne->price,
-                    "autoAccept" => $this->programOne->autoAccept,
                     "participantTypes" => explode(",", $this->programOne->participantTypes),
                     "removed" => $this->programOne->removed,
                     "illustration" => [
@@ -251,8 +241,6 @@ class ProgramControllerTest extends ClientTestCase
                     "programType" => $this->programTwo->programType,
                     "description" => $this->programTwo->description,
                     "published" => $this->programTwo->published,
-                    "price" => $this->programTwo->price,
-                    "autoAccept" => $this->programTwo->autoAccept,
                     "participantTypes" => explode(",", $this->programTwo->participantTypes),
                     "removed" => $this->programTwo->removed,
                     "illustration" => [
@@ -312,7 +300,6 @@ class ProgramControllerTest extends ClientTestCase
     }
     public function test_showAllAvailable_200()
     {
-$this->disableExceptionHandling();
         $this->showAllAvailableProgram();
         $this->seeStatusCode(200);
         
@@ -324,8 +311,6 @@ $this->disableExceptionHandling();
                     'name' => $this->programOne->name,
                     'programType' => $this->programOne->programType,
                     'description' => $this->programOne->description,
-                    'price' => $this->programOne->price,
-                    'autoAccept' => $this->programOne->autoAccept ? '1' : '0',
                     'participantTypes' => $this->programOne->participantTypes,
                     'illustrationPaths' => $this->programOne->illustration->fileInfo->folders,
                     'illustrationName' => $this->programOne->illustration->fileInfo->name,
@@ -335,8 +320,6 @@ $this->disableExceptionHandling();
                     'name' => $this->programTwo->name,
                     'programType' => $this->programTwo->programType,
                     'description' => $this->programTwo->description,
-                    'price' => $this->programTwo->price,
-                    'autoAccept' => $this->programTwo->autoAccept ? '1' : '0',
                     'participantTypes' => $this->programTwo->participantTypes,
                     'illustrationPaths' => $this->programTwo->illustration->fileInfo->folders,
                     'illustrationName' => $this->programTwo->illustration->fileInfo->name,
@@ -346,8 +329,6 @@ $this->disableExceptionHandling();
                     'name' => $this->programThree->name,
                     'programType' => $this->programThree->programType,
                     'description' => $this->programThree->description,
-                    'price' => $this->programThree->price,
-                    'autoAccept' => $this->programThree->autoAccept ? '1' : '0',
                     'participantTypes' => $this->programThree->participantTypes,
                     'illustrationPaths' => null,
                     'illustrationName' => null,
@@ -357,8 +338,6 @@ $this->disableExceptionHandling();
                     'name' => $this->programFour->name,
                     'programType' => $this->programFour->programType,
                     'description' => $this->programFour->description,
-                    'price' => $this->programFour->price,
-                    'autoAccept' => $this->programFour->autoAccept ? '1' : '0',
                     'participantTypes' => $this->programFour->participantTypes,
                     'illustrationPaths' => $this->programFour->illustration->fileInfo->folders,
                     'illustrationName' => $this->programFour->illustration->fileInfo->name,
@@ -373,9 +352,9 @@ $this->disableExceptionHandling();
         $this->registrationPhaseThree_p2->endDate = null;
         
         $this->registrationPhaseFour_p3->startDate = null;
-        $this->registrationPhaseFour_p3->endDate = (new DateTimeImmutable('+60 days'));
+        $this->registrationPhaseFour_p3->endDate = (new \DateTimeImmutable('+60 days'));
         
-        $this->registrationPhaseFive_p4->startDate = (new DateTimeImmutable('-30 days'));
+        $this->registrationPhaseFive_p4->startDate = (new \DateTimeImmutable('-30 days'));
         $this->registrationPhaseFive_p4->endDate = null;
         
         $this->showAllAvailableProgram();
@@ -458,8 +437,8 @@ $this->disableExceptionHandling();
     }
     public function test_showAllAvailable_closedRegistration_containProgramWithExpiredRegistrationPhaseOnly_exclude()
     {
-        $this->registrationPhaseFour_p3->startDate = (new DateTimeImmutable('-60 days'))->format('Y-m-d');
-        $this->registrationPhaseFour_p3->endDate = (new DateTimeImmutable('-30 days'))->format('Y-m-d');
+        $this->registrationPhaseFour_p3->startDate = (new \DateTimeImmutable('-60 days'))->format('Y-m-d');
+        $this->registrationPhaseFour_p3->endDate = (new \DateTimeImmutable('-30 days'))->format('Y-m-d');
         
         $this->showAllAvailableProgram();
         $this->seeStatusCode(200);
@@ -481,8 +460,8 @@ $this->disableExceptionHandling();
     }
     public function test_showAllAvailable_closedRegistration_containProgramWithUpcomingRegistrationPhaseOnly_exclude()
     {
-        $this->registrationPhaseFour_p3->startDate = (new DateTimeImmutable('+30 days'))->format('Y-m-d');
-        $this->registrationPhaseFour_p3->endDate = (new DateTimeImmutable('+60 days'))->format('Y-m-d');
+        $this->registrationPhaseFour_p3->startDate = (new \DateTimeImmutable('+30 days'))->format('Y-m-d');
+        $this->registrationPhaseFour_p3->endDate = (new \DateTimeImmutable('+60 days'))->format('Y-m-d');
         
         $this->showAllAvailableProgram();
         $this->seeStatusCode(200);
@@ -524,55 +503,9 @@ $this->disableExceptionHandling();
         $programFourResponse = ['id' => $this->programFour->id];
         $this->seeJsonContains($programFourResponse);
     }
-    public function test_showAllAvailable_excludeRegisteredProgram()
+    public function test_showAllAvailable_includeRegisteredProgramInConcludedState()
     {
-        $this->clientRegistrantOne_p2->registrant->status = RegistrationStatus::REGISTERED;
-        $this->clientRegistrantOne_p2->insert($this->connection);
-        
-        $this->showAllAvailableProgram();
-        $this->seeStatusCode(200);
-        
-        $totalResponse = ['total' => 3];
-        $this->seeJsonContains($totalResponse);
-        
-        $programOneResponse = ['id' => $this->programOne->id];
-        $this->seeJsonContains($programOneResponse);
-        
-        $programTwoResponse = ['id' => $this->programTwo->id];
-        $this->seeJsonDoesntContains($programTwoResponse);
-        
-        $programThreeResponse = ['id' => $this->programThree->id];
-        $this->seeJsonContains($programThreeResponse);
-        
-        $programFourResponse = ['id' => $this->programFour->id];
-        $this->seeJsonContains($programFourResponse);
-    }
-    public function test_showAllAvailable_excludeRegisteredProgramInSettlementRequiredStatus()
-    {
-        $this->clientRegistrantOne_p2->registrant->status = RegistrationStatus::SETTLEMENT_REQUIRED;
-        $this->clientRegistrantOne_p2->insert($this->connection);
-        
-        $this->showAllAvailableProgram();
-        $this->seeStatusCode(200);
-        
-        $totalResponse = ['total' => 3];
-        $this->seeJsonContains($totalResponse);
-        
-        $programOneResponse = ['id' => $this->programOne->id];
-        $this->seeJsonContains($programOneResponse);
-        
-        $programTwoResponse = ['id' => $this->programTwo->id];
-        $this->seeJsonDoesntContains($programTwoResponse);
-        
-        $programThreeResponse = ['id' => $this->programThree->id];
-        $this->seeJsonContains($programThreeResponse);
-        
-        $programFourResponse = ['id' => $this->programFour->id];
-        $this->seeJsonContains($programFourResponse);
-    }
-    public function test_showAllAvailable_includeRegisteredProgramInConcludedStatus()
-    {
-        $this->clientRegistrantOne_p2->registrant->status = RegistrationStatus::ACCEPTED;
+        $this->clientRegistrantOne_p2->registrant->concluded = true;
         $this->clientRegistrantOne_p2->insert($this->connection);
         
         $this->showAllAvailableProgram();

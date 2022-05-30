@@ -9,7 +9,6 @@ abstract class EntityContainEvents implements ContainEvents
 {
 
     protected $recordedEvents = [];
-    
     /**
      * 
      * @var EntityContainEvents[]
@@ -38,7 +37,7 @@ abstract class EntityContainEvents implements ContainEvents
         }
     }
     
-    protected function aggregateEventsFromBranch(ContainEvents $branch): void
+    protected function aggregateEventsFromBranch(EntityContainEvents $branch): void
     {
         $this->aggregatedEventsFromBranches[] = $branch;
     }

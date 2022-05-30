@@ -690,6 +690,12 @@ class ProgramTest extends TestBase
         $this->assertEquals(2, $this->program->participants->count());
         $this->assertInstanceOf(Participant::class, $this->program->participants->last());
     }
+    public function test_addProgramParticipant_addApplicantProgramParticipation()
+    {
+        $this->applicant->expects($this->once())
+                ->method('addProgramParticipation');
+        $this->addApplicantAsParticipant();
+    }
     
 }
 

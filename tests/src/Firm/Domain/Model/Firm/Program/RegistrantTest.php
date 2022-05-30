@@ -26,9 +26,7 @@ use Tests\TestBase;
 class RegistrantTest extends TestBase
 {
     protected $program, $programSnapshot;
-    protected $applicant;
     protected $registrant;
-    //
     protected $registrationStatus;
     protected $profile;
     protected $userRegistrant;
@@ -45,6 +43,8 @@ class RegistrantTest extends TestBase
     protected $programItemInfo, $programSnapshotPrice = 40000, $programDescription = 'program description';
     //
     protected $registrantInvoice;
+    //
+    protected $applicant;
 
     protected function setUp(): void
     {
@@ -52,8 +52,7 @@ class RegistrantTest extends TestBase
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->programSnapshot = $this->buildMockOfClass(ProgramSnapshot::class);
-        $this->applicant = $this->buildMockOfInterface(IProgramApplicant::class);
-        $this->registrant = new TestableRegistrant($this->program, $this->programSnapshot, 'id', $this->applicant);
+        $this->registrant = new TestableRegistrant($this->program, $this->programSnapshot, 'id');
         
         $this->registrationStatus = $this->buildMockOfClass(RegistrationStatus::class);
         $this->registrant->status = $this->registrationStatus;
@@ -78,6 +77,8 @@ class RegistrantTest extends TestBase
         $this->programItemInfo = $this->buildMockOfClass(ItemInfo::class);
         //
         $this->registrantInvoice = $this->buildMockOfClass(RegistrantInvoice::class);
+        //
+        $this->applicant = $this->buildMockOfInterface(IProgramApplicant::class);
     }
     
     //
@@ -86,7 +87,7 @@ class RegistrantTest extends TestBase
         $this->programSnapshot->expects($this->any())
                 ->method('generateInitialRegistrationStatus')
                 ->willReturn($this->registrationStatus);
-        return new TestableRegistrant($this->program, $this->programSnapshot, $this->id, $this->applicant);
+        return new TestableRegistrant($this->program, $this->programSnapshot, $this->id);
     }
     public function test_construct_setProperties()
     {
@@ -100,12 +101,6 @@ class RegistrantTest extends TestBase
     {
         $registrant = $this->construct();
         $this->assertSame($this->registrationStatus, $registrant->status);
-    }
-    public function test_construct_addApplicantProgramRegistration()
-    {
-        $this->applicant->expects($this->once())
-                ->method('addProgramRegistration');
-        $this->construct();
     }
     public function test_construct_storeProgramRegistrationReceivedEvent()
     {
@@ -159,7 +154,6 @@ class RegistrantTest extends TestBase
     }
 */
     
-/*
     protected function executeCreateParticipant()
     {
         return $this->registrant->createParticipant($this->participantId);
@@ -250,8 +244,6 @@ class RegistrantTest extends TestBase
                 ->willReturn(true);
         $this->assertTrue($this->correspondWithTeam());
     }
- * 
- */
     
     //
     protected function generateInvoice()
