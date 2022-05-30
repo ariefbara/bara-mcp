@@ -133,6 +133,8 @@ class ProgramControllerTest extends ClientTestCase
             "programType" => $this->programOne->programType,
             "description" => $this->programOne->description,
             "published" => $this->programOne->published,
+            "price" => $this->programOne->price,
+            "autoAccept" => $this->programOne->autoAccept,
             "participantTypes" => explode(",", $this->programOne->participantTypes),
             "removed" => $this->programOne->removed,
             "illustration" => [
@@ -167,6 +169,8 @@ class ProgramControllerTest extends ClientTestCase
                     "programType" => $this->programOne->programType,
                     "description" => $this->programOne->description,
                     "published" => $this->programOne->published,
+                    "price" => $this->programOne->price,
+                    "autoAccept" => $this->programOne->autoAccept,
                     "participantTypes" => explode(",", $this->programOne->participantTypes),
                     "removed" => $this->programOne->removed,
                     "illustration" => [
@@ -177,9 +181,12 @@ class ProgramControllerTest extends ClientTestCase
                 [
                     "id" => $this->programTwo->id,
                     "name" => $this->programTwo->name,
+                    "participantTypes" => explode(",", $this->programOne->participantTypes),
                     "programType" => $this->programTwo->programType,
                     "description" => $this->programTwo->description,
                     "published" => $this->programTwo->published,
+                    "price" => $this->programTwo->price,
+                    "autoAccept" => $this->programTwo->autoAccept,
                     "participantTypes" => explode(",", $this->programTwo->participantTypes),
                     "removed" => $this->programTwo->removed,
                     "illustration" => [
@@ -228,6 +235,8 @@ class ProgramControllerTest extends ClientTestCase
                     "programType" => $this->programOne->programType,
                     "description" => $this->programOne->description,
                     "published" => $this->programOne->published,
+                    "price" => $this->programOne->price,
+                    "autoAccept" => $this->programOne->autoAccept,
                     "participantTypes" => explode(",", $this->programOne->participantTypes),
                     "removed" => $this->programOne->removed,
                     "illustration" => [
@@ -241,6 +250,8 @@ class ProgramControllerTest extends ClientTestCase
                     "programType" => $this->programTwo->programType,
                     "description" => $this->programTwo->description,
                     "published" => $this->programTwo->published,
+                    "price" => $this->programTwo->price,
+                    "autoAccept" => $this->programTwo->autoAccept,
                     "participantTypes" => explode(",", $this->programTwo->participantTypes),
                     "removed" => $this->programTwo->removed,
                     "illustration" => [
@@ -312,6 +323,8 @@ class ProgramControllerTest extends ClientTestCase
                     'programType' => $this->programOne->programType,
                     'description' => $this->programOne->description,
                     'participantTypes' => $this->programOne->participantTypes,
+                    "price" => $this->programOne->price,
+                    "autoAccept" => $this->programOne->autoAccept ? '1' : '0',
                     'illustrationPaths' => $this->programOne->illustration->fileInfo->folders,
                     'illustrationName' => $this->programOne->illustration->fileInfo->name,
                 ],
@@ -320,6 +333,8 @@ class ProgramControllerTest extends ClientTestCase
                     'name' => $this->programTwo->name,
                     'programType' => $this->programTwo->programType,
                     'description' => $this->programTwo->description,
+                    "price" => $this->programTwo->price,
+                    "autoAccept" => $this->programTwo->autoAccept ? '1' : '0',
                     'participantTypes' => $this->programTwo->participantTypes,
                     'illustrationPaths' => $this->programTwo->illustration->fileInfo->folders,
                     'illustrationName' => $this->programTwo->illustration->fileInfo->name,
@@ -329,6 +344,8 @@ class ProgramControllerTest extends ClientTestCase
                     'name' => $this->programThree->name,
                     'programType' => $this->programThree->programType,
                     'description' => $this->programThree->description,
+                    "price" => $this->programThree->price,
+                    "autoAccept" => $this->programThree->autoAccept ? '1' : '0',
                     'participantTypes' => $this->programThree->participantTypes,
                     'illustrationPaths' => null,
                     'illustrationName' => null,
@@ -338,6 +355,8 @@ class ProgramControllerTest extends ClientTestCase
                     'name' => $this->programFour->name,
                     'programType' => $this->programFour->programType,
                     'description' => $this->programFour->description,
+                    "price" => $this->programFour->price,
+                    "autoAccept" => $this->programFour->autoAccept ? '1' : '0',
                     'participantTypes' => $this->programFour->participantTypes,
                     'illustrationPaths' => $this->programFour->illustration->fileInfo->folders,
                     'illustrationName' => $this->programFour->illustration->fileInfo->name,
@@ -505,7 +524,7 @@ class ProgramControllerTest extends ClientTestCase
     }
     public function test_showAllAvailable_includeRegisteredProgramInConcludedState()
     {
-        $this->clientRegistrantOne_p2->registrant->concluded = true;
+        $this->clientRegistrantOne_p2->registrant->status = 4;
         $this->clientRegistrantOne_p2->insert($this->connection);
         
         $this->showAllAvailableProgram();

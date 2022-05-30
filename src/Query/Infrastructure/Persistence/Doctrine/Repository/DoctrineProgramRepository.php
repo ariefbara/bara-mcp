@@ -105,6 +105,8 @@ class DoctrineProgramRepository extends DoctrineEntityRepository implements Prog
 SELECT
     Program.id, 
     Program.name, 
+    Program.price, 
+    Program.autoAccept, 
     Program.programType, 
     Program.description, 
     Program.participantTypes, 
@@ -132,7 +134,7 @@ WHERE Client.id = :clientId
         FROM ClientRegistrant
             LEFT JOIN Registrant ON Registrant.id = ClientRegistrant.Registrant_id
         WHERE ClientRegistrant.Client_id = :clientId
-            AND Registrant.concluded = false
+            AND Registrant.status IN (1, 2)
     )
     AND Program.id NOT IN (
         SELECT Participant.Program_id
@@ -151,6 +153,7 @@ _STATEMENT;
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
+    
     protected function totalCountOfAvailableProgramsForClient(string $clientId): ?int
     {
         $parameters = ["clientId" => $clientId];
@@ -178,7 +181,7 @@ FROM (
             FROM ClientRegistrant
                 LEFT JOIN Registrant ON Registrant.id = ClientRegistrant.Registrant_id
             WHERE ClientRegistrant.Client_id = :clientId
-                AND Registrant.concluded = false
+                AND Registrant.status IN (1, 2)
         )
         AND Program.id NOT IN (
             SELECT Participant.Program_id
