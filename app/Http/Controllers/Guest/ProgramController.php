@@ -33,6 +33,8 @@ class ProgramController extends Controller
             'name' => $program->getName(),
             'description' => $program->getDescription(),
             "hasProfileForm" => $program->hasProfileForm(),
+            "price" => $program->getPrice(),
+            "autoAccept" => $program->isAutoAccept(),
             "participantTypes" => $program->getParticipantTypeValues(),
             'firm' => [
                 'id' => $program->getFirm()->getId(),
