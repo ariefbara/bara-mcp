@@ -91,6 +91,11 @@ class ProgramRegistrationController extends ClientBaseController
                 'status' => $clientRegistrant->getStatus(),
                 'registeredTime' => $clientRegistrant->getRegisteredTimeString(),
                 'invoice' => $this->arrayDataOfRegistrantInvoice($clientRegistrant->getRegistrantInvoice()),
+                'program' => [
+                    'id' => $clientRegistrant->getProgram()->getId(),
+                    'name' => $clientRegistrant->getProgram()->getName(),
+                    'programType' => $clientRegistrant->getProgram()->getProgramTypeValue(),
+                ]
             ];
         } elseif ($clientParticipantId = $addClientParticipantTask->addedClientParticipantId) {
             $clientParticipantViewService = new ViewProgramParticipation($this->em->getRepository(ClientParticipant::class));
@@ -99,6 +104,11 @@ class ProgramRegistrationController extends ClientBaseController
             $result['participant'] = [
                 'id' => $clientparticipant->getId(),
                 'enrolledTime' => $clientparticipant->getEnrolledTimeString(),
+                'program' => [
+                    'id' => $clientparticipant->getProgram()->getId(),
+                    'name' => $clientparticipant->getProgram()->getName(),
+                    'programType' => $clientparticipant->getProgram()->getProgramTypeValue(),
+                ],
             ];
         }
         return $this->commandCreatedResponse($result);
@@ -171,7 +181,7 @@ class ProgramRegistrationController extends ClientBaseController
                 "illustration" => $this->arrayDataOfIllustration($programRegistration->getProgram()->getIllustration()),
             ],
             "registeredTime" => $programRegistration->getRegisteredTimeString(),
-            "concluded" => $programRegistration->isConcluded(),
+            "status" => $programRegistration->getStatus(),
             "note" => $programRegistration->getNote(),
         ];
     }

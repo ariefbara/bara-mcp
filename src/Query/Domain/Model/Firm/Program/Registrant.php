@@ -64,7 +64,7 @@ class Registrant
 
     /**
      * 
-     * @var RegistrantInvoice
+     * @var RegistrantInvoice|null
      */
     protected $registrantInvoice;
 
@@ -113,7 +113,7 @@ class Registrant
         return $this->teamRegistrant;
     }
 
-    public function getRegistrantInvoice(): RegistrantInvoice
+    public function getRegistrantInvoice(): ?RegistrantInvoice
     {
         return $this->registrantInvoice;
     }

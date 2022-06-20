@@ -58,7 +58,7 @@ class ClientRegistrant
         return $this->registrant->getRegisteredTimeString();
     }
 
-    public function getRegistrantInvoice(): RegistrantInvoice
+    public function getRegistrantInvoice(): ?RegistrantInvoice
     {
         return $this->registrant->getRegistrantInvoice();
     }

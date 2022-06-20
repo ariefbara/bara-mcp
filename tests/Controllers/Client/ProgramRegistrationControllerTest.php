@@ -99,10 +99,16 @@ class ProgramRegistrationControllerTest extends ClientTestCase
     }
     public function test_register_201()
     {
+$this->disableExceptionHandling();
         $this->register();
         $this->seeStatusCode(201);
         $response = [
             "status" => 'REGISTERED',
+            'program' => [
+                'id' => $this->program->id,
+                'name' => $this->program->name,
+                'programType' => $this->program->programType,
+            ]
         ];
         $this->seeJsonContains($response);
         
@@ -218,22 +224,23 @@ $this->response->dump();
     
     public function test_cancel_200()
     {
-        $uri = $this->programRegistrationUri . "/{$this->programRegistration->id}/cancel";
+$this->disableExceptionHandling();
+        $uri = $this->programRegistrationUri . "/{$this->clientRegistrant->id}/cancel";
         $this->patch($uri, [], $this->client->token)
             ->seeStatusCode(200);
         $registrantEntry = [
-            "id" => $this->programRegistration->registrant->id,
+            "id" => $this->clientRegistrant->registrant->id,
             "concluded" => true,
             "note" => 'cancelled',
         ];
         $this->seeInDatabase('Registrant', $registrantEntry);
     }
-    public function test_cancel_alreadyConcluded_403()
-    {
-        $uri = $this->programRegistrationUri . "/{$this->concludedProgramRegistration->id}/cancel";
-        $this->patch($uri, [], $this->client->token)
-            ->seeStatusCode(403);
-    }
+//    public function test_cancel_alreadyConcluded_403()
+//    {
+//        $uri = $this->programRegistrationUri . "/{$this->concludedProgramRegistration->id}/cancel";
+//        $this->patch($uri, [], $this->client->token)
+//            ->seeStatusCode(403);
+//    }
     
     public function test_show()
     {
