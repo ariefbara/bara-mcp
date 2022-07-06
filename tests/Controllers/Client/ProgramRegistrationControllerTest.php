@@ -12,17 +12,21 @@ use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrationPhase;
+use Tests\Controllers\RecordPreparation\Firm\Program\Registrant\RecordOfRegistrantInvoice;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfFirmFileInfo;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProfileForm;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfInvoice;
 
 class ProgramRegistrationControllerTest extends ClientTestCase
 {
     protected $programRegistrationUri;
     protected $clientRegistrant;
+    protected $clientRegistrantTwo;
     protected $clientParticipant;
+    protected $registrantInvoice;
 
     protected $firmFileInfo;
 
@@ -56,13 +60,20 @@ class ProgramRegistrationControllerTest extends ClientTestCase
         $this->firmFileInfo = new RecordOfFirmFileInfo($firm, $fileInfo);
                 
         $this->program = new RecordOfProgram($this->client->firm, 0);
+        $programTWo = new RecordOfProgram($this->client->firm, '2');
         $this->program->illustration = $this->firmFileInfo;
         $this->registrationPhase = new RecordOfRegistrationPhase($this->program, 0);
         
         $registrant = new RecordOfRegistrant($this->program, 0);
+        $registrantTwo = new RecordOfRegistrant($programTWo, '2');
         $this->clientRegistrant = new RecordOfClientRegistrant($this->client, $registrant);
+        $this->clientRegistrantTwo = new RecordOfClientRegistrant($this->client, $registrantTwo);
+        
         $participant = new RecordOfParticipant($this->program, '1');
         $this->clientParticipant = new RecordOfClientParticipant($this->client, $participant);
+        
+        $invoice = new RecordOfInvoice('1');
+        $this->registrantInvoice = new RecordOfRegistrantInvoice($registrant, $invoice);
         
         $formOne = new RecordOfForm('1');
         
@@ -222,112 +233,133 @@ $this->response->dump();
 $this->response->dump();
     }
     
+    protected function cancel()
+    {
+        $this->clientRegistrant->registrant->program->insert($this->connection);
+        $this->clientRegistrant->insert($this->connection);
+        
+        $uri = $this->programRegistrationUri . "/{$this->clientRegistrant->id}/cancel";
+        $this->patch($uri, [], $this->client->token);
+    }
     public function test_cancel_200()
     {
 $this->disableExceptionHandling();
-        $uri = $this->programRegistrationUri . "/{$this->clientRegistrant->id}/cancel";
-        $this->patch($uri, [], $this->client->token)
-            ->seeStatusCode(200);
+        $this->cancel();
+        $this->seeStatusCode(200);
+        
         $registrantEntry = [
             "id" => $this->clientRegistrant->registrant->id,
-            "concluded" => true,
-            "note" => 'cancelled',
+            "status" => RegistrationStatus::CANCELLED,
         ];
         $this->seeInDatabase('Registrant', $registrantEntry);
     }
-//    public function test_cancel_alreadyConcluded_403()
-//    {
-//        $uri = $this->programRegistrationUri . "/{$this->concludedProgramRegistration->id}/cancel";
-//        $this->patch($uri, [], $this->client->token)
-//            ->seeStatusCode(403);
-//    }
     
     public function test_show()
     {
+$this->disableExceptionHandling();
+        $this->firmFileInfo->insert($this->connection);
+        $this->clientRegistrant->registrant->program->insert($this->connection);
+        $this->clientRegistrant->insert($this->connection);
+        $this->registrantInvoice->insert($this->connection);
         $response = [
-            "id" => $this->programRegistration->id,
+            "id" => $this->clientRegistrant->id,
             "program" => [
-                "id" => $this->programRegistration->registrant->program->id,
-                "name" => $this->programRegistration->registrant->program->name,
+                "id" => $this->clientRegistrant->registrant->program->id,
+                "name" => $this->clientRegistrant->registrant->program->name,
                 "hasProfileForm" => false,
-                "illustration" => null,
-                "programType" => $this->programRegistration->registrant->program->programType,
+                "illustration" => [
+                    'id' => $this->firmFileInfo->id,
+                    'url' => $this->firmFileInfo->fileInfo->getFullyPath(),
+                ],
+                "programType" => $this->clientRegistrant->registrant->program->programType,
             ],
-            "registeredTime" => $this->programRegistration->registrant->registeredTime,
-            "concluded" => $this->programRegistration->registrant->concluded,
-            "note" => $this->programRegistration->registrant->note,
+            "registeredTime" => $this->clientRegistrant->registrant->registeredTime,
+            "status" => 'REGISTERED',
+            "invoice" => [
+                'issuedTime' => $this->registrantInvoice->invoice->issuedTime,
+                'expiredTime' => $this->registrantInvoice->invoice->expiredTime,
+                'paymentLink' => $this->registrantInvoice->invoice->paymentLink,
+                'settled' => $this->registrantInvoice->invoice->settled,
+            ],
         ];
         
-        $uri = $this->programRegistrationUri . "/{$this->programRegistration->id}";
+        $uri = $this->programRegistrationUri . "/{$this->clientRegistrant->id}";
         $this->get($uri, $this->client->token)
             ->seeStatusCode(200)
             ->seeJsonContains($response);
     }
     
+    protected function showAll()
+    {
+        $this->clientRegistrant->insert($this->connection);
+        $this->clientRegistrant->registrant->program->insert($this->connection);
+        $this->clientRegistrantTwo->insert($this->connection);
+        $this->clientRegistrantTwo->registrant->program->insert($this->connection);
+        $this->firmFileInfo->insert($this->connection);
+        $this->registrantInvoice->insert($this->connection);
+        
+        $this->get($this->programRegistrationUri, $this->client->token);
+    }
     public function test_showAll()
     {
+        $this->showAll();
+        $this->seeStatusCode(200);
         $response = [
             "total" => 2, 
             "list" => [
                 [
-                    "id" => $this->programRegistration->id,
+                    "id" => $this->clientRegistrant->id,
                     "program" => [
-                        "id" => $this->programRegistration->registrant->program->id,
-                        "name" => $this->programRegistration->registrant->program->name,
-                        "hasProfileForm" => false,
-                        "illustration" => null,
-                        "programType" => $this->programRegistration->registrant->program->programType,
-                    ],
-                    "registeredTime" => $this->programRegistration->registrant->registeredTime,
-                    "concluded" => $this->programRegistration->registrant->concluded,
-                    "note" => $this->programRegistration->registrant->note,
-                ],
-                [
-                    "id" => $this->concludedProgramRegistration->id,
-                    "program" => [
-                        "id" => $this->concludedProgramRegistration->registrant->program->id,
-                        "name" => $this->concludedProgramRegistration->registrant->program->name,
-                        "programType" => $this->concludedProgramRegistration->registrant->program->programType,
+                        "id" => $this->clientRegistrant->registrant->program->id,
+                        "name" => $this->clientRegistrant->registrant->program->name,
                         "hasProfileForm" => false,
                         "illustration" => [
-                            "id" => $this->firmFileInfoTwo->id,
-                            "url" => "/{$this->firmFileInfoTwo->fileInfo->name}",
+                            'id' => $this->firmFileInfo->id,
+                            'url' => $this->firmFileInfo->fileInfo->getFullyPath(),
                         ],
+                        "programType" => $this->clientRegistrant->registrant->program->programType,
                     ],
-                    "registeredTime" => $this->concludedProgramRegistration->registrant->registeredTime,
-                    "concluded" => $this->concludedProgramRegistration->registrant->concluded,
-                    "note" => $this->concludedProgramRegistration->registrant->note,
+                    "registeredTime" => $this->clientRegistrant->registrant->registeredTime,
+                    "status" => 'REGISTERED',
+                    "invoice" => [
+                        'issuedTime' => $this->registrantInvoice->invoice->issuedTime,
+                        'expiredTime' => $this->registrantInvoice->invoice->expiredTime,
+                        'paymentLink' => $this->registrantInvoice->invoice->paymentLink,
+                        'settled' => $this->registrantInvoice->invoice->settled,
+                    ],
                 ],
-            ],
-        ];
-        
-        $this->get($this->programRegistrationUri, $this->client->token)
-            ->seeStatusCode(200)
-            ->seeJsonContains($response);
-    }
-    public function test_showAll_filterConcludedStatus()
-    {
-        $uri = $this->programRegistrationUri . '?concludedStatus=false';
-        $this->get($uri, $this->client->token)
-                ->seeStatusCode(200);
-        $response = [
-            "total" => 1, 
-            "list" => [
                 [
-                    "id" => $this->programRegistration->id,
+                    "id" => $this->clientRegistrantTwo->id,
                     "program" => [
-                        "id" => $this->programRegistration->registrant->program->id,
-                        "name" => $this->programRegistration->registrant->program->name,
-                        "programType" => $this->programRegistration->registrant->program->programType,
+                        "id" => $this->clientRegistrantTwo->registrant->program->id,
+                        "name" => $this->clientRegistrantTwo->registrant->program->name,
                         "hasProfileForm" => false,
                         "illustration" => null,
+                        "programType" => $this->clientRegistrant->registrant->program->programType,
                     ],
-                    "registeredTime" => $this->programRegistration->registrant->registeredTime,
-                    "concluded" => $this->programRegistration->registrant->concluded,
-                    "note" => $this->programRegistration->registrant->note,
+                    "registeredTime" => $this->clientRegistrant->registrant->registeredTime,
+                    "status" => 'REGISTERED',
+                    "invoice" => null,
                 ],
             ],
         ];
         $this->seeJsonContains($response);
+    }
+    public function test_showAll_filterConcludedStatus()
+    {
+$this->disableExceptionHandling();
+        $this->clientRegistrantTwo->registrant->status = 5;
+        $this->programRegistrationUri .= '?concludedStatus=false';
+        $this->showAll();
+        $this->seeStatusCode(200);
+        
+        $totalResponse = ['total' => 1];
+        $this->seeJsonContains($totalResponse);
+        
+        $clientRegistrantOneResponse = ['id' => $this->clientRegistrant->id];
+        $this->seeJsonContains($clientRegistrantOneResponse);
+        
+        $clientRegistrantTwoResponse = ['id' => $this->clientRegistrantTwo->id];
+        $this->seeJsonDoesntContains($clientRegistrantTwoResponse);
     }
 }

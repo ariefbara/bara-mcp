@@ -8,6 +8,7 @@ use Client\Domain\Model\Client;
 use Config\EventList;
 use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\Model\EntityContainEvents;
+use Resources\Exception\RegularException;
 
 class ClientRegistrant extends EntityContainEvents
 {
@@ -35,9 +36,21 @@ class ClientRegistrant extends EntityContainEvents
         $this->client = $client;
         $this->id = $id;
         $this->registrant = $registrant;
-        
+
         $event = new CommonEvent(EventList::CLIENT_REGISTRANT_CREATED, $this->id);
         $this->recordEvent($event);
+    }
+
+    public function cancel(): void
+    {
+        $this->registrant->cancel();
+    }
+    
+    public function assertManageableByClient(Client $client): void
+    {
+        if ($this->client !== $client) {
+            throw RegularException::forbidden('can only manage own registration');
+        }
     }
 
     public function isActiveRegistrationCorrespondWithProgram(Program $program): bool

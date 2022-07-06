@@ -9,6 +9,7 @@ use Query\Application\Service\Firm\Client\ProgramRegistrationRepository;
 use Query\Domain\Model\Firm\Client\ClientRegistrant;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class DoctrineClientRegistrantRepository extends EntityRepository implements ProgramRegistrationRepository, InterfaceForAuthorization
 {
@@ -29,9 +30,21 @@ class DoctrineClientRegistrantRepository extends EntityRepository implements Pro
                 ->setParameters($params);
         
         if (isset($concludedStatus)) {
+            if($concludedStatus) {
+                $status = [
+                    RegistrationStatus::ACCEPTED,
+                    RegistrationStatus::REJECTED,
+                    RegistrationStatus::CANCELLED,
+                ];
+            } else {
+                $status = [
+                    RegistrationStatus::REGISTERED,
+                    RegistrationStatus::SETTLEMENT_REQUIRED,
+                ];
+            }
             $qb->leftJoin('programRegistration.registrant', 'registrant')
-                    ->andWhere($qb->expr()->eq('registrant.concluded', ':concludedStatus'))
-                    ->setParameter('concludedStatus', $concludedStatus);
+                    ->andWhere($qb->expr()->in('registrant.status.value', ':concludedStatus'))
+                    ->setParameter('concludedStatus', $status);
         }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);

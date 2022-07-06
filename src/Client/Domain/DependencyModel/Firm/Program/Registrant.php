@@ -35,5 +35,10 @@ class Registrant
     {
         return !$this->status->isConcluded() && $this->program === $program;
     }
+    
+    public function cancel(): void
+    {
+        $this->status = $this->status->cancel();
+    }
 
 }

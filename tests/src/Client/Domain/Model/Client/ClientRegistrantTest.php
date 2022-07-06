@@ -45,6 +45,34 @@ class ClientRegistrantTest extends TestBase
         $this->assertEquals($event, $clientRegistrant->recordedEvents[0]);
     }
     
+    protected function cancel()
+    {
+        $this->clientRegistrant->cancel();
+    }
+    public function test_cancel_cancelRegistration()
+    {
+        $this->registrant->expects($this->once())
+                ->method('cancel');
+        $this->cancel();
+    }
+    
+    protected function assertManageableByClient()
+    {
+        $this->clientRegistrant->assertManageableByClient($this->client);
+    }
+    public function test_assertManageableByClient_differentClient_forbidden()
+    {
+        $this->clientRegistrant->client = $this->buildMockOfClass(Client::class);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertManageableByClient();
+        }, 'Forbidden', 'can only manage own registration');
+    }
+    public function test_assertManageableByClient_sameClient_void()
+    {
+        $this->assertManageableByClient();
+        $this->markAsSuccess();
+    }
+    
     protected function isActiveRegistrationCorrespondWithProgram()
     {
         return $this->clientRegistrant->isActiveRegistrationCorrespondWithProgram($this->program);

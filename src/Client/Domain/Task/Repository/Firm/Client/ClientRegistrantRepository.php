@@ -8,4 +8,6 @@ interface ClientRegistrantRepository
 {
 
     public function add(ClientRegistrant $clientRegistrant): void;
+    
+    public function ofId(string $id): ClientRegistrant;
 }

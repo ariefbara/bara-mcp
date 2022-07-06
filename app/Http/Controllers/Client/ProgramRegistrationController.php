@@ -46,7 +46,8 @@ class ProgramRegistrationController extends ClientBaseController
                 $this->em->getRepository(Client2\ClientRegistrant::class), new XenditPaymentGateway());
         $invoiceForClientRegistrantListener = new ListeningEventsToGenerateInvoiceForClientRegistrant(
                 $executeResponsiveTaskService, $generateInvoiceForClientRegistrant);
-        $dispatcher->addAsynchronousListener(EventList::PROGRAM_REGISTRATION_RECEIVED, $invoiceForClientRegistrantListener);
+        $dispatcher->addAsynchronousListener(EventList::PROGRAM_REGISTRATION_RECEIVED,
+                $invoiceForClientRegistrantListener);
         $dispatcher->addAsynchronousListener(EventList::CLIENT_REGISTRANT_CREATED, $invoiceForClientRegistrantListener);
 
         $transactionalSession = new DoctrineTransactionalSession($this->em);
@@ -113,7 +114,7 @@ class ProgramRegistrationController extends ClientBaseController
         }
         return $this->commandCreatedResponse($result);
     }
-    
+
     protected function arrayDataOfRegistrantInvoice(?RegistrantInvoice $registrantInvoice): ?array
     {
         return empty($registrantInvoice) ? null : [
@@ -141,9 +142,11 @@ class ProgramRegistrationController extends ClientBaseController
 
     public function cancel($programRegistrationId)
     {
-        $service = $this->buildCancelService();
-        $service->execute($this->firmId(), $this->clientId(), $programRegistrationId);
-        return $this->commandOkResponse();
+        $clientRepository = $this->em->getRepository(Client::class);
+        $clientRegistrantRepository = $this->em->getRepository(Client\ClientRegistrant::class);
+        $task = new \Client\Domain\Task\CancelRegistration($clientRegistrantRepository);
+        (new \Client\Application\Service\ExecuteTask($clientRepository))
+                ->execute($this->clientId(), $task, $programRegistrationId);
     }
 
     public function show($programRegistrationId)
@@ -182,7 +185,7 @@ class ProgramRegistrationController extends ClientBaseController
             ],
             "registeredTime" => $programRegistration->getRegisteredTimeString(),
             "status" => $programRegistration->getStatus(),
-            "note" => $programRegistration->getNote(),
+            "invoice" => $this->arrayDataOfRegistrantInvoice($programRegistration->getRegistrantInvoice()),
         ];
     }
 

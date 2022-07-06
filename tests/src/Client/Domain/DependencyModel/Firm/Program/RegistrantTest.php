@@ -44,6 +44,19 @@ class RegistrantTest extends TestBase
         $this->registrant->program = $this->buildMockOfClass(Program::class);
         $this->assertFalse($this->isActiveRegistrationCorrespondWithProgram());
     }
+    
+    protected function cancel()
+    {
+        $this->registrant->cancel();
+    }
+    public function test_cancel_saveRegistrationStatusCancelledResult()
+    {
+        $this->registrationStatus->expects($this->once())
+                ->method('cancel')
+                ->willReturn($newStatus = $this->buildMockOfClass(RegistrationStatus::class));
+        $this->cancel();
+        $this->assertSame($newStatus, $this->registrant->status);
+    }
 }
 
 class TestableRegistrant extends Registrant

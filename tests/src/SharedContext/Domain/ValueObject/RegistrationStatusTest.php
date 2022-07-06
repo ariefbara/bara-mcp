@@ -65,6 +65,37 @@ class RegistrationStatusTest extends TestBase
             $this->registrationStatus->settle();
         }, 'Forbidden', 'only registrant with settlement required can settle payment');
     }
+    
+    public function cancel()
+    {
+        return $this->registrationStatus->cancel();
+    }
+    public function test_cancel_returnCancelledState()
+    {
+        $status = $this->cancel();
+        $this->assertEquals($status->value, RegistrationStatus::CANCELLED);
+    }
+    public function test_cancelled_concludedRegistration_accepted_forbidden()
+    {
+        $this->registrationStatus->value = RegistrationStatus::ACCEPTED;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->cancel();
+        }, 'Forbidden', 'registration already concluded');
+    }
+    public function test_cancelled_concludedRegistration_cancelled_forbidden()
+    {
+        $this->registrationStatus->value = RegistrationStatus::CANCELLED;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->cancel();
+        }, 'Forbidden', 'registration already concluded');
+    }
+    public function test_cancelled_concludedRegistration_rejected_forbidden()
+    {
+        $this->registrationStatus->value = RegistrationStatus::REJECTED;
+        $this->assertRegularExceptionThrowed(function(){
+            $this->cancel();
+        }, 'Forbidden', 'registration already concluded');
+    }
 }
 
 class TestableRegistrationStatus extends RegistrationStatus

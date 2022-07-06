@@ -14,4 +14,9 @@ class DoctrineClientRegistrantRepository extends DoctrineEntityRepository implem
         $this->persist($clientRegistrant);
     }
 
+    public function ofId(string $id): ClientRegistrant
+    {
+        return $this->findOneByIdOrDie($id, 'client registrant');
+    }
+
 }
