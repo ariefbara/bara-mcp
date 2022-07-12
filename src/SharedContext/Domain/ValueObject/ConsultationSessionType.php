@@ -33,7 +33,7 @@ class ConsultationSessionType
         return $this->approvedByMentor;
     }
 
-    public function __construct(int $sessionType, ?bool $approvedByMentor)
+    public function __construct(int $sessionType, ?bool $approvedByMentor = null)
     {
         $c = new ReflectionClass($this);
         if (!in_array($sessionType, $c->getConstants())) {

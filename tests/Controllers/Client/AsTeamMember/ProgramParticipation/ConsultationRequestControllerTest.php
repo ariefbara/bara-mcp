@@ -494,6 +494,7 @@ class ConsultationRequestControllerTest extends ProgramParticipationTestCase
     
     public function test_accept()
     {
+$this->disableExceptionHandling();
         $response = [
             "id" => $this->consultationRequest->id,
             "concluded" => true,
