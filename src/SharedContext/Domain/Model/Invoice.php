@@ -73,9 +73,11 @@ class Invoice
         return $this->settled;
     }
     
-// request come from external payment provider, should not throw error
     public function settle(): void
     {
+        if ($this->settled) {
+            throw RegularException::forbidden('invoice already settled');
+        }
         $this->settled = true;
     }
 

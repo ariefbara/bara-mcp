@@ -2,7 +2,6 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
-use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm\Client;
@@ -20,21 +19,24 @@ use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
-use Resources\Domain\Event\CommonEvent;
+use Resources\DateTimeImmutableBuilder;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
-use SharedContext\Domain\ValueObject\ParticipantStatus;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
 {
 
-    protected $program, $programAutoAccept = false, $programPrice = 50000;
-    protected $participant, $status;
+    protected $program;
+    protected $participant;
     protected $participantAttendee;
     protected $asset;
     protected $consultationRequest;
     protected $consultationSession;
     protected $invitation;
+    protected $inactiveParticipant;
+    protected $clientParticipant;
+    protected $userParticipant;
+    protected $teamParticipant;
     protected $id = 'newParticipantId', $user, $client, $teamId = "teamId";
     protected $registrant;
     protected $metricAssignment;
@@ -53,12 +55,8 @@ class ParticipantTest extends TestBase
     {
         parent::setUp();
         $this->program = $this->buildMockOfClass(Program::class);
-        
-        $this->participant = new TestableParticipant($this->program, 'id', false, null);
-        $this->status = $this->buildMockOfClass(ParticipantStatus::class);
-        $this->participant->status = $this->status;
-        
-        $this->participant->recordedEvents = [];
+
+        $this->participant = new TestableParticipant($this->program, 'id');
         $this->participant->consultationRequests = new ArrayCollection();
         $this->participant->consultationSessions = new ArrayCollection();
         $this->participant->meetingInvitations = new ArrayCollection();
@@ -73,13 +71,26 @@ class ParticipantTest extends TestBase
         $this->dedicatedMentor = $this->buildMockOfClass(DedicatedMentor::class);
         $this->participant->dedicatedMentors->add($this->dedicatedMentor);
         
-        $this->participant->profiles = new ArrayCollection();
         $this->participant->evaluations = new ArrayCollection();
         
         $this->asset = $this->buildMockOfInterface(AssetInProgram::class);
         
+        $this->inactiveParticipant = new TestableParticipant($this->program, 'id');
+        $this->inactiveParticipant->active = false;
+        $this->inactiveParticipant->note = 'booted';
+        
         $this->user = $this->buildMockOfClass(User::class);
         $this->client = $this->buildMockOfClass(Client::class);
+
+        $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
+        $this->participant->clientParticipant = $this->clientParticipant;
+
+        $this->userParticipant = $this->buildMockOfClass(UserParticipant::class);
+        $this->inactiveParticipant->userParticipant = $this->userParticipant;
+
+        $this->registrant = $this->buildMockOfClass(Registrant::class);
+
+        $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
 
         $this->metricAssignment = $this->buildMockOfClass(MetricAssignment::class);
         $this->metricAssignmentDataProvider = $this->buildMockOfClass(MetricAssignmentDataProvider::class);
@@ -107,7 +118,6 @@ class ParticipantTest extends TestBase
         
         $this->meeting = $this->buildMockOfClass(Meeting::class);
     }
-    
     protected function assertInactiveParticipant(callable $operation): void
     {
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', 'forbidden: inactive partiicpant');
@@ -115,120 +125,76 @@ class ParticipantTest extends TestBase
     
     protected function construct()
     {
-        return new TestableParticipant(
-                $this->program, $this->id, $this->programAutoAccept, $this->programPrice);
+        return new TestableParticipant($this->program, $this->id);
     }
     public function test_construct_setProperties()
     {
         $participant = $this->construct();
         $this->assertSame($this->program, $participant->program);
         $this->assertSame($this->id, $participant->id);
-        $this->assertSame($this->programPrice, $participant->programPrice);
-        $status = new ParticipantStatus($this->programAutoAccept, $this->programPrice);
-        $this->assertEquals($status, $participant->status);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
     }
     public function test_construct_recordProgramParticipationAcceptedCommonEvent()
     {
-        $event = new CommonEvent(EventList::PROGRAM_APPLICATION_RECEIVED, $this->id);
+        $event = new \Resources\Domain\Event\CommonEvent(\Config\EventList::PROGRAM_PARTICIPATION_ACCEPTED, $this->id);
         $participant = $this->construct();
         $this->assertEquals($event, $participant->recordedEvents[0]);
-    }
-    public function test_construct_needSettlementStatus_recordSettlementRequiredEvent()
-    {
-        $this->programAutoAccept = true;
-        $participant = $this->construct();
-        
-        $event = new CommonEvent(EventList::SETTLEMENT_REQUIRED, $this->id);
-        $this->assertEquals($event, $participant->recordedEvents[1]);
-    }
-    public function test_construct_nonSettlementStatus()
-    {
-        $participant = $this->construct();
-        $event = new CommonEvent(EventList::PROGRAM_APPLICATION_RECEIVED, $this->id);
-        $this->assertEquals($event, $participant->recordedEvents[0]);
-        $this->assertEquals(1, count($participant->recordedEvents));
-    }
-    
-    protected function acceptRegistrant()
-    {
-        $this->participant->acceptRegistrant();
-    }
-    public function test_acceptRegistrant_updateStatusAccepted()
-    {
-        $this->status->expects($this->once())
-                ->method('acceptRegistrant')
-                ->with($this->participant->programPrice)
-                ->willReturn($status = $this->buildMockOfClass(ParticipantStatus::class));
-        $this->acceptRegistrant();
-        $this->assertSame($status, $this->participant->status);
-    }
-    public function test_acceptRegistrant_paidProgram_recordSettlementRequiredEvent()
-    {
-        $this->status->expects($this->once())
-                ->method('acceptRegistrant')
-                ->willReturn($status = $this->buildMockOfClass(ParticipantStatus::class));
-        $status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::SETTLEMENT_REQUIRED)
-                ->willReturn(true);
-        $event = new CommonEvent(EventList::SETTLEMENT_REQUIRED, $this->participant->id);
-        $this->acceptRegistrant();
-        $this->assertEquals($event, $this->participant->recordedEvents[0]);
-    }
-    public function test_acceptRegistrant_freeProgram()
-    {
-        $this->acceptRegistrant();
-        $this->assertEmpty($this->participant->recordedEvents);
-    }
-    
-    protected function rejectRegistrant()
-    {
-        $this->participant->rejectRegistrant();
-    }
-    public function test_rejectRegistrant_updateStatusRejected()
-    {
-        $this->status->expects($this->once())
-                ->method('rejectRegistrant')
-                ->willReturn($status = $this->buildMockOfClass(ParticipantStatus::class));
-        $this->rejectRegistrant();
-        $this->assertSame($status, $this->participant->status);
-    }
-    
-    protected function qualify()
-    {
-        $this->participant->qualify();
-    }
-    public function test_qualify_updateStatusCompleted()
-    {
-        $this->status->expects($this->once())
-                ->method('qualify')
-                ->willReturn($newStatus = $this->buildMockOfClass(ParticipantStatus::class));
-        $this->qualify();
-        $this->assertSame($newStatus, $this->participant->status);
     }
 
-    protected function assertActive()
+    public function test_participantForUser_setProperties()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::ACTIVE)
-                ->willReturn(true);
-        $this->participant->assertActive();
+        $participant = TestableParticipant::participantForUser($this->program, $this->id, $this->user);
+        $this->assertEquals($this->program, $participant->program);
+        $this->assertEquals($this->id, $participant->id);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
+        $this->assertTrue($participant->active);
+        $this->assertNull($participant->note);
+
+        $userParticipant = new UserParticipant($participant, $this->id, $this->user);
+        $this->assertEquals($userParticipant, $participant->userParticipant);
+        $this->assertNull($participant->clientParticipant);
     }
+
+    public function test_participantForClient_setProperties()
+    {
+        $participant = TestableParticipant::participantForClient($this->program, $this->id, $this->client);
+        $this->assertEquals($this->program, $participant->program);
+        $this->assertEquals($this->id, $participant->id);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
+        $this->assertTrue($participant->active);
+        $this->assertNull($participant->note);
+
+        $clientParticipant = new ClientParticipant($participant, $this->id, $this->client);
+        $this->assertEquals($clientParticipant, $participant->clientParticipant);
+        $this->assertNull($participant->userParticipant);
+    }
+
+    public function test_participantForTeam_setProperties()
+    {
+        $participant = TestableParticipant::participantForTeam($this->program, $this->id, $this->team);
+        $this->assertEquals($this->program, $participant->program);
+        $this->assertEquals($this->id, $participant->id);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $participant->enrolledTime);
+        $this->assertTrue($participant->active);
+        $this->assertNull($participant->note);
+
+        $teamParticipant = new TeamParticipant($participant, $this->id, $this->team);
+        $this->assertEquals($teamParticipant, $participant->teamParticipant);
+        $this->assertNull($participant->userParticipant);
+        $this->assertNull($participant->clientParticipant);
+    }
+    
     public function test_asserActive_activeParticipant_void()
     {
-        $this->assertActive();
+        $this->participant->assertActive();
         $this->markAsSuccess();
     }
     public function test_asserActive_inactiveParticipant_forbidden()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::ACTIVE)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function () {
-            $this->assertActive();
-        }, 'Forbidden', 'inactive participant');
+        $this->participant->active = false;
+        $this->assertInactiveParticipant(function(){
+            $this->participant->assertActive();
+        });
     }
     
     public function test_assertAssetAccessible_inaccesibleAsset_forbidden()
@@ -254,6 +220,54 @@ class ParticipantTest extends TestBase
     {
         $program = $this->buildMockOfClass(Program::class);
         $this->assertFalse($this->participant->belongsToProgram($program));
+    }
+
+    protected function executeReenroll()
+    {
+        $this->inactiveParticipant->reenroll();
+    }
+    public function test_reenroll_setActiveTrueAndNulledNote()
+    {
+        $this->executeReenroll();
+        $this->assertTrue($this->inactiveParticipant->active);
+        $this->assertNull($this->inactiveParticipant->note);
+    }
+    public function test_reenroll_activeParticipant_forbiddenError()
+    {
+        $operation = function () {
+            $this->participant->reenroll();
+        };
+        $errorDetail = 'forbidden: already active participant';
+        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+    }
+
+    protected function executeCorrespondWithRegistrant()
+    {
+        return $this->participant->correspondWithRegistrant($this->registrant);
+    }
+    public function test_correspondWithRegistrant_returnClientParticipantsCorrespondWithRegistrantResult()
+    {
+        $this->clientParticipant->expects($this->once())
+                ->method('correspondWithRegistrant');
+        $this->executeCorrespondWithRegistrant();
+    }
+    public function test_correspondWithRegistrant_aUserParticipant_returnUserParticipantCorrespondWithRegistrantRegsult()
+    {
+        $this->participant->clientParticipant = null;
+        $this->participant->userParticipant = $this->userParticipant;
+
+        $this->userParticipant->expects($this->once())
+                ->method('correspondWithRegistrant');
+        $this->executeCorrespondWithRegistrant();
+    }
+    public function test_correspondWithRegistrant_aTeamParticipant_returnTeamParticipantCorrespondWithRegistrantResult()
+    {
+        $this->participant->clientParticipant = null;
+        $this->participant->teamParticipant = $this->teamParticipant;
+
+        $this->teamParticipant->expects($this->once())
+                ->method("correspondWithRegistrant");
+        $this->executeCorrespondWithRegistrant();
     }
 
     protected function executeAssignMetrics()
@@ -287,12 +301,22 @@ class ParticipantTest extends TestBase
         $this->participant->belongsInTheSameProgramAs($this->metric);
     }
     
+    public function test_belongsToTeam_returnTeamParticipantBelongsToTeamResult()
+    {
+        $this->participant->teamParticipant = $this->teamParticipant;
+        $this->teamParticipant->expects($this->once())
+                ->method("belongsToTeam")
+                ->with($this->team);
+        $this->participant->belongsToTeam($this->team);
+    }
+    public function test_belongsToTeam_notATeamParticipant_returnFalse()
+    {
+        $this->participant->teamParticipant = null;
+        $this->assertFalse($this->participant->belongsToTeam($this->team));
+    }
+    
     protected function executeReceiveEvaluation()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::ACTIVE)
-                ->willReturn(true);
         $this->participant->receiveEvaluation($this->evaluationPlan, $this->evaluationData, $this->coordinator);
     }
     public function test_receiveEvaluation_addEvaluationToCollection()
@@ -303,13 +327,12 @@ class ParticipantTest extends TestBase
     }
     public function test_receiveEvaluation_inactiveParticipant_forbidden()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::ACTIVE)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function () {
+        $this->participant->active = false;
+        $operation = function (){
             $this->executeReceiveEvaluation();
-        }, 'Forbidden', 'inactive participant');
+        };
+        $errorDetail = "forbidden: unable to evaluate inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     public function test_receiveEvaluation_alreadyReceiveConcludedEvaluationForSamePlan_forbidden()
     {
@@ -324,17 +347,62 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
-    protected function executeFail()
+    protected function executeQualify()
     {
-        $this->participant->fail();
+        $this->participant->qualify();
     }
-    public function test_fail_updateStatusFailed()
+    public function test_qualify_setInactiveAndNoteQualified()
     {
-        $this->status->expects($this->once())
-                ->method('fail')
-                ->willReturn($status = $this->buildMockOfClass(ParticipantStatus::class));
-        $this->executeFail();
-        $this->assertSame($status, $this->participant->status);
+        $this->executeQualify();
+        $this->assertFalse($this->participant->active);
+        $this->assertEquals("completed", $this->participant->note);
+    }
+    public function test_qualify_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeQualify();
+        };
+        $errorDetail = "forbidden: unable to qualify inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    
+    protected function executeDisable()
+    {
+        $this->participant->disable();
+    }
+    public function test_disable_setInactiveAndNote()
+    {
+        $this->executeDisable();
+        $this->assertFalse($this->participant->active);
+        $this->assertEquals("fail", $this->participant->note);
+    }
+    public function test_disable_alreadyInactive_forbidden()
+    {
+        $this->participant->active = false;
+        $operation = function (){
+            $this->executeDisable();
+        };
+        $errorDetail = "forbidden: unable to disable inactive participant";
+        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+    }
+    public function test_disable_disableUpcomingConsultationSession()
+    {
+        $this->consultationSession->expects($this->once())
+                ->method("disableUpcomingSession");
+        $this->executeDisable();
+    }
+    public function test_disable_disableUpcomingConsultationRequest()
+    {
+        $this->consultationRequest->expects($this->once())
+                ->method("disableUpcomingRequest");
+        $this->executeDisable();
+    }
+    public function test_disable_disableValidInvitation()
+    {
+        $this->invitation->expects($this->once())
+                ->method("disableValidInvitation");
+        $this->executeDisable();
     }
     
     public function test_addProfile_addProfileToCollection()
@@ -349,9 +417,6 @@ class ParticipantTest extends TestBase
     
     protected function executeDedicateMentor()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->willReturn(true);
         $this->consultant->expects($this->any())
                 ->method('isActive')
                 ->willReturn(true);
@@ -394,20 +459,24 @@ class ParticipantTest extends TestBase
     }
     public function test_dedicateMentor_inactiveParticipant_forbidden()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::ACTIVE)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function () {
+        $this->participant->active = false;
+        $this->assertInactiveParticipant(function (){
             $this->executeDedicateMentor();
-        }, 'Forbidden', 'inactive participant');
+        });
+    }
+    
+    public function test_isActive_activeParticipant_returnTrue()
+    {
+        $this->assertTrue($this->participant->isActive());
+    }
+    public function test_isActive_inactiveParticipant_returnFalse()
+    {
+        $this->participant->active = false;
+        $this->assertFalse($this->participant->isActive());
     }
     
     protected function executeInitiateMeeting()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->willReturn(true);
         return $this->participant->initiateMeeting($this->meetingId, $this->meetingType, $this->meetingData);
     }
     public function test_initiateMeeting_returnMeetingCreatedInActivityType()
@@ -420,14 +489,10 @@ class ParticipantTest extends TestBase
     }
     public function test_initiateMeeting_inactiveParticipant_forbidden()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::ACTIVE)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function () {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function (){
             $this->executeInitiateMeeting();
-        }, 'Forbidden', 'inactive participant');
-        
+        }, 'Forbidden', 'forbidden: inactive partiicpant');
     }
     public function test_initiateMeeting_assertActivityTypeUsableInProgram()
     {
@@ -445,9 +510,6 @@ class ParticipantTest extends TestBase
     
     protected function executeInviteToMeeting()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->willReturn(true);
         $this->participant->inviteToMeeting($this->meeting);
     }
     public function test_inviteToMeeting_addNewParticipantAttendeeToMeetingInvitationCollection()
@@ -467,13 +529,10 @@ class ParticipantTest extends TestBase
     }
     public function test_inviteToMeeting_inactiveParticipant_forbidden()
     {
-        $this->status->expects($this->any())
-                ->method('statusEquals')
-                ->with(ParticipantStatus::ACTIVE)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function () {
+        $this->participant->active = false;
+        $this->assertInactiveParticipant(function (){
             $this->executeInviteToMeeting();
-        }, 'Forbidden', 'inactive participant');
+        });
     }
     public function test_inviteToMeeting_assertMeetingUsableInProgram()
     {
@@ -497,47 +556,6 @@ class ParticipantTest extends TestBase
         $this->assertFalse($this->correspondWithProgram());
     }
     
-    protected function isActiveParticipantOrRegistrantOfProgram()
-    {
-        $this->status->expects($this->any())
-                ->method('isActiveRegistrantOrParticipant')
-                ->willReturn(true);
-        return $this->participant->isActiveParticipantOrRegistrantOfProgram($this->program);
-    }
-    public function test_isActiveParticipantOrRegistrantOfProgram_activeRegistrantCorrespondToSameProgram_returnTrue()
-    {
-        $this->assertTrue($this->isActiveParticipantOrRegistrantOfProgram());
-    }
-    public function test_isActiveParticipantOrRegistrantOfProgram_differentProgram_returnFalse()
-    {
-        $this->participant->program = $this->buildMockOfClass(Program::class);
-        $this->assertFalse($this->isActiveParticipantOrRegistrantOfProgram());
-    }
-    public function test_isActiveParticipantOrRegistrantOfProgram_inactiveRegistrantOrParticipant_returnFalse()
-    {
-        $this->status->expects($this->any())
-                ->method('isActiveRegistrantOrParticipant')
-                ->willReturn(false);
-        $this->assertFalse($this->isActiveParticipantOrRegistrantOfProgram());
-    }
-    
-    protected function assertManageableInProgram()
-    {
-        $this->participant->assertManageableInProgram($this->program);
-    }
-    public function test_assertManageableInProgram_differentProgram_forbidden()
-    {
-        $this->participant->program = $this->buildMockOfClass(Program::class);
-        $this->assertRegularExceptionThrowed(function () {
-            $this->assertManageableInProgram();
-        }, 'Forbidden', 'unmanaged participant');
-    }
-    public function test_assertManageableInProgram_sameProgram_void()
-    {
-        $this->assertManageableInProgram();
-        $this->markAsSuccess();
-    }
-    
 }
 
 class TestableParticipant extends Participant
@@ -545,8 +563,12 @@ class TestableParticipant extends Participant
 
     public $program;
     public $id;
-    public $status;
-    public $programPrice;
+    public $enrolledTime;
+    public $active = true;
+    public $note;
+    public $clientParticipant;
+    public $userParticipant;
+    public $teamParticipant;
     public $metricAssignment;
     public $evaluations;
     public $profiles;
@@ -556,5 +578,10 @@ class TestableParticipant extends Participant
     public $dedicatedMentors;
     //
     public $recordedEvents;
+
+    public function __construct(Program $program, string $id)
+    {
+        parent::__construct($program, $id);
+    }
 
 }

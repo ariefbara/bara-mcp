@@ -25,9 +25,11 @@
         <field name="activationCodeExpiredTime" type="datetime_immutable" nullable="true" />
         
         <one-to-many  field="clientParticipants" 
-                      target-entity="Firm\Domain\Model\Firm\Client\ClientParticipant"
+                      target-entity="Firm\Domain\Model\Firm\Program\ClientParticipant"
                       mapped-by="client"
-        />
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
         
     </entity>
 </doctrine-mapping>

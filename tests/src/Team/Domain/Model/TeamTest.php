@@ -3,9 +3,10 @@
 namespace Team\Domain\Model;
 
 use Resources\DateTimeImmutableBuilder;
-use Team\Domain\DependencyModel\Firm\Client;
-use Team\Domain\Event\TeamHasAppliedToProgram;
-use Team\Domain\Model\Team\Member;
+use Team\Domain\ {
+    DependencyModel\Firm\Client,
+    Model\Team\Member
+};
 use Tests\TestBase;
 
 class TeamTest extends TestBase
@@ -17,8 +18,6 @@ class TeamTest extends TestBase
     
     protected $member;
     protected $anAdmin = true;
-    //
-    protected $programId = 'programId';
             
     function setUp(): void {
         parent::setUp();
@@ -96,18 +95,6 @@ class TeamTest extends TestBase
         $this->assertEquals($memberId, $this->executeAddMember());
     }
     
-    //
-    protected function applyToProgram()
-    {
-        $this->team->applyToProgram($this->programId);
-    }
-    public function test_applyToProgram_recordEvent()
-    {
-        $this->applyToProgram();
-        $event = new TeamHasAppliedToProgram($this->team->firmId, $this->team->id, $this->programId);
-        $this->assertEquals($event, $this->team->recordedEvents[0]);
-    }
-    
 }
 
 class TestableTeam extends Team{
@@ -117,7 +104,5 @@ class TestableTeam extends Team{
     public $creator;
     public $createdTime;
     public $members;
-    //
-    public $recordedEvents;
 }
 

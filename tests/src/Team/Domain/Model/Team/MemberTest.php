@@ -4,8 +4,10 @@ namespace Team\Domain\Model\Team;
 
 use Resources\DateTimeImmutableBuilder;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
-use Team\Domain\DependencyModel\Firm\Client;
-use Team\Domain\Model\Team;
+use Team\Domain\ {
+    DependencyModel\Firm\Client,
+    Model\Team
+};
 use Tests\TestBase;
 
 class MemberTest extends TestBase
@@ -20,8 +22,6 @@ class MemberTest extends TestBase
     protected $otherMember;
     
     protected $teamFileInfoId = "teamFileInfoId", $fileInfoData;
-    //
-    protected $teamTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -35,8 +35,6 @@ class MemberTest extends TestBase
         
         $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
         $this->fileInfoData->expects($this->any())->method("getName")->willReturn("fileName.txt");
-        //
-        $this->teamTask = $this->buildMockOfInterface(\Team\Domain\Task\TeamTask::class);
     }
     public function test_construct_setProperties()
     {
@@ -176,25 +174,6 @@ class MemberTest extends TestBase
         };
         $errorDetail = "forbidden: only active team member can make this request";
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
-    }
-    
-    protected function executeTeamTask()
-    {
-        $this->member->executeTeamTask($this->teamTask, $this->payload);
-    }
-    public function test_executeTeamTask_executeTask()
-    {
-        $this->teamTask->expects($this->once())
-                ->method('execute')
-                ->with($this->team, $this->payload);
-        $this->executeTeamTask();
-    }
-    public function test_executeTeamTask_inactiveMember_forbidden()
-    {
-        $this->member->active = false;
-        $this->assertRegularExceptionThrowed(function () {
-            $this->executeTeamTask();
-        }, 'Forbidden', 'forbidden: only active team member can make this request');
     }
 }
 

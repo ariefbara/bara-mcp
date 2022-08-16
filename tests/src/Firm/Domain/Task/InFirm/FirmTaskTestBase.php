@@ -4,20 +4,16 @@ namespace Tests\src\Firm\Domain\Task\InFirm;
 
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Client;
-use Firm\Domain\Model\Firm\Client\ClientParticipant;
 use Firm\Domain\Model\Firm\FirmFileInfo;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Firm\Domain\Model\Firm\Team;
-use Firm\Domain\Model\Firm\Team\TeamParticipant;
-use Firm\Domain\Task\Dependency\Firm\Client\ClientParticipantRepository;
 use Firm\Domain\Task\Dependency\Firm\ClientRepository;
 use Firm\Domain\Task\Dependency\Firm\FirmFileInfoRepository;
 use Firm\Domain\Task\Dependency\Firm\Program\Mission\LearningMaterialRepository;
 use Firm\Domain\Task\Dependency\Firm\Program\MissionRepository;
 use Firm\Domain\Task\Dependency\Firm\ProgramRepository;
-use Firm\Domain\Task\Dependency\Firm\Team\TeamParticipantRepository;
 use Firm\Domain\Task\Dependency\Firm\TeamRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestBase;
@@ -99,40 +95,6 @@ class FirmTaskTestBase extends TestBase
                 ->method('ofId')
                 ->with($this->teamId)
                 ->willReturn($this->team);
-    }
-
-    /**
-     * 
-     * @var MockObject
-     */
-    protected $teamParticipantRepository;
-    /**
-     * 
-     * @var MockObject
-     */
-    protected $teamParticipant;
-    protected $teamParticipantId = 'teamParticipantId';
-    protected function setTeamParticipantRelatedDependency(): void
-    {
-        $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
-        $this->teamParticipantRepository = $this->buildMockOfInterface(TeamParticipantRepository::class);
-    }
-
-    /**
-     * 
-     * @var MockObject
-     */
-    protected $clientParticipantRepository;
-    /**
-     * 
-     * @var MockObject
-     */
-    protected $clientParticipant;
-    protected $clientParticipantId = 'clientParticipantId';
-    protected function setClientParticipantRelatedDependency(): void
-    {
-        $this->clientParticipant = $this->buildMockOfClass(ClientParticipant::class);
-        $this->clientParticipantRepository = $this->buildMockOfInterface(ClientParticipantRepository::class);
     }
 
     /**

@@ -64,16 +64,21 @@ class UserParticipant implements ContainEvents
         return $this->participant->getProgram();
     }
 
-    public function getStatus(): string
+    public function getEnrolledTimeString(): string
     {
-        return $this->participant->getStatus();
+        return $this->participant->getEnrolledTimeString();
     }
 
-    public function getProgramPrice(): ?int
+    public function isActive(): bool
     {
-        return $this->participant->getProgramPrice();
+        return $this->participant->isActive();
     }
 
+    public function getNote(): ?string
+    {
+        return $this->participant->getNote();
+    }
+    
     public function getMetricAssignment(): ?MetricAssignment
     {
         return $this->participant->getMetricAssignment();
@@ -88,82 +93,76 @@ class UserParticipant implements ContainEvents
     {
         return $this->participant->pullRecordedEvents();
     }
-
+    
     public function viewSummary(DataFinder $dataFinder): array
     {
         return $this->participant->viewSummary($dataFinder);
     }
-
+    
     public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
     {
         return $this->participant->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
     }
-
     public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
     {
         return $this->participant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
     }
-
+    
     public function viewObjectiveProgressReport(ObjectiveProgressReportFinder $finder, string $objectiveProgressReportId): ObjectiveProgressReport
     {
         return $this->participant->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
     }
-
     public function viewAllObjectiveProgressReportsInObjective(
             ObjectiveProgressReportFinder $finder, string $objectiveId, int $page, int $pageSize)
     {
         return $this->participant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
     }
-
+    
     public function viewSelfActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
     {
         return $this->participant->viewSelfActivityLogs($activityLogRepository, $page, $pageSize);
     }
-
     public function viewSharedActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
     {
         return $this->participant->viewSharedActivityLogs($activityLogRepository, $page, $pageSize);
     }
-
+    
     public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
     {
         return $this->participant->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
     }
-
     public function viewAllDedicatedMentors(
             DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
     {
         return $this->participant
-                        ->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
+                ->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
     }
-
+    
     public function viewMissionComment(
             MissionCommentRepository $missionCommentRepository, string $missionCommentId): MissionComment
     {
         return $this->participant->viewMissionComment($missionCommentRepository, $missionCommentId);
     }
-
     public function viewAllMissionComments(
             MissionCommentRepository $missionCommentRepository, string $missionId, int $page, int $pageSize)
     {
         return $this->participant->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
     }
-
+    
     public function viewAllMentors(MentorRepository $mentorRepository, int $page, int $pageSize)
     {
         return $this->participant->viewAllMentors($mentorRepository, $page, $pageSize);
     }
-
     public function viewMentor(MentorRepository $mentorRepository, string $mentorId): Consultant
     {
         return $this->participant->viewMentor($mentorRepository, $mentorId);
     }
-
+    
     public function getUserName(): string
     {
         return $this->user->getFullName();
     }
-
+    
     public function executeTask(ITaskExecutableByParticipant $task): void
     {
         $this->participant->executeTask($task);

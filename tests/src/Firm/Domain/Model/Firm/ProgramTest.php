@@ -19,12 +19,14 @@ use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
+use Firm\Domain\Model\Firm\Program\Registrant;
 use Firm\Domain\Model\Firm\Program\RegistrationPhase;
 use Firm\Domain\Model\Firm\Program\Sponsor;
 use Firm\Domain\Model\Firm\Program\SponsorData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use SharedContext\Domain\ValueObject\ParticipantStatus;
+use Resources\Domain\Event\CommonEvent;
+use SharedContext\Domain\ValueObject\ItemInfo;
 use SharedContext\Domain\ValueObject\ProgramType;
 use Tests\TestBase;
 use TypeError;
@@ -39,6 +41,7 @@ class ProgramTest extends TestBase
     protected $consultant;
     protected $coordinator;
     
+    protected $registrant, $registrantId = "registrantId";
     protected $participant;
     protected $assignedProfileForm;
 
@@ -59,7 +62,8 @@ class ProgramTest extends TestBase
     //
     protected $task, $payload = 'string represent task payload';
     //
-    protected $participantId = 'participantId', $applicantType = 'client', $participantType = 'team';
+    protected $applicant;
+    protected $registrationPhase;
 
     protected function setUp(): void
     {
@@ -81,6 +85,9 @@ class ProgramTest extends TestBase
         $this->program->consultants->add($this->consultant);
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
         $this->program->coordinators->add($this->coordinator);
+        
+        $this->registrant = $this->buildMockOfClass(Registrant::class);
+        $this->program->registrants->add($this->registrant);
         
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->program->participants->add($this->participant);
@@ -118,6 +125,8 @@ class ProgramTest extends TestBase
         $this->firmFileInfo = $this->buildMockOfClass(FirmFileInfo::class);
         //
         $this->task = $this->buildMockOfInterface(IProgramTask::class);
+        //
+        $this->applicant = $this->buildMockOfInterface(IProgramApplicant::class);
         //
         $this->registrationPhase = $this->buildMockOfClass(RegistrationPhase::class);
         $this->program->registrationPhases = new ArrayCollection();
@@ -306,6 +315,65 @@ class ProgramTest extends TestBase
         $this->assertEquals($id, $this->executeAssignPersonnelAsCoordinator());
     }
     
+    protected function executeAcceptRegistrant()
+    {
+        $this->registrant->expects($this->any())
+                ->method('getId')
+                ->willReturn($this->registrantId);
+        
+        $this->program->acceptRegistrant($this->registrantId);
+    }
+    public function test_acceptRegistrant_acceptRegistrant()
+    {
+        $this->registrant->expects($this->once())
+                ->method('accept');
+        $this->executeAcceptRegistrant();
+    }
+    public function test_acceptRegistrant_noMatchingRegistrantToId_notFoundError()
+    {
+        $this->registrant->expects($this->once())
+                ->method('getId')
+                ->willReturn('noMatch');
+        $operation = function (){
+            $this->executeAcceptRegistrant();
+        };
+        $errorDetail = "not found: registrant not found";
+        $this->assertRegularExceptionThrowed($operation, 'Not Found', $errorDetail);
+    }
+    public function test_acceptRegistrant_addParticipantToRepository()
+    {
+        $this->registrant->expects($this->once())
+                ->method('createParticipant')
+                ->with($this->anything());
+        $this->executeAcceptRegistrant();
+        $this->assertEquals(2, $this->program->participants->count());
+    }
+    public function test_acceptRegistrant_alreadyHasParticipantCorrespondWithRegistrant_reenroolParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method('correspondWithRegistrant')
+                ->with($this->registrant)
+                ->willReturn(true);
+        $this->participant->expects($this->once())
+                ->method('reenroll');
+        $this->executeAcceptRegistrant();
+    }
+    public function test_acceptRegistrant_reenrollParticipant_preventAddNewParticipant()
+    {
+        $this->participant->expects($this->once())
+                ->method('correspondWithRegistrant')
+                ->with($this->registrant)
+                ->willReturn(true);
+        $this->executeAcceptRegistrant();
+        $this->assertEquals(1, $this->program->participants->count());
+    }
+    public function test_acceptRegistrant_recordRegistrantAcceptedEvent()
+    {
+        $this->program->recordedEvents = [];
+        $this->executeAcceptRegistrant();
+        $this->assertInstanceOf(CommonEvent::class, $this->program->recordedEvents[0]);
+    }
+    
     public function test_addMetric_returnMetric()
     {
         $metric = new Metric($this->program, $this->metricId, $this->metricData);
@@ -434,6 +502,30 @@ class ProgramTest extends TestBase
         $this->assertFileUsable();
     }
     
+    protected function assertCanAcceptParticipantOfType()
+    {
+        $this->participantTypes->expects($this->any())
+                ->method('hasType')
+                ->with($this->type)
+                ->willReturn(true);
+        $this->program->assertCanAcceptParticipantOfType($this->type);
+    }
+    public function test_assertCanAcceptParticipantOfType_typeContainedInparticipantTypesList_void()
+    {
+        $this->assertCanAcceptParticipantOfType();
+        $this->markAsSuccess();
+    }
+    public function test_assertCanAcceptParticipantOfType_typeNotContainedInparticipantTypesList_forbidden()
+    {
+        $this->participantTypes->expects($this->once())
+                ->method('hasType')
+                ->with($this->type)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function() {
+            $this->assertCanAcceptParticipantOfType();
+        }, 'Forbidden', "forbidden: {$this->type} in not accomodate in this program");
+    }
+    
     protected function assertUsableInFirm()
     {
         $this->program->published = true;
@@ -502,66 +594,109 @@ class ProgramTest extends TestBase
         }, 'Forbidden', 'unable to access removed program');
     }
     
-    
     protected function receiveApplication()
     {
         $this->participantTypes->expects($this->any())
                 ->method('hasType')
                 ->willReturn(true);
-        return $this->program->receiveApplication($this->participantId, $this->applicantType);
-    }
-    public function test_receiveApplication_returnParticipant()
-    {
-        $participant = new Participant($this->program, $this->participantId, $this->program->autoAccept, $this->program->price);
-        $this->assertInstanceOf(Participant::class, $this->receiveApplication());
-    }
-    public function test_receiveApplication_unsupportedApplicantType()
-    {
-        $this->participantTypes->expects($this->once())
-                ->method('hasType')
-                ->with($this->applicantType)
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function () {
-            $this->receiveApplication();
-        }, 'Forbidden', 'applicant type not supported');
+        $this->registrationPhase->expects($this->any())
+                ->method('isOpen')
+                ->willReturn(true);
+        $this->program->receiveApplication($this->applicant);
     }
     public function test_receiveApplication_unpublishProgram_forbidden()
     {
         $this->program->published = false;
-        $this->assertRegularExceptionThrowed(function () {
+        $this->assertRegularExceptionThrowed(function(){
             $this->receiveApplication();
-        }, 'Forbidden', 'program not published yet');
+        }, 'Forbidden', 'unpublished program unable to accept application');
     }
-    
-    protected function createActiveParticipant()
+    public function test_receiveProgram_noOpenRegistrationPhase_forbidden()
     {
-        $this->participantTypes->expects($this->any())
-                ->method('hasType')
-                ->willReturn(true);
-        return $this->program->createActiveParticipant($this->participantId, $this->participantType);
+        $this->registrationPhase->expects($this->once())
+                ->method('isOpen')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function(){
+            $this->receiveApplication();
+        }, 'Forbidden', 'no open registration phase');
     }
-    public function test_createActiveParticipant_returnActiveParticipnat()
+    public function test_receiveApplication_assertApplicantBelongsInSameFirm()
     {
-        $participant = new Participant($this->program, $this->participantId, true, null);
-        $this->assertEquals($participant, $this->createActiveParticipant());
+        $this->applicant->expects($this->once())
+                ->method('assertBelongsInFirm')
+                ->with($this->program->firm);
+        $this->receiveApplication();
     }
-    public function test_createActiveParticipant_unsupportedParticipantType_forbidden()
+    public function test_receiveApplication_applicationTypeNotSupported_forbidden()
     {
+        $this->applicant->expects($this->any())
+                ->method('getUserType')
+                ->willReturn('client');
         $this->participantTypes->expects($this->once())
                 ->method('hasType')
-                ->with($this->participantType)
+                ->with('client')
                 ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function () {
-            $this->createActiveParticipant();
-        }, 'Forbidden', 'participant type not supported');
+        $this->assertRegularExceptionThrowed(function(){
+            $this->receiveApplication();
+        }, 'Forbidden', 'applicant of type client is unsupported');
     }
-    public function test_createActiveParticipant_unpublishedProgram_forbidden()
+    public function test_receiveApplication_freeProgramWithAutoAccept_addParticipant()
     {
-        $this->program->published = false;
-        $this->assertRegularExceptionThrowed(function () {
-            $this->createActiveParticipant();
-        }, 'Forbidden', 'program not published yet');
+        $this->program->price = null;
+        $this->program->autoAccept = true;
+        $this->receiveApplication();
+        $this->assertEquals(2, $this->program->participants->count());
+        $this->assertInstanceOf(Participant::class, $this->program->participants->last());
     }
+    public function test_receiveApplication_freeProgramWithAutoAccept_addParticipantToAggregatedBranches()
+    {
+        $this->program->price = null;
+        $this->program->autoAccept = true;
+        $this->receiveApplication();
+        $this->assertInstanceOf(Participant::class, $this->program->aggregatedEventsFromBranches[0]);
+    }
+    public function test_receiveApplication_nonFreeProgramWithAutoAccept_addRegistrant()
+    {
+        $this->receiveApplication();
+        $this->assertEquals(2, $this->program->registrants->count());
+        $this->assertInstanceOf(Registrant::class, $this->program->registrants->last());
+    }
+    public function test_receiveApplication_nonFreeProgramWithAutoAccept_preventAddParticipant()
+    {
+        $this->receiveApplication();
+        $this->assertEquals(1, $this->program->participants->count());
+    }
+    public function test_receiveApplication_freeProgramWithAutoAccept_dontAddRegistrant()
+    {
+        $this->program->price = null;
+        $this->program->autoAccept = true;
+        $this->receiveApplication();
+        $this->assertEquals(1, $this->program->registrants->count());
+    }
+    public function test_receiveApplication_freeProgramWithAutoAccept_addRegistrantToAggregatedBrancesEvent()
+    {
+        $this->receiveApplication();
+        $this->assertInstanceOf(Registrant::class, $this->program->aggregatedEventsFromBranches[0]);
+    }
+    
+    //
+    protected function addApplicantAsParticipant()
+    {
+        $this->program->addApplicantAsParticipant($this->applicant);
+    }
+    public function test_addProgramParticipant_addParticipant()
+    {
+        $this->addApplicantAsParticipant();
+        $this->assertEquals(2, $this->program->participants->count());
+        $this->assertInstanceOf(Participant::class, $this->program->participants->last());
+    }
+    public function test_addProgramParticipant_addApplicantProgramParticipation()
+    {
+        $this->applicant->expects($this->once())
+                ->method('addProgramParticipation');
+        $this->addApplicantAsParticipant();
+    }
+    
 }
 
 class TestableProgram extends Program
@@ -572,7 +707,7 @@ class TestableProgram extends Program
     public $illustration;
     public $strictMissionOrder;
     public $consultants, $coordinators;
-//    public $participants, $registrants;
+    public $participants, $registrants;
     public $recordedEvents;
     public $aggregatedEventsFromBranches;
     public $assignedProfileForms;

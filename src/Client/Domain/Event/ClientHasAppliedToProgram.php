@@ -11,12 +11,6 @@ class ClientHasAppliedToProgram implements Event
      * 
      * @var string
      */
-    protected $firmId;
-
-    /**
-     * 
-     * @var string
-     */
     protected $clientId;
 
     /**
@@ -24,11 +18,6 @@ class ClientHasAppliedToProgram implements Event
      * @var string
      */
     protected $programId;
-
-    public function getFirmId(): string
-    {
-        return $this->firmId;
-    }
 
     public function getClientId(): string
     {
@@ -40,9 +29,8 @@ class ClientHasAppliedToProgram implements Event
         return $this->programId;
     }
 
-    public function __construct(string $firmId, string $clientId, string $programId)
+    public function __construct(string $clientId, string $programId)
     {
-        $this->firmId = $firmId;
         $this->clientId = $clientId;
         $this->programId = $programId;
     }

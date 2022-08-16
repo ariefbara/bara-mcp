@@ -28,8 +28,6 @@ class ProgramParticipationTestCase extends ClientTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
-        $this->connection->table('ParticipantInvoice')->truncate();
-        $this->connection->table('Invoice')->truncate();
 
         $program = new RecordOfProgram($this->client->firm, 999);
         $this->connection->table('Program')->insert($program->toArrayForDbEntry());
@@ -47,8 +45,6 @@ class ProgramParticipationTestCase extends ClientTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
-        $this->connection->table('ParticipantInvoice')->truncate();
-        $this->connection->table('Invoice')->truncate();
     }
     
     protected function setParticipantInactive()

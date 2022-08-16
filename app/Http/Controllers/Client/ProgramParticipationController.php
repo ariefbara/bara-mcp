@@ -2,86 +2,23 @@
 
 namespace App\Http\Controllers\Client;
 
-use Client\Application\Service\ExecuteTask;
-use Client\Domain\Model\Client as Client2;
-use Client\Domain\Task\ApplyProgram;
-use Config\EventList;
-use Firm\Application\Listener\ListeningToProgramRegistrationFromClient;
-use Firm\Domain\Model\Firm;
-use Firm\Domain\Model\Firm\Client;
-use Firm\Domain\Model\Firm\Client\ClientParticipant as ClientParticipant3;
-use Firm\Domain\Model\Firm\Program;
-use Firm\Domain\Task\InFirm\AcceptProgramApplicationFromClient;
 use Participant\Application\Service\ClientQuitParticipation;
 use Participant\Domain\Model\ClientParticipant as ClientParticipant2;
-use Payment\Application\Listener\GenerateClientParticipantInvoice;
-use Payment\Domain\Model\Firm\Client\ClientParticipant as ClientParticipant4;
 use Query\Application\Service\Firm\Client\ViewProgramParticipation;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\AssignmentFieldValue;
-use Query\Domain\Model\Firm\Program\Participant\ParticipantInvoice;
-use Resources\Application\Event\AdvanceDispatcher;
-use Resources\Application\Listener\CommonEntityCreatedListener;
-use Resources\Infrastructure\Persistence\Doctrine\DoctrineTransactionalSession;
-use SharedContext\Infrastructure\Xendit\XenditPaymentGateway;
 
 class ProgramParticipationController extends ClientBaseController
 {
-
-    protected function buildReceiveApplicationListener(AdvanceDispatcher $dispatcher)
+    public function quit($programParticipationId)
     {
-        $firmRepository = $this->em->getRepository(Firm::class);
-        $clientParticipantRepository = $this->em->getRepository(ClientParticipant3::class);
-        $clientRepository = $this->em->getRepository(Client::class);
-        $programRepository = $this->em->getRepository(Program::class);
-        $task = new AcceptProgramApplicationFromClient(
-                $clientParticipantRepository, $clientRepository, $programRepository, $dispatcher);
-        return new ListeningToProgramRegistrationFromClient($firmRepository, $task);
+        $service = $this->buildQuitService();
+        $service->execute($this->firmId(), $this->clientId(), $programParticipationId);
+        return $this->commandOkResponse();
     }
-    protected function buildGenerateInvoiceListener()
-    {
-        $clientParticipantRepository = $this->em->getRepository(ClientParticipant4::class);
-        $paymentGateway = new XenditPaymentGateway();
-        return new GenerateClientParticipantInvoice($clientParticipantRepository, $paymentGateway);
-    }
-    public function applyProgram()
-    {
-        $dispatcher = new AdvanceDispatcher();
-
-        $receiveApplicationListener = $this->buildReceiveApplicationListener($dispatcher);
-        $dispatcher->addImmediateListener(EventList::CLIENT_HAS_APPLIED_TO_PROGRAM, $receiveApplicationListener);
-        
-        $generateInvoiceListener = $this->buildGenerateInvoiceListener();
-        $dispatcher->addPostponedListener(EventList::SETTLEMENT_REQUIRED, $generateInvoiceListener);
-        
-        $applicationReceivedListener = new CommonEntityCreatedListener();
-        $dispatcher->addImmediateListener(EventList::PROGRAM_APPLICATION_RECEIVED, $applicationReceivedListener);
-        
-        $task = new ApplyProgram($dispatcher);
-        $clientRepository = $this->em->getRepository(Client2::class);
-        $service = new ExecuteTask($clientRepository);
-        
-        $transactionalSession = new DoctrineTransactionalSession($this->em);
-        $transactionalSession->executeAtomically(function () use ($service, $task, $dispatcher) {
-            $programId = $this->stripTagsInputRequest('programId');
-            $service->execute($this->clientId(), $task, $programId);
-            $dispatcher->finalize();
-        });
-        
-        $programParticipation = $this->buildViewService()
-                ->showById($this->firmId(), $this->clientId(), $applicationReceivedListener->getEntityId());
-        return $this->commandCreatedResponse($this->arrayDataOfProgramParticipation($programParticipation));
-    }
-
-//    public function quit($programParticipationId)
-//    {
-//        $service = $this->buildQuitService();
-//        $service->execute($this->firmId(), $this->clientId(), $programParticipationId);
-//        return $this->commandOkResponse();
-//    }
 
     public function show($programParticipationId)
     {
@@ -96,7 +33,7 @@ class ProgramParticipationController extends ClientBaseController
         $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
         $programParticipations = $service->showAll(
                 $this->firmId(), $this->clientId(), $this->getPage(), $this->getPageSize(), $activeStatus);
-
+        
         $result = [];
         $result['total'] = count($programParticipations);
         foreach ($programParticipations as $programParticipation) {
@@ -105,14 +42,16 @@ class ProgramParticipationController extends ClientBaseController
                 "program" => [
                     "id" => $programParticipation->getProgram()->getId(),
                     "name" => $programParticipation->getProgram()->getName(),
+                    "removed" => $programParticipation->getProgram()->isRemoved(),
                 ],
-                "status" => $programParticipation->getStatus(),
-                "programPrice" => $programParticipation->getProgramPrice(),
+                "enrolledTime" => $programParticipation->getEnrolledTimeString(),
+                "active" => $programParticipation->isActive(),
+                "note" => $programParticipation->getNote(),
             ];
         }
         return $this->listQueryResponse($result);
     }
-
+    
     protected function arrayDataOfProgramParticipation(ClientParticipant $programParticipation): array
     {
         $sponsors = [];
@@ -133,22 +72,13 @@ class ProgramParticipationController extends ClientBaseController
             "program" => [
                 "id" => $programParticipation->getProgram()->getId(),
                 "name" => $programParticipation->getProgram()->getName(),
+                "removed" => $programParticipation->getProgram()->isRemoved(),
                 "sponsors" => $sponsors,
             ],
-            "status" => $programParticipation->getStatus(),
-            "programPrice" => $programParticipation->getProgramPrice(),
+            "enrolledTime" => $programParticipation->getEnrolledTimeString(),
+            "active" => $programParticipation->isActive(),
+            "note" => $programParticipation->getNote(),
             "metricAssignment" => $this->arrayDataOfMetricAssignment($programParticipation->getMetricAssignment()),
-            'invoice' => $this->arrayDataOfInvoice($programParticipation->getParticipantInvoice()),
-        ];
-    }
-
-    protected function arrayDataOfInvoice(?ParticipantInvoice $participantInvoice): ?array
-    {
-        return empty($participantInvoice) ? null : [
-            'issuedTime' => $participantInvoice->getInvoice()->getIssuedTimeString(),
-            'expiredTime' => $participantInvoice->getInvoice()->getExpiredTimeString(),
-            'paymentLink' => $participantInvoice->getInvoice()->getPaymentLink(),
-            'settled' => $participantInvoice->getInvoice()->isSettled(),
         ];
     }
     protected function arrayDataOfMetricAssignment(?MetricAssignment $metricAssignment): ?array
@@ -169,7 +99,6 @@ class ProgramParticipationController extends ClientBaseController
                     $metricAssignment->getLastApprovedMetricAssignmentReports()),
         ];
     }
-
     protected function arrayDataOfAssignmentField(AssignmentField $assignmentField): array
     {
         return [
@@ -184,7 +113,6 @@ class ProgramParticipationController extends ClientBaseController
             ],
         ];
     }
-
     protected function arrayDataOfMetricAssignmentReport(?MetricAssignmentReport $metricAssignmentReport): ?array
     {
         if (empty($metricAssignmentReport)) {

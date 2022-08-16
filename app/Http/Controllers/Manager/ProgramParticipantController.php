@@ -8,7 +8,7 @@ use Firm\Domain\Model\Firm\Team as Team2;
 use Firm\Domain\Task\InFirm\AddClientParticipantPayload;
 use Firm\Domain\Task\InFirm\AddClientParticipantTask;
 use Firm\Domain\Task\InFirm\AddTeamParticipantPayload;
-use Firm\Domain\Task\InFirm\AddTeamAsActiveProgramParticipant;
+use Firm\Domain\Task\InFirm\AddTeamParticipantTask;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Team;
@@ -42,7 +42,7 @@ class ProgramParticipantController extends ManagerBaseController
         $teamId = $this->stripTagsInputRequest('teamId');
         $payload = new AddTeamParticipantPayload($teamId, $programId);
         
-        $task = new AddTeamAsActiveProgramParticipant($teamRepository, $programRepository, $payload);
+        $task = new AddTeamParticipantTask($teamRepository, $programRepository, $payload);
         $this->executeFirmTaskExecutableByManager($task);
         
         return $this->show($task->addedTeamParticipantId);

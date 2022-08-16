@@ -20,10 +20,14 @@
         <field name="resetPasswordCodeExpiredTime" type="datetime_immutable" nullable="true" />
         <field name="activated" type="boolean" />
         
-<!--        <one-to-many field="clientParticipants" 
+        <one-to-many field="clientRegistrants" 
+                     target-entity="Client\Domain\Model\Client\ClientRegistrant" 
+                     mapped-by="client"
+        />
+        <one-to-many field="clientParticipants" 
                      target-entity="Client\Domain\Model\Client\ClientParticipant" 
                      mapped-by="client"
-        />-->
+        />
         <one-to-many  field="clientBios" 
                       target-entity="Client\Domain\Model\Client\ClientBio"
                       mapped-by="client"

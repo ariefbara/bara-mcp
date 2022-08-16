@@ -31,7 +31,6 @@ $generateProxyPath = [
     BASE_PATH . "/src/Team/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/ActivityCreator/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/ActivityInvitee/Infrastructure/Persistence/Doctrine/Mapping",
-    BASE_PATH . "/src/Payment/Infrastructure/Persistence/Doctrine/Mapping",
 ];
 
 $doctrineConfig = Setup::createXMLMetadataConfiguration($generateDbPath, $isDevMode);

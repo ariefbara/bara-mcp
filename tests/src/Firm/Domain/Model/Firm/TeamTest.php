@@ -4,10 +4,9 @@ namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
-use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team\Member;
 use Firm\Domain\Model\Firm\Team\MemberData;
-use Firm\Domain\Model\Firm\Team\TeamParticipant;
 use Resources\DateTimeImmutableBuilder;
 use Tests\TestBase;
 
@@ -19,8 +18,7 @@ class TeamTest extends TestBase
     
     protected $id = 'newId', $name = 'new team name', $memberPosition = 'new member position';
     protected $memberId = 'memberId';
-    protected $program, $teamParticipantId = 'teamParticipantId';
-    protected $participant;
+    protected $program;
 
     protected function setUp(): void
     {
@@ -40,7 +38,6 @@ class TeamTest extends TestBase
         $this->team->members->clear();
         $this->team->members->add($this->member);
         $this->program = $this->buildMockOfClass(Program::class);
-        $this->participant = $this->buildMockOfClass(Participant::class);
     }
     
     protected function getTeamData()
@@ -175,6 +172,54 @@ class TeamTest extends TestBase
         }, 'Not Found', 'not found: team member not found');
     }
     
+    protected function addToProgram()
+    {
+        return $this->team->addToProgram($this->program);
+    }
+    public function test_addToProgram_addTeamParticipantToCollection()
+    {
+        $this->addToProgram();
+        $this->assertEquals(2, $this->team->teamParticipants->count());
+        $this->assertInstanceOf(TeamParticipant::class, $this->team->teamParticipants->last());
+    }
+    public function test_addToProgram_formerParticipantOfSameProgram_enablePreviousParticipation()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->teamParticipant->expects($this->once())
+                ->method('enable');
+        $this->addToProgram();
+    }
+    public function test_addToProgram_formerParticipantOfSameProgram_preventAddNewParticipant()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->addToProgram();
+        $this->assertEquals(1, $this->team->teamParticipants->count());
+    }
+    public function test_addToProgram_returnTeamParticipantId()
+    {
+        $this->teamParticipant->expects($this->once())
+                ->method('correspondWithProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->teamParticipant->expects($this->once())
+                ->method('getId')
+                ->willReturn($teamParticipantId = 'teamParticipantId');
+        $this->assertEquals($teamParticipantId, $this->addToProgram());
+    }
+    public function test_addToProgram_assertProgramCanAcceptTeamTypeParticipant()
+    {
+        $this->program->expects($this->once())
+                ->method('assertCanAcceptParticipantOfType')
+                ->with('team');
+        $this->addToProgram();
+    }
+    
     protected function assertUsableInFirm()
     {
         $this->team->assertUsableInFirm($this->firm);
@@ -190,54 +235,6 @@ class TeamTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->assertUsableInFirm();
         }, 'Forbidden', 'forbidden: unable to use team from different firm');
-    }
-    
-    protected function addAsProgramApplicant()
-    {
-        return $this->team->addAsProgramApplicant($this->teamParticipantId, $this->program);
-    }
-    public function test_addAsProgramApplicant_returnTeamParticipant()
-    {
-        $this->program->expects($this->once())
-                ->method('receiveApplication')
-                ->with($this->teamParticipantId, 'team')
-                ->willReturn($this->participant);
-        $teamParticipant = new TeamParticipant($this->team, $this->teamParticipantId, $this->participant);
-        $this->assertEquals($teamParticipant, $this->addAsProgramApplicant());
-    }
-    public function test_addAsProgramApplicant_teamIsActiveRegistrantOrParticipantOfProgram_forbidden()
-    {
-        $this->teamParticipant->expects($this->once())
-                ->method('isActiveParticipantOrRegistrantOfProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->assertRegularExceptionThrowed(function () {
-            $this->addAsProgramApplicant();
-        }, 'Forbidden', 'unable to apply, already active registrant or participant of same program');
-    }
-    
-    protected function addAsActiveProgramParticipant()
-    {
-        return $this->team->addAsActiveProgramParticipant($this->teamParticipantId, $this->program);
-    }
-    public function test_addAsActiveProgramParticipant_returnActiveTeamProgramParticipant()
-    {
-        $this->program->expects($this->once())
-                ->method('createActiveParticipant')
-                ->with($this->teamParticipantId, 'team')
-                ->willReturn($this->participant);
-        $teamParticipant = new TeamParticipant($this->team, $this->teamParticipantId, $this->participant);
-        $this->assertEquals($teamParticipant, $this->addAsActiveProgramParticipant());
-    }
-    public function test_addAsActiveProgramParticipant_teamIsActiveParticipantOrRegistrantOfSameProgram_forbidden()
-    {
-        $this->teamParticipant->expects($this->once())
-                ->method('isActiveParticipantOrRegistrantOfProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->assertRegularExceptionThrowed(function () {
-            $this->addAsActiveProgramParticipant();
-        }, 'Forbidden', 'unable to add as active participant, already active registrant or participant of same program');
     }
 }
 

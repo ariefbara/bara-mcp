@@ -3,6 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program\Registrant;
 
 use Firm\Domain\Model\Firm\Program\Registrant;
+use Resources\Domain\Model\EntityContainEvents;
 use SharedContext\Domain\Model\Invoice;
 
 class RegistrantInvoice

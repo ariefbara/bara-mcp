@@ -56,10 +56,5 @@ class RecordOfEvaluation implements Record
             "extendDays" => $this->extendDays,
         ];
     }
-    
-    public function insert(\Illuminate\Database\ConnectionInterface $connection): void
-    {
-        $connection->table('Evaluation')->insert($this->toArrayForDbEntry());
-    }
 
 }

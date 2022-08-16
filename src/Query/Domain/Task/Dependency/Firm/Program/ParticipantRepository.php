@@ -12,6 +12,4 @@ interface ParticipantRepository
     public function allProgramParticipantsInFirm(string $firmId, ParticipantFilter $filter);
 
     public function aProgramParticipantInFirm(string $firmId, string $id): Participant;
-    
-    public function allProgramParticipantsManageableByPersonnel(string $personnelId, ParticipantFilter $filter);
 }

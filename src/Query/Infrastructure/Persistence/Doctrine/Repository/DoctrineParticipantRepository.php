@@ -6,7 +6,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\Program\ParticipantRepository;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
-use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
@@ -21,7 +20,7 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
 {
 
     public function all(
-            string $firmId, string $programId, int $page, int $pageSize, ?array $status, ?string $searchByName)
+            string $firmId, string $programId, int $page, int $pageSize, ?bool $activeStatus, ?string $note, ?string $searchByName)
     {
         $params = [
             "firmId" => $firmId,
@@ -70,9 +69,13 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
         }
 
         
-        if (!empty($status)) {
-            $qb->andWhere($qb->expr()->in('participant.status.status', ':status'))
-                    ->setParameter('status', $status);
+        if (isset($activeStatus)) {
+            $qb->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
+        }
+        if (isset($note)) {
+            $qb->andWhere($qb->expr()->eq("participant.note", ":note"))
+                    ->setParameter("note", $note);
         }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -351,34 +354,6 @@ class DoctrineParticipantRepository extends EntityRepository implements Particip
                     ->setParameter('activeStatus', $activeStatus);
         }
         
-        return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
-    }
-
-    public function allProgramParticipantsManageableByPersonnel(string $personnelId, ParticipantFilter $filter)
-    {
-        $parameters = [
-            "personnelId" => $personnelId,
-        ];
-        
-        $coordinatorQB = $this->getEntityManager()->createQueryBuilder();
-        $coordinatorQB->select('a_program.id')
-                ->from(Coordinator::class, 'coordinator')
-                ->andWhere($coordinatorQB->expr()->eq('coordinator.active', "true"))
-                ->leftJoin('coordinator.personnel', 'personnel')
-                ->andWhere($coordinatorQB->expr()->eq('personnel.id', ":personnelId"))
-                ->leftJoin('coordinator.program', 'a_program');
-        
-        $qb = $this->createQueryBuilder("participant");
-        $qb->select('participant')
-                ->leftJoin('participant.program', 'program')
-                ->andWhere($qb->expr()->in('program.id', $coordinatorQB->getDQL()))
-                ->setParameters($parameters);
-        
-        $statusFilter = $filter->getParticipantStatuses();
-        if (!empty($statusFilter)) {
-            $qb->andWhere($qb->expr()->in('participant.status.status', ':status'))
-                    ->setParameter('status', $statusFilter);
-        }
         return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
     }
 

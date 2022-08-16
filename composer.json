@@ -35,7 +35,6 @@
             "database/factories"
         ],
         "psr-4": {
-            "Payment\\": "src/Payment",
             "ActivityInvitee\\": "src/ActivityInvitee",
             "ActivityCreator\\": "src/ActivityCreator",
             "Team\\": "src/Team",

@@ -12,7 +12,6 @@ use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Service\TeamProgramParticipationRepository as InterfaceForDomainService;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
-use SharedContext\Domain\ValueObject\ParticipantStatus;
 
 class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository, InterfaceForDomainService, TeamProgramParticipationRepository2, TeamParticipantRepository, TeamParticipantRepository2
 {
@@ -53,22 +52,10 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
                 ->setParameters($params);
         
         if (isset($activeStatus)) {
-            $activeStatusList = [
-                ParticipantStatus::REGISTERED, ParticipantStatus::SETTLEMENT_REQUIRED, ParticipantStatus::ACTIVE
-            ];
-            if ($activeStatus) {
-                $qb->leftJoin("teamProgramParticipation.programParticipation", "participant")
-                        ->andWhere($qb->expr()->in("participant.status.status", $activeStatusList));
-            } else {
-                $qb->leftJoin("teamProgramParticipation.programParticipation", "participant")
-                        ->andWhere($qb->expr()->notIn("participant.status.status", $activeStatusList));
-            }
+            $qb->leftJoin("teamProgramParticipation.programParticipation", "participant")
+                    ->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
+                    ->setParameter("activeStatus", $activeStatus);
         }
-//        if (isset($activeStatus)) {
-//            $qb->leftJoin("teamProgramParticipation.programParticipation", "participant")
-//                    ->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
-//                    ->setParameter("activeStatus", $activeStatus);
-//        }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }

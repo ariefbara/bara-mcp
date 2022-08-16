@@ -3,40 +3,29 @@
 namespace Tests\Controllers\Client;
 
 use DateTime;
-use SharedContext\Domain\ValueObject\ParticipantStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
-use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfParticipantInvoice;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfSponsor;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
-use Tests\Controllers\RecordPreparation\RecordOfFirm;
-use Tests\Controllers\RecordPreparation\Shared\RecordOfInvoice;
 
 
 class ProgramParticipationControllerTest extends ProgramParticipationTestCase
 {
-    protected $clientParticipantOne;
-    protected $clientParticipantTwo;
-    protected $programThree;
-//    protected $inactiveProgramParticipation;
+    protected $inactiveProgramParticipation;
     protected $metricAssignment;
     protected $assignmentField;
     protected $assignmentFieldOne;
-    protected $metricAssignmentReport;
     protected $metricAssignmentReportOne_lastApproved;
     protected $metricAssignmentReportTwo_last;
     protected $assignmentFieldValue_00;
     protected $assignmentFieldValue_01;
     protected $sponsorOne;
     protected $sponsorTwo;
-    protected $participantInvoiceOne;
-    //
-    protected $applyProgramRequest;
 
     protected function setUp(): void
     {
@@ -48,42 +37,30 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("MetricAssignmentReport")->truncate();
         $this->connection->table("AssignmentFieldValue")->truncate();
         $this->connection->table("Sponsor")->truncate();
-        $this->connection->table("ParticipantInvoice")->truncate();
-        $this->connection->table("Invoice")->truncate();
         
-        $programOne = new RecordOfProgram($this->client->firm, '1');
-        $programTwo = new RecordOfProgram($this->client->firm, '2');
-        $this->programThree = new RecordOfProgram($this->client->firm, '3');
+        $program = new RecordOfProgram($this->client->firm, 1);
+        $this->connection->table('Program')->insert($program->toArrayForDbEntry());
         
-        $participantOne = new RecordOfParticipant($programOne, '1');
-        $participantTwo = new RecordOfParticipant($programTwo, '2');
+        $participant = new RecordOfParticipant($program, 1);
+        $participant->active = false;
+        $participant->note = 'quit';
+        $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
         
-        $this->clientParticipantOne = new RecordOfClientParticipant($this->client, $participantOne);
-        $this->clientParticipantTwo = new RecordOfClientParticipant($this->client, $participantTwo);
+        $this->inactiveProgramParticipation = new RecordOfClientParticipant($this->client, $participant);
+        $this->connection->table('ClientParticipant')->insert($this->inactiveProgramParticipation->toArrayForDbEntry());
         
-//        $program = new RecordOfProgram($this->client->firm, 'x');
-//        $this->connection->table('Program')->insert($program->toArrayForDbEntry());
-//        
-//        $participant = new RecordOfParticipant($program, 'x');
-//        $participant->active = false;
-//        $participant->note = 'quit';
-//        $this->connection->table('Participant')->insert($participant->toArrayForDbEntry());
-//        
-//        $this->inactiveProgramParticipation = new RecordOfClientParticipant($this->client, $participant);
-//        $this->connection->table('ClientParticipant')->insert($this->inactiveProgramParticipation->toArrayForDbEntry());
+        $this->metricAssignment = new RecordOfMetricAssignment($this->programParticipation->participant, 0);
+        $this->connection->table("MetricAssignment")->insert($this->metricAssignment->toArrayForDbEntry());
         
-        $this->metricAssignment = new RecordOfMetricAssignment($participantOne, 1);
-//        $this->connection->table("MetricAssignment")->insert($this->metricAssignment->toArrayForDbEntry());
-        
-        $metric = new RecordOfMetric($programOne, 0);
-        $metricOne = new RecordOfMetric($programOne, 1);
-//        $this->connection->table("Metric")->insert($metric->toArrayForDbEntry());
-//        $this->connection->table("Metric")->insert($metricOne->toArrayForDbEntry());
+        $metric = new RecordOfMetric($program, 0);
+        $metricOne = new RecordOfMetric($program, 1);
+        $this->connection->table("Metric")->insert($metric->toArrayForDbEntry());
+        $this->connection->table("Metric")->insert($metricOne->toArrayForDbEntry());
         
         $this->assignmentField = new RecordOfAssignmentField($this->metricAssignment, $metric, 0);
         $this->assignmentFieldOne = new RecordOfAssignmentField($this->metricAssignment, $metricOne, 1);
-//        $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
-//        $this->connection->table("AssignmentField")->insert($this->assignmentFieldOne->toArrayForDbEntry());
+        $this->connection->table("AssignmentField")->insert($this->assignmentField->toArrayForDbEntry());
+        $this->connection->table("AssignmentField")->insert($this->assignmentFieldOne->toArrayForDbEntry());
         
         $this->metricAssignmentReport = new RecordOfMetricAssignmentReport($this->metricAssignment, 0);
         $this->metricAssignmentReport->observationTime = (new DateTime("-2 months"))->format("Y-m-d H:i:s");
@@ -93,24 +70,17 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->metricAssignmentReportOne_lastApproved->approved = true;
         $this->metricAssignmentReportTwo_last = new RecordOfMetricAssignmentReport($this->metricAssignment, 2);
         $this->metricAssignmentReportTwo_last->observationTime = (new DateTime("-2 days"))->format("Y-m-d H:i:s");
-//        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReport->toArrayForDbEntry());
-//        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne_lastApproved->toArrayForDbEntry());
-//        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportTwo_last->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReport->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportOne_lastApproved->toArrayForDbEntry());
+        $this->connection->table("MetricAssignmentReport")->insert($this->metricAssignmentReportTwo_last->toArrayForDbEntry());
         
         $this->assignmentFieldValue_00 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_lastApproved, $this->assignmentField, "00");
         $this->assignmentFieldValue_01 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne_lastApproved, $this->assignmentFieldOne, "01");
-//        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
-//        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
+        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_00->toArrayForDbEntry());
+        $this->connection->table("AssignmentFieldValue")->insert($this->assignmentFieldValue_01->toArrayForDbEntry());
         
-        $this->sponsorOne = new RecordOfSponsor($programOne, "1");
-        $this->sponsorTwo = new RecordOfSponsor($programOne, "2");
-        //
-        $invoiceOne = new RecordOfInvoice(1);
-        $this->participantInvoiceOne = new RecordOfParticipantInvoice($participantOne, $invoiceOne);
-        
-        $this->applyProgramRequest = [
-            'programId' => $this->programThree->id,
-        ];
+        $this->sponsorOne = new RecordOfSponsor($this->programParticipation->participant->program, "1");
+        $this->sponsorTwo = new RecordOfSponsor($this->programParticipation->participant->program, "2");
     }
     protected function tearDown(): void
     {
@@ -121,148 +91,8 @@ class ProgramParticipationControllerTest extends ProgramParticipationTestCase
         $this->connection->table("MetricAssignmentReport")->truncate();
         $this->connection->table("AssignmentFieldValue")->truncate();
         $this->connection->table("Sponsor")->truncate();
-        $this->connection->table("ParticipantInvoice")->truncate();
-        $this->connection->table("Invoice")->truncate();
     }
     
-    protected function applyToProgram()
-    {
-        $this->programThree->insert($this->connection);
-        $uri = $this->programParticipationUri . "/apply-program";
-        $this->post($uri, $this->applyProgramRequest, $this->client->token);
-    }
-    public function test_applyToProgram_200()
-    {
-$this->disableExceptionHandling();
-        $this->applyToProgram();
-        $this->seeStatusCode(201);
-        
-        $response = [
-            "program" => [
-                "id" => $this->programThree->id,
-                "name" => $this->programThree->name,
-                'sponsors' => [],
-            ],
-            "status" => 'REGISTERED',
-            "programPrice" => $this->programThree->price,
-        ];
-        $this->seeJsonContains($response);
-        
-        $participantEntry = [
-            'Program_id' => $this->programThree->id,
-            'status' => ParticipantStatus::REGISTERED,
-            'programPrice' => $this->programThree->price,
-        ];
-        $this->seeInDatabase('Participant', $participantEntry);
-    }
-    public function test_applyToProgram_autoAcceptProgram_activeParticipant()
-    {
-        $this->programThree->autoAccept = true;
-        $this->applyToProgram();
-        $this->seeStatusCode(201);
-        
-        $response = [
-            "program" => [
-                "id" => $this->programThree->id,
-                "name" => $this->programThree->name,
-                'sponsors' => [],
-            ],
-            "status" => 'ACTIVE',
-            "programPrice" => $this->programThree->price,
-        ];
-        $this->seeJsonContains($response);
-        
-        $participantEntry = [
-            'Program_id' => $this->programThree->id,
-            'status' => ParticipantStatus::ACTIVE,
-            'programPrice' => $this->programThree->price,
-        ];
-        $this->seeInDatabase('Participant', $participantEntry);
-    }
-    public function test_applyToProgram_autoAcceptPaidProgram_participantWithSettlementRequiredStatus()
-    {
-        $this->programThree->autoAccept = true;
-        $this->programThree->price = 100000;
-        $this->applyToProgram();
-        $this->seeStatusCode(201);
-        
-        $response = [
-            "program" => [
-                "id" => $this->programThree->id,
-                "name" => $this->programThree->name,
-                'sponsors' => [],
-            ],
-            "status" => 'SETTLEMENT_REQUIRED',
-            "programPrice" => $this->programThree->price,
-        ];
-        $this->seeJsonContains($response);
-        
-        $participantEntry = [
-            'Program_id' => $this->programThree->id,
-            'status' => ParticipantStatus::SETTLEMENT_REQUIRED,
-            'programPrice' => $this->programThree->price,
-        ];
-        $this->seeInDatabase('Participant', $participantEntry);
-    }
-    public function test_applyToProgram_participantWithSettlementRequiredStatus_generateInvoice()
-    {
-        $this->programThree->autoAccept = true;
-        $this->programThree->price = 100000;
-        $this->applyToProgram();
-        $this->seeStatusCode(201);
-        
-        $invoiceEntry = [
-            'settled' => false,
-        ];
-        $this->seeInDatabase('Invoice', $invoiceEntry);
-    }
-    public function test_applyToProgram_participantOfSameProgramWithActiveLifecycle_registered_403()
-    {
-        $this->clientParticipantOne->participant->program = $this->programThree;
-        $this->clientParticipantOne->participant->status = ParticipantStatus::REGISTERED;
-        $this->clientParticipantOne->insert($this->connection);
-        
-        $this->applyToProgram();
-        $this->seeStatusCode(403);
-    }
-    public function test_applyToProgram_participantOfSameProgramWithActiveLifecycle_settlementRequired_403()
-    {
-        $this->clientParticipantOne->participant->program = $this->programThree;
-        $this->clientParticipantOne->participant->status = ParticipantStatus::SETTLEMENT_REQUIRED;
-        $this->clientParticipantOne->insert($this->connection);
-        
-        $this->applyToProgram();
-        $this->seeStatusCode(403);
-    }
-    public function test_applyToProgram_participantOfSameProgramWithActiveLifecycle_active_403()
-    {
-        $this->clientParticipantOne->participant->program = $this->programThree;
-        $this->clientParticipantOne->participant->status = ParticipantStatus::ACTIVE;
-        $this->clientParticipantOne->insert($this->connection);
-        
-        $this->applyToProgram();
-        $this->seeStatusCode(403);
-    }
-    public function test_applyToProgram_participantOfSameProgramWithEndedLifecycle_201()
-    {
-        $this->clientParticipantOne->participant->program = $this->programThree;
-        $this->clientParticipantOne->participant->status = ParticipantStatus::REJECTED;
-        $this->clientParticipantOne->insert($this->connection);
-        
-        $this->applyToProgram();
-        $this->seeStatusCode(201);
-    }
-    public function test_applyToProgram_programFromDifferentFirm_403()
-    {
-        $otherFirm = new RecordOfFirm('other');
-        $otherFirm->insert($this->connection);
-        $this->programThree->firm = $otherFirm;
-        
-        $this->applyToProgram();
-        $this->seeStatusCode(403);
-    }
-    
-/*
     public function test_quit_200()
     {
         $uri = $this->programParticipationUri . "/{$this->programParticipation->id}/quit";
@@ -282,99 +112,36 @@ $this->disableExceptionHandling();
         $this->patch($uri, [], $this->client->token)
             ->seeStatusCode(403);
     }
- * 
- */
     
-    protected function show()
-    {
-        $this->clientParticipantOne->participant->program->insert($this->connection);
-        $this->clientParticipantOne->insert($this->connection);
-        
-        $uri = $this->programParticipationUri . "/{$this->clientParticipantOne->id}";
-        $this->get($uri, $this->client->token);
-    }
-    public function test_show_200()
-    {
-        $this->show();
-        $this->seeStatusCode(200);
-        
-        $response = [
-            'id' => $this->clientParticipantOne->id,
-            'program' => [
-                'id' => $this->clientParticipantOne->participant->program->id,
-                'name' => $this->clientParticipantOne->participant->program->name,
-                'sponsors' => [],
-                
-            ],
-            'status' => 'REGISTERED',
-            'programPrice' => $this->clientParticipantOne->participant->programPrice,
-            'metricAssignment' => null,
-            'invoice' => null,
-        ];
-        $this->seeJsonContains($response);
-    }
-    public function test_show_programHasSponsors_200()
+    public function test_show()
     {
         $this->sponsorOne->insert($this->connection);
         $this->sponsorTwo->insert($this->connection);
         
-        $this->show();
-        $this->seeStatusCode(200);
-        
         $response = [
-            'sponsors' => [
-                [
-                    "id" => $this->sponsorOne->id,
-                    "name" => $this->sponsorOne->name,
-                    "website" => $this->sponsorOne->website,
-                    "logo" => null,
-                ],
-                [
-                    "id" => $this->sponsorTwo->id,
-                    "name" => $this->sponsorTwo->name,
-                    "website" => $this->sponsorTwo->website,
-                    "logo" => null,
+            "id" => $this->programParticipation->id,
+            "program" => [
+                "id" => $this->programParticipation->participant->program->id,
+                "name" => $this->programParticipation->participant->program->name,
+                "removed" => $this->programParticipation->participant->program->removed,
+                "sponsors" => [
+                    [
+                        "id" => $this->sponsorOne->id,
+                        "name" => $this->sponsorOne->name,
+                        "website" => $this->sponsorOne->website,
+                        "logo" => null,
+                    ],
+                    [
+                        "id" => $this->sponsorTwo->id,
+                        "name" => $this->sponsorTwo->name,
+                        "website" => $this->sponsorTwo->website,
+                        "logo" => null,
+                    ],
                 ],
             ],
-        ];
-        $this->seeJsonContains($response);
-    }
-    public function test_show_participantHasInvoice_200()
-    {
-        $this->participantInvoiceOne->insert($this->connection);
-        $this->show();
-        $this->seeStatusCode(200);
-        
-        $response = [
-            'invoice' => [
-                'issuedTime' => $this->participantInvoiceOne->invoice->issuedTime,
-                'expiredTime' => $this->participantInvoiceOne->invoice->expiredTime,
-                'paymentLink' => $this->participantInvoiceOne->invoice->paymentLink,
-                'settled' => $this->participantInvoiceOne->invoice->settled,
-            ],
-        ];
-        $this->seeJsonContains($response);
-    }
-    public function test_show_hasMetricAssignment_200()
-    {
-        $this->metricAssignment->insert($this->connection);
-        
-        $this->assignmentField->metric->insert($this->connection);
-        $this->assignmentFieldOne->metric->insert($this->connection);
-        $this->assignmentField->insert($this->connection);
-        $this->assignmentFieldOne->insert($this->connection);
-        
-        $this->metricAssignmentReport->insert($this->connection);
-        $this->metricAssignmentReportOne_lastApproved->insert($this->connection);
-        $this->metricAssignmentReportTwo_last->insert($this->connection);
-        
-        $this->assignmentFieldValue_00->insert($this->connection);
-        $this->assignmentFieldValue_01->insert($this->connection);
-        
-        $this->show();
-        $this->seeStatusCode(200);
-        
-        $response = [
+            "enrolledTime" => $this->programParticipation->participant->enrolledTime,
+            "active" => $this->programParticipation->participant->active,
+            "note" => $this->programParticipation->participant->note,
             "metricAssignment" => [
                 "id" => $this->metricAssignment->id,
                 "startDate" => $this->metricAssignment->startDate,
@@ -423,74 +190,55 @@ $this->disableExceptionHandling();
                 ],
             ],
         ];
-        $this->seeJsonContains($response);
+        $uri = $this->programParticipationUri . "/{$this->programParticipation->id}";
+        $this->get($uri, $this->client->token)
+            ->seeStatusCode(200)
+            ->seeJsonContains($response);
     }
     
-    protected function showAll()
+    public function test_showAll()
     {
-        $this->clientParticipantOne->participant->program->insert($this->connection);
-        $this->clientParticipantTwo->participant->program->insert($this->connection);
-        
-        $this->clientParticipantOne->insert($this->connection);
-        $this->clientParticipantTwo->insert($this->connection);
-        
-        $this->get($this->programParticipationUri, $this->client->token);
-    }
-    public function test_showAll_200()
-    {
-        $this->showAll();
-        $this->seeStatusCode(200);
-        
         $response = [
-            "total" => 3, 
+            "total" => 2, 
             "list" => [
                 [
                     "id" => $this->programParticipation->id,
                     "program" => [
                         "id" => $this->programParticipation->participant->program->id,
                         "name" => $this->programParticipation->participant->program->name,
+                        "removed" => $this->programParticipation->participant->program->removed,
                     ],
-                    "status" => 'REGISTERED',
-                    "programPrice" => $this->programParticipation->participant->programPrice,
+                    "enrolledTime" => $this->programParticipation->participant->enrolledTime,
+                    "active" => $this->programParticipation->participant->active,
+                    "note" => $this->programParticipation->participant->note,
                 ],
                 [
-                    "id" => $this->clientParticipantOne->id,
+                    "id" => $this->inactiveProgramParticipation->id,
                     "program" => [
-                        "id" => $this->clientParticipantOne->participant->program->id,
-                        "name" => $this->clientParticipantOne->participant->program->name,
+                        "id" => $this->inactiveProgramParticipation->participant->program->id,
+                        "name" => $this->inactiveProgramParticipation->participant->program->name,
+                        "removed" => $this->inactiveProgramParticipation->participant->program->removed,
                     ],
-                    "status" => 'REGISTERED',
-                    "programPrice" => $this->clientParticipantOne->participant->programPrice,
-                ],
-                [
-                    "id" => $this->clientParticipantTwo->id,
-                    "program" => [
-                        "id" => $this->clientParticipantTwo->participant->program->id,
-                        "name" => $this->clientParticipantTwo->participant->program->name,
-                    ],
-                    "status" => 'REGISTERED',
-                    "programPrice" => $this->clientParticipantTwo->participant->programPrice,
+                    "enrolledTime" => $this->inactiveProgramParticipation->participant->enrolledTime,
+                    "active" => $this->inactiveProgramParticipation->participant->active,
+                    "note" => $this->inactiveProgramParticipation->participant->note,
                 ],
             ],
         ];
-        $this->seeJsonContains($response);
+        $this->get($this->programParticipationUri, $this->client->token)
+            ->seeStatusCode(200)
+            ->seeJsonContains($response);
     }
     public function test_showAll_usingActiveStatusFilter()
     {
-        $this->clientParticipantOne->participant->status = ParticipantStatus::REJECTED;
-        
-        $this->programParticipationUri .= "?activeStatus=true";
-        $this->showAll();
-        $this->seeStatusCode(200);
-        
-        $totalReponse = ["total" => 2];
-        $this->seeJsonContains($totalReponse);
-        
+        $totalReponse = ["total" => 1];
         $programParticipationResponse = [
             "id" => $this->programParticipation->id,
         ];
-        $this->seeJsonContains(['id' => $this->programParticipation->id]);
-        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->id]);
-        $this->seeJsonContains(['id' => $this->clientParticipantTwo->id]);
+        $uri = $this->programParticipationUri . "?activeStatus=true";
+        $this->get($uri, $this->client->token)
+            ->seeStatusCode(200)
+            ->seeJsonContains($totalReponse)
+            ->seeJsonContains($programParticipationResponse);
     }
 }

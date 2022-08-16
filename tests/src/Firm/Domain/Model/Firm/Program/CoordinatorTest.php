@@ -37,8 +37,6 @@ class CoordinatorTest extends TestBase
     
     protected $meetingId = "meetingId", $meetingType, $meetingData;
     protected $meeting;
-    //
-    protected $programTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -73,8 +71,6 @@ class CoordinatorTest extends TestBase
         $this->meetingType = $this->buildMockOfClass(ActivityType::class);
         $this->meetingData = $this->buildMockOfClass(MeetingData::class);
         $this->meeting = $this->buildMockOfClass(Meeting::class);
-        //
-        $this->programTask = $this->buildMockOfInterface(TaskInProgramExecutableByCoordinator::class);
     }
     
     protected function setAssetBelongsToProgram($asset)
@@ -390,26 +386,6 @@ class CoordinatorTest extends TestBase
                 ->method('assertUsableInProgram')
                 ->with($this->program);
         $this->executeInviteToMeeting();
-    }
-    
-    //
-    protected function executeProgramTask()
-    {
-        $this->coordinator->executeProgramTask($this->programTask, $this->payload);
-    }
-    public function test_executeProgramTask_executeProgramTask()
-    {
-        $this->programTask->expects($this->once())
-                ->method('execute')
-                ->with($this->program, $this->payload);
-        $this->executeProgramTask();
-    }
-    public function test_executeProgramTask_inactive_forbidden()
-    {
-        $this->coordinator->active = false;
-        $this->assertRegularExceptionThrowed(function () {
-            $this->executeProgramTask();
-        }, 'Forbidden', 'only active coordinator can make this request');
     }
 }
 

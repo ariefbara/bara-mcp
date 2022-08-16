@@ -9,14 +9,14 @@ use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Manager\ManagerAttendee;
 use Firm\Domain\Model\Firm\Program\ActivityType;
-use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
-use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
@@ -386,14 +386,6 @@ class Manager implements CanAttendMeeting
             throw RegularException::forbidden("forbidden: only active manager can make this request");
         }
         $task->executeInFirm($this->firm);
-    }
-    
-    public function executeTaskInFirm(TaskInFirmExecutableByManager $firmTask, $payload): void
-    {
-        if ($this->removed) {
-            throw RegularException::forbidden('only active manager can make this request');
-        }
-        $firmTask->execute($this->firm, $payload);
     }
 
 }

@@ -69,7 +69,6 @@ $router->group($clientAggregate, function () use ($router) {
     
     $router->group(['prefix' => '/program-participations'], function () use($router) {
         $controller = "ProgramParticipationController";
-        $router->post("/apply-program", ["uses" => "$controller@applyProgram"]);
         $router->patch("/{programParticipationId}/quit", ["uses" => "$controller@quit"]);
         $router->get("/{programParticipationId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
@@ -417,7 +416,6 @@ $router->group($clientAggregate, function () use ($router) {
         
         $router->group(['prefix' => '/program-participations'], function () use($router) {
             $controller = "ProgramParticipationController";
-            $router->post("/apply-program", ["uses" => "$controller@applyProgram"]);
             $router->patch("/{teamProgramParticipationId}/quit", ["uses" => "$controller@quit"]);
             $router->get("", ["uses" => "$controller@showAll"]);
             $router->get("/{teamProgramParticipationId}", ["uses" => "$controller@show"]);
