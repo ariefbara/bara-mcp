@@ -2,7 +2,6 @@
 
 namespace Query\Domain\Model\Firm\Program;
 
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Application\Service\Participant\ActivityLogRepository;
@@ -18,6 +17,7 @@ use Query\Domain\Model\Firm\Program\Participant\Evaluation;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvoice;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
@@ -30,6 +30,7 @@ use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
+use SharedContext\Domain\ValueObject\ParticipantStatus;
 
 class Participant extends EntityContainEvents
 {
@@ -47,22 +48,22 @@ class Participant extends EntityContainEvents
     protected $id;
 
     /**
-     *
-     * @var DateTimeImmutable
+     * 
+     * @var ParticipantStatus
      */
-    protected $enrolledTime;
+    protected $status;
 
     /**
-     *
-     * @var bool
+     * 
+     * @var int|null
      */
-    protected $active = true;
+    protected $programPrice;
 
     /**
-     *
-     * @var string||null
+     * 
+     * @var ParticipantInvoice|null
      */
-    protected $note;
+    protected $participantInvoice;
 
     /**
      *
@@ -104,19 +105,19 @@ class Participant extends EntityContainEvents
         return $this->id;
     }
 
-    public function getEnrolledTimeString(): string
+    public function getStatus(): string
     {
-        return $this->enrolledTime->format('Y-m-d H:i:s');
+        return $this->status->getValueName();
     }
 
-    public function isActive(): bool
+    public function getProgramPrice(): ?int
     {
-        return $this->active;
+        return $this->programPrice;
     }
 
-    public function getNote(): ?string
+    public function getParticipantInvoice(): ?ParticipantInvoice
     {
-        return $this->note;
+        return $this->participantInvoice;
     }
 
     public function getClientParticipant(): ?ClientParticipant
@@ -271,62 +272,62 @@ class Participant extends EntityContainEvents
         return $missionCommentRepository->allMissionCommentsBelongsInMission(
                         $this->program->getId(), $missionId, $page, $pageSize);
     }
-    
+
     public function viewAllMentors(MentorRepository $mentorRepository, int $page, int $pageSize)
     {
         $this->assertActive();
         return $mentorRepository->allMentorsAccessibleToParticipant($this->id, $page, $pageSize);
     }
-    
+
     public function viewMentor(MentorRepository $mentorRepository, string $mentorId): Consultant
     {
         $this->assertActive();
         return $mentorRepository->aMentorInProgram($this->program->getId(), $mentorId);
     }
-    
+
     public function getListOfClientPlusTeamName(): array
     {
         if (!empty($this->userParticipant)) {
             return [$this->userParticipant->getUserName()];
-        } elseif (!empty ($this->clientParticipant)) {
+        } elseif (!empty($this->clientParticipant)) {
             return [$this->clientParticipant->getClientName()];
-        } elseif (!empty ($this->teamParticipant)) {
+        } elseif (!empty($this->teamParticipant)) {
             return $this->teamParticipant->getListOfActiveMemberPlusTeamName();
         }
     }
-    
+
     public function correspondWithClient(Client $client): bool
     {
         if (!empty($this->clientParticipant)) {
             return $this->clientParticipant->clientEquals($client);
-        } elseif (!empty ($this->teamParticipant)) {
+        } elseif (!empty($this->teamParticipant)) {
             return $this->teamParticipant->hasActiveMemberCorrespondWithClient($client);
         } else {
             return false;
         }
     }
-    
+
     public function getTeamName(): ?string
     {
         return isset($this->teamParticipant) ? $this->teamParticipant->getTeamName() : null;
     }
-    
+
     public function executeTask(ITaskExecutableByParticipant $task): void
     {
         $this->assertActive();
         $task->execute($this->id);
     }
-    
+
     public function getProgramName(): string
     {
         return $this->program->getName();
     }
-    
+
     public function getProgramId(): string
     {
         return $this->program->getId();
     }
-    
+
     public function getListOfIndividualParticipantNameOrMemberNameOfTeamParticipantWithinInspection(
             InspectedClientList $inspectedclientList): iterable
     {

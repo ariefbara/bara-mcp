@@ -5,6 +5,7 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityManager;
 use PDO;
 use Query\Application\Service\Firm\Program\ParticipantSummaryRepository;
+use SharedContext\Domain\ValueObject\ParticipantStatus;
 
 class DoctrineParticipantSummaryRepository implements ParticipantSummaryRepository
 {
@@ -14,7 +15,7 @@ class DoctrineParticipantSummaryRepository implements ParticipantSummaryReposito
      * @var EntityManager
      */
     protected $em;
-
+    
     public function __construct(EntityManager $em)
     {
         $this->em = $em;
@@ -34,6 +35,7 @@ class DoctrineParticipantSummaryRepository implements ParticipantSummaryReposito
             $params['participantName'] = "%$searchByParticipantName%";
         }
         
+        $activeParticipantStatus = ParticipantStatus::ACTIVE;
         $statement = <<<_STATEMENT
 SELECT 
     _b.participantId participantId, 
@@ -76,7 +78,7 @@ LEFT JOIN (
         GROUP BY Participant_id
     )__b ON __b.Participant_id = Participant.id
     LEFT JOIN Mission ON Mission.id = __a.Mission_id
-    WHERE Participant.active = true
+    WHERE Participant.status = {$activeParticipantStatus}
 )_b ON _b.programId = _a.programId
 LEFT JOIN (
     SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
@@ -114,6 +116,7 @@ _STATEMENT;
             $params['participantName'] = "%$searchByParticipantName%";
         }
         
+        $activeParticipantStatus = ParticipantStatus::ACTIVE;
         $statement = <<<_STATEMENT
 SELECT COUNT(_a.participantId) total
 FROM (
@@ -135,7 +138,7 @@ FROM (
             LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
     )_e ON _e.participantId = Participant.id
     WHERE Participant.Program_id = :programId
-        AND Participant.active = true
+        AND Participant.status = {$activeParticipantStatus}
     GROUP BY Participant.id
     $searchByParticipantNameClause
 )_a
@@ -151,7 +154,8 @@ _STATEMENT;
         string $firmId, string $programId, int $page, int $pageSize, string $orderType = "DESC"): array
     {
         $offset = $pageSize * ($page - 1);
-
+        
+        $activeParticipantStatus = ParticipantStatus::ACTIVE;
         $statement = <<<_STATEMENT
 SELECT 
     Participant.id participantId, 
@@ -204,7 +208,7 @@ LEFT JOIN (
 )_d ON _d.participantId = Participant.id
 WHERE Program.Firm_id = :firmId
     AND Program.id = :programId
-    AND Participant.active= true
+    AND Participant.status= {$activeParticipantStatus}
 ORDER BY achievement {$orderType}
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
@@ -223,6 +227,7 @@ _STATEMENT;
     {
         $offset = $pageSize * ($page - 1);
 
+        $activeParticipantStatus = ParticipantStatus::ACTIVE;
         $statement = <<<_STATEMENT
 SELECT _a.participantId, 
     COALESCE(_d.userName, _e.clientName, _f.teamName) participantName,
@@ -231,7 +236,7 @@ SELECT _a.participantId,
     DATE_ADD(DATE(_a.enrolledTime), INTERVAL _b.days_interval DAY) scheduledEvaluation,
     _c.extendDays
 FROM (
-    SELECT __a.Program_id, __a.id participantId, __a.active, __a.enrolledTime, MIN(__b.days_interval) days_interval
+    SELECT __a.Program_id, __a.id participantId, __a.status, __a.enrolledTime, MIN(__b.days_interval) days_interval
     FROM Participant __a
     CROSS JOIN EvaluationPlan __b ON __b.Program_id = __a.Program_id
     LEFT JOIN Evaluation __c ON __c.Participant_id = __a.id AND __c.EvaluationPlan_id = __b.id
@@ -258,7 +263,7 @@ LEFT JOIN (
 LEFT JOIN Program _g ON _g.id = _a.Program_id
 WHERE _g.Firm_id = :firmId
     AND _g.id = :programId
-    AND _a.active= true
+    AND _a.status = {$activeParticipantStatus}
     AND _b.disabled = false
 ORDER BY scheduledEvaluation ASC
 LIMIT {$offset}, {$pageSize}

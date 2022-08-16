@@ -2,9 +2,9 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program;
 
-use DateTime;
 use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
+use SharedContext\Domain\ValueObject\ParticipantStatus;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Record;
 use Tests\Controllers\RecordPreparation\RecordOfFirm;
@@ -16,16 +16,17 @@ class RecordOfParticipant implements Record
      * @var RecordOfProgram
      */
     public $program;
-    public $id, $enrolledTime, $active = true, $note = null;
+    public $id;
+    public $status;
+    public $programPrice;
 
     function __construct(?RecordOfProgram $program, $index)
     {
         $firm = new RecordOfFirm($index);
         $this->program = isset($program)? $program: new RecordOfProgram($firm, $index);
         $this->id = "participant-$index-id";
-        $this->enrolledTime = (new DateTime())->format('Y-m-d H:i:s');
-        $this->active = true;
-        $this->note = null;
+        $this->status = ParticipantStatus::REGISTERED;
+        $this->programPrice = null;
     }
 
     public function toArrayForDbEntry()
@@ -33,9 +34,8 @@ class RecordOfParticipant implements Record
         return [
             "Program_id" => $this->program->id,
             "id" => $this->id,
-            "enrolledTime" => $this->enrolledTime,
-            "active" => $this->active,
-            "note" => $this->note,
+            "status" => $this->status,
+            "programPrice" => $this->programPrice,
         ];
     }
     

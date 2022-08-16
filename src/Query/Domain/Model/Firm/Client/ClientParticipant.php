@@ -17,6 +17,7 @@ use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvoice;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\Program\MentorRepository;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
@@ -65,22 +66,22 @@ class ClientParticipant implements ContainEvents
         return $this->participant->getProgram();
     }
 
-    public function getEnrolledTimeString(): string
+    public function getStatus(): string
     {
-        return $this->participant->getEnrolledTimeString();
+        return $this->participant->getStatus();
     }
 
-    public function isActive(): bool
+    public function getProgramPrice(): ?int
     {
-        return $this->participant->isActive();
-    }
-
-    public function getNote(): ?string
-    {
-        return $this->participant->getNote();
+        return $this->participant->getProgramPrice();
     }
     
-    public function getMetricAssignment():?MetricAssignment
+    public function getParticipantInvoice(): ?ParticipantInvoice
+    {
+        return $this->participant->getParticipantInvoice();
+    }
+
+    public function getMetricAssignment(): ?MetricAssignment
     {
         return $this->participant->getMetricAssignment();
     }
@@ -94,85 +95,92 @@ class ClientParticipant implements ContainEvents
     {
         return $this->participant->pullRecordedEvents();
     }
-    
+
     public function viewSummary(DataFinder $dataFinder): array
     {
         return $this->participant->viewSummary($dataFinder);
     }
-    
+
     public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
     {
         return $this->participant->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
     }
+
     public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
     {
         return $this->participant->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
     }
-    
+
     public function viewObjectiveProgressReport(ObjectiveProgressReportFinder $finder, string $objectiveProgressReportId): ObjectiveProgressReport
     {
         return $this->participant->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
     }
+
     public function viewAllObjectiveProgressReportsInObjective(
             ObjectiveProgressReportFinder $finder, string $objectiveId, int $page, int $pageSize)
     {
         return $this->participant->viewAllObjectiveProgressReportsInObjective($finder, $objectiveId, $page, $pageSize);
     }
-    
+
     public function viewSelfActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
     {
         return $this->participant->viewSelfActivityLogs($activityLogRepository, $page, $pageSize);
     }
+
     public function viewSharedActivityLogs(ActivityLogRepository $activityLogRepository, int $page, int $pageSize)
     {
         return $this->participant->viewSharedActivityLogs($activityLogRepository, $page, $pageSize);
     }
-    
+
     public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
     {
         return $this->participant->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
     }
+
     public function viewAllDedicatedMentors(
             DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
     {
-        return $this->participant->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
+        return $this->participant->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize,
+                        $cancelledStatus);
     }
-    
+
     public function viewMissionComment(
             MissionCommentRepository $missionCommentRepository, string $missionCommentId): MissionComment
     {
         return $this->participant->viewMissionComment($missionCommentRepository, $missionCommentId);
     }
+
     public function viewAllMissionComments(
             MissionCommentRepository $missionCommentRepository, string $missionId, int $page, int $pageSize)
     {
         return $this->participant->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
     }
-    
+
     public function viewAllMentors(MentorRepository $mentorRepository, int $page, int $pageSize)
     {
         return $this->participant->viewAllMentors($mentorRepository, $page, $pageSize);
     }
+
     public function viewMentor(MentorRepository $mentorRepository, string $mentorId): Consultant
     {
         return $this->participant->viewMentor($mentorRepository, $mentorId);
     }
-    
+
     public function clientEquals(Client $client): bool
     {
         return $this->client === $client;
     }
-    
+
     public function getClientName(): string
     {
         return $this->client->getFullName();
     }
-    
+
     public function executeTask(ITaskExecutableByParticipant $task): void
     {
         $this->participant->executeTask($task);
     }
-    
+
     public function executeTaskInProgram(ITaskInProgramExecutableByParticipant $task): void
     {
         $this->participant->executeTaskInProgram($task);

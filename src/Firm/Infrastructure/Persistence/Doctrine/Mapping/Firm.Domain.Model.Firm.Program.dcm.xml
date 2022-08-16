@@ -50,20 +50,6 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
-        <one-to-many  field="participants" 
-                      target-entity="Firm\Domain\Model\Firm\Program\Participant"
-                      mapped-by="program" 
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-many>
-        
-        <one-to-many  field="registrants" 
-                      target-entity="Firm\Domain\Model\Firm\Program\Registrant"
-                      mapped-by="program" 
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-many>
-        
         <one-to-many  field="assignedProfileForms" 
                       target-entity="Firm\Domain\Model\Firm\Program\ProgramsProfileForm"
                       mapped-by="program" 

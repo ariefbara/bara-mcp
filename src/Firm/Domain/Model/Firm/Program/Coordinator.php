@@ -234,4 +234,12 @@ class Coordinator implements CanAttendMeeting, AssetBelongsToFirm
         }
     }
     
+    public function executeProgramTask(TaskInProgramExecutableByCoordinator $task, $payload): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('only active coordinator can make this request');
+        }
+        $task->execute($this->program, $payload);
+    }
+    
 }

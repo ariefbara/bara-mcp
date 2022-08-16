@@ -4,11 +4,12 @@ namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\NoResultException;
 use Firm\Application\Service\Client\ProgramParticipant\ClientParticipantRepository;
-use Firm\Domain\Model\Firm\Program\ClientParticipant;
+use Firm\Domain\Model\Firm\Client\ClientParticipant;
+use Firm\Domain\Task\Dependency\Firm\Client\ClientParticipantRepository as ClientParticipantRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineClientParticipantRepository extends DoctrineEntityRepository implements ClientParticipantRepository
+class DoctrineClientParticipantRepository extends DoctrineEntityRepository implements ClientParticipantRepository, ClientParticipantRepository2
 {
     
     public function aClientParticipantCorrespondWithProgram(string $firmId, string $clientId, string $programId): ClientParticipant
@@ -63,6 +64,11 @@ class DoctrineClientParticipantRepository extends DoctrineEntityRepository imple
             $errorDetail = "not found: program participant not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function add(ClientParticipant $clientParticipant): void
+    {
+        $this->persist($clientParticipant);
     }
 
 }

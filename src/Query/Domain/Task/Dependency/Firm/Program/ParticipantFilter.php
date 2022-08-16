@@ -28,6 +28,7 @@ class ParticipantFilter
      * @var array|null
      */
     protected $programIdList;
+    protected $participantStatuses = [];
 
     public function getPage(): int
     {
@@ -49,6 +50,11 @@ class ParticipantFilter
         return $this->programIdList;
     }
 
+    public function getParticipantStatuses()
+    {
+        return $this->participantStatuses;
+    }
+
     public function __construct(int $page, int $pageSize)
     {
         $this->page = $page;
@@ -65,6 +71,11 @@ class ParticipantFilter
     {
         $this->programIdList = $programIdList;
         return $this;
+    }
+
+    public function addParticipantStatusFilter(int $participantStatus)
+    {
+        $this->participantStatuses[] = $participantStatus;
     }
 
 }

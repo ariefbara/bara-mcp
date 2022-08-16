@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
+use Config\EventList;
 use Firm\Application\Service\Coordinator\EvaluateParticipant;
+use Firm\Application\Service\Coordinator\ExecuteProgramTask;
 use Firm\Application\Service\Coordinator\QualifyParticipant;
 use Firm\Application\Service\Firm\Program\Participant\AssignMetrics;
 use Firm\Domain\Model\Firm\Program\Coordinator;
@@ -11,6 +13,12 @@ use Firm\Domain\Model\Firm\Program\Metric;
 use Firm\Domain\Model\Firm\Program\Participant as Participant2;
 use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
+use Firm\Domain\Task\InProgram\AcceptRegisteredParticipant;
+use Firm\Domain\Task\InProgram\RejectRegisteredParticipant;
+use Payment\Application\Listener\GenerateClientParticipantInvoice;
+use Payment\Application\Listener\GenerateTeamParticipantInvoice;
+use Payment\Domain\Model\Firm\Client\ClientParticipant as ClientParticipant2;
+use Payment\Domain\Model\Firm\Team\TeamParticipant;
 use Query\Application\Service\Firm\Program\ViewParticipant;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
@@ -22,9 +30,60 @@ use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmen
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Resources\Application\Event\AdvanceDispatcher;
+use Resources\Infrastructure\Persistence\Doctrine\DoctrineTransactionalSession;
+use SharedContext\Infrastructure\Xendit\XenditPaymentGateway;
 
 class ParticipantController extends AsProgramCoordinatorBaseController
 {
+    
+    protected function buildGenerateClientParticipantInvoiceListener()
+    {
+        $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
+        $paymentGateway = new XenditPaymentGateway();
+        return new GenerateClientParticipantInvoice($clientParticipantRepository, $paymentGateway);
+    }
+    protected function buildGenerateTeamParticipantInvoiceListener()
+    {
+        $teamParticipantRepository = $this->em->getRepository(TeamParticipant::class);
+        $paymentGateway = new XenditPaymentGateway();
+        return new GenerateTeamParticipantInvoice($teamParticipantRepository, $paymentGateway);
+    }
+    
+    public function acceptRegisteredParticipant($programId, $participantId)
+    {
+        
+        $transactionalSession = new DoctrineTransactionalSession($this->em);
+        $transactionalSession->executeAtomically(function () use ($programId, $participantId) {
+            $dispatcher = new AdvanceDispatcher();
+
+            $dispatcher->addPostponedListener(EventList::SETTLEMENT_REQUIRED, $this->buildGenerateClientParticipantInvoiceListener());
+            $dispatcher->addPostponedListener(EventList::SETTLEMENT_REQUIRED, $this->buildGenerateTeamParticipantInvoiceListener());
+            
+            $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+            $service = new ExecuteProgramTask($coordinatorRepository);
+
+            $participantRepository = $this->em->getRepository(Participant2::class);
+            $task = new AcceptRegisteredParticipant($participantRepository, $dispatcher);
+            $service->execute($this->firmId(), $this->personnelId(), $programId, $task, $participantId);
+            
+            $dispatcher->finalize();
+        });
+        
+        return $this->show($programId, $participantId);
+    }
+    
+    public function rejectRegisteredParticipant($programId, $participantId)
+    {
+        $coordinatorRepository = $this->em->getRepository(Coordinator::class);
+        $service = new ExecuteProgramTask($coordinatorRepository);
+
+        $participantRepository = $this->em->getRepository(Participant2::class);
+        $task = new RejectRegisteredParticipant($participantRepository);
+        $service->execute($this->firmId(), $this->personnelId(), $programId, $task, $participantId);
+        
+        return $this->show($programId, $participantId);
+    }
 
     public function evaluate($programId, $participantId)
     {
@@ -72,12 +131,11 @@ class ParticipantController extends AsProgramCoordinatorBaseController
         $this->authorizedUserIsProgramCoordinator($programId);
 
         $service = $this->buildViewService();
-        $activeStatus = $this->filterBooleanOfQueryRequest("activeStatus");
-        $note = $this->stripTagQueryRequest("note");
+        $status = $this->request->query('status') ?? null;
         $searchByName = $this->stripTagQueryRequest('searchByName');
 
         $participants = $service->showAll(
-                $this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $activeStatus, $note, $searchByName);
+                $this->firmId(), $programId, $this->getPage(), $this->getPageSize(), $status, $searchByName);
 
         $result = [];
         $result["total"] = count($participants);
@@ -100,9 +158,8 @@ class ParticipantController extends AsProgramCoordinatorBaseController
     {
         return [
             "id" => $participant->getId(),
-            "enrolledTime" => $participant->getEnrolledTimeString(),
-            "active" => $participant->isActive(),
-            "note" => $participant->getNote(),
+            "status" => $participant->getStatus(),
+            "programPriceSnapshot" => $participant->getProgramPrice(),
             "client" => $this->arrayDataOfClient($participant->getClientParticipant()),
             "user" => $this->arrayDataOfUser($participant->getUserParticipant()),
             "team" => $this->arrayDataOfTeam($participant->getTeamParticipant()),

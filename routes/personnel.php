@@ -26,6 +26,7 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/consultation-sessions', ['uses' => "ConsultationSessionController@showAll"]);
     $router->get('/metric-assignment-reports', ['uses' => "MetricAssignmentReportController@showAll"]);
     $router->get('/registrants', ['uses' => "RegistrantController@showAll"]);
+    $router->get('/participants', ['uses' => "ParticipantController@showAll"]);
     $router->get('/activity-invitations', ['uses' => "ActivityInvitationController@showAll"]);
     
     $router->put('/dedicated-mentors/{dedicatedMentorId}/evaluation-reports/{evaluationPlanId}', ['uses' => "MentorEvaluationReportController@submit"]);
@@ -104,6 +105,8 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->group(['prefix' => '/participants'], function () use($router) {
             $controller = "ParticipantController";
             $router->put("/{participantId}/assign-metric", ["uses" => "$controller@assignMetric"]);
+            $router->patch("/{participantId}/accept-registered-participant", ["uses" => "$controller@acceptRegisteredParticipant"]);
+            $router->patch("/{participantId}/reject-registered-participant", ["uses" => "$controller@rejectRegisteredParticipant"]);
             $router->patch("/{participantId}/evaluate", ["uses" => "$controller@evaluate"]);
             $router->patch("/{participantId}/qualify", ["uses" => "$controller@qualify"]);
             $router->get("", ["uses" => "$controller@showAll"]);

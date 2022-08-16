@@ -12,30 +12,8 @@
         </many-to-one>
         
         <id name="id" type="guid" />
-        <field name="enrolledTime" type="datetime_immutable" nullable="false"/>
-        <field name="active" type="boolean" />
-        <field name="note" type="string" length="256" nullable="true"/>
-        
-        <one-to-one field="clientParticipant" 
-                    target-entity="Firm\Domain\Model\Firm\Program\ClientParticipant"
-                    mapped-by="participant"
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-one>
-        
-        <one-to-one field="userParticipant" 
-                    target-entity="Firm\Domain\Model\Firm\Program\UserParticipant"
-                    mapped-by="participant"
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-one>
-        
-        <one-to-one field="teamParticipant" 
-                    target-entity="Firm\Domain\Model\Firm\Program\TeamParticipant"
-                    mapped-by="participant"
-        >
-            <cascade><cascade-persist /></cascade>
-        </one-to-one>
+        <embedded name="status" class="SharedContext\Domain\ValueObject\ParticipantStatus" use-column-prefix="false" />
+        <field name="programPrice" type="integer" nullable="true"/>
         
         <one-to-one  field="metricAssignment" 
                       target-entity="Firm\Domain\Model\Firm\Program\Participant\MetricAssignment"

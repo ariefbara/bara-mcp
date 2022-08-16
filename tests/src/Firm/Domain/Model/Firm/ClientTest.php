@@ -5,10 +5,12 @@ namespace Firm\Domain\Model\Firm;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
-use Firm\Domain\Model\Firm\Program\ClientParticipant;
+use Firm\Domain\Model\Firm\Client\ClientParticipant;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\ValueObject\PersonName;
 use Tests\TestBase;
@@ -23,7 +25,7 @@ class ClientTest extends TestBase
             $password = 'newpassword123';
 
     protected $mission, $missionComment, $missionCommentId = 'missionCommentId', $missionCommentData;
-    protected $program;
+    protected $clientParticipantId = 'clientParticipantId', $program;
     //
     protected $participant, $participantId = 'participant-id';
 
@@ -49,7 +51,7 @@ class ClientTest extends TestBase
         
         $this->program = $this->buildMockOfClass(Program::class);
         //
-        $this->participant = $this->buildMockOfClass(Program\Participant::class);
+        $this->participant = $this->buildMockOfClass(Participant::class);
     }
     
     protected function getClientRegistrationData()
@@ -162,90 +164,53 @@ class ClientTest extends TestBase
         $this->executeReplyMissionComment();
     }
     
-    protected function addIntoProgram()
+    protected function addAsProgramApplicant()
     {
-        return $this->client->addIntoProgram($this->program);
+        return $this->client->addAsProgramApplicant($this->clientParticipantId, $this->program);
     }
-    public function test_addIntoProgram_addClientParticipantToCollection()
-    {
-        $this->addIntoProgram();
-        $this->assertEquals(2, $this->client->clientParticipants->count());
-        $this->assertInstanceOf(ClientParticipant::class, $this->client->clientParticipants->last());
-    }
-    public function test_addIntoProgram_alreadyParticipateInSameProgram_enableCurrentParticipation()
-    {
-        $this->clientParticipant->expects($this->once())
-                ->method('correspondWithProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->clientParticipant->expects($this->once())
-                ->method('enable');
-        $this->addIntoProgram();
-    }
-    public function test_addIntoProgram_alreadyParticipateInSameProgram_preventAddNewClient()
-    {
-        $this->clientParticipant->expects($this->once())
-                ->method('correspondWithProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->addIntoProgram();
-        $this->assertEquals(1, $this->client->clientParticipants->count());
-    }
-    public function test_addIntoProgram_returnClientParticipantId()
-    {
-        $this->clientParticipant->expects($this->once())
-                ->method('correspondWithProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->clientParticipant->expects($this->once())
-                ->method('getId')
-                ->willReturn($clientParticipantId = 'clientParticipantId');
-        $this->assertSame($clientParticipantId, $this->addIntoProgram());
-    }
-    public function test_addIntoProgram_assertProgramCanAcceptClientType()
+    public function test_addAsProgramApplicant_returnClientParticipant()
     {
         $this->program->expects($this->once())
-                ->method('assertCanAcceptParticipantOfType')
-                ->with('client');
-        $this->addIntoProgram();
+                ->method('receiveApplication')
+                ->with($this->clientParticipantId, ParticipantTypes::CLIENT_TYPE)
+                ->willReturn($participant = $this->buildMockOfClass(Participant::class));
+        
+        $clientParticipant = new ClientParticipant($this->client, $this->clientParticipantId, $participant);
+        $this->assertEquals($clientParticipant, $this->addAsProgramApplicant());
+    }
+    public function test_addAsProgramApplicant_clientIsActiveParticipantOrRegistrantOfSameProgram_forbidden()
+    {
+        $this->clientParticipant->expects($this->once())
+                ->method('isActiveParticipantOrRegistrantOfProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->addAsProgramApplicant();
+        }, 'Forbidden', 'unable to process program application, reason: already active registrant or participant of same program');
     }
     
-    protected function assertBelongsInFirm()
+    protected function addAsActiveProgramParticipant()
     {
-        $this->client->assertBelongsInFirm($this->firm);
+        return $this->client->addAsActiveProgramParticipant($this->clientParticipantId, $this->program);
     }
-    public function test_assertBelongsInFirm_sameFirm_void()
+    public function test_addAsActiveProgramParticipant_returnClientParticipant()
     {
-        $this->assertBelongsInFirm();
-        $this->markAsSuccess();
+        $this->program->expects($this->once())
+                ->method('createActiveParticipant')
+                ->with($this->clientParticipantId, 'client')
+                ->willReturn($this->participant);
+        $clientParticipant = new ClientParticipant($this->client, $this->clientParticipantId, $this->participant);
+        $this->assertEquals($clientParticipant, $this->addAsActiveProgramParticipant());
     }
-    public function test_assertBelongsInFirm_differentFirm_forbidden()
+    public function test_addAsActiveProgramParticipant_clientIsActiveParticipantOrRegistrantOfSameProgram_forbidden()
     {
-        $this->client->firm = $this->buildMockOfClass(Firm::class);
-        $this->assertRegularExceptionThrowed(function(){
-            $this->assertBelongsInFirm();
-        }, 'Forbidden', 'client is from different firm');
-    }
-    
-    protected function getClientCustomerInfo()
-    {
-        return $this->client->getClientCustomerInfo();
-    }
-    public function test_getClientCustomerInfo_returnCustomerInfo()
-    {
-        $customerInfo = new \SharedContext\Domain\ValueObject\CustomerInfo($this->fullName, $this->client->email);
-        $this->assertEquals($customerInfo, $this->getClientCustomerInfo());
-    }
-    
-    //
-    protected function addProgramParticipation()
-    {
-        $this->client->addProgramParticipation($this->participantId, $this->participant);
-    }
-    public function test_addProgramParticipant_addClientParticipant()
-    {
-        $this->addProgramParticipation();
-        $this->assertEquals(2, $this->client->clientParticipants->count());
+        $this->clientParticipant->expects($this->once())
+                ->method('isActiveParticipantOrRegistrantOfProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->addAsActiveProgramParticipant();
+        }, 'Forbidden', 'unable to add as active participant, already active registrant or participant of same program');
     }
 }
 

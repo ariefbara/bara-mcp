@@ -3,13 +3,9 @@
 namespace Client\Domain\Model;
 
 use Client\Domain\DependencyModel\Firm\BioForm;
-use Client\Domain\DependencyModel\Firm\Program;
-use Client\Domain\DependencyModel\Firm\Program\Registrant;
 use Client\Domain\Event\ClientHasAppliedToProgram;
 use Client\Domain\Model\Client\ClientBio;
 use Client\Domain\Model\Client\ClientFileInfo;
-use Client\Domain\Model\Client\ClientParticipant;
-use Client\Domain\Model\Client\ClientRegistrant;
 use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -112,18 +108,6 @@ class Client extends EntityContainEvents
      * @var ArrayCollection
      */
     protected $clientBios;
-
-    /**
-     * 
-     * @var ArrayCollection
-     */
-    protected $clientRegistrants;
-
-    /**
-     * 
-     * @var ArrayCollection
-     */
-    protected $clientParticipants;
 
     protected function setEmail(string $email): void
     {
@@ -297,7 +281,7 @@ class Client extends EntityContainEvents
 //            throw RegularException::forbidden($errorDetail);
 //        }
 //    }
-    
+
     public function executeTask(IClientTask $task, $payload): void
     {
         if (!$this->activated) {
@@ -306,34 +290,39 @@ class Client extends EntityContainEvents
         $task->execute($this, $payload);
     }
 
-    public function applyToProgram(Program $program): void
+    public function applyToProgram(string $programId): void
     {
-        $registrationFilter = function (ClientRegistrant $clientRegistrant) use ($program) {
-            return $clientRegistrant->isActiveRegistrationCorrespondWithProgram($program);
-        };
-        if (!empty($this->clientRegistrants->filter($registrationFilter)->count())) {
-            throw RegularException::forbidden('you have active registration to this program');
-        }
-        
-        $participationFilter = function(ClientParticipant $clientParticipant) use ($program) {
-            return $clientParticipant->isActiveParticipationCorrespondWithProgram($program);
-        };
-        if (!empty($this->clientParticipants->filter($participationFilter)->count())) {
-            throw RegularException::forbidden('you are participating in this program');
-        }
-        
-        $event = new ClientHasAppliedToProgram($this->id, $program->getId());
+        $event = new ClientHasAppliedToProgram($this->firmId, $this->id, $programId);
         $this->recordEvent($event);
     }
 
-    public function createClientRegistrant(string $clientRegistrantId, Registrant $registrant): ClientRegistrant
-    {
-        return new ClientRegistrant($this, $clientRegistrantId, $registrant);
-    }
-
-    public function createClientParticipant(string $clientParticipantId, Program\Participant $participant): ClientParticipant
-    {
-        return new ClientParticipant($this, $clientParticipantId, $participant);
-    }
-
+//    public function applyToProgram(Program $program): void
+//    {
+//        $registrationFilter = function (ClientRegistrant $clientRegistrant) use ($program) {
+//            return $clientRegistrant->isActiveRegistrationCorrespondWithProgram($program);
+//        };
+//        if (!empty($this->clientRegistrants->filter($registrationFilter)->count())) {
+//            throw RegularException::forbidden('you have active registration to this program');
+//        }
+//        
+//        $participationFilter = function(ClientParticipant $clientParticipant) use ($program) {
+//            return $clientParticipant->isActiveParticipationCorrespondWithProgram($program);
+//        };
+//        if (!empty($this->clientParticipants->filter($participationFilter)->count())) {
+//            throw RegularException::forbidden('you are participating in this program');
+//        }
+//        
+//        $event = new ClientHasAppliedToProgram($this->id, $program->getId());
+//        $this->recordEvent($event);
+//    }
+//
+//    public function createClientRegistrant(string $clientRegistrantId, Registrant $registrant): ClientRegistrant
+//    {
+//        return new ClientRegistrant($this, $clientRegistrantId, $registrant);
+//    }
+//
+//    public function createClientParticipant(string $clientParticipantId, Program\Participant $participant): ClientParticipant
+//    {
+//        return new ClientParticipant($this, $clientParticipantId, $participant);
+//    }
 }

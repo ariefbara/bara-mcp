@@ -42,13 +42,6 @@ class InvoiceTest extends TestBase
         $this->settle();
         $this->assertTrue($this->invoice->settled);
     }
-    public function test_settle_alreadySettled_forbidden()
-    {
-        $this->invoice->settled = true;
-        $this->assertRegularExceptionThrowed(function(){
-            $this->settle();
-        }, 'Forbidden', 'invoice already settled');
-    }
 }
 
 class TestableInvoice extends Invoice

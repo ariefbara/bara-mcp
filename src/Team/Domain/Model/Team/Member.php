@@ -3,15 +3,12 @@
 namespace Team\Domain\Model\Team;
 
 use DateTimeImmutable;
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Exception\RegularException
-};
+use Resources\DateTimeImmutableBuilder;
+use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
-use Team\Domain\ {
-    DependencyModel\Firm\Client,
-    Model\Team
-};
+use Team\Domain\DependencyModel\Firm\Client;
+use Team\Domain\Model\Team;
+use Team\Domain\Task\TeamTask;
 
 class Member
 {
@@ -128,7 +125,7 @@ class Member
     {
         return $this->client === $client;
     }
-    
+
     public function uploadFile(string $teamFileInfoId, FileInfoData $fileInfoData): TeamFileInfo
     {
         if (!$this->active) {
@@ -136,6 +133,12 @@ class Member
             throw RegularException::forbidden($errorDetail);
         }
         return new TeamFileInfo($this->team, $teamFileInfoId, $fileInfoData);
+    }
+
+    public function executeTeamTask(TeamTask $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this->team, $payload);
     }
 
 }

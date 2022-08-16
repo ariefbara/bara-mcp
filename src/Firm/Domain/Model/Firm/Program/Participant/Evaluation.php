@@ -61,7 +61,7 @@ class Evaluation
         $this->evaluationResult = new EvaluationResult($evaluationData->getStatus(), $evaluationData->getExtendDays());
         $this->submitTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         if ($this->evaluationResult->isFail()) {
-            $this->participant->disable();
+            $this->participant->fail();
         }
     }
     

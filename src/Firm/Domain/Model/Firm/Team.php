@@ -6,10 +6,9 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Firm\Domain\Model\Firm;
-use Firm\Domain\Model\Firm\Program\Participant;
-use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team\Member;
 use Firm\Domain\Model\Firm\Team\MemberData;
+use Firm\Domain\Model\Firm\Team\TeamParticipant;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
@@ -122,29 +121,37 @@ class Team
         $member->disable();
     }
     
-    public function addToProgram(Program $program): string
-    {
-        $program->assertCanAcceptParticipantOfType('team');
-        $p = function(TeamParticipant $teamParticipant) use($program) {
-            return $teamParticipant->correspondWithProgram($program);
-        };
-        $teamParticipant = $this->teamParticipants->filter($p)->first();
-        if (!empty($teamParticipant)) {
-            $teamParticipant->enable();
-        } else {
-            $id = Uuid::generateUuid4();
-            $participant = new Participant($program, $id);
-            $teamParticipant = new TeamParticipant($participant, $id, $this);
-            $this->teamParticipants->add($teamParticipant);
-        }
-        return $teamParticipant->getId();
-    }
-    
     public function assertUsableInFirm(Firm $firm): void
     {
         if ($this->firm !== $firm) {
             throw RegularException::forbidden('forbidden: unable to use team from different firm');
         }
+    }
+    
+    public function addAsProgramApplicant(string $teamParticipantId, Program $program): TeamParticipant
+    {
+        $p = function (TeamParticipant $teamParticipant) use ($program) {
+            return $teamParticipant->isActiveParticipantOrRegistrantOfProgram($program);
+        };
+        if (!$this->teamParticipants->filter($p)->isEmpty()) {
+            throw RegularException::forbidden('unable to apply, already active registrant or participant of same program');
+        }
+        
+        $participant = $program->receiveApplication($teamParticipantId, 'team');
+        return new TeamParticipant($this, $teamParticipantId, $participant);
+    }
+    
+    public function addAsActiveProgramParticipant(string $teamParticipantId, Program $program): TeamParticipant
+    {
+        $p = function (TeamParticipant $teamParticipant) use ($program) {
+            return $teamParticipant->isActiveParticipantOrRegistrantOfProgram($program);
+        };
+        if (!$this->teamParticipants->filter($p)->isEmpty()) {
+            throw RegularException::forbidden('unable to add as active participant, already active registrant or participant of same program');
+        }
+        
+        $participant = $program->createActiveParticipant($teamParticipantId, 'team');
+        return new TeamParticipant($this, $teamParticipantId, $participant);
     }
 
 }

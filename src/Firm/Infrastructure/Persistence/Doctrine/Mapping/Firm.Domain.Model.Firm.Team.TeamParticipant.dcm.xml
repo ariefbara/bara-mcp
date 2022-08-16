@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Firm\Domain\Model\Firm\Team\TeamParticipant" 
+            table="TeamParticipant"
+            repository-class="Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineTeamParticipantRepository"
+    >
+        
+        <many-to-one  field="team" 
+                      target-entity="Firm\Domain\Model\Firm\Team"
+                      inversed-by="teamParticipants"
+        >
+            <join-column name="Team_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="participant" 
+                    target-entity="Firm\Domain\Model\Firm\Program\Participant"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

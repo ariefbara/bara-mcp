@@ -16,6 +16,7 @@ use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantInvoice;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
@@ -62,7 +63,7 @@ class TeamProgramParticipation implements ContainEvents
     {
         
     }
-    
+
     public function teamEquals(Team $team): bool
     {
         return $this->team === $team;
@@ -73,21 +74,21 @@ class TeamProgramParticipation implements ContainEvents
         return $this->programParticipation->getProgram();
     }
 
-    public function getEnrolledTimeString(): string
+    public function getStatus(): string
     {
-        return $this->programParticipation->getEnrolledTimeString();
+        return $this->programParticipation->getStatus();
     }
 
-    public function isActive(): bool
+    public function getProgramPrice(): ?int
     {
-        return $this->programParticipation->isActive();
-    }
-
-    public function getNote(): ?string
-    {
-        return $this->programParticipation->getNote();
+        return $this->programParticipation->getProgramPrice();
     }
     
+    public function getParticipantInvoice(): ?ParticipantInvoice
+    {
+        return $this->programParticipation->getParticipantInvoice();
+    }
+
     public function getMetricAssignment(): ?MetricAssignment
     {
         return $this->programParticipation->getMetricAssignment();
@@ -124,83 +125,89 @@ class TeamProgramParticipation implements ContainEvents
     {
         return $this->programParticipation->pullRecordedEvents();
     }
-    
+
     public function viewSummary(DataFinder $dataFinder): array
     {
         return $this->programParticipation->viewSummary($dataFinder);
     }
-    
+
     public function viewOKRPeriod(OKRPeriodRepository $okrPeriodRepository, string $okrPeriodId): OKRPeriod
     {
         return $this->programParticipation->viewOKRPeriod($okrPeriodRepository, $okrPeriodId);
     }
+
     public function viewAllOKRPeriod(OKRPeriodRepository $okrPeriodRepository, int $page, int $pageSize)
     {
         return $this->programParticipation->viewAllOKRPeriod($okrPeriodRepository, $page, $pageSize);
     }
-    
+
     public function viewObjectiveProgressReport(ObjectiveProgressReportFinder $finder, string $objectiveProgressReportId): ObjectiveProgressReport
     {
         return $this->programParticipation->viewObjectiveProgressReport($finder, $objectiveProgressReportId);
     }
+
     public function viewAllObjectiveProgressReportsInObjective(
             ObjectiveProgressReportFinder $finder, string $objectivevId, int $page, int $pageSize)
     {
         return $this->programParticipation->viewAllObjectiveProgressReportsInObjective(
-                $finder, $objectivevId, $page, $pageSize);
+                        $finder, $objectivevId, $page, $pageSize);
     }
-    
+
     public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
     {
         return $this->programParticipation->viewDedicatedMentor($dedicatedMentorRepository, $dedicatedMentorId);
     }
+
     public function viewAllDedicatedMentors(
             DedicatedMentorRepository $dedicatedMentorRepository, int $page, int $pageSize, ?bool $cancelledStatus)
     {
         return $this->programParticipation
-                ->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
+                        ->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
     }
-    
+
     public function viewMissionComment(
             MissionCommentRepository $missionCommentRepository, string $missionCommentId): MissionComment
     {
         return $this->programParticipation->viewMissionComment($missionCommentRepository, $missionCommentId);
     }
+
     public function viewAllMissionComments(
             MissionCommentRepository $missionCommentRepository, string $missionId, int $page, int $pageSize)
     {
-        return $this->programParticipation->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
+        return $this->programParticipation->viewAllMissionComments($missionCommentRepository, $missionId, $page,
+                        $pageSize);
     }
-    
+
     public function viewAllMentors(MentorRepository $mentorRepository, int $page, int $pageSize)
     {
         return $this->programParticipation->viewAllMentors($mentorRepository, $page, $pageSize);
     }
+
     public function viewMentor(MentorRepository $mentorRepository, string $mentorId): Consultant
     {
         return $this->programParticipation->viewMentor($mentorRepository, $mentorId);
     }
-    
+
     public function hasActiveMemberCorrespondWithClient(Client $client): bool
     {
         return $this->team->hasActiveMemberCorrespondWithClient($client);
     }
-    
+
     public function getListOfActiveMemberPlusTeamName(): array
     {
         return $this->team->getListOfActiveMemberPlusTeamName();
     }
-    
+
     public function getTeamName(): string
     {
         return $this->team->getName();
     }
-    
+
     public function executeTask(ITaskExecutableByParticipant $task): void
     {
         $this->programParticipation->executeTask($task);
     }
-    
+
     public function getMemberNameListCorrespondWithinInspection(InspectedClientList $inspectedClientList): iterable
     {
         return $this->team->getListOfActiveMemberWithinInspection($inspectedClientList);
@@ -210,4 +217,5 @@ class TeamProgramParticipation implements ContainEvents
     {
         $this->programParticipation->executeTaskInProgram($task);
     }
+
 }

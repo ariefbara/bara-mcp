@@ -4,6 +4,7 @@ namespace Tests\Controllers\Personnel\AsProgramCoordinator;
 
 use DateTime;
 use DateTimeImmutable;
+use SharedContext\Domain\ValueObject\ParticipantStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\ConsultationSession\RecordOfConsultantFeedback;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue;
@@ -115,10 +116,13 @@ class ParticipantSummaryControllerTest extends AsProgramCoordinatorTestCase
         $firm = $program->firm;
         
         $this->participant_client = new RecordOfParticipant($program, 0);
+        $this->participant_client->status = ParticipantStatus::ACTIVE;
         $this->participantOne_team = new RecordOfParticipant($program, 1);
+        $this->participantOne_team->status = ParticipantStatus::ACTIVE;
         $this->participantTwo_clientinactive = new RecordOfParticipant($program, 2);
-        $this->participantTwo_clientinactive->active = false;
+        $this->participantTwo_clientinactive->status = ParticipantStatus::REJECTED;
         $this->participantThree_user = new RecordOfParticipant($program, 3);
+        $this->participantThree_user->status = ParticipantStatus::ACTIVE;
         $this->connection->table("Participant")->insert($this->participant_client->toArrayForDbEntry());
         $this->connection->table("Participant")->insert($this->participantOne_team->toArrayForDbEntry());
         $this->connection->table("Participant")->insert($this->participantTwo_clientinactive->toArrayForDbEntry());

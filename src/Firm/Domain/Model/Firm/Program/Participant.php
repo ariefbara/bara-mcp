@@ -3,9 +3,7 @@
 namespace Firm\Domain\Model\Firm\Program;
 
 use Config\EventList;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
 use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
@@ -15,15 +13,13 @@ use Firm\Domain\Model\Firm\Program\Participant\EvaluationData;
 use Firm\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Firm\Domain\Model\Firm\Program\Participant\ParticipantAttendee;
 use Firm\Domain\Model\Firm\Program\Participant\ParticipantProfile;
-use Firm\Domain\Model\Firm\Team;
-use Firm\Domain\Model\User;
 use Firm\Domain\Service\MetricAssignmentDataProvider;
-use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\ValueObject\ParticipantStatus;
 
 class Participant extends EntityContainEvents implements AssetInProgram, CanAttendMeeting
 {
@@ -41,40 +37,16 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
     protected $id;
 
     /**
-     *
-     * @var DateTimeImmutable
+     * 
+     * @var ParticipantStatus
      */
-    protected $enrolledTime;
-
+    protected $status;
+    
     /**
-     *
-     * @var bool
+     * 
+     * @var int|null
      */
-    protected $active = true;
-
-    /**
-     *
-     * @var string||null
-     */
-    protected $note;
-
-    /**
-     *
-     * @var UserParticipant|null
-     */
-    protected $clientParticipant;
-
-    /**
-     *
-     * @var UserParticipant|null
-     */
-    protected $userParticipant;
-
-    /**
-     *
-     * @var TeamParticipant|null
-     */
-    protected $teamParticipant;
+    protected $programPrice;
 
     /**
      *
@@ -128,24 +100,45 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
         return $this->active;
     }
 
-    public function __construct(Program $program, string $id)
+    public function __construct(Program $program, string $id, bool $programAutoAccept, ?int $programPrice)
     {
         $this->program = $program;
         $this->id = $id;
-        $this->enrolledTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
-        $this->active = true;
-        $this->note = null;
+        $this->programPrice = $programPrice;
+        $this->status = new ParticipantStatus($programAutoAccept, $programPrice);
 
-        $this->profiles = new ArrayCollection();
-        
-        $event = new CommonEvent(EventList::PROGRAM_PARTICIPATION_ACCEPTED, $this->id);
+        $event = new CommonEvent(EventList::PROGRAM_APPLICATION_RECEIVED, $this->id);
         $this->recordEvent($event);
+        
+        if ($this->status->statusEquals(ParticipantStatus::SETTLEMENT_REQUIRED)) {
+            $settlementRequiredEvent = New CommonEvent(EventList::SETTLEMENT_REQUIRED, $this->id);
+            $this->recordEvent($settlementRequiredEvent);
+        }
+    }
+    
+    public function acceptRegistrant(): void
+    {
+        $this->status = $this->status->acceptRegistrant($this->programPrice);
+        if ($this->status->statusEquals(ParticipantStatus::SETTLEMENT_REQUIRED)) {
+            $event = new CommonEvent(EventList::SETTLEMENT_REQUIRED, $this->id);
+            $this->recordEvent($event);
+        }
+    }
+    
+    public function rejectRegistrant(): void
+    {
+        $this->status = $this->status->rejectRegistrant();
+    }
+    
+    public function qualify(): void
+    {
+        $this->status = $this->status->qualify();
     }
 
     public function assertActive(): void
     {
-        if (!$this->active) {
-            throw RegularException::forbidden('forbidden: inactive partiicpant');
+        if (!$this->status->statusEquals(ParticipantStatus::ACTIVE)) {
+            throw RegularException::forbidden('inactive participant');
         }
     }
 
@@ -161,34 +154,10 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
         return $this->program === $program;
     }
 
-    public static function participantForUser(Program $program, string $id, User $user): self
-    {
-        $participant = new static($program, $id);
-        $participant->userParticipant = new UserParticipant($participant, $id, $user);
-        return $participant;
-    }
-
-    public static function participantForClient(Program $program, string $id, Client $client): self
-    {
-        $participant = new static($program, $id);
-        $participant->clientParticipant = new ClientParticipant($participant, $id, $client);
-        return $participant;
-    }
-
-    public static function participantForTeam(Program $program, string $id, Team $team): self
-    {
-        $participant = new static($program, $id);
-        $participant->teamParticipant = new TeamParticipant($participant, $id, $team);
-        return $participant;
-    }
-
     public function receiveEvaluation(
             EvaluationPlan $evaluationPlan, EvaluationData $evaluationData, Coordinator $coordinator): void
     {
-        if (!$this->active) {
-            $errorDetail = "forbidden: unable to evaluate inactive participant";
-            throw RegularException::forbidden($errorDetail);
-        }
+        $this->assertActive();
         $p = function (Evaluation $evaluation) use ($evaluationPlan) {
             return $evaluation->isCompletedEvaluationForPlan($evaluationPlan);
         };
@@ -200,60 +169,12 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
         $evaluation = new Evaluation($this, $id, $evaluationPlan, $evaluationData, $coordinator);
         $this->evaluations->add($evaluation);
     }
-
-    public function qualify(): void
+    
+    public function fail(): void
     {
-        if (!$this->active) {
-            $errorDetail = "forbidden: unable to qualify inactive participant";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $this->active = false;
-        $this->note = "completed";
+        $this->status = $this->status->fail();
     }
-
-    public function disable(): void
-    {
-        if (!$this->active) {
-            $errorDetail = "forbidden: unable to disable inactive participant";
-            throw RegularException::forbidden($errorDetail);
-        }
-        $this->active = false;
-        $this->note = "fail";
-
-        foreach ($this->consultationSessions->getIterator() as $consultationSession) {
-            $consultationSession->disableUpcomingSession();
-        }
-        foreach ($this->consultationRequests->getIterator() as $consultationRequest) {
-            $consultationRequest->disableUpcomingRequest();
-        }
-        foreach ($this->meetingInvitations->getIterator() as $meetingInvitation) {
-            $meetingInvitation->disableValidInvitation();
-        }
-    }
-
-    public function reenroll(): void
-    {
-        if ($this->active) {
-            $errorDetail = 'forbidden: already active participant';
-            throw RegularException::forbidden($errorDetail);
-        }
-        $this->active = true;
-        $this->note = null;
-    }
-
-    public function correspondWithRegistrant(Registrant $registrant): bool
-    {
-        if (isset($this->clientParticipant)) {
-            return $this->clientParticipant->correspondWithRegistrant($registrant);
-        }
-        if (isset($this->userParticipant)) {
-            return $this->userParticipant->correspondWithRegistrant($registrant);
-        }
-        if (isset($this->teamParticipant)) {
-            return $this->teamParticipant->correspondWithRegistrant($registrant);
-        }
-    }
-
+    
     public function assignMetrics(MetricAssignmentDataProvider $metricAssignmentDataProvider): void
     {
         if (!empty($this->metricAssignment)) {
@@ -267,11 +188,6 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
     public function belongsInTheSameProgramAs(Metric $metric): bool
     {
         return $metric->belongsToProgram($this->program);
-    }
-
-    public function belongsToTeam(Team $team): bool
-    {
-        return isset($this->teamParticipant) ? $this->teamParticipant->belongsToTeam($team) : false;
     }
 
     public function addProfile(ProgramsProfileForm $programsProfileForm, FormRecord $formRecord): void
@@ -296,26 +212,26 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
         }
         return $dedicatedMentor->getId();
     }
-    
+
     public function initiateMeeting(string $meetingId, ActivityType $activityType, MeetingData $meetingData): Meeting
     {
         $this->assertActive();
         $activityType->assertUsableInProgram($this->program);
-        
+
         $meeting = $activityType->createMeeting($meetingId, $meetingData);
-        
+
         $id = Uuid::generateUuid4();
         $participantAttendee = new ParticipantAttendee($this, $id, $meeting, true);
         $this->meetingInvitations->add($participantAttendee);
-        
+
         return $meeting;
     }
-    
+
     public function inviteToMeeting(Meeting $meeting): void
     {
         $this->assertActive();
         $meeting->assertUsableInProgram($this->program);
-        
+
         $p = function (ParticipantAttendee $participantAttendee) use ($meeting) {
             return $participantAttendee->isActiveAttendeeOfMeeting($meeting);
         };
@@ -325,10 +241,22 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
             $this->meetingInvitations->add($participantAttendee);
         }
     }
-    
+
     public function correspondWithProgram(Program $program): bool
     {
         return $this->program === $program;
     }
-
+    
+    public function isActiveParticipantOrRegistrantOfProgram(Program $program): bool
+    {
+        return $this->status->isActiveRegistrantOrParticipant() && $this->program === $program;
+    }
+    
+    public function assertManageableInProgram(Program $program): void
+    {
+        if ($this->program !== $program) {
+            throw RegularException::forbidden('unmanaged participant');
+        }
+    }
+    
 }

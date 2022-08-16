@@ -3,8 +3,9 @@
 namespace Firm\Application\Listener;
 
 use Client\Domain\Event\ClientHasAppliedToProgram;
-use Firm\Application\Service\Firm\Program\ExecuteTask;
-use Firm\Domain\Task\InProgram\ReceiveApplicationFromClient;
+use Firm\Application\Service\FirmRepository;
+use Firm\Domain\Task\InFirm\AcceptProgramApplicationFromClient;
+use Firm\Domain\Task\InFirm\AcceptProgramApplicationFromClientPayload;
 use Resources\Application\Event\Event;
 use Resources\Application\Event\Listener;
 
@@ -13,19 +14,19 @@ class ListeningToProgramRegistrationFromClient implements Listener
 
     /**
      * 
-     * @var ExecuteTask
+     * @var FirmRepository
      */
-    protected $service;
+    protected $firmRepository;
 
     /**
      * 
-     * @var ReceiveApplicationFromClient
+     * @var AcceptProgramApplicationFromClient
      */
     protected $task;
 
-    public function __construct(ExecuteTask $service, ReceiveApplicationFromClient $task)
+    public function __construct(FirmRepository $firmRepository, AcceptProgramApplicationFromClient $task)
     {
-        $this->service = $service;
+        $this->firmRepository = $firmRepository;
         $this->task = $task;
     }
 
@@ -36,7 +37,10 @@ class ListeningToProgramRegistrationFromClient implements Listener
 
     protected function execute(ClientHasAppliedToProgram $event): void
     {
-        $this->service->execute($event->getProgramId(), $this->task, $event->getClientId());
+        $firm = $this->firmRepository->ofId($event->getFirmId());
+        $payload = new AcceptProgramApplicationFromClientPayload($event->getProgramId(), $event->getClientId());
+        $this->task->execute($firm, $payload);
+        $this->firmRepository->update();
     }
 
 }

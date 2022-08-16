@@ -5,11 +5,12 @@ namespace Firm\Domain\Model\Firm;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
-use Firm\Domain\Model\Firm\Program\ClientParticipant;
+use Firm\Domain\Model\Firm\Client\ClientParticipant;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
@@ -17,9 +18,8 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
-use SharedContext\Domain\ValueObject\CustomerInfo;
 
-class Client implements IProgramApplicant
+class Client
 {
 
     /**
@@ -75,18 +75,12 @@ class Client implements IProgramApplicant
      * @var DateTimeImmutable|null
      */
     protected $activationCodeExpiredTime;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $clientParticipants;
-    
-    /**
-     * 
-     * @var ArrayCollection
-     */
-    protected $clientRegistrants;
 
     protected function setEmail(string $email): void
     {
@@ -116,7 +110,7 @@ class Client implements IProgramApplicant
             throw RegularException::forbidden('forbidden: can only manage client in same firm');
         }
     }
-    
+
     public function assertUsableInFirm(Firm $firm): void
     {
         if (!$this->activated) {
@@ -147,46 +141,49 @@ class Client implements IProgramApplicant
         return $missionComment->receiveReply(
                         $replyId, $missionCommentData, $this->id, $this->personName->getFullName());
     }
-    
-    public function addIntoProgram(Program $program): string
+
+//    public function addIntoProgram(Program $program): string
+//    {
+//        $program->assertCanAcceptParticipantOfType('client');
+//        $p = function (ClientParticipant $clientParticipant) use ($program) {
+//            return $clientParticipant->correspondWithProgram($program);
+//        };
+//        $clientParticipant = $this->clientParticipants->filter($p)->first();
+//        if (!empty($clientParticipant)) {
+//            $clientParticipant->enable();
+//        } else {
+//            $id = Uuid::generateUuid4();
+//            $participant = new Participant($program, $id);
+//            $clientParticipant = new ClientParticipant($participant, $id, $this);
+//            $this->clientParticipants->add($clientParticipant);
+//        }
+//        return $clientParticipant->getId();
+//    }
+
+    public function addAsProgramApplicant(string $clientParticipantId, Program $program): ClientParticipant
     {
-        $program->assertCanAcceptParticipantOfType('client');
-        $p = function(ClientParticipant $clientParticipant) use($program) {
-            return $clientParticipant->correspondWithProgram($program);
+        $p = function (ClientParticipant $clientParticipant) use ($program) {
+            return $clientParticipant->isActiveParticipantOrRegistrantOfProgram($program);
         };
-        $clientParticipant = $this->clientParticipants->filter($p)->first();
-        if (!empty($clientParticipant)) {
-            $clientParticipant->enable();
-        } else {
-            $id = Uuid::generateUuid4();
-            $participant = new Participant($program, $id);
-            $clientParticipant = new ClientParticipant($participant, $id, $this);
-            $this->clientParticipants->add($clientParticipant);
+        if(!$this->clientParticipants->filter($p)->isEmpty()) {
+            throw RegularException::forbidden('unable to process program application, reason: already active registrant or participant of same program');
         }
-        return $clientParticipant->getId();
-    }
-
-    public function assertBelongsInFirm(Firm $firm): void
-    {
-        if ($this->firm !== $firm) {
-            throw RegularException::forbidden('client is from different firm');
-        }
-    }
-
-    public function getUserType(): string
-    {
-        return 'client';
+        
+        $participant = $program->receiveApplication($clientParticipantId, ParticipantTypes::CLIENT_TYPE);
+        return new ClientParticipant($this, $clientParticipantId, $participant);
     }
     
-    public function getClientCustomerInfo(): CustomerInfo
+    public function addAsActiveProgramParticipant(string $clientParticipantId, Program $program): ClientParticipant
     {
-        return new CustomerInfo($this->personName->getFullName(), $this->email);
-    }
-
-    public function addProgramParticipation(string $participantId, Program\Participant $participant): void
-    {
-        $clientParticipant = new ClientParticipant($participant, $participantId, $this);
-        $this->clientParticipants->add($clientParticipant);
+        $p = function (ClientParticipant $clientParticipant) use ($program) {
+            return $clientParticipant->isActiveParticipantOrRegistrantOfProgram($program);
+        };
+        if(!$this->clientParticipants->filter($p)->isEmpty()) {
+            throw RegularException::forbidden('unable to add as active participant, already active registrant or participant of same program');
+        }
+        
+        $participant = $program->createActiveParticipant($clientParticipantId, 'client');
+        return new ClientParticipant($this, $clientParticipantId, $participant);
     }
 
 }

@@ -2,7 +2,6 @@
 
 namespace Firm\Domain\Model\Firm;
 
-use Config\EventList;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Firm\Application\Service\Manager\ManageableByFirm;
@@ -20,20 +19,15 @@ use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\Participant;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
-use Firm\Domain\Model\Firm\Program\Registrant;
-use Firm\Domain\Model\Firm\Program\RegistrationPhase;
 use Firm\Domain\Model\Firm\Program\Sponsor;
 use Firm\Domain\Model\Firm\Program\SponsorData;
 use Firm\Domain\Service\ActivityTypeDataProvider;
 use Query\Domain\Model\Firm\ParticipantTypes;
-use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
-use SharedContext\Domain\ValueObject\ItemInfo;
-use SharedContext\Domain\ValueObject\ProgramSnapshot;
 use SharedContext\Domain\ValueObject\ProgramType;
 
 class Program extends EntityContainEvents implements AssetBelongsToFirm, ManageableByFirm
@@ -122,18 +116,6 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
      * @var ArrayCollection
      */
     protected $consultants;
-
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $participants;
-
-    /**
-     *
-     * @var ArrayCollection
-     */
-    protected $registrants;
 
     /**
      * 
@@ -258,23 +240,6 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         return $coordinator->getId();
     }
 
-    public function acceptRegistrant(string $registrantId): void
-    {
-        $registrant = $this->findRegistrantOrDie($registrantId);
-        $registrant->accept();
-
-        if (!empty($participant = $this->findParticipantCorrespondToRegistrant($registrant))) {
-            $participant->reenroll();
-        } else {
-            $participantId = Uuid::generateUuid4();
-            $participant = $registrant->createParticipant($participantId);
-            $this->participants->add($participant);
-        }
-
-        $event = new CommonEvent(EventList::REGISTRANT_ACCEPTED, $participant->getId());
-        $this->recordEvent($event);
-    }
-
     public function addMetric(string $metricId, MetricData $metricData): Metric
     {
         return new Metric($this, $metricId, $metricData);
@@ -285,27 +250,6 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
             ?Mission $mission): EvaluationPlan
     {
         return new EvaluationPlan($this, $evaluationPlanId, $evaluationPlanData, $reportForm, $mission);
-    }
-
-    protected function findRegistrantOrDie(string $registrantId): Registrant
-    {
-        $criteria = Criteria::create()
-                ->andWhere(Criteria::expr()->eq('id', $registrantId));
-        $registrant = $this->registrants->matching($criteria)->first();
-        if (empty($registrant)) {
-            $errorDetail = 'not found: registrant not found';
-            throw RegularException::notFound($errorDetail);
-        }
-        return $registrant;
-    }
-
-    protected function findParticipantCorrespondToRegistrant(Registrant $registrant): ?Participant
-    {
-        $p = function (Participant $participant) use ($registrant) {
-            return $participant->correspondWithRegistrant($registrant);
-        };
-        $participant = $this->participants->filter($p)->first();
-        return empty($participant) ? null : $participant;
     }
 
     public function createActivityType(string $activityTypeId, ActivityTypeDataProvider $activityTypeDataProvider): ActivityType
@@ -358,13 +302,6 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $firmFileInfo->assertUsableInFirm($this->firm);
     }
 
-    public function assertCanAcceptParticipantOfType(string $type): void
-    {
-        if (!$this->participantTypes->hasType($type)) {
-            throw RegularException::forbidden("forbidden: {$type} in not accomodate in this program");
-        }
-    }
-
     public function assertUsableInFirm(Firm $firm): void
     {
         if (!$this->published) {
@@ -385,6 +322,13 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         }
     }
 
+    protected function assertPublished(): void
+    {
+        if (!$this->published) {
+            throw RegularException::forbidden('program not published yet');
+        }
+    }
+
     public function executeTask(IProgramTask $task, $payload): void
     {
         if ($this->removed) {
@@ -393,39 +337,22 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $task->execute($this, $payload);
     }
 
-    public function receiveApplication(IProgramApplicant $applicant): void
+    public function receiveApplication(string $participantId, string $applicantType): Participant
     {
-        if (!$this->published) {
-            throw RegularException::forbidden('unpublished program unable to accept application');
+        $this->assertPublished();
+        if (!$this->participantTypes->hasType($applicantType)) {
+            throw RegularException::forbidden('applicant type not supported');
         }
-        $p = function (RegistrationPhase $registrationPhase) {
-            return $registrationPhase->isOpen();
-        };
-        if (empty($this->registrationPhases->filter($p)->count())) {
-            throw RegularException::forbidden('no open registration phase');
-        }
-        if (!$this->participantTypes->hasType($applicant->getUserType())) {
-            throw RegularException::forbidden("applicant of type {$applicant->getUserType()} is unsupported");
-        }
-        $applicant->assertBelongsInFirm($this->firm);
-        $id = Uuid::generateUuid4();
-        if ($this->autoAccept && empty($this->price)) {
-            $participant = new Participant($this, $id);
-            $this->participants->add($participant);
-            $this->aggregateEventsFromBranch($participant);
-        } else {
-            $registrant = new Registrant($this, new ProgramSnapshot($this->name, $this->price, $this->autoAccept), $id);
-            $this->registrants->add($registrant);
-            $this->aggregateEventsFromBranch($registrant);
-        }
+        return new Participant($this, $participantId, $this->autoAccept, $this->price);
     }
-    
-    public function addApplicantAsParticipant(IProgramApplicant $applicant): void
+
+    public function createActiveParticipant(string $participantId, string $participantType): Participant
     {
-        $id = Uuid::generateUuid4();
-        $participant = new Participant($this, $id);
-        $this->participants->add($participant);
-        $applicant->addProgramParticipation($id, $participant);
+        $this->assertPublished();
+        if (!$this->participantTypes->hasType($participantType)) {
+            throw RegularException::forbidden('participant type not supported');
+        }
+        return new Participant($this, $participantId, $programAutoAccept = true, $programPrice = null);
     }
 
 }

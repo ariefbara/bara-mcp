@@ -6,7 +6,6 @@ use Client\Domain\DependencyModel\Firm\BioForm;
 use Client\Domain\Model\Client;
 use Client\Domain\Model\Client\ClientBio;
 use Client\Domain\Model\Client\ClientFileInfo;
-use Client\Domain\Model\Client\ClientParticipant;
 use Client\Domain\Model\ClientData;
 use Client\Domain\Model\IClientTask;
 use Config\EventList;
@@ -44,12 +43,7 @@ class ClientTest extends TestBase
     //
     protected $task, $payload = 'random string represent task payload';
     //
-    protected $program, $programId = 'program-id';
-    protected $clientParticipant;
-    protected $clientRegistrant;
-    //
-    protected $clientRegistrantId = 'client-registrant-id', $registrant;
-    protected $clientParticipantId = 'client-participant-id', $participant;
+    protected $programId = 'program-id';
 
     protected function setUp(): void
     {
@@ -58,7 +52,8 @@ class ClientTest extends TestBase
         $this->firm->expects($this->any())->method('getId')->willReturn($this->firmId);
         
         $clientData = new ClientData('firstname', 'lastname', 'client@email.org', 'password12312');
-        $this->client = new TestableClient($this->firm, 'id', $clientData);        
+        $this->client = new TestableClient($this->firm, 'id', $clientData);    
+        $this->client->recordedEvents = [];
         $this->client->password = $this->buildMockOfClass(Password::class);
         
         $this->client->activationCode = bin2hex(random_bytes(32));
@@ -92,16 +87,16 @@ class ClientTest extends TestBase
         
         $this->program = $this->buildMockOfClass(\Client\Domain\DependencyModel\Firm\Program::class);
         
-        $this->clientRegistrant = $this->buildMockOfClass(Client\ClientRegistrant::class);
-        $this->client->clientRegistrants = new ArrayCollection();
-        $this->client->clientRegistrants->add($this->clientRegistrant);
-        
-        $this->clientParticipant = $this->buildMockOfClass(Client\ClientParticipant::class);
-        $this->client->clientParticipants = new ArrayCollection();
-        $this->client->clientParticipants->add($this->clientParticipant);
-        //
-        $this->registrant = $this->buildMockOfClass(\Client\Domain\DependencyModel\Firm\Program\Registrant::class);
-        $this->participant = $this->buildMockOfClass(\Client\Domain\DependencyModel\Firm\Program\Participant::class);
+//        $this->clientRegistrant = $this->buildMockOfClass(Client\ClientRegistrant::class);
+//        $this->client->clientRegistrants = new ArrayCollection();
+//        $this->client->clientRegistrants->add($this->clientRegistrant);
+//        
+//        $this->clientParticipant = $this->buildMockOfClass(Client\ClientParticipant::class);
+//        $this->client->clientParticipants = new ArrayCollection();
+//        $this->client->clientParticipants->add($this->clientParticipant);
+//        //
+//        $this->registrant = $this->buildMockOfClass(\Client\Domain\DependencyModel\Firm\Program\Registrant::class);
+//        $this->participant = $this->buildMockOfClass(\Client\Domain\DependencyModel\Firm\Program\Participant::class);
     }
     protected function assertInactiveClientForbiddenError(callable $operation): void
     {
@@ -535,61 +530,72 @@ class ClientTest extends TestBase
         }, 'Forbidden' , 'only active client can make this request');
     }
     
-    //
     protected function applyToProgram()
     {
-        $this->client->recordedEvents = [];
-        $this->program->expects($this->any())
-                ->method('getId')
-                ->willReturn($this->programId);
-        $this->client->applyToProgram($this->program);
+        $this->client->applyToProgram($this->programId);
     }
-    public function test_applyToProgram_recordClientHasAppliedToProgramEvent()
+    public function test_applyToProgram_scenario_expectedResult()
     {
+        $event = new \Client\Domain\Event\ClientHasAppliedToProgram($this->client->firmId, $this->client->id, $this->programId);
         $this->applyToProgram();
-        $event = new \Client\Domain\Event\ClientHasAppliedToProgram($this->client->id, $this->programId);
         $this->assertEquals($event, $this->client->recordedEvents[0]);
     }
-    public function test_applyToProgram_hasActiveRegistrationCorrespondWithSameProgram()
-    {
-        $this->clientRegistrant->expects($this->once())
-                ->method('isActiveRegistrationCorrespondWithProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->assertRegularExceptionThrowed(function() {
-            $this->applyToProgram();
-        }, 'Forbidden', 'you have active registration to this program');
-    }
-    public function test_applyToProgram_hasActiveParticipationCorrespondWithSameProgram()
-    {
-        $this->clientParticipant->expects($this->once())
-                ->method('isActiveParticipationCorrespondWithProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->assertRegularExceptionThrowed(function() {
-            $this->applyToProgram();
-        }, 'Forbidden', 'you are participating in this program');
-    }
     
     //
-    protected function createClientRegistrant()
-    {
-        return $this->client->createClientRegistrant($this->clientRegistrantId, $this->registrant);
-    }
-    public function test_createClientRegistrant_returnClientRegistrant()
-    {
-        $this->assertInstanceOf(Client\ClientRegistrant::class, $this->createClientRegistrant());
-    }
-    
-    //
-    protected function createClientParticipant()
-    {
-        return $this->client->createClientParticipant($this->clientParticipantId, $this->participant);
-    }
-    public function test_createClientParticipant_returnClientParticipant()
-    {
-        $this->assertInstanceOf(ClientParticipant::class, $this->createClientParticipant());
-    }
+//    protected function applyToProgram()
+//    {
+//        $this->client->recordedEvents = [];
+//        $this->program->expects($this->any())
+//                ->method('getId')
+//                ->willReturn($this->programId);
+//        $this->client->applyToProgram($this->program);
+//    }
+//    public function test_applyToProgram_recordClientHasAppliedToProgramEvent()
+//    {
+//        $this->applyToProgram();
+//        $event = new \Client\Domain\Event\ClientHasAppliedToProgram($this->client->id, $this->programId);
+//        $this->assertEquals($event, $this->client->recordedEvents[0]);
+//    }
+//    public function test_applyToProgram_hasActiveRegistrationCorrespondWithSameProgram()
+//    {
+//        $this->clientRegistrant->expects($this->once())
+//                ->method('isActiveRegistrationCorrespondWithProgram')
+//                ->with($this->program)
+//                ->willReturn(true);
+//        $this->assertRegularExceptionThrowed(function() {
+//            $this->applyToProgram();
+//        }, 'Forbidden', 'you have active registration to this program');
+//    }
+//    public function test_applyToProgram_hasActiveParticipationCorrespondWithSameProgram()
+//    {
+//        $this->clientParticipant->expects($this->once())
+//                ->method('isActiveParticipationCorrespondWithProgram')
+//                ->with($this->program)
+//                ->willReturn(true);
+//        $this->assertRegularExceptionThrowed(function() {
+//            $this->applyToProgram();
+//        }, 'Forbidden', 'you are participating in this program');
+//    }
+//    
+//    //
+//    protected function createClientRegistrant()
+//    {
+//        return $this->client->createClientRegistrant($this->clientRegistrantId, $this->registrant);
+//    }
+//    public function test_createClientRegistrant_returnClientRegistrant()
+//    {
+//        $this->assertInstanceOf(Client\ClientRegistrant::class, $this->createClientRegistrant());
+//    }
+//    
+//    //
+//    protected function createClientParticipant()
+//    {
+//        return $this->client->createClientParticipant($this->clientParticipantId, $this->participant);
+//    }
+//    public function test_createClientParticipant_returnClientParticipant()
+//    {
+//        $this->assertInstanceOf(ClientParticipant::class, $this->createClientParticipant());
+//    }
 }
 
 class TestableClient extends Client

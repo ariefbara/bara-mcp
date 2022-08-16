@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Payment\Domain\Model\Firm\Program\Participant\ParticipantInvoice" 
+            table="ParticipantInvoice"
+            repository-class="Payment\Infrastructure\Persistence\Doctrine\Repository\DoctrineParticipantInvoiceRepository"
+    >
+        
+        <one-to-one field="participant" 
+                    target-entity="Payment\Domain\Model\Firm\Program\Participant"
+                    inversed-by="participantInvoice"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        
+        <one-to-one field="invoice" 
+                    target-entity="SharedContext\Domain\Model\Invoice"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Invoice_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Payment\Domain\Model\Firm\Client" 
+            table="Client"
+    >
+        
+        <id name="id" type="guid" />
+        <embedded name="personName" class="Resources\Domain\ValueObject\PersonName" use-column-prefix="false" />
+        <field name="email" type="string" length="255" nullable="false"/>
+        
+    </entity>
+</doctrine-mapping>

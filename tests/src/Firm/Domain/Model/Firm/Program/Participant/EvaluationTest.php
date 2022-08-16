@@ -57,11 +57,11 @@ class EvaluationTest extends TestBase
         $submitTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->assertEquals($submitTime, $evaluation->submitTime);
     }
-    public function test_construct_failResult_disableParticipant()
+    public function test_construct_failResult_failParticipant()
     {
         $this->status = "fail";
         $this->participant->expects($this->once())
-                ->method("disable");
+                ->method("fail");
         $this->executeConstruct();
     }
     
