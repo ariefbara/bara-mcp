@@ -11,6 +11,7 @@ use Query\Domain\Model\Firm\Team\TeamProgramRegistration;
 use Query\Domain\Service\Firm\Team\TeamProgramRegistrationRepository as InterfaceForDomainService;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class DoctrineTeamProgramRegistrationRepository extends EntityRepository implements TeamProgramRegistrationRepository, InterfaceForDomainService,
         InterfaceForAuthorization
@@ -32,9 +33,21 @@ class DoctrineTeamProgramRegistrationRepository extends EntityRepository impleme
                 ->setParameters($params);
 
         if (isset($concludedStatus)) {
+            if($concludedStatus) {
+                $status = [
+                    RegistrationStatus::ACCEPTED,
+                    RegistrationStatus::REJECTED,
+                    RegistrationStatus::CANCELLED,
+                ];
+            } else {
+                $status = [
+                    RegistrationStatus::REGISTERED,
+                    RegistrationStatus::SETTLEMENT_REQUIRED,
+                ];
+            }
             $qb->leftJoin('teamProgramRegistration.programRegistration', 'registrant')
-                ->andWhere($qb->expr()->eq("registrant.concluded", ":concludedStatus"))
-                ->setParameter("concludedStatus", $concludedStatus);
+                    ->andWhere($qb->expr()->in('registrant.status.value', ':concludedStatus'))
+                    ->setParameter('concludedStatus', $status);
         }
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
@@ -167,9 +180,23 @@ class DoctrineTeamProgramRegistrationRepository extends EntityRepository impleme
                 ->setParameters($params);
 
         if (isset($concludedStatus)) {
-            $qb->andWhere($qb->expr()->eq("teamProgramRegistration.concluded", ":concludedStatus"))
-                    ->setParameter("concludedStatus", $concludedStatus);
+            if($concludedStatus) {
+                $status = [
+                    RegistrationStatus::ACCEPTED,
+                    RegistrationStatus::REJECTED,
+                    RegistrationStatus::CANCELLED,
+                ];
+            } else {
+                $status = [
+                    RegistrationStatus::REGISTERED,
+                    RegistrationStatus::SETTLEMENT_REQUIRED,
+                ];
+            }
+            $qb->leftJoin('teamProgramRegistration.programRegistration', 'registrant')
+                    ->andWhere($qb->expr()->in('registrant.status.value', ':concludedStatus'))
+                    ->setParameter('concludedStatus', $status);
         }
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -181,12 +208,17 @@ class DoctrineTeamProgramRegistrationRepository extends EntityRepository impleme
             "programId" => $programId,
         ];
         
+        $unconcludedStatus = [
+            RegistrationStatus::REGISTERED,
+            RegistrationStatus::SETTLEMENT_REQUIRED,
+        ];
         $qb = $this->createQueryBuilder("teamRegistrant");
         $qb->select("1")
                 ->leftJoin("teamRegistrant.team", "team")
                 ->andWhere($qb->expr()->eq("team.id", ":teamId"))
                 ->leftJoin("teamRegistrant.programRegistration", "registrant")
-                ->andWhere($qb->expr()->eq("registrant.concluded", "false"))
+                ->andWhere($qb->expr()->in("registrant.status.value", ":status"))
+                ->setParameter('status', $unconcludedStatus)
                 ->leftJoin("registrant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->leftJoin("program.firm", "firm")

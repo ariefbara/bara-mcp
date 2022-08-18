@@ -10,6 +10,7 @@ use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Registrant;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class DoctrineRegistrantRepository extends EntityRepository implements RegistrantRepository, InterfaceForPersonnel
 {
@@ -29,11 +30,24 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
                 ->andWhere($qb->expr()->eq('firm.id', ":firmId"))
                 ->addOrderBy('registrant.registeredTime', 'ASC')
                 ->setParameters($parameters);
-
+        
         if (isset($concludedStatus)) {
-            $qb->andWhere($qb->expr()->eq("registrant.concluded", ":concludedStatus"))
-                    ->setParameter("concludedStatus", $concludedStatus);
+            if($concludedStatus) {
+                $status = [
+                    RegistrationStatus::ACCEPTED,
+                    RegistrationStatus::REJECTED,
+                    RegistrationStatus::CANCELLED,
+                ];
+            } else {
+                $status = [
+                    RegistrationStatus::REGISTERED,
+                    RegistrationStatus::SETTLEMENT_REQUIRED,
+                ];
+            }
+            $qb->andWhere($qb->expr()->in('registrant.status.value', ':concludedStatus'))
+                    ->setParameter('concludedStatus', $status);
         }
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
@@ -84,10 +98,24 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
                 ->andWhere($qb->expr()->in('program.id', $coordinatorQB->getDQL()))
                 ->addOrderBy('registrant.registeredTime', 'ASC')
                 ->setParameters($parameters);
+        
         if (isset($concludedStatus)) {
-            $qb->andWhere($qb->expr()->eq("registrant.concluded", ":concludedStatus"))
-                    ->setParameter("concludedStatus", $concludedStatus);
+            if($concludedStatus) {
+                $status = [
+                    RegistrationStatus::ACCEPTED,
+                    RegistrationStatus::REJECTED,
+                    RegistrationStatus::CANCELLED,
+                ];
+            } else {
+                $status = [
+                    RegistrationStatus::REGISTERED,
+                    RegistrationStatus::SETTLEMENT_REQUIRED,
+                ];
+            }
+            $qb->andWhere($qb->expr()->in('registrant.status.value', ':concludedStatus'))
+                    ->setParameter('concludedStatus', $status);
         }
+        
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 

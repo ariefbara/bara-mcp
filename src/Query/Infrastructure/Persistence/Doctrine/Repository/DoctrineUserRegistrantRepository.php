@@ -9,6 +9,7 @@ use Query\Application\Service\User\ProgramRegistrationRepository;
 use Query\Domain\Model\User\UserRegistrant;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class DoctrineUserRegistrantRepository extends EntityRepository implements ProgramRegistrationRepository, InterfaceForAuthorization
 {
@@ -59,10 +60,16 @@ class DoctrineUserRegistrantRepository extends EntityRepository implements Progr
             "programId" => $programId,
         ];
         
+        $unconcludedStatus = [
+            RegistrationStatus::REGISTERED,
+            RegistrationStatus::SETTLEMENT_REQUIRED,
+        ];
+        
         $qb = $this->createQueryBuilder("userRegistrant");
         $qb->select("1")
                 ->leftJoin("userRegistrant.registrant", "registrant")
-                ->andWhere($qb->expr()->eq("registrant.concluded", "false"))
+                ->andWhere($qb->expr()->in("registrant.status.value", ":status"))
+                ->setParameter('status', $unconcludedStatus)
                 ->leftJoin("registrant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->leftJoin("program.firm", "firm")

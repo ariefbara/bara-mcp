@@ -28,9 +28,9 @@ class DoctrineClientRegistrantRepository extends EntityRepository implements Pro
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
-        
+
         if (isset($concludedStatus)) {
-            if($concludedStatus) {
+            if ($concludedStatus) {
                 $status = [
                     RegistrationStatus::ACCEPTED,
                     RegistrationStatus::REJECTED,
@@ -83,20 +83,25 @@ class DoctrineClientRegistrantRepository extends EntityRepository implements Pro
             "clientId" => $clientId,
             "programId" => $programId,
         ];
-        
+
+        $unconcludedStatus = [
+            RegistrationStatus::REGISTERED,
+            RegistrationStatus::SETTLEMENT_REQUIRED,
+        ];
         $qb = $this->createQueryBuilder("clientRegistrant");
         $qb->select("1")
                 ->leftJoin("clientRegistrant.client", "client")
                 ->andWhere($qb->expr()->eq("client.id", ":clientId"))
                 ->leftJoin("clientRegistrant.registrant", "registrant")
-                ->andWhere($qb->expr()->eq("registrant.concluded", "false"))
+                ->andWhere($qb->expr()->in("registrant.status.value", ":status"))
+                ->setParameter('status', $unconcludedStatus)
                 ->leftJoin("registrant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         return !empty($qb->getQuery()->getResult());
     }
 
