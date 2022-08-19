@@ -32,8 +32,7 @@ class RegistrantController extends PersonnelBaseController
         return [
             "id" => $registrant->getId(),
             "registeredTime" => $registrant->getRegisteredTimeString(),
-            "note" => $registrant->getNote(),
-            "concluded" => $registrant->isConcluded(),
+            "status" => $registrant->getStatus(),
             "user" => $this->arrayDataOfUser($registrant->getUserRegistrant()),
             "client" => $this->arrayDataOfClient($registrant->getClientRegistrant()),
             "team" => $this->arrayDataOfTeam($registrant->getTeamRegistrant()),
