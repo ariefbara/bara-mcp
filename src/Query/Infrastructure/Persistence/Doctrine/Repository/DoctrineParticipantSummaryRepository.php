@@ -36,65 +36,66 @@ class DoctrineParticipantSummaryRepository implements ParticipantSummaryReposito
         
         $statement = <<<_STATEMENT
 SELECT 
-    _b.participantId participantId, 
+    _a.participantId participantId, 
     COALESCE(_c.userName, _d.clientName, _e.teamName) participantName, 
-    _b.participantRating,
-    _b.totalCompletedMission,
-    _a.totalMission,
-    _b.lastCompletedTime,
-    _b.lastMissionId,
-    _b.lastMissionName
+    _a.participantRating,
+    _a.totalCompletedMission,
+    _b.totalMission,
+    _a.lastCompletedTime,
+    _a.lastMissionId,
+    _a.lastMissionName
 FROM (
-    SELECT COUNT(*) totalMission, Mission.Program_id programId
-    FROM Mission
-    WHERE Mission.Program_id = :programId
-        AND Mission.Published = true
-)_a
-LEFT JOIN (
     SELECT 
         Participant.id participantId , 
-        __a.totalCompletedMission, 
-        __a.lastCompletedTime, 
-        __a.Mission_id lastMissionId, 
-        __b.participantRating,
+        __b.totalCompletedMission, 
+        __b.lastCompletedTime, 
+        __b.Mission_id lastMissionId, 
+        __a.participantRating,
         Mission.name lastMissionName,
         Participant.Program_id programId
     FROM Participant
     LEFT OUTER JOIN (
-        SELECT CM.Participant_id, ___a.totalCompletedMission, ___a.lastCompletedTime, CM.Mission_id
+        SELECT CM.Participant_id, ___b.totalCompletedMission, ___b.lastCompletedTime, CM.Mission_id
         FROM (
             SELECT Participant_id, COUNT(DISTINCT Mission_id) totalCompletedMission, MAX(completedTime) lastCompletedTime
             FROM CompletedMission
             GROUP BY Participant_id
-        )___a
-        LEFT JOIN CompletedMission CM ON CM.completedTime = ___a.lastCompletedTime AND CM.Participant_id = ___a.Participant_id
-    )__a ON __a.Participant_id = Participant.id
+        )___b
+        LEFT JOIN CompletedMission CM ON CM.completedTime = ___b.lastCompletedTime AND CM.Participant_id = ___b.Participant_id
+    )__b ON __b.Participant_id = Participant.id
     LEFT JOIN (
         SELECT ConsultationSession.Participant_id, AVG(ConsultantFeedback.participantRating) participantRating
         FROM ConsultantFeedback
         LEFT JOIN ConsultationSession ON ConsultationSession.id = ConsultantFeedback.ConsultationSession_id
         GROUP BY Participant_id
-    )__b ON __b.Participant_id = Participant.id
-    LEFT JOIN Mission ON Mission.id = __a.Mission_id
+    )__a ON __a.Participant_id = Participant.id
+    LEFT JOIN Mission ON Mission.id = __b.Mission_id
     WHERE Participant.active = true
+        AND Participant.Program_id=  :programId
+)_a
+LEFT JOIN (
+    SELECT COUNT(*) totalMission, Mission.Program_id programId
+    FROM Mission
+    WHERE Mission.Published = true
+    GROUP BY programId
 )_b ON _b.programId = _a.programId
 LEFT JOIN (
     SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
     FROM UserParticipant
         LEFT JOIN User ON User.id = UserParticipant.User_id
-)_c ON _c.participantId = _b.participantId
+)_c ON _c.participantId = _a.participantId
 LEFT JOIN (
     SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
     FROM ClientParticipant
         LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
-)_d ON _d.participantId = _b.participantId
+)_d ON _d.participantId = _a.participantId
 LEFT JOIN (
     SELECT Team.name teamName, TeamParticipant.Participant_id participantId
     FROM TeamParticipant
         LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
-)_e ON _e.participantId = _b.participantId
+)_e ON _e.participantId = _a.participantId
 $searchByParticipantNameClause
-ORDER BY _b.totalCompletedMission DESC
+ORDER BY _a.totalCompletedMission DESC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
         $query = $this->em->getConnection()->prepare($statement);

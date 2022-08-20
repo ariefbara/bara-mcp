@@ -103,10 +103,10 @@ class Registrant extends EntityContainEvents
 
     public function accept(): void
     {
-//        $this->status = $this->status->accept();
-//        $this->assertUnconcluded();
-//        $this->concluded = true;
-//        $this->note = 'accepted';
+        $this->status = $this->status->accept();
+        $this->assertUnconcluded();
+        $this->concluded = true;
+        $this->note = 'accepted';
     }
 
     public function reject(): void
@@ -154,10 +154,14 @@ class Registrant extends EntityContainEvents
 
     protected function assertUnconcluded(): void
     {
-        if ($this->concluded) {
+        if($this->status->isConcluded()) {
             $errorDetail = "forbidden: application already concluded";
             throw RegularException::forbidden($errorDetail);
         }
+//        if ($this->concluded) {
+//            $errorDetail = "forbidden: application already concluded";
+//            throw RegularException::forbidden($errorDetail);
+//        }
     }
     
     public function generateInvoice(PaymentGateway $paymentGateway, CustomerInfo $customerInfo): void

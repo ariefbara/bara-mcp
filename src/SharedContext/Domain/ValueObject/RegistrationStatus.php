@@ -39,5 +39,19 @@ class RegistrationStatus extends BaseEnum
         }
         return new static(self::CANCELLED);
     }
+    
+    public function accept(?int $programPrice): self
+    {
+        if($this->value !== self::REGISTERED){
+            throw RegularException::forbidden('can only accept registered user');
+        }
+        $status = clone $this;
+        $status->value = self::ACCEPTED;
+    }
+    
+    public function reject(): self
+    {
+        
+    }
 
 }
