@@ -5,11 +5,14 @@ namespace Firm\Domain\Model\Firm;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Client\ClientRegistrant;
 use Firm\Domain\Model\Firm\Program\ClientParticipant;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\MissionComment;
 use Firm\Domain\Model\Firm\Program\Mission\MissionCommentData;
 use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\Registrant;
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Domain\ValueObject\Password;
 use Resources\Domain\ValueObject\PersonName;
@@ -183,10 +186,40 @@ class Client implements IProgramApplicant
         return new CustomerInfo($this->personName->getFullName(), $this->email);
     }
 
-    public function addProgramParticipation(string $participantId, Program\Participant $participant): void
+    public function addProgramParticipation(string $participantId, Participant $participant): void
     {
         $clientParticipant = new ClientParticipant($participant, $participantId, $this);
         $this->clientParticipants->add($clientParticipant);
+    }
+
+    public function addProgramRegistration(string $registrantId, Registrant $registrant): void
+    {
+        $clientRegistrant = new ClientRegistrant($this, $registrantId, $registrant);
+        $this->clientRegistrants->add($clientRegistrant);
+    }
+
+    public function assertNoActiveParticipationOrOngoingRegistrationInProgram(Program $program): void
+    {
+        $registrantFilter = function (ClientRegistrant $clientRegistrant) use ($program) {
+            return $clientRegistrant->isUnconcludedRegistrationInProgram($program);
+        };
+        if (!$this->clientRegistrants->filter($registrantFilter)->isEmpty()) {
+            throw RegularException::forbidden('program application refused, client has unconcluded registration in same program');
+        }
+        
+        $participantFilter = function (ClientParticipant $clientParticipant) use ($program) {
+            return $clientParticipant->isActiveParticipantInProgram($program);
+        };
+        if (!$this->clientParticipants->filter($participantFilter)->isEmpty()) {
+            throw RegularException::forbidden('program application refused, client is active participant in same program');
+        }
+    }
+
+    public function assertTypeIncludedIn(ParticipantTypes $participantTypes): void
+    {
+        if (!$participantTypes->hasType(ParticipantTypes::CLIENT_TYPE)) {
+            throw RegularException::forbidden('program application refused, client type is not accomodate in program');
+        }
     }
 
 }

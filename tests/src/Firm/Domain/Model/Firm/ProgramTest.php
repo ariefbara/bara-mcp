@@ -627,56 +627,65 @@ class ProgramTest extends TestBase
                 ->with($this->program->firm);
         $this->receiveApplication();
     }
-    public function test_receiveApplication_applicationTypeNotSupported_forbidden()
+    public function test_receiveApplication_assertApplicantHasNotActiveParticipationOrOngoingRegistrationInProgram()
     {
-        $this->applicant->expects($this->any())
-                ->method('getUserType')
-                ->willReturn('client');
-        $this->participantTypes->expects($this->once())
-                ->method('hasType')
-                ->with('client')
-                ->willReturn(false);
-        $this->assertRegularExceptionThrowed(function(){
-            $this->receiveApplication();
-        }, 'Forbidden', 'applicant of type client is unsupported');
+        $this->applicant->expects($this->once())
+                ->method('assertNoActiveParticipationOrOngoingRegistrationInProgram')
+                ->with($this->program);
+        $this->receiveApplication();
+    }
+    public function test_receiveApplication_assertApplicantIncludedInAllowedParticipantType()
+    {
+        $this->applicant->expects($this->once())
+                ->method('assertTypeIncludedIn')
+                ->with($this->program->participantTypes);
+        $this->receiveApplication();
     }
     public function test_receiveApplication_freeProgramWithAutoAccept_addParticipant()
     {
         $this->program->price = null;
         $this->program->autoAccept = true;
+        
+        $this->applicant->expects($this->once())
+                ->method('addProgramParticipation');
         $this->receiveApplication();
-        $this->assertEquals(2, $this->program->participants->count());
-        $this->assertInstanceOf(Participant::class, $this->program->participants->last());
     }
     public function test_receiveApplication_freeProgramWithAutoAccept_addParticipantToAggregatedBranches()
     {
         $this->program->price = null;
         $this->program->autoAccept = true;
+        
         $this->receiveApplication();
         $this->assertInstanceOf(Participant::class, $this->program->aggregatedEventsFromBranches[0]);
     }
-    public function test_receiveApplication_nonFreeProgramWithAutoAccept_addRegistrant()
+    public function test_receiveApplication_nonFreeAutoAcceptProgram_addRegistrant()
     {
         $this->receiveApplication();
-        $this->assertEquals(2, $this->program->registrants->count());
-        $this->assertInstanceOf(Registrant::class, $this->program->registrants->last());
+        $this->applicant->expects($this->once())
+                ->method('addProgramRegistration');
+        $this->receiveApplication();
     }
-    public function test_receiveApplication_nonFreeProgramWithAutoAccept_preventAddParticipant()
+    public function test_receiveApplication_nonFreeAutoAcceptProgram_preventAddParticipant()
+    {
+        $this->applicant->expects($this->never())
+                ->method('addProgramParticipation');
+        $this->receiveApplication();
+    }
+    public function test_receiveApplication_freeProgramWithAutoAccept_addRegistrantToAggregatedBrancesEvent()
     {
         $this->receiveApplication();
-        $this->assertEquals(1, $this->program->participants->count());
+        $this->assertInstanceOf(Registrant::class, $this->program->aggregatedEventsFromBranches[0]);
     }
     public function test_receiveApplication_freeProgramWithAutoAccept_dontAddRegistrant()
     {
         $this->program->price = null;
         $this->program->autoAccept = true;
         $this->receiveApplication();
-        $this->assertEquals(1, $this->program->registrants->count());
-    }
-    public function test_receiveApplication_freeProgramWithAutoAccept_addRegistrantToAggregatedBrancesEvent()
-    {
+        
+        $this->applicant->expects($this->never())
+                ->method('addProgramRegistration');
+        
         $this->receiveApplication();
-        $this->assertInstanceOf(Registrant::class, $this->program->aggregatedEventsFromBranches[0]);
     }
     
     //

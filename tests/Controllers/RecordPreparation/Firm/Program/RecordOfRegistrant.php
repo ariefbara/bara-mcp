@@ -17,12 +17,14 @@ class RecordOfRegistrant implements Record
      */
     public $program;
     public $id, $registeredTime, $status;
+    public $programName;
     public $programPrice;
     public $programAutoAccept;
 
     function __construct(RecordOfProgram $program, $index)
     {
         $this->program = $program;
+        $this->programName = $this->program->name;
         $this->programPrice = $this->program->price;
         $this->programAutoAccept = $this->program->autoAccept;
         $this->id = "registrant-$index-id";
@@ -34,6 +36,7 @@ class RecordOfRegistrant implements Record
     {
         return [
             "Program_id" => $this->program->id,
+            "program_name" => $this->programName,
             "program_price" => $this->programPrice,
             "program_autoAccept" => $this->programAutoAccept,
             "id" => $this->id,

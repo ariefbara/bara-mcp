@@ -4,18 +4,16 @@ namespace Team\Domain\Model;
 
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Uuid,
-    ValidationRule,
-    ValidationService
-};
-use Team\Domain\ {
-    DependencyModel\Firm\Client,
-    Model\Team\Member
-};
+use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
+use Team\Domain\DependencyModel\Firm\Client;
+use Team\Domain\Event\TeamAppliedToProgram;
+use Team\Domain\Model\Team\Member;
 
-class Team
+class Team extends EntityContainEvents
 {
 
     /**
@@ -96,6 +94,12 @@ class Team
         };
         $member = $this->members->filter($p)->first();
         return empty($member)? null: $member;
+    }
+    
+    public function applyToProgram(string $programId): void
+    {
+        $event = new TeamAppliedToProgram($this->id, $programId);
+        $this->recordEvent($event);
     }
 
 }

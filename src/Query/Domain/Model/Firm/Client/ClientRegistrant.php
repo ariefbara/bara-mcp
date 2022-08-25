@@ -6,6 +6,7 @@ use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program;
 use Query\Domain\Model\Firm\Program\Registrant;
 use Query\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
+use SharedContext\Domain\ValueObject\ProgramSnapshot;
 
 class ClientRegistrant
 {
@@ -61,6 +62,11 @@ class ClientRegistrant
     public function getRegistrantInvoice(): ?RegistrantInvoice
     {
         return $this->registrant->getRegistrantInvoice();
+    }
+    
+    public function getProgramSnapshot(): ProgramSnapshot
+    {
+        return $this->registrant->getProgramSnapshot();
     }
 
 }

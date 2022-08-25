@@ -539,36 +539,13 @@ class ClientTest extends TestBase
     protected function applyToProgram()
     {
         $this->client->recordedEvents = [];
-        $this->program->expects($this->any())
-                ->method('getId')
-                ->willReturn($this->programId);
-        $this->client->applyToProgram($this->program);
+        $this->client->applyToProgram($this->programId);
     }
     public function test_applyToProgram_recordClientHasAppliedToProgramEvent()
     {
         $this->applyToProgram();
         $event = new \Client\Domain\Event\ClientHasAppliedToProgram($this->client->id, $this->programId);
         $this->assertEquals($event, $this->client->recordedEvents[0]);
-    }
-    public function test_applyToProgram_hasActiveRegistrationCorrespondWithSameProgram()
-    {
-        $this->clientRegistrant->expects($this->once())
-                ->method('isActiveRegistrationCorrespondWithProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->assertRegularExceptionThrowed(function() {
-            $this->applyToProgram();
-        }, 'Forbidden', 'you have active registration to this program');
-    }
-    public function test_applyToProgram_hasActiveParticipationCorrespondWithSameProgram()
-    {
-        $this->clientParticipant->expects($this->once())
-                ->method('isActiveParticipationCorrespondWithProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $this->assertRegularExceptionThrowed(function() {
-            $this->applyToProgram();
-        }, 'Forbidden', 'you are participating in this program');
     }
     
     //

@@ -39,11 +39,13 @@ class EventList
     const MEETING_SCHEDULE_CHANGED = "meeting-schedule-changed";
     //
     const CLIENT_HAS_APPLIED_TO_PROGRAM = 'client-has-applied-to-program';
+    const TEAM_APPLIED_TO_PROGRAM = 'team-applied-to-program';
     //
     const PROGRAM_APPLICATION_RECEIVED = 'program-application-received';
     const PROGRAM_REGISTRATION_RECEIVED = 'program-registration-received';
     const PROGRAM_PARTICIPATION_ACCEPTED = 'program-participation-accepted';
     const CLIENT_REGISTRANT_CREATED = 'client-registrant-created';
+    const SETTLEMENT_REQUIRED = 'settlement-required';
     //
     const PAYMENT_RECEIVED = 'payment-received';
     

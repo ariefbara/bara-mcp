@@ -181,21 +181,21 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table("Client")->truncate();
-        $this->connection->table("User")->truncate();
-        $this->connection->table("Personnel")->truncate();
-        $this->connection->table("Team")->truncate();
-        $this->connection->table("T_Member")->truncate();
-        $this->connection->table("Coordinator")->truncate();
-        $this->connection->table("Consultant")->truncate();
-        $this->connection->table("Participant")->truncate();
-        $this->connection->table("ClientParticipant")->truncate();
-        $this->connection->table("UserParticipant")->truncate();
-        $this->connection->table("TeamParticipant")->truncate();
-        $this->connection->table("CoordinatorInvitee")->truncate();
-        $this->connection->table("ConsultantInvitee")->truncate();
-        $this->connection->table("ParticipantInvitee")->truncate();
+//        parent::tearDown();
+//        $this->connection->table("Client")->truncate();
+//        $this->connection->table("User")->truncate();
+//        $this->connection->table("Personnel")->truncate();
+//        $this->connection->table("Team")->truncate();
+//        $this->connection->table("T_Member")->truncate();
+//        $this->connection->table("Coordinator")->truncate();
+//        $this->connection->table("Consultant")->truncate();
+//        $this->connection->table("Participant")->truncate();
+//        $this->connection->table("ClientParticipant")->truncate();
+//        $this->connection->table("UserParticipant")->truncate();
+//        $this->connection->table("TeamParticipant")->truncate();
+//        $this->connection->table("CoordinatorInvitee")->truncate();
+//        $this->connection->table("ConsultantInvitee")->truncate();
+//        $this->connection->table("ParticipantInvitee")->truncate();
     }
     
     public function test_showAll_200()

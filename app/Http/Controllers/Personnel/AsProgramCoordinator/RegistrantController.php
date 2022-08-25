@@ -2,42 +2,76 @@
 
 namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
-use Firm\{
-    Application\Service\Firm\Program\AcceptRegistrant,
-    Application\Service\Firm\Program\RejectRegistrant,
-    Domain\Model\Firm\Program,
-    Domain\Model\Firm\Program\Registrant as Registrant2
-};
-use Query\{
-    Application\Service\Firm\Program\ViewRegistrant,
-    Domain\Model\Firm\Client\ClientRegistrant,
-    Domain\Model\Firm\Program\Registrant,
-    Domain\Model\Firm\Team\TeamProgramRegistration,
-    Domain\Model\User\UserRegistrant
-};
-use Resources\Application\Event\Dispatcher;
+use Config\EventList;
+use Firm\Application\Listener\AddClientParticipant;
+use Firm\Application\Listener\AddTeamParticipant;
+use Firm\Application\Listener\GenerateClientRegistrantInvoice;
+use Firm\Application\Listener\GenerateTeamRegistrantInvoice;
+use Firm\Application\Service\Coordinator\ExecuteProgramTask;
+use Firm\Domain\Model\Firm\Client\ClientRegistrant as ClientRegistrant2;
+use Firm\Domain\Model\Firm\Program;
+use Firm\Domain\Model\Firm\Program\Registrant as Registrant2;
+use Firm\Domain\Model\Firm\Team\TeamRegistrant;
+use Firm\Domain\Task\InProgram\AcceptRegistrant;
+use Firm\Domain\Task\InProgram\RejectRegistrant;
+use Query\Application\Service\Firm\Program\ViewRegistrant;
+use Query\Domain\Model\Firm\Client;
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Registrant;
+use Query\Domain\Model\Firm\Team;
+use Query\Domain\Model\User;
+use Resources\Application\Event\AdvanceDispatcher;
+use Resources\Infrastructure\Persistence\Doctrine\DoctrineTransactionalSession;
+use SharedContext\Infrastructure\Xendit\XenditPaymentGateway;
 
 class RegistrantController extends AsProgramCoordinatorBaseController
 {
 
     public function accept($programId, $registrantId)
     {
-        $this->authorizedUserIsProgramCoordinator($programId);
 
-        $service = $this->buildAcceptService();
-        $service->execute($this->firmId(), $programId, $registrantId);
+        $dispatcher = new AdvanceDispatcher();
 
+        $paymentGateway = new XenditPaymentGateway();
+        
+        $clientRegistrantRepository = $this->em->getRepository(ClientRegistrant2::class);
+        $generateClientRegistrantInvoice = new GenerateClientRegistrantInvoice($clientRegistrantRepository, $paymentGateway);
+        $dispatcher->addPostponedListener(EventList::SETTLEMENT_REQUIRED, $generateClientRegistrantInvoice );
+        
+        $teamRegistrantRepository = $this->em->getRepository(TeamRegistrant::class);
+        $generateTeamRegistrantInvoice = new GenerateTeamRegistrantInvoice($teamRegistrantRepository, $paymentGateway);
+        $dispatcher->addPostponedListener(EventList::SETTLEMENT_REQUIRED, $generateTeamRegistrantInvoice);
+        
+        $addClientParticipant = new AddClientParticipant($clientRegistrantRepository);
+        $addTeamParticipant = new AddTeamParticipant($teamRegistrantRepository);
+        $dispatcher->addPostponedListener(EventList::PROGRAM_PARTICIPATION_ACCEPTED, $addClientParticipant);
+        $dispatcher->addPostponedListener(EventList::PROGRAM_PARTICIPATION_ACCEPTED, $addTeamParticipant);
+
+        $transactionalSession = new DoctrineTransactionalSession($this->em);
+        $transactionalSession->executeAtomically(function () use ($dispatcher, $programId, $registrantId) {
+            $registrantRepository = $this->em->getRepository(Registrant2::class);
+            $task = new AcceptRegistrant($registrantRepository, $dispatcher);
+
+            $coordinatorRepository = $this->em->getRepository(Program\Coordinator::class);
+            $service = new ExecuteProgramTask($coordinatorRepository);
+
+            $service->execute($this->firmId(), $this->personnelId(), $programId, $task, $registrantId);
+            $dispatcher->finalize();
+        });
         return $this->show($programId, $registrantId);
     }
 
     public function reject($programId, $registrantId)
     {
-        $this->authorizedUserIsProgramCoordinator($programId);
+        $registrantRepository = $this->em->getRepository(Registrant2::class);
+        $task = new RejectRegistrant($registrantRepository);
 
-        $service = $this->buildRejectService();
-        $service->execute($this->firmId(), $programId, $registrantId);
+        $coordinatorRepository = $this->em->getRepository(Program\Coordinator::class);
+        $service = new ExecuteProgramTask($coordinatorRepository);
 
-        return $this->commandOkResponse();
+        $service->execute($this->firmId(), $this->personnelId(), $programId, $task, $registrantId);
+
+        return $this->show($programId, $registrantId);
     }
 
     public function show($programId, $registrantId)
@@ -73,33 +107,43 @@ class RegistrantController extends AsProgramCoordinatorBaseController
             "id" => $registrant->getId(),
             "registeredTime" => $registrant->getRegisteredTimeString(),
             "status" => $registrant->getStatus(),
-            "user" => $this->arrayDataOfUser($registrant->getUserRegistrant()),
-            "client" => $this->arrayDataOfClient($registrant->getClientRegistrant()),
-            "team" => $this->arrayDataOfTeam($registrant->getTeamRegistrant()),
+            "user" => $registrant->getUserRegistrant() ? $this->arrayDataOfUser($registrant->getUserRegistrant()->getUser()) : null,
+            "client" => $registrant->getClientRegistrant() ? $this->arrayDataOfClient($registrant->getClientRegistrant()->getClient()) : null,
+            "team" => $registrant->getTeamRegistrant() ? $this->arrayDataOfTeam($registrant->getTeamRegistrant()->getTeam()) : null,
         ];
     }
 
-    protected function arrayDataOfUser(?UserRegistrant $userRegistrant): ?array
+    protected function arrayDataOfParticipant(Participant $participant): array
     {
-        return empty($userRegistrant) ? null : [
-            "id" => $userRegistrant->getUser()->getId(),
-            "name" => $userRegistrant->getUser()->getFullName(),
+        return [
+            'id' => $participant->getId(),
+            'enrolledTime' => $participant->getEnrolledTimeString(),
+            'active' => $participant->isActive(),
+            'note' => $participant->getNote(),
+            'user' => $participant->getUserParticipant() ? $this->arrayDataOfUser($participant->getUserParticipant()->getUser()) : null,
+            'client' => $participant->getClientParticipant() ? $this->arrayDataOfClient($participant->getClientParticipant()->getClient()) : null,
+            'team' => $participant->getTeamParticipant() ? $this->arrayDataOfTeam($participant->getTeamParticipant()->getTeam()) : null,
         ];
     }
-
-    protected function arrayDataOfClient(?ClientRegistrant $clientRegistrant): ?array
+    protected function arrayDataOfUser(User $user): array
     {
-        return empty($clientRegistrant) ? null : [
-            "id" => $clientRegistrant->getClient()->getId(),
-            "name" => $clientRegistrant->getClient()->getFullName(),
+        return [
+            "id" => $user->getId(),
+            "name" => $user->getFullName(),
         ];
     }
-
-    protected function arrayDataOfTeam(?TeamProgramRegistration $teamRegistrant): ?array
+    protected function arrayDataOfClient(Client $client): array
     {
-        return empty($teamRegistrant) ? null : [
-            "id" => $teamRegistrant->getTeam()->getId(),
-            "name" => $teamRegistrant->getTeam()->getName(),
+        return [
+            "id" => $client->getId(),
+            "name" => $client->getFullName(),
+        ];
+    }
+    protected function arrayDataOfTeam(Team $team): array
+    {
+        return [
+            "id" => $team->getId(),
+            "name" => $team->getName(),
         ];
     }
 
@@ -107,19 +151,6 @@ class RegistrantController extends AsProgramCoordinatorBaseController
     {
         $registrantRepository = $this->em->getRepository(Registrant::class);
         return new ViewRegistrant($registrantRepository);
-    }
-
-    protected function buildRejectService()
-    {
-        $registrantRepository = $this->em->getRepository(Registrant2::class);
-        return new RejectRegistrant($registrantRepository);
-    }
-
-    protected function buildAcceptService()
-    {
-        $programRepository = $this->em->getRepository(Program::class);
-        $dispatcher = new Dispatcher();
-        return new AcceptRegistrant($programRepository, $dispatcher);
     }
 
 }

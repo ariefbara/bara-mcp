@@ -556,6 +556,26 @@ class ParticipantTest extends TestBase
         $this->assertFalse($this->correspondWithProgram());
     }
     
+    //
+    protected function isActiveParticipantInProgram()
+    {
+        return $this->participant->isActiveParticipantInProgram($this->program);
+    }
+    public function test_isActiveParticipantInProgram_activeParticipantInSameProgram_returnTrue()
+    {
+        $this->assertTrue($this->isActiveParticipantInProgram());
+    }
+    public function test_isActiveParticipantInProgram_inactiveParticipant_returnFalse()
+    {
+        $this->participant->active = false;
+        $this->assertFalse($this->isActiveParticipantInProgram());
+    }
+    public function test_isActiveParticipantInProgram_differentProgram_returnFalse()
+    {
+        $this->participant->program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->isActiveParticipantInProgram());
+    }
+    
 }
 
 class TestableParticipant extends Participant

@@ -107,25 +107,25 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table("Mail")->truncate();
-        $this->connection->table("MeetingMail")->truncate();
-        $this->connection->table("MailRecipient")->truncate();
-        
-        $this->connection->table("Notification")->truncate();
-        $this->connection->table("MeetingAttendeeNotification")->truncate();
-        
-        $this->connection->table("Manager")->truncate();
-        $this->connection->table("ManagerInvitee")->truncate();
-        $this->connection->table("Personnel")->truncate();
-        $this->connection->table("Coordinator")->truncate();
-        $this->connection->table("CoordinatorInvitee")->truncate();
-        $this->connection->table("Consultant")->truncate();
-        $this->connection->table("ConsultantInvitee")->truncate();
-        $this->connection->table("User")->truncate();
-        $this->connection->table("UserParticipant")->truncate();
-        $this->connection->table("Team")->truncate();
-        $this->connection->table("TeamParticipant")->truncate();
+//        parent::tearDown();
+//        $this->connection->table("Mail")->truncate();
+//        $this->connection->table("MeetingMail")->truncate();
+//        $this->connection->table("MailRecipient")->truncate();
+//        
+//        $this->connection->table("Notification")->truncate();
+//        $this->connection->table("MeetingAttendeeNotification")->truncate();
+//        
+//        $this->connection->table("Manager")->truncate();
+//        $this->connection->table("ManagerInvitee")->truncate();
+//        $this->connection->table("Personnel")->truncate();
+//        $this->connection->table("Coordinator")->truncate();
+//        $this->connection->table("CoordinatorInvitee")->truncate();
+//        $this->connection->table("Consultant")->truncate();
+//        $this->connection->table("ConsultantInvitee")->truncate();
+//        $this->connection->table("User")->truncate();
+//        $this->connection->table("UserParticipant")->truncate();
+//        $this->connection->table("Team")->truncate();
+//        $this->connection->table("TeamParticipant")->truncate();
     }
     
     protected function executeShowAll()
@@ -215,6 +215,7 @@ class AttendeeControllerTest extends AsMeetingInitiatorTestCase
     }
     public function test_inviteManager_sendMailAndNotfication_200()
     {
+$this->disableExceptionHandling();
         $this->executeInviteManager();
         (new MailChecker())->checkMailExist($subject = "Meeting Invitation", $this->managerOne->email);
         (new NotificationChecker())

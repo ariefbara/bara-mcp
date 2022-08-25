@@ -18,6 +18,7 @@ class ClientTest extends TestBase
     protected $firm;
     protected $client, $personName, $fullName = 'client name';
     protected $clientParticipant;
+    protected $clientRegistrant;
 
     protected $id = 'newId', $firstname = 'newfirstname', $lastname = 'newlastname', $email = 'newclient@email.org', 
             $password = 'newpassword123';
@@ -26,6 +27,10 @@ class ClientTest extends TestBase
     protected $program;
     //
     protected $participant, $participantId = 'participant-id';
+    //
+    protected $registrantId = 'registrantId', $registrant;
+    //
+    protected $participantTypes;
 
     protected function setUp(): void
     {
@@ -39,6 +44,10 @@ class ClientTest extends TestBase
         $this->client->clientParticipants = new ArrayCollection();
         $this->client->clientParticipants->add($this->clientParticipant);
         
+        $this->clientRegistrant = $this->buildMockOfClass(Client\ClientRegistrant::class);
+        $this->client->clientRegistrants = new ArrayCollection();
+        $this->client->clientRegistrants->add($this->clientRegistrant);
+        
         $this->personName = $this->buildMockOfClass(PersonName::class);
         $this->personName->expects($this->any())->method('getFullName')->willReturn($this->fullName);
         $this->client->personName = $this->personName;
@@ -50,6 +59,10 @@ class ClientTest extends TestBase
         $this->program = $this->buildMockOfClass(Program::class);
         //
         $this->participant = $this->buildMockOfClass(Program\Participant::class);
+        //
+        $this->registrant = $this->buildMockOfClass(Program\Registrant::class);
+        //
+        $this->participantTypes = $this->buildMockOfClass(\Query\Domain\Model\Firm\ParticipantTypes::class);
     }
     
     protected function getClientRegistrationData()
@@ -247,6 +260,79 @@ class ClientTest extends TestBase
         $this->addProgramParticipation();
         $this->assertEquals(2, $this->client->clientParticipants->count());
     }
+    
+    //
+    protected function addProgramRegistration()
+    {
+        $this->client->addProgramRegistration($this->registrantId, $this->registrant);
+    }
+    public function test_addProgramRegistration_addClientRegistrantToCollection()
+    {
+        $this->addProgramRegistration();
+        $this->assertEquals(2, $this->client->clientRegistrants->count());
+        $this->assertEquals(new Client\ClientRegistrant($this->client, $this->registrantId, $this->registrant), $this->client->clientRegistrants->last());
+    }
+    
+    //
+    protected function assertNoActiveParticipationOrOngoingRegistrationInProgram()
+    {
+        $this->client->assertNoActiveParticipationOrOngoingRegistrationInProgram($this->program);
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_hasUnconcludedRegistrationInSameProgram_forbidden()
+    {
+        $this->clientRegistrant->expects($this->any())
+                ->method('isUnconcludedRegistrationInProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        }, 'Forbidden', 'program application refused, client has unconcluded registration in same program');
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_noUnconcludedRegistrationInSameProgram_void()
+    {
+        $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_hasActiveParticipationInSameProgram_forbidden()
+    {
+        $this->clientParticipant->expects($this->any())
+                ->method('isActiveParticipantInProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        }, 'Forbidden', 'program application refused, client is active participant in same program');
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_noActiveRegistrationInSameProgram_void()
+    {
+        $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        $this->markAsSuccess();
+    }
+    
+    //
+    protected function assertTypeIncludedIn()
+    {
+        $this->participantTypes->expects($this->any())
+                ->method('hasType')
+                ->with(\Query\Domain\Model\Firm\ParticipantTypes::CLIENT_TYPE)
+                ->willReturn(true);
+        $this->client->assertTypeIncludedIn($this->participantTypes);
+    }
+    public function test_assertTypeInclucedIn_clientTypeIsNotIncludedInParticipantType_forbidden()
+    {
+        $this->participantTypes->expects($this->once())
+                ->method('hasType')
+                ->with(\Query\Domain\Model\Firm\ParticipantTypes::CLIENT_TYPE)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->assertTypeIncludedIn();
+        }, 'Forbidden', 'program application refused, client type is not accomodate in program');
+    }
+    public function test_assertTypeInclucedIn_clientTypeIsIncludedInParticipantType_void()
+    {
+        $this->assertTypeIncludedIn();
+        $this->markAsSuccess();
+    }
 }
 
 class TestableClient extends Client
@@ -261,4 +347,5 @@ class TestableClient extends Client
     public $activationCode;
     public $activationCodeExpiredTime;
     public $clientParticipants;
+    public $clientRegistrants;
 }

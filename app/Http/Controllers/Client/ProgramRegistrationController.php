@@ -7,23 +7,20 @@ use Client\Application\Service\Client\RegisterToProgram;
 use Client\Domain\Model\Client;
 use Client\Domain\Model\Client\ProgramRegistration;
 use Config\EventList;
-use Firm\Application\Listener\ListeningEventsToGenerateInvoiceForClientRegistrant;
-use Firm\Application\Listener\ListeningToProgramRegistrationFromClient;
-use Firm\Application\Service\ExecuteResponsiveTask;
-use Firm\Application\Service\Firm\Program\ExecuteTask;
+use Firm\Application\Listener\AcceptProgramApplicationFromClient;
+use Firm\Application\Listener\GenerateClientRegistrantInvoice;
 use Firm\Domain\Model\Firm\Client as Client2;
 use Firm\Domain\Model\Firm\Program as Program2;
-use Firm\Domain\Task\InProgram\ReceiveApplicationFromClient;
-use Firm\Domain\Task\Responsive\GenerateInvoiceForClientRegistrant;
-use Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineGenericRepository;
 use Query\Application\Service\Firm\Client\ViewProgramParticipation;
 use Query\Application\Service\Firm\Client\ViewProgramRegistration;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Client\ClientRegistrant;
 use Query\Domain\Model\Firm\FirmFileInfo;
+use Query\Domain\Model\Firm\Program as Program3;
 use Query\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
 use Resources\Application\Event\AdvanceDispatcher;
 use Resources\Application\Event\Dispatcher;
+use Resources\Application\Listener\SpyEntityCreation;
 use Resources\Infrastructure\Persistence\Doctrine\DoctrineTransactionalSession;
 use SharedContext\Domain\Model\Firm\Program;
 use SharedContext\Infrastructure\Xendit\XenditPaymentGateway;
@@ -34,126 +31,65 @@ class ProgramRegistrationController extends ClientBaseController
     public function register()
     {
         $dispatcher = new AdvanceDispatcher();
-        $addClientParticipantTask = new \Client\Domain\Task\AddClientParticipant(
-                $this->em->getRepository(Client\ClientParticipant::class),
-                $this->em->getRepository(\Client\Domain\DependencyModel\Firm\Program\Participant::class));
-        $addClientRegistrantTask = new \Client\Domain\Task\AddClientRegistrant(
-                $this->em->getRepository(Client\ClientRegistrant::class),
-                $this->em->getRepository(\Client\Domain\DependencyModel\Firm\Program\Registrant::class), $dispatcher);
-
-        $executeResponsiveTaskService = new ExecuteResponsiveTask(new DoctrineGenericRepository($this->em));
-        $generateInvoiceForClientRegistrant = new GenerateInvoiceForClientRegistrant(
-                $this->em->getRepository(Client2\ClientRegistrant::class), new XenditPaymentGateway());
-        $invoiceForClientRegistrantListener = new ListeningEventsToGenerateInvoiceForClientRegistrant(
-                $executeResponsiveTaskService, $generateInvoiceForClientRegistrant);
-        $dispatcher->addAsynchronousListener(EventList::PROGRAM_REGISTRATION_RECEIVED,
-                $invoiceForClientRegistrantListener);
-        $dispatcher->addAsynchronousListener(EventList::CLIENT_REGISTRANT_CREATED, $invoiceForClientRegistrantListener);
-
+        
+        $programRepository = $this->em->getRepository(Program2::class);
+        $clientRepository = $this->em->getRepository(Client2::class);
+        $acceptProgramApplicationFromClient = new AcceptProgramApplicationFromClient($programRepository, $clientRepository, $dispatcher);
+        $dispatcher->addImmediateListener(
+                EventList::CLIENT_HAS_APPLIED_TO_PROGRAM, $acceptProgramApplicationFromClient);
+        
+        $spyRegistrantCreation = new SpyEntityCreation();
+        $dispatcher->addPostponedListener(EventList::PROGRAM_REGISTRATION_RECEIVED, $spyRegistrantCreation);
+        $dispatcher->addPostponedListener(EventList::SETTLEMENT_REQUIRED, $spyRegistrantCreation);
+        
+        $clientRegistrantRepository = $this->em->getRepository(Client2\ClientRegistrant::class);
+        $paymentGateway = new XenditPaymentGateway();
+        $generateClientRegistrantInvoice = new GenerateClientRegistrantInvoice($clientRegistrantRepository, $paymentGateway);
+        $dispatcher->addAsynchronousListener(EventList::SETTLEMENT_REQUIRED, $generateClientRegistrantInvoice);
+        
+        $spyParticipantCreation = new SpyEntityCreation();
+        $dispatcher->addPostponedListener(EventList::PROGRAM_PARTICIPATION_ACCEPTED, $spyParticipantCreation);
+        
+        $clientRepository = $this->em->getRepository(Client::class);
+        $service = new \Client\Application\Service\ExecuteTask($clientRepository);
+        
         $transactionalSession = new DoctrineTransactionalSession($this->em);
-        $transactionalSession->executeAtomically(function () use ($addClientParticipantTask, $addClientRegistrantTask,
-                $dispatcher) {
-            $programRepository = $this->em->getRepository(\Client\Domain\DependencyModel\Firm\Program::class);
-
-            $executeProgramTaskService = new ExecuteTask($this->em->getRepository(Program2::class));
-            $receiveApplicationFromClientTask = new ReceiveApplicationFromClient(
-                    $this->em->getRepository(Client2::class), $dispatcher);
-            $listeningToProgramRegistrationFromClient = new ListeningToProgramRegistrationFromClient(
-                    $executeProgramTaskService, $receiveApplicationFromClientTask);
-            $dispatcher->addImmediateListener(
-                    EventList::CLIENT_HAS_APPLIED_TO_PROGRAM, $listeningToProgramRegistrationFromClient);
-
-            $clientExecuteTaskService = new \Client\Application\Service\ExecuteTask(
-                    $this->em->getRepository(Client::class));
-            $acknowledgeParticipationReceived = new \Client\Application\Listener\AcknowledgeParticipationReceived(
-                    $clientExecuteTaskService, $addClientParticipantTask);
-
-            $acknowledgeRegistrationReceived = new \Client\Application\Listener\AcknowledgeRegistrationReceived(
-                    $clientExecuteTaskService, $addClientRegistrantTask);
-
-            $dispatcher->addPostponedListener(EventList::PROGRAM_APPLICATION_RECEIVED, $acknowledgeParticipationReceived);
-            $dispatcher->addPostponedListener(EventList::PROGRAM_PARTICIPATION_ACCEPTED,
-                    $acknowledgeParticipationReceived);
-            $dispatcher->addPostponedListener(EventList::PROGRAM_APPLICATION_RECEIVED, $acknowledgeRegistrationReceived);
-            $dispatcher->addPostponedListener(EventList::PROGRAM_REGISTRATION_RECEIVED, $acknowledgeRegistrationReceived);
-
-            $task = new \Client\Domain\Task\ApplyProgram($programRepository, $dispatcher);
-            $programId = $this->stripTagsInputRequest('programId');
-            $this->executeClientTask($task, $programId);
+        $transactionalSession->executeAtomically(function () use ($service, $dispatcher) {
+            $task = new \Client\Domain\Task\ApplyProgram($dispatcher);
+            $programId = $this->request->input('programId');
+            $service->execute($this->clientId(), $task, $programId);
+            
             $dispatcher->finalize();
         });
         $dispatcher->finalizeAsynchronous();
-        $result = ['registrant' => null, 'participant' => null];
-        if ($clientRegistrantId = $addClientRegistrantTask->addedClientRegistrantId) {
-            $viewService = $this->buildViewService();
-            $clientRegistrant = $viewService->showById($this->firmId(), $this->clientId(), $clientRegistrantId);
-            $result['registrant'] = [
-                'id' => $clientRegistrant->getId(),
-                'status' => $clientRegistrant->getStatus(),
-                'registeredTime' => $clientRegistrant->getRegisteredTimeString(),
-                'invoice' => $this->arrayDataOfRegistrantInvoice($clientRegistrant->getRegistrantInvoice()),
-                'program' => [
-                    'id' => $clientRegistrant->getProgram()->getId(),
-                    'name' => $clientRegistrant->getProgram()->getName(),
-                    'programType' => $clientRegistrant->getProgram()->getProgramTypeValue(),
-                ]
-            ];
-        } elseif ($clientParticipantId = $addClientParticipantTask->addedClientParticipantId) {
-            $clientParticipantViewService = new ViewProgramParticipation($this->em->getRepository(ClientParticipant::class));
-            $clientparticipant = $clientParticipantViewService->showById($this->firmId(), $this->clientId(),
-                    $clientParticipantId);
-            $result['participant'] = [
-                'id' => $clientparticipant->getId(),
-                'enrolledTime' => $clientparticipant->getEnrolledTimeString(),
-                'program' => [
-                    'id' => $clientparticipant->getProgram()->getId(),
-                    'name' => $clientparticipant->getProgram()->getName(),
-                    'programType' => $clientparticipant->getProgram()->getProgramTypeValue(),
-                ],
-            ];
+        
+        if ($registrantId = $spyRegistrantCreation->getEntityId()) {
+            $clientRegistrant = $this->buildViewService()->showById($this->firmId(), $this->clientId(), $registrantId);
+            $result = $this->arrayDataOfClientRegistrant($clientRegistrant);
+        } elseif ($participantId = $spyParticipantCreation->getEntityId()) {
+            $clientParticipant = $this->em->getRepository(ClientParticipant::class);
+            $clientParticipant = (new ViewProgramParticipation($clientParticipant))
+                    ->showById($this->firmId(), $this->clientId(), $participantId);
+            $result = $this->arrayDataOfClientParticipant($clientParticipant);
         }
         return $this->commandCreatedResponse($result);
+        
     }
 
-    protected function arrayDataOfRegistrantInvoice(?RegistrantInvoice $registrantInvoice): ?array
-    {
-        return empty($registrantInvoice) ? null : [
-            'issuedTime' => $registrantInvoice->getIssuedTimeString(),
-            'expiredTime' => $registrantInvoice->getExpiredTimeString(),
-            'paymentLink' => $registrantInvoice->getPaymentLink(),
-            'settled' => $registrantInvoice->isSettled(),
-        ];
-    }
-
-//    public function register()
+//    public function cancel($programRegistrationId)
 //    {
-//        $service = $this->buildRegisterService();
-//        
-//        $firmId = $this->firmId();
-//        $clientId = $this->clientId();
-//        $programId = $this->stripTagsInputRequest('programId');
-//        
-//        $programRegistrationId = $service->execute($firmId, $clientId, $programId);
-//        
-//        $viewService = $this->buildViewService();
-//        $programRegistration = $viewService->showById($this->firmId(), $this->clientId(), $programRegistrationId);
-//        return $this->commandCreatedResponse($this->arrayDataOfProgramRegistration($programRegistration));
+//        $clientRepository = $this->em->getRepository(Client::class);
+//        $clientRegistrantRepository = $this->em->getRepository(Client\ClientRegistrant::class);
+//        $task = new \Client\Domain\Task\CancelRegistration($clientRegistrantRepository);
+//        (new \Client\Application\Service\ExecuteTask($clientRepository))
+//                ->execute($this->clientId(), $task, $programRegistrationId);
 //    }
-
-    public function cancel($programRegistrationId)
-    {
-        $clientRepository = $this->em->getRepository(Client::class);
-        $clientRegistrantRepository = $this->em->getRepository(Client\ClientRegistrant::class);
-        $task = new \Client\Domain\Task\CancelRegistration($clientRegistrantRepository);
-        (new \Client\Application\Service\ExecuteTask($clientRepository))
-                ->execute($this->clientId(), $task, $programRegistrationId);
-    }
 
     public function show($programRegistrationId)
     {
         $service = $this->buildViewService();
         $programRegistration = $service->showById($this->firmId(), $this->clientId(), $programRegistrationId);
-        return $this->singleQueryResponse($this->arrayDataOfProgramRegistration($programRegistration));
+        return $this->singleQueryResponse($this->arrayDataOfClientRegistrant($programRegistration));
     }
 
     public function showAll()
@@ -166,26 +102,66 @@ class ProgramRegistrationController extends ClientBaseController
         $result = [];
         $result['total'] = count($programRegistrations);
         foreach ($programRegistrations as $programRegistration) {
-            $result['list'][] = $this->arrayDataOfProgramRegistration($programRegistration);
+            $result['list'][] = $this->arrayDataOfClientRegistrant($programRegistration);
         }
 
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfProgramRegistration(ClientRegistrant $programRegistration): array
+    protected function arrayDataOfClientRegistrant(ClientRegistrant $clientRegistrant): array
     {
         return [
-            "id" => $programRegistration->getId(),
-            "program" => [
-                "id" => $programRegistration->getProgram()->getId(),
-                "name" => $programRegistration->getProgram()->getName(),
-                "hasProfileForm" => $programRegistration->getProgram()->hasProfileForm(),
-                "programType" => $programRegistration->getProgram()->getProgramTypeValue(),
-                "illustration" => $this->arrayDataOfIllustration($programRegistration->getProgram()->getIllustration()),
+            "id" => $clientRegistrant->getId(),
+            "registeredTime" => $clientRegistrant->getRegisteredTimeString(),
+            'status' => $clientRegistrant->getStatus(),
+            'programSnapshot' => [
+                "price" => $clientRegistrant->getProgramSnapshot()->getPrice(),
+                "autoAccept" => $clientRegistrant->getProgramSnapshot()->isAutoAccept(),
             ],
-            "registeredTime" => $programRegistration->getRegisteredTimeString(),
-            "status" => $programRegistration->getStatus(),
-            "invoice" => $this->arrayDataOfRegistrantInvoice($programRegistration->getRegistrantInvoice()),
+            "program" => $this->arrayDataOfProgram($clientRegistrant->getProgram()),
+            'invoice' => $clientRegistrant->getRegistrantInvoice() ? 
+                $this->arrayDataOfRegistrantInvoice($clientRegistrant->getRegistrantInvoice()) : null,
+        ];
+    }
+    protected function arrayDataOfClientParticipant(ClientParticipant $clientParticipant): array
+    {
+        return [
+            "id" => $clientParticipant->getId(),
+            "enrolledTime" => $clientParticipant->getEnrolledTimeString(),
+            "note" => $clientParticipant->getNote(),
+            "active" => $clientParticipant->isActive(),
+            "program" => $this->arrayDataOfProgram($clientParticipant->getProgram()),
+        ];
+    }
+    protected function arrayDataOfProgram(Program3 $program): array
+    {
+        $sponsors = [];
+        foreach ($program->iterateActiveSponsort() as $sponsor) {
+            $logo = empty($sponsor->getLogo()) ? null : [
+                "id" => $sponsor->getLogo()->getId(),
+                "url" => $sponsor->getLogo()->getFullyQualifiedFileName(),
+            ];
+            $sponsors[] = [
+                "id" => $sponsor->getId(),
+                "name" => $sponsor->getName(),
+                "website" => $sponsor->getWebsite(),
+                "logo" => $logo,
+            ];
+        }
+        return [
+            "id" => $program->getId(),
+            "name" =>  $program->getName(),
+            "removed" =>  $program->isRemoved(),
+            "sponsors" => $sponsors,
+        ];
+    }
+    protected function arrayDataOfRegistrantInvoice(RegistrantInvoice $registrantInvoice): array
+    {
+        return [
+            'issuedTime' => $registrantInvoice->getIssuedTimeString(),
+            'expiredTime' => $registrantInvoice->getExpiredTimeString(),
+            'paymentLink' => $registrantInvoice->getPaymentLink(),
+            'settled' => $registrantInvoice->isSettled(),
         ];
     }
 

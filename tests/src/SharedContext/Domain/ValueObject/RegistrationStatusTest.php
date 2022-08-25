@@ -2,18 +2,41 @@
 
 namespace SharedContext\Domain\ValueObject;
 
+use Config\EventList;
 use Tests\TestBase;
 
 class RegistrationStatusTest extends TestBase
 {
     protected $registrationStatus;
     protected $otherRegistrationStatus;
-    
+    //
+    protected $constructValue;
+    //
+    protected $programPrice = null;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->registrationStatus = new TestableRegistrationStatus(RegistrationStatus::REGISTERED);
         $this->otherRegistrationStatus = new TestableRegistrationStatus(RegistrationStatus::REGISTERED);
+        //
+        $this->constructValue = RegistrationStatus::REGISTERED;
+    }
+    
+    protected function construct()
+    {
+        return new TestableRegistrationStatus($this->constructValue);
+    }
+    public function test_construct_setProgramRegistrationReceivedEventEmmision()
+    {
+        $status = $this->construct();
+        $this->assertEquals(EventList::PROGRAM_REGISTRATION_RECEIVED, $status->emittedEvent);
+    }
+    public function test_construct_settlementRequieredConstructionValue_setSettlementRequiredEmittedEvent()
+    {
+        $this->constructValue = RegistrationStatus::SETTLEMENT_REQUIRED;
+        $status = $this->construct();
+        $this->assertEquals(EventList::SETTLEMENT_REQUIRED, $status->emittedEvent);
     }
     
     protected function isConcluded()
@@ -96,9 +119,61 @@ class RegistrationStatusTest extends TestBase
             $this->cancel();
         }, 'Forbidden', 'registration already concluded');
     }
+    
+    protected function accept()
+    {
+        return $this->registrationStatus->accept($this->programPrice);
+    }
+    public function test_accept_returnAcceptedStatus()
+    {
+        $status = $this->accept();
+        $this->assertSame(RegistrationStatus::ACCEPTED, $status->value);
+    }
+    public function test_accept_emitParticipationAcceptedEvent()
+    {
+        $status = $this->accept();
+        $this->assertSame(EventList::PROGRAM_PARTICIPATION_ACCEPTED, $status->getEmittedEvent());
+    }
+    public function test_accept_paidProgram_returnSettlementRequiredStatus()
+    {
+        $this->programPrice = 4000;
+        $status = $this->accept();
+        $this->assertSame(RegistrationStatus::SETTLEMENT_REQUIRED, $status->value);
+    }
+    public function test_accept_paidProgram_emitSettlementRequiredEvent()
+    {
+        $this->programPrice = 4000;
+        $status = $this->accept();
+        $this->assertSame(EventList::SETTLEMENT_REQUIRED, $status->getEmittedEvent());
+    }
+    public function test_accept_nonRegisteredStatus_forbidden()
+    {
+        $this->registrationStatus->value = RegistrationStatus::REJECTED;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->accept();
+        }, 'Forbidden', 'can only accept registered user');
+    }
+    
+    protected function reject()
+    {
+        return $this->registrationStatus->reject();
+    }
+    public function test_reject_returnRejectedStatus()
+    {
+        $status = $this->reject();
+        $this->assertSame(RegistrationStatus::REJECTED, $status->value);
+    }
+    public function test_reject_nonRegisteredStatus_forbidden()
+    {
+        $this->registrationStatus->value = RegistrationStatus::REJECTED;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->reject();
+        }, 'Forbidden', 'can only accept registered user');
+    }
 }
 
 class TestableRegistrationStatus extends RegistrationStatus
 {
     public $value;
+    public $emittedEvent;
 }

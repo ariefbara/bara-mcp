@@ -2,11 +2,11 @@
 
 namespace Query\Domain\Model\Firm\Team;
 
-use Query\Domain\Model\Firm\{
-    Program,
-    Program\Registrant,
-    Team
-};
+use Query\Domain\Model\Firm\Program;
+use Query\Domain\Model\Firm\Program\Registrant;
+use Query\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
+use Query\Domain\Model\Firm\Team;
+use SharedContext\Domain\ValueObject\ProgramSnapshot;
 
 class TeamProgramRegistration
 {
@@ -48,20 +48,25 @@ class TeamProgramRegistration
     {
         return $this->programRegistration->getProgram();
     }
-
-    public function isConcluded(): bool
+    
+    public function getProgramSnapshot(): ProgramSnapshot
     {
-        return $this->programRegistration->isConcluded();
+        return $this->programRegistration->getProgramSnapshot();
+    }
+
+    public function getStatus(): string
+    {
+        return $this->programRegistration->getStatus();
     }
 
     public function getRegisteredTimeString(): string
     {
         return $this->programRegistration->getRegisteredTimeString();
     }
-
-    public function getNote(): ?string
+    
+    public function getRegistrantInvoice(): ?RegistrantInvoice
     {
-        return $this->programRegistration->getNote();
+        return $this->programRegistration->getRegistrantInvoice();
     }
 
 }

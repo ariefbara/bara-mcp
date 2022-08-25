@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Team;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfRegistrant,
-    Firm\RecordOfTeam,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfTeamProgramRegistration implements Record
 {
@@ -36,6 +35,12 @@ class RecordOfTeamProgramRegistration implements Record
             "Registrant_id" => $this->registrant->id,
             "id" => $this->id,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->registrant->insert($connection);
+        $connection->table('TeamRegistrant')->insert($this->toArrayForDbEntry());
     }
 
 }

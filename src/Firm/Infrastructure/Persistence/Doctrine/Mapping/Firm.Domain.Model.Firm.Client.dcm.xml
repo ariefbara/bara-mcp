@@ -31,5 +31,12 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many  field="clientRegistrants" 
+                      target-entity="Firm\Domain\Model\Firm\Client\ClientRegistrant"
+                      mapped-by="client"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

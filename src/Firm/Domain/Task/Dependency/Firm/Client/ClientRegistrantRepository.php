@@ -9,5 +9,5 @@ interface ClientRegistrantRepository
 
     public function ofId(string $id): ClientRegistrant;
 
-    public function aClientRegistrantOwningInvoiceId(string $invoiceId): ClientRegistrant;
+    public function aClientRegistrantOwningInvoiceId(string $invoiceId): ?ClientRegistrant;
 }

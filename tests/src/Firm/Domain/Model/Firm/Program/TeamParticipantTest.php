@@ -207,6 +207,19 @@ class TeamParticipantTest extends TestBase
                 ->method('reenroll');
         $this->enable();
     }
+    
+    //
+    protected function isActiveParticipantInProgram()
+    {
+        return $this->teamParticipant->isActiveParticipantInProgram($this->program);
+    }
+    public function test_isActiveParticipantInProgram_returnParticipantEvaluationResult()
+    {
+        $this->participant->expects($this->once())
+                ->method('isActiveParticipantInProgram')
+                ->with($this->program);
+        $this->isActiveParticipantInProgram();
+    }
 }
 
 class TestableTeamParticipant extends TeamParticipant

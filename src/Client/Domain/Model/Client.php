@@ -306,23 +306,9 @@ class Client extends EntityContainEvents
         $task->execute($this, $payload);
     }
 
-    public function applyToProgram(Program $program): void
+    public function applyToProgram(string $programId): void
     {
-        $registrationFilter = function (ClientRegistrant $clientRegistrant) use ($program) {
-            return $clientRegistrant->isActiveRegistrationCorrespondWithProgram($program);
-        };
-        if (!empty($this->clientRegistrants->filter($registrationFilter)->count())) {
-            throw RegularException::forbidden('you have active registration to this program');
-        }
-        
-        $participationFilter = function(ClientParticipant $clientParticipant) use ($program) {
-            return $clientParticipant->isActiveParticipationCorrespondWithProgram($program);
-        };
-        if (!empty($this->clientParticipants->filter($participationFilter)->count())) {
-            throw RegularException::forbidden('you are participating in this program');
-        }
-        
-        $event = new ClientHasAppliedToProgram($this->id, $program->getId());
+        $event = new ClientHasAppliedToProgram($this->id, $programId);
         $this->recordEvent($event);
     }
 

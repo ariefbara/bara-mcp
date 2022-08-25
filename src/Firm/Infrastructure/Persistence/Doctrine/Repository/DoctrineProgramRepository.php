@@ -4,6 +4,7 @@ namespace Firm\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use Firm\Application\Listener\ProgramRepository as ProgramRepository3;
 use Firm\Application\Service\Firm\ProgramRepository;
 use Firm\Application\Service\Manager\ProgramRepository as InterfaceForManager;
 use Firm\Domain\Model\Firm\Program;
@@ -11,7 +12,8 @@ use Firm\Domain\Task\Dependency\Firm\ProgramRepository as ProgramRepository2;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 
-class DoctrineProgramRepository extends EntityRepository implements ProgramRepository, InterfaceForManager, ProgramRepository2
+class DoctrineProgramRepository extends EntityRepository implements ProgramRepository, InterfaceForManager, ProgramRepository2,
+        ProgramRepository3
 {
 
     public function add(Program $program): void

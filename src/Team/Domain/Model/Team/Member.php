@@ -3,15 +3,11 @@
 namespace Team\Domain\Model\Team;
 
 use DateTimeImmutable;
-use Resources\ {
-    DateTimeImmutableBuilder,
-    Exception\RegularException
-};
+use Resources\DateTimeImmutableBuilder;
+use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
-use Team\Domain\ {
-    DependencyModel\Firm\Client,
-    Model\Team
-};
+use Team\Domain\DependencyModel\Firm\Client;
+use Team\Domain\Model\Team;
 
 class Member
 {
@@ -136,6 +132,14 @@ class Member
             throw RegularException::forbidden($errorDetail);
         }
         return new TeamFileInfo($this->team, $teamFileInfoId, $fileInfoData);
+    }
+    
+    public function executeTeamTask(\Team\Domain\Task\TeamTask $task, $payload): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('only active team member can make this request');
+        }
+        $task->execute($this->team, $payload);
     }
 
 }

@@ -6,7 +6,7 @@ use Resources\Application\Event\Event;
 use Resources\Application\Event\Listener;
 use Resources\Domain\Event\CommonEvent;
 
-class CommonEntityCreatedListener implements Listener
+class SpyEntityCreation implements Listener
 {
 
     /**

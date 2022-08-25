@@ -88,5 +88,10 @@ class ClientParticipant
     {
         $this->participant->reenroll();
     }
+    
+    public function isActiveParticipantInProgram(Program $program): bool
+    {
+        return $this->participant->isActiveParticipantInProgram($program);
+    }
 
 }

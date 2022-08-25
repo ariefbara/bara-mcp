@@ -17,6 +17,7 @@
         
         <many-to-one  field="client" 
                       target-entity="Firm\Domain\Model\Firm\Client"
+                      inversed-by="clientParticipants"
         >
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>

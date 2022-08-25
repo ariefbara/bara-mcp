@@ -25,7 +25,7 @@ use Tests\TestBase;
 
 class RegistrantTest extends TestBase
 {
-    protected $program, $programSnapshot;
+    protected $program, $programSnapshot, $programPrice = 5000;
     protected $registrant;
     protected $registrationStatus;
     protected $profile;
@@ -45,16 +45,27 @@ class RegistrantTest extends TestBase
     protected $registrantInvoice;
     //
     protected $applicant;
+    //
+    protected $newRegistrantStatus;
 
     protected function setUp(): void
     {
         parent::setUp();
         
         $this->program = $this->buildMockOfClass(Program::class);
-        $this->programSnapshot = $this->buildMockOfClass(ProgramSnapshot::class);
-        $this->registrant = new TestableRegistrant($this->program, $this->programSnapshot, 'id');
         
         $this->registrationStatus = $this->buildMockOfClass(RegistrationStatus::class);
+        $this->registrationStatus->expects($this->any())
+                ->method('getEmittedEvent')
+                ->willReturn(EventList::SETTLEMENT_REQUIRED);
+        
+        $this->programSnapshot = $this->buildMockOfClass(ProgramSnapshot::class);
+        $this->programSnapshot->expects($this->any())
+                ->method('generateInitialRegistrationStatus')
+                ->willReturn($this->registrationStatus);
+        $this->registrant = new TestableRegistrant($this->program, $this->programSnapshot, 'id');
+        $this->registrant->recordedEvents = [];
+        
         $this->registrant->status = $this->registrationStatus;
         
         $this->profile = $this->buildMockOfClass(RegistrantProfile::class);
@@ -79,6 +90,8 @@ class RegistrantTest extends TestBase
         $this->registrantInvoice = $this->buildMockOfClass(RegistrantInvoice::class);
         //
         $this->applicant = $this->buildMockOfInterface(IProgramApplicant::class);
+        //
+        $this->newRegistrantStatus = $this->buildMockOfClass(RegistrationStatus::class);
     }
     
     //
@@ -102,11 +115,70 @@ class RegistrantTest extends TestBase
         $registrant = $this->construct();
         $this->assertSame($this->registrationStatus, $registrant->status);
     }
-    public function test_construct_storeProgramRegistrationReceivedEvent()
+    public function test_construct_recordEventCorrspondingToRegistrationStatus()
     {
-        $event = new ProgramRegistrationReceived($this->id, $this->registrationStatus);
+        $event = new CommonEvent(EventList::SETTLEMENT_REQUIRED, $this->id);
         $registrant = $this->construct();
         $this->assertEquals($event, $registrant->recordedEvents[0]);
+    }
+    
+    //
+    protected function accept()
+    {
+        $this->programSnapshot->expects($this->any())
+                ->method('getPrice')
+                ->willReturn($this->programPrice);
+        
+        $this->registrationStatus->expects($this->any())
+                ->method('accept')
+                ->with($this->programPrice)
+                ->willReturn($this->newRegistrantStatus);
+        $this->newRegistrantStatus->expects($this->once())
+                ->method('getEmittedEvent')
+                ->willReturn(EventList::SETTLEMENT_REQUIRED);
+        
+        $this->registrant->accept();
+    }
+    public function test_accept_updateStatusAccept()
+    {
+        $this->accept();
+        $this->assertSame($this->newRegistrantStatus, $this->registrant->status);
+    }
+    public function test_accept_recordEvent()
+    {
+        $event = new CommonEvent(EventList::SETTLEMENT_REQUIRED, $this->registrant->id);
+        $this->accept();
+        $this->assertEquals($event, $this->registrant->recordedEvents[0]);
+    }
+    
+    protected function reject()
+    {
+        $this->registrant->reject();
+    }
+    public function test_reject_updateStatusRejected()
+    {
+        $this->registrationStatus->expects($this->once())
+                ->method('reject')
+                ->willReturn($this->newRegistrantStatus);
+        $this->reject();
+        $this->assertSame($this->newRegistrantStatus, $this->registrant->status);
+    }
+    
+    protected function assertManageableInProgram()
+    {
+        $this->registrant->assertManageableInProgram($this->program);
+    }
+    public function test_assertManageableInProgram_differentProgram_forbidden()
+    {
+        $this->registrant->program = $this->buildMockOfClass(Program::class);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertManageableInProgram();
+        }, 'Forbidden', 'unmanageable registrant, can only manage registrant of same program');
+    }
+    public function test_assertManageableInProgram_sameProgram_void()
+    {
+        $this->assertManageableInProgram();
+        $this->markAsSuccess();
     }
     
 /*
@@ -304,10 +376,46 @@ class RegistrantTest extends TestBase
     }
     public function test_settleInvoicePayment_addApplicantAsProgramParticipant()
     {
-        $this->program->expects($this->once())
-                ->method('addApplicantAsParticipant')
-                ->with($this->applicant);
+        $this->applicant->expects($this->once())
+                ->method('addProgramParticipation');
         $this->settleInvoicePayment();
+    }
+    
+    //
+    protected function addApplicantAsParticipant()
+    {
+        $this->registrant->addApplicantAsParticipant($this->applicant);
+    }
+    public function test_addApplicantAsParticipant_addApplicantAsProgramParticipant()
+    {
+        $this->applicant->expects($this->once())
+                ->method('addProgramParticipation');
+        $this->addApplicantAsParticipant();
+    }
+    
+    //
+    protected function isUnconcludedRegistrationInProgram()
+    {
+//        $this->registrationStatus->expects($this->any())
+//                ->method('isConcluded')
+//                ->willReturn(false);
+        return $this->registrant->isUnconcludedRegistrationInProgram($this->program);
+    }
+    public function test_isUnconcludedRegistrationInProgram_returnTrue()
+    {
+        $this->assertTrue($this->isUnconcludedRegistrationInProgram());
+    }
+    public function test_isUnconcludedRegistrationInProgram_concludedRegistrant_returnFalse()
+    {
+        $this->registrationStatus->expects($this->once())
+                ->method('isConcluded')
+                ->willReturn(true);
+        $this->assertFalse($this->isUnconcludedRegistrationInProgram());
+    }
+    public function test_isUnconcludedRegistrationInProgram_differentProgram_returnFalse()
+    {
+        $this->registrant->program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->isUnconcludedRegistrationInProgram());
     }
 
 }
@@ -316,7 +424,7 @@ class TestableRegistrant extends Registrant
 {
     public $program;
     public $programSnapshot;
-    public $id;
+    public $id = 'registrantId';
     public $status;
     public $registeredTime;
     public $userRegistrant;

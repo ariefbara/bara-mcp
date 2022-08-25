@@ -4,21 +4,31 @@ namespace Firm\Domain\Model\Firm;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
+use Firm\Domain\Model\Firm\Program\Participant;
+use Firm\Domain\Model\Firm\Program\Registrant;
 use Firm\Domain\Model\Firm\Program\TeamParticipant;
 use Firm\Domain\Model\Firm\Team\Member;
 use Firm\Domain\Model\Firm\Team\MemberData;
+use Firm\Domain\Model\Firm\Team\TeamRegistrant;
+use Query\Domain\Model\Firm\ParticipantTypes;
 use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\ValueObject\CustomerInfo;
 use Tests\TestBase;
 
 class TeamTest extends TestBase
 {
     protected $firm;
     protected $clientOne, $clientTwo;
-    protected $team, $member, $teamParticipant;
+    protected $team, $member, $teamParticipant, $teamRegistrant;
     
     protected $id = 'newId', $name = 'new team name', $memberPosition = 'new member position';
     protected $memberId = 'memberId';
     protected $program;
+    //
+    protected $participantId = 'participantId', $participant;
+    protected $registrantId = 'registrantId', $registrant;
+    //
+    protected $participantTypes;
 
     protected function setUp(): void
     {
@@ -30,14 +40,24 @@ class TeamTest extends TestBase
         $teamData = new TeamData('team name');
         $teamData->addMemberData(new MemberData($this->clientOne, 'position'));
         $this->team = new TestableTeam($this->firm, 'id', $teamData);
+        
         $this->team->teamParticipants = new ArrayCollection();
         $this->teamParticipant = $this->buildMockOfClass(TeamParticipant::class);
         $this->team->teamParticipants->add($this->teamParticipant);
+        
+        $this->teamRegistrant = $this->buildMockOfClass(TeamRegistrant::class);
+        $this->team->teamRegistrants = new ArrayCollection();
+        $this->team->teamRegistrants->add($this->teamRegistrant);
         
         $this->member = $this->buildMockOfClass(Member::class);
         $this->team->members->clear();
         $this->team->members->add($this->member);
         $this->program = $this->buildMockOfClass(Program::class);
+        //
+        $this->participant = $this->buildMockOfClass(Participant::class);
+        $this->registrant = $this->buildMockOfClass(Registrant::class);
+        //
+        $this->participantTypes = $this->buildMockOfClass(ParticipantTypes::class);
     }
     
     protected function getTeamData()
@@ -236,6 +256,130 @@ class TeamTest extends TestBase
             $this->assertUsableInFirm();
         }, 'Forbidden', 'forbidden: unable to use team from different firm');
     }
+    
+    //
+    protected function addProgramParticipation()
+    {
+        $this->team->addProgramParticipation($this->participantId, $this->participant);
+    }
+    public function test_addProgramParticipation_addTeamParticipantToCollection()
+    {
+        $this->addProgramParticipation();
+        $this->assertEquals(2, $this->team->teamParticipants->count());
+        $this->assertInstanceOf(TeamParticipant::class, $this->team->teamParticipants->last());
+    }
+    
+    //
+    protected function addProgramRegistration()
+    {
+        $this->team->addProgramRegistration($this->registrantId, $this->registrant);
+    }
+    public function test_addProgramRegistration_addTeamRegistrantToCollection()
+    {
+        $this->addProgramRegistration();
+        $this->assertEquals(2, $this->team->teamRegistrants->count());
+        $this->assertInstanceOf(TeamRegistrant::class, $this->team->teamRegistrants->last());
+    }
+    
+    //
+    protected function assertBelongsInFirm()
+    {
+        $this->team->assertBelongsInFirm($this->firm);
+    }
+    public function test_assertBelongsInFirm_differentFirm_forbidden()
+    {
+        $this->team->firm = $this->buildMockOfClass(Team::class);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertBelongsInFirm();
+        }, 'Forbidden', 'team not belongs in same firm');
+    }
+    public function test_assertBelongsInFirm_sameFirm_void()
+    {
+        $this->assertBelongsInFirm();
+        $this->markAsSuccess();
+    }
+    
+    //
+    protected function getUserType()
+    {
+        return $this->team->getUserType();
+    }
+    public function test_getUserType_returnTeamType()
+    {
+        $this->assertSame(ParticipantTypes::TEAM_TYPE, $this->getUserType());
+    }
+    
+    //
+    protected function assertNoActiveParticipationOrOngoingRegistrationInProgram()
+    {
+        $this->team->assertNoActiveParticipationOrOngoingRegistrationInProgram($this->program);
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_hasUnconcludedRegistrationInSameProgram_forbidden()
+    {
+        $this->teamRegistrant->expects($this->any())
+                ->method('isUnconcludedRegistrationInProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        }, 'Forbidden', 'program application refused, team has unconcluded registration in same program');
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_noUnconcludedRegistrationInSameProgram_void()
+    {
+        $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        $this->markAsSuccess();
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_hasActiveParticipationInSameProgram_forbidden()
+    {
+        $this->teamParticipant->expects($this->any())
+                ->method('isActiveParticipantInProgram')
+                ->with($this->program)
+                ->willReturn(true);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        }, 'Forbidden', 'program application refused, team is active participant in same program');
+    }
+    public function test_assertNoActiveParticipationOrOngoingRegistrationInProgram_noActiveRegistrationInSameProgram_void()
+    {
+        $this->assertNoActiveParticipationOrOngoingRegistrationInProgram();
+        $this->markAsSuccess();
+    }
+    
+    //
+    protected function assertTypeIncludedIn()
+    {
+        $this->participantTypes->expects($this->any())
+                ->method('hasType')
+                ->with(ParticipantTypes::TEAM_TYPE)
+                ->willReturn(true);
+        $this->team->assertTypeIncludedIn($this->participantTypes);
+    }
+    public function test_assertTypeInclucedIn_teamTypeIsNotIncludedInParticipantType_forbidden()
+    {
+        $this->participantTypes->expects($this->once())
+                ->method('hasType')
+                ->with(ParticipantTypes::TEAM_TYPE)
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function (){
+            $this->assertTypeIncludedIn();
+        }, 'Forbidden', 'program application refused, team type is not accomodate in program');
+    }
+    public function test_assertTypeInclucedIn_teamTypeIsIncludedInParticipantType_void()
+    {
+        $this->assertTypeIncludedIn();
+        $this->markAsSuccess();
+    }
+    
+    //
+    protected function getCustomerInfo()
+    {
+        return $this->team->getCustomerInfo();
+    }
+    public function test_getCustomerInfo_returnCustomerInfo()
+    {
+        $customerInfo = new CustomerInfo($this->team->name, 'donotsend@innov.id');
+        $this->assertEquals($customerInfo, $this->getCustomerInfo());
+    }
 }
 
 class TestableTeam extends Team
@@ -245,5 +389,6 @@ class TestableTeam extends Team
     public $name;
     public $createdTime;
     public $members;
+    public $teamRegistrants;
     public $teamParticipants;
 }

@@ -7,6 +7,7 @@
         
         <many-to-one  field="client" 
                       target-entity="Firm\Domain\Model\Firm\Client"
+                      inversed-by="clientParticipants"
         >
             <join-column name="Client_id" referenced-column-name="id" />
         </many-to-one>
@@ -17,6 +18,7 @@
                      target-entity="Firm\Domain\Model\Firm\Program\Registrant"
         >
             <join-column name="Registrant_id" referenced-column-name="id" />
+            <cascade><cascade-persist /></cascade>
         </one-to-one>
         
     </entity>

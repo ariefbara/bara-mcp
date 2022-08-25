@@ -5,7 +5,7 @@ namespace Resources\Application\Listener;
 use Resources\Domain\Event\CommonEvent;
 use Tests\TestBase;
 
-class CommonEntityCreatedListenerTest extends TestBase
+class SpyEntityCreationTest extends TestBase
 {
     protected $listener;
     protected $event, $entityId = 'entity-id';
@@ -13,7 +13,7 @@ class CommonEntityCreatedListenerTest extends TestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->listener = new TestableCommonEntityCreatedListenerTest();
+        $this->listener = new TestableSpyEntityCreation();
         $this->event = new CommonEvent('event-name', $this->entityId);
     }
     
@@ -24,7 +24,7 @@ class CommonEntityCreatedListenerTest extends TestBase
     }
 }
 
-class TestableCommonEntityCreatedListenerTest extends CommonEntityCreatedListener
+class TestableSpyEntityCreation extends SpyEntityCreation
 {
 
     public $entityId;

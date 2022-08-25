@@ -18,6 +18,8 @@ class TeamTest extends TestBase
     
     protected $member;
     protected $anAdmin = true;
+    //
+    protected $programId = 'programId';
             
     function setUp(): void {
         parent::setUp();
@@ -95,6 +97,18 @@ class TeamTest extends TestBase
         $this->assertEquals($memberId, $this->executeAddMember());
     }
     
+    //
+    protected function applyToProgram()
+    {
+        $this->team->applyToProgram($this->programId);
+    }
+    public function test_applyToProgram_recordTeamAppliedToProgramEvent()
+    {
+        $this->applyToProgram();
+        $event = new \Team\Domain\Event\TeamAppliedToProgram($this->team->id, $this->programId);
+        $this->assertEquals($event, $this->team->recordedEvents[0]);
+    }
+    
 }
 
 class TestableTeam extends Team{
@@ -104,5 +118,6 @@ class TestableTeam extends Team{
     public $creator;
     public $createdTime;
     public $members;
+    public $recordedEvents;
 }
 

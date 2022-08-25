@@ -5,11 +5,10 @@ namespace App\Http\Controllers;
 use Config\EventList;
 use ExternalResource\Domain\Task\NotifyInvoiceSettlement;
 use ExternalResource\Infrastructure\Xendit\XenditAccount;
-use Firm\Application\Listener\ListeningEventsToSettleClientRegistrantPayment;
-use Firm\Application\Service\ExecuteResponsiveTask;
+use Firm\Application\Listener\SettleClientRegistrantInvoicePayment;
+use Firm\Application\Listener\SettleTeamRegistrantInvoicePayment;
 use Firm\Domain\Model\Firm\Client\ClientRegistrant;
-use Firm\Domain\Task\Responsive\SettleClientRegistrantInvoicePayment;
-use Firm\Infrastructure\Persistence\Doctrine\Repository\DoctrineGenericRepository;
+use Firm\Domain\Model\Firm\Team\TeamRegistrant;
 use Resources\Application\Event\AdvanceDispatcher;
 
 class XenditController extends Controller
@@ -20,14 +19,14 @@ class XenditController extends Controller
         $xendit = XenditAccount::withToken($token);
 
         $dispatcher = new AdvanceDispatcher();
-
-        $executeResponsiveTaskService = new ExecuteResponsiveTask(new DoctrineGenericRepository($this->em));
-        $settleClientRegistrantInvoicePayment = new SettleClientRegistrantInvoicePayment(
-                $this->em->getRepository(ClientRegistrant::class));
-        $listener = new ListeningEventsToSettleClientRegistrantPayment(
-                $executeResponsiveTaskService, $settleClientRegistrantInvoicePayment);
-
-        $dispatcher->addImmediateListener(EventList::PAYMENT_RECEIVED, $listener);
+        
+        $clientRegistrantRepository = $this->em->getRepository(ClientRegistrant::class);
+        $settleClientRegistrantInvoicePayment = new SettleClientRegistrantInvoicePayment($clientRegistrantRepository);
+        $dispatcher->addImmediateListener(EventList::PAYMENT_RECEIVED, $settleClientRegistrantInvoicePayment);
+        
+        $teamRegistrantRepository = $this->em->getRepository(TeamRegistrant::class);
+        $settleTeamRegistrantInvoicePayment = new SettleTeamRegistrantInvoicePayment($teamRegistrantRepository);
+        $dispatcher->addImmediateListener(EventList::PAYMENT_RECEIVED, $settleTeamRegistrantInvoicePayment);
 
         $task = new NotifyInvoiceSettlement($dispatcher);
         $invoiceId = $this->request->input('external_id');

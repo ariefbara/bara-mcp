@@ -22,6 +22,13 @@
             <cascade><cascade-persist /></cascade>
         </one-to-many>
         
+        <one-to-many  field="teamRegistrants" 
+                      target-entity="Firm\Domain\Model\Firm\Team\TeamRegistrant"
+                      mapped-by="team"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
         <one-to-many  field="teamParticipants" 
                       target-entity="Firm\Domain\Model\Firm\Program\TeamParticipant"
                       mapped-by="team"

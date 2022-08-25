@@ -147,6 +147,7 @@ class InvitationControllerTest extends ProgramParticipationTestCase
                     "attachmentFields" => [],
                     "singleSelectFields" => [],
                     "multiSelectFields" => [],
+                    "sections" => [],
                 ],
             ],
             "activity" => [

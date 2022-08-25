@@ -330,5 +330,10 @@ class Participant extends EntityContainEvents implements AssetInProgram, CanAtte
     {
         return $this->program === $program;
     }
+    
+    public function isActiveParticipantInProgram(Program $program): bool
+    {
+        return $this->active && $this->program === $program;
+    }
 
 }

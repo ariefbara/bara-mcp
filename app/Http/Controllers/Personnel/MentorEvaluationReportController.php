@@ -19,7 +19,7 @@ use Query\Domain\Task\Personnel\ViewAllEvaluationReportsPayload;
 use Query\Domain\Task\Personnel\ViewAllEvaluationReportsTask;
 use Query\Domain\Task\Personnel\ViewEvaluationReportTask;
 use Resources\Application\Event\Dispatcher;
-use Resources\Application\Listener\CommonEntityCreatedListener;
+use Resources\Application\Listener\SpyEntityCreation;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class MentorEvaluationReportController extends PersonnelBaseController
@@ -34,7 +34,7 @@ class MentorEvaluationReportController extends PersonnelBaseController
         $payload = new EvaluationReportPayload($evaluationPlanId, $formRecordData);
         
         $dispatcher = new Dispatcher();
-        $listener = new CommonEntityCreatedListener();
+        $listener = new SpyEntityCreation();
         $dispatcher->addListener(EventList::COMMON_ENTITY_CREATED, $listener);
         
         $task = new SubmitEvaluationReportTask($evaluationPlanRepository, $payload, $dispatcher);

@@ -2,10 +2,10 @@
 
 namespace Firm\Domain\Model\Firm\Program;
 
+use Config\EventList;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
-use Firm\Domain\Event\ProgramRegistrationReceived;
 use Firm\Domain\Model\Firm\Client;
 use Firm\Domain\Model\Firm\IProgramApplicant;
 use Firm\Domain\Model\Firm\Program;
@@ -13,8 +13,10 @@ use Firm\Domain\Model\Firm\Program\Registrant\RegistrantInvoice;
 use Firm\Domain\Model\Firm\Team;
 use Firm\Domain\Model\User;
 use Resources\DateTimeImmutableBuilder;
+use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
+use Resources\Uuid;
 use SharedContext\Domain\Model\Invoice;
 use SharedContext\Domain\Task\Dependency\InvoiceParameter;
 use SharedContext\Domain\Task\Dependency\PaymentGateway;
@@ -30,7 +32,7 @@ class Registrant extends EntityContainEvents
      * @var Program
      */
     protected $program;
-    
+
     /**
      * 
      * @var ProgramSnapshot
@@ -48,7 +50,7 @@ class Registrant extends EntityContainEvents
      * @var RegistrationStatus
      */
     protected $status;
-    
+
     /**
      *
      * @var DateTimeImmutable
@@ -72,13 +74,13 @@ class Registrant extends EntityContainEvents
      * @var TeamRegistrant|null
      */
     protected $teamRegistrant;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $profiles;
-    
+
     /**
      * 
      * @var RegistrantInvoice
@@ -92,8 +94,8 @@ class Registrant extends EntityContainEvents
         $this->id = $id;
         $this->status = $this->programSnapshot->generateInitialRegistrationStatus();
         $this->registeredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
-        $event = new ProgramRegistrationReceived($this->id, $this->status);
-        $this->recordEvent($event);
+        
+        $this->recordEvent(new CommonEvent($this->status->getEmittedEvent(), $this->id));
     }
 
     public function getId(): string
@@ -103,17 +105,21 @@ class Registrant extends EntityContainEvents
 
     public function accept(): void
     {
-        $this->status = $this->status->accept();
-        $this->assertUnconcluded();
-        $this->concluded = true;
-        $this->note = 'accepted';
+        $this->status = $this->status->accept($this->programSnapshot->getPrice());
+        $event = new CommonEvent($this->status->getEmittedEvent(), $this->id);
+        $this->recordEvent($event);
     }
 
     public function reject(): void
     {
-//        $this->assertUnconcluded();
-//        $this->concluded = true;
-//        $this->note = 'rejected';
+        $this->status = $this->status->reject();
+    }
+
+    public function assertManageableInProgram(Program $program): void
+    {
+        if ($this->program !== $program) {
+            throw RegularException::forbidden('unmanageable registrant, can only manage registrant of same program');
+        }
     }
 
     public function createParticipant(string $participantId): Participant
@@ -127,13 +133,13 @@ class Registrant extends EntityContainEvents
         if (isset($this->teamRegistrant)) {
             $participant = $this->teamRegistrant->createParticipant($this->program, $participantId);
         }
-        
+
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq("removed", false));
         foreach ($this->profiles->matching($criteria)->getIterator() as $profile) {
             $profile->transferToParticipant($participant);
         }
-        
+
         return $participant;
     }
 
@@ -154,29 +160,24 @@ class Registrant extends EntityContainEvents
 
     protected function assertUnconcluded(): void
     {
-        if($this->status->isConcluded()) {
+        if ($this->status->isConcluded()) {
             $errorDetail = "forbidden: application already concluded";
             throw RegularException::forbidden($errorDetail);
         }
-//        if ($this->concluded) {
-//            $errorDetail = "forbidden: application already concluded";
-//            throw RegularException::forbidden($errorDetail);
-//        }
     }
-    
+
     public function generateInvoice(PaymentGateway $paymentGateway, CustomerInfo $customerInfo): void
     {
         $amount = $this->programSnapshot->getPrice();
         $description = 'tagihan pendaftaran program';
-        $duration = 7*24*60*60;
-        $customerInfo;
+        $duration = 7 * 24 * 60 * 60;
         $itemInfo = $this->programSnapshot->generateItemInfo();
         $invoiceParameter = new InvoiceParameter($this->id, $amount, $description, $duration, $customerInfo, $itemInfo);
         $paymentLink = $paymentGateway->generateInvoiceLink($invoiceParameter);
         $invoice = new Invoice($this->id, DateTimeImmutableBuilder::buildYmdHisAccuracy('+7 days'), $paymentLink);
         $this->registrantInvoice = new RegistrantInvoice($this, $this->id, $invoice);
     }
-    
+
     public function settleInvoicePayment(IProgramApplicant $applicant): void
     {
         if (empty($this->registrantInvoice)) {
@@ -184,7 +185,22 @@ class Registrant extends EntityContainEvents
         }
         $this->status = $this->status->settle();
         $this->registrantInvoice->settle();
-        $this->program->addApplicantAsParticipant($applicant);
+        
+        $participantId = Uuid::generateUuid4();
+        $participant = new Participant($this->program, $participantId);
+        $applicant->addProgramParticipation($participantId, $participant);
+    }
+    
+    public function addApplicantAsParticipant(IProgramApplicant $applicant): void
+    {
+        $participantId = Uuid::generateUuid4();
+        $participant = new Participant($this->program, $participantId);
+        $applicant->addProgramParticipation($participantId, $participant);
+    }
+    
+    public function isUnconcludedRegistrationInProgram(Program $program): bool
+    {
+        return !$this->status->isConcluded() && $this->program === $program;
     }
 
 }

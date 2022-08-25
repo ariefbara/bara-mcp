@@ -177,6 +177,19 @@ class ClientParticipantTest extends TestBase
         $this->enable();
     }
     
+    //
+    protected function isActiveParticipantInProgram()
+    {
+        return $this->clientParticipant->isActiveParticipantInProgram($this->program);
+    }
+    public function test_isActiveParticipantInProgram_returnParticipantEvaluationResult()
+    {
+        $this->participant->expects($this->once())
+                ->method('isActiveParticipantInProgram')
+                ->with($this->program);
+        $this->isActiveParticipantInProgram();
+    }
+    
 }
 
 class TestableClientParticipant extends ClientParticipant
