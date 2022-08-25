@@ -169,25 +169,25 @@ class Controller extends BaseController
     protected function sendAndCloseConnection(Response $response, Job $job): void
     {
         if (function_exists('fastcgi_finish_request')) {
-            $headers = ["Access-Control-Allow-Origin" => "*"];
+//            $headers = ["Access-Control-Allow-Origin" => "*"];
             $response
-                    ->header('Access-Control-Allow-Origin', '*')
+//                    ->header('Access-Control-Allow-Origin', '*')
                     ->send();
             fastcgi_finish_request();
         } elseif (function_exists('litespeed_finish_request')) {
             $response
-                    ->header('Access-Control-Allow-Origin', '*')
+//                    ->header('Access-Control-Allow-Origin', '*')
                     ->send();
             litespeed_finish_request();
         } else {
             $headers = [
-                "Access-Control-Allow-Origin" => "*",
+//                "Access-Control-Allow-Origin" => "*",
                 "Connection" => "close\r\n",
                 "Content-Encoding" => "none\r\n",
                 "Content-Length" => strlen(json_encode($response->getContent())),
             ];
             $response
-                    ->header('Access-Control-Allow-Origin', '*')
+//                    ->header('Access-Control-Allow-Origin', '*')
                     ->header('Connection', 'close')
                     ->header('Content-Encoding', 'none')
                     ->header('Content-Length', strlen($response->content()))

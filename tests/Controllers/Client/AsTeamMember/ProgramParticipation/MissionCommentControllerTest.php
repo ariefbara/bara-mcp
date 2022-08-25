@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Controllers\Client\ProgramParticipation;
+namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use Tests\Controllers\RecordPreparation\Firm\Program\Mission\RecordOfMissionComment;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 
-class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
+class MissionCommentControllerTest extends ExtendedTeamParticipantTestCase
 {
     protected $showAllUri;
     
@@ -23,9 +23,9 @@ class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
         $this->connection->table('Mission')->truncate();
         $this->connection->table('MissionComment')->truncate();
         
-        $this->showAllUri = $this->clientParticipantUri . "/mission-comments";
+        $this->showAllUri = $this->teamParticipantUri . "/mission-comments";
         
-        $program = $this->clientParticipant->participant->program;
+        $program = $this->teamParticipant->participant->program;
         
         $this->missionOne = new RecordOfMission($program, null, '1', null);
         $this->missionTwo = new RecordOfMission($program, null, '2', null);
@@ -43,7 +43,7 @@ class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
     
     protected function showAll()
     {
-        $this->insertClientParticipantRecord();
+        $this->prepareRecord();
         
         $this->missionOne->insert($this->connection);
         $this->missionTwo->insert($this->connection);
@@ -52,7 +52,7 @@ class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
         $this->missionCommentTwo_m2->insert($this->connection);
         $this->missionCommentThree_m1->insert($this->connection);
         
-        $this->get($this->showAllUri, $this->client->token);
+        $this->get($this->showAllUri, $this->teamMember->client->token);
     }
     public function test_showAll_200()
     {
@@ -104,6 +104,7 @@ class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
     }
     public function test_showAll_containReply_includeParentCommentInResponse()
     {
+$this->disableExceptionHandling();
         $this->missionCommentThree_m1->repliedComment = $this->missionCommentOne_m1;
         
         $this->showAll();
@@ -132,7 +133,7 @@ class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
     }
     public function test_showAll_containMissionCommentFromOtherProgam_exclude()
     {
-        $firm = $this->clientParticipant->participant->program->firm;
+        $firm = $this->teamParticipant->participant->program->firm;
         $otherProgram = new RecordOfProgram($firm, 'other');
         $otherProgram->insert($this->connection);
         
@@ -199,19 +200,19 @@ class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
     }
     public function test_showAll_inactiveParticipant_forbidden()
     {
-        $this->clientParticipant->participant->active = false;
+        $this->teamParticipant->participant->active = false;
         $this->showAll();
         $this->seeStatusCode(403);
     }
     
     protected function show()
     {
-        $this->insertClientParticipantRecord();
+        $this->prepareRecord();
         $this->missionCommentOne_m1->mission->insert($this->connection);
         $this->missionCommentOne_m1->insert($this->connection);
         
         $uri = $this->showAllUri . "/{$this->missionCommentOne_m1->id}";
-        $this->get($uri, $this->client->token);
+        $this->get($uri, $this->teamMember->client->token);
     }
     public function test_show_200()
     {
@@ -234,7 +235,7 @@ class MissionCommentControllerTest extends ExtendedClientParticipantTestCase
     }
     public function test_show_inactiveParticipant_403()
     {
-        $this->clientParticipant->participant->active = false;
+        $this->teamParticipant->participant->active = false;
         $this->show();
         $this->seeStatusCode(403);
     }

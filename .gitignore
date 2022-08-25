@@ -10,3 +10,5 @@ Homestead.yaml
 .htaccess
 .cli-config.php
 .composer.lock
+app/Providers/DoctrineEntityManagerProvider.php
+/app/Providers/DoctrineEntityManagerProvider.php

@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Controllers\Client\ProgramParticipation;
+namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use Tests\Controllers\Client\ProgramParticipationTestCase;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 
-class MissionSummaryControllerTest extends ProgramParticipationTestCase
+class MissionSummaryControllerTest extends ExtendedTeamParticipantTestCase
 {
     protected $missionOne;
     protected $missionTwo;
@@ -23,7 +23,7 @@ class MissionSummaryControllerTest extends ProgramParticipationTestCase
         $this->connection->table('Mission')->truncate();
         $this->connection->table('CompletedMission')->truncate();
         
-        $participant = $this->programParticipation->participant;
+        $participant = $this->teamParticipant->participant;
         $program = $participant->program;
         $otherParticipant = new RecordOfParticipant($program, 'other');
         
@@ -52,6 +52,8 @@ class MissionSummaryControllerTest extends ProgramParticipationTestCase
     
     protected function show()
     {
+        $this->prepareRecord();
+        
         $this->missionOne->insert($this->connection);
         $this->missionTwo->insert($this->connection);
         $this->missionThree->insert($this->connection);
@@ -59,11 +61,12 @@ class MissionSummaryControllerTest extends ProgramParticipationTestCase
         $this->completedMissionOne_m1->insert($this->connection);
         $this->completedMissionTwo_m2->insert($this->connection);
         
-        $uri = $this->programParticipationUri . "/{$this->programParticipation->participant->id}/mission-summary";
-        $this->get($uri, $this->programParticipation->client->token);
+        $uri = $this->teamParticipantUri . "/mission-summary";
+        $this->get($uri, $this->teamMember->client->token);
     }
     public function test_show_200()
     {
+$this->disableExceptionHandling();
         $this->show();
         $this->seeStatusCode(200);
         

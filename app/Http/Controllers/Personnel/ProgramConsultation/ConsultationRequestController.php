@@ -38,8 +38,8 @@ class ConsultationRequestController extends PersonnelBaseController
         $consultationRequest = $this->buildViewService()
                 ->showById($this->personnelId(), $programConsultationId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));        
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function offer($programConsultationId, $consultationRequestId)
@@ -57,8 +57,8 @@ class ConsultationRequestController extends PersonnelBaseController
         $consultationRequest = $this->buildViewService()
                 ->showById($this->personnelId(), $programConsultationId, $consultationRequestId);
         
-        $this->sendAndCloseConnection($this->arrayDataOfConsultationRequest($consultationRequest));
-        $this->sendImmediateMail();
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));        
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
     public function reject($programConsultationId, $consultationRequestId)
@@ -66,8 +66,8 @@ class ConsultationRequestController extends PersonnelBaseController
         $service = $this->buildRejectService();
         $service->execute($this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId);
         
-        $this->sendAndCloseConnection();
-        $this->sendImmediateMail();
+        $response = $this->commandOkResponse();        
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
     
     public function show($programConsultationId, $consultationRequestId)

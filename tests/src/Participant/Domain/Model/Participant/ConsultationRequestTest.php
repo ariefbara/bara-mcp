@@ -287,7 +287,7 @@ class ConsultationRequestTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
 
-    public function test_createConsultationSetupSchedule_returnConsultationSetupSchedule()
+    public function test_createConsultationSession_returnConsultationSetupSchedule()
     {
         $this->consultant->expects($this->any())->method("isActive")->willReturn(true);
         $this->assertInstanceOf(ConsultationSession::class, $this->consultationRequest->createConsultationSession($id = "consultationSessionId", $this->teamMember));

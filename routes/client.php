@@ -528,6 +528,12 @@ $router->group($clientAggregate, function () use ($router) {
             $router->put('/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
             $router->get('/declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
             
+            $router->get('/mission-summary', ['uses' => "MissionSummaryController@show"]);
+            $router->get('/schedules', ['uses' => "ScheduleController@showAll"]);
+            $router->get('/mission-comments', ['uses' => "MissionCommentController@showAll"]);
+            $router->get('/mission-comments/{id}', ['uses' => "MissionCommentController@show"]);
+            $router->get('/metric-summary', ['uses' => "MetricSummaryController@show"]);
+            
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";
                 $router->get("/all", ["uses" => "$controller@showAll"]);

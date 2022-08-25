@@ -1,18 +1,15 @@
 <?php
 
-namespace Tests\Controllers\Client\ProgramParticipation;
+namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
 use DateTimeImmutable;
-use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
-use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
-use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
 
-class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
+class MetricSummaryControllerTest extends ExtendedTeamParticipantTestCase
 {
     protected $metricOne;
     protected $metricTwo;
@@ -49,7 +46,7 @@ class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
         $this->connection->table('MetricAssignmentReport')->truncate();
         $this->connection->table('AssignmentFieldValue')->truncate();
         
-        $participant = $this->clientParticipant->participant;
+        $participant = $this->teamParticipant->participant;
         $program = $participant->program;
         
         $this->metricOne = new RecordOfMetric($program, '1');
@@ -94,7 +91,7 @@ class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
     
     protected function show()
     {
-        $this->insertClientParticipantRecord();
+        $this->prepareRecord();
         
         $this->metricOne->insert($this->connection);
         $this->metricTwo->insert($this->connection);
@@ -110,7 +107,7 @@ class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
         $this->metricAssignmentReportOne->insert($this->connection);
         $this->metricAssignmentReportTwo->insert($this->connection);
         $this->metricAssignmentReportThree->insert($this->connection);
-//        
+        
         $this->assignmentFieldValueOne_af1mar1->insert($this->connection);
         $this->assignmentFieldValueTwo_af2mar1->insert($this->connection);
         $this->assignmentFieldValueThree_af3mar1->insert($this->connection);
@@ -121,11 +118,12 @@ class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
         $this->assignmentFieldValueEight_af2mar3->insert($this->connection);
         $this->assignmentFieldValueNine_af3mar3->insert($this->connection);
         
-        $uri = $this->clientParticipantUri . "/metric-summary";
-        $this->get($uri, $this->client->token);
+        $uri = $this->teamParticipantUri . "/metric-summary";
+        $this->get($uri, $this->teamMember->client->token);
     }
     public function test_show_200()
     {
+$this->disableExceptionHandling();
         $this->show();
         $this->seeStatusCode(200);
         
@@ -267,48 +265,9 @@ class MetricSummaryControllerTest extends ExtendedClientParticipantTestCase
         ];
         $this->seeJsonContains($recordThreeResponse);
     }
-    public function test_show_containReportOfOtherParticipant_excludeReportOfOtherParticipant()
-    {
-        $program = $this->clientParticipant->participant->program;
-        $client = new RecordOfClient($program->firm, 'other');
-        $client->insert($this->connection);
-        
-        $participant = new RecordOfParticipant($program, '2');
-        
-        $clientParticipant = new RecordOfClientParticipant($client, $participant);
-        $clientParticipant->insert($this->connection);
-        
-        $metricAssignment = new RecordOfMetricAssignment($participant, 'other');
-        $metricAssignment->insert($this->connection);
-        
-        $assignmentFieldOne_m1 = new RecordOfAssignmentField($metricAssignment, $this->metricOne, '21');
-        $assignmentFieldTwo_m2 = new RecordOfAssignmentField($metricAssignment, $this->metricTwo, '22');
-        $assignmentFieldThree_m3 = new RecordOfAssignmentField($metricAssignment, $this->metricThree, '23');
-        $assignmentFieldOne_m1->insert($this->connection);
-        $assignmentFieldTwo_m2->insert($this->connection);
-        $assignmentFieldThree_m3->insert($this->connection);
-        
-        $metricAssignmentReportOne = new RecordOfMetricAssignmentReport($metricAssignment, '21');
-        $metricAssignmentReportOne->approved = true;
-        $metricAssignmentReportOne->observationTime = (new DateTimeImmutable('-1 days'))->format('Y-m-d H:i:s');
-        $metricAssignmentReportOne->insert($this->connection);
-        
-        $assignmentFieldValueOne_af1mar1 = new RecordOfAssignmentFieldValue($metricAssignmentReportOne, $assignmentFieldOne_m1, '21');
-        $assignmentFieldValueTwo_af2mar1 = new RecordOfAssignmentFieldValue($metricAssignmentReportOne, $assignmentFieldTwo_m2, '22');
-        $assignmentFieldValueThree_af3mar1 = new RecordOfAssignmentFieldValue($metricAssignmentReportOne, $assignmentFieldThree_m3, '23');
-        $assignmentFieldValueOne_af1mar1->insert($this->connection);
-        $assignmentFieldValueTwo_af2mar1->insert($this->connection);
-        $assignmentFieldValueThree_af3mar1->insert($this->connection);
-        
-        $uri = "/api/client/program-participations/{$clientParticipant->participant->id}/metric-summary";
-        $this->get($uri, $client->token);
-//        $this->show();
-        $this->seeStatusCode(200);
-$this->response->dump();
-    }
     public function test_show_inactiveParticipant_403()
     {
-        $this->clientParticipant->participant->active = false;
+        $this->teamParticipant->participant->active = false;
         $this->show();
         $this->seeStatusCode(403);
     }
