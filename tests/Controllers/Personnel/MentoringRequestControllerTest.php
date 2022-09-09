@@ -12,14 +12,21 @@ use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
 
 class MentoringRequestControllerTest extends PersonnelTestCase
 {
+    protected $mentorTwo;
     protected $clientParticipantOne;
+    protected $teamParticipantTwo;
     protected $mentoringRequestOne;
     protected $mentoringRequestTwo;
+    protected $mentoringRequestThree;
     protected $mentoringSlotOne;
     protected $offerRequest;
+    protected $showAllUnrespondedUri;
 
     protected function setUp(): void
     {
@@ -27,6 +34,9 @@ class MentoringRequestControllerTest extends PersonnelTestCase
         $this->connection->table('Participant')->truncate();
         $this->connection->table('Client')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('UserParticipant')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringRequest')->truncate();
         $this->connection->table('Mentoring')->truncate();
@@ -36,15 +46,29 @@ class MentoringRequestControllerTest extends PersonnelTestCase
         $program = $this->mentor->program;
         $firm = $program->firm;
         
+        $programTwo = new RecordOfProgram($firm, '2');
+        
+        $this->mentorTwo = new RecordOfConsultant($programTwo, $this->personnel, '2');
+        
         $participantOne = new RecordOfParticipant($program, '1');
+        $participantTwo = new RecordOfParticipant($programTwo, '2');
+        
         $clientOne = new RecordOfClient($firm, '1');
         $this->clientParticipantOne = new RecordOfClientParticipant($clientOne, $participantOne);
+
+        $teamOne = new RecordOfTeam($firm, $clientOne, '1');
+        $this->teamParticipantTwo = new RecordOfTeamProgramParticipation($teamOne, $participantTwo);
         
         $consultationSetupOne = new RecordOfConsultationSetup($program, null, null, '1');
+        $consultationSetupTwo = new RecordOfConsultationSetup($programTwo, null, null, '2');
+        
         $this->mentoringRequestOne = new RecordOfMentoringRequest($participantOne, $this->mentor, $consultationSetupOne, '1');
         $this->mentoringRequestTwo = new RecordOfMentoringRequest($participantOne, $this->mentor, $consultationSetupOne, '2');
+        $this->mentoringRequestThree = new RecordOfMentoringRequest($participantTwo, $this->mentorTwo, $consultationSetupTwo, '3');
         
         $this->mentoringSlotOne = new RecordOfMentoringSlot($this->mentor, $consultationSetupOne, '1');
+        
+        $this->showAllUnrespondedUri = $this->personnelUri . "/mentoring-requests/all-unresponded";
         
         $this->offerRequest = [
             'startTime' => (new DateTimeImmutable('+600 minutes'))->format('Y-m-d H:i:s'),
@@ -58,6 +82,10 @@ class MentoringRequestControllerTest extends PersonnelTestCase
         $this->connection->table('Participant')->truncate();
         $this->connection->table('Client')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('User')->truncate();
+        $this->connection->table('UserParticipant')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
         $this->connection->table('MentoringRequest')->truncate();
         $this->connection->table('Mentoring')->truncate();
@@ -452,7 +480,241 @@ class MentoringRequestControllerTest extends PersonnelTestCase
                 'id' => $this->mentoringRequestOne->consultationSetup->id,
                 'name' => $this->mentoringRequestOne->consultationSetup->name,
             ],
+            'mentor' => [
+                'id' => $this->mentoringRequestOne->mentor->id,
+                'program' => [
+                    'id' => $this->mentoringRequestOne->mentor->program->id,
+                    'name' => $this->mentoringRequestOne->mentor->program->name,
+                ],
+                
+            ],
         ];
         $this->seeJsonContains($response);
+    }
+    
+    protected function showAllUnresponded()
+    {
+        $this->insertMentorDependency();
+        
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->clientParticipantOne->insert($this->connection);
+        
+        $this->teamParticipantTwo->team->insert($this->connection);
+        $this->teamParticipantTwo->insert($this->connection);
+        
+        $this->mentoringRequestOne->consultationSetup->insert($this->connection);
+        $this->mentoringRequestThree->consultationSetup->insert($this->connection);
+        
+        $this->mentoringRequestThree->mentor->program->insert($this->connection);
+        $this->mentoringRequestThree->mentor->insert($this->connection);
+        
+        $this->mentoringRequestOne->insert($this->connection);
+        $this->mentoringRequestTwo->insert($this->connection);
+        $this->mentoringRequestThree->insert($this->connection);
+        
+        $this->get($this->showAllUnrespondedUri, $this->personnel->token);
+    }
+    public function test_showAllUnresponded_200()
+    {
+$this->disableExceptionHandling();
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'total' => 3,
+            'list' => [
+                [
+                    'id' => $this->mentoringRequestOne->id,
+                    'startTime' => $this->mentoringRequestOne->startTime,
+                    'endTime' => $this->mentoringRequestOne->endTime,
+                    'mediaType' => $this->mentoringRequestOne->mediaType,
+                    'location' => $this->mentoringRequestOne->location,
+                    'requestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequestOne->requestStatus],
+                    'participant' => [
+                        'id' => $this->mentoringRequestOne->participant->id,
+                        'client' => [
+                            'id' => $this->clientParticipantOne->client->id,
+                            'name' => $this->clientParticipantOne->client->getFullName(),
+                        ],
+                        'team' => null,
+                        'user' => null,
+                    ],
+                    'consultationSetup' => [
+                        'id' => $this->mentoringRequestOne->consultationSetup->id,
+                        'name' => $this->mentoringRequestOne->consultationSetup->name,
+                    ],
+                    'mentor' => [
+                        'id' => $this->mentoringRequestOne->mentor->id,
+                        'program' => [
+                            'id' => $this->mentoringRequestOne->mentor->program->id,
+                            'name' => $this->mentoringRequestOne->mentor->program->name,
+                        ],
+
+                    ],
+                ],
+                [
+                    'id' => $this->mentoringRequestTwo->id,
+                    'startTime' => $this->mentoringRequestTwo->startTime,
+                    'endTime' => $this->mentoringRequestTwo->endTime,
+                    'mediaType' => $this->mentoringRequestTwo->mediaType,
+                    'location' => $this->mentoringRequestTwo->location,
+                    'requestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequestTwo->requestStatus],
+                    'participant' => [
+                        'id' => $this->mentoringRequestTwo->participant->id,
+                        'client' => [
+                            'id' => $this->clientParticipantOne->client->id,
+                            'name' => $this->clientParticipantOne->client->getFullName(),
+                        ],
+                        'team' => null,
+                        'user' => null,
+                    ],
+                    'consultationSetup' => [
+                        'id' => $this->mentoringRequestTwo->consultationSetup->id,
+                        'name' => $this->mentoringRequestTwo->consultationSetup->name,
+                    ],
+                    'mentor' => [
+                        'id' => $this->mentoringRequestTwo->mentor->id,
+                        'program' => [
+                            'id' => $this->mentoringRequestTwo->mentor->program->id,
+                            'name' => $this->mentoringRequestTwo->mentor->program->name,
+                        ],
+
+                    ],
+                ],
+                [
+                    'id' => $this->mentoringRequestThree->id,
+                    'startTime' => $this->mentoringRequestThree->startTime,
+                    'endTime' => $this->mentoringRequestThree->endTime,
+                    'mediaType' => $this->mentoringRequestThree->mediaType,
+                    'location' => $this->mentoringRequestThree->location,
+                    'requestStatus' => MentoringRequestStatus::DISPLAY_VALUE[$this->mentoringRequestThree->requestStatus],
+                    'participant' => [
+                        'id' => $this->mentoringRequestThree->participant->id,
+                        'client' => null,
+                        'team' => [
+                            'id' => $this->teamParticipantTwo->team->id,
+                            'name' => $this->teamParticipantTwo->team->name,
+                        ],
+                        'user' => null,
+                    ],
+                    'consultationSetup' => [
+                        'id' => $this->mentoringRequestThree->consultationSetup->id,
+                        'name' => $this->mentoringRequestThree->consultationSetup->name,
+                    ],
+                    'mentor' => [
+                        'id' => $this->mentoringRequestThree->mentor->id,
+                        'program' => [
+                            'id' => $this->mentoringRequestThree->mentor->program->id,
+                            'name' => $this->mentoringRequestThree->mentor->program->name,
+                        ],
+
+                    ],
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_showAllUnresponded_excludeRespondedRequest_offered_cancelled_rejected()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::OFFERED;
+        $this->mentoringRequestTwo->requestStatus = MentoringRequestStatus::CANCELLED;
+        $this->mentoringRequestThree->requestStatus = MentoringRequestStatus::REJECTED;
+        
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 0]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestOne->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestThree->id]);
+    }
+    public function test_showAllUnresponded_excludeRespondedRequest_approved_accepted()
+    {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $this->mentoringRequestTwo->requestStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 1]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestOne->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestTwo->id]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestThree->id]);
+    }
+    public function test_showAllUnresponded_excludeRequestToInactiveMentor()
+    {
+        $this->mentorTwo->active = false;
+        
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 2]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestOne->id]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestThree->id]);
+    }
+    public function test_showAllUnresponded_excludeRequestToOtherMentor()
+    {
+        $otherPersonnel = new RecordOfPersonnel($this->personnel->firm, 'other');
+        $otherPersonnel->insert($this->connection);
+        $otherMentor = new RecordOfConsultant($this->mentorTwo->program, $otherPersonnel, 'other');
+        $this->mentoringRequestThree->mentor = $otherMentor;
+        
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 2]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestOne->id]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestThree->id]);
+    }
+    public function test_showAllUnresponded_fromFilter()
+    {
+        $this->mentoringRequestTwo->startTime = (new \DateTime('+72 hours'))->format('y-m-d H:i:s');
+        $this->mentoringRequestTwo->endTime = (new \DateTime('+73 hours'))->format('y-m-d H:i:s');
+        
+        $fromQuery = (new \DateTime('+70 hours'))->format('Y-m-d H:i:s');
+        $this->showAllUnrespondedUri .= "?from=$fromQuery";
+        
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 1]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestOne->id]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestThree->id]);
+    }
+    public function test_showAllUnresponded_toFilter()
+    {
+        $this->mentoringRequestTwo->startTime = (new \DateTime('-73 hours'))->format('y-m-d H:i:s');
+        $this->mentoringRequestTwo->endTime = (new \DateTime('-72 hours'))->format('y-m-d H:i:s');
+        
+        $toQuery = (new \DateTime('-70 hours'))->format('Y-m-d H:i:s');
+        $this->showAllUnrespondedUri .= "?to=$toQuery";
+        
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 1]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestOne->id]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestThree->id]);
+    }
+    public function test_showAllUnresponded_orderSet()
+    {
+        $this->mentoringRequestTwo->startTime = (new \DateTime('+72 hours'))->format('y-m-d H:i:s');
+        $this->mentoringRequestTwo->endTime = (new \DateTime('+73 hours'))->format('y-m-d H:i:s');
+        $this->mentoringRequestThree->startTime = (new \DateTime('+124 hours'))->format('y-m-d H:i:s');
+        $this->mentoringRequestThree->endTime = (new \DateTime('+125 hours'))->format('y-m-d H:i:s');
+        
+        $this->showAllUnrespondedUri .= "?order=DESC&pageSize=1";
+        
+        $this->showAllUnresponded();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 3]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestOne->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mentoringRequestTwo->id]);
+        $this->seeJsonContains(['id' => $this->mentoringRequestThree->id]);
     }
 }

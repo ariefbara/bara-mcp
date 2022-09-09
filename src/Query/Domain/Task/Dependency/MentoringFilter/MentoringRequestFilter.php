@@ -17,11 +17,21 @@ class MentoringRequestFilter
      */
     protected $reportCompletedStatus;
 
+    public function getRequestStatusList(): array
+    {
+        return $this->requestStatusList;
+    }
+
+    public function getReportCompletedStatus(): ?bool
+    {
+        return $this->reportCompletedStatus;
+    }
+
     public function __construct()
     {
         
     }
-    
+
     public function addRequestStatus(int $requestStatus)
     {
         $this->requestStatusList[] = $requestStatus;
@@ -33,7 +43,7 @@ class MentoringRequestFilter
         $this->reportCompletedStatus = $reportCompletedStatus;
         return $this;
     }
-    
+
     public function getSqlRequestStatusClause(string $tableName, array &$parameters): ?string
     {
         if (empty($this->requestStatusList)) {
@@ -46,7 +56,7 @@ class MentoringRequestFilter
         }
         return "AND $tableName.requestStatus IN ($statuses)";
     }
-    
+
     public function getSqlReportCompletedStatusClause(string $reportColumnName): ?string
     {
         if ($this->reportCompletedStatus === true) {

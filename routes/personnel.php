@@ -36,6 +36,7 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/approve', ['uses' => "MentoringRequestController@approve"]);
     $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/reject', ['uses' => "MentoringRequestController@reject"]);
     $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/offer', ['uses' => "MentoringRequestController@offer"]);
+    $router->get('/mentoring-requests/all-unresponded', ['uses' => "MentoringRequestController@showAllUnresponded"]);
     $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
     
     $router->post('/mentors/{mentorId}/declared-mentorings', ['uses' => "DeclaredMentoringController@declare"]);
