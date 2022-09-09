@@ -3,10 +3,9 @@
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet;
 
 use DateTime;
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\Participant\RecordOfWorksheet,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfWorksheet;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfComment implements Record
 {
@@ -41,6 +40,11 @@ class RecordOfComment implements Record
             "submitTime" => $this->submitTime,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $connection->table('Comment')->insert($this->toArrayForDbEntry());
     }
 
 }

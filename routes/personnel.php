@@ -50,6 +50,8 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->put('/mentors/{mentorId}/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
     $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
     
+    $router->get('/dedicated-mentee-worksheets/all-uncommented', ['uses' => "DedicatedMenteeWorksheetController@showAllUncommented"]);
+    
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/update", ["uses" => "AccountController@updateProfile"]);

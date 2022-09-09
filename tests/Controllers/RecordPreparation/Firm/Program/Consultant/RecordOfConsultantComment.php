@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Consultant;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\Participant\Worksheet\RecordOfComment,
-    Firm\Program\RecordOfConsultant,
-    Record
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
+use Tests\Controllers\RecordPreparation\Record;
 
 class RecordOfConsultantComment implements Record
 {
@@ -36,6 +35,12 @@ class RecordOfConsultantComment implements Record
             "Comment_id" => $this->comment->id,
             "id" => $this->id,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->comment->insert($connection);
+        $connection->table('ConsultantComment')->insert($this->toArrayForDbEntry());
     }
 
 }

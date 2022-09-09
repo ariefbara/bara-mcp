@@ -266,13 +266,14 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         $dedicatedMentorQb = $this->getEntityManager()->createQueryBuilder();
         $dedicatedMentorQb->select('a_participant.id')
                 ->from(\Query\Domain\Model\Firm\Program\Participant\DedicatedMentor::class, 'a_dedicatedMentor')
+                ->andWhere($dedicatedMentorQb->expr()->eq('a_dedicatedMentor.cancelled', 'false'))
                 ->leftJoin('a_dedicatedMentor.participant', 'a_participant')
                 ->leftJoin('a_dedicatedMentor.consultant', 'a_consultant')
                 ->andWhere($dedicatedMentorQb->expr()->eq('a_consultant.active', 'true'))
                 ->leftJoin('a_consultant.personnel', 'a_personnel')
                 ->andWhere($dedicatedMentorQb->expr()->eq('a_personnel.id', ':personnelId'));
 
-        $consultantCommentQb = $this->createQueryBuilder('b_consultantComment');
+        $consultantCommentQb = $this->getEntityManager()->createQueryBuilder();
         $consultantCommentQb->select('b_worksheet.id')
                 ->from(\Query\Domain\Model\Firm\Program\Consultant\ConsultantComment::class, 'b_consultantComment')
                 ->leftJoin('b_consultantComment.consultant', 'b_consultant')

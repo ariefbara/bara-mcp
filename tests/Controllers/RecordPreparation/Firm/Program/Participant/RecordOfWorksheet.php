@@ -2,12 +2,11 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfMission,
-    Firm\Program\RecordOfParticipant,
-    Record,
-    Shared\RecordOfFormRecord
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFormRecord;
 
 class RecordOfWorksheet implements Record
 {
@@ -59,6 +58,12 @@ class RecordOfWorksheet implements Record
             "removed" => $this->removed,
             "parent_id" => empty($this->parent)? null: $this->parent->id,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->formRecord->insert($connection);
+        $connection->table('Worksheet')->insert($this->toArrayForDbEntry());
     }
 
 }
