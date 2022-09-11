@@ -6,13 +6,17 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Query\Application\Service\Firm\Personnel\ProgramConsultant\ConsultantInvitationRepository;
+use Query\Domain\Model\Firm\Program\Activity\Invitee\InviteeReport;
 use Query\Domain\Model\Firm\Program\Consultant\ConsultantInvitee;
+use Query\Domain\Task\Dependency\Firm\Program\Consultant\ConsultantInviteeFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Consultant\ConsultantInviteeRepository;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineConsultantInviteeRepository extends EntityRepository implements ConsultantInvitationRepository
+class DoctrineConsultantInviteeRepository extends EntityRepository implements ConsultantInvitationRepository, ConsultantInviteeRepository
 {
+
     protected function applyFilter(QueryBuilder $qb, ?InviteeFilter $inviteeFilter): void
     {
         if (!isset($inviteeFilter)) {
@@ -73,7 +77,7 @@ class DoctrineConsultantInviteeRepository extends EntityRepository implements Co
                 ->leftJoin('invitee.activity', 'activity')
                 ->orderBy('activity.startEndTime.startDateTime', 'ASC')
                 ->setParameters($params);
-        
+
         $this->applyFilter($qb, $inviteeFilter);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
@@ -104,6 +108,41 @@ class DoctrineConsultantInviteeRepository extends EntityRepository implements Co
             $errorDetail = "not found: invitation not found";
             throw RegularException::notFound($errorDetail);
         }
+    }
+
+    public function allInvitationWithPendingReportForPersonnel(
+            string $personnelId, int $page, int $pageSize, ConsultantInviteeFilter $consultantInviteeFilter)
+    {
+        $params = [ 'personnelId' => $personnelId ];
+        
+        $inviteeReportQb = $this->getEntityManager()->createQueryBuilder();
+        $inviteeReportQb->select('a_invitee.id')
+                ->from(InviteeReport::class, 'a_inviteeReport')
+                ->leftJoin('a_inviteeReport.invitee', 'a_invitee');
+        
+        $qb = $this->createQueryBuilder('consultantInvitee');
+        $qb->select('consultantInvitee')
+                ->leftJoin('consultantInvitee.consultant', 'consultant')
+                ->andWhere($qb->expr()->eq('consultant.active', 'true'))
+                ->leftJoin('consultant.personnel', 'personnel')
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->leftJoin('consultantInvitee.invitee', 'invitee')
+                ->andWhere($qb->expr()->notIn('invitee.id', $inviteeReportQb->getDQL()))
+                ->andWhere($qb->expr()->eq('invitee.cancelled', 'false'))
+                ->leftJoin('invitee.activity', 'activity')
+                ->orderBy('activity.startEndTime.startDateTime', $consultantInviteeFilter->getQueryOrder()->getValue())
+                ->setParameters($params);
+        
+        if ($consultantInviteeFilter->getFrom()) {
+            $qb->andWhere($qb->expr()->gte('activity.startEndTime.startDateTime', ':from'))
+                    ->setParameter('from', $consultantInviteeFilter->getFrom());
+        }
+        if ($consultantInviteeFilter->getTo()) {
+            $qb->andWhere($qb->expr()->lte('activity.startEndTime.startDateTime', ':to'))
+                    ->setParameter('to', $consultantInviteeFilter->getTo());
+        }
+        
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }
