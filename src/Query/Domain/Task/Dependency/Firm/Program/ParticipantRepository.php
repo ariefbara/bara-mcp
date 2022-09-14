@@ -12,4 +12,9 @@ interface ParticipantRepository
     public function allProgramParticipantsInFirm(string $firmId, ParticipantFilter $filter);
 
     public function aProgramParticipantInFirm(string $firmId, string $id): Participant;
+
+    public function summaryOfAllParticipantsWithDedicatedMentorCorrespondToPersonnel(
+            string $personnelId, int $page, int $pageSize, string $orderType = "DESC");
+
+    public function countOfAllParticipantsWithDedicatedMentorCorrespondToPersonnel(string $personnelId);
 }

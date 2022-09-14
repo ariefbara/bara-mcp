@@ -52,6 +52,8 @@ $router->group($personnelAggregate, function () use ($router) {
     
     $router->get('/dedicated-mentee-worksheets/all-uncommented', ['uses' => "DedicatedMenteeWorksheetController@showAllUncommented"]);
     
+    $router->get('/dedicated-mentees/summary', ['uses' => "DedicatedMenteeController@allWithSummary"]);
+    
     $router->get('/consultant-invitees/all-with-pending-report', ['uses' => "ConsultantInviteeController@allWithPendingReport"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
