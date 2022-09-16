@@ -56,6 +56,8 @@ $router->group($personnelAggregate, function () use ($router) {
     
     $router->get('/consultant-invitees/all-with-pending-report', ['uses' => "ConsultantInviteeController@allWithPendingReport"]);
     
+    $router->get('/mentor-dashboard', ['uses' => "MentorDashboardController@view"]);
+    
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/update", ["uses" => "AccountController@updateProfile"]);

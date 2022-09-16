@@ -56,8 +56,8 @@ class RecordOfMentoringSlot implements Record
         return [
             'id' => $this->id,
             'cancelled' => $this->cancelled,
-            'startTime' => $this->startTime->format('Y-m-d H:i:s'),
-            'endTime' => $this->endTime->format('Y-m-d H:i:s'),
+            'startTime' => is_string($this->startTime) ? $this->startTime : $this->startTime->format('Y-m-d H:i:s'),
+            'endTime' => is_string($this->endTime) ? $this->endTime : $this->endTime->format('Y-m-d H:i:s'),
             'mediaType' => $this->mediaType,
             'location' => $this->location,
             'capacity' => $this->capacity,
