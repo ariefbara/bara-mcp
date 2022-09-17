@@ -58,6 +58,8 @@ $router->group($personnelAggregate, function () use ($router) {
     
     $router->get('/mentor-dashboard', ['uses' => "MentorDashboardController@view"]);
     
+    $router->get('/missions/discussion-overview', ['uses' => "MissionController@viewDiscussionOverview"]);
+    
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/update", ["uses" => "AccountController@updateProfile"]);

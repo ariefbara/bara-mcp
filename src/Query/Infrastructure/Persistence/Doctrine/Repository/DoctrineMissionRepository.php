@@ -12,10 +12,11 @@ use Query\Domain\Model\Firm\Program\Mission;
 use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\Dependency\Firm\Program\MissionRepository as MissionRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMissionRepository extends EntityRepository implements MissionRepository, InterfaceForGuest
+class DoctrineMissionRepository extends EntityRepository implements MissionRepository, InterfaceForGuest, MissionRepository2
 {
 
     public function ofId(string $firmId, string $programId, string $missionId): Mission
@@ -58,7 +59,7 @@ class DoctrineMissionRepository extends EntityRepository implements MissionRepos
                 ->leftJoin("program.firm", "firm")
                 ->andWhere($qb->expr()->eq("firm.id", ":firmId"))
                 ->setParameters($params);
-        
+
         if ($publishedOnly) {
             $qb->andWhere($qb->expr()->eq("mission.published", "true"));
         }
@@ -302,7 +303,7 @@ _STATEMENT;
             'teamProgramParticipationId' => $teamProgramParticipationId,
             'missionPosition' => $missionPosition,
         ];
-        
+
         $teamQb = $this->getEntityManager()->createQueryBuilder();
         $teamQb->select("t_team.id")
                 ->from(Member::class, "teamMembership")
@@ -350,7 +351,7 @@ _STATEMENT;
             'teamProgramParticipationId' => $teamProgramParticipationId,
             'missionId' => $missionId,
         ];
-        
+
         $teamQb = $this->getEntityManager()->createQueryBuilder();
         $teamQb->select("t_team.id")
                 ->from(Member::class, "teamMembership")
@@ -442,7 +443,7 @@ _STATEMENT;
             "programId" => $programId,
             "position" => $position,
         ];
-        
+
         $qb = $this->createQueryBuilder("mission");
         $qb->select("mission")
                 ->andWhere($qb->expr()->eq("mission.position", ":position"))
@@ -450,7 +451,7 @@ _STATEMENT;
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -476,15 +477,65 @@ _STATEMENT;
         $params = [
             "programId" => $programId,
         ];
-        
+
         $qb = $this->createQueryBuilder("mission");
         $qb->select("mission")
                 ->andWhere($qb->expr()->eq("mission.published", "true"))
                 ->leftJoin("mission.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params);
-        
+
         return $qb->getQuery()->getResult();
+    }
+
+    public function allMissionsWithDiscussionOverviewAccessibleByPersonnelHavingMentorAuthority(
+            string $personnelId, int $page, int $pageSize)
+    {
+        $offset = $pageSize * ($page - 1);
+        $params = ['personnelId' => $personnelId];
+        
+        $sql = <<<_STATEMENT
+SELECT Mission.id, Mission.name, _a.programId, _a.programName, _b.lastActivity, _b.numberOfPost, _b.message
+FROM Mission
+INNER JOIN (
+    SELECT Program.id programId, Program.name programName
+    FROM Consultant
+    INNER JOIN Program ON Program.id = Consultant.Program_id
+    WHERE Consultant.Personnel_id = :personnelId
+        AND Consultant.active = true
+)_a ON _a.programId = Mission.Program_id
+LEFT JOIN (
+    SELECT _b2.Mission_id, _b2.modifiedTime lastActivity, _b1.numberOfPost, _b2.message
+    FROM (
+        SELECT MAX(modifiedTime) modifiedTime, Mission_id, COUNT(id) numberOfPost
+        FROM MissionComment
+        GROUP BY Mission_id
+    )_b1
+    INNER JOIN MissionComment _b2 USING (Mission_id, modifiedTime)
+)_b ON _b.Mission_id = Mission.id
+ORDER BY lastActivity DESC, numberOfPost DESC
+LIMIT {$offset}, {$pageSize}
+_STATEMENT;
+        $statement = $this->getEntityManager()->getConnection()->prepare($sql);
+        $resultSet = $statement->executeQuery($params);
+        return [
+            'total' => $this->totalOfAllMissionsWithDiscussionOverviewAccessibleByPersonnelHavingMentorAuthority($personnelId),
+            'list' => $resultSet->fetchAllAssociative(),
+        ];
+    }
+    protected function totalOfAllMissionsWithDiscussionOverviewAccessibleByPersonnelHavingMentorAuthority(string $personnelId)
+    {
+        $params = ['personnelId' => $personnelId];
+        
+        $sql = <<<_STATEMENT
+SELECT COUNT(Mission.id) total
+FROM Mission
+INNER JOIN Consultant ON Consultant.Program_id = Mission.Program_id AND Consultant.active = true
+WHERE Consultant.Personnel_id = :personnelId
+_STATEMENT;
+        $statement = $this->getEntityManager()->getConnection()->prepare($sql);
+        $resultSet = $statement->executeQuery($params);
+        return $resultSet->fetchFirstColumn()[0];
     }
 
 }
