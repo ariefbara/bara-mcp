@@ -125,6 +125,19 @@ class WorksheetControllerTest extends ExtendedCoordinatorTestCase
         ];
         $this->seeJsonContains($response);
     }
+    public function test_viewAll_orderBySubmitTimeDesc()
+    {
+        $this->worksheetOne->formRecord->submitTime = (new \DateTime('-48 hours'))->format('Y-m-d H:i:s');
+        $this->worksheetTwo->formRecord->submitTime = (new \DateTime('-24 hours'))->format('Y-m-d H:i:s');
+        $this->worksheetUri .= "?pageSize=1";
+        
+        $this->viewAll();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => 2]);
+        $this->seeJsonDoesntContains(['id' => $this->worksheetOne->id]);
+        $this->seeJsonContains(['id' => $this->worksheetTwo->id]);
+    }
     public function test_viewAll_useParticipantIdFilter()
     {
         $this->worksheetUri .= "?participantId={$this->worksheetOne->participant->id}";

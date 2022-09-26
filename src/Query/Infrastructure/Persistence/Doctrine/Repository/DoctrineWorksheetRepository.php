@@ -330,6 +330,8 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->leftJoin('worksheet.participant', 'participant')
                 ->leftJoin('participant.program', 'program')
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('worksheet.formRecord', 'formRecord')
+                ->addOrderBy('formRecord.submitTime', 'DESC')
                 ->setParameters($parameters);
 
         if (!is_null($filter->getParticipantId())) {
