@@ -4,13 +4,14 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Query\Application\Service\Personnel\DedicatedMentor\DedicatedMentorRepository as DedicatedMentorRepository2;
 use Query\Domain\Model\Firm\Program\DedicatedMentorRepository;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineDedicatedMentorRepository extends DoctrineEntityRepository implements DedicatedMentorRepository
+class DoctrineDedicatedMentorRepository extends DoctrineEntityRepository implements DedicatedMentorRepository, DedicatedMentorRepository2
 {
     protected function setActiveOnlyFilter(QueryBuilder $qb, ?bool $cancelledStatus): void
     {
@@ -155,6 +156,29 @@ class DoctrineDedicatedMentorRepository extends DoctrineEntityRepository impleme
         $this->setActiveOnlyFilter($qb, $cancelledStatus);
         
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aDedicatedMentorOfPersonnel(string $personnelId, string $dedicatedMentorId): DedicatedMentor
+    {
+        $params = [
+            'personnelId' => $personnelId,
+            'dedicatedMentorId' => $dedicatedMentorId,
+        ];
+        
+        $qb = $this->createQueryBuilder('dedicatedMentor');
+        $qb->select('dedicatedMentor')
+                ->andWhere($qb->expr()->eq('dedicatedMentor.id', ':dedicatedMentorId'))
+                ->leftJoin('dedicatedMentor.consultant', 'consultant')
+                ->leftJoin('consultant.personnel', 'personnel')
+                ->andWhere($qb->expr()->eq('personnel.id', ':personnelId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('dedicated mentor not found');
+        }
     }
 
 }

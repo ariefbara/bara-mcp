@@ -75,6 +75,7 @@ class Coordinator
         $this->assertActive();
         return $okrPeriodRepository->anOKRPeriodInProgram($this->program->getId(), $okrPeriodId);
     }
+
     public function viewAllOKRPeriodBelongsToParticipant(
             OKRPeriodRepository $okrPeriodRepository, string $participantId, int $page, int $pageSize)
     {
@@ -87,40 +88,51 @@ class Coordinator
             ObjectiveProgressReportRepository $objectiveProgressReportRepository, string $objectiveProgressReportId): ObjectiveProgressReport
     {
         return $objectiveProgressReportRepository->anObjectiveProgressReportInProgram(
-                $this->program->getId(), $objectiveProgressReportId);
+                        $this->program->getId(), $objectiveProgressReportId);
     }
+
     public function viewAllObjectiveProgressReportBelongsToObjective(
             ObjectiveProgressReportRepository $objectiveProgressReportRepository, string $objectiveId, int $page,
             int $pageSize)
     {
         return $objectiveProgressReportRepository->allObjectiveProgressReportsBelongsToObjectiveInProgram(
-                $this->program->getId(), $objectiveId, $page, $pageSize);
+                        $this->program->getId(), $objectiveId, $page, $pageSize);
     }
-    
+
     public function viewDedicatedMentor(DedicatedMentorRepository $dedicatedMentorRepository, string $dedicatedMentorId): DedicatedMentor
     {
         $this->assertActive();
         return $dedicatedMentorRepository->aDedicatedMentorInProgram($this->program->getId(), $dedicatedMentorId);
     }
+
     public function viewAllDedicatedMentorOfParticipant(
-            DedicatedMentorRepository $dedicatedMentorRepository, string $participantId, int $page, int $pageSize, ?bool $activeOnly)
+            DedicatedMentorRepository $dedicatedMentorRepository, string $participantId, int $page, int $pageSize,
+            ?bool $activeOnly)
     {
         $this->assertActive();
         return $dedicatedMentorRepository->allDedicatedMentorsOfParticipantInProgram(
-                $this->program->getId(), $participantId, $page, $pageSize, $activeOnly);
+                        $this->program->getId(), $participantId, $page, $pageSize, $activeOnly);
     }
+
     public function viewAllDedicatedMentorOfConsultant(
-            DedicatedMentorRepository $dedicatedMentorRepository, string $consultantId, int $page, int $pageSize, ?bool $cancelledStatus)
+            DedicatedMentorRepository $dedicatedMentorRepository, string $consultantId, int $page, int $pageSize,
+            ?bool $cancelledStatus)
     {
         $this->assertActive();
         return $dedicatedMentorRepository->allDedicatedMentorsOfConsultantInProgram(
-                $this->program->getId(), $consultantId, $page, $pageSize, $cancelledStatus);
+                        $this->program->getId(), $consultantId, $page, $pageSize, $cancelledStatus);
     }
-    
+
     public function executeTaskInProgram(ITaskInProgramExecutableByCoordinator $task): void
     {
         $this->assertActive();
         $task->executeTaskInProgram($this->program);
+    }
+
+    public function executeProgramTask(ProgramTaskExecutableByCoordinator $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this->program->getId(), $payload);
     }
 
 }

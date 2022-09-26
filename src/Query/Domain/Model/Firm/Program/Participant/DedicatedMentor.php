@@ -7,6 +7,7 @@ use Query\Domain\Model\Firm\Client;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Team\Member\InspectedClientList;
+use Resources\Exception\RegularException;
 
 class DedicatedMentor
 {
@@ -112,7 +113,16 @@ class DedicatedMentor
             InspectedClientList $inspectedClientList): iterable
     {
         return $this->participant->getListOfIndividualParticipantNameOrMemberNameOfTeamParticipantWithinInspection(
-                $inspectedClientList);
+                        $inspectedClientList);
+    }
+
+    public function executeQueryTaskOnDedicatedMentee(
+            QueryTaskOnDedicatedMenteeExecutableByDedicatedMentor $task, $payload): void
+    {
+        if ($this->cancelled) {
+            throw RegularException::forbidden('only active dedicated mentor can make this request');
+        }
+        $task->execute($this->participant->getId(), $payload);
     }
 
 }

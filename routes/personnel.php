@@ -473,6 +473,9 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->get("/evaluation-report-transcript", ["uses" => "ParticipantEvaluationReportTranscriptController@transcript"]);
         $router->get("/download-evaluation-report-transcript-xls", ["uses" => "ParticipantEvaluationReportTranscriptController@downloadXlsTranscript"]);
+        
+        $router->get("/worksheets", ["uses" => "WorksheetController@viewAll"]);
+        $router->get("/worksheets/{worksheetId}", ["uses" => "WorksheetController@viewDetail"]);
     });
     
     $asConsultantMeetingInitiatorAggregate = [

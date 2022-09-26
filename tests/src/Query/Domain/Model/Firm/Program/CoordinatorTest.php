@@ -7,8 +7,9 @@ use Tests\TestBase;
 
 class CoordinatorTest extends TestBase
 {
-    protected $coordinator, $program;
+    protected $coordinator, $program, $programId = 'programId';
     protected $taskInProgram;
+    protected $programTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -18,6 +19,7 @@ class CoordinatorTest extends TestBase
         $this->coordinator->program = $this->program;
         
         $this->taskInProgram = $this->buildMockOfInterface(ITaskInProgramExecutableByCoordinator::class);
+        $this->programTask = $this->buildMockOfInterface(ProgramTaskExecutableByCoordinator::class);
     }
     
     protected function executeTaskInProgram()
@@ -36,6 +38,28 @@ class CoordinatorTest extends TestBase
         $this->coordinator->active = false;
         $this->assertRegularExceptionThrowed(function (){
             $this->executeTaskInProgram();
+        }, 'Forbidden', 'forbidden: only active coordinator can make this request');
+    }
+    
+    protected function executeProgramTask()
+    {
+        $this->program->expects($this->any())
+                ->method('getId')
+                ->willReturn($this->programId);
+        $this->coordinator->executeProgramTask($this->programTask, $this->payload);
+    }
+    public function test_executeProgramTask_executeTask()
+    {
+        $this->programTask->expects($this->once())
+                ->method('execute')
+                ->with($this->programId, $this->payload);
+        $this->executeProgramTask();
+    }
+    public function test_executeProgramTask_inactiveCoordinator_forbidden()
+    {
+        $this->coordinator->active = false;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->executeProgramTask();
         }, 'Forbidden', 'forbidden: only active coordinator can make this request');
     }
 }

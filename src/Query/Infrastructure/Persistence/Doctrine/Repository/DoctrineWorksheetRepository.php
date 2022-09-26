@@ -7,9 +7,12 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Query\Application\Service\Firm\Program\Participant\WorksheetRepository;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Consultant\ConsultantComment;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetFilter as WorksheetFilter2;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetRepository as WorksheetRepository2;
 use Query\Infrastructure\QueryFilter\WorksheetFilter;
 use Resources\Exception\RegularException;
@@ -265,7 +268,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
 
         $dedicatedMentorQb = $this->getEntityManager()->createQueryBuilder();
         $dedicatedMentorQb->select('a_participant.id')
-                ->from(\Query\Domain\Model\Firm\Program\Participant\DedicatedMentor::class, 'a_dedicatedMentor')
+                ->from(DedicatedMentor::class, 'a_dedicatedMentor')
                 ->andWhere($dedicatedMentorQb->expr()->eq('a_dedicatedMentor.cancelled', 'false'))
                 ->leftJoin('a_dedicatedMentor.participant', 'a_participant')
                 ->leftJoin('a_dedicatedMentor.consultant', 'a_consultant')
@@ -275,7 +278,7 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
 
         $consultantCommentQb = $this->getEntityManager()->createQueryBuilder();
         $consultantCommentQb->select('b_worksheet.id')
-                ->from(\Query\Domain\Model\Firm\Program\Consultant\ConsultantComment::class, 'b_consultantComment')
+                ->from(ConsultantComment::class, 'b_consultantComment')
                 ->leftJoin('b_consultantComment.consultant', 'b_consultant')
                 ->leftJoin('b_consultant.personnel', 'b_personnel')
                 ->andWhere($consultantCommentQb->expr()->eq('b_personnel.id', ':personnelId'))
@@ -290,6 +293,51 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
                 ->setParameters($params);
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allWorksheetsBelongsToParticipant(string $participantId, int $page, int $pageSize)
+    {
+        $params = [
+            'participantId' => $participantId
+        ];
+
+        $qb = $this->createQueryBuilder('worksheet');
+        $qb->select('worksheet')
+                ->andWhere($qb->expr()->eq('worksheet.removed', 'false'))
+                ->leftJoin('worksheet.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':partiicpantId'))
+                ->leftJoin('worksheet.formRecord', 'formRecord')
+                ->addOrderBy('formRecord.submitTime', 'DESC')
+                ->setParameters($params);
+
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allActiveWorksheetsBelongsToParticipant(string $participantId, int $page, int $pageSize)
+    {
+        
+    }
+
+    public function allActiveWorksheetsInProgram(string $programId, WorksheetFilter2 $filter)
+    {
+        $parameters = [
+            'programId' => $programId
+        ];
+
+        $qb = $this->createQueryBuilder('worksheet');
+        $qb->select('worksheet')
+                ->andWhere($qb->expr()->eq('worksheet.removed', 'false'))
+                ->leftJoin('worksheet.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters);
+
+        if (!is_null($filter->getParticipantId())) {
+            $qb->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                    ->setParameter('participantId', $filter->getParticipantId());
+        }
+
+        return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
     }
 
 }
