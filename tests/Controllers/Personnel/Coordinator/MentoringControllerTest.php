@@ -246,11 +246,11 @@ $this->disableExceptionHandling();
         $this->viewAll();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['total' => '5']);
         $this->seeJsonDoesntContains(['mentoringRequestId' => $this->mentoringRequestOne->id]);
-        $this->seeJsonDoesntContains(['negotiatedMentoringId' => $this->negotiatedMentoringTwo->id]);
+        $this->seeJsonContains(['negotiatedMentoringId' => $this->negotiatedMentoringTwo->id]);
         $this->seeJsonDoesntContains(['bookedMentoringId' => $this->bookedMentoringSlotThree->id]);
-        $this->seeJsonContains(['declaredMentoringId' => $this->declaredMentoringFour->id]);
+        $this->seeJsonDoesntContains(['declaredMentoringId' => $this->declaredMentoringFour->id]);
         $this->seeJsonDoesntContains(['mentoringRequestId' => $this->mentoringRequestFive_p2->id]);
     }
     public function test_viewAll_unmanagedMentoring_belongsToParticipantOfOtherProgram()
