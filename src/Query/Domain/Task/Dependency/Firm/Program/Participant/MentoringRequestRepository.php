@@ -13,4 +13,6 @@ interface MentoringRequestRepository
 
     public function allMentoringRequestBelongsToPersonnel(
             string $personnelId, int $page, int $pageSize, MentoringRequestSearch $mentoringRequestSearch);
+
+    public function aMentoringRequestInProgram(string $programId, string $id): MentoringRequest;
 }

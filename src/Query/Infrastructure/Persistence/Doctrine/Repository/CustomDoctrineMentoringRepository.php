@@ -3,6 +3,7 @@
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityManager;
+use Query\Domain\Task\Dependency\ExtendedMentoringFilter;
 use Query\Domain\Task\Dependency\MentoringFilter;
 use Query\Domain\Task\Dependency\MentoringRepository;
 
@@ -392,7 +393,6 @@ _STATEMENT;
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
-
     public function totalCountOfAllMentoringsBelongsToParticipant(string $participantId, MentoringFilter $filter)
     {
         $parameters = [
@@ -440,6 +440,165 @@ FROM (
         {$filter->getSqlToClause('DeclaredMentoring', $parameters)}
         {$filter->getDeclaredMentoringFilter()->getSqlRequestStatusClause('DeclaredMentoring', $parameters)}
         {$filter->getDeclaredMentoringFilter()->getSqlReportCompletedStatusClause('ParticipantReport.id')}
+)_a
+_STATEMENT;
+        $query = $this->em->getConnection()->prepare($statement);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function allValidMentoringsInProgram(string $programId, ExtendedMentoringFilter $filter)
+    {
+        $offset = $filter->getPageSize() * ($filter->getPage() - 1);
+        
+        $parameters = [
+            "programId" => $programId,
+        ];
+        $statement = <<<_STATEMENT
+SELECT 
+    _a.startTime,
+    _a.endTime,
+    _a.mentorId,
+    CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) mentorName,
+    _a.consultationSetupId,
+    ConsultationSetup.name consultationSetupName,
+    _a.bookedMentoringId,
+    _a.mentoringRequestId,
+    _a.negotiatedMentoringId,
+    _a.mentoringRequestStatus,
+    _a.declaredMentoringId,
+    _a.declaredMentoringStatus
+FROM (
+    SELECT 
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id mentorId,
+        MentoringSlot.ConsultationSetup_id consultationSetupId,
+        BookedMentoringSlot.id bookedMentoringId,
+        null as mentoringRequestId,
+        null as negotiatedMentoringId,
+        null as mentoringRequestStatus,
+        null declaredMentoringId,
+        null declaredMentoringStatus
+    FROM BookedMentoringSlot
+    INNER JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
+    INNER JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
+    WHERE Participant.Program_id = :programId
+        AND Participant.active = true
+        AND BookedMentoringSlot.cancelled = false
+        {$filter->getSqlParticipantIdClause('Participant', $parameters)}
+        {$filter->getSqlFromClause('MentoringSlot', $parameters)}
+        {$filter->getSqlToClause('MentoringSlot', $parameters)}
+        
+    UNION
+        
+    SELECT 
+        MentoringRequest.startTime,
+        MentoringRequest.endTime,
+        MentoringRequest.Consultant_id mentorId,
+        MentoringRequest.ConsultationSetup_id consultationSetupId,
+        null as bookedMentoringId,
+        MentoringRequest.id mentoringRequestId,
+        NegotiatedMentoring.id negotiatedMentoringId,
+        CASE MentoringRequest.requestStatus
+            WHEN 0 THEN 'requested by participant'
+            WHEN 1 THEN 'offered by mentor'
+            WHEN 4 THEN 'approved by mentor'
+            WHEN 5 THEN 'accepted by participant'
+        END as mentoringRequestStatus,
+        null declaredMentoringId,
+        null declaredMentoringStatus
+    FROM MentoringRequest
+    INNER JOIN Participant ON Participant.id = MentoringRequest.Participant_id
+    LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
+    WHERE Participant.Program_id = :programId
+        AND Participant.active = true
+        AND MentoringRequest.requestStatus IN (0, 1, 4, 5)
+        {$filter->getSqlParticipantIdClause('Participant', $parameters)}
+        {$filter->getSqlFromClause('MentoringRequest', $parameters)}
+        {$filter->getSqlToClause('MentoringRequest', $parameters)}
+        
+    UNION
+        
+    SELECT 
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.Consultant_id mentorId,
+        DeclaredMentoring.ConsultationSetup_id consultationSetupId,
+        null as bookedMentoringId,
+        null mentoringRequestId,
+        null negotiatedMentoringId,
+        null mentoringRequestStatus,
+        DeclaredMentoring.id declaredMentoringId,
+        CASE DeclaredMentoring.declaredStatus
+            WHEN 1 THEN 'declared by mentor'
+            WHEN 2 THEN 'declared by participant'
+            WHEN 4 THEN 'approved by mentor'
+            WHEN 6 THEN 'approved by participant'
+        END as declaredMentoringStatus
+    FROM DeclaredMentoring
+    INNER JOIN Participant ON Participant.id = DeclaredMentoring.Participant_id
+    WHERE Participant.Program_id = :programId
+        AND Participant.active = true
+        AND DeclaredMentoring.declaredStatus IN (1, 2, 4, 6)
+        {$filter->getSqlParticipantIdClause('Participant', $parameters)}
+        {$filter->getSqlFromClause('DeclaredMentoring', $parameters)}
+        {$filter->getSqlToClause('DeclaredMentoring', $parameters)}
+)_a
+INNER JOIN Consultant ON Consultant.id = _a.mentorId
+INNER JOIN Personnel ON Personnel.id = Consultant.Personnel_id
+INNER JOIN ConsultationSetup ON ConsultationSetup.id = _a.consultationSetupId
+ORDER BY startTime {$filter->getOrderDirection()}
+LIMIT {$offset}, {$filter->getPageSize()}
+_STATEMENT;
+        $query = $this->em->getConnection()->prepare($statement);
+        return [
+            'total' => $this->totalCountOfAllValidMentoringsInProgram($programId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+    }
+    public function totalCountOfAllValidMentoringsInProgram(string $programId, ExtendedMentoringFilter $filter)
+    {
+        $parameters = [
+            "programId" => $programId,
+        ];
+        
+        $statement = <<<_STATEMENT
+SELECT COUNT(*) total
+FROM (
+    SELECT BookedMentoringSlot.id bookedMentoringId, null as mentoringRequestId, null declaredMentoringId
+    FROM BookedMentoringSlot
+    INNER JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
+    INNER JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
+    WHERE Participant.Program_id = :programId
+        AND Participant.active = true
+        AND BookedMentoringSlot.cancelled = false
+        {$filter->getSqlParticipantIdClause('Participant', $parameters)}
+        {$filter->getSqlFromClause('MentoringSlot', $parameters)}
+        {$filter->getSqlToClause('MentoringSlot', $parameters)}
+        
+    UNION
+        
+    SELECT null as bookedMentoringId, MentoringRequest.id mentoringRequestId, null declaredMentoringId
+    FROM MentoringRequest
+    INNER JOIN Participant ON Participant.id = MentoringRequest.Participant_id
+    WHERE Participant.Program_id = :programId
+        AND Participant.active = true
+        AND MentoringRequest.requestStatus IN (0, 1, 4, 5)
+        {$filter->getSqlParticipantIdClause('Participant', $parameters)}
+        {$filter->getSqlFromClause('MentoringRequest', $parameters)}
+        {$filter->getSqlToClause('MentoringRequest', $parameters)}
+    
+    UNION
+    
+    SELECT null bookedMentoringId, null mentoringRequestId, DeclaredMentoring.id declaredMentoringId
+    FROM DeclaredMentoring
+    INNER JOIN Participant ON Participant.id = DeclaredMentoring.Participant_id
+    WHERE Participant.Program_id = :programId
+        AND Participant.active = true
+        AND DeclaredMentoring.declaredStatus IN (1, 2, 4, 6)
+        {$filter->getSqlParticipantIdClause('Participant', $parameters)}
+        {$filter->getSqlFromClause('DeclaredMentoring', $parameters)}
+        {$filter->getSqlToClause('DeclaredMentoring', $parameters)}
 )_a
 _STATEMENT;
         $query = $this->em->getConnection()->prepare($statement);

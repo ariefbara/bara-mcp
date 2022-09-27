@@ -64,7 +64,7 @@ class DoctrineMentoringRequestRepository extends DoctrineEntityRepository implem
         $paramenters = [
             'personnelId' => $personnelId,
         ];
-        
+
         $qb = $this->createQueryBuilder('mentoringRequest');
         $qb->select('mentoringRequest')
                 ->leftJoin('mentoringRequest.mentor', 'mentor')
@@ -88,6 +88,29 @@ class DoctrineMentoringRequestRepository extends DoctrineEntityRepository implem
         }
 
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aMentoringRequestInProgram(string $programId, string $id): MentoringRequest
+    {
+        $paramenters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('mentoringRequest');
+        $qb->select('mentoringRequest')
+                ->andWhere($qb->expr()->eq('mentoringRequest.id', ':id'))
+                ->leftJoin('mentoringRequest.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($paramenters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: mentoring request not found');
+        }
     }
 
 }

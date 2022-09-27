@@ -10,4 +10,6 @@ interface MentoringRepository
 
     public function allMentoringsBelongsToParticipant(
             string $participantId, int $page, int $pageSize, MentoringFilter $filter);
+    
+    public function allValidMentoringsInProgram(string $programId, ExtendedMentoringFilter $filter);
 }

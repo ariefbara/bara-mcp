@@ -58,4 +58,28 @@ class DoctrineNegotiatedMentoringRepository extends DoctrineEntityRepository imp
         }
     }
 
+    public function aNegotiatedMentoringInProgram(string $programId, string $id): NegotiatedMentoring
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('negotiatedMentoring');
+        $qb->select('negotiatedMentoring')
+                ->andWhere($qb->expr()->eq('negotiatedMentoring.id', ':id'))
+                ->leftJoin('negotiatedMentoring.mentoringRequest', 'mentoringRequest')
+                ->leftJoin('mentoringRequest.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: negotiated mentoring not found');
+        }
+    }
+
 }

@@ -93,4 +93,27 @@ class DoctrineBookedMentoringSlotRepository extends EntityRepository implements 
         }
     }
 
+    public function aBookedMentoringSlotInProgram(string $programId, string $id): BookedMentoringSlot
+    {
+        $params = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('bookedMentoringSlot');
+        $qb->select('bookedMentoringSlot')
+                ->andWhere($qb->expr()->eq('bookedMentoringSlot.id', ':id'))
+                ->leftJoin('bookedMentoringSlot.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($params)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('not found: booked mentoring slot not found');
+        }
+    }
+
 }
