@@ -482,6 +482,9 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/negotiated-mentorings/{id}", ["uses" => "MentoringController@viewNegotiatedMentoringDetail"]);
         $router->get("/booked-mentoring-slots/{id}", ["uses" => "MentoringController@viewBookedMentoringSlotDetail"]);
         $router->get("/declared-mentorings/{id}", ["uses" => "MentoringController@viewDeclaredMentoringDetail"]);
+        
+        $router->get("/program-participants/{participantId}/valid-activity-invitations", ["uses" => "ActivityController@viewAllValidInvitationsToParticipant"]);
+        $router->get("/participant-activity-invitations/{id}", ["uses" => "ActivityController@viewParticipantInvitationDetail"]);
     });
     
     $asConsultantMeetingInitiatorAggregate = [

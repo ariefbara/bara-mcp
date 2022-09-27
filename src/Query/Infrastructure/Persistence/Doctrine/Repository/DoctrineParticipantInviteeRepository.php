@@ -13,13 +13,15 @@ use Query\Domain\Model\Firm\Program\Participant\ParticipantInvitee;
 use Query\Domain\Model\Firm\Team\Member;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\Dependency\ActivityInvitationFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\ParticipantInviteeRepository as ParticipantInviteeRepository2;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineParticipantInviteeRepository extends EntityRepository implements ParticipantInvitationRepository, ParticipantInviteeRepository,
-        InterfaceForUser
+        InterfaceForUser, ParticipantInviteeRepository2
 {
 
     protected function applyFilter(QueryBuilder $qb, ?InviteeFilter $inviteeFilter): void
@@ -128,8 +130,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
     }
 
     public function allInvitationsForUserParticipant(
-            string $userId, string $programParticipationId, int $page, int $pageSize,
-            ?InviteeFilter $inviteeFilter)
+            string $userId, string $programParticipationId, int $page, int $pageSize, ?InviteeFilter $inviteeFilter)
     {
         $params = [
             "userId" => $userId,
@@ -307,7 +308,7 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
                 ->andWhere($qb->expr()->orX(
                                 $qb->expr()->in('participant.id', $clientParticipantQB->getDQL()),
                                 $qb->expr()->in('participant.id', $teamParticipantQB->getDQL())
-                ))
+                        ))
                 ->andWhere($qb->expr()->eq('participant.active', 'true'))
                 ->leftJoin('participantInvitee.invitee', 'invitee')
                 ->leftJoin('invitee.activity', 'activity')
@@ -344,6 +345,69 @@ class DoctrineParticipantInviteeRepository extends EntityRepository implements P
 
         $this->applyFilter($qb, $inviteeFilter);
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allInvitationsToParticipantInProgram(
+            string $programId, string $participantId, ActivityInvitationFilter $filter)
+    {
+        $parameters = [
+            'programId' => $programId,
+            'participantId' => $participantId,
+        ];
+
+        $qb = $this->createQueryBuilder('participantInvitee');
+        $qb->select('participantInvitee')
+                ->leftJoin('participantInvitee.invitee', 'invitee')
+                ->leftJoin('invitee.activity', 'activity')
+                ->leftJoin('participantInvitee.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->addOrderBy('activity.startEndTime.startDateTime', $filter->getOrderDirection())
+                ->setParameters($parameters);
+
+        $from = $filter->getFrom();
+        if (isset($from)) {
+            $qb->andWhere($qb->expr()->gte('activity.startEndTime.startDateTime', ':from'))
+                    ->setParameter('from', $from);
+        }
+
+        $to = $filter->getTo();
+        if (isset($to)) {
+            $qb->andWhere($qb->expr()->lte('activity.startEndTime.endDateTime', ':to'))
+                    ->setParameter('to', $to);
+        }
+
+        $cancelledStatus = $filter->getCancelledStatus();
+        if (isset($cancelledStatus)) {
+            $qb->andWhere($qb->expr()->eq('invitee.cancelled', ':cancelledStatus'))
+                    ->setParameter('cancelledStatus', $cancelledStatus);
+        }
+
+        return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
+    }
+
+    public function aParticipantInvitationInProgram(string $programId, string $id): ParticipantInvitee
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('participantInvitee');
+        $qb->select('participantInvitee')
+                ->andWhere($qb->expr()->eq('participantInvitee.id', ':id'))
+                ->leftJoin('participantInvitee.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('participant invitee not found');
+        }
     }
 
 }
