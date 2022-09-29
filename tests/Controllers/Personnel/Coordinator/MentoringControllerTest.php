@@ -130,6 +130,7 @@ $this->disableExceptionHandling();
                     'mentoringRequestStatus' => 'requested by participant',
                     'declaredMentoringId' => null,
                     'declaredMentoringStatus' => null,
+                    'participantReportId' => null,
                 ],
                 [
                     'startTime' => $this->negotiatedMentoringTwo->mentoringRequest->startTime,
@@ -144,6 +145,7 @@ $this->disableExceptionHandling();
                     'mentoringRequestStatus' => 'accepted by participant',
                     'declaredMentoringId' => null,
                     'declaredMentoringStatus' => null,
+                    'participantReportId' => null,
                 ],
                 [
                     'startTime' => $this->bookedMentoringSlotThree->mentoringSlot->startTime->format('Y-m-d H:i:s'),
@@ -158,6 +160,7 @@ $this->disableExceptionHandling();
                     'mentoringRequestStatus' => null,
                     'declaredMentoringId' => null,
                     'declaredMentoringStatus' => null,
+                    'participantReportId' => null,
                 ],
                 [
                     'startTime' => $this->declaredMentoringFour->startTime,
@@ -172,6 +175,7 @@ $this->disableExceptionHandling();
                     'mentoringRequestStatus' => null,
                     'declaredMentoringId' => $this->declaredMentoringFour->id,
                     'declaredMentoringStatus' => 'declared by mentor',
+                    'participantReportId' => null,
                 ],
                 [
                     'startTime' => $this->mentoringRequestFive_p2->startTime,
@@ -186,6 +190,7 @@ $this->disableExceptionHandling();
                     'mentoringRequestStatus' => 'requested by participant',
                     'declaredMentoringId' => null,
                     'declaredMentoringStatus' => null,
+                    'participantReportId' => null,
                 ],
             ],
         ];

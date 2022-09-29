@@ -466,7 +466,8 @@ SELECT
     _a.negotiatedMentoringId,
     _a.mentoringRequestStatus,
     _a.declaredMentoringId,
-    _a.declaredMentoringStatus
+    _a.declaredMentoringStatus,
+    _a.participantReportId
 FROM (
     SELECT 
         MentoringSlot.startTime,
@@ -478,10 +479,12 @@ FROM (
         null as negotiatedMentoringId,
         null as mentoringRequestStatus,
         null declaredMentoringId,
-        null declaredMentoringStatus
+        null declaredMentoringStatus,
+        ParticipantReport.id participantReportId
     FROM BookedMentoringSlot
     INNER JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
     INNER JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
+    LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = BookedMentoringSlot.Mentoring_id
     WHERE Participant.Program_id = :programId
         AND Participant.active = true
         AND BookedMentoringSlot.cancelled = false
@@ -506,10 +509,12 @@ FROM (
             WHEN 5 THEN 'accepted by participant'
         END as mentoringRequestStatus,
         null declaredMentoringId,
-        null declaredMentoringStatus
+        null declaredMentoringStatus,
+        ParticipantReport.id participantReportId
     FROM MentoringRequest
     INNER JOIN Participant ON Participant.id = MentoringRequest.Participant_id
     LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
+    LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = NegotiatedMentoring.Mentoring_id
     WHERE Participant.Program_id = :programId
         AND Participant.active = true
         AND MentoringRequest.requestStatus IN (0, 1, 4, 5)
@@ -534,9 +539,11 @@ FROM (
             WHEN 2 THEN 'declared by participant'
             WHEN 4 THEN 'approved by mentor'
             WHEN 6 THEN 'approved by participant'
-        END as declaredMentoringStatus
+        END as declaredMentoringStatus,
+        ParticipantReport.id participantReportId
     FROM DeclaredMentoring
     INNER JOIN Participant ON Participant.id = DeclaredMentoring.Participant_id
+    LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = DeclaredMentoring.Mentoring_id
     WHERE Participant.Program_id = :programId
         AND Participant.active = true
         AND DeclaredMentoring.declaredStatus IN (1, 2, 4, 6)
