@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Personnel\Coordinator;
+namespace App\Http\Controllers\Personnel\ProgramConsultation;
 
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant\CompletedMission;
@@ -16,15 +16,15 @@ use Query\Domain\Task\InProgram\ViewClientParticipantDetail;
 use Query\Domain\Task\InProgram\ViewTeamParticipantDetail;
 use Query\Domain\Task\InProgram\ViewUserParticipantDetail;
 
-class ParticipantController extends CoordinatorBaseController
+class ProgramParticipantController extends ConsultantBaseController
 {
 
-    public function viewTeamParticipantDetail($coordinatorId, $id)
+    public function viewTeamParticipantDetail($consultantId, $id)
     {
         $teamParticipantRepository = $this->em->getRepository(TeamProgramParticipation::class);
         $task = new ViewTeamParticipantDetail($teamParticipantRepository);
         $payload = new CommonViewDetailPayload($id);
-        $this->executeProgramQueryTask($coordinatorId, $task, $payload);
+        $this->executeProgramQueryTask($consultantId, $task, $payload);
 
         return $this->singleQueryResponse($this->detailOfTeamParticipant($payload->result));
     }
@@ -61,12 +61,12 @@ class ParticipantController extends CoordinatorBaseController
         ];
     }
 
-    public function viewClientParticipantDetail($coordinatorId, $id)
+    public function viewClientParticipantDetail($consultantId, $id)
     {
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant::class);
         $task = new ViewClientParticipantDetail($clientParticipantRepository);
         $payload = new CommonViewDetailPayload($id);
-        $this->executeProgramQueryTask($coordinatorId, $task, $payload);
+        $this->executeProgramQueryTask($consultantId, $task, $payload);
 
         return $this->singleQueryResponse($this->detailOfClientParticipant($payload->result));
     }
@@ -91,12 +91,12 @@ class ParticipantController extends CoordinatorBaseController
         ];
     }
 
-    public function viewUserParticipantDetail($coordinatorId, $id)
+    public function viewUserParticipantDetail($consultantId, $id)
     {
         $userParticipantRepository = $this->em->getRepository(UserParticipant::class);
         $task = new ViewUserParticipantDetail($userParticipantRepository);
         $payload = new CommonViewDetailPayload($id);
-        $this->executeProgramQueryTask($coordinatorId, $task, $payload);
+        $this->executeProgramQueryTask($consultantId, $task, $payload);
 
         return $this->singleQueryResponse($this->detailOfUserParticipant($payload->result));
     }

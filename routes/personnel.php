@@ -492,6 +492,28 @@ $router->group($personnelAggregate, function () use ($router) {
         
     });
     
+    $consultantAggregate = [
+        'prefix' => '/consultants/{consultantId}',
+        'namespace' => 'ProgramConsultation',
+    ];
+    $router->group($consultantAggregate, function () use ($router) {
+        $router->get("/worksheets", ["uses" => "WorksheetController@viewAll"]);
+        $router->get("/worksheets/{worksheetId}", ["uses" => "WorksheetController@viewDetail"]);
+        
+        $router->get("/mentorings", ["uses" => "MentoringController@viewAll"]);
+        $router->get("/mentoring-requests/{id}", ["uses" => "MentoringController@viewMentoringRequestDetail"]);
+        $router->get("/negotiated-mentorings/{id}", ["uses" => "MentoringController@viewNegotiatedMentoringDetail"]);
+        $router->get("/booked-mentoring-slots/{id}", ["uses" => "MentoringController@viewBookedMentoringSlotDetail"]);
+        $router->get("/declared-mentorings/{id}", ["uses" => "MentoringController@viewDeclaredMentoringDetail"]);
+        
+        $router->get("/program-participants/{participantId}/valid-activity-invitations", ["uses" => "ActivityController@viewAllValidInvitationsToParticipant"]);
+        $router->get("/participant-activity-invitations/{id}", ["uses" => "ActivityController@viewParticipantInvitationDetail"]);
+        
+        $router->get("/team-participants/{id}", ["uses" => "ProgramParticipantController@viewTeamParticipantDetail"]);
+        $router->get("/client-participants/{id}", ["uses" => "ProgramParticipantController@viewClientParticipantDetail"]);
+        $router->get("/user-participants/{id}", ["uses" => "ProgramParticipantController@viewUserParticipantDetail"]);
+    });
+    
     $asConsultantMeetingInitiatorAggregate = [
         'prefix' => '/as-consultant-meeting-initiator/{meetingId}',
         'namespace' => 'AsConsultantMeetingInitiator',

@@ -2,10 +2,11 @@
 
 namespace Query\Domain\Task\InProgram;
 
+use Query\Domain\Model\Firm\Program\ProgramTaskExecutableByConsultant;
 use Query\Domain\Model\Firm\Program\ProgramTaskExecutableByCoordinator;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\ParticipantInviteeRepository;
 
-class ViewAllActivityInvitationsToProgramPartipant implements ProgramTaskExecutableByCoordinator
+class ViewAllActivityInvitationsToProgramPartipant implements ProgramTaskExecutableByCoordinator, ProgramTaskExecutableByConsultant
 {
 
     /**

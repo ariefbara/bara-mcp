@@ -2,10 +2,11 @@
 
 namespace Query\Domain\Task\InProgram;
 
+use Query\Domain\Model\Firm\Program\ProgramTaskExecutableByConsultant;
 use Query\Domain\Model\Firm\Program\ProgramTaskExecutableByCoordinator;
 use Query\Domain\Task\Dependency\MentoringRepository;
 
-class ViewAllMentoring implements ProgramTaskExecutableByCoordinator
+class ViewAllMentoring implements ProgramTaskExecutableByCoordinator, ProgramTaskExecutableByConsultant
 {
 
     /**

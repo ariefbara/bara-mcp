@@ -167,5 +167,11 @@ class Consultant
         }
         $task->executeTaskInProgram($this->program);
     }
+    
+    public function executeProgramTask(ProgramTaskExecutableByConsultant $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this->program->getId(), $payload);
+    }
 
 }
