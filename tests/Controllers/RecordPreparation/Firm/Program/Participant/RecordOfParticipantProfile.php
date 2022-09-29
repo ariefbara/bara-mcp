@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant;
 
+use Illuminate\Database\ConnectionInterface;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
 use Tests\Controllers\RecordPreparation\Record;
@@ -50,6 +51,12 @@ class RecordOfParticipantProfile implements Record
             "id" => $this->id,
             "removed" => $this->removed,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->formRecord->insert($connection);
+        $connection->table('ParticipantProfile')->insert($this->toArrayForDbEntry());
     }
 
 }

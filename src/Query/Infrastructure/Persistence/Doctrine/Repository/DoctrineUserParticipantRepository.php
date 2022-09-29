@@ -7,10 +7,12 @@ use Doctrine\ORM\NoResultException;
 use Query\Application\Service\User\AsProgramParticipant\UserParticipantRepository;
 use Query\Application\Service\User\ProgramParticipationRepository;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\Dependency\User\UserParticipantRepository as UserParticipantRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineUserParticipantRepository extends EntityRepository implements ProgramParticipationRepository, UserParticipantRepository
+class DoctrineUserParticipantRepository extends EntityRepository implements ProgramParticipationRepository, UserParticipantRepository,
+        UserParticipantRepository2
 {
 
     public function all(string $userId, int $page, int $pageSize, ?bool $activeStatus)
@@ -24,7 +26,7 @@ class DoctrineUserParticipantRepository extends EntityRepository implements Prog
                 ->leftJoin('userParticipant.user', 'user')
                 ->andWhere($qb->expr()->eq('user.id', ':userId'))
                 ->setParameters($params);
-        
+
         if (isset($activeStatus)) {
             $qb->leftJoin("userParticipant.participant", "participant")
                     ->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
@@ -63,7 +65,7 @@ class DoctrineUserParticipantRepository extends EntityRepository implements Prog
             "userId" => $userId,
             "programId" => $programId,
         ];
-        
+
         $qb = $this->createQueryBuilder("userProgramParticipation");
         $qb->select("userProgramParticipation")
                 ->leftJoin("userProgramParticipation.user", "user")
@@ -73,7 +75,7 @@ class DoctrineUserParticipantRepository extends EntityRepository implements Prog
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -102,6 +104,29 @@ class DoctrineUserParticipantRepository extends EntityRepository implements Prog
         } catch (NoResultException $ex) {
             $errorDetail = 'not found: user participant not found';
             throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aUserParticipantInProgram(string $programId, string $id): UserParticipant
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('userParticipant');
+        $qb->select('userParticipant')
+                ->andWhere($qb->expr()->eq('userParticipant.id', ':id'))
+                ->leftJoin('userParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('user participant not found');
         }
     }
 

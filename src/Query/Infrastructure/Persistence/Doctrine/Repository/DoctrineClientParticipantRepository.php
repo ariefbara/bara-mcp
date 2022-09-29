@@ -7,10 +7,12 @@ use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Client\AsProgramParticipant\ClientParticipantRepository;
 use Query\Application\Service\Firm\Client\ProgramParticipationRepository;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Task\Dependency\Firm\Client\ClientParticipantRepository as ClientParticipantRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineClientParticipantRepository extends EntityRepository implements ProgramParticipationRepository, ClientParticipantRepository
+class DoctrineClientParticipantRepository extends EntityRepository implements ProgramParticipationRepository, ClientParticipantRepository,
+        ClientParticipantRepository2
 {
 
     public function all(string $firmId, string $clientId, int $page, int $pageSize, ?bool $activeStatus)
@@ -27,7 +29,7 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
                 ->leftJoin('client.firm', 'firm')
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params);
-        
+
         if (isset($activeStatus)) {
             $qb->leftJoin("programParticipation.participant", "participant")
                     ->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
@@ -69,7 +71,7 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
             "clientId" => $clientId,
             "programId" => $programId,
         ];
-        
+
         $qb = $this->createQueryBuilder("clientProgramParticipation");
         $qb->select("clientProgramParticipation")
                 ->leftJoin("clientProgramParticipation.client", "client")
@@ -79,7 +81,7 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -95,7 +97,7 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
             'clientId' => $clientId,
             'participantId' => $participantId,
         ];
-        
+
         $qb = $this->createQueryBuilder('clientParticipant');
         $qb->select('clientParticipant')
                 ->andWhere($qb->expr()->eq('clientParticipant.id', ':participantId'))
@@ -105,7 +107,7 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -121,7 +123,7 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
             "clientId" => $clientId,
             "programId" => $programId,
         ];
-        
+
         $qb = $this->createQueryBuilder("clientParticipant");
         $qb->select("clientParticipant")
                 ->leftJoin("clientParticipant.client", "client")
@@ -133,12 +135,35 @@ class DoctrineClientParticipantRepository extends EntityRepository implements Pr
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             $errorDetail = "not found: client participant not found";
             throw RegularException::notFound($errorDetail);
+        }
+    }
+
+    public function aClientParticipantInProgram(string $programId, string $id): ClientParticipant
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('clientParticipant');
+        $qb->select('clientParticipant')
+                ->andWhere($qb->expr()->eq('clientParticipant.id', ':id'))
+                ->leftJoin('clientParticipant.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('client participant not found');
         }
     }
 

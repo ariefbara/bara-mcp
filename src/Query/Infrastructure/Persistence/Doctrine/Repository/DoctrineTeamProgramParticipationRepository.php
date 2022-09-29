@@ -10,10 +10,13 @@ use Query\Application\Service\Firm\Team\TeamProgramParticipationRepository;
 use Query\Application\Service\TeamMember\TeamParticipantRepository;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Service\TeamProgramParticipationRepository as InterfaceForDomainService;
+use Query\Domain\Task\Dependency\Firm\Team\TeamParticipantRepository as TeamParticipantRepository3;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository, InterfaceForDomainService, TeamProgramParticipationRepository2, TeamParticipantRepository, TeamParticipantRepository2
+class DoctrineTeamProgramParticipationRepository extends EntityRepository implements TeamProgramParticipationRepository,
+        InterfaceForDomainService, TeamProgramParticipationRepository2, TeamParticipantRepository, TeamParticipantRepository2,
+        TeamParticipantRepository3
 {
 
     public function aTeamProgramParticipationBelongsToTeam(string $teamId, string $teamProgramParticipationId): TeamProgramParticipation
@@ -39,7 +42,8 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         }
     }
 
-    public function allTeamProgramParticipationsBelongsToTeam(string $teamId, int $page, int $pageSize, ?bool $activeStatus)
+    public function allTeamProgramParticipationsBelongsToTeam(string $teamId, int $page, int $pageSize,
+            ?bool $activeStatus)
     {
         $params = [
             "teamId" => $teamId,
@@ -50,7 +54,7 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
                 ->leftJoin("teamProgramParticipation.team", "team")
                 ->andWhere($qb->expr()->eq("team.id", ":teamId"))
                 ->setParameters($params);
-        
+
         if (isset($activeStatus)) {
             $qb->leftJoin("teamProgramParticipation.programParticipation", "participant")
                     ->andWhere($qb->expr()->eq("participant.active", ":activeStatus"))
@@ -65,8 +69,8 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         $params = [
             "teamId" => $teamId,
             "programId" => $programId,
-        ]; 
-        
+        ];
+
         $qb = $this->createQueryBuilder("teamProgramParticipation");
         $qb->select("teamProgramParticipation")
                 ->leftJoin("teamProgramParticipation.team", "team")
@@ -76,7 +80,7 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -90,11 +94,34 @@ class DoctrineTeamProgramParticipationRepository extends EntityRepository implem
         $teamProgramParticipation = $this->findOneBy([
             'id' => $programParticipationId,
         ]);
-        
+
         if (empty($teamProgramParticipation)) {
             throw RegularException::notFound('not found: program participation not found');
         }
         return $teamProgramParticipation;
+    }
+
+    public function aTeamParticipantInProgram(string $programId, $id): TeamProgramParticipation
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('teamParticipant');
+        $qb->select('teamParticipant')
+                ->andWhere($qb->expr()->eq('teamParticipant.id', ':id'))
+                ->leftJoin('teamParticipant.programParticipation', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('team participant not found');
+        }
     }
 
 }

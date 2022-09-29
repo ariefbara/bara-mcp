@@ -6,6 +6,7 @@
     >
         <many-to-one  field="program" 
                       target-entity="Query\Domain\Model\Firm\Program"
+                      inversed-by="missions"
         >
             <join-column name="Program_id" referenced-column-name="id" />
         </many-to-one>

@@ -46,7 +46,7 @@ class Program
      * @var int|null
      */
     protected $price;
-    
+
     /**
      * 
      * @var bool
@@ -95,6 +95,12 @@ class Program
      */
     protected $sponsors;
 
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $missions;
+
     function getFirm(): Firm
     {
         return $this->firm;
@@ -139,10 +145,17 @@ class Program
     {
         return $this->price;
     }
-    
+
     public function isAutoAccept(): bool
     {
         return $this->autoAccept;
+    }
+
+    public function getActiveMissionCount(): int
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('published', true));
+        return $this->missions->matching($criteria)->count();
     }
 
     protected function __construct()

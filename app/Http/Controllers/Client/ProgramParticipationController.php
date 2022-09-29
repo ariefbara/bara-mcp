@@ -130,7 +130,6 @@ class ProgramParticipationController extends ClientBaseController
             "assignmentFieldValues" => $assignmentFieldValues,
         ];
     }
-
     protected function arrayDataOfAssignmentFieldValue(AssignmentFieldValue $assignmentFieldValue): array
     {
         return [

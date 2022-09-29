@@ -485,6 +485,11 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->get("/program-participants/{participantId}/valid-activity-invitations", ["uses" => "ActivityController@viewAllValidInvitationsToParticipant"]);
         $router->get("/participant-activity-invitations/{id}", ["uses" => "ActivityController@viewParticipantInvitationDetail"]);
+        
+        $router->get("/team-participants/{id}", ["uses" => "ParticipantController@viewTeamParticipantDetail"]);
+        $router->get("/client-participants/{id}", ["uses" => "ParticipantController@viewClientParticipantDetail"]);
+        $router->get("/user-participants/{id}", ["uses" => "ParticipantController@viewUserParticipantDetail"]);
+        
     });
     
     $asConsultantMeetingInitiatorAggregate = [

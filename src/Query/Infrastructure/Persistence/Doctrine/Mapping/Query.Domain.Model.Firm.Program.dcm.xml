@@ -43,5 +43,9 @@
                       target-entity="Query\Domain\Model\Firm\Program\Sponsor"
                       mapped-by="program" />
         
+        <one-to-many  field="missions" 
+                      target-entity="Query\Domain\Model\Firm\Program\Mission"
+                      mapped-by="program" />
+        
     </entity>
 </doctrine-mapping>

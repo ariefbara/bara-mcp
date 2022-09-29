@@ -11,10 +11,12 @@ use Query\Domain\Model\Firm\Program\ITaskExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Firm\Program\Participant\CompletedMission;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\ParticipantProfile;
 use Query\Domain\Model\User;
 use Query\Domain\Service\DataFinder;
 use Query\Domain\Service\Firm\Program\MentorRepository;
@@ -82,6 +84,30 @@ class UserParticipant implements ContainEvents
     public function getMetricAssignment(): ?MetricAssignment
     {
         return $this->participant->getMetricAssignment();
+    }
+    
+    /**
+     * 
+     * @return ParticipantProfile[]
+     */
+    public function iterateActiveParticipantProfiles()
+    {
+        return $this->participant->iterateActiveParticipantProfiles();
+    }
+
+    public function getLastCompletedMission(): ?CompletedMission
+    {
+        return $this->participant->getLastCompletedMission();
+    }
+
+    public function getCompletedMissionCount(): int
+    {
+        return $this->participant->getCompletedMissionCount();
+    }
+
+    public function getActiveMissionCount(): int
+    {
+        return $this->participant->getActiveMissionCount();
     }
 
     public function viewLearningMaterial(LearningMaterialFinder $learningMaterialFinder, string $learningMaterialId): LearningMaterial

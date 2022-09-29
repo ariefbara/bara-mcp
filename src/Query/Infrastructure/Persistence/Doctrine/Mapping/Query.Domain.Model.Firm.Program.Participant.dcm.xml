@@ -40,5 +40,15 @@
                       mapped-by="participant"
         />
         
+        <one-to-many  field="participantProfiles" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\ParticipantProfile"
+                      mapped-by="participant"
+        />
+        
+        <one-to-many  field="completedMissions" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant\CompletedMission"
+                      mapped-by="participant"
+        />
+        
     </entity>
 </doctrine-mapping>
