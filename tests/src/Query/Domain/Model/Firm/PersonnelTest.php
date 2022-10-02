@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Model\Firm;
 
+use Query\Domain\Task\Personnel\PersonnelTask;
 use Resources\Domain\ValueObject\Password;
 use Tests\TestBase;
 
@@ -10,6 +11,7 @@ class PersonnelTest extends TestBase
     protected $password;
     protected $personnel;
     protected $task;
+    protected $personnelTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -19,6 +21,8 @@ class PersonnelTest extends TestBase
         $this->personnel->password = $this->password;
         
         $this->task = $this->buildMockOfInterface(TaskExecutableByPersonnel::class);
+        
+        $this->personnelTask = $this->buildMockOfInterface(PersonnelTask::class);
     }
     
     public function test_passwordMatches_returnPasswordMatchComparisonResult()
@@ -46,6 +50,25 @@ class PersonnelTest extends TestBase
         $this->personnel->active = false;
         $this->assertRegularExceptionThrowed(function() {
             $this->executeTask();
+        }, 'Forbidden', 'forbidden: only active personnel can make this request');
+    }
+    
+    protected function executePersonnelTask()
+    {
+        $this->personnel->executePersonnelTask($this->personnelTask, $this->payload);
+    }
+    public function test_executePersonnelTask_executeTask()
+    {
+        $this->personnelTask->expects($this->once())
+                ->method('execute')
+                ->with($this->personnel->id, $this->payload);
+        $this->executePersonnelTask();
+    }
+    public function test_executePersonnelTask_inactivePersonnel_forbidden()
+    {
+        $this->personnel->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executePersonnelTask();
         }, 'Forbidden', 'forbidden: only active personnel can make this request');
     }
 }

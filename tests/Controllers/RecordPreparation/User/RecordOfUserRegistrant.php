@@ -2,11 +2,10 @@
 
 namespace Tests\Controllers\RecordPreparation\User;
 
-use Tests\Controllers\RecordPreparation\ {
-    Firm\Program\RecordOfRegistrant,
-    Record,
-    RecordOfUser
-};
+use Illuminate\Database\ConnectionInterface;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
+use Tests\Controllers\RecordPreparation\Record;
+use Tests\Controllers\RecordPreparation\RecordOfUser;
 
 class RecordOfUserRegistrant implements Record
 {
@@ -38,6 +37,12 @@ class RecordOfUserRegistrant implements Record
             'Registrant_id' => $this->registrant->id,
             'id' => $this->id,
         ];
+    }
+    
+    public function insert(ConnectionInterface $connection): void
+    {
+        $this->registrant->insert($connection);
+        $connection->table('UserRegistrant')->insert($this->toArrayForDbEntry());
     }
 
 }

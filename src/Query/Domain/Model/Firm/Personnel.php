@@ -13,6 +13,7 @@ use Query\Application\Service\Personnel\RegistrantRepository;
 use Query\Domain\Model\Firm;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Model\Firm\Program\Coordinator;
+use Query\Domain\Task\Personnel\PersonnelTask;
 use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use Query\Infrastructure\QueryFilter\InviteeFilter;
@@ -245,6 +246,12 @@ class Personnel
             throw RegularException::forbidden('forbidden: only active personnel can make this request');
         }
         $task->execute($this->id);
+    }
+    
+    public function executePersonnelTask(PersonnelTask $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this->id, $payload);
     }
 
 }
