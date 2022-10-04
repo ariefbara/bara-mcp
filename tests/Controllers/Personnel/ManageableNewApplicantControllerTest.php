@@ -54,14 +54,14 @@ class ManageableNewApplicantControllerTest extends AggregatedCoordinatorInPerson
     }
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('Team')->truncate();
-        $this->connection->table('User')->truncate();
-        $this->connection->table('Registrant')->truncate();
-        $this->connection->table('ClientRegistrant')->truncate();
-        $this->connection->table('TeamRegistrant')->truncate();
-        $this->connection->table('UserRegistrant')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('Team')->truncate();
+//        $this->connection->table('User')->truncate();
+//        $this->connection->table('Registrant')->truncate();
+//        $this->connection->table('ClientRegistrant')->truncate();
+//        $this->connection->table('TeamRegistrant')->truncate();
+//        $this->connection->table('UserRegistrant')->truncate();
     }
     
     protected function viewAll()

@@ -12,6 +12,8 @@ use Query\Domain\Model\Firm\Personnel;
 use Query\Domain\Task\Dependency\Firm\PersonnelRepository as PersonnelRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use SharedContext\Domain\ValueObject\MentoringRequestStatus;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class DoctrinePersonnelRepository extends EntityRepository implements PersonnelRepository, InterfaceForAuthorization, InterfaceForPersonnel,
         PersonnelRepository2
@@ -200,6 +202,70 @@ _STATEMENT;
         $query->execute($params);
 
         return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function coordinatorDashboardSummary(string $personnelId)
+    {
+        $mentoringRequestProposedByParticipant = MentoringRequestStatus::REQUESTED;
+        $mentoringRequestOfferedByMentor = MentoringRequestStatus::OFFERED;
+        $newApplicantStatus = RegistrationStatus::REGISTERED;
+        $statement = <<<_STATEMENT
+SELECT 
+    SUM(_a.newApplicantInProgramCount) newApplicantCount,
+    SUM(_b.uncommentedWorksheetCount) uncommentedWorksheetCount,
+    SUM(_b.unconcludedMentoringRequestCount) unconcludedMentoringRequestCount,
+    SUM(_b.unreviewedMetricReportCount) unreviewedMetricReportCount
+FROM Coordinator
+LEFT JOIN (
+    SELECT COUNT(Registrant.id) newApplicantInProgramCount, Registrant.Program_id programId
+    FROM Registrant
+    WHERE Registrant.status = {$newApplicantStatus}
+    GROUP BY programId
+)_a ON _a.programId = Coordinator.Program_id
+LEFT JOIN (
+    SELECT
+        SUM(_b1.uncommentedWorksheetCount) uncommentedWorksheetCount,
+        SUM(_b2.unconcludedMentoringRequestCount) unconcludedMentoringRequestCount,
+        SUM(_b3.unreviewedMetricReportCount) unreviewedMetricReportCount,
+        Participant.Program_id programId
+    FROM Participant
+    LEFT JOIN (
+        SELECT COUNT(w.id) uncommentedWorksheetCount, w.Participant_id participantId
+        FROM Worksheet as w
+        WHERE w.removed = false
+            AND NOT EXISTS (
+                SELECT 1
+                FROM ConsultantComment
+                INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id
+                WHERE Comment.Worksheet_id = w.id
+            )
+        GROUP BY participantId
+    )_b1 ON _b1.participantId = Participant.id
+    LEFT JOIN (
+        SELECT COUNT(MentoringRequest.id) unconcludedMentoringRequestCount, MentoringRequest.Participant_id participantId
+        FROM MentoringRequest
+        WHERE MentoringRequest.requestStatus IN ({$mentoringRequestProposedByParticipant}, {$mentoringRequestOfferedByMentor})
+        GROUP BY participantId
+    )_b2 ON _b2.participantId = Participant.id
+    LEFT JOIN (
+        SELECT COUNT(MetricAssignmentReport.id) unreviewedMetricReportCount, MetricAssignment.Participant_id participantId
+        FROM MetricAssignmentReport
+        INNER JOIN MetricAssignment ON MetricAssignment.id  = MetricAssignmentReport.MetricAssignment_id
+        WHERE MetricAssignmentReport.removed = false
+            AND MetricAssignmentReport.approved IS NULL
+        GROUP BY participantId
+    )_b3 ON _b3.participantId = Participant.id
+    WHERE Participant.active = true
+    GROUP BY programId
+)_b ON _b.programId = Coordinator.Program_id
+WHERE Coordinator.active = true
+    AND Coordinator.Personnel_id = :personnelId
+_STATEMENT;
+        $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        return $query->executeQuery($parameters)->fetchAllAssociative();
     }
 
 }

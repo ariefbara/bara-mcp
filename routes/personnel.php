@@ -64,6 +64,7 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/unconcluded-mentoring-request-in-manageable-program', ['uses' => "UnconcludedMentoringRequestInManageableProgramController@viewAll"]);
     $router->get('/uncommented-worksheet-list-in-coordinated-programs', ['uses' => "UncommentedWorksheetListInCoordinatedProgramsController@viewAll"]);
     $router->get('/unreviewed-metric-report-list-in-coordinated-programs', ['uses' => "UnreviewedMetricReportListInCoordinatedProgramController@viewAll"]);
+    $router->get('/coordinator-dashboard-summary', ['uses' => "CoordinatorDashboardSummaryController@view"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
