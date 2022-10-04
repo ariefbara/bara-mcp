@@ -11,10 +11,13 @@ use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportRepository as MetricAssignmentReportRepository3;
+use Query\Domain\Task\Dependency\PaginationFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineMetricAssignmentReportRepository extends EntityRepository implements MetricAssignmentReportRepository, MetricAssignmentReportRepository2
+class DoctrineMetricAssignmentReportRepository extends EntityRepository implements MetricAssignmentReportRepository, MetricAssignmentReportRepository2,
+        MetricAssignmentReportRepository3
 {
 
     public function aMetricAssignmentInProgram(string $programId, string $metricAssignmentReportId): MetricAssignmentReport
@@ -242,7 +245,7 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
         $params = [
             'personnelId' => $personnelId,
         ];
-        
+
         $programQB = $this->getEntityManager()->createQueryBuilder();
         $programQB->select("_aProgram.id")
                 ->from(Coordinator::class, '_aCoordinator')
@@ -250,7 +253,7 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
                 ->leftJoin('_aCoordinator.personnel', '_aPersonnel')
                 ->andWhere($programQB->expr()->eq('_aPersonnel.id', ':personnelId'))
                 ->leftJoin('_aCoordinator.program', '_aProgram');
-        
+
         $qb = $this->createQueryBuilder('metricAssignmentReport');
         $qb->select('metricAssignmentReport')
                 ->andWhere($qb->expr()->eq('metricAssignmentReport.removed', 'false'))
@@ -260,13 +263,98 @@ class DoctrineMetricAssignmentReportRepository extends EntityRepository implemen
                 ->leftJoin('participant.program', 'program')
                 ->andWhere($qb->expr()->in('program.id', $programQB->getDQL()))
                 ->setParameters($params);
-        
+
         if (isset($approvedStatus)) {
             $qb->andWhere($qb->expr()->eq('metricAssignmentReport.approved', ':approvedStatus'))
                     ->setParameter('approvedStatus', $approvedStatus);
         }
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function unreviewedMetricReportListInProgramsCoordinatedByPersonnel(
+            string $personnelId, PaginationFilter $paginationFilter)
+    {
+        $offset = $paginationFilter->getPageSize() * ($paginationFilter->getPage() - 1);
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+
+        $statement = <<<_STATEMENT
+SELECT
+    MetricAssignmentReport.id,
+    MetricAssignmentReport.observationTime,
+    MetricAssignmentReport.submitTime,
+    MetricAssignment.startDate assignmentStartDate,
+    MetricAssignment.endDate assignmentEndDate,
+    MetricAssignment.Participant_id participantId,
+    COALESCE(_b.userName, _c.clientName, _d.teamName) participantName,
+    _a.coordinatorId,
+    _a.programId,
+    _a.programName
+FROM MetricAssignmentReport
+INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+INNER JOIN (
+    SELECT Coordinator.id coordinatorId, Program.id programId, Program.name programName
+    FROM Coordinator
+    INNER JOIN Program ON Program.id = Coordinator.Program_id
+    WHERE Coordinator.active = true
+        AND Coordinator.Personnel_id = :personnelId
+)_a ON _a.programId = Participant.Program_id
+LEFT JOIN (
+    SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
+    FROM UserParticipant
+        INNER JOIN User ON User.id = UserParticipant.User_id
+)_b ON _b.participantId = Participant.id
+LEFT JOIN (
+    SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
+    FROM ClientParticipant
+        INNER JOIN Client ON Client.id = ClientParticipant.Client_id
+)_c ON _c.participantId = Participant.id
+LEFT JOIN (
+    SELECT Team.name teamName, TeamParticipant.Participant_id participantId
+    FROM TeamParticipant
+        INNER JOIN Team ON Team.id = TeamParticipant.Team_id
+)_d ON _d.participantId = Participant.id
+WHERE MetricAssignmentReport.removed = false
+    AND MetricAssignmentReport.approved IS NULL
+ORDER BY MetricAssignmentReport.observationTime ASC
+LIMIT {$offset}, {$paginationFilter->getPageSize()}
+_STATEMENT;
+
+        $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        return [
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+            'total' => $this->countAllUnreviewedMetricReportListInProgramsCoordinatedByPersonnel($personnelId,
+                    $paginationFilter)
+        ];
+    }
+
+    public function countAllUnreviewedMetricReportListInProgramsCoordinatedByPersonnel(
+            string $personnelId, PaginationFilter $paginationFilter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+
+        $statement = <<<_STATEMENT
+SELECT COUNT(*) total
+FROM MetricAssignmentReport
+INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+INNER JOIN (
+    SELECT Coordinator.Program_id programId
+    FROM Coordinator
+    WHERE Coordinator.active = true
+        AND Coordinator.Personnel_id = :personnelId
+)_a ON _a.programId = Participant.Program_id
+WHERE MetricAssignmentReport.removed = false
+    AND MetricAssignmentReport.approved IS NULL
+_STATEMENT;
+
+        $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
     }
 
 }
