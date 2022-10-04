@@ -61,6 +61,7 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/missions/discussion-overview', ['uses' => "MissionController@viewDiscussionOverview"]);
     
     $router->get('/manageable-new-applicants', ['uses' => "ManageableNewApplicantController@viewAll"]);
+    $router->get('/unconcluded-mentoring-request-in-manageable-program', ['uses' => "UnconcludedMentoringRequestInManageableProgramController@viewAll"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";

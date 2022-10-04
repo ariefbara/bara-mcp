@@ -3,6 +3,7 @@
 namespace Query\Domain\Task\Dependency\Firm\Program\Participant;
 
 use Query\Domain\Model\Firm\Program\Participant\MentoringRequest;
+use Query\Domain\Task\Dependency\PaginationFilter;
 
 interface MentoringRequestRepository
 {
@@ -15,4 +16,6 @@ interface MentoringRequestRepository
             string $personnelId, int $page, int $pageSize, MentoringRequestSearch $mentoringRequestSearch);
 
     public function aMentoringRequestInProgram(string $programId, string $id): MentoringRequest;
+    
+    public function allUnconcludedMentoringRequestsInProgramManageableByPersonnel(string $personnelId, PaginationFilter $paginationFilter);
 }

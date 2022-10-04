@@ -2,6 +2,8 @@
 
 namespace Tests\Controllers\Personnel;
 
+use DateTime;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientRegistrant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
@@ -52,14 +54,14 @@ class ManageableNewApplicantControllerTest extends AggregatedCoordinatorInPerson
     }
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Client')->truncate();
-//        $this->connection->table('Team')->truncate();
-//        $this->connection->table('User')->truncate();
-//        $this->connection->table('Registrant')->truncate();
-//        $this->connection->table('ClientRegistrant')->truncate();
-//        $this->connection->table('TeamRegistrant')->truncate();
-//        $this->connection->table('UserRegistrant')->truncate();
+        parent::tearDown();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('User')->truncate();
+        $this->connection->table('Registrant')->truncate();
+        $this->connection->table('ClientRegistrant')->truncate();
+        $this->connection->table('TeamRegistrant')->truncate();
+        $this->connection->table('UserRegistrant')->truncate();
     }
     
     protected function viewAll()
@@ -113,6 +115,18 @@ $this->disableExceptionHandling();
         ];
         $this->seeJsonContains($response);
     }
+    public function test_viewAll_excludeNonRegisteredApplicant()
+    {
+        $this->teamRegistrantTwo_p2->registrant->status = RegistrationStatus::ACCEPTED;
+        
+        $this->viewAll();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '2']);
+        $this->seeJsonContains(['id' => $this->clientRegistrantOne_p1->id]);
+        $this->seeJsonDoesntContains(['id' => $this->teamRegistrantTwo_p2->id]);
+        $this->seeJsonContains(['id' => $this->userRegistrantThree_p1->id]);
+    }
     public function test_viewAll_excludeApplicantToUnmanagedProgram_noCoordinator()
     {
         $otherProgram = new RecordOfProgram($this->personnel->firm, 'other');
@@ -141,9 +155,9 @@ $this->disableExceptionHandling();
     }
     public function test_viewAll_paginationSet_returnByRegisteredTimeAscOrder()
     {
-        $this->teamRegistrantTwo_p2->registrant->registeredTime = (new \DateTime('-72 hour'));
-        $this->clientRegistrantOne_p1->registrant->registeredTime = (new \DateTime('-48 hour'));
-        $this->userRegistrantThree_p1->registrant->registeredTime = (new \DateTime('-24 hour'));
+        $this->teamRegistrantTwo_p2->registrant->registeredTime = (new DateTime('-72 hour'));
+        $this->clientRegistrantOne_p1->registrant->registeredTime = (new DateTime('-48 hour'));
+        $this->userRegistrantThree_p1->registrant->registeredTime = (new DateTime('-24 hour'));
         
         $this->viewAllUri .= "?pageSize=1";
         
