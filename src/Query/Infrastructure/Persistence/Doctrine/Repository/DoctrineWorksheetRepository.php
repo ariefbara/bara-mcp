@@ -14,6 +14,7 @@ use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetFilter as WorksheetFilter2;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetRepository as WorksheetRepository2;
+use Query\Domain\Task\Dependency\PaginationFilter;
 use Query\Infrastructure\QueryFilter\WorksheetFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
@@ -340,6 +341,98 @@ class DoctrineWorksheetRepository extends EntityRepository implements WorksheetR
         }
 
         return PaginatorBuilder::build($qb->getQuery(), $filter->getPage(), $filter->getPageSize());
+    }
+
+    public function uncommentedWorksheetListInProgramsCoordinatedByPersonnel(
+            string $personnelId, PaginationFilter $paginationFilter)
+    {
+        $offset = $paginationFilter->getPageSize() * ($paginationFilter->getPage() - 1);
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        $statement = <<<_STATEMENT
+SELECT
+    w.id,
+    w.name,
+    FormRecord.submitTime,
+    w.Participant_id participantId,
+    COALESCE(_b.userName, _c.clientName, _d.teamName) participantName,
+    Mission.id missionId,
+    Mission.name missionName,
+    _a.coordinatorId,
+    _a.programId,
+    _a.programName
+FROM Worksheet as w
+INNER JOIN FormRecord ON FormRecord.id = w.FormRecord_id
+INNER JOIN Mission ON Mission.id = w.Mission_id
+INNER JOIN Participant ON Participant.id = w.Participant_id AND Participant.active = true
+INNER JOIN (
+    SELECT Coordinator.id coordinatorId, Program.id programId, Program.name programName
+    FROM Coordinator
+    INNER JOIN Program ON Program.id = Coordinator.Program_id
+    WHERE Coordinator.active = true
+        AND Coordinator.Personnel_id = :personnelId
+)_a ON _a.programId = Participant.Program_id
+LEFT JOIN (
+    SELECT CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')) userName, UserParticipant.Participant_id participantId
+    FROM UserParticipant
+        INNER JOIN User ON User.id = UserParticipant.User_id
+)_b ON _b.participantId = Participant.id
+LEFT JOIN (
+    SELECT CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')) clientName, ClientParticipant.Participant_id participantId
+    FROM ClientParticipant
+        INNER JOIN Client ON Client.id = ClientParticipant.Client_id
+)_c ON _c.participantId = Participant.id
+LEFT JOIN (
+    SELECT Team.name teamName, TeamParticipant.Participant_id participantId
+    FROM TeamParticipant
+        INNER JOIN Team ON Team.id = TeamParticipant.Team_id
+)_d ON _d.participantId = Participant.id
+WHERE w.removed = false
+    AND NOT EXISTS (
+        SELECT 1
+        FROM ConsultantComment
+        INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id
+        WHERE Comment.Worksheet_id = w.id
+    )
+ORDER BY FormRecord.submitTime ASC
+LIMIT {$offset}, {$paginationFilter->getPageSize()}
+_STATEMENT;
+        
+        $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        return [
+            'total' => $this->countOfAllUncommentedWorksheetInProgramsCoordinatedByPersonnel($personnelId, $paginationFilter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+    }
+    public function countOfAllUncommentedWorksheetInProgramsCoordinatedByPersonnel(
+            string $personnelId, PaginationFilter $paginationFilter)
+    {
+        $offset = $paginationFilter->getPageSize() * ($paginationFilter->getPage() - 1);
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        $statement = <<<_STATEMENT
+SELECT COUNT(*) total
+FROM Worksheet as w
+INNER JOIN Participant ON Participant.id = w.Participant_id AND Participant.active = true
+INNER JOIN (
+    SELECT Coordinator.Program_id programId
+    FROM Coordinator
+    WHERE Coordinator.active = true
+        AND Coordinator.Personnel_id = :personnelId
+)_a ON _a.programId = Participant.Program_id
+WHERE w.removed = false
+    AND NOT EXISTS (
+        SELECT 1
+        FROM ConsultantComment
+        INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id
+        WHERE Comment.Worksheet_id = w.id
+    )
+_STATEMENT;
+        
+        $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
     }
 
 }

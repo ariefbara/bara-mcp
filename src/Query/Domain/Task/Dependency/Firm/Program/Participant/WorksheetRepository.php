@@ -3,6 +3,7 @@
 namespace Query\Domain\Task\Dependency\Firm\Program\Participant;
 
 use Query\Domain\Model\Firm\Program\Participant\Worksheet;
+use Query\Domain\Task\Dependency\PaginationFilter;
 
 interface WorksheetRepository
 {
@@ -14,4 +15,7 @@ interface WorksheetRepository
     public function allActiveWorksheetsInProgram(string $programId, WorksheetFilter $filter);
 
     public function aWorksheetInProgram(string $programId, string $worksheetId): Worksheet;
+
+    public function uncommentedWorksheetListInProgramsCoordinatedByPersonnel(
+            string $personnelId, PaginationFilter $paginationFilter);
 }
