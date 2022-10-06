@@ -8,4 +8,6 @@ interface ProgramRepository
 {
 
     public function allAvailableProgramsForClient(string $clientId, PaginationPayload $paginationPayload): array;
+
+    public function allProgramsSummaryCoordinatedByPersonnel(string $personnelId);
 }
