@@ -512,6 +512,14 @@ $this->disableExceptionHandling();
         ];
         $this->seeInDatabase('ConsultationSession', $record);
     }
+    public function test_declare_declareUpcomingSession_403()
+    {
+        $this->declareConsultationSessionRequest['startTime'] = (new DateTime('+24 hours'))->format('Y-m-d H:i:s');
+        $this->declareConsultationSessionRequest['endTime'] = (new DateTime('+25 hours'))->format('Y-m-d H:i:s');
+        
+        $this->declare();
+        $this->seeStatusCode(403);
+    }
     
     protected function cancel()
     {

@@ -472,6 +472,14 @@ class ConsultationSessionControllerTest extends ProgramParticipationTestCase
         $this->declare();
         $this->seeStatusCode(403);
     }
+    public function test_declare_declareUpcomingSession_403()
+    {
+        $this->declareRequest['startTime'] = (new DateTime('-1 hours'))->format('Y-m-d H:i:s');
+        $this->declareRequest['endTime'] = (new DateTime('+1 hours'))->format('Y-m-d H:i:s');
+        
+        $this->declare();
+        $this->seeStatusCode(403);
+    }
     
     protected function cancel()
     {

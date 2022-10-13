@@ -358,6 +358,9 @@ class ProgramConsultantTest extends TestBase
     //
     protected function declareConsultationSession()
     {
+        $this->startEndTime->expects($this->any())
+                ->method('isAlreadyPassed')
+                ->willReturn(true);
         $this->consultationSetup->expects($this->any())
                 ->method('usableInProgram')
                 ->willReturn(true);
@@ -394,6 +397,16 @@ class ProgramConsultantTest extends TestBase
         $this->assertRegularExceptionThrowed(function () {
             $this->declareConsultationSession();
         }, 'Forbidden', 'forbidden: unamanged participant');
+    }
+    
+    public function test_declareConsultationSession_declaringUpcomingSession_forbidden()
+    {
+        $this->startEndTime->expects($this->once())
+                ->method('isAlreadyPassed')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->declareConsultationSession();
+        }, 'Forbidden', 'can only declared past consultation');
     }
 
     //

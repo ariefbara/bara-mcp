@@ -675,6 +675,9 @@ class ParticipantTest extends TestBase
     
     protected function declareConsultationSession()
     {
+        $this->startEndTime->expects($this->any())
+                ->method('isAlreadyPassed')
+                ->willReturn(true);
         $this->consultant->expects($this->any())
                 ->method('isActive')
                 ->willReturn(true);
@@ -706,6 +709,15 @@ class ParticipantTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->declareConsultationSession();
         }, 'Forbidden', 'forbidden: only active participant can make this request');
+    }
+    public function test_declareConsultationSession_declaringUpcomingSession_forbidden()
+    {
+        $this->startEndTime->expects($this->once())
+                ->method('isAlreadyPassed')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->declareConsultationSession();
+        }, 'Forbidden', 'can only declared past consultation');
     }
     
     protected function bookMentoringSlot()

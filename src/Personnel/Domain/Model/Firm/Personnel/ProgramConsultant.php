@@ -218,6 +218,9 @@ class ProgramConsultant extends EntityContainEvents
         if (!$participant->manageableInProgram($this->programId)) {
             throw RegularException::forbidden('forbidden: unamanged participant');
         }
+        if (!$startEndTime->isAlreadyPassed()) {
+            throw RegularException::forbidden('can only declared past consultation');
+        }
         $type = new ConsultationSessionType(ConsultationSessionType::DECLARED_TYPE, true);
         return new ConsultationSession(
                 $this, $consultationSessionId, $participant, $consultationSetup, $startEndTime, $channel, $type);

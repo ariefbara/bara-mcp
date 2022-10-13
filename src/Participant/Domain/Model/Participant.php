@@ -435,6 +435,9 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         if (!$this->active) {
             throw RegularException::forbidden('forbidden: only active participant can make this request');
         }
+        if (!$startEndTime->isAlreadyPassed()) {
+            throw RegularException::forbidden('can only declared past consultation');
+        }
         $consultationSetup->assertUsableInProgram($this->program);
         $consultant->assertUsableInProgram($this->program);
         $sessionType = new ConsultationSessionType(ConsultationSessionType::DECLARED_TYPE, null);
