@@ -95,10 +95,26 @@ class ConsultationRequest extends EntityContainEvents
                 ->execute($startTime, $errorDetail);
         $this->startEndTime = $this->consultationSetup->getSessionStartEndTimeOf($startTime);
     }
+    
 
-    protected function __construct()
+    public function __construct(
+            string $id, ProgramConsultant $programConsultant, Participant $participant, ConsultationSetup $consultationSetup,
+            ConsultationRequestData $data)
     {
+        $this->id = $id;
+        $this->programConsultant = $programConsultant;
+        $this->participant = $participant;
+        $this->consultationSetup = $consultationSetup;
+        $this->setStartEndTime($data->getStartTime());
+        $this->channel = new ConsultationChannel($data->getMedia(), $data->getAddress());
+        $this->concluded = false;
+        $this->status = new ConsultationRequestStatusVO('offered');
         
+        $this->consultationRequestActivityLogs = new ArrayCollection();
+        $this->logActivity('consultant proposed new consultation');
+        
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_OFFERED, $this->id);
+        $this->recordEvent($event);
     }
 
     public function scheduleIntersectWith(DateTimeInterval $otherSchedule): bool

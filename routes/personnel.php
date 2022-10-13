@@ -350,6 +350,7 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->group(['prefix' => '/consultation-requests'], function () use($router) {
             $controller = "ConsultationRequestController";
+            $router->post("", ["uses" => "$controller@propose"]);
             $router->patch("/{consultationRequestId}/accept", ["uses" => "$controller@accept"]);
             $router->patch("/{consultationRequestId}/offer", ["uses" => "$controller@offer"]);
             $router->patch("/{consultationRequestId}/reject", ["uses" => "$controller@reject"]);

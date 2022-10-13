@@ -26,6 +26,7 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
     protected $consultationRequest;
     protected $consultationRequest_concluded;
     protected $participant;
+    protected $consultationSetup;
     protected $userParticipant;
     protected $clientParticipant;
     protected $teamParticipant;
@@ -34,6 +35,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
     protected $offerInput;
     protected $coordinatorOne;
     protected $coordinatorTwo_inactive;
+    //
+    protected $proposeInput;
 
     protected function setUp(): void
     {
@@ -102,8 +105,8 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $feedbackForm = new RecordOfFeedbackForm($this->programConsultation->program->firm, $form);
         $this->connection->table('FeedbackForm')->insert($feedbackForm->toArrayForDbEntry());
         
-        $consultationSetup = new RecordOfConsultationSetup($program, $feedbackForm, $feedbackForm, 0);
-        $this->connection->table('ConsultationSetup')->insert($consultationSetup->toArrayForDbEntry());
+        $this->consultationSetup = new RecordOfConsultationSetup($program, $feedbackForm, $feedbackForm, 0);
+        $this->connection->table('ConsultationSetup')->insert($this->consultationSetup->toArrayForDbEntry());
         
         
         $this->participant = new RecordOfParticipant($program, 0);
@@ -116,11 +119,11 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
         $this->teamParticipant = new RecordOfTeamProgramParticipation($team, $this->participant);
         
         $this->consultationRequest = new RecordOfConsultationRequest(
-                $consultationSetup, $this->participant, $this->programConsultation, 0);
+                $this->consultationSetup, $this->participant, $this->programConsultation, 0);
         $this->consultationRequest->startDateTime = (new DateTimeImmutable("+24 hours"))->format("Y-m-d H:i:s");
         $this->consultationRequest->endDateTime = (new DateTimeImmutable("+25 hours"))->format("Y-m-d H:i:s");
         $this->consultationRequest_concluded = new RecordOfConsultationRequest(
-                $consultationSetup, $this->participant, $this->programConsultation, 1);
+                $this->consultationSetup, $this->participant, $this->programConsultation, 1);
         $this->consultationRequest_concluded->concluded = true;
         $this->consultationRequest_concluded->status = "rejected";
         $this->consultationRequest_concluded->startDateTime = (new DateTimeImmutable("-24 hours"))->format("Y-m-d H:i:s");
@@ -146,44 +149,52 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
             "media" => "new media",
             "address" => "new address",
         ];
+        
+        $this->proposeInput = [
+            'participantId' => $this->participant->id,
+            'consultationSetupId' => $this->consultationSetup->id,
+            'startTime' => (new DateTime('+24 hours'))->format('Y-m-d H:i:s'),
+            'media' => 'offline',
+            'address' => 'rumah tawa',
+        ];
     }
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('User')->truncate();
-        $this->connection->table('Team')->truncate();
-        $this->connection->table('T_Member')->truncate();
-        $this->connection->table('Coordinator')->truncate();
-        
-        $this->connection->table('Participant')->truncate();
-        $this->connection->table('ClientParticipant')->truncate();
-        $this->connection->table('UserParticipant')->truncate();
-        $this->connection->table('TeamParticipant')->truncate();
-        
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('FeedbackForm')->truncate();
-        $this->connection->table('ConsultationSetup')->truncate();
-        $this->connection->table('ConsultationRequest')->truncate();
-        $this->connection->table('ConsultationSession')->truncate();
-        
-        $this->connection->table('ActivityLog')->truncate();
-        $this->connection->table('ConsultationRequestActivityLog')->truncate();
-        $this->connection->table('ConsultationSessionActivityLog')->truncate();
-        $this->connection->table('ConsultantActivityLog')->truncate();
-        
-        $this->connection->table('Mail')->truncate();
-        $this->connection->table('MailRecipient')->truncate();
-        $this->connection->table('CommentMail')->truncate();
-        $this->connection->table('ConsultationRequestMail')->truncate();
-        $this->connection->table('ConsultationSessionMail')->truncate();
-        
-        $this->connection->table('Notification')->truncate();
-        $this->connection->table('ConsultationRequestNotification')->truncate();
-        $this->connection->table('ConsultationSessionNotification')->truncate();
-        $this->connection->table('ClientNotificationRecipient')->truncate();
-        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('User')->truncate();
+//        $this->connection->table('Team')->truncate();
+//        $this->connection->table('T_Member')->truncate();
+//        $this->connection->table('Coordinator')->truncate();
+//        
+//        $this->connection->table('Participant')->truncate();
+//        $this->connection->table('ClientParticipant')->truncate();
+//        $this->connection->table('UserParticipant')->truncate();
+//        $this->connection->table('TeamParticipant')->truncate();
+//        
+//        $this->connection->table('Form')->truncate();
+//        $this->connection->table('FeedbackForm')->truncate();
+//        $this->connection->table('ConsultationSetup')->truncate();
+//        $this->connection->table('ConsultationRequest')->truncate();
+//        $this->connection->table('ConsultationSession')->truncate();
+//        
+//        $this->connection->table('ActivityLog')->truncate();
+//        $this->connection->table('ConsultationRequestActivityLog')->truncate();
+//        $this->connection->table('ConsultationSessionActivityLog')->truncate();
+//        $this->connection->table('ConsultantActivityLog')->truncate();
+//        
+//        $this->connection->table('Mail')->truncate();
+//        $this->connection->table('MailRecipient')->truncate();
+//        $this->connection->table('CommentMail')->truncate();
+//        $this->connection->table('ConsultationRequestMail')->truncate();
+//        $this->connection->table('ConsultationSessionMail')->truncate();
+//        
+//        $this->connection->table('Notification')->truncate();
+//        $this->connection->table('ConsultationRequestNotification')->truncate();
+//        $this->connection->table('ConsultationSessionNotification')->truncate();
+//        $this->connection->table('ClientNotificationRecipient')->truncate();
+//        $this->connection->table('CoordinatorNotificationRecipient')->truncate();
     }
     protected function setAsTeamParticipant()
     {
@@ -760,5 +771,92 @@ class ConsultationRequestControllerTest extends ProgramConsultationTestCase
                 ->seeJsonContains($totalResponse)
                 ->seeJsonContains($objectReponse)
                 ->seeStatusCode(200);
+    }
+    
+    protected function propose()
+    {
+echo $this->consultationRequestUri;
+        $this->post($this->consultationRequestUri, $this->proposeInput, $this->programConsultation->personnel->token);
+    }
+    public function test_propose_200()
+    {
+$this->disableExceptionHandling();
+        $this->propose();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            "startTime" => $this->proposeInput['startTime'],
+            "endTime" => (new DateTime($this->proposeInput['startTime']))->add(new \DateInterval("PT1H"))->format("Y-m-d H:i:s"),
+            "media" => $this->proposeInput['media'],
+            "address" => $this->proposeInput['address'],
+            "status" => "offered",
+            "consultationSetup" => [
+                "id" => $this->consultationSetup->id,
+                "name" => $this->consultationSetup->name,
+            ],
+            "participant" => [
+                "id" => $this->participant->id,
+                "client" => [
+                    'id' => $this->clientParticipant->client->id,
+                    'name' => $this->clientParticipant->client->getFullName(),
+                ],
+                "user" => null,
+                "team" => null,
+            ],
+        ];
+// terminate request early and continuing to send mail prevent returning fully qualified response
+//        $this->seeJsonContains($response);
+        
+        $entry = [
+            "startDateTime" => $this->proposeInput['startTime'],
+            "endDateTime" => (new DateTime($this->proposeInput['startTime']))->add(new \DateInterval("PT1H"))->format("Y-m-d H:i:s"),
+            "media" => $this->proposeInput['media'],
+            "address" => $this->proposeInput['address'],
+            "status" => "offered",
+            "consultationSetup_id" => $this->consultationSetup->id,
+            "Participant_id" => $this->participant->id,
+        ];
+        $this->seeInDatabase('ConsultationRequest', $entry);
+    }
+    public function test_propose_logActivity()
+    {
+        $this->propose();
+        $this->seeStatusCode(200);
+        
+        $activityLogEntry = [
+            "message" => "consultant proposed new consultation",
+        ];
+        $this->seeInDatabase("ActivityLog", $activityLogEntry);
+        
+        $consultantActivityLog = [
+            "Consultant_id" => $this->programConsultation->id,
+        ];
+        $this->seeInDatabase("ConsultantActivityLog", $consultantActivityLog);
+    }
+    public function test_propose_persistNotificationAndSendMail()
+    {
+$this->disableExceptionHandling();
+        $this->propose();
+        $this->seeStatusCode(200);
+        
+        $clientNotificationRecipientEntry = [
+            "Client_id" => $this->clientParticipant->client->id,
+            "readStatus" => false,
+        ];
+        $this->seeInDatabase("ClientNotificationRecipient", $clientNotificationRecipientEntry);
+        
+        $mailEntry = [
+            "subject" => "Mentor Offered new Consultation",
+        ];
+        $this->seeInDatabase("Mail", $mailEntry);
+        
+        $recipientEntry = [
+            "recipientMailAddress" => $this->clientParticipant->client->email,
+            "recipientName" => $this->clientParticipant->client->getFullName(),
+//            "sent" => true,
+            "attempt" => 1,
+        ];
+        $this->seeInDatabase("MailRecipient", $recipientEntry);
+        
     }
 }

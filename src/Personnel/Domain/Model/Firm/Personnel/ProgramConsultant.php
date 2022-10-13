@@ -18,6 +18,7 @@ use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+use Personnel\Domain\Task\Mentor\MentorTask;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Exception\RegularException;
@@ -64,13 +65,13 @@ class ProgramConsultant extends EntityContainEvents
      * @var ArrayCollection
      */
     protected $consultationSessions;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $mentoringRequests;
-    
+
     /**
      * 
      * @var ArrayCollection
@@ -230,32 +231,54 @@ class ProgramConsultant extends EntityContainEvents
         }
         return new MentoringSlot($this, $mentoringSlotId, $consultationSetup, $mentoringSlotData);
     }
-    
+
     public function assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule(ContainSchedule $containSchedule): void
     {
-        $p = function(MentoringRequest $mentoringRequest) use($containSchedule) {
+        $p = function (MentoringRequest $mentoringRequest) use ($containSchedule) {
             return $mentoringRequest->isScheduledOrOfferedRequestInConflictWith($containSchedule);
         };
         if (!empty($this->mentoringRequests->filter($p)->count())) {
             throw RegularException::forbidden('forbidden: schedule in conflict with scheduled or proposed request');
         }
-        
-        $mentoringSlotFilter = function(MentoringSlot $mentoringSlot) use($containSchedule) {
+
+        $mentoringSlotFilter = function (MentoringSlot $mentoringSlot) use ($containSchedule) {
             return $mentoringSlot->isActiveSlotInConflictWith($containSchedule);
         };
         if (!empty($this->mentoringSlots->filter($mentoringSlotFilter)->count())) {
             throw RegularException::forbidden('forbidden: schedule in conflict with existing slot');
         }
     }
-    
+
     public function declareMentoring(
-            string $declaredMentoringId, Participant $participant, ConsultationSetup $consultationSetup, 
+            string $declaredMentoringId, Participant $participant, ConsultationSetup $consultationSetup,
             ScheduleData $scheduleData): DeclaredMentoring
     {
         $this->assertActive();
         $participant->assertUsableInProgram($this->programId);
         $consultationSetup->assertUsableInProgram($this->programId);
         return new DeclaredMentoring($this, $declaredMentoringId, $participant, $consultationSetup, $scheduleData);
+    }
+
+    public function executeMentorTask(MentorTask $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this, $payload);
+    }
+
+    public function proposeConsultation(
+            string $consultationRequestId, Participant $participant, ConsultationSetup $consultationSetup,
+            ConsultationRequestData $consultationRequestData): ConsultationRequest
+    {
+        $participant->assertUsableInProgram($this->programId);
+        $consultationSetup->assertUsableInProgram($this->programId);
+        
+        $consultationRequest = new ConsultationRequest(
+                $consultationRequestId, $this, $participant, $consultationSetup, $consultationRequestData);
+        
+        $this->assertNoConsultationSessionInConflictWithConsultationRequest($consultationRequest);
+        $this->assertNoOtherOfferedConsultationRequestInConflictWithConsultationRequest($consultationRequest);
+        
+        return $consultationRequest;
     }
 
 }

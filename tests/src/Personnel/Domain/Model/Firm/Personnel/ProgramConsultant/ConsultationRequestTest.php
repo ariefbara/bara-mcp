@@ -26,6 +26,8 @@ class ConsultationRequestTest extends TestBase
     protected $address = "new address";
     protected $otherConsultationRequest;
     protected $otherSchedule;
+    //
+    protected $id = 'newId';
 
     protected function setUp(): void
     {
@@ -33,31 +35,64 @@ class ConsultationRequestTest extends TestBase
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
-        
+        $this->startTime = new DateTimeImmutable('+1 days');
+
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->programConsultant = $this->buildMockOfClass(ProgramConsultant::class);
 
-        $this->consultationRequest = new TestableConsultationRequest();
-        $this->consultationRequest->consultationSetup = $this->consultationSetup;
-        $this->consultationRequest->id = 'negotiate-schedule-id';
-        $this->consultationRequest->participant = $this->participant;
-        $this->consultationRequest->programConsultant = $this->programConsultant;
-        $this->consultationRequest->startEndTime = $this->startEndTime;
-        $this->consultationRequest->channel = $this->channel;
+        $data = new ConsultationRequestData($this->startTime, $this->media, $this->address);
+        $this->consultationRequest = new TestableConsultationRequest('id', $this->programConsultant, $this->participant, $this->consultationSetup, $data);
         $this->consultationRequest->status = new ConsultationRequestStatusVO('proposed');
+        $this->consultationRequest->channel = $this->channel;
+        $this->consultationRequest->startEndTime = $this->startEndTime;
         $this->consultationRequest->consultationRequestActivityLogs = new ArrayCollection();
+        $this->consultationRequest->recordedEvents = [];
 
-        $this->startTime = new DateTimeImmutable('+1 days');
-        $this->otherConsultationRequest = new TestableConsultationRequest();
+        $this->otherConsultationRequest = new TestableConsultationRequest('other', $this->programConsultant, $this->participant,
+                $this->consultationSetup, $data);
         $this->otherConsultationRequest->startEndTime = $this->startEndTime;
         $this->otherSchedule = $this->buildMockOfClass(DateTimeInterval::class);
     }
-    
+
     protected function getConsultationRequestData()
     {
         return new ConsultationRequestData($this->startTime, $this->media, $this->address);
     }
-    
+
+    //
+    protected function construct()
+    {
+        return new TestableConsultationRequest(
+                $this->id, $this->programConsultant, $this->participant, $this->consultationSetup,
+                $this->getConsultationRequestData());
+    }
+    public function test_construct_setProperties()
+    {
+        $consultationRequest = $this->construct();
+        $this->assertSame($this->programConsultant, $consultationRequest->programConsultant);
+        $this->assertSame($this->id, $consultationRequest->id);
+        $this->assertSame($this->participant, $consultationRequest->participant);
+        $this->assertSame($this->consultationSetup, $consultationRequest->consultationSetup);
+        $this->assertInstanceOf(DateTimeInterval::class, $consultationRequest->startEndTime);
+        $this->assertInstanceOf(ConsultationChannel::class, $consultationRequest->channel);
+        $this->assertFalse($consultationRequest->concluded);
+        $this->assertEquals(new ConsultationRequestStatusVO('offered'), $consultationRequest->status);
+    }
+    public function test_construct_logActivity()
+    {
+        $consultationRequest = $this->construct();
+        $this->assertEquals(1, $consultationRequest->consultationRequestActivityLogs->count());
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class,
+                $consultationRequest->consultationRequestActivityLogs->first());
+    }
+    public function test_construct_recordConsultationRequestOfferedEvent()
+    {
+        $consultationRequest = $this->construct();
+        $event = new CommonEvent(EventList::CONSULTATION_REQUEST_OFFERED, $this->id);
+        $this->assertEquals($event, $consultationRequest->recordedEvents[0]);
+    }
+
+    //
     protected function executeScheduleIntersectWith()
     {
         $this->startEndTime->expects($this->any())
@@ -65,6 +100,7 @@ class ConsultationRequestTest extends TestBase
                 ->willReturn(true);
         return $this->consultationRequest->scheduleIntersectWith($this->otherSchedule);
     }
+
     public function test_scheduleIntersectWith_returnSchedulesIntersectWithResult()
     {
         $this->startEndTime->expects($this->once())
@@ -72,27 +108,32 @@ class ConsultationRequestTest extends TestBase
                 ->with($this->otherSchedule);
         $this->executeScheduleIntersectWith();
     }
+
     public function test_shceduleIntersectWith_concludedRequest_returnFalse()
     {
         $this->consultationRequest->concluded = true;
         $this->assertFalse($this->executeScheduleIntersectWith());
     }
 
+    //
     protected function executeReject()
     {
         $this->consultationRequest->reject();
     }
+
     public function test_reject_setStatusRejected()
     {
         $this->executeReject();
         $status = new ConsultationRequestStatusVO("rejected");
         $this->assertEquals($status, $this->consultationRequest->status);
     }
+
     public function test_reject_setConcludedFlagTrue()
     {
         $this->executeReject();
         $this->assertTrue($this->consultationRequest->concluded);
     }
+
     public function test_reject_alreadyConcluded_throwEx()
     {
         $this->consultationRequest->concluded = true;
@@ -102,30 +143,35 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+
     public function test_reject_logActivity()
     {
         $this->executeReject();
         $this->assertEquals(1, $this->consultationRequest->consultationRequestActivityLogs->count());
-        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class,
+                $this->consultationRequest->consultationRequestActivityLogs->first());
     }
+
     public function test_reject_recordConsultationRequestRejectedEvent()
     {
         $event = new CommonEvent(EventList::CONSULTATION_REQUEST_REJECTED, $this->consultationRequest->id);
         $this->executeReject();
         $this->assertEquals($event, $this->consultationRequest->recordedEvents[0]);
     }
-    
 
+    //
     protected function executeOffer()
     {
         $this->consultationRequest->offer($this->getConsultationRequestData());
     }
+
     public function test_offer_setStatusOffered()
     {
         $this->executeOffer();
         $status = new ConsultationRequestStatusVO("offered");
         $this->assertEquals($status, $this->consultationRequest->status);
     }
+
     public function test_offer_alreadyConcluded_throwEx()
     {
         $this->consultationRequest->concluded = true;
@@ -135,6 +181,7 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+
     public function test_offer_changeProperties()
     {
         $this->consultationSetup->expects($this->once())
@@ -146,15 +193,17 @@ class ConsultationRequestTest extends TestBase
         $channel = new ConsultationChannel($this->media, $this->address);
         $this->assertEquals($channel, $this->consultationRequest->channel);
     }
+
     public function test_offer_emptyStartTime_badRequest()
     {
         $this->startTime = null;
-        $operation = function (){
+        $operation = function () {
             $this->executeOffer();
         };
         $errorDetail = "bad request: consultation request start time is mandatory";
         $this->assertRegularExceptionThrowed($operation, "Bad Request", $errorDetail);
     }
+
     public function test_offer_startEndTimeUnavailableInParticipantsSchedule_throwEx()
     {
         $this->participant->expects($this->once())
@@ -167,12 +216,15 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request time in conflict with participan existing consultation session';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+
     public function test_offer_logActivity()
     {
         $this->executeOffer();
         $this->assertEquals(1, $this->consultationRequest->consultationRequestActivityLogs->count());
-        $this->assertInstanceOf(ConsultationRequestActivityLog::class, $this->consultationRequest->consultationRequestActivityLogs->first());
+        $this->assertInstanceOf(ConsultationRequestActivityLog::class,
+                $this->consultationRequest->consultationRequestActivityLogs->first());
     }
+
     public function test_offer_recordConsultationRequestOfferedEvent()
     {
         $this->executeOffer();
@@ -180,10 +232,12 @@ class ConsultationRequestTest extends TestBase
         $this->assertEquals($event, $this->consultationRequest->recordedEvents[0]);
     }
 
+    //
     protected function executeAccept()
     {
         $this->consultationRequest->accept();
     }
+
     public function test_accept_alreadyConcluded_throwEx()
     {
         $this->consultationRequest->concluded = true;
@@ -193,41 +247,47 @@ class ConsultationRequestTest extends TestBase
         $errorDetail = 'forbidden: consultation request already concluded';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+
     public function test_accept_setStatusScheduled()
     {
         $this->executeAccept();
         $status = new ConsultationRequestStatusVO("scheduled");
         $this->assertEquals($status, $this->consultationRequest->status);
     }
+
     public function test_accept_setConcludedFlagTrue()
     {
         $this->executeAccept();
         $this->assertTrue($this->consultationRequest->concluded);
     }
+
     public function test_accept_currentStatusNotProposed_error403()
     {
         $this->consultationRequest->status = new ConsultationRequestStatusVO('offered');
-        $operation = function (){
+        $operation = function () {
             $this->executeAccept();
         };
         $errorDetail = "forbidden: can only accept proposed consultation request";
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
-    
+
     public function test_createConsultationSetupSchedule_returnConsultationSetupSchedule()
     {
         $id = 'id';
         $this->assertInstanceOf(ConsultationSession::class, $this->consultationRequest->createConsultationSession($id));
     }
 
+    //
     protected function executeIsOfferedConsultationRequestConflictedWith()
     {
         return $this->consultationRequest->isOfferedConsultationRequestConflictedWith($this->otherConsultationRequest);
     }
+
     public function test_isOfferedConsultaionRequestConflictedWith_noConflict_returnFalse()
     {
         $this->assertFalse($this->executeIsOfferedConsultationRequestConflictedWith());
     }
+
     public function test_isOfferedConsultationRequestConflictedWith_timeIntersectWithOther_returnTrue()
     {
         $this->consultationRequest->status = new ConsultationRequestStatusVO('offered');
@@ -236,6 +296,7 @@ class ConsultationRequestTest extends TestBase
                 ->willReturn(true);
         $this->assertTrue($this->executeIsOfferedConsultationRequestConflictedWith());
     }
+
     public function test_isOfferedConsultationRequestConflictedWith_statusNotOffered_returnFalse()
     {
         $this->startEndTime->expects($this->any())
@@ -243,6 +304,7 @@ class ConsultationRequestTest extends TestBase
                 ->willReturn(true);
         $this->assertFalse($this->executeIsOfferedConsultationRequestConflictedWith());
     }
+
     public function test_isOfferedConsultationRequestConflictedWith_comparedToSelf_returnFalse()
     {
         $this->consultationRequest->status = new ConsultationRequestStatusVO('offered');
@@ -251,6 +313,7 @@ class ConsultationRequestTest extends TestBase
                 ->willReturn(true);
         $this->assertFalse($this->consultationRequest->isOfferedConsultationRequestConflictedWith($this->consultationRequest));
     }
+
 }
 
 class TestableConsultationRequest extends ConsultationRequest
@@ -260,10 +323,5 @@ class TestableConsultationRequest extends ConsultationRequest
     public $channel;
     public $consultationRequestActivityLogs;
     public $recordedEvents;
-
-    function __construct()
-    {
-        parent::__construct();
-    }
 
 }

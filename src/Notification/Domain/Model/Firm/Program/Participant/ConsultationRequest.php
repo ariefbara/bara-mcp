@@ -11,6 +11,7 @@ use Notification\Domain\Model\Firm\Team\Member;
 use Notification\Domain\SharedModel\CanSendPersonalizeMail;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Uuid;
+use SharedContext\Domain\Model\SharedEntity\ConsultationRequestStatusVO;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
 use SharedContext\Domain\ValueObject\MailMessage;
 use SharedContext\Domain\ValueObject\MailMessageBuilder;
@@ -42,6 +43,12 @@ class ConsultationRequest implements CanSendPersonalizeMail
      * @var DateTimeInterval
      */
     protected $startEndTime;
+
+    /**
+     * 
+     * @var ConsultationRequestStatusVO
+     */
+    protected $status;
 
     /**
      * 
@@ -91,7 +98,7 @@ class ConsultationRequest implements CanSendPersonalizeMail
 
         $this->participant->registerNotificationRecipient($consultationRequestNotification, $submitter);
         $this->consultationRequestNotifications->add($consultationRequestNotification);
-        
+
         $this->createNotificationTriggeredByParticipant($state);
     }
 
@@ -104,10 +111,13 @@ class ConsultationRequest implements CanSendPersonalizeMail
         $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-request/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
-        
+
+        if ($this->status->sameValueAs(new ConsultationRequestStatusVO('offered'))) {
+            $state = MailMessageBuilder::CONSULTATION_PROPOSED_BY_MENTOR;
+        }
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForParticipant(
-                $state, $mentorName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
-        
+                        $state, $mentorName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
+
         $this->participant->registerMailRecipient($this, $mailMessage, null);
 
         $id = Uuid::generateUuid4();
@@ -126,9 +136,9 @@ class ConsultationRequest implements CanSendPersonalizeMail
         $domain = $this->participant->getFirmDomain();
         $urlPath = "/consultation-request/{$this->id}";
         $logoPath = $this->participant->getFirmLogoPath();
-        
+
         $mailMessage = MailMessageBuilder::buildConsultationMailMessageForMentor(
-                $state, $participantName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
+                        $state, $participantName, $timeDescription, $media, $location, $domain, $urlPath, $logoPath);
         $this->consultant->registerMailRecipient($this, $mailMessage);
 
         $id = Uuid::generateUuid4();

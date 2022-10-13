@@ -11,6 +11,7 @@ class MailMessageBuilder
     const CONSULTATION_REJECTED = 14;
     const CONSULTATION_ACCEPTED_BY_MENTOR = 15;
     const CONSULTATION_ACCEPTED_BY_PARTICIPANT = 16;
+    const CONSULTATION_PROPOSED_BY_MENTOR = 16;
     const MEETING_CREATED = 21;
     const MEETING_INVITATION_SENT = 22;
     const MEETING_INVITATION_CANCELLED = 23;
@@ -70,6 +71,11 @@ $showLink = false;
             case self::CONSULTATION_ACCEPTED_BY_PARTICIPANT:
                 $subject = "Consultation Scheduled";
                 $introductionMessage = "Participant accepted consultation schedule suggestion";
+                $icalRequired = true;
+                break;
+            case self::CONSULTATION_PROPOSED_BY_MENTOR:
+                $subject = "New Consultation Request";
+                $introductionMessage = "Mentor offered new consultation schedule";
                 $icalRequired = true;
                 break;
             default:
@@ -146,6 +152,10 @@ $showLink = false;
             case self::CONSULTATION_SCHEDULE_CHANGED:
                 $subject = "Consultation Request Schedule Changed";
                 $introductionMessage = "Mentor offered consultation schedule";
+                break;
+            case self::CONSULTATION_PROPOSED_BY_MENTOR:
+                $subject = "Mentor Offered new Consultation";
+                $introductionMessage = "Mentor offered new consultation";
                 break;
             case self::CONSULTATION_REJECTED:
                 $subject = "Consultation Request Rejected";

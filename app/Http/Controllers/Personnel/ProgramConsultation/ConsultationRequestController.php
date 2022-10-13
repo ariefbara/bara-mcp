@@ -16,9 +16,14 @@ use Notification\Domain\Model\Firm\Program\Participant\ConsultationSession;
 use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestAccept;
 use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestOffer;
 use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestReject;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ExecuteMentorTask;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
+use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
+use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Task\Mentor\ProposeConsultation;
+use Personnel\Domain\Task\Mentor\ProposeConsultationPayload;
 use Query\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestView;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\ConsultationSetup\ConsultationRequest as ConsultationRequest2;
@@ -30,6 +35,40 @@ use Resources\Application\Event\Dispatcher;
 class ConsultationRequestController extends PersonnelBaseController
 {
 
+    public function propose($programConsultationId)
+    {
+        $dispatcher = new Dispatcher(false);
+        $dispatcher->addListener(
+                EventList::CONSULTATION_REQUEST_OFFERED, $this->buildConsultationRequestOfferedListener());
+        
+        $mentorRepository = $this->em->getRepository(ProgramConsultant::class);
+        $consultationRequestRepository = $this->em->getRepository(ConsultationRequest::class);
+        $participantRepository = $this->em->getRepository(Participant::class);
+        $consultationSetupRepository = $this->em->getRepository(ConsultationSetup::class);
+        $task = new ProposeConsultation($consultationRequestRepository,
+                $participantRepository, $consultationSetupRepository, $dispatcher);
+        
+        $participantId = $this->stripTagsInputRequest('participantId');
+        $consultationSetupId = $this->stripTagsInputRequest('consultationSetupId');
+        $startTime = $this->dateTimeImmutableOfInputRequest('startTime');
+        $media = $this->stripTagsInputRequest('media');
+        $address = $this->stripTagsInputRequest('address');
+        $consultationRequestData = new ConsultationRequestData($startTime, $media, $address);
+        $payload = new ProposeConsultationPayload($participantId, $consultationSetupId, $consultationRequestData);
+        
+        (new ExecuteMentorTask($mentorRepository))
+                ->execute($this->firmId(), $this->personnelId(), $programConsultationId, $task, $payload);
+        
+        $dispatcher->execute();
+        
+        $consultationRequest = $this->buildViewService()
+                ->showById($this->personnelId(), $programConsultationId, $payload->proposedConsultationRequestId);
+        
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));        
+        
+        $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
+    }
+
     public function accept($programConsultationId, $consultationRequestId)
     {
         $service = $this->buildAcceptService();
@@ -37,8 +76,8 @@ class ConsultationRequestController extends PersonnelBaseController
 
         $consultationRequest = $this->buildViewService()
                 ->showById($this->personnelId(), $programConsultationId, $consultationRequestId);
-        
-        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));        
+
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
         $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
@@ -48,16 +87,17 @@ class ConsultationRequestController extends PersonnelBaseController
         $startTime = new DateTimeImmutable($this->stripTagsInputRequest('startTime'));
         $media = $this->stripTagsInputRequest("media");
         $address = $this->stripTagsInputRequest("address");
-        
+
         $consultationRequestData = new ConsultationRequestData($startTime, $media, $address);
-        
+
         $service->execute(
-                $this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId, $consultationRequestData);
-        
+                $this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId,
+                $consultationRequestData);
+
         $consultationRequest = $this->buildViewService()
                 ->showById($this->personnelId(), $programConsultationId, $consultationRequestId);
-        
-        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));        
+
+        $response = $this->singleQueryResponse($this->arrayDataOfConsultationRequest($consultationRequest));
         $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
 
@@ -65,11 +105,11 @@ class ConsultationRequestController extends PersonnelBaseController
     {
         $service = $this->buildRejectService();
         $service->execute($this->firmId(), $this->personnelId(), $programConsultationId, $consultationRequestId);
-        
-        $response = $this->commandOkResponse();        
+
+        $response = $this->commandOkResponse();
         $this->sendAndCloseConnection($response, $this->buildSendImmediateMailJob());
     }
-    
+
     public function show($programConsultationId, $consultationRequestId)
     {
         $service = $this->buildViewService();

@@ -2,17 +2,14 @@
 
 namespace Personnel\Infrastructure\Persistence\Doctrine\Repository;
 
-use Doctrine\ORM\ {
-    EntityRepository,
-    NoResultException
-};
-use Personnel\ {
-    Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestRepository,
-    Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest
-};
+use Doctrine\ORM\NoResultException;
+use Personnel\Application\Service\Firm\Personnel\ProgramConsultant\ConsultationRequestRepository;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
+use Personnel\Domain\Task\Dependency\Firm\Personnel\Mentor\ConsultationRequestRepository as ConsultationRequestRepository2;
 use Resources\Exception\RegularException;
+use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
 
-class DoctrineConsultationRequestRepository extends EntityRepository implements ConsultationRequestRepository
+class DoctrineConsultationRequestRepository extends DoctrineEntityRepository implements ConsultationRequestRepository, ConsultationRequestRepository2
 {
 
     public function ofId(
@@ -44,9 +41,9 @@ class DoctrineConsultationRequestRepository extends EntityRepository implements 
         }
     }
 
-    public function update(): void
+    public function add(ConsultationRequest $consultationRequest): void
     {
-        $this->getEntityManager()->flush();
+        $this->persist($consultationRequest);
     }
 
 }

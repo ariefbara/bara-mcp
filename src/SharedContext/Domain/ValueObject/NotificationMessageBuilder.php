@@ -35,6 +35,9 @@ class NotificationMessageBuilder
             case MailMessageBuilder::CONSULTATION_CANCELLED:
                 return "partner {$memberName} of team {$teamName} cancelled consultation request to mentor {$mentorName}";
                 break;
+            case MailMessageBuilder::CONSULTATION_PROPOSED_BY_MENTOR:
+                return "mentor {$mentorName} offered new consultation with your team {$teamName}";
+                break;
             case MailMessageBuilder::CONSULTATION_SCHEDULE_CHANGED:
                 return "partner {$memberName} of team {$teamName} changed consultation request schedule to mentor {$mentorName}";
                 break;
@@ -61,6 +64,9 @@ class NotificationMessageBuilder
                 break;
             case MailMessageBuilder::CONSULTATION_ACCEPTED_BY_MENTOR:
                 return "mentor {$mentorName} accepted consultation request";
+                break;
+            case MailMessageBuilder::CONSULTATION_PROPOSED_BY_MENTOR:
+                return "mentor {$mentorName} offered new consultation";
                 break;
             default:
                 break;
