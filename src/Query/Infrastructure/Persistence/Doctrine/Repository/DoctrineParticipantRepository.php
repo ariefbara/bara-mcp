@@ -371,11 +371,19 @@ SELECT
     _e.totalMission,
     ROUND (_f.achievement * 100) metricAchievement,
     _f.completedMetric,
-    _f.totalAssignedMetric
+    _f.totalAssignedMetric,
+    _a.programId,
+    _a.programConsultationId,
+    CASE 
+        WHEN _b.userName IS NOT NULL THEN 'user'
+        WHEN _c.clientName IS NOT NULL THEN 'client'
+        WHEN _d.teamName IS NOT NULL THEN 'team'
+    END participantType
 FROM (
     SELECT 
         Participant.id participantId, 
         Participant.Program_id programId,
+        Consultant.id programConsultationId,
         _a1.totalCompletedMission
     FROM DedicatedMentor
     LEFT JOIN Consultant ON DedicatedMentor.Consultant_id = Consultant.id

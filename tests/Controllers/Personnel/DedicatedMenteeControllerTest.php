@@ -229,6 +229,9 @@ $this->disableExceptionHandling();
                     'metricAchievement' => '60',
                     'completedMetric' => '0',
                     'totalAssignedMetric' => '2',
+                    'programId' => $this->dedicatedMentorOne->participant->program->id,
+                    'programConsultationId' => $this->dedicatedMentorOne->consultant->id,
+                    'participantType' => 'client'
                 ],
                 [
                     'participantId' => $this->dedicatedMentorTwo->participant->id,
@@ -238,6 +241,9 @@ $this->disableExceptionHandling();
                     'metricAchievement' => null,
                     'completedMetric' => null,
                     'totalAssignedMetric' => null,
+                    'programId' => $this->dedicatedMentorTwo->participant->program->id,
+                    'programConsultationId' => $this->dedicatedMentorTwo->consultant->id,
+                    'participantType' => 'team'
                 ],
             ],
         ];
