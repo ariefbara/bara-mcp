@@ -495,10 +495,18 @@ _STATEMENT;
         $params = ['personnelId' => $personnelId];
         
         $sql = <<<_STATEMENT
-SELECT Mission.id, Mission.name, _a.programId, _a.programName, _b.lastActivity, _b.numberOfPost, _b.message
+SELECT 
+    Mission.id, 
+    Mission.name, 
+    _a.programId, 
+    _a.programName, 
+    _a.programConsultationId, 
+    _b.lastActivity, 
+    _b.numberOfPost, 
+    _b.message
 FROM Mission
 INNER JOIN (
-    SELECT Program.id programId, Program.name programName
+    SELECT Program.id programId, Program.name programName, Consultant.id programConsultationId
     FROM Consultant
     INNER JOIN Program ON Program.id = Consultant.Program_id
     WHERE Consultant.Personnel_id = :personnelId
