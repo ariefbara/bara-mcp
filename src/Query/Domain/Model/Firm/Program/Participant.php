@@ -168,7 +168,8 @@ class Participant extends EntityContainEvents
     {
         $criteria = Criteria::create()
                 ->orderBy(['completedTime' => 'DESC']);
-        return $this->completedMissions->matching($criteria)->first();
+        $lastCompletedMission = $this->completedMissions->matching($criteria)->first();
+        return empty($lastCompletedMission) ? null : $lastCompletedMission;
     }
     
     public function getCompletedMissionCount(): int
