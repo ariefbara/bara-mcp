@@ -3,11 +3,13 @@
 namespace Tests\src\Personnel\Domain\Task\Mentor;
 
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantNote;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\DeclaredMentoring;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest\NegotiatedMentoring;
 use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
 use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Task\Dependency\Firm\Personnel\Mentor\ConsultantNoteRepository;
 use Personnel\Domain\Task\Dependency\Firm\Personnel\Mentor\DeclaredMentoringRepository;
 use Personnel\Domain\Task\Dependency\Firm\Personnel\Mentor\MentoringRequest\NegotiatedMentoringRepository;
 use Personnel\Domain\Task\Dependency\Firm\Personnel\Mentor\MentoringRequestRepository;
@@ -133,5 +135,26 @@ class MentorTaskTestBase extends TestBase
                 ->method('ofId')
                 ->with($this->participantId)
                 ->willReturn($this->participant);
+    }
+    
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $consultantNoteRepository;
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $consultantNote;
+    protected $consultantNoteId = 'consultantNoteId';
+    protected function setConsultantNoteRelatedTask()
+    {
+        $this->consultantNote = $this->buildMockOfClass(ConsultantNote::class);
+        $this->consultantNoteRepository = $this->buildMockOfInterface(ConsultantNoteRepository::class);
+        $this->consultantNoteRepository->expects($this->any())
+                ->method('ofId')
+                ->with($this->consultantNoteId)
+                ->willReturn($this->consultantNote);
     }
 }

@@ -47,6 +47,22 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->put('/mentors/{mentorId}/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
     $router->get('declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
     
+    $router->post('/mentors/{mentorId}/consultant-notes', ['uses' => "ConsultantNoteController@submit"]);
+    $router->patch('/mentors/{mentorId}/consultant-notes/{id}/update', ['uses' => "ConsultantNoteController@update"]);
+    $router->patch('/mentors/{mentorId}/consultant-notes/{id}/show-to-participant', ['uses' => "ConsultantNoteController@showToParticipant"]);
+    $router->patch('/mentors/{mentorId}/consultant-notes/{id}/hide-from-participant', ['uses' => "ConsultantNoteController@hideFromParticipant"]);
+    $router->delete('/mentors/{mentorId}/consultant-notes/{id}', ['uses' => "ConsultantNoteController@remove"]);
+    $router->get('consultant-notes', ['uses' => "ConsultantNoteController@showAll"]);
+    $router->get('consultant-notes/{id}', ['uses' => "ConsultantNoteController@show"]);
+    
+    $router->post('/mentors/{mentorId}/submit-note', ['uses' => "CnosultantNoteController@submit"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+    $router->put('/mentors/{mentorId}/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+    $router->get('declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
+    
     $router->put('/mentors/{mentorId}/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
     $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
     
