@@ -497,6 +497,9 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/client-participants/{id}", ["uses" => "ParticipantController@viewClientParticipantDetail"]);
         $router->get("/user-participants/{id}", ["uses" => "ParticipantController@viewUserParticipantDetail"]);
         
+        $router->get("/participant-profiles/{id}", ["uses" => "ParticipantProfileController@view"]);
+        $router->get("/participants/{participantId}/profiles", ["uses" => "ParticipantProfileController@viewAllProfileOfParticularParticipant"]);
+        
     });
     
     $consultantAggregate = [
@@ -519,6 +522,9 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/team-participants/{id}", ["uses" => "ProgramParticipantController@viewTeamParticipantDetail"]);
         $router->get("/client-participants/{id}", ["uses" => "ProgramParticipantController@viewClientParticipantDetail"]);
         $router->get("/user-participants/{id}", ["uses" => "ProgramParticipantController@viewUserParticipantDetail"]);
+        
+        $router->get("/participant-profiles/{id}", ["uses" => "ParticipantProfileController@view"]);
+        $router->get("/participants/{participantId}/profiles", ["uses" => "ParticipantProfileController@viewAllProfileOfParticularParticipant"]);
     });
     
     $asConsultantMeetingInitiatorAggregate = [

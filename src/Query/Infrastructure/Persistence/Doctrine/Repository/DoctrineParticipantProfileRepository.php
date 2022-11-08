@@ -9,11 +9,13 @@ use Query\Application\Service\Firm\Team\ParticipantProfileRepository as Interfac
 use Query\Application\Service\User\ParticipantProfileRepository as InterfaceForUser;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantProfile;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\ParticipantProfileFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\ParticipantProfileRepository as ParticipantProfileRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
 class DoctrineParticipantProfileRepository extends BelongsToParticipantEntityRepository
-        implements ParticipantProfileRepository, InterfaceForClient, InterfaceForUser, InterfaceForTeam
+        implements ParticipantProfileRepository, InterfaceForClient, InterfaceForUser, InterfaceForTeam, ParticipantProfileRepository2
 {
 
     public function aParticipantProfileInProgram(string $firmId, string $programId, string $participantProfileId): ParticipantProfile
@@ -218,9 +220,60 @@ class DoctrineParticipantProfileRepository extends BelongsToParticipantEntityRep
                 ->leftJoin("participantProfile.participant", "participant")
                 ->andWhere($qb->expr()->in("participant.id", $this->getTeamParticipantIdDQL()))
                 ->setParameters($params);
-        
+
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function allParticipantProfilesInInProgram(string $programId, ParticipantProfileFilter $filter)
+    {
         
+    }
+
+    public function aParticipantProfileBelongsInProgram(string $programId, string $participantProfileId): ParticipantProfile
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $participantProfileId
+        ];
+
+        $qb = $this->createQueryBuilder('participantProfile');
+        $qb->select('participantProfile')
+                ->andWhere($qb->expr()->eq('participantProfile.id', ':id'))
+                ->leftJoin('participantProfile.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('participant profile not found');
+        }
+    }
+
+    public function allParticipantProfilesBelongsInProgram(string $programId, ParticipantProfileFilter $filter)
+    {
+        $parameters = [
+            'programId' => $programId,
+        ];
+
+        $qb = $this->createQueryBuilder('participantProfile');
+        $qb->select('participantProfile')
+                ->leftJoin('participantProfile.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters);
+
+        $participantIdFilter = $filter->getParticipantId();
+        if ($participantIdFilter) {
+            $qb->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                    ->setParameter('participantId', $participantIdFilter);
+        }
+
+        $page = $filter->getPaginationFilter()->getPage();
+        $pageSize = $filter->getPaginationFilter()->getPageSize();
+        return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
 }
