@@ -66,4 +66,12 @@ class PersonnelBaseController extends Controller
                 ->execute($this->firmId(), $this->personnelId(), $mentorId, $task, $payload);
     }
 
+    protected function executeCoordinatorTaskInPersonnelBC(string $coordinatorId,
+            \Personnel\Domain\Task\Coordinator\CoordinatorTask $task, $payload): void
+    {
+        $coordinatorRepository = $this->em->getRepository(\Personnel\Domain\Model\Firm\Personnel\Coordinator::class);
+        (new \Personnel\Application\Service\Firm\Personnel\Coordinator\ExecuteCoordinatorTask($coordinatorRepository))
+                ->execute($this->personnelId(), $coordinatorId, $task, $payload);
+    }
+
 }

@@ -55,6 +55,14 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('consultant-notes', ['uses' => "ConsultantNoteController@showAll"]);
     $router->get('consultant-notes/{id}', ['uses' => "ConsultantNoteController@show"]);
     
+    $router->post('/coordinators/{coordinatorId}/coordinator-notes', ['uses' => "CoordinatorNoteController@submit"]);
+    $router->patch('/coordinators/{coordinatorId}/coordinator-notes/{id}/update', ['uses' => "CoordinatorNoteController@update"]);
+    $router->patch('/coordinators/{coordinatorId}/coordinator-notes/{id}/show-to-participant', ['uses' => "CoordinatorNoteController@showToParticipant"]);
+    $router->patch('/coordinators/{coordinatorId}/coordinator-notes/{id}/hide-from-participant', ['uses' => "CoordinatorNoteController@hideFromParticipant"]);
+    $router->delete('/coordinators/{coordinatorId}/coordinator-notes/{id}', ['uses' => "CoordinatorNoteController@remove"]);
+    $router->get('coordinator-notes', ['uses' => "CoordinatorNoteController@showAll"]);
+    $router->get('coordinator-notes/{id}', ['uses' => "CoordinatorNoteController@show"]);
+    
     $router->post('/mentors/{mentorId}/submit-note', ['uses' => "CnosultantNoteController@submit"]);
     $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
     $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);

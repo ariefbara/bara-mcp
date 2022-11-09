@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Coordinator\CoordinatorNote" 
+            table="CoordinatorNote"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineCoordinatorNoteRepository"
+    >
+        
+        <many-to-one  field="coordinator" 
+                      target-entity="Query\Domain\Model\Firm\Program\Coordinator"
+        >
+            <join-column name="Coordinator_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="viewableByParticipant" type="boolean" />
+        
+        <one-to-one field="note" 
+                    target-entity="Query\Domain\SharedModel\Note"
+        >
+            <join-column name="Note_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>
