@@ -21,10 +21,12 @@ use Participant\Domain\Model\Participant\DeclaredMentoring;
 use Participant\Domain\Model\Participant\MentoringRequest;
 use Participant\Domain\Model\Participant\MentoringRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment;
+use Participant\Domain\Model\Participant\ParticipantNote;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
@@ -55,7 +57,7 @@ class ParticipantTest extends TestBase
     protected $metricAssignmentReportId = "metricAssignmentReportId", $observationTime, $metricAssignmentReportDataProvider;
     
     protected $programsProfileForm, $profile;
-    protected $participantTask;
+    protected $task;
     
     protected $startEndTime, $channel;
     protected $mentoringSlot;
@@ -66,6 +68,10 @@ class ParticipantTest extends TestBase
     protected $mentoringSchedule;
     
     protected $declaredMentoringId = 'declaredMentoringId', $mentoringDeclarationScheduleData;
+    //
+    protected $participantTask, $payload = 'string represent task payload';
+    //
+    protected $participantNoteId = 'participantNoteId', $content = 'note content';
 
     protected function setUp(): void
     {
@@ -123,7 +129,7 @@ class ParticipantTest extends TestBase
         $this->profile = $this->buildMockOfClass(ParticipantProfile::class);
         $this->participant->profiles->add($this->profile);
         
-        $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
         
         $this->startEndTime = $this->buildMockOfClass(DateTimeInterval::class);
         $this->channel = $this->buildMockOfClass(ConsultationChannel::class);
@@ -144,7 +150,8 @@ class ParticipantTest extends TestBase
         
         $this->mentoringDeclarationScheduleData = new ScheduleData(
                 new \DateTimeImmutable('-25 hours'), new \DateTimeImmutable('-24 hours'), 'media type', 'location');
-        
+        //
+        $this->participantTask = $this->buildMockOfInterface(ParticipantTask::class);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -656,11 +663,11 @@ class ParticipantTest extends TestBase
     
     protected function executeParticipantTask()
     {
-        $this->participant->executeParticipantTask($this->participantTask);
+        $this->participant->executeParticipantTask($this->task);
     }
     public function test_executeParticipantTask_executeTask()
     {
-        $this->participantTask->expects($this->once())
+        $this->task->expects($this->once())
                 ->method('execute')
                 ->with($this->participant);
         $this->executeParticipantTask();
@@ -822,6 +829,36 @@ class ParticipantTest extends TestBase
                 ->method('assertUsableInProgram')
                 ->with($this->participant->program);
         $this->declareMentoring();
+    }
+    
+    //
+    protected function executeTask()
+    {
+        $this->participant->executeTask($this->participantTask, $this->payload);
+    }
+    public function test_executeTask()
+    {
+        $this->participantTask->expects($this->once())
+                ->method('execute')
+                ->with($this->participant, $this->payload);
+        $this->executeTask();
+    }
+    public function test_executeTask_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->executeTask();
+        }, 'Forbidden', 'forbidden: only active program participant can make this request');
+    }
+    
+    //
+    protected function submitNote()
+    {
+        return $this->participant->submitNote($this->participantNoteId, $this->content);
+    }
+    public function test_submitNote_returnParticipantNote()
+    {
+        $this->assertInstanceOf(ParticipantNote::class, $this->submitNote());
     }
 }
 

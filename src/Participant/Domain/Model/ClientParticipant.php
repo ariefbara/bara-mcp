@@ -20,6 +20,7 @@ use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Application\Event\ContainEvents;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
@@ -172,6 +173,11 @@ class ClientParticipant implements ContainEvents
     public function executeParticipantTask(ITaskExecutableByParticipant $task): void
     {
         $this->participant->executeParticipantTask($task);
+    }
+    
+    public function executeTask(ParticipantTask $task, $payload): void
+    {
+        $this->participant->executeTask($task, $payload);
     }
 
 }

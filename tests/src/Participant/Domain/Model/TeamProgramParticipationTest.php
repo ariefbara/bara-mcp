@@ -22,6 +22,7 @@ use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Participant\Domain\SharedModel\FileInfo;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -45,6 +46,8 @@ class TeamProgramParticipationTest extends TestBase
     protected $objective;
     protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $objectiveProgressReport;
     protected $participantTask;
+    //
+    protected $task, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -86,6 +89,8 @@ class TeamProgramParticipationTest extends TestBase
         $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
         
         $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        //
+        $this->task = $this->buildMockOfInterface(ParticipantTask::class);
     }
     
     public function test_belongsToTeam_sameTeam_returnTrue()
@@ -295,6 +300,19 @@ class TeamProgramParticipationTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->assertBelongsToTeam();
         }, 'Forbidden', 'forbidden: participant doesn\'t belongs to team');
+    }
+    
+    //
+    protected function executeTask()
+    {
+        $this->teamProgramParticipation->executeTask($this->task, $this->payload);
+    }
+    public function test_executeTask_participantExecuteTask()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('executeTask')
+                ->with($this->task, $this->payload);
+        $this->executeTask();
     }
 }
 

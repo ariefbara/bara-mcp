@@ -8,6 +8,7 @@ use Query\Domain\Model\Firm\Program\ITaskInProgramExecutableByParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Tests\TestBase;
 
 class ClientParticipantTest extends TestBase
@@ -21,6 +22,7 @@ class ClientParticipantTest extends TestBase
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
     protected $task;
     protected $taskInProgram;
+    protected $participantTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -38,6 +40,8 @@ class ClientParticipantTest extends TestBase
         
         $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
         $this->taskInProgram = $this->buildMockOfInterface(ITaskInProgramExecutableByParticipant::class);
+        //
+        $this->participantTask = $this->buildMockOfInterface(ParticipantQueryTask::class);
     }
     
     public function test_viewLearningMaterial_returnParticipantsViewLearningMaterialResult()
@@ -109,6 +113,19 @@ class ClientParticipantTest extends TestBase
                 ->method('executeTaskInProgram')
                 ->with($this->taskInProgram);
         $this->executeTaskInProgram();
+    }
+    
+    //
+    protected function executeQueryTask()
+    {
+        $this->clientParticipant->executeQueryTask($this->participantTask, $this->payload);
+    }
+    public function test_executeQueryTask_participantExecuteTask()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeQueryTask')
+                ->with($this->participantTask, $this->payload);
+        $this->executeQueryTask();
     }
 }
 

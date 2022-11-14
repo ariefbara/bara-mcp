@@ -10,4 +10,6 @@ interface ConsultantNoteRepository
     public function allConsultantNotesBelongsToPersonnel(string $personnelId, ConsultantNoteFilter $filter);
 
     public function aConsultantNoteBelongsToPersonnel(string $personnelId, string $id): ConsultantNote;
+
+    public function aConsultantNoteForAccessibleByParticipant(string $participantId, string $id): ConsultantNote;
 }

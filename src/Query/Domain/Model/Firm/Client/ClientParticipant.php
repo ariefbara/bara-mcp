@@ -24,6 +24,7 @@ use Query\Domain\Service\Firm\Program\MentorRepository;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Resources\Application\Event\ContainEvents;
 
 class ClientParticipant implements ContainEvents
@@ -209,6 +210,11 @@ class ClientParticipant implements ContainEvents
     public function executeTaskInProgram(ITaskInProgramExecutableByParticipant $task): void
     {
         $this->participant->executeTaskInProgram($task);
+    }
+    
+    public function executeQueryTask(ParticipantQueryTask $task, $payload): void
+    {
+        $this->participant->executeQueryTask($task, $payload);
     }
 
 }

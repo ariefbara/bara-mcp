@@ -19,6 +19,7 @@ use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Participant\Domain\SharedModel\FileInfo;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
@@ -38,6 +39,8 @@ class UserParticipantTest extends TestBase
     protected $okrPeriod, $okrPeriodId = 'okrPeriodId', $okrPeriodData;
     protected $objective;
     protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $objectiveProgressReport;
+    //
+    protected $task, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -70,6 +73,8 @@ class UserParticipantTest extends TestBase
         $this->objective = $this->buildMockOfClass(Objective::class);
         $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
         $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
+        //
+        $this->task = $this->buildMockOfClass(ParticipantTask::class);
     }
 
     public function test_quit_quitParticipant()
@@ -257,6 +262,19 @@ class UserParticipantTest extends TestBase
                 ->method('cancelObjectiveProgressReportSubmission')
                 ->with($this->objectiveProgressReport);
         $this->userParticipant->cancelObjectiveProgressReportSubmission($this->objectiveProgressReport);
+    }
+    
+    //
+    protected function executeTask()
+    {
+        $this->userParticipant->executeTask($this->task, $this->payload);
+    }
+    public function test_executeTask_participantExecuteTask()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeTask')
+                ->with($this->task, $this->payload);
+        $this->executeTask();
     }
 
 }

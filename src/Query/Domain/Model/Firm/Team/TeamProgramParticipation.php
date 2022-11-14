@@ -27,7 +27,9 @@ use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
 use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Resources\Application\Event\ContainEvents;
+use Resources\Exception\RegularException;
 
 class TeamProgramParticipation implements ContainEvents
 {
@@ -235,5 +237,17 @@ class TeamProgramParticipation implements ContainEvents
     public function executeTaskInProgram(ITaskInProgramExecutableByParticipant $task): void
     {
         $this->programParticipation->executeTaskInProgram($task);
+    }
+    
+    public function executeQueryTask(ParticipantQueryTask $task, $payload): void
+    {
+        $this->programParticipation->executeQueryTask($task, $payload);
+    }
+    
+    public function assertBelongsToTeam(Team $team): void
+    {
+        if ($this->team !== $team) {
+            throw RegularException::forbidden('team participant not belongs to team');
+        }
     }
 }

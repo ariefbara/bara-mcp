@@ -23,6 +23,7 @@ use Participant\Domain\Model\Registrant\RegistrantProfile;
 use Participant\Domain\Model\TeamProgramParticipation;
 use Participant\Domain\Model\TeamProgramRegistration;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Domain\Event\CommonEvent;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
@@ -50,6 +51,8 @@ class TeamMembershipTest extends TestBase
     protected $programsProfileForm, $registrantProfile;
     protected $participantProfile;
     protected $participantTask;
+    //
+    protected $task, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -91,6 +94,8 @@ class TeamMembershipTest extends TestBase
         $this->participantProfile = $this->buildMockOfClass(ParticipantProfile::class);
         
         $this->participantTask = $this->buildMockOfInterface(\Participant\Domain\Model\ITaskExecutableByParticipant::class);
+        //
+        $this->task = $this->buildMockOfInterface(ParticipantTask::class);
     }
 
     protected function setAssetsNotBelongsToTeam($asset)
@@ -735,6 +740,33 @@ class TeamMembershipTest extends TestBase
                 ->method('assertBelongsToTeam')
                 ->with($this->team);
         $this->executeTeamParticipantTask();
+    }
+    
+    //
+    protected function executeParticipantTask()
+    {
+        $this->teamMembership->executeParticipantTask($this->teamProgramParticipation, $this->task, $this->payload);
+    }
+    public function test_executeParticipantTask_teamParticipantExecuteTask()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('executeTask')
+                ->with($this->task, $this->payload);
+        $this->executeParticipantTask();
+    }
+    public function test_executeParticipantTask_inactiveMember_forbidden()
+    {
+        $this->teamMembership->active = false;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->executeParticipantTask();
+        }, 'Forbidden', 'only active team member can make this request');
+    }
+    public function test_executeParticipantTask_asserTeamParticipantBelongsToTeam()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('assertBelongsToTeam')
+                ->with($this->team);
+        $this->executeParticipantTask();
     }
 }
 

@@ -30,10 +30,12 @@ use Participant\Domain\Model\Participant\OKRPeriod\Objective;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
+use Participant\Domain\Model\Participant\ParticipantNote;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Exception\RegularException;
@@ -485,6 +487,17 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $mentor->assertUsableInProgram($this->program);
         $consultationSetup->assertUsableInProgram($this->program);
         return new DeclaredMentoring($this, $declaredMentoringId, $mentor, $consultationSetup, $scheduleData);
+    }
+
+    public function executeTask(ParticipantTask $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this, $payload);
+    }
+    
+    public function submitNote(string $participantNoteId, string $content): ParticipantNote
+    {
+        return new ParticipantNote($this, $participantNoteId, $content);
     }
 
 }

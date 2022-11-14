@@ -73,4 +73,28 @@ class DoctrineCoordinatorNoteRepository extends EntityRepository implements Coor
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
     }
 
+    public function aCoordinatorNoteAccessibleByParticipant(string $participantId, string $id): CoordinatorNote
+    {
+        $parameters = [
+            'participantId' => $participantId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('coordinatorNote');
+        $qb->select('coordinatorNote')
+                ->andWhere($qb->expr()->eq('coordinatorNote.id', ':id'))
+                ->leftJoin('coordinatorNote.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('coordinatorNote.note', 'note')
+                ->andWhere($qb->expr()->eq('note.removed', 'false'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('coordinator note not found');
+        }
+    }
+
 }

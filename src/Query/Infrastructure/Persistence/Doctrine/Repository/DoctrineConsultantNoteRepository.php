@@ -67,10 +67,34 @@ class DoctrineConsultantNoteRepository extends EntityRepository implements Consu
         if (isset($createdTimeOrder)) {
             $qb->addOrderBy('note.createdTime', $createdTimeOrder->getOrder());
         }
-        
+
         $page = $filter->getPaginationFilter()->getPage();
         $pageSize = $filter->getPaginationFilter()->getPageSize();
         return PaginatorBuilder::build($qb->getQuery(), $page, $pageSize);
+    }
+
+    public function aConsultantNoteForAccessibleByParticipant(string $participantId, string $id): ConsultantNote
+    {
+        $parameters = [
+            'participantId' => $participantId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('consultantNote');
+        $qb->select('consultantNote')
+                ->andWhere($qb->expr()->eq('consultantNote.id', ':id'))
+                ->leftJoin('consultantNote.participant', 'participant')
+                ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
+                ->leftJoin('consultantNote.note', 'note')
+                ->andWhere($qb->expr()->eq('note.removed', 'false'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('consultant note not found');
+        }
     }
 
 }

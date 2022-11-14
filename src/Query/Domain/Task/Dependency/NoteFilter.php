@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Task\Dependency;
 
+use Resources\PaginationFilter;
 use Resources\QueryOrder;
 
 class NoteFilter
@@ -19,6 +20,12 @@ class NoteFilter
      */
     protected $createdTimeOrder;
 
+    /**
+     * 
+     * @var PaginationFilter
+     */
+    protected $paginationFilter;
+
     public function setModifiedTimeOrder(?QueryOrder $modifiedTimeOrder)
     {
         $this->modifiedTimeOrder = $modifiedTimeOrder;
@@ -31,9 +38,9 @@ class NoteFilter
         return $this;
     }
 
-    public function __construct()
+    public function __construct(PaginationFilter $paginationFilter)
     {
-        
+        $this->paginationFilter = $paginationFilter;
     }
 
     public function getModifiedTimeOrder(): ?QueryOrder
@@ -44,6 +51,25 @@ class NoteFilter
     public function getCreatedTimeOrder(): ?QueryOrder
     {
         return $this->createdTimeOrder;
+    }
+
+    public function getPaginationFilter(): PaginationFilter
+    {
+        return $this->paginationFilter;
+    }
+
+    //
+    public function getOrderStatement(string $modifiedTimeColumName, string $createdTimeColumnName): string
+    {
+        $orders = [];
+        if(!empty($this->modifiedTimeOrder)){
+            $orders[] = "{$modifiedTimeColumName} {$this->modifiedTimeOrder->getOrder()}";
+        }
+        if(!empty($this->createdTimeOrder)) {
+            $orders[] = "{$createdTimeColumnName} {$this->createdTimeOrder->getOrder()}";
+        }
+        $orderStatement = implode(', ', $orders);
+        return empty($orderStatement) ? '' : "ORDER BY {$orderStatement}";
     }
 
 }

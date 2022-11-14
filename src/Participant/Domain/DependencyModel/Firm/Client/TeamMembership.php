@@ -31,6 +31,7 @@ use Participant\Domain\Model\Registrant\RegistrantProfile;
 use Participant\Domain\Model\TeamProgramParticipation;
 use Participant\Domain\Model\TeamProgramRegistration;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Application\Event\ContainEvents;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
@@ -316,6 +317,15 @@ class TeamMembership extends EntityContainEvents
         }
         $teamParticipant->assertBelongsToTeam($this->team);
         $teamParticipant->executeParticipantTask($task);
+    }
+    
+    public function executeParticipantTask(TeamProgramParticipation $teamParticipant, ParticipantTask $task, $payload): void
+    {
+        if (!$this->active) {
+            throw RegularException::forbidden('only active team member can make this request');
+        }
+        $teamParticipant->assertBelongsToTeam($this->team);
+        $teamParticipant->executeTask($task, $payload);
     }
 
 }

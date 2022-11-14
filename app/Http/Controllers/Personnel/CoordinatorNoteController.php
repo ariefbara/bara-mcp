@@ -101,13 +101,13 @@ class CoordinatorNoteController extends PersonnelBaseController
         $coordinatorNoteRepository = $this->em->getRepository(CoordinatorNote::class);
         $task = new ViewAllOwnedCoordinatorNotes($coordinatorNoteRepository);
 
-        $createdTimeOrder = $this->stripTagQueryRequest('createdTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('createdTimeOrder')) : null;
         $modifiedTimeOrder = $this->stripTagQueryRequest('modifiedTimeOrder') ?
                 new QueryOrder($this->stripTagQueryRequest('modifiedTimeOrder')) : null;
+        $createdTimeOrder = $this->stripTagQueryRequest('createdTimeOrder') ?
+                new QueryOrder($this->stripTagQueryRequest('createdTimeOrder')) : null;
         $noteFilter = (new NoteFilter())
-                ->setCreatedTimeOrder($createdTimeOrder)
-                ->setModifiedTimeOrder($modifiedTimeOrder);
+                ->setModifiedTimeOrder($modifiedTimeOrder)
+                ->setCreatedTimeOrder($createdTimeOrder);
         
         $paginationFilter = new PaginationFilter($this->getPage(), $this->getPageSize());
         $coordinatorNoteFilter = (new CoordinatorNoteFilter($noteFilter, $paginationFilter))

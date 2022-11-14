@@ -7,6 +7,7 @@ use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\User;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Tests\TestBase;
 
 class UserParticipantTest extends TestBase
@@ -19,6 +20,8 @@ class UserParticipantTest extends TestBase
     protected $page = 1, $pageSize = 25;
     protected $missionCommentRepository, $missionId = 'missionId', $missionCommentId = 'missionCommentId';
     protected $task;
+    //
+    protected $participantTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -34,6 +37,8 @@ class UserParticipantTest extends TestBase
         $this->missionCommentRepository = $this->buildMockOfInterface(MissionCommentRepository::class);
         
         $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        //
+        $this->participantTask = $this->buildMockOfInterface(ParticipantQueryTask::class);
     }
     
     public function test_viewLearningMaterial_returnParticipantViewLearningMaterialResult()
@@ -79,6 +84,19 @@ class UserParticipantTest extends TestBase
                 ->method('executeTask')
                 ->with($this->task);
         $this->userParticipant->executeTask($this->task);
+    }
+    
+    //
+    protected function executeQueryTask()
+    {
+        $this->userParticipant->executeQueryTask($this->participantTask, $this->payload);
+    }
+    public function test_executeQueryTask_participantExecuteTask()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeQueryTask')
+                ->with($this->participantTask, $this->payload);
+        $this->executeQueryTask();
     }
 }
 

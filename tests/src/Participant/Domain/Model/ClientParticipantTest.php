@@ -20,6 +20,7 @@ use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Model\Participant\Worksheet\Comment;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Participant\Domain\SharedModel\FileInfo;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use Tests\TestBase;
 
@@ -45,7 +46,9 @@ class ClientParticipantTest extends TestBase
     protected $objectiveProgressReportId = 'objectiveProgressReportId', $objectiveProgressReportData, $objectiveProgressReport;
 
     protected $participantTask;
-    
+    //
+    protected $task, $payload = 'string represent task payload';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -84,6 +87,8 @@ class ClientParticipantTest extends TestBase
         $this->objectiveProgressReport = $this->buildMockOfClass(ObjectiveProgressReport::class);
         
         $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
+        //
+        $this->task = $this->buildMockOfInterface(ParticipantTask::class);
     }
 
     public function test_quit_quitParticipant()
@@ -303,6 +308,19 @@ class ClientParticipantTest extends TestBase
                 ->method('executeParticipantTask')
                 ->with($this->participantTask);
         $this->executeParticipantTask();
+    }
+    
+    //
+    protected function executeTask()
+    {
+        $this->clientParticipant->executeTask($this->task, $this->payload);
+    }
+    public function test_executeTask_executeParticipantTask()
+    {
+        $this->participant->expects($this->once())
+                ->method('executeTask')
+                ->with($this->task, $this->payload);
+        $this->executeTask();
     }
 
 }

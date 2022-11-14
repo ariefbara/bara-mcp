@@ -28,7 +28,7 @@ class RecordOfConsultantNote implements Record
      * @var RecordOfParticipant
      */
     public $participant;
-    public $viewableByParticipant = false;
+    public $viewableByParticipant = true;
     public $id;
 
     public function __construct(

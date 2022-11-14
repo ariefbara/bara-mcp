@@ -9,6 +9,7 @@ use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Team;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Tests\TestBase;
 
 class TeamProgramParticipationTest extends TestBase
@@ -23,6 +24,8 @@ class TeamProgramParticipationTest extends TestBase
     protected $client;
     protected $task;
     protected $programTask;
+    //
+    protected $participantTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -41,6 +44,8 @@ class TeamProgramParticipationTest extends TestBase
         
         $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
         $this->programTask = $this->buildMockOfClass(ITaskInProgramExecutableByParticipant::class);
+        //
+        $this->participantTask = $this->buildMockOfInterface(ParticipantQueryTask::class);
     }
     
     public function test_viewLearningMaterial_returnProgramParticipationViewLearningMaterialResult()
@@ -106,6 +111,37 @@ class TeamProgramParticipationTest extends TestBase
                 ->method('executeTaskInProgram')
                 ->with($this->programTask);
         $this->executeTaskInProgram();
+    }
+   
+    //
+    protected function executeQueryTask()
+    {
+        $this->teamProgramParticipation->executeQueryTask($this->participantTask, $this->payload);
+    }
+    public function test_executeQueryTask_participantExecuteTask()
+    {
+        $this->programParticipation->expects($this->once())
+                ->method('executeQueryTask')
+                ->with($this->participantTask, $this->payload);
+        $this->executeQueryTask();
+    }
+    
+    //
+    protected function assertBelongsToTeam()
+    {
+        $this->teamProgramParticipation->assertBelongsToTeam($this->team);
+    }
+    public function test_assertBelongsToTeam_differentTeam_forbidden()
+    {
+        $this->teamProgramParticipation->team = $this->buildMockOfClass(Team::class);
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertBelongsToTeam();
+        }, 'Forbidden', 'team participant not belongs to team');
+    }
+    public function test_assertBelongsToTeam_sameTeam_void()
+    {
+        $this->assertBelongsToTeam();
+        $this->markAsSuccess();
     }
 }
 

@@ -60,6 +60,11 @@ class CoordinatorNote
         return $this->id;
     }
 
+    public function getNote(): Note
+    {
+        return $this->note;
+    }
+
     public function isViewableByParticipant(): bool
     {
         return $this->viewableByParticipant;

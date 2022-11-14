@@ -10,4 +10,6 @@ interface CoordinatorNoteRepository
     public function allCoordinatorNotesBelongsToPersonnel(string $personnelId, CoordinatorNoteFilter $filter);
 
     public function aCoordinatorNoteBelongsToPersonnel(string $personnelId, string $id): CoordinatorNote;
+    
+    public function aCoordinatorNoteAccessibleByParticipant(string $participantId, string $id): CoordinatorNote;
 }
