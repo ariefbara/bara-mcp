@@ -6,6 +6,8 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Personnel\Domain\Model\Firm\Personnel;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantNote;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantTask;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
@@ -18,9 +20,11 @@ use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
+use Personnel\Domain\Task\Mentor\MentorTask;
 use Resources\Application\Event\Event;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\LabelData;
 use SharedContext\Domain\ValueObject\ScheduleData;
 use Tests\TestBase;
 
@@ -42,6 +46,9 @@ class ProgramConsultantTest extends TestBase
     protected $mentoringSlot;
     protected $containSchedule;
     protected $declaredMentoringId = 'declaredMentoringId';
+    protected $consultantNoteId = 'consultantNoteId', $viewableByParticipant = true;
+    protected $mentorTask, $payload = 'string represent task payload';
+    protected $consultantTaskId = 'consultantTaskId', $labelData;
 
     protected function setUp(): void
     {
@@ -91,7 +98,10 @@ class ProgramConsultantTest extends TestBase
         $this->mentoringSlotData = new MentoringSlotData($this->scheduleData, 4);
         
         $this->containSchedule = $this->buildMockOfInterface(ContainSchedule::class);
-        
+        //
+        $this->mentorTask = $this->buildMockOfInterface(MentorTask::class);
+        //
+        $this->labelData = new LabelData('name', 'description');
     }
 
     protected function executeAcceptConsultationRequest()
@@ -450,6 +460,60 @@ class ProgramConsultantTest extends TestBase
                 ->method('assertUsableInProgram')
                 ->with($this->programConsultant->programId);
         $this->declareMentoring();
+    }
+    
+    //
+    protected function submitNote()
+    {
+        return $this->programConsultant->submitNote($this->consultantNoteId, $this->participant, $this->labelData, $this->viewableByParticipant);
+    }
+    public function test_submitNote_returnConsultantNote()
+    {
+        $this->assertInstanceOf(ConsultantNote::class, $this->submitNote());
+    }
+    public function test_submitNote_assertParticipantUsableInConsultantProgram()
+    {
+        $this->participant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->submitNote();
+    }
+    
+    //
+    protected function executeMentorTask()
+    {
+        $this->programConsultant->executeMentorTask($this->mentorTask, $this->payload);
+    }
+    public function test_executeMentorTask_executeTask()
+    {
+        $this->mentorTask->expects($this->once())
+                ->method('execute')
+                ->with($this->programConsultant, $this->payload);
+        $this->executeMentorTask();
+    }
+    public function test_executeMentorTask_inactiveMentor_forbidden()
+    {
+        $this->programConsultant->active = false;
+        $this->assertRegularExceptionThrowed(function() {
+            $this->executeMentorTask();
+        }, 'Forbidden', 'forbidden: only active consultant can make this request');
+    }
+    
+    //
+    protected function submitTask()
+    {
+        return $this->programConsultant->submitTask($this->consultantCommentId, $this->participant, $this->labelData);
+    }
+    public function test_submitTask_returnConsultantTask()
+    {
+        $this->assertInstanceOf(ConsultantTask::class, $this->submitTask());
+    }
+    public function test_submitTask_assertParticipantUsableInProgram()
+    {
+        $this->participant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->submitTask();
     }
 }
 

@@ -36,6 +36,7 @@ use Query\Domain\Service\Firm\Team\TeamProgramRegistrationFinder;
 use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
 use Query\Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Query\Infrastructure\QueryFilter\ConsultationRequestFilter;
 use Query\Infrastructure\QueryFilter\ConsultationSessionFilter;
 use Resources\Domain\Model\EntityContainEvents;
@@ -390,24 +391,25 @@ class Member extends EntityContainEvents
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllDedicatedMentors($dedicatedMentorRepository, $page, $pageSize, $cancelledStatus);
     }
-    
+
     public function viewMissionComment(
-            TeamProgramParticipation $teamParticipant, MissionCommentRepository $missionCommentRepository, 
+            TeamProgramParticipation $teamParticipant, MissionCommentRepository $missionCommentRepository,
             string $missionCommentId): MissionComment
     {
         $this->assertActive();
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewMissionComment($missionCommentRepository, $missionCommentId);
     }
+
     public function viewAllMissionComments(
-            TeamProgramParticipation $teamParticipant, MissionCommentRepository $missionCommentRepository, 
+            TeamProgramParticipation $teamParticipant, MissionCommentRepository $missionCommentRepository,
             string $missionId, int $page, int $pageSize)
     {
         $this->assertActive();
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllMissionComments($missionCommentRepository, $missionId, $page, $pageSize);
     }
-    
+
     public function viewAllMentors(
             TeamProgramParticipation $teamParticipant, MentorRepository $mentorRepository, int $page, int $pageSize)
     {
@@ -415,6 +417,7 @@ class Member extends EntityContainEvents
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewAllMentors($mentorRepository, $page, $pageSize);
     }
+
     public function viewMentor(
             TeamProgramParticipation $teamParticipant, MentorRepository $mentorRepository, string $mentorId): Consultant
     {
@@ -422,17 +425,17 @@ class Member extends EntityContainEvents
         $this->assertTeamOwnedProgramParticipation($teamParticipant);
         return $teamParticipant->viewMentor($mentorRepository, $mentorId);
     }
-    
+
     public function isActiveMemberCorrespondWithClient(Client $client): bool
     {
         return $this->active && $this->client === $client;
     }
-    
+
     public function getClientName(): string
     {
         return $this->client->getFullName();
     }
-    
+
     public function executeTeamParticipantTask(
             TeamProgramParticipation $teamParticipant, ITaskExecutableByParticipant $task): void
     {
@@ -442,7 +445,7 @@ class Member extends EntityContainEvents
         }
         $teamParticipant->executeTask($task);
     }
-    
+
     public function isActiveMemberWithinInspection(InspectedClientList $inspectedClientList): bool
     {
         return $this->active && $inspectedClientList->isInspectingClient($this->client);
@@ -458,6 +461,14 @@ class Member extends EntityContainEvents
             throw RegularException::forbidden('forbidden: can only access using owned program participation');
         }
         $teamParticipant->executeTaskInProgram($task);
+    }
+
+    public function executeParticipantQueryTask(
+            TeamProgramParticipation $teamParticipant, ParticipantQueryTask $participantQueryTask, $payload): void
+    {
+        $this->assertActive();
+        $teamParticipant->assertBelongsToTeam($this->team);
+        $teamParticipant->executeQueryTask($participantQueryTask, $payload);
     }
 
 }

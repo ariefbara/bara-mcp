@@ -22,6 +22,7 @@ use Participant\Domain\Model\Participant\OKRPeriodData;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Application\Event\ContainEvents;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
@@ -178,6 +179,11 @@ class TeamProgramParticipation implements AssetBelongsToTeamInterface, ContainEv
         if ($this->team !== $team) {
             throw RegularException::forbidden('forbidden: participant doesn\'t belongs to team');
         }
+    }
+    
+    public function executeTask(ParticipantTask $task, $payload): void
+    {
+        $this->programParticipation->executeTask($task, $payload);
     }
 
 }

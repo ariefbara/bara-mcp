@@ -30,6 +30,7 @@ use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Program\Participant\WorksheetFinder;
 use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Exception\RegularException;
 
@@ -386,6 +387,12 @@ class Participant extends EntityContainEvents
             throw RegularException::forbidden('forbidden: only active participant can make this request');
         }
         $task->executeTaskInProgram($this->program->getId());
+    }
+    
+    public function executeQueryTask(ParticipantQueryTask $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this, $payload);
     }
 
 }

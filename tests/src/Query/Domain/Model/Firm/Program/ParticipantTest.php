@@ -9,6 +9,7 @@ use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\LearningMaterialFinder;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Tests\TestBase;
 
 class ParticipantTest extends TestBase
@@ -25,6 +26,8 @@ class ParticipantTest extends TestBase
     protected $client;
     protected $task;
     protected $taskInProgram;
+    //
+    protected $participantQueryTask, $payload = 'string represent task payload';
 
     protected function setUp(): void
     {
@@ -45,6 +48,8 @@ class ParticipantTest extends TestBase
         
         $this->task = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
         $this->taskInProgram = $this->buildMockOfInterface(ITaskInProgramExecutableByParticipant::class);
+        //
+        $this->participantQueryTask = $this->buildMockOfInterface(ParticipantQueryTask::class);
     }
     protected function assertInactiveParticipant(callable $operation)
     {
@@ -216,6 +221,26 @@ class ParticipantTest extends TestBase
         $this->participant->active = false;
         $this->assertRegularExceptionThrowed(function() {
             $this->executeTaskInProgram();
+        }, 'Forbidden', 'forbidden: only active participant can make this request');
+    }
+    
+    //
+    protected function executeQueryTask()
+    {
+        $this->participant->executeQueryTask($this->participantQueryTask, $this->payload);
+    }
+    public function test_executeQueryTask_executeTask()
+    {
+        $this->participantQueryTask->expects($this->once())
+                ->method('execute')
+                ->with($this->participant, $this->payload);
+        $this->executeQueryTask();
+    }
+    public function test_executeQueryTask_inactiveParticipant_forbidden()
+    {
+        $this->participant->active = false;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->executeQueryTask();
         }, 'Forbidden', 'forbidden: only active participant can make this request');
     }
 }

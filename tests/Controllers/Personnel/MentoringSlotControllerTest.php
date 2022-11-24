@@ -426,12 +426,14 @@ class MentoringSlotControllerTest extends MentorTestCase
         $this->mentoringSlotOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/mentoring-slots/{$this->mentoringSlotOne->id}";
+//echo $uri;
         $this->get($uri, $this->personnel->token);
     }
     public function test_show_200()
     {
         $this->show();
         $this->seeStatusCode(200);
+//$this->seeJsonContains(['print']);
         
         $response = [
             'id' => $this->mentoringSlotOne->id,

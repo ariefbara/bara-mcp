@@ -14,6 +14,7 @@ use Query\Domain\Service\Firm\Program\Mission\MissionCommentRepository;
 use Query\Domain\Service\Firm\Team\TeamProgramParticipationFinder;
 use Query\Domain\Service\LearningMaterialFinder;
 use Query\Domain\Service\TeamProgramParticipationFinder as TeamProgramParticipationFinder2;
+use Query\Domain\Task\Participant\ParticipantQueryTask;
 use Tests\TestBase;
 
 class MemberTest extends TestBase
@@ -32,6 +33,8 @@ class MemberTest extends TestBase
     protected $mentorRepository, $mentorId = 'mentorId';
     protected $participantTask;
     protected $programTask;
+    //
+    protected $participantQueryTask, $payload = 'string represent payload';
 
     protected function setUp(): void
     {
@@ -56,6 +59,8 @@ class MemberTest extends TestBase
         $this->mentorRepository = $this->buildMockOfInterface(MentorRepository::class);
         $this->participantTask = $this->buildMockOfInterface(ITaskExecutableByParticipant::class);
         $this->programTask = $this->buildMockOfInterface(ITaskInProgramExecutableByParticipant::class);
+        //
+        $this->participantQueryTask = $this->buildMockOfInterface(ParticipantQueryTask::class);
     }
     protected function assertNotAdminForbiddenError(callable $operation): void
     {
@@ -356,6 +361,34 @@ class MemberTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->executeProgramTask();
         }, 'Forbidden', 'forbidden: can only access using owned program participation');
+    }
+    
+    //
+    protected function executeParticipantQueryTask()
+    {
+        $this->member->executeParticipantQueryTask(
+                $this->teamProgramParticipation, $this->participantQueryTask, $this->payload);
+    }
+    public function test_executeParticipantQueryTask_teamParticipantExecuteTask()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('executeQueryTask')
+                ->with($this->participantQueryTask, $this->payload);
+        $this->executeParticipantQueryTask();
+    }
+    public function test_executeParticipantQueryTask_inactiveMember_forbidden()
+    {
+        $this->member->active = false;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->executeParticipantQueryTask();
+        }, 'Forbidden', 'forbidden: only active team member can make this requests');
+    }
+    public function test_executeParticipantQueryTask_assertTeamParticipantBelongsToTeam()
+    {
+        $this->teamProgramParticipation->expects($this->once())
+                ->method('assertBelongsToTeam')
+                ->with($this->member->team);
+        $this->executeParticipantQueryTask();
     }
     
 }

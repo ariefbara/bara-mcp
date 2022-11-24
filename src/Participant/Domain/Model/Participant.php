@@ -30,17 +30,22 @@ use Participant\Domain\Model\Participant\OKRPeriod\Objective;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
 use Participant\Domain\Model\Participant\OKRPeriodData;
+use Participant\Domain\Model\Participant\ParticipantFileInfo;
+use Participant\Domain\Model\Participant\ParticipantNote;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
 use Participant\Domain\Model\Participant\Worksheet;
 use Participant\Domain\Service\MetricAssignmentReportDataProvider;
+use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Domain\Model\EntityContainEvents;
 use Resources\Domain\ValueObject\DateTimeInterval;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
 use SharedContext\Domain\ValueObject\ConsultationSessionType;
+use SharedContext\Domain\ValueObject\LabelData;
 use SharedContext\Domain\ValueObject\ScheduleData;
 
 class Participant extends EntityContainEvents implements AssetBelongsToTeamInterface
@@ -485,6 +490,25 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $mentor->assertUsableInProgram($this->program);
         $consultationSetup->assertUsableInProgram($this->program);
         return new DeclaredMentoring($this, $declaredMentoringId, $mentor, $consultationSetup, $scheduleData);
+    }
+
+    public function executeTask(ParticipantTask $task, $payload): void
+    {
+        $this->assertActive();
+        $task->execute($this, $payload);
+    }
+
+    public function submitNote(string $participantNoteId, LabelData $labelData): ParticipantNote
+    {
+        return new ParticipantNote($this, $participantNoteId, $labelData);
+    }
+
+    public function uploadFile(string $participantFileInfoId, FileInfoData $fileInfoData): ParticipantFileInfo
+    {
+        $fileInfoData->addFolder('participant');
+        $fileInfoData->addFolder($this->id);
+
+        return new ParticipantFileInfo($this, $participantFileInfoId, $fileInfoData);
     }
 
 }

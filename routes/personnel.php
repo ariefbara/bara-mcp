@@ -47,6 +47,30 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->put('/mentors/{mentorId}/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
     $router->get('declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
     
+    $router->post('/mentors/{mentorId}/consultant-notes', ['uses' => "ConsultantNoteController@submit"]);
+    $router->patch('/mentors/{mentorId}/consultant-notes/{id}/update', ['uses' => "ConsultantNoteController@update"]);
+    $router->patch('/mentors/{mentorId}/consultant-notes/{id}/show-to-participant', ['uses' => "ConsultantNoteController@showToParticipant"]);
+    $router->patch('/mentors/{mentorId}/consultant-notes/{id}/hide-from-participant', ['uses' => "ConsultantNoteController@hideFromParticipant"]);
+    $router->delete('/mentors/{mentorId}/consultant-notes/{id}', ['uses' => "ConsultantNoteController@remove"]);
+    $router->get('consultant-notes', ['uses' => "ConsultantNoteController@showAll"]);
+    $router->get('consultant-notes/{id}', ['uses' => "ConsultantNoteController@show"]);
+    
+    $router->post('/coordinators/{coordinatorId}/coordinator-notes', ['uses' => "CoordinatorNoteController@submit"]);
+    $router->patch('/coordinators/{coordinatorId}/coordinator-notes/{id}/update', ['uses' => "CoordinatorNoteController@update"]);
+    $router->patch('/coordinators/{coordinatorId}/coordinator-notes/{id}/show-to-participant', ['uses' => "CoordinatorNoteController@showToParticipant"]);
+    $router->patch('/coordinators/{coordinatorId}/coordinator-notes/{id}/hide-from-participant', ['uses' => "CoordinatorNoteController@hideFromParticipant"]);
+    $router->delete('/coordinators/{coordinatorId}/coordinator-notes/{id}', ['uses' => "CoordinatorNoteController@remove"]);
+    $router->get('coordinator-notes', ['uses' => "CoordinatorNoteController@showAll"]);
+    $router->get('coordinator-notes/{id}', ['uses' => "CoordinatorNoteController@show"]);
+    
+    $router->post('/mentors/{mentorId}/submit-note', ['uses' => "CnosultantNoteController@submit"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/update', ['uses' => "DeclaredMentoringController@update"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/cancel', ['uses' => "DeclaredMentoringController@cancel"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/approve', ['uses' => "DeclaredMentoringController@approve"]);
+    $router->patch('/mentors/{mentorId}/declared-mentorings/{id}/deny', ['uses' => "DeclaredMentoringController@deny"]);
+    $router->put('/mentors/{mentorId}/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
+    $router->get('declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
+    
     $router->put('/mentors/{mentorId}/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
     $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
     
@@ -66,6 +90,18 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/unreviewed-metric-report-list-in-coordinated-programs', ['uses' => "UnreviewedMetricReportListInCoordinatedProgramController@viewAll"]);
     $router->get('/coordinator-dashboard-summary', ['uses' => "CoordinatorDashboardSummaryController@view"]);
     $router->get('/coordinated-programs-summary', ['uses' => "CoordinatedProgramsSummaryController@view"]);
+    
+    // task related route in personnel BC
+    $router->get('/tasks-list-in-coordinated-programs', ['uses' => "TaskController@viewAllTaskInCoordinatedProgram"]);
+    $router->get('/task-list-in-consulted-programs', ['uses' => "TaskController@viewAllRelevanTaskAsProgramConsultant"]);
+    
+    // notes related route in personnel BC
+    $router->get('/notes-list-in-coordinated-programs', ['uses' => "NoteController@viewTaskListInCoordinatedPrograms"]);
+    $router->get('/notes-list-in-consulted-programs', ['uses' => "NoteController@viewTaskListInConsultedPrograms"]);
+    
+    // worksheet related route in personnel BC
+    $router->get('/worksheet-list-in-coordinated-programs', ['uses' => "WorksheetController@viewListInCoordinatedProgram"]);
+    $router->get('/worksheet-list-in-consulted-programs', ['uses' => "WorksheetController@viewListInConsultedProgram"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
@@ -499,6 +535,21 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->get("/participant-profiles/{id}", ["uses" => "ParticipantProfileController@view"]);
         $router->get("/participants/{participantId}/profiles", ["uses" => "ParticipantProfileController@viewAllProfileOfParticularParticipant"]);
+        $router->post("/tasks", ["uses" => "TaskController@submitTask"]);
+        $router->patch("/tasks/{id}", ["uses" => "TaskController@updateTask"]);
+        $router->delete("/tasks/{id}", ["uses" => "TaskController@cancelTask"]);
+        $router->get("/consultant-tasks/{id}", ["uses" => "TaskController@viewConsultantTaskDetail"]);
+        $router->get("/coordinator-tasks/{id}", ["uses" => "TaskController@viewCoordinatorTaskDetail"]);
+        
+        // notes routes for coordinator
+        $router->post("/notes", ["uses" => "NoteController@submit"]);
+        $router->patch("/notes/{id}/update", ["uses" => "NoteController@update"]);
+        $router->patch("/notes/{id}/hide-from-participant", ["uses" => "NoteController@hideFromParticipant"]);
+        $router->patch("/notes/{id}/show-to-participant", ["uses" => "NoteController@showToParticipant"]);
+        $router->delete("/notes/{id}", ["uses" => "NoteController@remove"]);
+        $router->get("/consultant-notes/{id}", ["uses" => "NoteController@viewConsultantNoteDetail"]);
+        $router->get("/coordinator-notes/{id}", ["uses" => "NoteController@viewCoordinatorNoteDetail"]);
+        $router->get("/participant-notes/{id}", ["uses" => "NoteController@viewParticipantNoteDetail"]);
         
     });
     
@@ -525,6 +576,21 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->get("/participant-profiles/{id}", ["uses" => "ParticipantProfileController@view"]);
         $router->get("/participants/{participantId}/profiles", ["uses" => "ParticipantProfileController@viewAllProfileOfParticularParticipant"]);
+        $router->post("/tasks", ["uses" => "TaskController@submitTask"]);
+        $router->patch("/tasks/{id}", ["uses" => "TaskController@updateTask"]);
+        $router->delete("/tasks/{id}", ["uses" => "TaskController@cancelTask"]);
+        $router->get("/consultant-tasks/{id}", ["uses" => "TaskController@viewConsultantTaskDetail"]);
+        $router->get("/coordinator-tasks/{id}", ["uses" => "TaskController@viewCoordinatorTaskDetail"]);
+        
+        // notes routes for consultant
+        $router->post("/notes", ["uses" => "NoteController@submit"]);
+        $router->patch("/notes/{id}/update", ["uses" => "NoteController@update"]);
+        $router->patch("/notes/{id}/hide-from-participant", ["uses" => "NoteController@hideFromParticipant"]);
+        $router->patch("/notes/{id}/show-to-participant", ["uses" => "NoteController@showToParticipant"]);
+        $router->delete("/notes/{id}", ["uses" => "NoteController@remove"]);
+        $router->get("/consultant-notes/{id}", ["uses" => "NoteController@viewConsultantNoteDetail"]);
+        $router->get("/coordinator-notes/{id}", ["uses" => "NoteController@viewCoordinatorNoteDetail"]);
+        $router->get("/participant-notes/{id}", ["uses" => "NoteController@viewParticipantNoteDetail"]);
     });
     
     $asConsultantMeetingInitiatorAggregate = [

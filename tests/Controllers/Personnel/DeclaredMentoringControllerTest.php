@@ -646,12 +646,14 @@ $this->disableExceptionHandling();
         $this->stringFieldRecordOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/declared-mentorings/{$this->declaredMentoringOne->id}";
+//echo $uri;
         $this->get($uri, $this->personnel->token);
     }
     public function test_show_200()
     {
         $this->show();
         $this->seeStatusCode(200);
+//$this->seeJsonContains(['print']);
         
         $response = [
             'startTime' => $this->declaredMentoringOne->startTime,

@@ -208,12 +208,15 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->mentorReport_nm11->insert($this->connection);
         $this->mentorReport_dm11->insert($this->connection);
         
+// echo $this->showAllUri;
         $this->get($this->showAllUri, $this->personnel->token);
     }
     public function test_showAll_200()
     {
         $this->showAll();
         $this->seeStatusCode(200);
+// $this->seeJsonContains(['print']);
+        
         $response = [
             'total' => '6',
             'list' => [
@@ -551,6 +554,31 @@ class MentoringContollerTest extends PersonnelTestCase
         $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
         $this->seeJsonContains($declaredMentoringTwoResponse);
     }
+    public function test_showAll_mentoringRequestsConcludedFilter_200()
+    {
+        $this->showAllUri .= "?mentoringRequestFilter[requestStatusList][]=$approvedStatus";
+        $this->showAllUri .= "&mentoringRequestFilter[requestStatusList][]=$acceptedStatus";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        
+        $totalResponse = ['total' => '5'];
+        $this->seeJsonContains($totalResponse);
+        
+        $mentoringSlotOneResponse = ['mentoringSlotId' => $this->mentoringSlot_11_c1->id];
+        $this->seeJsonContains($mentoringSlotOneResponse);
+        $mentoringSlotTwoResponse = ['mentoringSlotId' => $this->mentoringSlot_21_c2->id];
+        $this->seeJsonContains($mentoringSlotTwoResponse);
+        
+        $mentoringRequestOneResponse = ['mentoringRequestId' => $this->mentoringRequest_11_c1->id];
+        $this->seeJsonContains($mentoringRequestOneResponse);
+        $mentoringRequestTwoResponse = ['mentoringRequestId' => $this->mentoringRequest_21_c2->id];
+        $this->seeJsonDoesntContains($mentoringRequestTwoResponse);
+        
+        $declaredMentoringOneResponse = ['declaredMentoringId' => $this->declaredMentoring_11_c1->id];
+        $this->seeJsonContains($declaredMentoringOneResponse);
+        $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
+        $this->seeJsonContains($declaredMentoringTwoResponse);
+    }
     public function test_showAll_mentoringRequestReportCompletedStatusFilter_200()
     {
         $this->showAllUri .= "?mentoringRequestFilter[reportCompletedStatus]=true";
@@ -625,6 +653,73 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->seeJsonContains($declaredMentoringOneResponse);
         $declaredMentoringTwoResponse = ['declaredMentoringId' => $this->declaredMentoring_21_c2->id];
         $this->seeJsonDoesntContains($declaredMentoringTwoResponse);
+    }
+    //
+    public function test_showAll_filterForPendingReport_200()
+    {
+        $to = (new \DateTime())->format('Y-m-d H:i:s');
+        $approvedStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $acceptedStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->showAllUri .=
+                "?to=$to"
+                . "&mentoringRequestFilter[requestStatusList][]=$approvedStatus"
+                . "&mentoringRequestFilter[requestStatusList][]=$acceptedStatus"
+                . "&mentoringRequestFilter[reportCompletedStatus]=false"
+                . "&mentoringSlotFilter[cancelledStatus]=false"
+                . "&mentoringRequestFilter[reportCompletedStatus]=false"
+                . "&declaredMentoringFilter[reportCompletedStatus]=false";
+        
+        $this->showAll();
+        $this->seeStatusCode(200);
+    }
+    public function test_showAll_filterForCompleteReport_200()
+    {
+        //bug possibility: will show empty booking slot
+        $to = (new \DateTime())->format('Y-m-d H:i:s');
+        $approvedStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $acceptedStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->showAllUri .=
+                "?to=$to"
+                . "&mentoringRequestFilter[requestStatusList][]=$approvedStatus"
+                . "&mentoringRequestFilter[requestStatusList][]=$acceptedStatus"
+                . "&mentoringRequestFilter[reportCompletedStatus]=true"
+                . "&mentoringSlotFilter[cancelledStatus]=false"
+                . "&mentoringRequestFilter[reportCompletedStatus]=true"
+                . "&declaredMentoringFilter[reportCompletedStatus]=true";
+        
+        $this->showAll();
+        $this->seeStatusCode(200);
+    }
+    public function test_showAll_filterForConfirmedMentoring_200()
+    {
+        //unable to exclude mentoring slot without participant
+        
+        $from = (new \DateTime())->format('Y-m-d H:i:s');
+        $approvedStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $acceptedStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $this->showAllUri .=
+                "?from=$from"
+                . "&mentoringRequestFilter[requestStatusList][]=$approvedStatus"
+                . "&mentoringRequestFilter[requestStatusList][]=$acceptedStatus"
+                . "&mentoringSlotFilter[cancelledStatus]=false";
+        
+        $this->showAll();
+        $this->seeStatusCode(200);
+    }
+    public function test_showAll_filterForAvailableSlot_200()
+    {
+        //hacking filter to exclude mentoring request and declared mentoring
+        
+        $from = (new \DateTime())->format('Y-m-d H:i:s');
+        $this->showAllUri .=
+                "?from=$from"
+                . "&mentoringSlotFilter[cancelledStatus]=false"
+                . "&mentoringSlotFilter[bookingAvailableStatus]=true"
+                . "&mentoringRequestFilter[reportCompletedStatus]=true"
+                . "&declaredMentoringFilter[reportCompletedStatus]=true";
+        
+        $this->showAll();
+        $this->seeStatusCode(200);
     }
     
 }

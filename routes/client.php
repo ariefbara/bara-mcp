@@ -143,6 +143,26 @@ $router->group($clientAggregate, function () use ($router) {
         $router->put('/declared-mentorings/{id}/submit-report', ['uses' => "DeclaredMentoringController@submitReport"]);
         $router->get('/declared-mentorings/{id}', ['uses' => "DeclaredMentoringController@show"]);
         
+        $router->post('/participant-notes', ['uses' => "NoteController@submit"]);
+        $router->patch('/participant-notes/{id}', ['uses' => "NoteController@updateOwnedNote"]);
+        $router->delete('/participant-notes/{id}', ['uses' => "NoteController@removeOwnedNote"]);
+        $router->get('/notes', ['uses' => "NoteController@viewAllAccessibleNotes"]);
+        $router->get('/participant-notes/{id}', ['uses' => "NoteController@viewOwnedParticipantNote"]);
+        $router->get('/consultant-notes/{id}', ['uses' => "NoteController@viewAccessibleConsultantNote"]);
+        $router->get('/coordinator-notes/{id}', ['uses' => "NoteController@viewAccessibleCoordinatorNote"]);
+        
+        $router->post('/upload-file', ['uses' => "UploadFileController@upload"]);
+        
+        $router->delete('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@cancel"]);
+        $router->patch('/mentoring-requests/{id}/update', ['uses' => "MentoringRequestController@update"]);
+        $router->patch('/mentoring-requests/{id}/accept', ['uses' => "MentoringRequestController@accept"]);
+        $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
+        
+        $router->put('/tasks/{id}', ['uses' => "TaskController@submitReport"]);
+        $router->get('/tasks', ['uses' => "TaskController@viewAllTasks"]);
+        $router->get('/coordinator-tasks/{id}', ['uses' => "TaskController@viewCoordinatorTaskDetail"]);
+        $router->get('/consultant-tasks/{id}', ['uses' => "TaskController@viewConsultantTaskDetail"]);
+        
         $router->group(['prefix' => '/worksheets'], function () use($router) {
             $controller = "WorksheetController";
             $router->post("", ["uses" => "$controller@addRoot"]);
@@ -516,6 +536,11 @@ $router->group($clientAggregate, function () use ($router) {
             $router->patch('/mentoring-requests/{id}/update', ['uses' => "MentoringRequestController@update"]);
             $router->patch('/mentoring-requests/{id}/accept', ['uses' => "MentoringRequestController@accept"]);
             $router->get('/mentoring-requests/{id}', ['uses' => "MentoringRequestController@show"]);
+            
+            $router->put('/tasks/{id}', ['uses' => "TaskController@submitReport"]);
+            $router->get('/tasks', ['uses' => "TaskController@viewAllTasks"]);
+            $router->get('/coordinator-tasks/{id}', ['uses' => "TaskController@viewCoordinatorTaskDetail"]);
+            $router->get('/consultant-tasks/{id}', ['uses' => "TaskController@viewConsultantTaskDetail"]);
 
             $router->put('/negotiated-mentorings/{id}/submit-report', ['uses' => "NegotiatedMentoringController@submitReport"]);
             $router->get('/negotiated-mentorings/{id}', ['uses' => "NegotiatedMentoringController@show"]);
@@ -533,6 +558,16 @@ $router->group($clientAggregate, function () use ($router) {
             $router->get('/mission-comments', ['uses' => "MissionCommentController@showAll"]);
             $router->get('/mission-comments/{id}', ['uses' => "MissionCommentController@show"]);
             $router->get('/metric-summary', ['uses' => "MetricSummaryController@show"]);
+            
+            $router->post('/participant-notes', ['uses' => "NoteController@submit"]);
+            $router->patch('/participant-notes/{id}', ['uses' => "NoteController@updateOwnedNote"]);
+            $router->delete('/participant-notes/{id}', ['uses' => "NoteController@removeOwnedNote"]);
+            $router->get('/notes', ['uses' => "NoteController@viewAllAccessibleNotes"]);
+            $router->get('/participant-notes/{id}', ['uses' => "NoteController@viewOwnedParticipantNote"]);
+            $router->get('/consultant-notes/{id}', ['uses' => "NoteController@viewAccessibleConsultantNote"]);
+            $router->get('/coordinator-notes/{id}', ['uses' => "NoteController@viewAccessibleCoordinatorNote"]);
+            
+            $router->post('/upload-file', ['uses' => "UploadFileController@upload"]);
             
             $router->group(['prefix' => '/activity-logs'], function () use($router) {
                 $controller = "ActivityLogController";

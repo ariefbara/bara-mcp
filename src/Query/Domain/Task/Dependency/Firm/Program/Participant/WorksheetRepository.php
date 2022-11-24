@@ -18,4 +18,10 @@ interface WorksheetRepository
 
     public function uncommentedWorksheetListInProgramsCoordinatedByPersonnel(
             string $personnelId, PaginationFilter $paginationFilter);
+
+    public function worksheetListInAllProgramsMentoredByParticipant(
+            string $personnelId, WorksheetListFilterForConsultant $filter);
+
+    public function worksheetListInAllProgramsCoordinatedByParticipant(
+            string $personnelId, WorksheetListFilterForCoordinator $filter);
 }

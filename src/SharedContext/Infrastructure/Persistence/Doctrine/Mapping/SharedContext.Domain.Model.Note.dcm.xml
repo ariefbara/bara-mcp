@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="SharedContext\Domain\Model\Note" 
+            table="Note"
+    >
+        
+        <id name="id" type="guid" />
+        <embedded name="label" class="SharedContext\Domain\ValueObject\Label" use-column-prefix="false" />
+        <field name="createdTime" type="datetime_immutable" nullable="true"/>
+        <field name="modifiedTime" type="datetime_immutable" nullable="true"/>
+        <field name="removed" type="boolean">
+            <options>
+                <option name="default">0</option>
+            </options>
+        </field>
+        
+    </entity>
+</doctrine-mapping>

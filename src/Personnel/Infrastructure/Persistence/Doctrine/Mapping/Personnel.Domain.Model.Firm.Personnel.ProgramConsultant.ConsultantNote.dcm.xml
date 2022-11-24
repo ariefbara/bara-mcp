@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantNote" 
+            table="ConsultantNote"
+            repository-class="Personnel\Infrastructure\Persistence\Doctrine\Repository\DoctrineConsultantNoteRepository"
+    >
+        
+        <many-to-one  field="consultant" 
+                      target-entity="Personnel\Domain\Model\Firm\Personnel\ProgramConsultant"
+        >
+            <join-column name="Consultant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="participant" 
+                      target-entity="Personnel\Domain\Model\Firm\Program\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="viewableByParticipant" type="boolean" />
+        
+        <one-to-one field="note" 
+                    target-entity="SharedContext\Domain\Model\Note"
+        >
+            <cascade><cascade-persist /></cascade>
+            <join-column name="Note_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

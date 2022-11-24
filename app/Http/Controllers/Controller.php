@@ -9,16 +9,20 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
 use Notification\Application\Service\SendImmediateMail;
 use Notification\Domain\SharedModel\Mail\Recipient;
 use Notification\Infrastructure\MailManager\SwiftMailSender;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use SharedContext\Infrastructure\Persistence\Flysystem\FlysystemFileRepository;
 use Swift_Mailer;
 use Swift_SmtpTransport;
 use Symfony\Component\HttpFoundation\Response;
 use function env;
+use function GuzzleHttp\json_encode;
 use function response;
 
 class Controller extends BaseController
@@ -305,6 +309,14 @@ class Controller extends BaseController
             "Expires" => "0"
         ];
         return response()->stream($callback, 200, $headers);
+    }
+    
+    protected function buildFlysistemFileRepository()
+    {
+        $root = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
+        $adapter = new Local($root);
+        $filessystem = new Filesystem($adapter);
+        return new FlysystemFileRepository($filessystem);
     }
     
 }
