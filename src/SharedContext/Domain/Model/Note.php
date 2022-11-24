@@ -4,8 +4,8 @@ namespace SharedContext\Domain\Model;
 
 use DateTimeImmutable;
 use Resources\DateTimeImmutableBuilder;
-use Resources\ValidationRule;
-use Resources\ValidationService;
+use SharedContext\Domain\ValueObject\Label;
+use SharedContext\Domain\ValueObject\LabelData;
 
 class Note
 {
@@ -18,9 +18,9 @@ class Note
 
     /**
      * 
-     * @var string
+     * @var Label
      */
-    protected $content;
+    protected $label;
 
     /**
      * 
@@ -40,30 +40,22 @@ class Note
      */
     protected $removed;
 
-    protected function setContent(string $content)
-    {
-        
-        ValidationService::build()
-                ->addRule(ValidationRule::notEmpty())
-                ->execute($content, 'note content is required');
-        $this->content = $content;
-    }
-
-    public function __construct(string $id, string $content)
+    public function __construct(string $id, LabelData $labelData)
     {
         $this->id = $id;
-        $this->setContent($content);
+        $this->label = new Label($labelData);
         $this->createdTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->modifiedTime = $this->createdTime;
         $this->removed = false;
     }
 
-    public function update(string $content): void
+    public function update(LabelData $labelData): void
     {
-        if ($this->content !== $content) {
+        $previousLabel = $this->label;
+        $this->label = $this->label->update($labelData);
+        if (!$this->label->sameValueAs($previousLabel)) {
             $this->modifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         }
-        $this->setContent($content);
     }
 
     public function remove(): void

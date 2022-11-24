@@ -17,4 +17,7 @@ interface ParticipantRepository
             string $personnelId, int $page, int $pageSize, string $orderType = "DESC");
 
     public function countOfAllParticipantsWithDedicatedMentorCorrespondToPersonnel(string $personnelId);
+    
+    public function summaryListInAllProgramsCoordinatedByPersonnel(
+            string $personnelId, ParticipantSummaryListFilterForCoordinator $filter);
 }

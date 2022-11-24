@@ -38,7 +38,7 @@ class SubmitNote implements CoordinatorTask
     {
         $payload->submittedNoteId = $this->coordinatorNoteRepository->nextIdentity();
         $participant = $this->participantRepository->ofId($payload->getParticipantId());
-        $content = $payload->getContent();
+        $content = $payload->getLabelData();
         $viewableByParticipant = $payload->getViewableByParticipant();
         $coordinatorNote = $coordinator->submitNote($payload->submittedNoteId, $participant, $content, $viewableByParticipant);
         

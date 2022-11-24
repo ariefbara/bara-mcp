@@ -4,27 +4,30 @@ namespace Participant\Domain\Model\Participant;
 
 use Participant\Domain\Model\Participant;
 use SharedContext\Domain\Model\Note;
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\TestBase;
 
 class ParticipantNoteTest extends TestBase
 {
     protected $participant;
     protected $participantNote, $note;
-    protected $id = 'newId', $content = 'new content';
+    protected $id = 'newId', $labelData;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->participant = $this->buildMockOfClass(Participant::class);
         
-        $this->participantNote = new TestableParticipantNote($this->participant, 'id', 'content');
+        $this->labelData = new LabelData('name', 'description');
+        
+        $this->participantNote = new TestableParticipantNote($this->participant, 'id', $this->labelData);
         $this->note = $this->buildMockOfClass(Note::class);
         $this->participantNote->note = $this->note;
     }
     
     protected function construct()
     {
-        return new TestableParticipantNote($this->participant, $this->id, $this->content);
+        return new TestableParticipantNote($this->participant, $this->id, $this->labelData);
     }
     public function test_construct_setProperties()
     {
@@ -37,13 +40,13 @@ class ParticipantNoteTest extends TestBase
     //
     protected function update()
     {
-        $this->participantNote->update($this->content);
+        $this->participantNote->update($this->labelData);
     }
     public function test_update_updateNote()
     {
         $this->note->expects($this->once())
                 ->method('update')
-                ->with($this->content);
+                ->with($this->labelData);
         $this->update();
     }
     

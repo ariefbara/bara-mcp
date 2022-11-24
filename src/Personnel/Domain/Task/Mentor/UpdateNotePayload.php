@@ -2,6 +2,8 @@
 
 namespace Personnel\Domain\Task\Mentor;
 
+use SharedContext\Domain\ValueObject\LabelData;
+
 class UpdateNotePayload
 {
 
@@ -13,24 +15,24 @@ class UpdateNotePayload
 
     /**
      * 
-     * @var string|null
+     * @var LabelData|null
      */
-    protected $content;
+    protected $labelData;
 
     public function getConsultantNoteId(): ?string
     {
         return $this->consultantNoteId;
     }
 
-    public function getContent(): ?string
+    public function getLabelData(): ?LabelData
     {
-        return $this->content;
+        return $this->labelData;
     }
 
-    public function __construct(?string $consultantNoteId, ?string $content)
+    public function __construct(?string $consultantNoteId, ?LabelData $labelData)
     {
         $this->consultantNoteId = $consultantNoteId;
-        $this->content = $content;
+        $this->labelData = $labelData;
     }
 
 }

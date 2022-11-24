@@ -87,6 +87,32 @@ class DoctrineConsultantNoteRepository extends EntityRepository implements Consu
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
                 ->leftJoin('consultantNote.note', 'note')
                 ->andWhere($qb->expr()->eq('note.removed', 'false'))
+                ->andWhere($qb->expr()->eq('consultantNote.viewableByParticipant', 'true'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('consultant note not found');
+        }
+    }
+
+    public function aConsultantNoteInProgram(string $programId, string $id): ConsultantNote
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+
+        $qb = $this->createQueryBuilder('consultantNote');
+        $qb->select('consultantNote')
+                ->andWhere($qb->expr()->eq('consultantNote.id', ':id'))
+                ->leftJoin('consultantNote.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('consultantNote.note', 'note')
+                ->andWhere($qb->expr()->eq('note.removed', 'false'))
                 ->setParameters($parameters)
                 ->setMaxResults(1);
 

@@ -5,6 +5,7 @@ namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use SharedContext\Domain\Model\Note;
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\TestBase;
 
 class ConsultantNoteTest extends TestBase
@@ -12,7 +13,7 @@ class ConsultantNoteTest extends TestBase
     protected $consultant;
     protected $participant;
     protected $consultantNote, $note;
-    protected $id = 'newId', $content = 'new content', $viewableByParticipant = true;
+    protected $id = 'newId', $labelData, $viewableByParticipant = true;
     
     protected function setUp(): void
     {
@@ -20,15 +21,17 @@ class ConsultantNoteTest extends TestBase
         $this->consultant = $this->buildMockOfClass(ProgramConsultant::class);
         $this->participant = $this->buildMockOfClass(Participant::class);
         
-        $this->consultantNote = new TestableConsultantNote($this->consultant, $this->participant, 'id', 'content', false);
+        $this->consultantNote = new TestableConsultantNote($this->consultant, $this->participant, 'id', new LabelData('name', 'description'), false);
         $this->note = $this->buildMockOfClass(Note::class);
         $this->consultantNote->note = $this->note;
+        
+        $this->labelData = new LabelData('new name', 'new description');
     }
     
     //
     protected function construct()
     {
-        return new TestableConsultantNote($this->consultant, $this->participant, $this->id, $this->content, $this->viewableByParticipant);
+        return new TestableConsultantNote($this->consultant, $this->participant, $this->id, $this->labelData, $this->viewableByParticipant);
     }
     public function test_construct_setProperties()
     {
@@ -43,13 +46,13 @@ class ConsultantNoteTest extends TestBase
     //
     protected function update()
     {
-        $this->consultantNote->update($this->content);
+        $this->consultantNote->update($this->labelData);
     }
     public function test_update_updateNote()
     {
         $this->note->expects($this->once())
                 ->method('update')
-                ->with($this->content);
+                ->with($this->labelData);
         $this->update();
     }
     

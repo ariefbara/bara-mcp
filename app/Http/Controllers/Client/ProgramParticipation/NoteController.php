@@ -13,14 +13,14 @@ use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorNote;
 use Query\Domain\Model\Firm\Program\Participant\ParticipantNote;
 use Query\Domain\SharedModel\Note;
 use Query\Domain\Task\CommonViewDetailPayload;
+use Query\Domain\Task\CommonViewListPayload;
 use Query\Domain\Task\Dependency\NoteFilter;
 use Query\Domain\Task\Participant\ViewAccessibleConsultantNote;
 use Query\Domain\Task\Participant\ViewAccessibleCoordinatorNote;
 use Query\Domain\Task\Participant\ViewAllAccessibleNotes;
-use Query\Domain\Task\Participant\ViewAllAccessibleNotesPayload;
 use Query\Domain\Task\Participant\ViewOwnedParticipantNote;
 use Resources\PaginationFilter;
-use Resources\QueryOrder;
+use SharedContext\Domain\ValueObject\LabelData;
 
 class NoteController extends ClientParticipantBaseController
 {
@@ -29,8 +29,8 @@ class NoteController extends ClientParticipantBaseController
         $participantNoteRepository = $this->em->getRepository(ParticipantNote2::class);
         $task = new SubmitNote($participantNoteRepository);
         
-        $content = $this->stripTagsInputRequest('content');
-        $payload = new SubmitNotePayload($content);
+        $labelData = new LabelData($this->stripTagsInputRequest('name'), $this->stripTagsInputRequest('description'));
+        $payload = new SubmitNotePayload($labelData);
         
         $this->executeClientParticipantTask($programParticipationId, $task, $payload);
         
@@ -43,8 +43,8 @@ class NoteController extends ClientParticipantBaseController
         $participantNoteRepository = $this->em->getRepository(ParticipantNote2::class);
         $task = new UpdateNote($participantNoteRepository);
         
-        $content = $this->stripTagsInputRequest('content');
-        $payload = new UpdateNotePayload($id, $content);
+        $labelData = new LabelData($this->stripTagsInputRequest('name'), $this->stripTagsInputRequest('description'));
+        $payload = new UpdateNotePayload($id, $labelData);
         
         $this->executeClientParticipantTask($programParticipationId, $task, $payload);
         
@@ -97,15 +97,21 @@ class NoteController extends ClientParticipantBaseController
         $noteRepository = $this->em->getRepository(Note::class);
         $task = new ViewAllAccessibleNotes($noteRepository);
         
-        $paginationFilter = new PaginationFilter($this->getPage(), $this->getPageSize());
-        $createdTimeOrder = $this->stripTagQueryRequest('createdTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('createdTimeOrder')) : null;
-        $modifiedTimeOrder = $this->stripTagQueryRequest('modifiedTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('modifiedTimeOrder')) : null;
-        $noteFilter = (new NoteFilter($paginationFilter))
-                ->setCreatedTimeOrder($createdTimeOrder)
-                ->setModifiedTimeOrder($modifiedTimeOrder);
-        $payload = new ViewAllAccessibleNotesPayload($noteFilter);
+        $from = $this->dateTimeImmutableOfQueryRequest('from');
+        $to = $this->dateTimeImmutableOfQueryRequest('to');
+        $keyword = $this->stripTagQueryRequest('keyword');
+        $source = $this->stripTagQueryRequest('source');
+        $order = $this->stripTagQueryRequest('order');
+
+        $paginationFilter = new PaginationFilter($this->getPage(), $this->getPageSize());        
+        $filter = (new NoteFilter($paginationFilter))
+                        ->setFrom($from)
+                        ->setTo($to)
+                        ->setKeyword($keyword)
+                        ->setSource($source)
+                        ->setOrder($order);
+        
+        $payload = new CommonViewListPayload($filter);
         
         $this->executeParticipantQueryTask($programParticipationId, $task, $payload);
         
@@ -160,7 +166,8 @@ class NoteController extends ClientParticipantBaseController
     protected function arrayDataOfNote(Note $note): array
     {
         return [
-            'content' => $note->getContent(),
+            'name' => $note->getLabel()->getName(),
+            'description' => $note->getLabel()->getDescription(),
             'createdTime' => $note->getCreatedTime()->format('Y-m-d H:i:s'),
             'modifiedTime' => $note->getModifiedTime()->format('Y-m-d H:i:s'),
         ];

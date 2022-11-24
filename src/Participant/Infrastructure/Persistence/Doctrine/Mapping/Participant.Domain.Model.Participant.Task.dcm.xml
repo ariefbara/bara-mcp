@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant\Task" 
+            table="Task"
+            repository-class="Participant\Infrastructure\Persistence\Doctrine\Repository\DoctrineTaskRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Participant\Domain\Model\Participant"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="cancelled" type="boolean" />
+        
+        <one-to-one field="taskReport" 
+                    target-entity="Participant\Domain\Model\Participant\Task\TaskReport"
+                    mapped-by="task"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

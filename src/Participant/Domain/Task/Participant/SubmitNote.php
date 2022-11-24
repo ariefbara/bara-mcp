@@ -28,7 +28,7 @@ class SubmitNote implements ParticipantTask
     public function execute(Participant $participant, $payload): void
     {
         $payload->submittedNoteId = $this->participantNoteRepository->nextIdentity();
-        $participantNote = $participant->submitNote($payload->submittedNoteId, $payload->getContent());
+        $participantNote = $participant->submitNote($payload->submittedNoteId, $payload->getLabelData());
         $this->participantNoteRepository->add($participantNote);
     }
 

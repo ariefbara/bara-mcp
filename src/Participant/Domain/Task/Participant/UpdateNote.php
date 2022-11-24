@@ -29,7 +29,7 @@ class UpdateNote implements ParticipantTask
     {
         $participantNote = $this->participantNoteRepository->ofId($payload->getId());
         $participantNote->assertManageableByParticipant($participant);
-        $participantNote->update($payload->getContent());
+        $participantNote->update($payload->getLabelData());
     }
 
 }

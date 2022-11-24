@@ -13,6 +13,8 @@ use Query\Domain\Model\Firm\Program\Participant\Worksheet;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetFilter as WorksheetFilter2;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetListFilterForConsultant;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetListFilterForCoordinator;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\WorksheetRepository as WorksheetRepository2;
 use Query\Domain\Task\Dependency\PaginationFilter;
 use Query\Infrastructure\QueryFilter\WorksheetFilter;
@@ -398,13 +400,15 @@ WHERE w.removed = false
 ORDER BY FormRecord.submitTime ASC
 LIMIT {$offset}, {$paginationFilter->getPageSize()}
 _STATEMENT;
-        
+
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
         return [
-            'total' => $this->countOfAllUncommentedWorksheetInProgramsCoordinatedByPersonnel($personnelId, $paginationFilter),
+            'total' => $this->countOfAllUncommentedWorksheetInProgramsCoordinatedByPersonnel($personnelId,
+                    $paginationFilter),
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
+
     public function countOfAllUncommentedWorksheetInProgramsCoordinatedByPersonnel(
             string $personnelId, PaginationFilter $paginationFilter)
     {
@@ -430,8 +434,216 @@ WHERE w.removed = false
         WHERE Comment.Worksheet_id = w.id
     )
 _STATEMENT;
-        
+
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function worksheetListInAllProgramsMentoredByParticipant(string $personnelId,
+            WorksheetListFilterForConsultant $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Worksheet.id,
+    Worksheet.name,
+    FormRecord.submitTime,
+    IF(_consultantComment.ConsultantCommentCount IS NOT NULL, true, false) isReviewed,
+    Mission.id missionId,
+    Mission.name missionName,
+                
+    Participant.id participantId,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) participantName,
+    IF(DedicatedMentor.id IS NOT NULL, true, false) aDedicatedMentee,
+    
+    Consultant.id consultantId,
+    Program.id programId,
+    Program.name programName
+                
+FROM Worksheet
+    INNER JOIN FormRecord ON FormRecord.id = Worksheet.FormRecord_id
+    INNER JOIN Mission ON Mission.id = Worksheet.Mission_id
+                
+                
+    INNER JOIN Participant ON Participant.id = Worksheet.Participant_id AND Participant.active = true
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+
+    INNER JOIN Program ON Program.id = Participant.Program_id
+                
+    LEFT JOIN (
+        SELECT Comment.Worksheet_id worksheetId, COUNT(ConsultantComment.id) consultantCommentCount
+        FROM ConsultantComment
+            INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id
+        WHERE Comment.removed = false
+        GROUP BY worksheetId
+    )_consultantComment ON _consultantComment.worksheetId = Worksheet.id
+    
+    INNER JOIN Consultant
+        ON Consultant.Program_id = Participant.Program_id
+        AND Consultant.Personnel_id = :personnelId
+        AND Consultant.active = true
+    INNER JOIN Personnel ON Personnel.id = Consultant.Personnel_id
+    
+    LEFT JOIN DedicatedMentor 
+        ON DedicatedMentor.Consultant_id = Consultant.id
+        AND DedicatedMentor.Participant_id = Participant.id
+        AND DedicatedMentor.cancelled = false
+    
+WHERE Worksheet.removed = false
+    {$filter->getOptionalConditionStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return [
+            'total' => $this->totalWorksheetListInAllProgramsMentoredByParticipant($personnelId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+    }
+    public function totalWorksheetListInAllProgramsMentoredByParticipant(string $personnelId,
+            WorksheetListFilterForConsultant $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT COUNT(*) total
+FROM Worksheet
+                
+    INNER JOIN Participant ON Participant.id = Worksheet.Participant_id AND Participant.active = true
+
+    LEFT JOIN (
+        SELECT Comment.Worksheet_id worksheetId, COUNT(ConsultantComment.id) consultantCommentCount
+        FROM ConsultantComment
+            INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id
+        WHERE Comment.removed = false
+        GROUP BY worksheetId
+    )_consultantComment ON _consultantComment.worksheetId = Worksheet.id
+    
+    INNER JOIN Consultant
+        ON Consultant.Program_id = Participant.Program_id
+        AND Consultant.Personnel_id = :personnelId
+        AND Consultant.active = true
+    
+    LEFT JOIN DedicatedMentor 
+        ON DedicatedMentor.Consultant_id = Consultant.id
+        AND DedicatedMentor.Participant_id = Participant.id
+        AND DedicatedMentor.cancelled = false
+    
+WHERE Worksheet.removed = false
+    {$filter->getOptionalConditionStatement($parameters)}
+_SQL;
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function worksheetListInAllProgramsCoordinatedByParticipant(string $personnelId,
+            WorksheetListFilterForCoordinator $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Worksheet.id,
+    Worksheet.name,
+    FormRecord.submitTime,
+    IF(_consultantComment.ConsultantCommentCount IS NOT NULL, true, false) isReviewed,
+    Mission.id missionId,
+    Mission.name missionName,
+                
+    Participant.id participantId,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) participantName,
+    
+    Coordinator.id coordinatorId,
+    Program.id programId,
+    Program.name programName
+FROM Worksheet
+    INNER JOIN FormRecord ON FormRecord.id = Worksheet.FormRecord_id
+    INNER JOIN Mission ON Mission.id = Worksheet.Mission_id
+                
+    INNER JOIN Participant ON Participant.id = Worksheet.Participant_id AND Participant.active = true
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+    
+    INNER JOIN Program ON Program.id = Participant.Program_id
+
+    LEFT JOIN (
+        SELECT Comment.Worksheet_id worksheetId, COUNT(ConsultantComment.id) consultantCommentCount
+        FROM ConsultantComment
+            INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id
+        WHERE Comment.removed = false
+        GROUP BY worksheetId
+    )_consultantComment ON _consultantComment.worksheetId = Worksheet.id
+    
+    INNER JOIN Coordinator
+        ON Coordinator.Program_id = Participant.Program_id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+    
+WHERE Worksheet.removed = false
+    {$filter->getOptionalConditionStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return [
+            'total' => $this->totalWorksheetListInAllProgramsCoordinatedByParticipant($personnelId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+    }
+    public function totalWorksheetListInAllProgramsCoordinatedByParticipant(string $personnelId,
+            WorksheetListFilterForCoordinator $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT COUNT(*) total
+FROM Worksheet
+                
+    INNER JOIN Participant ON Participant.id = Worksheet.Participant_id AND Participant.active = true
+
+    LEFT JOIN (
+        SELECT Comment.Worksheet_id worksheetId, COUNT(ConsultantComment.id) consultantCommentCount
+        FROM ConsultantComment
+            INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id
+        WHERE Comment.removed = false
+        GROUP BY worksheetId
+    )_consultantComment ON _consultantComment.worksheetId = Worksheet.id
+    
+    INNER JOIN Coordinator
+        ON Coordinator.Program_id = Participant.Program_id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+    
+WHERE Worksheet.removed = false
+    {$filter->getOptionalConditionStatement($parameters)}
+_SQL;
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
     }
 

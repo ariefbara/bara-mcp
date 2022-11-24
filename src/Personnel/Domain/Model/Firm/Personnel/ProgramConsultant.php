@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\Criteria;
 use Personnel\Domain\Model\Firm\Personnel;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantComment;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantNote;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantTask;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequest;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
@@ -26,6 +27,7 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
 use SharedContext\Domain\ValueObject\ConsultationSessionType;
+use SharedContext\Domain\ValueObject\LabelData;
 use SharedContext\Domain\ValueObject\ScheduleData;
 
 class ProgramConsultant extends EntityContainEvents
@@ -259,19 +261,24 @@ class ProgramConsultant extends EntityContainEvents
         $consultationSetup->assertUsableInProgram($this->programId);
         return new DeclaredMentoring($this, $declaredMentoringId, $participant, $consultationSetup, $scheduleData);
     }
-    
+
     public function executeMentorTask(MentorTask $task, $payload): void
-    
     {
         $this->assertActive();
         $task->execute($this, $payload);
     }
 
     public function submitNote(
-            string $consultantNoteId, Participant $participant, string $content, bool $viewableByParticipant): ConsultantNote
+            string $consultantNoteId, Participant $participant, LabelData $labelData, bool $viewableByParticipant): ConsultantNote
     {
         $participant->assertUsableInProgram($this->programId);
-        return new ConsultantNote($this, $participant, $consultantNoteId, $content, $viewableByParticipant);
+        return new ConsultantNote($this, $participant, $consultantNoteId, $labelData, $viewableByParticipant);
+    }
+
+    public function submitTask(string $consultantTaskId, Participant $participant, LabelData $data): ConsultantTask
+    {
+        $participant->assertUsableInProgram($this->programId);
+        return new ConsultantTask($this, $participant, $consultantTaskId, $data);
     }
 
 }

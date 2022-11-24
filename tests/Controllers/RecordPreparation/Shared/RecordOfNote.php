@@ -10,7 +10,8 @@ class RecordOfNote implements Record
 {
 
     public $id;
-    public $content = 'note content';
+    public $name;
+    public $description;
     public $createdTime;
     public $modifiedTime;
     public $removed = false;
@@ -18,6 +19,8 @@ class RecordOfNote implements Record
     public function __construct($index)
     {
         $this->id = "note-$index-id";
+        $this->name = "note $index name";
+        $this->description = "note $index description";
         $this->createdTime = (new DateTime('-1 weeks'))->format('Y-m-d H:i:s');
         $this->modifiedTime = (new DateTime('-1 weeks'))->format('Y-m-d H:i:s');
     }
@@ -26,7 +29,8 @@ class RecordOfNote implements Record
     {
         return [
             'id' => $this->id,
-            'content' => $this->content,
+            'name' => $this->name,
+            'description' => $this->description,
             'createdTime' => $this->createdTime,
             'modifiedTime' => $this->modifiedTime,
             'removed' => $this->removed,

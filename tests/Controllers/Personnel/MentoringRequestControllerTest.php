@@ -453,12 +453,14 @@ class MentoringRequestControllerTest extends PersonnelTestCase
         $this->mentoringRequestOne->insert($this->connection);
         
         $uri = $this->personnelUri . "/mentoring-requests/{$this->mentoringRequestOne->id}";
+// echo $uri;
         $this->get($uri, $this->mentor->personnel->token);
     }
     public function test_show_200()
     {
         $this->show();
         $this->seeStatusCode(200);
+// $this->seeJsonContains(['print']);
         
         $response = [
             'id' => $this->mentoringRequestOne->id,

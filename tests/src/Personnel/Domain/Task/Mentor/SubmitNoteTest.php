@@ -2,12 +2,13 @@
 
 namespace Personnel\Domain\Task\Mentor;
 
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\src\Personnel\Domain\Task\Mentor\MentorTaskTestBase;
 
 class SubmitNoteTest extends MentorTaskTestBase
 {
     protected $task;
-    protected $payload, $content = 'content string', $viewableByParticipant = true;
+    protected $payload, $labelData, $viewableByParticipant = true;
     
     protected function setUp(): void
     {
@@ -15,9 +16,11 @@ class SubmitNoteTest extends MentorTaskTestBase
         $this->setParticipantRelatedTask();
         $this->setConsultantNoteRelatedTask();
         
+        $this->labelData = new LabelData('name', 'description');
+        
         $this->task = new SubmitNote($this->consultantNoteRepository, $this->participantRepository);
         
-        $this->payload = new SubmitNotePayload($this->participantId, $this->content, $this->viewableByParticipant);
+        $this->payload = new SubmitNotePayload($this->participantId, $this->labelData, $this->viewableByParticipant);
     }
     
     protected function execute()
@@ -31,7 +34,7 @@ class SubmitNoteTest extends MentorTaskTestBase
     {
         $this->mentor->expects($this->once())
                 ->method('submitNote')
-                ->with($this->consultantNoteId, $this->participant, $this->content, $this->viewableByParticipant)
+                ->with($this->consultantNoteId, $this->participant, $this->labelData, $this->viewableByParticipant)
                 ->willReturn($this->consultantNote);
         $this->consultantNoteRepository->expects($this->once())
                 ->method('add')

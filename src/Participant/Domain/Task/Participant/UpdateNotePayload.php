@@ -2,6 +2,8 @@
 
 namespace Participant\Domain\Task\Participant;
 
+use SharedContext\Domain\ValueObject\LabelData;
+
 class UpdateNotePayload
 {
 
@@ -13,14 +15,14 @@ class UpdateNotePayload
 
     /**
      * 
-     * @var string|null
+     * @var LabelData
      */
-    protected $content;
+    protected $labelData;
 
-    public function __construct(?string $id, ?string $content)
+    public function __construct(?string $id, LabelData $labelData)
     {
         $this->id = $id;
-        $this->content = $content;
+        $this->labelData = $labelData;
     }
 
     public function getId(): ?string
@@ -28,9 +30,9 @@ class UpdateNotePayload
         return $this->id;
     }
 
-    public function getContent(): ?string
+    public function getLabelData(): LabelData
     {
-        return $this->content;
+        return $this->labelData;
     }
 
 }

@@ -2,21 +2,24 @@
 
 namespace Participant\Domain\Task\Participant;
 
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\src\Participant\Domain\Task\Participant\ParticipantTaskTestBase;
 
 class UpdateNoteTest extends ParticipantTaskTestBase
 {
     protected $task;
-    protected $payload, $content = 'new content';
+    protected $payload, $labelData;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->setupParticipantNoteDependency();
         
+        $this->labelData = new LabelData('name', 'description');
+        
         $this->task = new UpdateNote($this->participantNoteRepository);
         //
-        $this->payload = new UpdateNotePayload($this->participantNoteId, $this->content);
+        $this->payload = new UpdateNotePayload($this->participantNoteId, $this->labelData);
     }
     
     protected function execute()
@@ -27,7 +30,7 @@ class UpdateNoteTest extends ParticipantTaskTestBase
     {
         $this->participantNote->expects($this->once())
                 ->method('update')
-                ->with($this->content);
+                ->with($this->labelData);
         $this->execute();
     }
     public function test_execute_assertParticipantNoteManageableByParticipant()

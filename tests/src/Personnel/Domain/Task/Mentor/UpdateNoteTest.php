@@ -2,12 +2,13 @@
 
 namespace Personnel\Domain\Task\Mentor;
 
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\src\Personnel\Domain\Task\Mentor\MentorTaskTestBase;
 
 class UpdateNoteTest extends MentorTaskTestBase
 {
     protected $task;
-    protected $payload, $content = 'content string';
+    protected $payload, $labelData;
     
     protected function setUp(): void
     {
@@ -15,7 +16,8 @@ class UpdateNoteTest extends MentorTaskTestBase
         $this->setConsultantNoteRelatedTask();
         
         $this->task = new UpdateNote($this->consultantNoteRepository);
-        $this->payload = new UpdateNotePayload($this->consultantNoteId, $this->content);
+        $this->labelData = new LabelData('name', 'description');
+        $this->payload = new UpdateNotePayload($this->consultantNoteId, $this->labelData);
     }
     
     protected function execute()
@@ -26,7 +28,7 @@ class UpdateNoteTest extends MentorTaskTestBase
     {
         $this->consultantNote->expects($this->once())
                 ->method('update')
-                ->with($this->content);
+                ->with($this->labelData);
         $this->execute();
     }
     public function test_execute_assertConsultantNoteManageableByConsultant()

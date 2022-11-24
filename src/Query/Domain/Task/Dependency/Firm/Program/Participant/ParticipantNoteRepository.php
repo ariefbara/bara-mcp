@@ -8,4 +8,6 @@ interface ParticipantNoteRepository
 {
 
     public function aParticipantNoteBelongsToParticipant(string $participantId, string $id): ParticipantNote;
+
+    public function aParticipantNoteInProgram(string $programId, string $id): ParticipantNote;
 }

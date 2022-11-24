@@ -29,7 +29,7 @@ class UpdateNote implements CoordinatorTask
     {
         $coordinatorNote = $this->coordinatorNoteRepository->ofId($payload->getCoordinatorNoteId());
         $coordinatorNote->assertManageableByCoordinator($coordinator);
-        $coordinatorNote->update($payload->getContent());
+        $coordinatorNote->update($payload->getLabelData());
     }
 
 }

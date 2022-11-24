@@ -87,6 +87,32 @@ class DoctrineCoordinatorNoteRepository extends EntityRepository implements Coor
                 ->andWhere($qb->expr()->eq('participant.id', ':participantId'))
                 ->leftJoin('coordinatorNote.note', 'note')
                 ->andWhere($qb->expr()->eq('note.removed', 'false'))
+                ->andWhere($qb->expr()->eq('coordinatorNote.viewableByParticipant', 'true'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('coordinator note not found');
+        }
+    }
+
+    public function aCoordinatorNoteInProgram(string $programId, string $id): CoordinatorNote
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('coordinatorNote');
+        $qb->select('coordinatorNote')
+                ->andWhere($qb->expr()->eq('coordinatorNote.id', ':id'))
+                ->leftJoin('coordinatorNote.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->leftJoin('coordinatorNote.note', 'note')
+                ->andWhere($qb->expr()->eq('note.removed', 'false'))
                 ->setParameters($parameters)
                 ->setMaxResults(1);
         

@@ -3,8 +3,10 @@
 namespace Personnel\Domain\Model\Firm\Personnel;
 
 use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorNote;
+use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorTask as CoordinatorTask2;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Task\Coordinator\CoordinatorTask;
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\TestBase;
 
 class CoordinatorTest extends TestBase
@@ -13,7 +15,9 @@ class CoordinatorTest extends TestBase
     //
     protected $coordinatorTask, $payload = 'string represent task payload';
     //
-    protected $coordinatorNoteId = 'coordinatorNoteId', $participant, $content = 'note content', $viewableByParticipant = true;
+    protected $coordinatorNoteId = 'coordinatorNoteId', $participant, $viewableByParticipant = true;
+    //
+    protected $coordinatorTaskId = 'coordinatorTaskId', $labelData;
 
     protected function setUp(): void
     {
@@ -23,6 +27,8 @@ class CoordinatorTest extends TestBase
         $this->coordinatorTask = $this->buildMockOfInterface(CoordinatorTask::class);
         //
         $this->participant = $this->buildMockOfClass(Participant::class);
+        //
+        $this->labelData = new LabelData('name', 'description');
     }
     
     protected function executeTask()
@@ -47,7 +53,7 @@ class CoordinatorTest extends TestBase
     //
     protected function submitNote()
     {
-        return $this->coordinator->submitNote($this->coordinatorNoteId, $this->participant, $this->content, $this->viewableByParticipant);
+        return $this->coordinator->submitNote($this->coordinatorNoteId, $this->participant, $this->labelData, $this->viewableByParticipant);
     }
     public function test_submitNote_returnCoordinatorNote()
     {
@@ -59,6 +65,23 @@ class CoordinatorTest extends TestBase
                 ->method('assertUsableInProgram')
                 ->with($this->coordinator->programId);
         $this->submitNote();
+    }
+    
+    //
+    protected function submitTask()
+    {
+        return $this->coordinator->submitTask($this->coordinatorTaskId, $this->participant, $this->labelData);
+    }
+    public function test_submitTask_returnCoordinatorTask()
+    {
+        $this->assertInstanceOf(CoordinatorTask2::class, $this->submitTask());
+    }
+    public function test_submitTask_assertParticipantUsableInProgram()
+    {
+        $this->participant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->coordinator->programId);
+        $this->submitTask();
     }
 }
 

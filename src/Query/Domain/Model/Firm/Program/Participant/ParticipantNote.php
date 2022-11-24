@@ -46,25 +46,4 @@ class ParticipantNote
         return $this->note;
     }
 
-    //
-    public function getContent(): string
-    {
-        return $this->note->getContent();
-    }
-
-    public function getCreatedTime(): DateTimeImmutable
-    {
-        return $this->note->getCreatedTime();
-    }
-
-    public function getModifiedTime(): DateTimeImmutable
-    {
-        return $this->note->getModifiedTime();
-    }
-
-    public function isRemoved(): bool
-    {
-        return $this->note->isRemoved();
-    }
-
 }

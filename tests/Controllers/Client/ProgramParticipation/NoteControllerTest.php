@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\Client\ProgramParticipation;
 
+use DateTime;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantNote;
 use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorNote;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfParticipantNote;
@@ -17,7 +18,8 @@ class NoteControllerTest extends ExtendedClientParticipantTestCase
     protected $consultantNoteTwo;
     protected $coordinatorNoteThree;
     protected $submitOrUpdateRequest = [
-        'content' => 'new note content',
+        'name' => 'new note name',
+        'description' => 'new note description',
     ];
     //
     protected $viewAllUri;
@@ -74,6 +76,8 @@ class NoteControllerTest extends ExtendedClientParticipantTestCase
         $this->insertClientParticipantRecord();
         
         $uri = $this->clientParticipantUri . "/participant-notes";
+// echo $uri;
+// echo json_encode($this->submitOrUpdateRequest);
         $this->post($uri, $this->submitOrUpdateRequest, $this->client->token);
     }
     public function test_submit_200()
@@ -82,15 +86,19 @@ $this->disableExceptionHandling();
         $this->submit();
         $this->seeStatusCode(201);
         
+// $this->seeJsonContains(['printme']);
+        
         $response = [
-            'content' => $this->submitOrUpdateRequest['content'],
+            'name' => $this->submitOrUpdateRequest['name'],
+            'description' => $this->submitOrUpdateRequest['description'],
             'createdTime' => $this->currentTimeString(),
             'modifiedTime' => $this->currentTimeString(),
         ];
         $this->seeJsonContains($response);
         
         $noteEntry = [
-            'content' => $this->submitOrUpdateRequest['content'],
+            'name' => $this->submitOrUpdateRequest['name'],
+            'description' => $this->submitOrUpdateRequest['description'],
             'createdTime' => $this->currentTimeString(),
             'modifiedTime' => $this->currentTimeString(),
         ];
@@ -101,9 +109,9 @@ $this->disableExceptionHandling();
         ];
         $this->seeInDatabase('ParticipantNote', $participantNoteEntry);
     }
-    public function test_submit_emptyContent_400()
+    public function test_submit_emptyName_400()
     {
-        $this->submitOrUpdateRequest['content'] = '';
+        $this->submitOrUpdateRequest['name'] = '';
         
         $this->submit();
         $this->seeStatusCode(400);
@@ -124,6 +132,8 @@ $this->disableExceptionHandling();
         $this->participantNoteOne->insert($this->connection);
         
         $uri = $this->clientParticipantUri . "/participant-notes/{$this->participantNoteOne->id}";
+// echo $uri;
+// echo json_encode($this->submitOrUpdateRequest);
         $this->patch($uri, $this->submitOrUpdateRequest, $this->client->token);
     }
     public function test_update_200()
@@ -132,9 +142,12 @@ $this->disableExceptionHandling();
         $this->update();
         $this->seeStatusCode(200);
         
+// $this->seeJsonContains(['printme']);
+        
         $response = [
             'id' => $this->participantNoteOne->id,
-            'content' => $this->submitOrUpdateRequest['content'],
+            'name' => $this->submitOrUpdateRequest['name'],
+            'description' => $this->submitOrUpdateRequest['description'],
             'createdTime' => $this->participantNoteOne->note->createdTime,
             'modifiedTime' => $this->currentTimeString(),
         ];
@@ -142,21 +155,23 @@ $this->disableExceptionHandling();
         
         $noteEntry = [
             'id' => $this->participantNoteOne->note->id,
-            'content' => $this->submitOrUpdateRequest['content'],
+            'name' => $this->submitOrUpdateRequest['name'],
+            'description' => $this->submitOrUpdateRequest['description'],
             'modifiedTime' => $this->currentTimeString(),
         ];
         $this->seeInDatabase('Note', $noteEntry);
     }
-    public function test_update_emptyContent_400()
+    public function test_update_emptyName_400()
     {
-        $this->submitOrUpdateRequest['content'] = '';
+        $this->submitOrUpdateRequest['name'] = '';
         
         $this->update();
         $this->seeStatusCode(400);
     }
     public function test_update_sameContent_preventUpdatingModifiedTime()
     {
-        $this->submitOrUpdateRequest['content'] = $this->participantNoteOne->note->content;
+        $this->submitOrUpdateRequest['name'] = $this->participantNoteOne->note->name;
+        $this->submitOrUpdateRequest['description'] = $this->participantNoteOne->note->description;
         
         $this->update();
         $this->seeStatusCode(200);
@@ -170,7 +185,8 @@ $this->disableExceptionHandling();
         $noteEntry = [
             'id' => $this->participantNoteOne->id,
             'modifiedTime' => $this->participantNoteOne->note->modifiedTime,
-            'content' => $this->submitOrUpdateRequest['content'],
+            'name' => $this->submitOrUpdateRequest['name'],
+            'description' => $this->submitOrUpdateRequest['description'],
         ];
         $this->seeInDatabase('Note', $noteEntry);
     }
@@ -201,6 +217,7 @@ $this->disableExceptionHandling();
         $this->participantNoteOne->insert($this->connection);
         
         $uri = $this->clientParticipantUri . "/participant-notes/{$this->participantNoteOne->id}";
+// echo $uri;
         $this->delete($uri, [], $this->client->token);
     }
     public function test_remove_200()
@@ -208,6 +225,7 @@ $this->disableExceptionHandling();
 $this->disableExceptionHandling();
         $this->remove();
         $this->seeStatusCode(200);
+// $this->seeJsonContains(['printme']);
         
         $noteEntry = [
             'id' => $this->participantNoteOne->note->id,
@@ -241,6 +259,7 @@ $this->disableExceptionHandling();
         $this->participantNoteOne->insert($this->connection);
         
         $uri = $this->clientParticipantUri . "/participant-notes/{$this->participantNoteOne->id}";
+// echo $uri;
         $this->get($uri, $this->client->token);
     }
     public function test_viewOwnedParticipantNote_200()
@@ -248,10 +267,12 @@ $this->disableExceptionHandling();
 $this->disableExceptionHandling();
         $this->viewOwnedParticipantNote();
         $this->seeStatusCode(200);
+// $this->seeJsonContains(['printme']);
         
         $response = [
             'id' => $this->participantNoteOne->id,
-            'content' => $this->participantNoteOne->note->content,
+            'name' => $this->participantNoteOne->note->name,
+            'description' => $this->participantNoteOne->note->description,
             'createdTime' => $this->participantNoteOne->note->createdTime,
             'modifiedTime' => $this->participantNoteOne->note->modifiedTime,
         ];
@@ -285,6 +306,7 @@ $this->disableExceptionHandling();
         $this->consultantNoteTwo->insert($this->connection);
         
         $uri = $this->clientParticipantUri . "/consultant-notes/{$this->consultantNoteTwo->id}";
+// echo $uri;
         $this->get($uri, $this->client->token);
     }
     public function test_viewAccesibleConsultantNote_200()
@@ -292,10 +314,12 @@ $this->disableExceptionHandling();
 $this->disableExceptionHandling();
         $this->viewAccessibleConsultantNote();
         $this->seeStatusCode(200);
+// $this->seeJsonContains(['printme']);
         
         $response = [
             'id' => $this->consultantNoteTwo->id,
-            'content' => $this->consultantNoteTwo->note->content,
+            'name' => $this->consultantNoteTwo->note->name,
+            'description' => $this->consultantNoteTwo->note->description,
             'createdTime' => $this->consultantNoteTwo->note->createdTime,
             'modifiedTime' => $this->consultantNoteTwo->note->modifiedTime,
             'consultant' => [
@@ -326,6 +350,13 @@ $this->disableExceptionHandling();
         $this->viewAccessibleConsultantNote();
         $this->seeStatusCode(404);
     }
+    public function test_viewAccesibleConsultantNote_nonViewableByParticipant_404()
+    {
+        $this->consultantNoteTwo->viewableByParticipant = false;
+        
+        $this->viewAccessibleConsultantNote();
+        $this->seeStatusCode(404);
+    }
     
     protected function viewAccessibleCoordinatorNote()
     {
@@ -336,6 +367,7 @@ $this->disableExceptionHandling();
         $this->coordinatorNoteThree->insert($this->connection);
         
         $uri = $this->clientParticipantUri . "/coordinator-notes/{$this->coordinatorNoteThree->id}";
+// echo $uri;
         $this->get($uri, $this->client->token);
     }
     public function test_viewAccesibleCoordinatorNote_200()
@@ -343,10 +375,12 @@ $this->disableExceptionHandling();
 $this->disableExceptionHandling();
         $this->viewAccessibleCoordinatorNote();
         $this->seeStatusCode(200);
+// $this->seeJsonContains(['printme']);
         
         $response = [
             'id' => $this->coordinatorNoteThree->id,
-            'content' => $this->coordinatorNoteThree->note->content,
+            'name' => $this->coordinatorNoteThree->note->name,
+            'description' => $this->coordinatorNoteThree->note->description,
             'createdTime' => $this->coordinatorNoteThree->note->createdTime,
             'modifiedTime' => $this->coordinatorNoteThree->note->modifiedTime,
             'coordinator' => [
@@ -377,6 +411,13 @@ $this->disableExceptionHandling();
         $this->viewAccessibleCoordinatorNote();
         $this->seeStatusCode(404);
     }
+    public function test_viewAccesibleCoordinatorNote_inaccessibleNote_notViewbleByParticipant_404()
+    {
+        $this->coordinatorNoteThree->viewableByParticipant = false;
+        
+        $this->viewAccessibleCoordinatorNote();
+        $this->seeStatusCode(404);
+    }
     
     protected function viewAll()
     {
@@ -392,6 +433,7 @@ $this->disableExceptionHandling();
         $this->coordinatorNoteThree->coordinator->insert($this->connection);
         $this->coordinatorNoteThree->insert($this->connection);
         
+// echo $this->viewAllUri;
         $this->get($this->viewAllUri, $this->client->token);
     }
     public function test_viewAll_200()
@@ -399,79 +441,67 @@ $this->disableExceptionHandling();
 $this->disableExceptionHandling();
         $this->viewAll();
         $this->seeStatusCode(200);
+// $this->seeJsonContains(['printme']);
         
         $response = [
             'total' => '3',
             'list' => [
                 [
-                    'content' => $this->participantNoteOne->note->content,
+                    'name' => $this->participantNoteOne->note->name,
+                    'description' => $this->participantNoteOne->note->description,
                     'createdTime' => $this->participantNoteOne->note->createdTime,
                     'modifiedTime' => $this->participantNoteOne->note->modifiedTime,
                     'participantNoteId' => $this->participantNoteOne->id,
                     'consultantNoteId' => null,
-                    'consultantId' => null,
-                    'consultantName' => null,
                     'coordinatorNoteId' => null,
-                    'coordinatorId' => null,
-                    'coordinatorName' => null,
+                    'personnelName' => null,
                 ],
                 [
-                    'content' => $this->consultantNoteTwo->note->content,
+                    'name' => $this->consultantNoteTwo->note->name,
+                    'description' => $this->consultantNoteTwo->note->description,
                     'createdTime' => $this->consultantNoteTwo->note->createdTime,
                     'modifiedTime' => $this->consultantNoteTwo->note->modifiedTime,
                     'participantNoteId' => null,
                     'consultantNoteId' => $this->consultantNoteTwo->id,
-                    'consultantId' => $this->consultantNoteTwo->consultant->id,
-                    'consultantName' => $this->consultantNoteTwo->consultant->personnel->getFullName(),
                     'coordinatorNoteId' => null,
-                    'coordinatorId' => null,
-                    'coordinatorName' => null,
+                    'personnelName' => $this->consultantNoteTwo->consultant->personnel->getFullName(),
                 ],
                 [
-                    'content' => $this->coordinatorNoteThree->note->content,
+                    'name' => $this->coordinatorNoteThree->note->name,
+                    'description' => $this->coordinatorNoteThree->note->description,
                     'createdTime' => $this->coordinatorNoteThree->note->createdTime,
                     'modifiedTime' => $this->coordinatorNoteThree->note->modifiedTime,
                     'participantNoteId' => null,
-                    'consultantNoteId' => null,
-                    'consultantId' => null,
-                    'consultantName' => null,
                     'coordinatorNoteId' => $this->coordinatorNoteThree->id,
-                    'coordinatorId' => $this->coordinatorNoteThree->coordinator->id,
-                    'coordinatorName' => $this->coordinatorNoteThree->coordinator->personnel->getFullName(),
+                    'consultantNoteId' => null,
+                    'personnelName' => $this->coordinatorNoteThree->coordinator->personnel->getFullName(),
                 ],
             ],
         ];
         $this->seeJsonContains($response);
     }
-    public function test_viewAll_orderByModifiedTime()
+    public function test_viewAll_allFilterAndOrder()
     {
-        $this->coordinatorNoteThree->note->modifiedTime = (new \DateTime('-1 days'))->format('Y-m-d H:i:s');
-        $this->consultantNoteTwo->note->modifiedTime = (new \DateTime('-2 days'))->format('Y-m-d H:i:s');
+        $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
+        $to = (new DateTime())->format('Y-m-d H:i:s');
+        $keyword = 'note';
+        $source = 'consultant';
+        $order = 'modified-asc';
         
-        $this->viewAllUri .= "?modifiedTimeOrder=DESC&pageSize=2";
+        $this->viewAllUri .=
+                "?from=$from"
+                . "&to=$to"
+                . "&keyword=$keyword"
+                . "&source=$source"
+                . "&order=$order";
         
         $this->viewAll();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains(['total' => '3']);
+        $this->seeJsonContains(['total' => '1']);
         $this->seeJsonDoesntContains(['participantNoteId' => $this->participantNoteOne->id]);
         $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteTwo->id]);
-        $this->seeJsonContains(['coordinatorNoteId' => $this->coordinatorNoteThree->id]);
-    }
-    public function test_viewAll_orderByCreatedTime()
-    {
-        $this->coordinatorNoteThree->note->createdTime = (new \DateTime('-1 days'))->format('Y-m-d H:i:s');
-        $this->consultantNoteTwo->note->createdTime = (new \DateTime('-2 days'))->format('Y-m-d H:i:s');
-        
-        $this->viewAllUri .= "?createdTimeOrder=DESC&pageSize=2";
-        
-        $this->viewAll();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '3']);
-        $this->seeJsonDoesntContains(['participantNoteId' => $this->participantNoteOne->id]);
-        $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteTwo->id]);
-        $this->seeJsonContains(['coordinatorNoteId' => $this->coordinatorNoteThree->id]);
+        $this->seeJsonDoesntContains(['coordinatorNoteId' => $this->coordinatorNoteThree->id]);
     }
     public function test_viewAll_excludeRemovedParticipantNote()
     {

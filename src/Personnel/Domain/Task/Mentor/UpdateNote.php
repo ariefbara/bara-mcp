@@ -30,7 +30,7 @@ class UpdateNote implements MentorTask
         $consultantNote = $this->consultantNoteRepository->ofId($payload->getConsultantNoteId());
         $consultantNote->assertManageableByConsultant($mentor);
         
-        $consultantNote->update($payload->getContent());
+        $consultantNote->update($payload->getLabelData());
     }
 
 }

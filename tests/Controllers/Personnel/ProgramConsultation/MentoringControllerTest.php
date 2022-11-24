@@ -116,6 +116,7 @@ $this->disableExceptionHandling();
         $this->seeStatusCode(200);
         
         $response = [
+'!printMe' => 'printme',
             'total' => '5',
             'list' => [
                 [

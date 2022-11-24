@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Participant\Domain\Model\Participant\Task\TaskReport\TaskReportAttachment" 
+            table="TaskReportAttachment"
+    >
+        
+        <many-to-one  field="taskReport" 
+                      target-entity="Participant\Domain\Model\Participant\Task\TaskReport"
+                      inversed-by="attachments"
+        >
+            <join-column name="TaskReport_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <id name="id" type="guid" />
+        <field name="removed" type="boolean" />
+        
+        <one-to-one field="participantFileInfo" 
+                    target-entity="Participant\Domain\Model\Participant\ParticipantFileInfo"
+        >
+            <join-column name="ParticipantFileInfo_id" referenced-column-name="id" />
+        </one-to-one>
+        
+    </entity>
+</doctrine-mapping>

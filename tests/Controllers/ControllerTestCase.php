@@ -64,4 +64,24 @@ class ControllerTestCase extends TestCase
         );
     }
     
+    protected $fileUploadInput;
+    protected function setupFileUpload($roleDirectoryName)
+    {
+        $root = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
+        $adapter = new \League\Flysystem\Adapter\Local($root);
+        $filessystem = new \League\Flysystem\Filesystem($adapter);
+        $filessystem->deleteDir($roleDirectoryName);
+        
+        $this->fileUploadInput = [
+            new \Illuminate\Http\UploadedFile(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'cat_pile.jpg', 'cat_pile.jpg'),
+        ];
+    }
+    protected function clearFileUpload($roleDirectoryName)
+    {
+        $root = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . "storage" . DIRECTORY_SEPARATOR . "app";
+        $adapter = new \League\Flysystem\Adapter\Local($root);
+        $filessystem = new \League\Flysystem\Filesystem($adapter);
+        $filessystem->deleteDir($roleDirectoryName);
+    }
+    
 }

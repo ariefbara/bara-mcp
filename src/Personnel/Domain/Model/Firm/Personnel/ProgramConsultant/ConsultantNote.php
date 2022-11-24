@@ -6,6 +6,7 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\Note;
+use SharedContext\Domain\ValueObject\LabelData;
 
 class ConsultantNote
 {
@@ -41,19 +42,19 @@ class ConsultantNote
     protected $viewableByParticipant;
 
     public function __construct(
-            ProgramConsultant $consultant, Participant $participant, string $id, string $content,
+            ProgramConsultant $consultant, Participant $participant, string $id, LabelData $labelData,
             bool $viewableByParticipant)
     {
         $this->consultant = $consultant;
         $this->participant = $participant;
         $this->id = $id;
-        $this->note = New Note($id, $content);
+        $this->note = New Note($id, $labelData);
         $this->viewableByParticipant = $viewableByParticipant;
     }
 
-    public function update(string $content): void
+    public function update(LabelData $labelData): void
     {
-        $this->note->update($content);
+        $this->note->update($labelData);
     }
 
     public function showToParticipant(): void
@@ -70,7 +71,7 @@ class ConsultantNote
     {
         $this->note->remove();
     }
-    
+
     public function assertManageableByConsultant(ProgramConsultant $consultant): void
     {
         if ($this->consultant !== $consultant) {

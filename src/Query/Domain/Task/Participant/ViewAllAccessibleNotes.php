@@ -3,6 +3,7 @@
 namespace Query\Domain\Task\Participant;
 
 use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Task\CommonViewListPayload;
 use Query\Domain\Task\Dependency\NoteRepository;
 
 class ViewAllAccessibleNotes implements ParticipantQueryTask
@@ -22,13 +23,13 @@ class ViewAllAccessibleNotes implements ParticipantQueryTask
     /**
      * 
      * @param Participant $participant
-     * @param ViewAllAccessibleNotesPayload $payload
+     * @param CommonViewListPayload $payload
      * @return void
      */
     public function execute(Participant $participant, $payload): void
     {
         $payload->result = $this->noteRepository
-                ->allNoteAccessibleByParticipant($participant->getId(), $payload->getNoteFilter());
+                ->allNoteAccessibleByParticipant($participant->getId(), $payload->getFilter());
     }
 
 }

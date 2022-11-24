@@ -2,21 +2,23 @@
 
 namespace Personnel\Domain\Task\Coordinator;
 
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\src\Personnel\Domain\Task\Coordinator\CoordinatorTaskTestBase;
 
 class SubmitNoteTest extends CoordinatorTaskTestBase
 {
     protected $task;
-    protected $payload, $content = 'note content', $viewableByParticipant = true;
+    protected $payload, $labelData, $viewableByParticipant = true;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->setUpCoordinatorNoteDependency();
         $this->setUpParticipantDependency();
+        $this->labelData = new LabelData('name', 'description');
         
         $this->task = new SubmitNote($this->coordinatorNoteRepository, $this->participantRepository);
-        $this->payload = new SubmitNotePayload($this->participantId, $this->content, $this->viewableByParticipant);
+        $this->payload = new SubmitNotePayload($this->participantId, $this->labelData, $this->viewableByParticipant);
     }
     
     protected function execute()
@@ -31,7 +33,7 @@ class SubmitNoteTest extends CoordinatorTaskTestBase
     {
         $this->coordinator->expects($this->once())
                 ->method('submitNote')
-                ->with($this->coordinatorNoteId, $this->participant, $this->content, $this->viewableByParticipant)
+                ->with($this->coordinatorNoteId, $this->participant, $this->labelData, $this->viewableByParticipant)
                 ->willReturn($this->coordinatorNote);
         
         $this->coordinatorNoteRepository->expects($this->once())

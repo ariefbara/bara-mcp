@@ -2,6 +2,8 @@
 
 namespace Personnel\Domain\Task\Mentor;
 
+use SharedContext\Domain\ValueObject\LabelData;
+
 class SubmitNotePayload
 {
 
@@ -13,9 +15,9 @@ class SubmitNotePayload
 
     /**
      * 
-     * @var string|null
+     * @var LabelData|null
      */
-    protected $content;
+    protected $labelData;
 
     /**
      * 
@@ -29,9 +31,9 @@ class SubmitNotePayload
         return $this->participantId;
     }
 
-    public function getContent(): ?string
+    public function getLabelData(): ?LabelData
     {
-        return $this->content;
+        return $this->labelData;
     }
 
     public function getViewableByParticipant(): ?bool
@@ -39,10 +41,10 @@ class SubmitNotePayload
         return $this->viewableByParticipant;
     }
 
-    public function __construct(?string $participantId, ?string $content, ?bool $viewableByParticipant)
+    public function __construct(?string $participantId, ?LabelData $labelData, ?bool $viewableByParticipant)
     {
         $this->participantId = $participantId;
-        $this->content = $content;
+        $this->labelData = $labelData;
         $this->viewableByParticipant = $viewableByParticipant;
     }
 

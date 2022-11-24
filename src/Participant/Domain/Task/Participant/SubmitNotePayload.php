@@ -2,24 +2,26 @@
 
 namespace Participant\Domain\Task\Participant;
 
+use SharedContext\Domain\ValueObject\LabelData;
+
 class SubmitNotePayload
 {
 
     /**
      * 
-     * @var string|null
+     * @var LabelData
      */
-    protected $content;
+    protected $labelData;
     public $submittedNoteId;
 
-    public function __construct(?string $content)
+    public function __construct(LabelData $labelData)
     {
-        $this->content = $content;
+        $this->labelData = $labelData;
     }
 
-    public function getContent(): ?string
+    public function getLabelData(): LabelData
     {
-        return $this->content;
+        return $this->labelData;
     }
 
 }

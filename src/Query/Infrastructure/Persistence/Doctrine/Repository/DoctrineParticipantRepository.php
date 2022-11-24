@@ -4,6 +4,7 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
+use PDO;
 use Query\Application\Service\Firm\Program\ParticipantRepository;
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant;
@@ -13,6 +14,7 @@ use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantRepository as ParticipantRepository2;
+use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilterForCoordinator;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
@@ -458,7 +460,7 @@ _STATEMENT;
         $params = ["personnelId" => $personnelId];
         $query->execute($params);
 
-        return $query->fetchAll(\PDO::FETCH_ASSOC);
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function countOfAllParticipantsWithDedicatedMentorCorrespondToPersonnel(string $personnelId)
@@ -478,8 +480,94 @@ _STATEMENT;
         $params = ["personnelId" => $personnelId];
         $query->execute($params);
 
-        $result = $query->fetchAll(\PDO::FETCH_ASSOC);
+        $result = $query->fetchAll(PDO::FETCH_ASSOC);
         return $result[0]["total"];
+    }
+
+    public function summaryListInAllProgramsCoordinatedByPersonnel(string $personnelId,
+            ParticipantSummaryListFilterForCoordinator $filter)
+    {
+        
+    }
+    protected function totalSummaryListInAllProgramsCoordinatedByPersonnel(string $personnelId,
+            ParticipantSummaryListFilterForCoordinator $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT COUNT(*) total
+FROM Participant
+                
+    INNER JOIN Coordinator 
+        ON Coordinator.Program_id = Participant.Program_id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+                
+    LEFT JOIN (
+        SELECT Participant_id, COUNT(DISTINCT Mission_id) totalCompletedMission
+        FROM CompletedMission
+        GROUP BY Participant_id
+    )_a ON _a.Participant_id = Participant.id
+    
+    LEFT JOIN (
+        SELECT COUNT(*) totalMission, Mission.Program_id programId
+        FROM Mission
+        WHERE Mission.Published = true
+        GROUP BY programId
+    )_b ON _b.programId = Participant.programId
+                
+    LEFT JOIN (
+        SELECT 
+            MetricAssignment.Participant_id,
+            CASE WHEN COUNT(_f3.target) IS NULL THEN NULL
+                ELSE SUM(__d.inputValue/_f3.target)/COUNT(_f3.target)
+            END achievement,
+            CASE WHEN COUNT(_f3.target) IS NULL THEN NULL
+                ELSE SUM(CASE WHEN __d.inputValue >= _f3.target THEN 1 ELSE 0 END)
+            END completedMetric,
+            COUNT(_f3.target) totalAssignedMetric,
+            _f2.id reportId
+        FROM (
+            SElECT MetricAssignment_id, MAX(observationTime) observationTime
+            FROM MetricAssignmentReport
+            WHERE approved = true AND removed = false
+            GROUP BY MetricAssignment_id
+        )_c1
+        INNER JOIN MetricAssignmentReport USING (MetricAssignment_id, observationTime)
+        INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+        LEFT JOIN AssignmentField 
+            ON AssignmentField.MetricAssignment_id = MetricAssignment.id 
+            AND AssignmentField.disabled = false
+                
+        LEFT JOIN AssignmentFieldValue 
+            ON AssignmentFieldValue.AssignmentField_id = AssignmentField.id 
+            AND AssignmentFieldValue.removed = false
+                
+        WHERE MetricAssignmentReport.removed = false AND MetricAssignmentReport.approved = true
+                
+                
+        LEFT JOIN (
+            SELECT id, `target`, MetricAssignment_id
+            FROM AssignmentField
+            WHERE disabled = false
+        )_f3 ON _f3.MetricAssignment_id = _f2.MetricAssignment_id
+        LEFT JOIN (
+            SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id
+            FROM AssignmentFieldValue
+            WHERE removed = false
+        )__d ON __d.MetricAssignmentReport_id = _f2.id AND __d.AssignmentField_id = _f3.id
+        WHERE _f2.approved = true AND _f2.removed = false
+        GROUP BY reportId
+    )_c ON _c.Participant_id = Participant.id
+                
+WHERE Participant.active = true
+    {$filter->getCriteriaStatement($parameters)}
+_SQL;
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+
     }
 
 }

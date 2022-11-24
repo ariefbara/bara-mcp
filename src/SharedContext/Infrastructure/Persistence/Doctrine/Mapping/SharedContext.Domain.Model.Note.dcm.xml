@@ -5,7 +5,7 @@
     >
         
         <id name="id" type="guid" />
-        <field name="content" type="text" nullable="true"/>
+        <embedded name="label" class="SharedContext\Domain\ValueObject\Label" use-column-prefix="false" />
         <field name="createdTime" type="datetime_immutable" nullable="true"/>
         <field name="modifiedTime" type="datetime_immutable" nullable="true"/>
         <field name="removed" type="boolean">

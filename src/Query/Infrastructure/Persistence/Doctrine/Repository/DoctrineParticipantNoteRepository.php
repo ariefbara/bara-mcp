@@ -35,4 +35,29 @@ class DoctrineParticipantNoteRepository extends EntityRepository implements Part
         }
     }
 
+    public function aParticipantNoteInProgram(string $programId, string $id): ParticipantNote
+    {
+        $parameters = [
+            'programId' => $programId,
+            'id' => $id,
+        ];
+        
+        $qb = $this->createQueryBuilder('participantNote');
+        $qb->select('participantNote')
+                ->andWhere($qb->expr()->eq('participantNote.id', ':id'))
+                ->leftJoin('participantNote.note', 'note')
+                ->andWhere($qb->expr()->eq('note.removed', 'false'))
+                ->leftJoin('participantNote.participant', 'participant')
+                ->leftJoin('participant.program', 'program')
+                ->andWhere($qb->expr()->eq('program.id', ':programId'))
+                ->setParameters($parameters)
+                ->setMaxResults(1);
+        
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            throw RegularException::notFound('participant note not found');
+        }
+    }
+
 }

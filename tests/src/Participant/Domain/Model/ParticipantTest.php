@@ -21,6 +21,7 @@ use Participant\Domain\Model\Participant\DeclaredMentoring;
 use Participant\Domain\Model\Participant\MentoringRequest;
 use Participant\Domain\Model\Participant\MentoringRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment;
+use Participant\Domain\Model\Participant\ParticipantFileInfo;
 use Participant\Domain\Model\Participant\ParticipantNote;
 use Participant\Domain\Model\Participant\ParticipantProfile;
 use Participant\Domain\Model\Participant\ViewLearningMaterialActivityLog;
@@ -29,12 +30,15 @@ use Participant\Domain\Service\MetricAssignmentReportDataProvider;
 use Participant\Domain\Task\Participant\ParticipantTask;
 use Resources\Domain\Event\CommonEvent;
 use Resources\Domain\ValueObject\DateTimeInterval;
+use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\ConsultationChannel;
+use SharedContext\Domain\ValueObject\LabelData;
 use SharedContext\Domain\ValueObject\ScheduleData;
 use Tests\TestBase;
 
-class ParticipantTest extends TestBase
+class 
+ParticipantTest extends TestBase
 {
 
     protected $participant;
@@ -71,7 +75,9 @@ class ParticipantTest extends TestBase
     //
     protected $participantTask, $payload = 'string represent task payload';
     //
-    protected $participantNoteId = 'participantNoteId', $content = 'note content';
+    protected $participantNoteId = 'participantNoteId', $labelData;
+    //
+    protected $participantFileInfoId = 'participantFileInfoId', $fileInfoData;
 
     protected function setUp(): void
     {
@@ -152,6 +158,16 @@ class ParticipantTest extends TestBase
                 new \DateTimeImmutable('-25 hours'), new \DateTimeImmutable('-24 hours'), 'media type', 'location');
         //
         $this->participantTask = $this->buildMockOfInterface(ParticipantTask::class);
+        //
+        $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
+        $this->fileInfoData->expects($this->any())
+                ->method('getName')
+                ->willReturn('validName.ext');
+        //
+        $this->labelData = new LabelData('name', 'description');
+        //
+        $this->participantFileInfoOne = $this->buildMockOfClass(ParticipantFileInfo::class);
+        $this->participantFileInfoTwo = $this->buildMockOfClass(ParticipantFileInfo::class);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -854,19 +870,37 @@ class ParticipantTest extends TestBase
     //
     protected function submitNote()
     {
-        return $this->participant->submitNote($this->participantNoteId, $this->content);
+        return $this->participant->submitNote($this->participantNoteId, $this->labelData);
     }
     public function test_submitNote_returnParticipantNote()
     {
         $this->assertInstanceOf(ParticipantNote::class, $this->submitNote());
     }
+    
+    //
+    protected function uploadFile()
+    {
+        return $this->participant->uploadFile($this->participantFileInfoId, $this->fileInfoData);
+    }
+    public function test_uploadFile_returnParticipantFileInfo()
+    {
+        $this->assertInstanceOf(ParticipantFileInfo::class, $this->uploadFile());
+    }
+    public function test_uploadFile_setFileInfoDataFolders()
+    {
+        $this->fileInfoData->expects($this->exactly(2))
+                ->method('addFolder')
+                ->withConsecutive(['participant'], [$this->participant->id]);
+        $this->uploadFile();
+    }
+    
 }
 
 class TestableParticipant extends Participant
 {
     public $recordedEvents;
     public $program;
-    public $id;
+    public $id = 'participantId';
     public $active = true;
     public $note;
     public $consultationRequests;

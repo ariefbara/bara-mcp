@@ -43,5 +43,15 @@ class Label
         $this->setName($labelData->getName());
         $this->description = $labelData->getDescription();
     }
+    
+    public function update(LabelData $data): self
+    {
+        return new static($data);
+    }
+    
+    public function sameValueAs(Label $other): bool
+    {
+        return $this->name == $other->name && $this->description == $other->description;
+    }
 
 }

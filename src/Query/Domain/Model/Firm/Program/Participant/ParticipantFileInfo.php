@@ -2,10 +2,8 @@
 
 namespace Query\Domain\Model\Firm\Program\Participant;
 
-use Query\Domain\Model\{
-    Firm\Program\Participant,
-    Shared\FileInfo
-};
+use Query\Domain\Model\Firm\Program\Participant;
+use Query\Domain\Model\Shared\FileInfo;
 
 class ParticipantFileInfo
 {
@@ -28,12 +26,6 @@ class ParticipantFileInfo
      */
     protected $fileInfo;
 
-    /**
-     *
-     * @var bool
-     */
-    protected $removed = false;
-
     function getParticipant(): Participant
     {
         return $this->participant;
@@ -44,14 +36,9 @@ class ParticipantFileInfo
         return $this->id;
     }
 
-    function isRemoved(): bool
-    {
-        return $this->removed;
-    }
-
     protected function __construct()
     {
-        ;
+        
     }
 
     function getFolders(): array

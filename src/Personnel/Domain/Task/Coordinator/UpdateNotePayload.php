@@ -2,6 +2,8 @@
 
 namespace Personnel\Domain\Task\Coordinator;
 
+use SharedContext\Domain\ValueObject\LabelData;
+
 class UpdateNotePayload
 {
 
@@ -15,22 +17,22 @@ class UpdateNotePayload
      * 
      * @var string|null
      */
-    protected $content;
+    protected $labelData;
 
     public function getCoordinatorNoteId(): ?string
     {
         return $this->coordinatorNoteId;
     }
 
-    public function getContent(): ?string
+    public function getLabelData(): ?LabelData
     {
-        return $this->content;
+        return $this->labelData;
     }
 
-    public function __construct(?string $coordinatorNoteId, ?string $content)
+    public function __construct(?string $coordinatorNoteId, ?LabelData $labelData)
     {
         $this->coordinatorNoteId = $coordinatorNoteId;
-        $this->content = $content;
+        $this->labelData = $labelData;
     }
 
 }

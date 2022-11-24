@@ -39,7 +39,7 @@ class SubmitNote implements MentorTask
         $payload->submittedNoteId = $this->consultantNoteRepository->nextIdentity();
         $participant = $this->participantRepository->ofId($payload->getParticipantId());
         $consultantNote = $mentor->submitNote(
-                $payload->submittedNoteId, $participant, $payload->getContent(), $payload->getViewableByParticipant());
+                $payload->submittedNoteId, $participant, $payload->getLabelData(), $payload->getViewableByParticipant());
         $this->consultantNoteRepository->add($consultantNote);
     }
 

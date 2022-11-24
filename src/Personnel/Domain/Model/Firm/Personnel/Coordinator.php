@@ -4,9 +4,11 @@ namespace Personnel\Domain\Model\Firm\Personnel;
 
 use Personnel\Domain\Model\Firm\Personnel;
 use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorNote;
+use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorTask as CoordinatorTask2;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Task\Coordinator\CoordinatorTask;
 use Resources\Exception\RegularException;
+use SharedContext\Domain\ValueObject\LabelData;
 
 class Coordinator
 {
@@ -49,10 +51,16 @@ class Coordinator
     }
 
     public function submitNote(
-            string $coordinatorNoteId, Participant $participant, string $content, bool $viewableByParticipant): CoordinatorNote
+            string $coordinatorNoteId, Participant $participant, LabelData $labelData, bool $viewableByParticipant): CoordinatorNote
     {
         $participant->assertUsableInProgram($this->programId);
-        return new CoordinatorNote($this, $participant, $coordinatorNoteId, $content, $viewableByParticipant);
+        return new CoordinatorNote($this, $participant, $coordinatorNoteId, $labelData, $viewableByParticipant);
+    }
+    
+    public function submitTask(string $coordinatorTaskId, Participant $participant, LabelData $data): CoordinatorTask2
+    {
+        $participant->assertUsableInProgram($this->programId);
+        return new CoordinatorTask2($this, $participant, $coordinatorTaskId, $data);
     }
 
 }

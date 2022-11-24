@@ -2,12 +2,13 @@
 
 namespace Personnel\Domain\Task\Coordinator;
 
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\src\Personnel\Domain\Task\Coordinator\CoordinatorTaskTestBase;
 
 class UpdateNoteTest extends CoordinatorTaskTestBase
 {
     protected $task;
-    protected $payload, $content = 'note content';
+    protected $payload, $labelData;
     
     protected function setUp(): void
     {
@@ -15,7 +16,8 @@ class UpdateNoteTest extends CoordinatorTaskTestBase
         $this->setUpCoordinatorNoteDependency();
         
         $this->task = new UpdateNote($this->coordinatorNoteRepository);
-        $this->payload = new UpdateNotePayload($this->coordinatorNoteId, $this->content);
+        $this->labelData = new LabelData('name', 'description');
+        $this->payload = new UpdateNotePayload($this->coordinatorNoteId, $this->labelData);
     }
     
     protected function execute()
@@ -26,7 +28,7 @@ class UpdateNoteTest extends CoordinatorTaskTestBase
     {
         $this->coordinatorNote->expects($this->once())
                 ->method('update')
-                ->with($this->content);
+                ->with($this->labelData);
         $this->execute();
     }
     public function test_execute_assertCoordinatorNoteManageableByCoordinator()

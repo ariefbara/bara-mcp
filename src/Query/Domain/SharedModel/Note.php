@@ -3,6 +3,7 @@
 namespace Query\Domain\SharedModel;
 
 use DateTimeImmutable;
+use SharedContext\Domain\ValueObject\Label;
 
 class Note
 {
@@ -15,9 +16,9 @@ class Note
 
     /**
      * 
-     * @var string
+     * @var Label
      */
-    protected $content;
+    protected $label;
 
     /**
      * 
@@ -47,9 +48,9 @@ class Note
         return $this->id;
     }
 
-    public function getContent(): string
+    public function getLabel(): Label
     {
-        return $this->content;
+        return $this->label;
     }
 
     public function getCreatedTime(): DateTimeImmutable

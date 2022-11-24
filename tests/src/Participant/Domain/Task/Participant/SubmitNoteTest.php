@@ -2,20 +2,23 @@
 
 namespace Participant\Domain\Task\Participant;
 
+use SharedContext\Domain\ValueObject\LabelData;
 use Tests\src\Participant\Domain\Task\Participant\ParticipantTaskTestBase;
 
 class SubmitNoteTest extends ParticipantTaskTestBase
 {
     protected $task;
-    protected $payload, $content = 'note content';
+    protected $payload, $labelData;
     
     protected function setUp(): void
     {
         parent::setUp();
         $this->setupParticipantNoteDependency();
         
+        $this->labelData = new LabelData('name', 'description');
+        
         $this->task = new SubmitNote($this->participantNoteRepository);
-        $this->payload = new SubmitNotePayload($this->content);
+        $this->payload = new SubmitNotePayload($this->labelData);
     }
     
     protected function execute()
@@ -29,7 +32,7 @@ class SubmitNoteTest extends ParticipantTaskTestBase
     {
         $this->participant->expects($this->once())
                 ->method('submitNote')
-                ->with($this->participantNoteId, $this->content)
+                ->with($this->participantNoteId, $this->labelData)
                 ->willReturn($this->participantNote);
         
         $this->participantNoteRepository->expects($this->once())

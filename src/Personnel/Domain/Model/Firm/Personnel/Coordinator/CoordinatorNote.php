@@ -6,6 +6,7 @@ use Personnel\Domain\Model\Firm\Personnel\Coordinator;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\Note;
+use SharedContext\Domain\ValueObject\LabelData;
 
 class CoordinatorNote
 {
@@ -41,20 +42,21 @@ class CoordinatorNote
     protected $viewableByParticipant;
 
     public function __construct(
-            Coordinator $coordinator, Participant $participant, string $id, string $content, bool $viewableByParticipant)
+            Coordinator $coordinator, Participant $participant, string $id, LabelData $labelData,
+            bool $viewableByParticipant)
     {
         $this->coordinator = $coordinator;
         $this->participant = $participant;
         $this->id = $id;
-        $this->note = new Note($id, $content);
+        $this->note = new Note($id, $labelData);
         $this->viewableByParticipant = $viewableByParticipant;
     }
-    
-    public function update(string $content): void
+
+    public function update(LabelData $labelData): void
     {
-        $this->note->update($content);
+        $this->note->update($labelData);
     }
-    
+
     public function showToParticipant(): void
     {
         $this->viewableByParticipant = true;
@@ -64,17 +66,17 @@ class CoordinatorNote
     {
         $this->viewableByParticipant = false;
     }
-    
+
     public function remove(): void
     {
         $this->note->remove();
     }
-    
+
     public function assertManageableByCoordinator(Coordinator $coordinator): void
     {
         if ($this->coordinator !== $coordinator) {
             throw RegularException::forbidden('unmanaged coordinator note, can only managed own note');
         }
     }
-    
+
 }

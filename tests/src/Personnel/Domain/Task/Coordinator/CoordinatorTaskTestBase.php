@@ -4,8 +4,10 @@ namespace Tests\src\Personnel\Domain\Task\Coordinator;
 
 use Personnel\Domain\Model\Firm\Personnel\Coordinator;
 use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorNote;
+use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorTask;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Task\Dependency\Firm\Personnel\Coordinator\CoordinatorNoteRepository;
+use Personnel\Domain\Task\Dependency\Firm\Personnel\Coordinator\CoordinatorTaskRepository;
 use Personnel\Domain\Task\Dependency\Firm\Program\ParticipantRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestBase;
@@ -65,6 +67,27 @@ class CoordinatorTaskTestBase extends TestBase
                 ->method('ofId')
                 ->with($this->participantId)
                 ->willReturn($this->participant);
+    }
+    
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $coordinatorTaskRepository;
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $coordinatorTask;
+    protected $coordinatorTaskId = 'coordinatorTaskId';
+    protected function setUpCoordinatorTaskDependency()
+    {
+        $this->coordinatorTaskRepository = $this->buildMockOfInterface(CoordinatorTaskRepository::class);
+        $this->coordinatorTask = $this->buildMockOfClass(CoordinatorTask::class);
+        $this->coordinatorTaskRepository->expects($this->any())
+                ->method('ofId')
+                ->with($this->coordinatorTaskId)
+                ->willReturn($this->coordinatorTask);
     }
     
 
