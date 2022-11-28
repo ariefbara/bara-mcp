@@ -103,6 +103,9 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/worksheet-list-in-coordinated-programs', ['uses' => "WorksheetController@viewListInCoordinatedProgram"]);
     $router->get('/worksheet-list-in-consulted-programs', ['uses' => "WorksheetController@viewListInConsultedProgram"]);
     
+    // participant related route in personnel BC
+    $router->get('/participant-summary-list-in-coordinated-program', ['uses' => "ParticipantController@viewSummaryListInCoordinatedProgram"]);
+    
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/update", ["uses" => "AccountController@updateProfile"]);

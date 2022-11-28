@@ -50,7 +50,7 @@ class ParticipantSummaryListFilter
 
     /**
      * 
-     * @var string
+     * @var string|null
      */
     protected $order;
 
@@ -84,7 +84,7 @@ class ParticipantSummaryListFilter
         return $this;
     }
 
-    public function setOrder(string $order)
+    public function setOrder(?string $order)
     {
         $this->order = $order;
         return $this;
@@ -102,7 +102,11 @@ class ParticipantSummaryListFilter
         }
         $parameters['name'] = "%{$this->name}%";
         return <<<_STATEMENT
-    AND participantName LIKE = :name
+    AND (
+        User.firstName LIKE :name OR User.lastName LIKE :name
+        OR Client.firstName LIKE :name OR Client.lastName LIKE :name
+        OR Team.name LIKE :name
+    )
 _STATEMENT;
     }
     protected function getMissionCompletionFromCriteria(&$parameters): ?string
@@ -112,19 +116,38 @@ _STATEMENT;
         }
         $parameters['missionCompletionFrom'] = $this->missionCompletionFrom;
         return <<<_STATEMENT
-    AND participantName LIKE = :name
+    AND ROUND((_completedMission.totalCompletedMission / _mission.totalMission) * 100) >= :missionCompletionFrom
 _STATEMENT;
     }
     protected function getMissionCompletionToCriteria(&$parameters): ?string
     {
-        
+        if (empty($this->missionCompletionTo)) {
+            return null;
+        }
+        $parameters['missionCompletionTo'] = $this->missionCompletionTo;
+        return <<<_STATEMENT
+    AND ROUND((_completedMission.totalCompletedMission / _mission.totalMission) * 100) <= :missionCompletionTo
+_STATEMENT;
     }
     protected function getMetricAchievementFromCriteria(&$parameters): ?string
     {
-        
+        if (empty($this->metricAchievementFrom)) {
+            return null;
+        }
+        $parameters['metricAchievementFrom'] = $this->metricAchievementFrom;
+        return <<<_STATEMENT
+    AND ROUND(_metricAssignment.normalizedAchievement * 100) >= :metricAchievementFrom
+_STATEMENT;
     }
     protected function getMetricAchievementToCriteria(&$parameters): ?string
     {
+        if (empty($this->metricAchievementTo)) {
+            return null;
+        }
+        $parameters['metricAchievementTo'] = $this->metricAchievementTo;
+        return <<<_STATEMENT
+    AND ROUND(_metricAssignment.normalizedAchievement * 100) <= :metricAchievementTo
+_STATEMENT;
         
     }
     
@@ -140,7 +163,16 @@ _STATEMENT;
 
     public function getOrderStatement(): ?string
     {
-        
+        switch ($this->order) {
+            case self::ORDER_BY_METRIC_ACHIEVEMENT_ASC:
+                return "ORDER BY normalizedAchievement ASC";
+            case self::ORDER_BY_METRIC_ACHIEVEMENT_DESC:
+                return "ORDER BY normalizedAchievement DESC";
+            case self::ORDER_BY_MISSION_COMPLETION_ASC:
+                return "ORDER BY missionCompletion ASC";
+            default:
+                return "ORDER BY missionCompletion DESC";
+        }
     }
 
     public function getLimitStatement(): ?string

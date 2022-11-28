@@ -501,7 +501,7 @@ FROM Worksheet
         AND DedicatedMentor.Participant_id = Participant.id
         AND DedicatedMentor.cancelled = false
     
-WHERE Worksheet.removed = false
+WHERE Worksheet.removed = falseto
     {$filter->getOptionalConditionStatement($parameters)}
 {$filter->getOrderStatement()}
 {$filter->getLimitStatement()}

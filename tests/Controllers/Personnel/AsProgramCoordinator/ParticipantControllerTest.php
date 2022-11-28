@@ -711,6 +711,7 @@ echo $uri;
             "note" => "completed",
         ];
         $uri = $this->participantUri . "/{$this->participant->id}/qualify";
+echo $uri;
         $this->patch($uri, [], $this->coordinator->personnel->token)
                 ->seeJsonContains($response)
                 ->seeStatusCode(200);

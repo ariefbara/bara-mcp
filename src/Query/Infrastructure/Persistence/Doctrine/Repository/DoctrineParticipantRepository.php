@@ -487,7 +487,118 @@ _STATEMENT;
     public function summaryListInAllProgramsCoordinatedByPersonnel(string $personnelId,
             ParticipantSummaryListFilterForCoordinator $filter)
     {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
         
+        $sql = <<<_SQL
+SELECT
+    Participant.id,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) name,
+    
+    _completedMission.totalCompletedMission,
+    _mission.totalMission,
+    ROUND((_completedMission.totalCompletedMission / _mission.totalMission) * 100) missionCompletion,
+    
+    ROUND(_metricAssignment.normalizedAchievement * 100) normalizedAchievement,
+    ROUND(_metricAssignment.achievement * 100) achievement,
+    _metricAssignment.completedMetric,
+    _metricAssignment.totalAssignedMetric,
+    
+    Coordinator.id coordinatorId,
+    Coordinator.Program_id programId,
+    Program.name programName
+    
+FROM Participant
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+                
+    INNER JOIN Coordinator 
+        ON Coordinator.Program_id = Participant.Program_id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+    INNER JOIN Program ON Program.id = Coordinator.Program_id AND Program.published = true
+                
+    LEFT JOIN (
+        SELECT COUNT(DISTINCT Mission_id) totalCompletedMission, Participant_id
+        FROM CompletedMission
+            INNER JOIN Mission ON Mission.id = CompletedMission.Mission_id AND Mission.published = true
+        GROUP BY Participant_id
+    )_completedMission ON _completedMission.Participant_id = Participant.id
+    
+    LEFT JOIN (
+        SELECT COUNT(*) totalMission, Program_id
+        FROM Mission
+        WHERE Mission.Published = true
+        GROUP BY Program_id
+    )_mission ON _mission.Program_id = Participant.Program_id
+                
+    LEFT JOIN (
+        SELECT
+            MetricAssignment.Participant_id,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(AssignmentFieldValue.inputValue/AssignmentField.target) / COUNT(AssignmentField.target),
+                NULL
+            ) achievement,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(
+                    IF(
+                        AssignmentFieldValue.inputValue >= AssignmentField.target, 
+                        1, 
+                        AssignmentFieldValue.inputValue / AssignmentField.target
+                    )
+                ) / COUNT(AssignmentField.target),
+                NULL
+            ) normalizedAchievement,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(IF(AssignmentFieldValue.inputValue >= AssignmentField.target, 1, 0)),
+                NULL
+            ) completedMetric,
+            COUNT(AssignmentField.target) totalAssignedMetric
+            
+        FROM MetricAssignment
+            LEFT JOIN AssignmentField ON AssignmentField.MetricAssignment_id = MetricAssignment.id
+                
+            LEFT JOIN (
+                SELECT _mar2.id, _mar2.MetricAssignment_id
+                FROM (
+                    SELECT MetricAssignment_id, MAX(observationTime) observationTime
+                    FROM MetricAssignmentReport
+                    WHERE approved = true AND removed = false
+                    GROUP BY MetricAssignment_id
+                )_mar1
+                INNER JOIN MetricAssignmentReport _mar2 USING (MetricAssignment_id, observationTime)
+            )_metricAssignmentReport ON _metricAssignmentReport.MetricAssignment_id = MetricAssignment.id
+            
+            LEFT JOIN AssignmentFieldValue 
+                ON AssignmentFieldValue.MetricAssignmentReport_id = _metricAssignmentReport.id
+                AND AssignmentFieldValue.AssignmentField_id = AssignmentField.id
+                
+        GROUP BY Participant_id
+    )_metricAssignment ON _metricAssignment.Participant_id = Participant.id
+                
+WHERE Participant.active = true
+    {$filter->getCriteriaStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+    
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return [
+            'total' => $this->totalSummaryListInAllProgramsCoordinatedByPersonnel($personnelId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
     }
     protected function totalSummaryListInAllProgramsCoordinatedByPersonnel(string $personnelId,
             ParticipantSummaryListFilterForCoordinator $filter)
@@ -499,6 +610,12 @@ _STATEMENT;
         $sql = <<<_SQL
 SELECT COUNT(*) total
 FROM Participant
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
                 
     INNER JOIN Coordinator 
         ON Coordinator.Program_id = Participant.Program_id
@@ -506,68 +623,72 @@ FROM Participant
         AND Coordinator.active = true
                 
     LEFT JOIN (
-        SELECT Participant_id, COUNT(DISTINCT Mission_id) totalCompletedMission
+        SELECT COUNT(DISTINCT Mission_id) totalCompletedMission, Participant_id
         FROM CompletedMission
+            INNER JOIN Mission ON Mission.id = CompletedMission.Mission_id AND Mission.published = true
         GROUP BY Participant_id
-    )_a ON _a.Participant_id = Participant.id
+    )_completedMission ON _completedMission.Participant_id = Participant.id
     
     LEFT JOIN (
-        SELECT COUNT(*) totalMission, Mission.Program_id programId
+        SELECT COUNT(*) totalMission, Program_id
         FROM Mission
         WHERE Mission.Published = true
-        GROUP BY programId
-    )_b ON _b.programId = Participant.programId
+        GROUP BY Program_id
+    )_mission ON _mission.Program_id = Participant.Program_id
                 
     LEFT JOIN (
-        SELECT 
+        SELECT
             MetricAssignment.Participant_id,
-            CASE WHEN COUNT(_f3.target) IS NULL THEN NULL
-                ELSE SUM(__d.inputValue/_f3.target)/COUNT(_f3.target)
-            END achievement,
-            CASE WHEN COUNT(_f3.target) IS NULL THEN NULL
-                ELSE SUM(CASE WHEN __d.inputValue >= _f3.target THEN 1 ELSE 0 END)
-            END completedMetric,
-            COUNT(_f3.target) totalAssignedMetric,
-            _f2.id reportId
-        FROM (
-            SElECT MetricAssignment_id, MAX(observationTime) observationTime
-            FROM MetricAssignmentReport
-            WHERE approved = true AND removed = false
-            GROUP BY MetricAssignment_id
-        )_c1
-        INNER JOIN MetricAssignmentReport USING (MetricAssignment_id, observationTime)
-        INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
-        LEFT JOIN AssignmentField 
-            ON AssignmentField.MetricAssignment_id = MetricAssignment.id 
-            AND AssignmentField.disabled = false
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(AssignmentFieldValue.inputValue/AssignmentField.target) / COUNT(AssignmentField.target),
+                NULL
+            ) achievement,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(
+                    IF(
+                        AssignmentFieldValue.inputValue >= AssignmentField.target, 
+                        1, 
+                        AssignmentFieldValue.inputValue / AssignmentField.target
+                    )
+                ) / COUNT(AssignmentField.target),
+                NULL
+            ) normalizedAchievement,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(IF(AssignmentFieldValue.inputValue >= AssignmentField.target, 1, 0)),
+                NULL
+            ) completedMetric,
+            COUNT(AssignmentField.target) totalAssignedMetric
+            
+        FROM MetricAssignment
                 
-        LEFT JOIN AssignmentFieldValue 
-            ON AssignmentFieldValue.AssignmentField_id = AssignmentField.id 
-            AND AssignmentFieldValue.removed = false
+            LEFT JOIN AssignmentField ON AssignmentField.MetricAssignment_id = MetricAssignment.id
                 
-        WHERE MetricAssignmentReport.removed = false AND MetricAssignmentReport.approved = true
-                
-                
-        LEFT JOIN (
-            SELECT id, `target`, MetricAssignment_id
-            FROM AssignmentField
-            WHERE disabled = false
-        )_f3 ON _f3.MetricAssignment_id = _f2.MetricAssignment_id
-        LEFT JOIN (
-            SELECT inputValue, MetricAssignmentReport_id, AssignmentField_id
-            FROM AssignmentFieldValue
-            WHERE removed = false
-        )__d ON __d.MetricAssignmentReport_id = _f2.id AND __d.AssignmentField_id = _f3.id
-        WHERE _f2.approved = true AND _f2.removed = false
-        GROUP BY reportId
-    )_c ON _c.Participant_id = Participant.id
+            LEFT JOIN (
+                SELECT _mar2.id, _mar2.MetricAssignment_id
+                FROM (
+                    SELECT MetricAssignment_id, MAX(observationTime) observationTime
+                    FROM MetricAssignmentReport
+                    WHERE approved = true AND removed = false
+                    GROUP BY MetricAssignment_id
+                )_mar1
+                INNER JOIN MetricAssignmentReport _mar2 USING (MetricAssignment_id, observationTime)
+            )_metricAssignmentReport ON _metricAssignmentReport.MetricAssignment_id = MetricAssignment.id
+            
+            LEFT JOIN AssignmentFieldValue 
+                ON AssignmentFieldValue.MetricAssignmentReport_id = _metricAssignmentReport.id
+                AND AssignmentFieldValue.AssignmentField_id = AssignmentField.id
+        GROUP BY Participant_id
+    )_metricAssignment ON _metricAssignment.Participant_id = Participant.id
                 
 WHERE Participant.active = true
     {$filter->getCriteriaStatement($parameters)}
 _SQL;
+    
         $query = $this->getEntityManager()->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
-
     }
 
 }

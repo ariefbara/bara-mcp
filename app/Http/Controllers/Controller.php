@@ -17,6 +17,7 @@ use Notification\Infrastructure\MailManager\SwiftMailSender;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use Resources\PaginationFilter;
 use SharedContext\Infrastructure\Persistence\Flysystem\FlysystemFileRepository;
 use Swift_Mailer;
 use Swift_SmtpTransport;
@@ -317,6 +318,11 @@ class Controller extends BaseController
         $adapter = new Local($root);
         $filessystem = new Filesystem($adapter);
         return new FlysystemFileRepository($filessystem);
+    }
+    
+    protected function getPaginationFilter(): PaginationFilter
+    {
+        return new PaginationFilter($this->getPage(), $this->getPageSize());
     }
     
 }

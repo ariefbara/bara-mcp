@@ -135,29 +135,29 @@ class WorksheetControllerTest extends PersonnelTestCase
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('Program')->truncate();
-        $this->connection->table('Consultant')->truncate();
-        $this->connection->table('Coordinator')->truncate();
-        //
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('Team')->truncate();
-        $this->connection->table('User')->truncate();
-        $this->connection->table('Participant')->truncate();
-        $this->connection->table('ClientParticipant')->truncate();
-        $this->connection->table('TeamParticipant')->truncate();
-        $this->connection->table('UserParticipant')->truncate();
-        //
-        $this->connection->table('DedicatedMentor')->truncate();
-        //
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('FormRecord')->truncate();
-        $this->connection->table('WorksheetForm')->truncate();
-        $this->connection->table('Mission')->truncate();
-        //
-        $this->connection->table('Worksheet')->truncate();
-        $this->connection->table('Comment')->truncate();
-        $this->connection->table('ConsultantComment')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('Program')->truncate();
+//        $this->connection->table('Consultant')->truncate();
+//        $this->connection->table('Coordinator')->truncate();
+//        //
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('Team')->truncate();
+//        $this->connection->table('User')->truncate();
+//        $this->connection->table('Participant')->truncate();
+//        $this->connection->table('ClientParticipant')->truncate();
+//        $this->connection->table('TeamParticipant')->truncate();
+//        $this->connection->table('UserParticipant')->truncate();
+//        //
+//        $this->connection->table('DedicatedMentor')->truncate();
+//        //
+//        $this->connection->table('Form')->truncate();
+//        $this->connection->table('FormRecord')->truncate();
+//        $this->connection->table('WorksheetForm')->truncate();
+//        $this->connection->table('Mission')->truncate();
+//        //
+//        $this->connection->table('Worksheet')->truncate();
+//        $this->connection->table('Comment')->truncate();
+//        $this->connection->table('ConsultantComment')->truncate();
     }
     
     protected function viewListInCoordinatedProgram()
@@ -385,6 +385,7 @@ $this->disableExceptionHandling();
     }
     public function test_viewListInConsultedProgram_fromMentorDashboard()
     {
+$this->disableExceptionHandling();
         $this->viewListInConsultedProgramUri .= 
                 "?onlyDedicatedMentee=true"
                 . "&reviewedStatus=false";

@@ -30,6 +30,13 @@ class ParticipantSummaryListFilterForCoordinator
     //
     protected function getProgramCriteria(&$parameters): ?string
     {
+        if (empty($this->programId)) {
+            return null;
+        }
+        $parameters['programId'] = $this->programId;
+        return <<<_STATEMENT
+    AND Participant.Program_id = :programId
+_STATEMENT;
     }
     
     //
