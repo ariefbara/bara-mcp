@@ -8,7 +8,7 @@ class CommonViewListPayload
     protected $filter;
     public $result;
 
-    public function __construct($filter)
+    public function __construct($filter = null)
     {
         $this->filter = $filter;
     }

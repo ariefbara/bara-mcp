@@ -105,6 +105,7 @@ $router->group($personnelAggregate, function () use ($router) {
     
     // participant related route in personnel BC
     $router->get('/participant-summary-list-in-coordinated-program', ['uses' => "ParticipantController@viewSummaryListInCoordinatedProgram"]);
+    $router->get('/participant-list-in-coordinated-program', ['uses' => "ParticipantController@listInCoordinatedProgram"]);
     
     // metric assignment report related route in personnel BC
     $router->get('/metric-assignment-report-list-in-coordinated-programs', ['uses' => "MetricAssignmentReportController@viewListInCoordinatedPrograms"]);
@@ -112,6 +113,12 @@ $router->group($personnelAggregate, function () use ($router) {
     
     //mentoring related route in personnel BC
     $router->get('/mentoring-list-in-coordinated-programs', ['uses' => "MentoringController@mentoringListInCoordinatedPrograms"]);
+    
+    //program related route in personnel BC
+    $router->get('/list-of-coordinated-program', ['uses' => "ProgramController@listOfCoordinatedProgram"]);
+    
+    //mission related route in personnel BC
+    $router->get('/mission-list-in-coordinated-program', ['uses' => "MissionController@missionListInCoordinatedProgram"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
@@ -534,6 +541,7 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/mentoring-requests/{id}", ["uses" => "MentoringController@viewMentoringRequestDetail"]);
         $router->get("/negotiated-mentorings/{id}", ["uses" => "MentoringController@viewNegotiatedMentoringDetail"]);
         $router->get("/booked-mentoring-slots/{id}", ["uses" => "MentoringController@viewBookedMentoringSlotDetail"]);
+        $router->get("/mentoring-slots/{id}", ["uses" => "MentoringController@viewMentoringSlotDetail"]);
         $router->get("/declared-mentorings/{id}", ["uses" => "MentoringController@viewDeclaredMentoringDetail"]);
         
         $router->get("/program-participants/{participantId}/valid-activity-invitations", ["uses" => "ActivityController@viewAllValidInvitationsToParticipant"]);

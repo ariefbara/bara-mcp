@@ -422,6 +422,7 @@ $this->disableExceptionHandling();
         $this->mentoringListInCoordinatedPrograms();
         $this->seeStatusCode(200);
         
+//$this->seeJsonContains(['print']);
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['mentoringRequestId' => $this->mentoringRequestOne->id]);
         $this->seeJsonDoesntContains(['bookedMentoringSlotId' => $this->bookedMentoringSlotTwo->id]);

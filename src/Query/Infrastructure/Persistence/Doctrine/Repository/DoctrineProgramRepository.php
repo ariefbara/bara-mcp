@@ -298,4 +298,26 @@ _STATEMENT;
         return $query->executeQuery($params)->fetchAllAssociative();
     }
 
+    public function listOfCoordinatedProgramByPersonnel(string $personnelId)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Program.id,
+    Program.name,
+    Coordinator.id coordinatorId
+FROM Program
+    INNER JOIN Coordinator 
+        ON Coordinator.Program_id = Program.id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+_SQL;
+        
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
 }

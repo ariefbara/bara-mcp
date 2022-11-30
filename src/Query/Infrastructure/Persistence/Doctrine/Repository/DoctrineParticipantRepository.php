@@ -13,6 +13,7 @@ use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomainService;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantFilter;
+use Query\Domain\Task\Dependency\Firm\Program\ParticipantListFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantRepository as ParticipantRepository2;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilterForCoordinator;
 use Resources\Exception\RegularException;
@@ -689,6 +690,43 @@ _SQL;
     
         $query = $this->getEntityManager()->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function listOfParticipantInAllProgramCoordinatedByPersonnel(string $personnelId,
+            ParticipantListFilter $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Participant.id,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) name
+                
+FROM Participant
+    INNER JOIN Coordinator
+        ON Coordinator.Program_id = Participant.Program_id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+                
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+                
+WHERE 1
+    {$filter->getCriteriaStatement($parameters)}
+_SQL;
+        
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
     }
 
 }

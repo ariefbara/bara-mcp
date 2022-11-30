@@ -2,8 +2,10 @@
 
 namespace Tests\Controllers\Personnel\Coordinator;
 
+use DateTime;
 use SharedContext\Domain\ValueObject\DeclaredMentoringStatus;
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\MentoringSlot\RecordOfBookedMentoringSlot;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfMentoringSlot;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MentoringRequest\RecordOfNegotiatedMentoring;
@@ -21,15 +23,19 @@ class MentoringControllerTest extends ExtendedCoordinatorTestCase
     protected $mentoringUri;
     protected $mentoringRequestOne;
     protected $negotiatedMentoringTwo;
+    protected $mentoringSlotThree;
     protected $bookedMentoringSlotThree;
     protected $declaredMentoringFour;
     protected $mentoringRequestFive_p2;
+    protected $clientParticipantOne;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->mentoringUri = $this->coordinatorUri . "/mentorings";
         
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -47,6 +53,10 @@ class MentoringControllerTest extends ExtendedCoordinatorTestCase
         $participantOne = new RecordOfParticipant($program, 1);
         $participantTwo = new RecordOfParticipant($program, 2);
         
+        $clientOne = new \Tests\Controllers\RecordPreparation\Firm\RecordOfClient($program->firm, 1);
+        
+        $this->clientParticipantOne = new RecordOfClientParticipant($clientOne, $participantOne);
+        
         $mentorOne = new RecordOfConsultant($program, $personnelOne, 1);
         
         $consultationSetupOne = new RecordOfConsultationSetup($program, null, null, 1);
@@ -63,8 +73,8 @@ class MentoringControllerTest extends ExtendedCoordinatorTestCase
 
         $this->negotiatedMentoringTwo = new RecordOfNegotiatedMentoring($mentoringRequestTwo, $mentoringTwo);
 
-        $mentoringSlotOne = new RecordOfMentoringSlot($mentorOne, $consultationSetupOne, 1);
-        $this->bookedMentoringSlotThree = new RecordOfBookedMentoringSlot($mentoringSlotOne, $mentoringThree, $participantOne);
+        $this->mentoringSlotThree = new RecordOfMentoringSlot($mentorOne, $consultationSetupOne, 3);
+        $this->bookedMentoringSlotThree = new RecordOfBookedMentoringSlot($this->mentoringSlotThree, $mentoringThree, $participantOne);
 
         $this->declaredMentoringFour = new RecordOfDeclaredMentoring($mentorOne, $participantOne, $consultationSetupOne, $mentoringFour);
     }
@@ -72,6 +82,8 @@ class MentoringControllerTest extends ExtendedCoordinatorTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('Consultant')->truncate();
         $this->connection->table('ConsultationSetup')->truncate();
@@ -212,9 +224,9 @@ $this->disableExceptionHandling();
     }
     public function test_viewAll_fromFilter()
     {
-        $this->mentoringRequestOne->startTime = (new \DateTime('+72 hours'));
-        $this->mentoringRequestOne->endTime = (new \DateTime('+73 hours'));
-        $fromFilter = (new \DateTime('+48 hours'))->format('Y-m-d H:i:s');
+        $this->mentoringRequestOne->startTime = (new DateTime('+72 hours'));
+        $this->mentoringRequestOne->endTime = (new DateTime('+73 hours'));
+        $fromFilter = (new DateTime('+48 hours'))->format('Y-m-d H:i:s');
         $this->mentoringUri .= "?from={$fromFilter}";
         
         $this->viewAll();
@@ -229,7 +241,7 @@ $this->disableExceptionHandling();
     }
     public function test_viewAll_toFilter()
     {
-        $toFilter = (new \DateTime())->format('Y-m-d H:i:s');
+        $toFilter = (new DateTime())->format('Y-m-d H:i:s');
         $this->mentoringUri .= "?to={$toFilter}";
         
         $this->viewAll();
@@ -245,8 +257,8 @@ $this->disableExceptionHandling();
     public function test_viewAll_useOrder()
     {
         $this->mentoringUri .= "?order=DESC&pageSize=1";
-        $this->negotiatedMentoringTwo->mentoringRequest->startTime = (new \DateTime('+360 hours'));
-        $this->negotiatedMentoringTwo->mentoringRequest->endTime = (new \DateTime('+362 hours'));
+        $this->negotiatedMentoringTwo->mentoringRequest->startTime = (new DateTime('+360 hours'));
+        $this->negotiatedMentoringTwo->mentoringRequest->endTime = (new DateTime('+362 hours'));
         
         $this->viewAll();
         $this->seeStatusCode(200);
@@ -328,12 +340,14 @@ $this->disableExceptionHandling();
         $this->mentoringRequestOne->insert($this->connection);
         
         $uri = $this->coordinatorUri . "/mentoring-requests/{$this->mentoringRequestOne->id}";
+echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
     }
     public function test_viewMentoringRequestDetail_200()
     {
         $this->viewMentoringRequestDetail();
         $this->seeStatusCode(200);
+$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->mentoringRequestOne->id,
@@ -353,6 +367,8 @@ $this->disableExceptionHandling();
                 'id' => $this->mentoringRequestOne->consultationSetup->id,
                 'name' => $this->mentoringRequestOne->consultationSetup->name,
             ],
+            'participantReport' => null,
+            'mentorReport' => null,
         ];
         $this->seeJsonContains($respose);
     }
@@ -449,6 +465,7 @@ $this->disableExceptionHandling();
         $this->bookedMentoringSlotThree->insert($this->connection);
         
         $uri = $this->coordinatorUri . "/booked-mentoring-slots/{$this->bookedMentoringSlotThree->id}";
+echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
     }
     public function test_viewBookedMentoringSlotDetail_200()
@@ -456,6 +473,7 @@ $this->disableExceptionHandling();
 $this->disableExceptionHandling();
         $this->viewBookedMentoringSlotDetail();
         $this->seeStatusCode(200);
+$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->bookedMentoringSlotThree->id,
@@ -515,6 +533,7 @@ $this->disableExceptionHandling();
         $this->declaredMentoringFour->insert($this->connection);
         
         $uri = $this->coordinatorUri . "/declared-mentorings/{$this->declaredMentoringFour->id}";
+echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
     }
     public function test_viewDeclaredMentoringDetail_200()
@@ -522,6 +541,7 @@ $this->disableExceptionHandling();
 $this->disableExceptionHandling();
         $this->viewDeclaredMentoringDetail();
         $this->seeStatusCode(200);
+$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->declaredMentoringFour->id,
@@ -562,6 +582,89 @@ $this->disableExceptionHandling();
         $this->coordinator->active = false;
         
         $this->viewDeclaredMentoringDetail();
+        $this->seeStatusCode(403);
+    }
+    
+    protected function viewMentoringSlotDetail()
+    {
+        $this->persistCoordinatorDependency();
+        
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->clientParticipantOne->insert($this->connection);
+        
+        $this->mentoringSlotThree->consultant->personnel->insert($this->connection);
+        $this->mentoringSlotThree->consultationSetup->insert($this->connection);
+        $this->mentoringSlotThree->consultant->insert($this->connection);
+        $this->mentoringSlotThree->insert($this->connection);
+        
+        $this->bookedMentoringSlotThree->insert($this->connection);
+        
+        $uri = $this->coordinatorUri . "/mentoring-slots/{$this->bookedMentoringSlotThree->mentoringSlot->id}";
+echo $uri;
+        $this->get($uri, $this->coordinator->personnel->token);
+    }
+    public function test_viewMentoringSlotDetail_200()
+    {
+$this->disableExceptionHandling();
+        $this->viewMentoringSlotDetail();
+        $this->seeStatusCode(200);
+$this->seeJsonContains(['print']);
+        
+        $response = [
+            'id' => $this->mentoringSlotThree->id,
+            'cancelled' => $this->mentoringSlotThree->cancelled,
+            'capacity' => $this->mentoringSlotThree->capacity,
+            'startTime' => $this->mentoringSlotThree->startTime->format('Y-m-d H:i:s'),
+            'endTime' => $this->mentoringSlotThree->endTime->format('Y-m-d H:i:s'),
+            'mediaType' => $this->mentoringSlotThree->mediaType,
+            'location' => $this->mentoringSlotThree->location,
+            'mentor' => [
+                'id' => $this->mentoringSlotThree->consultant->id,
+                'personnel' => [
+                    'id' => $this->mentoringSlotThree->consultant->personnel->id,
+                    'name' => $this->mentoringSlotThree->consultant->personnel->getFullName(),
+                ],
+                
+            ],
+            'consultationSetup' => [
+                'id' => $this->mentoringSlotThree->consultationSetup->id,
+                'name' => $this->mentoringSlotThree->consultationSetup->name,
+                'participantFeedbackForm' => null,
+                'mentorFeedbackForm' => null,
+            ],
+            'bookedSlots' => [
+                [
+                    'id' => $this->bookedMentoringSlotThree->id,
+                    'participant' => [
+                        'id' => $this->bookedMentoringSlotThree->participant->id,
+                        'client' => [
+                            'id' => $this->clientParticipantOne->client->id,
+                            'name' => $this->clientParticipantOne->client->getFullName(),
+                        ],
+                        'team' => null,
+                        'user' => null,
+                    ],
+                    'participantReport' => null,
+                    'mentorReport' => null,
+                ],
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_viewMentoringSlotDetail_inaccessibleMentoringSlot_belongsToConsultantOfOtherProgram_404()
+    {
+        $otherProgram = new RecordOfProgram($this->personnel->firm, 'other');
+        $otherProgram->insert($this->connection);
+        $this->mentoringSlotThree->consultant->program = $otherProgram;
+        
+        $this->viewMentoringSlotDetail();
+        $this->seeStatusCode(404);
+    }
+    public function test_viewMentoringSlotDetail_inactiveCoordinator_403()
+    {
+        $this->coordinator->active = false;
+        
+        $this->viewMentoringSlotDetail();
         $this->seeStatusCode(403);
     }
 

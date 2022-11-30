@@ -546,4 +546,28 @@ _STATEMENT;
         return $resultSet->fetchFirstColumn()[0];
     }
 
+    public function missionListInAllProgramCoordinatedByPersonnel(string $personnelId)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Mission.id,
+    Mission.name,
+    Form.name formName
+FROM Mission
+    INNER JOIN Coordinator
+    ON Coordinator.Program_id = Mission.Program_id
+    AND Coordinator.Personnel_id = :personnelId
+    AND Coordinator.active = true
+
+    LEFT JOIN WorksheetForm ON WorksheetForm.id = Mission.WorksheetForm_id
+    LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
+_SQL;
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
 }

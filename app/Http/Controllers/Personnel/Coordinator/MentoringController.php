@@ -4,13 +4,18 @@ namespace App\Http\Controllers\Personnel\Coordinator;
 
 use App\Http\Controllers\FormRecordToArrayDataConverter;
 use App\Http\Controllers\FormToArrayDataConverter;
+use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\FeedbackForm;
 use Query\Domain\Model\Firm\Program\Consultant;
+use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot;
 use Query\Domain\Model\Firm\Program\Consultant\MentoringSlot\BookedMentoringSlot;
 use Query\Domain\Model\Firm\Program\ConsultationSetup;
+use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\DeclaredMentoring;
 use Query\Domain\Model\Firm\Program\Participant\MentoringRequest;
 use Query\Domain\Model\Firm\Program\Participant\MentoringRequest\NegotiatedMentoring;
+use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
+use Query\Domain\Model\User\UserParticipant;
 use Query\Domain\SharedModel\Mentoring\MentorReport;
 use Query\Domain\SharedModel\Mentoring\ParticipantReport;
 use Query\Domain\Task\CommonViewDetailPayload;
@@ -20,6 +25,7 @@ use Query\Domain\Task\InProgram\ViewAllMentoringPayload;
 use Query\Domain\Task\InProgram\ViewBookedMentoringSlotDetail;
 use Query\Domain\Task\InProgram\ViewDeclaredMentoringDetail;
 use Query\Domain\Task\InProgram\ViewMentoringRequestDetail;
+use Query\Domain\Task\InProgram\ViewMentoringSlotDetail;
 use Query\Domain\Task\InProgram\ViewNegotiatedMentoringDetail;
 use Query\Infrastructure\Persistence\Doctrine\Repository\CustomDoctrineMentoringRepository;
 
@@ -54,6 +60,7 @@ class MentoringController extends CoordinatorBaseController
     }
     protected function arrayDataOfMentoringRequest(MentoringRequest $mentoringRequest): array
     {
+        $negotiatedMentoring = $mentoringRequest->getNegotiatedMentoring();
         return [
             'id' => $mentoringRequest->getId(),
             'startTime' => $mentoringRequest->getStartTimeString(),
@@ -66,6 +73,8 @@ class MentoringController extends CoordinatorBaseController
                 'id' => $mentoringRequest->getConsultationSetup()->getId(),
                 'name' => $mentoringRequest->getConsultationSetup()->getName(),
             ],
+            'participantReport' => $negotiatedMentoring ? $this->arrayDataOfParticipantReport($negotiatedMentoring->getParticipantReport()) : null,
+            'mentorReport' => $negotiatedMentoring ? $this->arrayDataOfMentorReport($negotiatedMentoring->getMentorReport()) : null,
         ];
     }
     
@@ -161,6 +170,41 @@ class MentoringController extends CoordinatorBaseController
         ];
     }
     
+    public function viewMentoringSlotDetail($coordinatorId, $id)
+    {
+        $mentoringSlotRepository = $this->em->getRepository(MentoringSlot::class);
+        $task = new ViewMentoringSlotDetail($mentoringSlotRepository);
+        $payload = new CommonViewDetailPayload($id);
+        
+        $this->executeProgramQueryTask($coordinatorId, $task, $payload);
+        
+        return $this->singleQueryResponse($this->arrayDataOfMentoringSlot($payload->result));
+    }
+    protected function arrayDataOfMentoringSlot(MentoringSlot $mentoringSlot): array
+    {
+        $bookedSlots = [];
+        foreach ($mentoringSlot->iterateActiveBookedSlots() as $bookedMentoringSlot) {
+            $bookedSlots[] = [
+                'id' => $bookedMentoringSlot->getId(),
+                'participant' => $this->arrayDataOfParticipant($bookedMentoringSlot->getParticipant()),
+                'participantReport' => $this->arrayDataOfParticipantReport($bookedMentoringSlot->getParticipantReport()),
+                'mentorReport' => $this->arrayDataOfMentorReport($bookedMentoringSlot->getMentorReport()),
+            ];
+        }
+        return [
+            'id' => $mentoringSlot->getId(),
+            'cancelled' => $mentoringSlot->getCancelled(),
+            'capacity' => $mentoringSlot->getCapacity(),
+            'startTime' => $mentoringSlot->getStartTimeString(),
+            'endTime' => $mentoringSlot->getEndTimeString(),
+            'mediaType' => $mentoringSlot->getMediaType(),
+            'location' => $mentoringSlot->getLocation(),
+            'mentor' => $this->arrayDataOfMentor($mentoringSlot->getMentor()),
+            'consultationSetup' => $this->arrayDataOfConsultationSetup($mentoringSlot->getConsultationSetup()),
+            'bookedSlots' => $bookedSlots,
+        ];
+    }
+    
     //
     protected function arrayDataOfConsultationSetup(ConsultationSetup $consultationSetup): ?array
     {
@@ -197,6 +241,38 @@ class MentoringController extends CoordinatorBaseController
                 'id' => $mentor->getPersonnel()->getId(),
                 'name' => $mentor->getPersonnel()->getName(),
             ],
+        ];
+    }
+    
+    //
+    protected function arrayDataOfParticipant(Participant $participant): array
+    {
+        return [
+            'id' => $participant->getId(),
+            'client' => $this->arrayDataOfClient($participant->getClientParticipant()),
+            'team' => $this->arrayDataOfTeam($participant->getTeamParticipant()),
+            'user' => $this->arrayDataOfUser($participant->getUserParticipant()),
+        ];
+    }
+    protected function arrayDataOfClient(?ClientParticipant $clientParticipant): ?array
+    {
+        return empty($clientParticipant) ? null : [
+            'id' => $clientParticipant->getClient()->getId(),
+            'name' => $clientParticipant->getClient()->getFullName(),
+        ];
+    }
+    protected function arrayDataOfTeam(?TeamProgramParticipation $teamParticipant): ?array
+    {
+        return empty($teamParticipant) ? null : [
+            'id' => $teamParticipant->getTeam()->getId(),
+            'name' => $teamParticipant->getTeam()->getName(),
+        ];
+    }
+    protected function arrayDataOfUser(?UserParticipant $userParticipant): ?array
+    {
+        return empty($userParticipant) ? null : [
+            'id' => $userParticipant->getUser()->getId(),
+            'name' => $userParticipant->getUser()->getFullName(),
         ];
     }
 

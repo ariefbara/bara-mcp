@@ -52,7 +52,7 @@ class ParticipantControllerTest extends PersonnelTestCase
     protected $assignmentFieldValueTwoB_previous;
     
     protected $viewSummaryListInCoordinatedProgramUri;
-
+    protected $ListInCoordinatedProgramUri;
 
     protected function setUp(): void
     {
@@ -81,6 +81,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         $this->connection->table('AssignmentFieldValue')->truncate();
         
         $this->viewSummaryListInCoordinatedProgramUri = $this->personnelUri . "/participant-summary-list-in-coordinated-program";
+        $this->ListInCoordinatedProgramUri = $this->personnelUri . "/participant-list-in-coordinated-program";
         
         $firm = $this->personnel->firm;
         
@@ -239,7 +240,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         $this->assignmentFieldValueTwoA_previous->insert($this->connection);
         $this->assignmentFieldValueTwoB_previous->insert($this->connection);
         
-echo $this->viewSummaryListInCoordinatedProgramUri;
+//echo $this->viewSummaryListInCoordinatedProgramUri;
         $this->get($this->viewSummaryListInCoordinatedProgramUri, $this->personnel->token);
     }
     public function test_viewSummaryListInCoordinatedProgram_200()
@@ -477,7 +478,7 @@ $this->disableExceptionHandling();
         $this->viewSummaryListInCoordinatedProgram();
         $this->seeStatusCode(200);
         
-$this->seeJsonContains(['print']);
+//// $this->seeJsonContains(['print']);
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['id' => $this->clientParticipantOne->id]);
         $this->seeJsonDoesntContains(['id' => $this->clientParticipantTwoA->id]);
@@ -485,4 +486,74 @@ $this->seeJsonContains(['print']);
         $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
     }
     
+    protected function ListInCoordinatedProgram()
+    {
+        $this->coordinatorOne->program->insert($this->connection);
+        $this->coordinatorTwo->program->insert($this->connection);
+        
+        $this->coordinatorOne->insert($this->connection);
+        $this->coordinatorTwo->insert($this->connection);
+        
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->teamParticipantTwo->team->insert($this->connection);
+        
+        $this->clientParticipantOne->insert($this->connection);
+        $this->teamParticipantTwo->insert($this->connection);
+        
+//echo $this->ListInCoordinatedProgramUri;
+        $this->get($this->ListInCoordinatedProgramUri, $this->personnel->token);
+    }
+    public function test_listInCoordinatedProgram_200()
+    {
+$this->disableExceptionHandling();
+        $this->ListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains([
+            'id' => $this->clientParticipantOne->participant->id,
+            'name' => $this->clientParticipantOne->client->getFullName(),
+        ]);
+        $this->seeJsonContains([
+            'id' => $this->teamParticipantTwo->participant->id,
+            'name' => $this->teamParticipantTwo->team->name,
+        ]);
+    }
+    public function test_listInCoordinatedProgram_excludeInacessibleParticipant_inNonCoordinatedProgram()
+    {
+        $this->userParticipantThree->participant->program->insert($this->connection);
+        $this->userParticipantThree->user->insert($this->connection);
+        $this->userParticipantThree->insert($this->connection);
+        
+        $this->ListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->participant->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->participant->id]);
+        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->participant->id]);
+    }
+    public function test_listInCoordinatedProgram_excludeInacessibleParticipant_inInactiveCoordinator()
+    {
+        $this->coordinatorOne->active = false;
+        
+        $this->ListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->participant->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->participant->id]);
+    }
+    public function test_listInCoordinatedProgram_allFilter_200()
+    {
+$this->disableExceptionHandling();
+        $this->ListInCoordinatedProgramUri .=
+                "?programId={$this->coordinatorOne->program->id}"
+                . "&name=client";
+                
+        $this->ListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+// $this->seeJsonContains(['print']);
+        
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->participant->id]);
+        $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->participant->id]);
+    }
+
 }
