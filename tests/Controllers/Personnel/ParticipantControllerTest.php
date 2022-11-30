@@ -239,6 +239,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         $this->assignmentFieldValueTwoA_previous->insert($this->connection);
         $this->assignmentFieldValueTwoB_previous->insert($this->connection);
         
+echo $this->viewSummaryListInCoordinatedProgramUri;
         $this->get($this->viewSummaryListInCoordinatedProgramUri, $this->personnel->token);
     }
     public function test_viewSummaryListInCoordinatedProgram_200()

@@ -9,4 +9,10 @@ interface MetricAssignmentReportRepository
 
     public function unreviewedMetricReportListInProgramsCoordinatedByPersonnel(
             string $personnelId, PaginationFilter $paginationFilter);
+
+    public function listInProgramsCoordinatedByPersonnel(
+            string $personnelId, MetricAssignmentReportListFilterForCoordinator $filter);
+
+    public function listInProgramsConsultedByPersonnel(
+            string $personnelId, MetricAssignmentReportListFilterForConsultant $filter);
 }

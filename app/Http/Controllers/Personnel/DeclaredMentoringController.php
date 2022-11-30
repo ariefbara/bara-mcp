@@ -98,7 +98,6 @@ class DeclaredMentoringController extends PersonnelBaseController
     
     public function submitReport($mentorId, $id)
     {
-        
         $declaredMentoringRepository = $this->em->getRepository(DeclaredMentoring2::class);
         
         $participantRating = $this->integerOfInputRequest('participantRating');

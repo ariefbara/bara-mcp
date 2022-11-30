@@ -11,6 +11,8 @@ use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportListFilterForConsultant;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportListFilterForCoordinator;
 use Query\Domain\Task\Dependency\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportRepository as MetricAssignmentReportRepository3;
 use Query\Domain\Task\Dependency\PaginationFilter;
 use Resources\Exception\RegularException;
@@ -354,6 +356,174 @@ WHERE MetricAssignmentReport.removed = false
 _STATEMENT;
 
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function listInProgramsConsultedByPersonnel(string $personnelId,
+            MetricAssignmentReportListFilterForConsultant $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+
+        $sql = <<<_SQL
+SELECT
+    MetricAssignmentReport.id,
+    MetricAssignmentReport.observationTime,
+    MetricAssignmentReport.submitTime,
+    MetricAssignmentReport.approved,
+    
+    Participant.id participantId,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) participantName,
+                
+    Consultant.id consultantId,
+    Program.id programId,
+    Program.name programName
+                
+FROM MetricAssignmentReport
+    INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+    INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+                
+    INNER JOIN Consultant
+        ON Consultant.Personnel_Id = :personnelId 
+        AND Consultant.active = true 
+        AND Consultant.Program_id = Participant.Program_id
+    INNER JOIN Program ON Program.id = Coordinator.Program_id
+                
+    LEFT JOIN DedicatedMentor 
+        ON DedicatedMentor.Consultant_id = Consultant.id
+        AND DedicatedMentor.Participant_id = Participant.id
+        AND DedicatedMentor.cancelled = false
+                
+WHERE MetricAssignmentReport.removed = false
+    {$filter->getCriteriaStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return [
+            'total' => $this->totalListInProgramsConsultedByPersonnel($personnelId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+    }
+    public function totalListInProgramsConsultedByPersonnel(string $personnelId,
+            MetricAssignmentReportListFilterForConsultant $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+
+        $sql = <<<_SQL
+SELECT COUNT(*) total
+FROM MetricAssignmentReport
+    INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+    INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+                
+    INNER JOIN Consultant
+        ON Consultant.Personnel_Id = :personnelId 
+        AND Consultant.active = true 
+        AND Consultant.Program_id = Participant.Program_id
+                
+    LEFT JOIN DedicatedMentor 
+        ON DedicatedMentor.Consultant_id = Consultant.id
+        AND DedicatedMentor.Participant_id = Participant.id
+        AND DedicatedMentor.cancelled = false
+                
+WHERE MetricAssignmentReport.removed = false
+    {$filter->getCriteriaStatement($parameters)}
+_SQL;
+
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function listInProgramsCoordinatedByPersonnel(string $personnelId,
+            MetricAssignmentReportListFilterForCoordinator $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+
+        $sql = <<<_SQL
+SELECT
+    MetricAssignmentReport.id,
+    MetricAssignmentReport.observationTime,
+    MetricAssignmentReport.submitTime,
+    MetricAssignmentReport.approved,
+    
+    Participant.id participantId,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) participantName,
+                
+    Coordinator.id coordinatorId,
+    Program.id programId,
+    Program.name programName
+                
+FROM MetricAssignmentReport
+    INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+    INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+                
+    INNER JOIN Coordinator 
+        ON Coordinator.Personnel_Id = :personnelId 
+        AND Coordinator.active = true 
+        AND Coordinator.Program_id = Participant.Program_id
+    INNER JOIN Program ON Program.id = Coordinator.Program_id
+                
+WHERE MetricAssignmentReport.removed = false
+    {$filter->getCriteriaStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return [
+            'total' => $this->totalListInProgramsCoordinatedByPersonnel($personnelId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+    }
+    public function totalListInProgramsCoordinatedByPersonnel(string $personnelId,
+            MetricAssignmentReportListFilterForCoordinator $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+
+        $sql = <<<_SQL
+SELECT COUNT(*) total
+FROM MetricAssignmentReport
+    INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+    INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+                
+    INNER JOIN Coordinator 
+        ON Coordinator.Personnel_Id = :personnelId 
+        AND Coordinator.active = true 
+        AND Coordinator.Program_id = Participant.Program_id
+                
+WHERE MetricAssignmentReport.removed = false
+    {$filter->getCriteriaStatement($parameters)}
+_SQL;
+
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
     }
 

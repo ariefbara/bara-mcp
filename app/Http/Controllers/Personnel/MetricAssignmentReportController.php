@@ -9,9 +9,63 @@ use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmen
 use Query\Domain\Model\Firm\Team\TeamProgramParticipation;
 use Query\Domain\Model\Shared\FileInfo;
 use Query\Domain\Model\User\UserParticipant;
+use Query\Domain\Task\CommonViewListPayload;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportListFilter;
+use Query\Domain\Task\Dependency\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportListFilterForCoordinator;
+use Query\Domain\Task\Personnel\ViewMetricAssignmentReportListInCoordinatedPrograms;
 
 class MetricAssignmentReportController extends PersonnelBaseController 
 {
+    public function viewListInCoordinatedPrograms()
+    {
+        $metricAssignmentReportRepository = $this->em->getRepository(MetricAssignmentReport::class);
+        $task = new ViewMetricAssignmentReportListInCoordinatedPrograms($metricAssignmentReportRepository);
+        
+        $reviewStatus = $this->stripTagQueryRequest('reviewStatus');
+        $order = $this->stripTagQueryRequest('order');
+        $metricAssignmentReportListFilter = (new MetricAssignmentReportListFilter($this->getPaginationFilter()))
+                ->setReviewStatus($reviewStatus)
+                ->setOrder($order);
+        
+        $programId = $this->stripTagQueryRequest('programId');
+        $participantId = $this->stripTagQueryRequest('participantId');
+        $filter = (new MetricAssignmentReportListFilterForCoordinator($metricAssignmentReportListFilter))
+                ->setProgramId($programId)
+                ->setParticipantId($participantId);
+        
+        $payload = new CommonViewListPayload($filter);
+        $this->executePersonalQueryTask($task, $payload);
+        
+        return $this->listQueryResponse($payload->result);
+    }
+    
+    public function viewListInConsultedPrograms()
+    {
+        $metricAssignmentReportRepository = $this->em->getRepository(MetricAssignmentReport::class);
+        $task = new \Query\Domain\Task\Personnel\ViewMetricAssignmentReportListInConsultedPrograms($metricAssignmentReportRepository);
+        
+        $reviewStatus = $this->stripTagQueryRequest('reviewStatus');
+        $order = $this->stripTagQueryRequest('order');
+        $metricAssignmentReportListFilter = (new MetricAssignmentReportListFilter($this->getPaginationFilter()))
+                ->setReviewStatus($reviewStatus)
+                ->setOrder($order);
+        
+        $programId = $this->stripTagQueryRequest('programId');
+        $participantId = $this->stripTagQueryRequest('participantId');
+        $filter = (new \Query\Domain\Task\Dependency\Firm\Program\Participant\MetricAssignment\MetricAssignmentReportListFilterForConsultant($metricAssignmentReportListFilter))
+                ->setProgramId($programId)
+                ->setParticipantId($participantId);
+        if ($this->filterBooleanOfQueryRequest('onlyDedicatedMentee')) {
+            $filter->setOnlyDedicatedMentee();
+        }
+        
+        $payload = new CommonViewListPayload($filter);
+        
+        $this->executePersonalQueryTask($task, $payload);
+        
+        return $this->listQueryResponse($payload->result);
+    }
+    
     public function showAll()
     {
         $metricAssignmentReportRepository= $this->em->getRepository(MetricAssignmentReport::class);

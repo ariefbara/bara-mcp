@@ -24,7 +24,7 @@ class RecordOfMentorReport implements Record
     public $id;
     public $participantRating;
 
-    public function __construct(RecordOfMentoring $mentoring, RecordOfFormRecord $formRecord, $index)
+    public function __construct(RecordOfMentoring $mentoring, ?RecordOfFormRecord $formRecord, $index)
     {
         $this->mentoring = $mentoring;
         $this->formRecord = $formRecord;
@@ -38,13 +38,15 @@ class RecordOfMentorReport implements Record
             'id' => $this->id,
             'participantRating' => $this->participantRating,
             'Mentoring_id' => $this->mentoring->id,
-            'FormRecord_id' => $this->formRecord->id,
+            'FormRecord_id' => $this->formRecord ? $this->formRecord->id : null,
         ];
     }
 
     public function insert(ConnectionInterface $connection): void
     {
-        $this->formRecord->insert($connection);
+        if ($this->formRecord) {
+            $this->formRecord->insert($connection);
+        }
         $connection->table('MentorReport')->insert($this->toArrayForDbEntry());
     }
 

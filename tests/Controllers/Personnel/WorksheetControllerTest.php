@@ -197,6 +197,7 @@ class WorksheetControllerTest extends PersonnelTestCase
         $this->consultantCommentTwo->consultant->insert($this->connection);
         $this->consultantCommentTwo->insert($this->connection);
         
+//echo $this->viewListInCoordinatedProgramUri;
         $this->get($this->viewListInCoordinatedProgramUri, $this->personnel->token);
     }
     public function test_viewListInCoordinatedProgram_200()
@@ -257,6 +258,28 @@ $this->disableExceptionHandling();
         ];
         $this->seeJsonContains($response);
     }
+    public function test_viewListInCoordinatedProgram_fromLeftMenu()
+    {
+        $this->viewListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+//$this->seeJsonContains(['print']);
+        
+        $this->seeJsonContains(['total' => '3']);
+        $this->seeJsonContains(['id' => $this->worksheetOne->id]);
+        $this->seeJsonContains(['id' => $this->worksheetTwo->id]);
+        $this->seeJsonContains(['id' => $this->worksheetThree->id]);
+    }
+    public function test_viewListInCoordinatedProgram_fromParticipantPage()
+    {
+        $this->viewListInCoordinatedProgramUri .= "?participantId={$this->clientParticipantOne->participant->id}";
+        $this->viewListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['id' => $this->worksheetOne->id]);
+        $this->seeJsonDoesntContains(['id' => $this->worksheetTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->worksheetThree->id]);
+    }
     
     protected function viewListInConsultedProgram()
     {
@@ -295,7 +318,7 @@ $this->disableExceptionHandling();
         $this->worksheetThree->insert($this->connection);
         
         $this->consultantCommentTwo->insert($this->connection);
-echo $this->viewListInConsultedProgramUri;
+//echo $this->viewListInConsultedProgramUri;
         $this->get($this->viewListInConsultedProgramUri, $this->personnel->token);
     }
     public function test_viewListInConsultedProgram_200()
@@ -397,6 +420,26 @@ $this->disableExceptionHandling();
         $this->seeJsonDoesntContains(['id' => $this->worksheetOne->id]);
         $this->seeJsonDoesntContains(['id' => $this->worksheetTwo->id]);
         $this->seeJsonContains(['id' => $this->worksheetThree->id]);
+    }
+    public function test_viewListInConsultedProgram_fullFilter_200()
+    {
+//$this->disableExceptionHandling();
+        $this->viewListInConsultedProgramUri .= 
+                "?onlyDedicatedMentee=false"
+                . "&programId={$this->consultantOne->program->id}"
+                . "&participantId={$this->clientParticipantOne->participant->id}"
+                . "&missionId={$this->worksheetOne->mission->id}"
+                . "&order=submit-asc"
+                . "&reviewedStatus=false";
+        
+        $this->viewListInConsultedProgram();
+        $this->seeStatusCode(200);
+//$this->seeJsonContains(['print']);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['id' => $this->worksheetOne->id]);
+        $this->seeJsonDoesntContains(['id' => $this->worksheetTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->worksheetThree->id]);
     }
 
 }

@@ -6,6 +6,9 @@ use Doctrine\ORM\EntityManager;
 use Query\Domain\Task\Dependency\ExtendedMentoringFilter;
 use Query\Domain\Task\Dependency\MentoringFilter;
 use Query\Domain\Task\Dependency\MentoringRepository;
+use Query\Domain\Task\Personnel\MentoringListFilterForCoordinator;
+use SharedContext\Domain\ValueObject\DeclaredMentoringStatus;
+use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 
 class CustomDoctrineMentoringRepository implements MentoringRepository
 {
@@ -200,7 +203,6 @@ _STATEMENT;
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
-
     protected function totalCountOfAllMentoringsBelongsToPersonnel(string $personnelId, MentoringFilter $filter)
     {
         $parameters = [
@@ -609,6 +611,308 @@ FROM (
 )_a
 _STATEMENT;
         $query = $this->em->getConnection()->prepare($statement);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function mentoringListInAllProgramCoordinatedByPersonnel(string $personnelId,
+            MentoringListFilterForCoordinator $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        $irrelevantDeclaredMentoringStatus = implode(", ", [
+            DeclaredMentoringStatus::CANCELLED, 
+            DeclaredMentoringStatus::DENIED_BY_MENTOR, 
+            DeclaredMentoringStatus::DENIED_BY_PARTICIPANT
+        ]);
+        
+        $irrelevantMentoringRequestStatus = implode(", ", [
+            MentoringRequestStatus::CANCELLED, 
+            MentoringRequestStatus::REJECTED
+        ]);
+        
+        $sql = <<<_SQL
+SELECT
+    _mentoring.mentoringRequestId,
+            _mentoring.mentoringRequestStatus,
+    _mentoring.bookedMentoringSlotId,
+    _mentoring.declaredMentoringId,
+            _mentoring.declaredMentoringStatus,
+        _mentoring.participantId,
+        COALESCE(
+            CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+            CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+            Team.name
+        ) participantName,
+        _mentoring.reportSubmitted,
+    _mentoring.mentoringSlotId,
+        _mentoring.capacity,
+        _mentoring.totalBooking,
+        _mentoring.totalSubmittedReport,
+    _mentoring.startTime,
+    _mentoring.endTime,
+                
+    _mentoring.consultantId,
+        CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) consultantName,
+                
+    Coordinator.id coordinatorId,
+        Coordinator.Program_id programId,
+        Program.name programName
+FROM (
+    SELECT
+        MentoringRequest.id mentoringRequestId,
+                MentoringRequest.requestStatus mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            MentoringRequest.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL AND ParticipantReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        MentoringRequest.startTime,
+        MentoringRequest.endTime,
+        MentoringRequest.Consultant_id consultantId
+    FROM MentoringRequest
+        LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
+        LEFT JOIN Mentoring ON Mentoring.id = NegotiatedMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+        LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+    WHERE MentoringRequest.requestStatus NOT IN ({$irrelevantMentoringRequestStatus})
+            
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            null participantId,
+            null reportSubmitted,
+        MentoringSlot.id mentoringSlotId,
+            MentoringSlot.capacity,
+            _bookedMentoringSlot.totalBooking,
+            _bookedMentoringSlot.totalSubmittedReport,
+
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id consultantId
+    FROM MentoringSlot
+        INNER JOIN Consultant ON Consultant.id = MentoringSlot.Mentor_id AND Consultant.active = true
+        LEFT JOIN (
+            SELECT MentoringSlot_id, COUNT(*) totalBooking, COUNT(MentorReport.id) + COUNT(ParticipantReport.id) totalSubmittedReport
+            FROM BookedMentoringSlot
+                LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+                LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+                LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+            GROUP BY MentoringSlot_id
+        )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
+    WHERE MentoringSlot.cancelled = false
+                
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        BookedMentoringSlot.id bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            BookedMentoringSlot.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL AND ParticipantReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id consultantId
+    FROM BookedMentoringSlot
+        INNER JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
+        LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+        LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+    WHERE BookedMentoringSlot.cancelled = false
+                
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        DeclaredMentoring.id declaredMentoringId,
+                DeclaredMentoring.declaredStatus declaredMentoringStatus,
+            DeclaredMentoring.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL AND ParticipantReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.Consultant_id consultantId
+    FROM DeclaredMentoring
+        LEFT JOIN Mentoring ON Mentoring.id = DeclaredMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+        LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+    WHERE DeclaredMentoring.declaredStatus NOT IN ({$irrelevantDeclaredMentoringStatus})
+    
+)_mentoring
+    INNER JOIN Consultant ON Consultant.id = _mentoring.consultantId
+    INNER JOIN Personnel ON Personnel.id = Consultant.Personnel_id
+    
+    INNER JOIN Coordinator
+        ON Coordinator.Program_id = Consultant.Program_id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+    INNER JOIN Program ON Program.id = Coordinator.Program_id
+    
+    LEFT JOIN Participant ON Participant.id = _mentoring.participantId
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+WHERE 1
+    {$filter->getCriteriaStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+    
+        $query = $this->em->getConnection()->prepare($sql);
+        return [
+            'total' => $this->totalMentoringListInAllProgramCoordinatedByPersonnel($personnelId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+    public function totalMentoringListInAllProgramCoordinatedByPersonnel(string $personnelId,
+            MentoringListFilterForCoordinator $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        $irrelevantDeclaredMentoringStatus = implode(", ", [
+            DeclaredMentoringStatus::CANCELLED, 
+            DeclaredMentoringStatus::DENIED_BY_MENTOR, 
+            DeclaredMentoringStatus::DENIED_BY_PARTICIPANT
+        ]);
+        
+        $irrelevantMentoringRequestStatus = implode(", ", [
+            MentoringRequestStatus::CANCELLED, 
+            MentoringRequestStatus::REJECTED
+        ]);
+        
+        $sql = <<<_SQL
+SELECT COUNT(*) total
+FROM (
+    SELECT
+        MentoringRequest.id mentoringRequestId,
+                MentoringRequest.requestStatus mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            MentoringRequest.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL AND ParticipantReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        MentoringRequest.startTime,
+        MentoringRequest.endTime,
+        MentoringRequest.Consultant_id consultantId
+    FROM MentoringRequest
+        LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
+        LEFT JOIN Mentoring ON Mentoring.id = NegotiatedMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+        LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+    WHERE MentoringRequest.requestStatus NOT IN ({$irrelevantMentoringRequestStatus})
+            
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            null participantId,
+            null reportSubmitted,
+        MentoringSlot.id mentoringSlotId,
+            MentoringSlot.capacity,
+            _bookedMentoringSlot.totalBooking,
+            _bookedMentoringSlot.totalSubmittedReport,
+
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id consultantId
+    FROM MentoringSlot
+        INNER JOIN Consultant ON Consultant.id = MentoringSlot.Mentor_id AND Consultant.active = true
+        LEFT JOIN (
+            SELECT MentoringSlot_id, COUNT(*) totalBooking, COUNT(MentorReport.id) + COUNT(ParticipantReport.id) totalSubmittedReport
+            FROM BookedMentoringSlot
+                LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+                LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+                LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+            GROUP BY MentoringSlot_id
+        )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
+    WHERE MentoringSlot.cancelled = false
+                
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        BookedMentoringSlot.id bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            BookedMentoringSlot.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL AND ParticipantReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id consultantId
+    FROM BookedMentoringSlot
+        INNER JOIN MentoringSlot ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
+        LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+        LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+    WHERE BookedMentoringSlot.cancelled = false
+                
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        DeclaredMentoring.id declaredMentoringId,
+                DeclaredMentoring.declaredStatus declaredMentoringStatus,
+            DeclaredMentoring.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL AND ParticipantReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.Consultant_id consultantId
+    FROM DeclaredMentoring
+        LEFT JOIN Mentoring ON Mentoring.id = DeclaredMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+        LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+    WHERE DeclaredMentoring.declaredStatus NOT IN ({$irrelevantDeclaredMentoringStatus})
+    
+)_mentoring
+    INNER JOIN Consultant ON Consultant.id = _mentoring.consultantId
+    
+    INNER JOIN Coordinator
+        ON Coordinator.Program_id = Consultant.Program_id
+        AND Coordinator.Personnel_id = :personnelId
+        AND Coordinator.active = true
+    
+WHERE 1
+    {$filter->getCriteriaStatement($parameters)}
+_SQL;
+        $query = $this->em->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
     }
 
