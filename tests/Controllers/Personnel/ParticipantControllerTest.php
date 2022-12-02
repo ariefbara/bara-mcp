@@ -9,6 +9,7 @@ use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignmen
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
@@ -24,9 +25,17 @@ use Tests\Controllers\RecordPreparation\User\RecordOfUserParticipant;
 
 class ParticipantControllerTest extends PersonnelTestCase
 {
+    protected $viewSummaryListInCoordinatedProgramUri;
+    protected $ListInCoordinatedProgramUri;
+    protected $ListInConsultedProgramUri;
+    
     protected $coordinatorOne;
     protected $coordinatorTwo;
     protected $coordinatorThree;
+    
+    protected $consultantOne;
+    protected $consultantTwo;
+    protected $consultantThree;
     
     protected $missionOneA;
     protected $missionOneB;
@@ -51,14 +60,12 @@ class ParticipantControllerTest extends PersonnelTestCase
     protected $assignmentFieldValueTwoA_previous;
     protected $assignmentFieldValueTwoB_previous;
     
-    protected $viewSummaryListInCoordinatedProgramUri;
-    protected $ListInCoordinatedProgramUri;
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->connection->table('Program')->truncate();
         $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('Consultant')->truncate();
         //
         $this->connection->table('Form')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
@@ -82,6 +89,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         
         $this->viewSummaryListInCoordinatedProgramUri = $this->personnelUri . "/participant-summary-list-in-coordinated-program";
         $this->ListInCoordinatedProgramUri = $this->personnelUri . "/participant-list-in-coordinated-program";
+        $this->ListInConsultedProgramUri = $this->personnelUri . "/participant-list-in-consulted-program";
         
         $firm = $this->personnel->firm;
         
@@ -92,6 +100,10 @@ class ParticipantControllerTest extends PersonnelTestCase
         $this->coordinatorOne = new RecordOfCoordinator($programOne, $this->personnel, 1);
         $this->coordinatorTwo = new RecordOfCoordinator($programTwo, $this->personnel, 2);
         $this->coordinatorThree = new RecordOfCoordinator($programThree, $this->personnel, 3);
+        
+        $this->consultantOne = new RecordOfConsultant($programOne, $this->personnel, 1);
+        $this->consultantTwo = new RecordOfConsultant($programTwo, $this->personnel, 2);
+        $this->consultantThree = new RecordOfConsultant($programThree, $this->personnel, 3);
         
         //
         $formOne = new RecordOfForm(1);
@@ -164,6 +176,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         parent::tearDown();
         $this->connection->table('Program')->truncate();
         $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('Consultant')->truncate();
         //
         $this->connection->table('Form')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
@@ -549,6 +562,77 @@ $this->disableExceptionHandling();
                 . "&name=client";
                 
         $this->ListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+// $this->seeJsonContains(['print']);
+        
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->participant->id]);
+        $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->participant->id]);
+    }
+    
+    protected function ListInConsultedProgram()
+    {
+        $this->consultantOne->program->insert($this->connection);
+        $this->consultantTwo->program->insert($this->connection);
+        
+        $this->consultantOne->insert($this->connection);
+        $this->consultantTwo->insert($this->connection);
+        
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->teamParticipantTwo->team->insert($this->connection);
+        
+        $this->clientParticipantOne->insert($this->connection);
+        $this->teamParticipantTwo->insert($this->connection);
+        
+        $this->get($this->ListInConsultedProgramUri, $this->personnel->token);
+echo $this->ListInConsultedProgramUri;
+$this->seeJsonContains(['print']);
+    }
+    public function test_listInConsultedProgram_200()
+    {
+$this->disableExceptionHandling();
+        $this->ListInConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains([
+            'id' => $this->clientParticipantOne->participant->id,
+            'name' => $this->clientParticipantOne->client->getFullName(),
+        ]);
+        $this->seeJsonContains([
+            'id' => $this->teamParticipantTwo->participant->id,
+            'name' => $this->teamParticipantTwo->team->name,
+        ]);
+    }
+    public function test_listInConsultedProgram_excludeInacessibleParticipant_inNonConsultedProgram()
+    {
+        $this->userParticipantThree->participant->program->insert($this->connection);
+        $this->userParticipantThree->user->insert($this->connection);
+        $this->userParticipantThree->insert($this->connection);
+        
+        $this->ListInConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->participant->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->participant->id]);
+        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->participant->id]);
+    }
+    public function test_listInConsultedProgram_excludeInacessibleParticipant_inInactiveConsultant()
+    {
+        $this->consultantOne->active = false;
+        
+        $this->ListInConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->participant->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->participant->id]);
+    }
+    public function test_listInConsultedProgram_allFilter_200()
+    {
+$this->disableExceptionHandling();
+        $this->ListInConsultedProgramUri .=
+                "?programId={$this->consultantOne->program->id}"
+                . "&name=client";
+                
+        $this->ListInConsultedProgram();
         $this->seeStatusCode(200);
 // $this->seeJsonContains(['print']);
         

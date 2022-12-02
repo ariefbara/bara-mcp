@@ -9,4 +9,6 @@ interface MissionRepository
             string $personnelId, int $page, int $pageSize);
     
     public function missionListInAllProgramCoordinatedByPersonnel(string $personnelId);
+    
+    public function missionListInAllProgramConsultedByPersonnel(string $personnelId);
 }

@@ -106,6 +106,7 @@ $router->group($personnelAggregate, function () use ($router) {
     // participant related route in personnel BC
     $router->get('/participant-summary-list-in-coordinated-program', ['uses' => "ParticipantController@viewSummaryListInCoordinatedProgram"]);
     $router->get('/participant-list-in-coordinated-program', ['uses' => "ParticipantController@listInCoordinatedProgram"]);
+    $router->get('/participant-list-in-consulted-program', ['uses' => "ParticipantController@listInConsultedProgram"]);
     
     // metric assignment report related route in personnel BC
     $router->get('/metric-assignment-report-list-in-coordinated-programs', ['uses' => "MetricAssignmentReportController@viewListInCoordinatedPrograms"]);
@@ -114,11 +115,13 @@ $router->group($personnelAggregate, function () use ($router) {
     //mentoring related route in personnel BC
     $router->get('/mentoring-list-in-coordinated-programs', ['uses' => "MentoringController@mentoringListInCoordinatedPrograms"]);
     
-    //program related route in personnel BC
+    //program route in personnel BC
     $router->get('/list-of-coordinated-program', ['uses' => "ProgramController@listOfCoordinatedProgram"]);
+    $router->get('/list-of-consulted-program', ['uses' => "ProgramController@listOfConsultedProgram"]);
     
     //mission related route in personnel BC
     $router->get('/mission-list-in-coordinated-program', ['uses' => "MissionController@missionListInCoordinatedProgram"]);
+    $router->get('/mission-list-in-consulted-program', ['uses' => "MissionController@missionListInConsultedProgram"]);
     
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";

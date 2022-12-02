@@ -13,10 +13,16 @@ use Tests\Controllers\RecordPreparation\Shared\RecordOfForm;
 
 class MissionControllerTest extends PersonnelTestCase
 {
+    
+    protected $viewDiscussionOverviewUri;
+    protected $missionListInCoordinatedProgramUri;
+    protected $missionListInConsultedProgramUri;
+    //
     protected $coordinatorOne;
     protected $coordinatorFour;
-
+    
     protected $mentorOne;
+    protected $mentorFour;
     protected $missionOne_p999;
     protected $missionTwo_p1;
     protected $missionThree_p1;
@@ -24,22 +30,21 @@ class MissionControllerTest extends PersonnelTestCase
     protected $missionCommentOne_m1;
     protected $missionCommentTwo_m1;
     protected $missionCommentThree_m2;
-    
-    protected $viewDiscussionOverviewUri;
-    protected $missionListInCoordinatedProgramUri;
 
     protected function setUp(): void
     {
         parent::setUp();
+        
+        $this->viewDiscussionOverviewUri = $this->personnelUri . "/missions/discussion-overview";
+        $this->missionListInCoordinatedProgramUri = $this->personnelUri . "/mission-list-in-coordinated-program";
+        $this->missionListInConsultedProgramUri = $this->personnelUri . "/mission-list-in-consulted-program";
+        
         $this->connection->table('Program')->truncate();
         $this->connection->table('Coordinator')->truncate();
         $this->connection->table('Form')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
         $this->connection->table('Mission')->truncate();
         $this->connection->table('MissionComment')->truncate();
-        
-        $this->viewDiscussionOverviewUri = $this->personnelUri . "/missions/discussion-overview";
-        $this->missionListInCoordinatedProgramUri = $this->personnelUri . "/mission-list-in-coordinated-program";
         
         $firm = $this->personnel->firm;
         
@@ -50,6 +55,7 @@ class MissionControllerTest extends PersonnelTestCase
         $this->coordinatorFour = new RecordOfCoordinator($programFour, $this->personnel, 4);
         
         $this->mentorOne = new RecordOfConsultant($programOne, $this->personnel, 1);
+        $this->mentorFour = new RecordOfConsultant($programFour, $this->personnel, 4);
         
         $formOne = new RecordOfForm(1);
         $formFour = new RecordOfForm(4);
@@ -195,8 +201,9 @@ $this->disableExceptionHandling();
         $this->missionFour->insert($this->connection);
         $this->missionTwo_p1->insert($this->connection);
         
-// echo $this->missionListInCoordinatedProgramUri;
         $this->get($this->missionListInCoordinatedProgramUri, $this->personnel->token);
+// echo $this->missionListInCoordinatedProgramUri;
+// $this->seeJsonContains(['print']);
     }
     public function test_missionListInCoordinatedProgram_200()
     {
@@ -204,16 +211,19 @@ $this->disableExceptionHandling();
         $this->missionListInCoordinatedProgram();
         $this->seeStatusCode(200);
         
-// $this->seeJsonContains(['print']);
         $this->seeJsonContains([
-            'id' => $this->missionTwo_p1->id,
-            'name' => $this->missionTwo_p1->name,
-            'formName' => $this->missionTwo_p1->worksheetForm->form->name,
-        ]);
-        $this->seeJsonContains([
-            'id' => $this->missionFour->id,
-            'name' => $this->missionFour->name,
-            'formName' => $this->missionFour->worksheetForm->form->name,
+            'data' => [
+                [
+                    'id' => $this->missionTwo_p1->id,
+                    'name' => $this->missionTwo_p1->name,
+                    'formName' => $this->missionTwo_p1->worksheetForm->form->name,
+                ],
+                [
+                    'id' => $this->missionFour->id,
+                    'name' => $this->missionFour->name,
+                    'formName' => $this->missionFour->worksheetForm->form->name,
+                ],
+            ],
         ]);
     }
     public function test_missionListInCoordinatedProgram_excludeInaccessibleMission_fromNonCoordinatedProgram()
@@ -222,6 +232,61 @@ $this->disableExceptionHandling();
         $this->missionOne_p999->insert($this->connection);
         
         $this->missionListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['id' => $this->missionTwo_p1->id]);
+        $this->seeJsonContains(['id' => $this->missionFour->id]);
+        $this->seeJsonDoesntContains(['id' => $this->missionOne_p999->id]);
+    }
+    
+    protected function missionListInConsultedProgram()
+    {
+        $this->mentorOne->program->insert($this->connection);
+        $this->mentorFour->program->insert($this->connection);
+        
+        $this->mentorOne->insert($this->connection);
+        $this->mentorFour->insert($this->connection);
+        
+        $this->missionFour->worksheetForm->form->insert($this->connection);
+        $this->missionTwo_p1->worksheetForm->form->insert($this->connection);
+        
+        $this->missionFour->worksheetForm->insert($this->connection);
+        $this->missionTwo_p1->worksheetForm->insert($this->connection);
+        
+        $this->missionFour->insert($this->connection);
+        $this->missionTwo_p1->insert($this->connection);
+        
+        $this->get($this->missionListInConsultedProgramUri, $this->personnel->token);
+ echo $this->missionListInConsultedProgramUri;
+$this->seeJsonContains(['print']);
+    }
+    public function test_missionListInConsultedProgram_200()
+    {
+//$this->disableExceptionHandling();
+        $this->missionListInConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains([
+            'data' => [
+                [
+                    'id' => $this->missionTwo_p1->id,
+                    'name' => $this->missionTwo_p1->name,
+                    'formName' => $this->missionTwo_p1->worksheetForm->form->name,
+                ],
+                [
+                    'id' => $this->missionFour->id,
+                    'name' => $this->missionFour->name,
+                    'formName' => $this->missionFour->worksheetForm->form->name,
+                ],
+            ],
+        ]);
+    }
+    public function test_missionListInConsultedProgram_excludeInaccessibleMission_fromNonConsultedProgram()
+    {
+        $this->missionOne_p999->program->insert($this->connection);
+        $this->missionOne_p999->insert($this->connection);
+        
+        $this->missionListInConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['id' => $this->missionTwo_p1->id]);

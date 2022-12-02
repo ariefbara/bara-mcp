@@ -331,4 +331,26 @@ _SQL;
         return PaginatorBuilder::build($qb->getQuery(), $filter->getPaginationFilter()->getPage(), $filter->getPaginationFilter()->getPageSize());
     }
 
+    public function listOfConsultedProgramByPersonnel(string $personnelId)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Program.id,
+    Program.name,
+    Consultant.id consultantId
+FROM Program
+    INNER JOIN Consultant
+        ON Consultant.Program_id = Program.id
+        AND Consultant.Personnel_id = :personnelId
+        AND Consultant.active = true
+_SQL;
+        
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
 }

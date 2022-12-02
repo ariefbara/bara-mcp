@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Personnel;
 
 use Query\Domain\Model\Firm\Program\Mission;
 use Query\Domain\Task\CommonViewListPayload;
+use Query\Domain\Task\Personnel\MissionListInConsultedProgram;
 use Query\Domain\Task\Personnel\MissionListInCoordinatedProgram;
 use Query\Domain\Task\Personnel\ViewAllMissionWithDiscussionOverview;
 use Query\Domain\Task\Personnel\ViewAllMissionWithDiscussionOverviewPayload;
@@ -24,6 +25,16 @@ class MissionController extends PersonnelBaseController
     {
         $missionRepository = $this->em->getRepository(Mission::class);
         $task = new MissionListInCoordinatedProgram($missionRepository);
+        $payload = new CommonViewListPayload();
+        $this->executePersonalQueryTask($task, $payload);
+        
+        return $this->listQueryResponse($payload->result);
+    }
+    
+    public function missionListInConsultedProgram()
+    {
+        $missionRepository = $this->em->getRepository(Mission::class);
+        $task = new MissionListInConsultedProgram($missionRepository);
         $payload = new CommonViewListPayload();
         $this->executePersonalQueryTask($task, $payload);
         

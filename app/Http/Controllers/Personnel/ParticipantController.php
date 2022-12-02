@@ -7,6 +7,7 @@ use Query\Domain\Task\CommonViewListPayload;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantListFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilterForCoordinator;
+use Query\Domain\Task\Personnel\ViewParticipantListInConsultedProgram;
 use Query\Domain\Task\Personnel\ViewParticipantListInCoordinatedProgram;
 use Query\Domain\Task\Personnel\ViewParticipantSummaryListInCoordinatedProgram;
 
@@ -45,6 +46,23 @@ class ParticipantController extends PersonnelBaseController
     {
         $participantRepository = $this->em->getRepository(Participant::class);
         $task = new ViewParticipantListInCoordinatedProgram($participantRepository);
+        
+        $programId = $this->stripTagQueryRequest('programId');
+        $name = $this->stripTagQueryRequest('name');
+        $filter = (new ParticipantListFilter())
+                ->setProgramId($programId)
+                ->setName($name);
+        $payload = new CommonViewListPayload($filter);
+        
+        $this->executePersonalQueryTask($task, $payload);
+        
+        return $this->listQueryResponse($payload->result);
+    }
+    
+    public function ListInConsultedProgram()
+    {
+        $participantRepository = $this->em->getRepository(Participant::class);
+        $task = new ViewParticipantListInConsultedProgram($participantRepository);
         
         $programId = $this->stripTagQueryRequest('programId');
         $name = $this->stripTagQueryRequest('name');

@@ -14,6 +14,8 @@ interface ProgramRepository
 
     public function listOfCoordinatedProgramByPersonnel(string $personnelId);
 
+    public function listOfConsultedProgramByPersonnel(string $personnelId);
+
     public function listOfProgram(ProgramListFilter $filter);
 
     public function aPublishedProgram(string $id): Program;

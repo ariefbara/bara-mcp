@@ -570,4 +570,28 @@ _SQL;
         return $query->executeQuery($parameters)->fetchAllAssociative();
     }
 
+    public function missionListInAllProgramConsultedByPersonnel(string $personnelId)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Mission.id,
+    Mission.name,
+    Form.name formName
+FROM Mission
+    INNER JOIN Consultant
+    ON Consultant.Program_id = Mission.Program_id
+    AND Consultant.Personnel_id = :personnelId
+    AND Consultant.active = true
+
+    LEFT JOIN WorksheetForm ON WorksheetForm.id = Mission.WorksheetForm_id
+    LEFT JOIN Form ON Form.id = WorksheetForm.Form_id
+_SQL;
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
 }
