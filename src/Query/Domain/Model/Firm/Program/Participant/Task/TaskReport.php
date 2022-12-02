@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm\Program\Participant\Task;
 use Query\Domain\Model\Firm\Program\Participant\Task\TaskReport\TaskReportAttachment;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 
 class TaskReport
 {
@@ -28,6 +29,12 @@ class TaskReport
      * @var string
      */
     protected $content;
+
+    /**
+     * 
+     * @var TaskReportReviewStatus
+     */
+    protected $reviewStatus;
 
     /**
      * 
@@ -60,6 +67,11 @@ class TaskReport
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getReviewStatus(): TaskReportReviewStatus
+    {
+        return $this->reviewStatus;
     }
 
     public function getContent(): string

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Personnel\ProgramConsultation;
 use App\Http\Controllers\Personnel\PersonnelBaseController;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultantTask as ConsultantTask2;
 use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Task\Mentor\ApproveTaskReport;
 use Personnel\Domain\Task\Mentor\CancelTask;
 use Personnel\Domain\Task\Mentor\SubmitTask;
 use Personnel\Domain\Task\Mentor\SubmitTaskPayload;
@@ -59,6 +60,24 @@ class TaskController extends PersonnelBaseController
         $payload = new UpdateTaskPayload($id, $labelData);
         
         $this->executeExtendedMentorTaskInPersonnelContext($consultantId, $task, $payload);
+        
+        return $this->viewConsultantTaskDetail($consultantId, $id);
+    }
+    
+    public function approveTaskReport($consultantId, $id)
+    {
+        $consultantTaskRepository = $this->em->getRepository(ConsultantTask2::class);
+        $task = new ApproveTaskReport($consultantTaskRepository);
+        $this->executeExtendedMentorTaskInPersonnelContext($consultantId, $task, $id);
+        
+        return $this->viewConsultantTaskDetail($consultantId, $id);
+    }
+    
+    public function askForTaskReportRevision($consultantId, $id)
+    {
+        $consultantTaskRepository = $this->em->getRepository(ConsultantTask2::class);
+        $task = new \Personnel\Domain\Task\Mentor\AskForTaskReportRevision($consultantTaskRepository);
+        $this->executeExtendedMentorTaskInPersonnelContext($consultantId, $task, $id);
         
         return $this->viewConsultantTaskDetail($consultantId, $id);
     }
@@ -196,6 +215,7 @@ class TaskController extends PersonnelBaseController
         }
         return [
             'content' => $taskReport->getContent(),
+            'reviewStatus' => $taskReport->getReviewStatus()->getDisplayValue(),
             'attachments' => $attachments,
         ];
     }

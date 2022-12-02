@@ -8,6 +8,7 @@ use Query\Application\Service\Manager\ProgramRepository as ProgramRepository2;
 use Query\Application\Service\ProgramRepository as InterfaceForPublic;
 use Query\Domain\Model\Firm\ParticipantTypes;
 use Query\Domain\Model\Firm\Program;
+use Query\Domain\Task\Dependency\Firm\ProgramListFilter;
 use Query\Domain\Task\Dependency\Firm\ProgramRepository as ProgramRepository3;
 use Query\Domain\Task\PaginationPayload;
 use Resources\Exception\RegularException;
@@ -318,6 +319,16 @@ _SQL;
         
         $query = $this->getEntityManager()->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
+    public function listOfProgram(ProgramListFilter $filter)
+    {
+        $qb = $this->createQueryBuilder('program');
+        $qb->select('program')
+                ->andWhere($qb->expr()->eq('program.removed', 'false'));
+        $filter->applyCriteriaToDoctrineQueryBuilder($qb);
+        
+        return PaginatorBuilder::build($qb->getQuery(), $filter->getPaginationFilter()->getPage(), $filter->getPaginationFilter()->getPageSize());
     }
 
 }

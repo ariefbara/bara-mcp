@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Personnel\Domain\Model\Firm\Program\Participant\Task\TaskReport" 
+            table="TaskReport"
+    >
+        
+        <one-to-one field="task" 
+                    target-entity="Personnel\Domain\Model\Firm\Program\Participant\Task"
+                    inversed-by="taskReport"
+        >
+            <join-column name="Task_id" referenced-column-name="id" />
+        </one-to-one>
+        
+        <id name="id" type="guid" />
+        <embedded name="reviewStatus" class="SharedContext\Domain\ValueObject\TaskReportReviewStatus" use-column-prefix="false" />
+        
+    </entity>
+</doctrine-mapping>

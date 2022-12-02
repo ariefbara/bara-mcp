@@ -52,5 +52,16 @@ class ConsultantTask
             throw RegularException::forbidden('unmanaged consultant task, can only managed owned task');
         }
     }
+    
+    //
+    public function approveReport(): void
+    {
+        $this->task->approveReport();
+    }
+    
+    public function askForReportRevision(): void
+    {
+        $this->task->askForReportRevision();
+    }
 
 }

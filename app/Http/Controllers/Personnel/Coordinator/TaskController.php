@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Personnel\Coordinator;
 use App\Http\Controllers\Personnel\PersonnelBaseController;
 use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorTask as CoordinatorTask2;
 use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Task\Coordinator\ApproveTaskReport;
+use Personnel\Domain\Task\Coordinator\AskForTaskReportRevision;
 use Personnel\Domain\Task\Coordinator\CancelTask;
 use Personnel\Domain\Task\Coordinator\SubmitTask;
 use Personnel\Domain\Task\Coordinator\SubmitTaskPayload;
@@ -59,6 +61,26 @@ class TaskController extends PersonnelBaseController
         $payload = new UpdateTaskPayload($id, $labelData);
         
         $this->executeCoordinatorTaskInPersonnelBC($coordinatorId, $task, $payload);
+        
+        return $this->viewCoordinatorTaskDetail($coordinatorId, $id);
+    }
+    
+    public function approveTaskReport($coordinatorId, $id)
+    {
+        $coordinatorTaskRepository = $this->em->getRepository(CoordinatorTask2::class);
+        $task = new ApproveTaskReport($coordinatorTaskRepository);
+        
+        $this->executeCoordinatorTaskInPersonnelBC($coordinatorId, $task, $id);
+        
+        return $this->viewCoordinatorTaskDetail($coordinatorId, $id);
+    }
+    
+    public function askForTaskReportRevision($coordinatorId, $id)
+    {
+        $coordinatorTaskRepository = $this->em->getRepository(CoordinatorTask2::class);
+        $task = new AskForTaskReportRevision($coordinatorTaskRepository);
+        
+        $this->executeCoordinatorTaskInPersonnelBC($coordinatorId, $task, $id);
         
         return $this->viewCoordinatorTaskDetail($coordinatorId, $id);
     }
@@ -196,6 +218,7 @@ class TaskController extends PersonnelBaseController
         }
         return [
             'content' => $taskReport->getContent(),
+            'reviewStatus' => $taskReport->getReviewStatus()->getDisplayValue(),
             'attachments' => $attachments,
         ];
     }

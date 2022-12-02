@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <embeddable name="SharedContext\Domain\ValueObject\TaskReportReviewStatus">
+        <field name="value" column="reviewStatus" type="smallint" nullable="false"/>
+    </embeddable>
+</doctrine-mapping>

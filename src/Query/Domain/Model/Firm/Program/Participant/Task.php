@@ -45,7 +45,7 @@ class Task
      * @var DateTimeImmutable
      */
     protected $modifiedTime;
-
+    
     /**
      * 
      * @var TaskReport|null

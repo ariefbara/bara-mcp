@@ -83,6 +83,30 @@ class ConsultantTaskTest extends TestBase
         $this->assertManageableByConsultant();
         $this->markAsSuccess();
     }
+    
+    //
+    protected function approveReport()
+    {
+        $this->consultantTask->approveReport();
+    }
+    public function test_approveReport_approveTaskReport()
+    {
+        $this->task->expects($this->once())
+                ->method('approveReport');
+        $this->approveReport();
+    }
+    
+    //
+    protected function askForReportRevision()
+    {
+        $this->consultantTask->askForReportRevision();
+    }
+    public function test_askForReportRevision_askForTaskReportRevision()
+    {
+        $this->task->expects($this->once())
+                ->method('askForReportRevision');
+        $this->askForReportRevision();
+    }
 }
 
 class TestableConsultantTask extends ConsultantTask

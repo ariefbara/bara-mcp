@@ -208,7 +208,7 @@ class MentoringContollerTest extends PersonnelTestCase
         $this->mentorReport_nm11->insert($this->connection);
         $this->mentorReport_dm11->insert($this->connection);
         
-// echo $this->showAllUri;
+ echo $this->showAllUri;
         $this->get($this->showAllUri, $this->personnel->token);
     }
     public function test_showAll_200()
@@ -684,7 +684,7 @@ class MentoringContollerTest extends PersonnelTestCase
                 . "&mentoringRequestFilter[requestStatusList][]=$acceptedStatus"
                 . "&mentoringRequestFilter[reportCompletedStatus]=true"
                 . "&mentoringSlotFilter[cancelledStatus]=false"
-                . "&mentoringRequestFilter[reportCompletedStatus]=true"
+                . "&mentoringSlotFilter[reportCompletedStatus]=true"
                 . "&declaredMentoringFilter[reportCompletedStatus]=true";
         
         $this->showAll();

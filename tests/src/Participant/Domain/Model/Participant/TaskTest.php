@@ -60,7 +60,14 @@ class TaskTest extends TestBase
         $this->task->participant = $this->buildMockOfClass(Participant::class);
         $this->assertRegularExceptionThrowed(function () {
             $this->assertManageableByParticipant();
-        }, 'Forbidden', 'unmanaged task, can only manage own task');
+        }, 'Forbidden', 'unmanaged task, can only manage active own task');
+    }
+    public function test_assertManageableByParticipant_cancelledTask_forbidden()
+    {
+        $this->task->cancelled = true;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->assertManageableByParticipant();
+        }, 'Forbidden', 'unmanaged task, can only manage active own task');
     }
     public function test_assertManageablyByParticipant_sameParticipant_void()
     {

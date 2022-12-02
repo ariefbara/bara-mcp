@@ -52,5 +52,16 @@ class CoordinatorTask
             throw RegularException::forbidden('unmanaged coordinator task, can only managed owned task');
         }
     }
+    
+    //
+    public function approveReport(): void
+    {
+        $this->task->approveReport();
+    }
+    
+    public function askForReportRevision(): void
+    {
+        $this->task->askForReportRevision();
+    }
 
 }

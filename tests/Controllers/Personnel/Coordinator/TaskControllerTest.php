@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\Personnel\Coordinator;
 
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorTask;
@@ -281,11 +282,154 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $this->updateTask();
         $this->seeStatusCode(403);
     }
+    public function test_updateTask_unmanageTask_cancelled_403()
+    {
+        $this->coordinatorTaskOne->task->cancelled = true;
+
+        $this->updateTask();
+        $this->seeStatusCode(403);
+    }
     public function test_updateTask_inactiveCoordinator_403()
     {
         $this->coordinator->active = false;
 
         $this->updateTask();
+        $this->seeStatusCode(403);
+    }
+    
+    //
+    protected function approveReport()
+    {
+        $this->persistCoordinatorDependency();
+        //
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->clientParticipantOne->insert($this->connection);
+        
+        $this->coordinatorTaskOne->insert($this->connection);
+        
+        $this->taskReportOne->insert($this->connection);
+        
+        //
+        $uri = $this->coordinatorUri . "/tasks/{$this->coordinatorTaskOne->id}/approve-report";
+//echo $uri;
+        $this->patch($uri, [], $this->coordinator->personnel->token);
+    }
+    public function test_approveReport_200()
+    {
+        $this->approveReport();
+        $this->seeStatusCode(200);
+//$this->seeJsonContains(['print']);
+        
+        $response = [
+            'reviewStatus' => TaskReportReviewStatus::DISPLAY_VALUE[TaskReportReviewStatus::APPROVED],
+        ];
+        $this->seeJsonContains($response);
+        
+        $taskReportEntry = [
+            'id' => $this->taskReportOne->id,
+            'reviewStatus' => TaskReportReviewStatus::APPROVED,
+        ];
+        $this->seeInDatabase('TaskReport', $taskReportEntry);
+    }
+    public function test_approveReport_unmanagedTask_cancelled_403()
+    {
+        $this->coordinatorTaskOne->task->cancelled = true;
+        
+        $this->approveReport();
+        $this->seeStatusCode(403);
+    }
+    public function test_approveReport_unamangedTask_notOwning_403()
+    {
+        $program = $this->coordinator->program;
+
+        $otherPersonnel = new RecordOfPersonnel($program->firm, 'other');
+        $otherPersonnel->insert($this->connection);
+
+        $otherCoordinator = new RecordOfCoordinator($program, $otherPersonnel, 'other');
+        $otherCoordinator->insert($this->connection);
+
+        $this->coordinatorTaskOne->coordinator = $otherCoordinator;
+        
+        $this->approveReport();
+        $this->seeStatusCode(403);
+    }
+    public function test_approveReport_unamangedTask_inactiveCoordinator_403()
+    {
+        $this->coordinator->active = false;
+        
+        $this->approveReport();
+        $this->seeStatusCode(403);
+    }
+    
+    //
+    protected function askForReportRevision()
+    {
+        $this->persistCoordinatorDependency();
+        //
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->clientParticipantOne->insert($this->connection);
+        
+        $this->coordinatorTaskOne->insert($this->connection);
+        
+        $this->taskReportOne->insert($this->connection);
+        
+        //
+        $uri = $this->coordinatorUri . "/tasks/{$this->coordinatorTaskOne->id}/ask-for-report-revision";
+        $this->patch($uri, [], $this->coordinator->personnel->token);
+        
+//echo $uri;
+//$this->seeJsonContains(['print']);
+    }
+    public function test_askForReportRevision_200()
+    {
+        $this->askForReportRevision();
+        $this->seeStatusCode(200);
+        
+        $response = [
+            'reviewStatus' => TaskReportReviewStatus::DISPLAY_VALUE[TaskReportReviewStatus::REVISION_REQUIRED],
+        ];
+        $this->seeJsonContains($response);
+        
+        $taskReportEntry = [
+            'id' => $this->taskReportOne->id,
+            'reviewStatus' => TaskReportReviewStatus::REVISION_REQUIRED,
+        ];
+        $this->seeInDatabase('TaskReport', $taskReportEntry);
+    }
+    public function test_askForReportRevision_reportAlreadyApproved_403()
+    {
+        $this->taskReportOne->reviewStatus = TaskReportReviewStatus::APPROVED;
+        
+        $this->askForReportRevision();
+        $this->seeStatusCode(403);
+    }
+    public function test_askForReportRevision_unmanagedTask_cancelled_403()
+    {
+        $this->coordinatorTaskOne->task->cancelled = true;
+        
+        $this->askForReportRevision();
+        $this->seeStatusCode(403);
+    }
+    public function test_askForReportRevision_unamangedTask_notOwning_403()
+    {
+        $program = $this->coordinator->program;
+
+        $otherPersonnel = new RecordOfPersonnel($program->firm, 'other');
+        $otherPersonnel->insert($this->connection);
+
+        $otherCoordinator = new RecordOfCoordinator($program, $otherPersonnel, 'other');
+        $otherCoordinator->insert($this->connection);
+
+        $this->coordinatorTaskOne->coordinator = $otherCoordinator;
+        
+        $this->askForReportRevision();
+        $this->seeStatusCode(403);
+    }
+    public function test_askForReportRevision_unamangedTask_inactiveCoordinator_403()
+    {
+        $this->coordinator->active = false;
+        
+        $this->askForReportRevision();
         $this->seeStatusCode(403);
     }
 
@@ -425,6 +569,7 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
             'id' => $this->coordinatorTaskOne->id,
             'taskReport' => [
                 'content' => $this->taskReportOne->content,
+                'reviewStatus' => TaskReportReviewStatus::DISPLAY_VALUE[$this->taskReportOne->reviewStatus],
                 'attachments' => [
                     [
                         'id' => $this->taskReportAttachmentOne->id,
@@ -525,6 +670,7 @@ $this->disableExceptionHandling();
             'id' => $this->consultantTaskOne->id,
             'taskReport' => [
                 'content' => $this->taskReportOne->content,
+                'reviewStatus' => TaskReportReviewStatus::DISPLAY_VALUE[$this->taskReportOne->reviewStatus],
                 'attachments' => [
                     [
                         'id' => $this->taskReportAttachmentOne->id,

@@ -51,8 +51,8 @@ class Task
     
     public function assertManageableByParticipant(Participant $participant): void
     {
-        if ($this->participant !== $participant) {
-            throw RegularException::forbidden('unmanaged task, can only manage own task');
+        if ($this->cancelled || $this->participant !== $participant) {
+            throw RegularException::forbidden('unmanaged task, can only manage active own task');
         }
     }
 

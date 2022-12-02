@@ -9,6 +9,7 @@ use Participant\Domain\Model\Participant\Task;
 use Participant\Domain\Model\Participant\Task\TaskReport\TaskReportAttachment;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Uuid;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 
 class TaskReport
 {
@@ -30,6 +31,12 @@ class TaskReport
      * @var string
      */
     protected $content;
+
+    /**
+     * 
+     * @var TaskReportReviewStatus
+     */
+    protected $reviewStatus;
 
     /**
      * 
@@ -62,6 +69,7 @@ class TaskReport
         $this->task = $task;
         $this->id = $id;
         $this->content = $data->getContent();
+        $this->reviewStatus = new TaskReportReviewStatus();
         $this->createdTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->modifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->attachments = new ArrayCollection();
@@ -89,6 +97,7 @@ class TaskReport
 
         if ($previousContent != $this->content || $existingAttachmentUpdated || $previousAttachmentCount !== $this->attachments->count()) {
             $this->modifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
+            $this->reviewStatus = $this->reviewStatus->revise();
         }
     }
 

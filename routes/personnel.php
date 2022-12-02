@@ -553,8 +553,12 @@ $router->group($personnelAggregate, function () use ($router) {
         
         $router->get("/participant-profiles/{id}", ["uses" => "ParticipantProfileController@view"]);
         $router->get("/participants/{participantId}/profiles", ["uses" => "ParticipantProfileController@viewAllProfileOfParticularParticipant"]);
+        
+        // task route in coordinatorBC
         $router->post("/tasks", ["uses" => "TaskController@submitTask"]);
         $router->patch("/tasks/{id}", ["uses" => "TaskController@updateTask"]);
+        $router->patch("/tasks/{id}/approve-report", ["uses" => "TaskController@approveTaskReport"]);
+        $router->patch("/tasks/{id}/ask-for-report-revision", ["uses" => "TaskController@askForTaskReportRevision"]);
         $router->delete("/tasks/{id}", ["uses" => "TaskController@cancelTask"]);
         $router->get("/consultant-tasks/{id}", ["uses" => "TaskController@viewConsultantTaskDetail"]);
         $router->get("/coordinator-tasks/{id}", ["uses" => "TaskController@viewCoordinatorTaskDetail"]);
@@ -596,6 +600,8 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/participants/{participantId}/profiles", ["uses" => "ParticipantProfileController@viewAllProfileOfParticularParticipant"]);
         $router->post("/tasks", ["uses" => "TaskController@submitTask"]);
         $router->patch("/tasks/{id}", ["uses" => "TaskController@updateTask"]);
+        $router->patch("/tasks/{id}/approve-report", ["uses" => "TaskController@approveTaskReport"]);
+        $router->patch("/tasks/{id}/ask-for-report-revision", ["uses" => "TaskController@askForTaskReportRevision"]);
         $router->delete("/tasks/{id}", ["uses" => "TaskController@cancelTask"]);
         $router->get("/consultant-tasks/{id}", ["uses" => "TaskController@viewConsultantTaskDetail"]);
         $router->get("/coordinator-tasks/{id}", ["uses" => "TaskController@viewCoordinatorTaskDetail"]);

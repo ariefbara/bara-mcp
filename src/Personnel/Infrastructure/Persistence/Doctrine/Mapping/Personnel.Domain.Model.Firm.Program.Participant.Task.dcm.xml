@@ -16,5 +16,10 @@
         <field name="createdTime" type="datetime_immutable" nullable="true"/>
         <field name="modifiedTime" type="datetime_immutable" nullable="true"/>
         
+        <one-to-one field="taskReport" 
+                    target-entity="Personnel\Domain\Model\Firm\Program\Participant\Task\TaskReport"
+                    mapped-by="task"
+        />
+        
     </entity>
 </doctrine-mapping>

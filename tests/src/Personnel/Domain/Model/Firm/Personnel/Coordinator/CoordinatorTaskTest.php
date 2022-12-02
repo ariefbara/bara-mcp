@@ -81,6 +81,30 @@ class CoordinatorTaskTest extends TestBase
         $this->assertManageableByCoordinator();
         $this->markAsSuccess();
     }
+    
+    //
+    protected function approveReport()
+    {
+        $this->coordinatorTask->approveReport();
+    }
+    public function test_approveReport_approveTaskReport()
+    {
+        $this->task->expects($this->once())
+                ->method('approveReport');
+        $this->approveReport();
+    }
+    
+    //
+    protected function askForReportRevision()
+    {
+        $this->coordinatorTask->askForReportRevision();
+    }
+    public function test_askForReportRevision_askForTaskReportRevision()
+    {
+        $this->task->expects($this->once())
+                ->method('askForReportRevision');
+        $this->askForReportRevision();
+    }
 }
 
 class TestableCoordinatorTask extends CoordinatorTask

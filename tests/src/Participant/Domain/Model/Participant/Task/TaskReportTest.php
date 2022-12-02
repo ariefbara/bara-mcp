@@ -8,12 +8,13 @@ use Participant\Domain\Model\Participant\ParticipantFileInfo;
 use Participant\Domain\Model\Participant\Task;
 use Participant\Domain\Model\Participant\Task\TaskReport\TaskReportAttachment;
 use Resources\DateTimeImmutableBuilder;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\TestBase;
 
 class TaskReportTest extends TestBase
 {
     protected $task;
-    protected $taskReport, $attachmentOne;
+    protected $taskReport, $reviewStatus, $attachmentOne;
     //
     protected $id = 'newId';
     protected $content = 'new content', $participantFileInfoOne, $participantFileInfoTwo;
@@ -25,6 +26,8 @@ class TaskReportTest extends TestBase
         
         
         $this->taskReport = new TestableTaskReport($this->task, 'id', new TaskReportData('content'));
+        $this->reviewStatus = $this->buildMockOfClass(TaskReportReviewStatus::class);
+        $this->taskReport->reviewStatus = $this->reviewStatus;
         $this->taskReport->attachments = new ArrayCollection();
         $this->taskReport->modifiedTime = new DateTimeImmutable('-7 days');
         
@@ -56,6 +59,7 @@ class TaskReportTest extends TestBase
         $this->assertSame($this->content, $taskReport->content);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $taskReport->createdTime);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $taskReport->modifiedTime);
+        $this->assertEquals(new TaskReportReviewStatus(), $taskReport->reviewStatus);
         $this->assertInstanceOf(ArrayCollection::class, $taskReport->attachments);
     }
     public function test_construct_setAttachments()
@@ -75,10 +79,16 @@ class TaskReportTest extends TestBase
         
         $this->taskReport->update($this->composeData());
     }
-    public function test_update_updateContentAndModifiedTime()
+    public function test_update_updateContentModifiedTimeAndReviseReviewStatus()
     {
+        $updatedReviewStatus = $this->buildMockOfClass(TaskReportReviewStatus::class);
+        $this->reviewStatus->expects($this->once())
+                ->method('revise')
+                ->willReturn($updatedReviewStatus);
         $this->update();
         $this->assertSame($this->content, $this->taskReport->content);
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $this->taskReport->modifiedTime);
+        $this->assertSame($updatedReviewStatus, $this->taskReport->reviewStatus);
     }
     public function test_update_updateExistingAttachment()
     {
@@ -108,7 +118,7 @@ class TaskReportTest extends TestBase
         $this->update();
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $this->taskReport->modifiedTime);
     }
-    public function test_update_noChangeInContentAndAttachment_dontUpdateModifiedTime()
+    public function test_update_noChangeInContentAndAttachment_dontUpdateModifiedTimeAndReviewStatus()
     {
         $data = new TaskReportData($this->taskReport->content);
         
@@ -124,6 +134,7 @@ class TaskReportTest extends TestBase
         $previousModifiedTime = $this->taskReport->modifiedTime;
         $this->taskReport->update($data);
         $this->assertEquals($previousModifiedTime, $this->taskReport->modifiedTime);
+        $this->assertSame($this->reviewStatus, $this->taskReport->reviewStatus);
     }
     public function test_update_existingAttachmentUpdated_updateModifiedTime()
     {
@@ -163,6 +174,7 @@ class TestableTaskReport extends TaskReport
     public $task;
     public $id;
     public $content;
+    public $reviewStatus;
     public $createdTime;
     public $modifiedTime;
     public $attachments;

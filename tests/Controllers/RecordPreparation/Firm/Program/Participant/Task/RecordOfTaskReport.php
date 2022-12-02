@@ -4,6 +4,7 @@ namespace Tests\Controllers\RecordPreparation\Firm\Program\Participant\Task;
 
 use DateTime;
 use Illuminate\Database\ConnectionInterface;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfTask;
 use Tests\Controllers\RecordPreparation\Record;
 
@@ -17,6 +18,7 @@ class RecordOfTaskReport implements Record
     public $task;
     public $id;
     public $content;
+    public $reviewStatus;
     public $createdTime;
     public $modifiedTime;
 
@@ -25,6 +27,7 @@ class RecordOfTaskReport implements Record
         $this->task = $task;
         $this->id = "TaskReport-$id-id";
         $this->content = "task report $id content";
+        $this->reviewStatus = TaskReportReviewStatus::UNREVIEWED;
         $this->createdTime = (new DateTime('-2 weeks'))->format('Y-m-d H:i:s');
         $this->modifiedTime = (new DateTime('-1 weeks'))->format('Y-m-d H:i:s');
     }
@@ -35,6 +38,7 @@ class RecordOfTaskReport implements Record
             'Task_id' => $this->task->id,
             'id' => $this->id,
             'content' => $this->content,
+            'reviewStatus' => $this->reviewStatus,
             'createdTime' => $this->createdTime,
             'modifiedTime' => $this->modifiedTime,
         ];

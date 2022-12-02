@@ -3,6 +3,7 @@
 namespace Personnel\Domain\Model\Firm\Program\Participant;
 
 use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Model\Firm\Program\Participant\Task\TaskReport;
 use Resources\DateTimeImmutableBuilder;
 use SharedContext\Domain\ValueObject\Label;
 use SharedContext\Domain\ValueObject\LabelData;
@@ -12,7 +13,7 @@ class TaskTest extends TestBase
 {
     protected $participant;
     protected $labelData;
-    protected $task, $label;
+    protected $task, $label, $taskReport;
     //
     protected $id = 'newId';
     //
@@ -25,10 +26,16 @@ class TaskTest extends TestBase
         $this->labelData = new LabelData('name', 'description');
         
         $this->task = new TestableTask($this->participant, 'id', $this->labelData);
+        
         $this->label = $this->buildMockOfClass(Label::class);
         $this->task->label = $this->label;
+        
         $this->task->modifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy('-1 days');
         
+        $this->taskReport = $this->buildMockOfClass(TaskReport::class);
+        $this->task->taskReport = $this->taskReport;
+        
+        //
         $this->newLabel = $this->buildMockOfClass(Label::class);
     }
     
@@ -51,7 +58,7 @@ class TaskTest extends TestBase
     //
     protected function update()
     {
-        $this->label->expects($this->once())
+        $this->label->expects($this->any())
                 ->method('update')
                 ->with($this->labelData)
                 ->willReturn($this->newLabel);
@@ -78,6 +85,13 @@ class TaskTest extends TestBase
         $this->update();
         $this->assertEquals($previousModifiedTime, $this->task->modifiedTime);
     }
+    public function test_update_alreadyCancelled_forbidden()
+    {
+        $this->task->cancelled = true;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->update();
+        }, 'Forbidden', 'task already cancelled, no further changes allowed');
+    }
     
     //
     protected function cancel()
@@ -89,6 +103,44 @@ class TaskTest extends TestBase
         $this->cancel();
         $this->assertTrue($this->task->cancelled);
     }
+    
+    //
+    protected function approveReport()
+    {
+        $this->task->approveReport();
+    }
+    public function test_approveReport_approveReport()
+    {
+        $this->taskReport->expects($this->once())
+                ->method('approve');
+        $this->approveReport();
+    }
+    public function test_approveReport_taskAlreadyCancelled_forbidden()
+    {
+        $this->task->cancelled = true;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->approveReport();
+        }, 'Forbidden', 'task already cancelled, no further changes allowed');
+    }
+    
+    //
+    protected function askForReportRevision()
+    {
+        $this->task->askForReportRevision();
+    }
+    public function test_askForReportRevision_askForReportRevision()
+    {
+        $this->taskReport->expects($this->once())
+                ->method('askForRevision');
+        $this->askForReportRevision();
+    }
+    public function test_askForReportRevision_alreadyCancelled_forbidden()
+    {
+        $this->task->cancelled = true;
+        $this->assertRegularExceptionThrowed(function () {
+            $this->askForReportRevision();
+        }, 'Forbidden', 'task already cancelled, no further changes allowed');
+    }
 }
 
 class TestableTask extends Task
@@ -99,4 +151,5 @@ class TestableTask extends Task
     public $label;
     public $createdTime;
     public $modifiedTime;
+    public $taskReport;
 }
