@@ -6,10 +6,12 @@ use Query\Domain\Task\CommonViewListPayload;
 use Query\Domain\Task\Dependency\MentoringFilter;
 use Query\Domain\Task\Dependency\MentoringFilter\DeclaredMentoringFilter;
 use Query\Domain\Task\Dependency\MentoringListFilter;
+use Query\Domain\Task\GenericQueryPayload;
 use Query\Domain\Task\Personnel\MentoringListFilterForCoordinator;
 use Query\Domain\Task\Personnel\ViewAllMentoringPayload;
 use Query\Domain\Task\Personnel\ViewAllMentoringTask;
 use Query\Domain\Task\Personnel\ViewMentoringListInCoordinatedPrograms;
+use Query\Domain\Task\Personnel\ViewSummaryOfMentoringBelongsToPersonnel;
 use Query\Infrastructure\Persistence\Doctrine\Repository\CustomDoctrineMentoringRepository;
 
 class MentoringController extends PersonnelBaseController
@@ -103,5 +105,15 @@ class MentoringController extends PersonnelBaseController
         $this->executePersonalQueryTask($task, $payload);
         
         return $this->listQueryResponse($payload->result);
+    }
+    
+    public function summaryOfOwnedMentoring()
+    {
+        $mentoringRepository = new CustomDoctrineMentoringRepository($this->em);
+        $task = new ViewSummaryOfMentoringBelongsToPersonnel($mentoringRepository);
+        $payload = new GenericQueryPayload();
+        $this->executePersonalQueryTask($task, $payload);
+        
+        return $this->singleQueryResponse($payload->result);
     }
 }

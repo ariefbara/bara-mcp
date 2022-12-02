@@ -15,7 +15,7 @@ use Resources\QueryOrder;
 class TaskController extends PersonnelBaseController
 {
     
-    public function viewAllTaskInCoordinatedProgram()
+    public function viewTaskListInAllCoordinatedProgram()
     {
         $taskRepository = $this->em->getRepository(Task::class);
         $task = new ViewAllTaskInCoordinatoredProgram($taskRepository);
@@ -41,10 +41,16 @@ class TaskController extends PersonnelBaseController
                 ->setTaskSource($taskSource)
                 ->setModifiedTimeOrder($modifiedTimeOrder)
                 ->setCreatedTimeOrder($createdTimeOrder);
-        $participantId = $this->stripTagQueryRequest('participantId');
         
+        $programId = $this->stripTagQueryRequest('programId');
+        $participantId = $this->stripTagQueryRequest('participantId');
         $filter = (new TaskListFilterForCoordinator($taskListFilter))
-                ->setParticipantId($participantId);
+                ->setParticipantId($participantId)
+                ->setProgramId($programId);
+        if ($this->filterBooleanOfQueryRequest('onlyShowOwnedTask')) {
+            $filter->setOnlyShowOwnedTask();
+        }
+        
         $payload = new CommonViewListPayload($filter);
         
         $this->executePersonalQueryTask($task, $payload);
@@ -52,7 +58,7 @@ class TaskController extends PersonnelBaseController
         return $this->listQueryResponse($payload->result);
     }
     
-    public function viewAllRelevanTaskAsProgramConsultant()
+    public function viewTaskListInAllConsultedProgram()
     {
         $taskRepository = $this->em->getRepository(Task::class);
         $task = new ViewAllRelevantTaskAsProgramConsultant($taskRepository);
@@ -78,10 +84,15 @@ class TaskController extends PersonnelBaseController
                 ->setTaskSource($taskSource)
                 ->setModifiedTimeOrder($modifiedTimeOrder)
                 ->setCreatedTimeOrder($createdTimeOrder);
-        $participantId = $this->stripTagQueryRequest('participantId');
         
+        $programId = $this->stripTagQueryRequest('programId');
+        $participantId = $this->stripTagQueryRequest('participantId');
         $filter = (new TaskListFilterForConsultant($taskListFilter))
+                ->setProgramId($programId)
                 ->setParticipantId($participantId);
+        if ($this->filterBooleanOfQueryRequest('onlyShowRelevantTask')) {
+            $filter->setOnlyShowRelevantTask();
+        }
         $payload = new CommonViewListPayload($filter);
         
         $this->executePersonalQueryTask($task, $payload);

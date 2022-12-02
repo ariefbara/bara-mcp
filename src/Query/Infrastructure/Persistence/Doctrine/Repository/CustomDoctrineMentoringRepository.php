@@ -706,6 +706,7 @@ FROM (
                 LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
                 LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
                 LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+            WHERE BookedMentoringSlot.cancelled = false
             GROUP BY MentoringSlot_id
         )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
     WHERE MentoringSlot.cancelled = false
@@ -852,6 +853,7 @@ FROM (
                 LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
                 LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
                 LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+            WHERE BookedMentoringSlot.cancelled = false
             GROUP BY MentoringSlot_id
         )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
     WHERE MentoringSlot.cancelled = false
@@ -914,6 +916,152 @@ WHERE 1
 _SQL;
         $query = $this->em->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function summaryOfMentoringBelongsToPersonnel(string $personnelId)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        $irrelevantDeclaredMentoringStatus = implode(", ", [
+            DeclaredMentoringStatus::CANCELLED, 
+            DeclaredMentoringStatus::DENIED_BY_MENTOR, 
+            DeclaredMentoringStatus::DENIED_BY_PARTICIPANT
+        ]);
+        
+        $irrelevantMentoringRequestStatus = implode(", ", [
+            MentoringRequestStatus::CANCELLED, 
+            MentoringRequestStatus::REJECTED
+        ]);
+        $ongoingMentoringRequestStatus = implode(", ", [
+            MentoringRequestStatus::OFFERED, 
+            MentoringRequestStatus::REQUESTED
+        ]);
+        $confirmedMentoringRequestStatus = implode(", ", [
+            MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT, 
+            MentoringRequestStatus::APPROVED_BY_MENTOR
+        ]);
+        
+        $currentTime = "'". (new \DateTime())->format('Y-m-d H:i:s') . "'";
+        
+        $sql = <<<_SQL
+SELECT 
+    COUNT(IF(
+        startTime >= {$currentTime} AND capacity > COALESCE(totalBooking, 0) AND capacity >= 1,
+        mentoringSlotId, null
+    )) availableSlot,
+    COUNT(IF(
+        mentoringRequestStatus IN ({$ongoingMentoringRequestStatus}),
+        mentoringRequestId, null
+    )) ongoingMentoringRequest,
+    (
+        COUNT(IF(
+            startTime >= {$currentTime} AND mentoringRequestStatus IN ({$confirmedMentoringRequestStatus}),
+            mentoringRequestId, null
+        ))
+        + COUNT(IF(
+            startTime >= {$currentTime} AND totalBooking IS NOT NULL,
+            mentoringSlotId, null
+        ))
+    ) confirmedMentoring,
+    (
+        COUNT(IF(
+            endTime <= {$currentTime} AND reportSubmitted = true,
+            IF(mentoringRequestStatus IN ({$confirmedMentoringRequestStatus}), mentoringRequestId, declaredMentoringId),
+            null
+        ))
+        + COUNT(IF(
+            endTime <= {$currentTime} AND totalBooking IS NOT NULL AND totalSubmittedReport = totalBooking,
+            mentoringSlotId, null
+        ))
+    ) completedMentoring,
+    (
+        COUNT(IF(
+            endTime <= {$currentTime} AND (reportSubmitted IS NULL OR reportSubmitted = false),
+            IF(mentoringRequestStatus IN ({$confirmedMentoringRequestStatus}), mentoringRequestId, declaredMentoringId),
+            null
+        ))
+        + COUNT(IF(
+            endTime <= {$currentTime} AND totalBooking IS NOT NULL AND totalSubmittedReport < totalBooking,
+            mentoringSlotId, null
+        ))
+    ) incompleteReportMentoring
+FROM (
+    SELECT
+        MentoringRequest.id mentoringRequestId,
+                MentoringRequest.requestStatus mentoringRequestStatus,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            MentoringRequest.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        MentoringRequest.startTime,
+        MentoringRequest.endTime,
+        MentoringRequest.Consultant_id consultantId
+    FROM MentoringRequest
+        LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
+        LEFT JOIN Mentoring ON Mentoring.id = NegotiatedMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+    WHERE MentoringRequest.requestStatus NOT IN ({$irrelevantMentoringRequestStatus})
+            
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            null participantId,
+            null reportSubmitted,
+        MentoringSlot.id mentoringSlotId,
+            MentoringSlot.capacity,
+            _bookedMentoringSlot.totalBooking,
+            _bookedMentoringSlot.totalSubmittedReport,
+
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id consultantId
+    FROM MentoringSlot
+        INNER JOIN Consultant ON Consultant.id = MentoringSlot.Mentor_id AND Consultant.active = true
+        LEFT JOIN (
+            SELECT MentoringSlot_id, COUNT(*) totalBooking, COUNT(MentorReport.id) totalSubmittedReport
+            FROM BookedMentoringSlot
+                LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+                LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+            WHERE BookedMentoringSlot.cancelled = false
+            GROUP BY MentoringSlot_id
+        )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
+    WHERE MentoringSlot.cancelled = false
+                
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        DeclaredMentoring.id declaredMentoringId,
+                DeclaredMentoring.declaredStatus declaredMentoringStatus,
+            DeclaredMentoring.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.Consultant_id consultantId
+    FROM DeclaredMentoring
+        LEFT JOIN Mentoring ON Mentoring.id = DeclaredMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+    WHERE DeclaredMentoring.declaredStatus NOT IN ({$irrelevantDeclaredMentoringStatus})
+    
+)_mentoring
+    INNER JOIN Consultant 
+        ON Consultant.id = _mentoring.consultantId
+        AND Consultant.Personnel_id = :personnelId
+_SQL;
+        $query = $this->em->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
     }
 
 }

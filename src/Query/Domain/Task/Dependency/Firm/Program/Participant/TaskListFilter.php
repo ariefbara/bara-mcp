@@ -5,6 +5,7 @@ namespace Query\Domain\Task\Dependency\Firm\Program\Participant;
 use DateTimeImmutable;
 use Resources\PaginationFilter;
 use Resources\QueryOrder;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 
 class TaskListFilter
 {
@@ -132,16 +133,21 @@ _STATEMENT;
 
     protected function getCompletedStatusOptionalStatement(): ?string
     {
+        $approvedTaskReport = TaskReportReviewStatus::APPROVED;
+        $ongoingTaskReport = implode(", ", [TaskReportReviewStatus::UNREVIEWED, TaskReportReviewStatus::REVISION_REQUIRED]);
         if (is_null($this->completedStatus)) {
             return null;
         }
         if ($this->completedStatus) {
             return <<<_STATEMENT
-    AND TaskReport.id IS NOT NULL
+    AND TaskReport.reviewStatus = {$approvedTaskReport}
 _STATEMENT;
         } else {
             return <<<_STATEMENT
-    AND TaskReport.id IS NULL
+    AND (
+        TaskReport.id IS NULL
+        OR TaskReport.reviewStatus IN ({$ongoingTaskReport})
+    )
 _STATEMENT;
         }
     }

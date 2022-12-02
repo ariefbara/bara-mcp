@@ -92,8 +92,8 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/coordinated-programs-summary', ['uses' => "CoordinatedProgramsSummaryController@view"]);
     
     // task related route in personnel BC
-    $router->get('/tasks-list-in-coordinated-programs', ['uses' => "TaskController@viewAllTaskInCoordinatedProgram"]);
-    $router->get('/task-list-in-consulted-programs', ['uses' => "TaskController@viewAllRelevanTaskAsProgramConsultant"]);
+    $router->get('/tasks-list-in-coordinated-programs', ['uses' => "TaskController@viewTaskListInAllCoordinatedProgram"]);
+    $router->get('/task-list-in-consulted-programs', ['uses' => "TaskController@viewTaskListInAllConsultedProgram"]);
     
     // notes related route in personnel BC
     $router->get('/notes-list-in-coordinated-programs', ['uses' => "NoteController@viewTaskListInCoordinatedPrograms"]);
@@ -112,8 +112,9 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/metric-assignment-report-list-in-coordinated-programs', ['uses' => "MetricAssignmentReportController@viewListInCoordinatedPrograms"]);
     $router->get('/metric-assignment-report-list-in-consulted-programs', ['uses' => "MetricAssignmentReportController@viewListInConsultedPrograms"]);
     
-    //mentoring related route in personnel BC
+    //mentoring route in personnel BC
     $router->get('/mentoring-list-in-coordinated-programs', ['uses' => "MentoringController@mentoringListInCoordinatedPrograms"]);
+    $router->get('/summary-of-owned-mentoring', ['uses' => "MentoringController@summaryOfOwnedMentoring"]);
     
     //program route in personnel BC
     $router->get('/list-of-coordinated-program', ['uses' => "ProgramController@listOfCoordinatedProgram"]);

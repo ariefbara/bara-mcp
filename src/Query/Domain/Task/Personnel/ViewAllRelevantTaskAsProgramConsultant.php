@@ -28,7 +28,7 @@ class ViewAllRelevantTaskAsProgramConsultant implements PersonnelTask
     public function execute(string $personnelId, $payload): void
     {
         $payload->result = $this->taskRepository
-                ->allRelevanTaskAsProgrmConsultantOfPersonnel($personnelId, $payload->getFilter());
+                ->taskListInAllProgramConsultedByPersonnel($personnelId, $payload->getFilter());
     }
 
 }

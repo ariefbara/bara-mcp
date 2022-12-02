@@ -28,7 +28,7 @@ class ViewAllTaskInCoordinatoredProgram implements PersonnelTask
     public function execute(string $personnelId, $payload): void
     {
         $payload->result = $this->taskRepository
-                ->allTaskInProgramCoordinatedByPersonnel($personnelId, $payload->getFilter());
+                ->taskListInAllProgramCoordinatedByPersonnel($personnelId, $payload->getFilter());
     }
 
 }

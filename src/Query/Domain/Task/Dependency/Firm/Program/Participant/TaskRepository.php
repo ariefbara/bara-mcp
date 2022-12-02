@@ -11,9 +11,10 @@ interface TaskRepository
 
     public function allTaskInProgram(string $programId, TaskListFilter $taskListFilter);
 
-    public function allTaskInProgramCoordinatedByPersonnel(string $personnelId, TaskListFilterForCoordinator $filter);
+    public function taskListInAllProgramCoordinatedByPersonnel(string $personnelId, TaskListFilterForCoordinator $filter);
 
-    public function allRelevanTaskAsProgrmConsultantOfPersonnel(string $personnelId, TaskListFilterForConsultant $filter);
+    public function taskListInAllProgramConsultedByPersonnel(string $personnelId, TaskListFilterForConsultant $filter);
     
     public function aTaskBelongsToParticipant(string $participantId, string $id): Task;
+    
 }

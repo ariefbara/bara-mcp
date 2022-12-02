@@ -74,7 +74,7 @@ _STATEMENT;
         }
         $parameters['to'] = $this->to->format('Y-m-d H:i:s');
         return <<<_STATEMENT
-    AND _mentoring.startTime <= :to
+    AND _mentoring.endTime <= :to
 _STATEMENT;
     }
     public function getCriteriaStatement(&$parameters): ?string

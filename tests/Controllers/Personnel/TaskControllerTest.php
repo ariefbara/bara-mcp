@@ -3,6 +3,7 @@
 namespace Tests\Controllers\Personnel;
 
 use DateTime;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorTask;
@@ -22,25 +23,33 @@ class TaskControllerTest extends PersonnelTestCase
 {
 
     protected $viewAllTaskInCoordinatedProgramUri;
-    protected $viewAllRelevanTaskAsProgramConsultantUri;
+    protected $viewTaskListInAllConsultedProgramUri;
+    //
     protected $programOne;
     protected $programTwo;
+    
     protected $personnelOne;
     protected $personnelTwo;
+    
     protected $ownConsultant_p1;
     protected $ownConsultant_p2;
     protected $consultantOne;
     protected $consultantTwo;
+    
     protected $ownCoordinator_p1;
     protected $ownCoordinator_p2;
     protected $coordinatorOne;
+    //
     protected $clientOne;
     protected $individualParticipantOne;
     protected $teamParticipantOne;
+    
     protected $dedicatedMentorOne;
     protected $dedicatedMentorTwo;
+    
     protected $consultantTaskOne;
     protected $coordinatorTaskOne;
+    
     protected $taskReport;
 
     protected function setUp(): void
@@ -62,7 +71,7 @@ class TaskControllerTest extends PersonnelTestCase
         $this->connection->table('CoordinatorTask')->truncate();
         $this->connection->table('TaskReport')->truncate();
 
-        $this->viewAllRelevanTaskAsProgramConsultantUri = $this->personnelUri . "/task-list-in-consulted-programs";
+        $this->viewTaskListInAllConsultedProgramUri = $this->personnelUri . "/task-list-in-consulted-programs";
         $this->viewAllTaskInCoordinatedProgramUri = $this->personnelUri . "/tasks-list-in-coordinated-programs";
 
         $firm = $this->personnel->firm;
@@ -126,7 +135,7 @@ class TaskControllerTest extends PersonnelTestCase
         $this->connection->table('TaskReport')->truncate();
     }
 
-    protected function viewAllRelevanTaskAsProgramConsultant()
+    protected function viewTaskListInAllConsultedProgram()
     {
         $this->programOne->insert($this->connection);
         $this->programTwo->insert($this->connection);
@@ -152,15 +161,15 @@ class TaskControllerTest extends PersonnelTestCase
         $this->consultantTaskOne->insert($this->connection);
         $this->coordinatorTaskOne->insert($this->connection);
 
-// echo $this->viewAllRelevanTaskAsProgramConsultantUri;
-        $this->get($this->viewAllRelevanTaskAsProgramConsultantUri, $this->personnel->token);
+        $this->get($this->viewTaskListInAllConsultedProgramUri, $this->personnel->token);
+//echo $this->viewTaskListInAllConsultedProgramUri;
+//$this->seeJsonContains(['print']);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_200()
+    public function test_viewTaskListInAllConsultedProgram_200()
     {
         $this->disableExceptionHandling();
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
-// $this->seeJsonContains(['printme']);
 
         $response = [
             'total' => "2",
@@ -171,18 +180,13 @@ class TaskControllerTest extends PersonnelTestCase
                     'cancelled' => strval(intval($this->consultantTaskOne->task->cancelled)),
                     'createdTime' => $this->consultantTaskOne->task->createdTime,
                     'modifiedTime' => $this->consultantTaskOne->task->modifiedTime,
+                    'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => $this->consultantTaskOne->id,
-                    'consultantId' => $this->consultantTaskOne->consultant->id,
-                    'consultantPersonnelId' => $this->consultantTaskOne->consultant->personnel->id,
-                    'consultantName' => $this->consultantTaskOne->consultant->personnel->getFullName(),
                     'coordinatorTaskId' => null,
-                    'coordinatorId' => null,
-                    'coordinatorPersonnelId' => null,
-                    'coordinatorName' => null,
+                    'taskGiverName' => $this->consultantTaskOne->consultant->personnel->getFullName(),
                     'participantId' => $this->consultantTaskOne->task->participant->id,
                     'participantName' => $this->individualParticipantOne->client->getFullName(),
-                    'completed' => strval(intval(false)),
-                    'selfConsultantId' => $this->ownConsultant_p1->id,
+                    'consultantId' => $this->ownConsultant_p1->id,
                     'programId' => $this->consultantTaskOne->task->participant->program->id,
                     'programName' => $this->consultantTaskOne->task->participant->program->name,
                 ],
@@ -192,18 +196,13 @@ class TaskControllerTest extends PersonnelTestCase
                     'cancelled' => strval(intval($this->coordinatorTaskOne->task->cancelled)),
                     'createdTime' => $this->coordinatorTaskOne->task->createdTime,
                     'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
+                    'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => null,
-                    'consultantId' => null,
-                    'consultantPersonnelId' => null,
-                    'consultantName' => null,
                     'coordinatorTaskId' => $this->coordinatorTaskOne->id,
-                    'coordinatorId' => $this->coordinatorTaskOne->coordinator->id,
-                    'coordinatorPersonnelId' => $this->coordinatorTaskOne->coordinator->personnel->id,
-                    'coordinatorName' => $this->coordinatorTaskOne->coordinator->personnel->getFullName(),
+                    'taskGiverName' => $this->coordinatorTaskOne->coordinator->personnel->getFullName(),
                     'participantId' => $this->coordinatorTaskOne->task->participant->id,
                     'participantName' => $this->teamParticipantOne->team->name,
-                    'completed' => strval(intval(false)),
-                    'selfConsultantId' => $this->ownConsultant_p2->id,
+                    'consultantId' => $this->ownConsultant_p2->id,
                     'programId' => $this->coordinatorTaskOne->task->participant->program->id,
                     'programName' => $this->coordinatorTaskOne->task->participant->program->name,
                 ],
@@ -211,191 +210,209 @@ class TaskControllerTest extends PersonnelTestCase
         ];
         $this->seeJsonContains($response);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_excludeConsultantTaskForNonDedicatedMentee_200()
+    public function test_viewTaskListInAllConsultedProgram_applyAllFilter()
     {
-        $this->dedicatedMentorOne->consultant = $this->consultantOne;
-        
-        $this->viewAllRelevanTaskAsProgramConsultant();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '1']);
-        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
-        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
-    }
-    public function test_viewAllRelevanTaskAsProgramConsultant_excludeConsultantTaskOnNonMentoredProgram_200()
-    {
-        $this->ownConsultant_p1->active = false;
-        
-        $this->viewAllRelevanTaskAsProgramConsultant();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '1']);
-        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
-        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
-    }
-    public function test_viewAllRelevanTaskAsProgramConsultant_excludeCoordinatorTaskOnNonMentoredProgram_200()
-    {
-        $this->ownConsultant_p2->active = false;
-        
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
+        $to = (new DateTime())->format('Y-m-d H:i:s');
+        $this->viewTaskListInAllConsultedProgramUri .= ""
+                . "?cancelled=false"
+                . "&completed=false"
+                . "&from=$from"
+                . "&to=$to"
+                . "&keyword=ask"
+                . "&taskSource=CONSULTANT"
+                . "&programId={$this->individualParticipantOne->participant->program->id}"
+                . "&participantId={$this->individualParticipantOne->participant->id}"
+                . "&onlyShowRelevantTask=true";
+                
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_includeOwnTaskForNonDedicatedMentee_200()
+    public function test_viewTaskListInAllConsultedProgram_onlyShowRelevantTaskFilter_excludeTaskForNonDedicatedMentee()
     {
         $this->dedicatedMentorOne->consultant = $this->consultantOne;
         
+        $this->viewTaskListInAllConsultedProgramUri .= ""
+                . "?onlyShowRelevantTask=true";
+        
+        $this->viewTaskListInAllConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
+    public function test_viewTaskListInAllConsultedProgram_onlyShowRelevantTaskFilter_excludeCoordinatorTaskForNonMentoredProgram_200()
+    {
+        $this->dedicatedMentorTwo->cancelled = true;
+        
+        $this->viewTaskListInAllConsultedProgramUri .= ""
+                . "?onlyShowRelevantTask=true";
+        
+        $this->viewTaskListInAllConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
+    public function test_viewTaskListInAllConsultedProgram_onlyShowRelevantTaskFilter_includeOwnTaskForNonDedicatedMentee_200()
+    {
+        $this->dedicatedMentorOne->consultant = $this->consultantOne;
         $this->consultantTaskOne->consultant = $this->ownConsultant_p1;
         
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgramUri .= ""
+                . "?onlyShowRelevantTask=true";
+        
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '2']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_excludeCoordinatorTaskForNonDedicatedMentee_200()
+    public function test_viewTaskListInAllConsultedProgram_programIdIdFilter_200()
     {
         $this->consultantTwo->insert($this->connection);
         $this->dedicatedMentorTwo->consultant = $this->consultantTwo;
-        
-        $this->viewAllRelevanTaskAsProgramConsultant();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '1']);
-        $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
-        $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
-    }
-    public function test_viewAllRelevanTaskAsProgramConsultant_applyAllFilter()
-    {
-        $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
-        $to = (new DateTime())->format('Y-m-d H:i:s');
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?cancelled=false"
-                . "&completed=false"
-                . "&from=$from"
-                . "&to=$to"
-                . "&keyword=ask"
-                . "&taskSource=CONSULTANT"
-                . "&participantId={$this->individualParticipantOne->participant->id}";
+        $this->viewTaskListInAllConsultedProgramUri .= "" 
+                . "?programId={$this->teamParticipantOne->participant->program->id}";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '1']);
-        $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
-        $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
-    }
-    public function test_viewAllRelevanTaskAsProgramConsultant_applyParticipantIdFilter_includeTasksToParticipantFromNonDedicatedOrNotOwned()
-    {
-        $this->consultantTwo->insert($this->connection);
-        $this->dedicatedMentorTwo->consultant = $this->consultantTwo;
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?participantId={$this->teamParticipantOne->participant->id}";
-                
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_cancelledFilter()
+    public function test_viewTaskListInAllConsultedProgram_participantIdFilter_200()
+    {
+        $this->consultantTwo->insert($this->connection);
+        $this->dedicatedMentorTwo->consultant = $this->consultantTwo;
+        $this->viewTaskListInAllConsultedProgramUri .= "" 
+                . "?participantId={$this->teamParticipantOne->participant->id}";
+                
+        $this->viewTaskListInAllConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
+    public function test_viewTaskListInAllConsultedProgram_cancelledFilter()
     {
         $this->consultantTaskOne->task->cancelled = true;
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?cancelled=true";
+        $this->viewTaskListInAllConsultedProgramUri .= "?cancelled=true";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_completedFilter()
+    public function test_viewTaskListInAllConsultedProgram_completedFilter()
     {
+        $this->taskReport->reviewStatus = TaskReportReviewStatus::APPROVED;
         $this->taskReport->insert($this->connection);
         
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?completed=true";
+        $this->viewTaskListInAllConsultedProgramUri .= "?completed=true";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
-        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+        $this->seeJsonContains([
+            'coordinatorTaskId' => $this->coordinatorTaskOne->id,
+            'reviewStatus' => 'approved',
+        ]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_fromFilter()
+    public function test_viewTaskListInAllConsultedProgram_fromFilter()
     {
         $this->consultantTaskOne->task->modifiedTime = (new \DateTime('-1 days'))->format('Y-m-d H:i:s');
         
         $from = (new \DateTime('-2 days'))->format('Y-m-d H:i:s');
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?from=$from";
+        $this->viewTaskListInAllConsultedProgramUri .= "?from=$from";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_toFilter()
+    public function test_viewTaskListInAllConsultedProgram_toFilter()
     {
         $this->consultantTaskOne->task->modifiedTime = (new \DateTime('-100 days'))->format('Y-m-d H:i:s');
         
         $to = (new \DateTime('-99 days'))->format('Y-m-d H:i:s');
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?to=$to";
+        $this->viewTaskListInAllConsultedProgramUri .= "?to=$to";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_keywordFilter_searchThroughName()
+    public function test_viewTaskListInAllConsultedProgram_programIdFilter()
+    {
+        $this->viewTaskListInAllConsultedProgramUri .= "?programId={$this->consultantOne->program->id}";
+                
+        $this->viewTaskListInAllConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
+    public function test_viewTaskListInAllConsultedProgram_keywordFilter_searchThroughName()
     {
         $this->consultantTaskOne->task->name = "task one name";
         
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?keyword=one";
+        $this->viewTaskListInAllConsultedProgramUri .= "?keyword=one";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_keywordFilter_searchThroughDescription()
+    public function test_viewTaskListInAllConsultedProgram_keywordFilter_searchThroughDescription()
     {
         $this->consultantTaskOne->task->description = "task one description";
         
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?keyword=one";
+        $this->viewTaskListInAllConsultedProgramUri .= "?keyword=one";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_taskSource_CONSULTANT()
+    public function test_viewTaskListInAllConsultedProgram_taskSource_CONSULTANT()
     {
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?taskSource=CONSULTANT";
+        $this->viewTaskListInAllConsultedProgramUri .= "?taskSource=CONSULTANT";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
-    public function test_viewAllRelevanTaskAsProgramConsultant_taskSource_COORDINATOR()
+    public function test_viewTaskListInAllConsultedProgram_taskSource_COORDINATOR()
     {
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= "?taskSource=COORDINATOR";
+        $this->viewTaskListInAllConsultedProgramUri .= "?taskSource=COORDINATOR";
                 
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
@@ -407,10 +424,11 @@ class TaskControllerTest extends PersonnelTestCase
         $this->consultantTaskOne->task->cancelled = true;
         $this->dedicatedMentorTwo->cancelled = true;
         
-        $this->viewAllRelevanTaskAsProgramConsultantUri .=
-                "?cancelled=false";
+        $this->viewTaskListInAllConsultedProgramUri .=
+                "?cancelled=false"
+                . "&onlyShowRelevantTask=true";
         
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '0']);
@@ -419,11 +437,11 @@ class TaskControllerTest extends PersonnelTestCase
     }
     public function test_consultant_fromParticipantPage()
     {
-        $this->viewAllRelevanTaskAsProgramConsultantUri .=
+        $this->viewTaskListInAllConsultedProgramUri .=
                 "?participantId={$this->individualParticipantOne->participant->id}"
                 . "&cancelled=false";
         
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
@@ -432,12 +450,14 @@ class TaskControllerTest extends PersonnelTestCase
     }
     public function test_consultant_fromConsultantDashboard()
     {
-        $this->viewAllRelevanTaskAsProgramConsultantUri .= 
+        $this->viewTaskListInAllConsultedProgramUri .= 
                 "?cancelled=false"
+                . "&onlyShowRelevantTask=true"
                 . "&completed=false";
                 
+        $this->taskReport->reviewStatus = TaskReportReviewStatus::APPROVED;
         $this->taskReport->insert($this->connection);
-        $this->viewAllRelevanTaskAsProgramConsultant();
+        $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
@@ -468,15 +488,15 @@ class TaskControllerTest extends PersonnelTestCase
         $this->consultantTaskOne->insert($this->connection);
         $this->coordinatorTaskOne->insert($this->connection);
 
-// echo $this->viewAllTaskInCoordinatedProgramUri;
         $this->get($this->viewAllTaskInCoordinatedProgramUri, $this->personnel->token);
+ echo $this->viewAllTaskInCoordinatedProgramUri;
+ $this->seeJsonContains(['print']);
     }
     public function test_viewAllTaskInCoordinatedProgram_200()
     {
 $this->disableExceptionHandling();
         $this->viewAllTaskInCoordinatedProgram();
         $this->seeStatusCode(200);
-// $this->seeJsonContains(['printme']);
         
         $response = [
             'total' => "2",
@@ -487,18 +507,13 @@ $this->disableExceptionHandling();
                     'cancelled' => strval(intval($this->consultantTaskOne->task->cancelled)),
                     'createdTime' => $this->consultantTaskOne->task->createdTime,
                     'modifiedTime' => $this->consultantTaskOne->task->modifiedTime,
+                    'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => $this->consultantTaskOne->id,
-                    'consultantId' => $this->consultantTaskOne->consultant->id,
-                    'consultantPersonnelId' => $this->consultantTaskOne->consultant->personnel->id,
-                    'consultantName' => $this->consultantTaskOne->consultant->personnel->getFullName(),
                     'coordinatorTaskId' => null,
-                    'coordinatorId' => null,
-                    'coordinatorPersonnelId' => null,
-                    'coordinatorName' => null,
+                    'taskGiverName' => $this->consultantTaskOne->consultant->personnel->getFullName(),
                     'participantId' => $this->consultantTaskOne->task->participant->id,
                     'participantName' => $this->individualParticipantOne->client->getFullName(),
-                    'completed' => strval(intval(false)),
-                    'selfCoordinatorId' => $this->ownCoordinator_p1->id,
+                    'coordinatorId' => $this->ownCoordinator_p1->id,
                     'programId' => $this->consultantTaskOne->task->participant->program->id,
                     'programName' => $this->consultantTaskOne->task->participant->program->name,
                 ],
@@ -508,18 +523,13 @@ $this->disableExceptionHandling();
                     'cancelled' => strval(intval($this->coordinatorTaskOne->task->cancelled)),
                     'createdTime' => $this->coordinatorTaskOne->task->createdTime,
                     'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
+                    'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => null,
-                    'consultantId' => null,
-                    'consultantPersonnelId' => null,
-                    'consultantName' => null,
                     'coordinatorTaskId' => $this->coordinatorTaskOne->id,
-                    'coordinatorId' => $this->coordinatorTaskOne->coordinator->id,
-                    'coordinatorPersonnelId' => $this->coordinatorTaskOne->coordinator->personnel->id,
-                    'coordinatorName' => $this->coordinatorTaskOne->coordinator->personnel->getFullName(),
+                    'taskGiverName' => $this->coordinatorTaskOne->coordinator->personnel->getFullName(),
                     'participantId' => $this->coordinatorTaskOne->task->participant->id,
                     'participantName' => $this->teamParticipantOne->team->name,
-                    'completed' => strval(intval(false)),
-                    'selfCoordinatorId' => $this->ownCoordinator_p2->id,
+                    'coordinatorId' => $this->ownCoordinator_p2->id,
                     'programId' => $this->coordinatorTaskOne->task->participant->program->id,
                     'programName' => $this->coordinatorTaskOne->task->participant->program->name,
                 ],
@@ -540,26 +550,59 @@ $this->disableExceptionHandling();
     }
     public function test_viewAllTaskInCoordinatedProgram_applyAllFilter()
     {
+        $this->coordinatorTaskOne->coordinator = $this->ownCoordinator_p2;
+        
+$this->disableExceptionHandling();
         $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
         $to = (new DateTime())->format('Y-m-d H:i:s');
-        $this->viewAllTaskInCoordinatedProgramUri .= "?cancelled=false"
+        $this->viewAllTaskInCoordinatedProgramUri .= ""
+                . "?cancelled=false"
                 . "&completed=false"
                 . "&from=$from"
                 . "&to=$to"
                 . "&keyword=ask"
-                . "&taskSource=CONSULTANT"
-                . "&participantId={$this->individualParticipantOne->participant->id}";
+                . "&taskSource=COORDINATOR"
+                . "&programId={$this->teamParticipantOne->participant->program->id}"
+                . "&participantId={$this->teamParticipantOne->participant->id}"
+                . "&onlyShowOwnedTask=true";
                 
         $this->viewAllTaskInCoordinatedProgram();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '1']);
-        $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
-        $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
+    public function test_viewAllTaskInCoordinatedProgram_onlyShowOwnedTaskFilter_onlyReturnOwnedCoordinatorTask()
+    {
+        $this->coordinatorTaskOne->coordinator = $this->ownCoordinator_p2;
+        
+        $this->viewAllTaskInCoordinatedProgramUri .= ""
+                . "?onlyShowOwnedTask=true";
+                
+        $this->viewAllTaskInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
+    public function test_viewAllTaskInCoordinatedProgram_programIdIdFilter_returnAllTaskForSpesificParticipant()
+    {
+        $this->viewAllTaskInCoordinatedProgramUri .= ""
+                . "?programId={$this->teamParticipantOne->participant->program->id}";
+                
+        $this->viewAllTaskInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
     }
     public function test_viewAllTaskInCoordinatedProgram_applyParticipantIdFilter_returnAllTaskForSpesificParticipant()
     {
-        $this->viewAllTaskInCoordinatedProgramUri .= "?participantId={$this->teamParticipantOne->participant->id}";
+        $this->viewAllTaskInCoordinatedProgramUri .= ""
+                . "?participantId={$this->teamParticipantOne->participant->id}";
                 
         $this->viewAllTaskInCoordinatedProgram();
         $this->seeStatusCode(200);
@@ -582,6 +625,7 @@ $this->disableExceptionHandling();
     }
     public function test_viewAllTaskInCoordinatedProgram_completedFilter()
     {
+        $this->taskReport->reviewStatus = TaskReportReviewStatus::APPROVED;
         $this->taskReport->insert($this->connection);
         
         $this->viewAllTaskInCoordinatedProgramUri .= "?completed=true";
@@ -591,7 +635,10 @@ $this->disableExceptionHandling();
         
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
-        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+        $this->seeJsonContains([
+            'coordinatorTaskId' => $this->coordinatorTaskOne->id,
+            'reviewStatus' => 'approved'
+        ]);
     }
     public function test_viewAllTaskInCoordinatedProgram_fromFilter()
     {
@@ -689,6 +736,21 @@ $this->disableExceptionHandling();
         $this->viewAllTaskInCoordinatedProgram();
         $this->seeStatusCode(200);
         
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
+    public function test_coordinator_fromCoordinatorDashboard_200()
+    {
+        $this->taskReport->reviewStatus = TaskReportReviewStatus::APPROVED;
+        $this->taskReport->insert($this->connection);
+        
+        $this->viewAllTaskInCoordinatedProgramUri .= 
+                "?cancelled=false"
+                . "&completed=false";
+                
+        $this->viewAllTaskInCoordinatedProgram();
+        $this->seeStatusCode(200);
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
         $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);

@@ -17,4 +17,6 @@ interface MentoringRepository
 
     public function mentoringListInAllProgramCoordinatedByPersonnel(
             string $personnelId, MentoringListFilterForCoordinator $filter);
+
+    public function summaryOfMentoringBelongsToPersonnel(string $personnelId);
 }
