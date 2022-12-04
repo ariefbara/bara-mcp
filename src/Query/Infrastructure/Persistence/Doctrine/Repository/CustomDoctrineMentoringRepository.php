@@ -2,10 +2,12 @@
 
 namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 
+use DateTime;
 use Doctrine\ORM\EntityManager;
 use Query\Domain\Task\Dependency\ExtendedMentoringFilter;
 use Query\Domain\Task\Dependency\MentoringFilter;
 use Query\Domain\Task\Dependency\MentoringRepository;
+use Query\Domain\Task\Personnel\MentoringListFilterForConsultant;
 use Query\Domain\Task\Personnel\MentoringListFilterForCoordinator;
 use SharedContext\Domain\ValueObject\DeclaredMentoringStatus;
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
@@ -631,13 +633,58 @@ _STATEMENT;
             MentoringRequestStatus::REJECTED
         ]);
         
+        $requestedStatus = MentoringRequestStatus::REQUESTED;
+        $requestedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$requestedStatus];
+        $offeredStatus = MentoringRequestStatus::OFFERED;
+        $offeredDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$offeredStatus];
+        $approvedStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $approvedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$approvedStatus];
+        $accepetedStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $acceptedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$accepetedStatus];
+        $cancelledStatus = MentoringRequestStatus::CANCELLED;
+        $cancelledDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$cancelledStatus];
+        $rejectedStatus = MentoringRequestStatus::REJECTED;
+        $rejectedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$rejectedStatus];
+        
+        $declaredByMentorStatus = DeclaredMentoringStatus::DECLARED_BY_MENTOR;
+        $declaredByMentorDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$declaredByMentorStatus];
+        $declaredByParticipantStatus = DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT;
+        $declaredByParticipantDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$declaredByParticipantStatus];
+        $approvedByParticipantStatus = DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT;
+        $approvedByParticipantDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$approvedByParticipantStatus];
+        $approvedByMentorStatus = DeclaredMentoringStatus::APPROVED_BY_MENTOR;
+        $approvedByMentorDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$approvedByMentorStatus];
+        $cancelledDeclareStatus = DeclaredMentoringStatus::CANCELLED;
+        $cancelledDeclareDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$cancelledDeclareStatus];
+        $deniedByMentorStatus = DeclaredMentoringStatus::DENIED_BY_MENTOR;
+        $deniedByMentorDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$deniedByMentorStatus];
+        $deniedByParticipantStatus = DeclaredMentoringStatus::DENIED_BY_PARTICIPANT;
+        $deniedByParticipantDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$deniedByParticipantStatus];
+        
         $sql = <<<_SQL
 SELECT
     _mentoring.mentoringRequestId,
-            _mentoring.mentoringRequestStatus,
+            CASE
+                WHEN _mentoring.mentoringRequestStatus = {$requestedStatus} THEN '$requestedDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$offeredStatus} THEN '$offeredDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$approvedStatus} THEN '$approvedDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$accepetedStatus} THEN '$acceptedDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$cancelledStatus} THEN '$cancelledDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$rejectedStatus} THEN '$rejectedDisplayValue'
+                ELSE null
+            END mentoringRequestStatus,
     _mentoring.bookedMentoringSlotId,
     _mentoring.declaredMentoringId,
-            _mentoring.declaredMentoringStatus,
+            CASE
+                WHEN _mentoring.declaredMentoringStatus = {$declaredByMentorStatus} THEN '$declaredByMentorDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$declaredByParticipantStatus} THEN '$declaredByParticipantDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$approvedByMentorStatus} THEN '$approvedByMentorDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$approvedByParticipantStatus} THEN '$approvedByParticipantDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$cancelledDeclareStatus} THEN '$cancelledDeclareDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$deniedByMentorStatus} THEN '$deniedByMentorDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$deniedByParticipantStatus} THEN '$deniedByParticipantDisplayValue'
+                ELSE null
+            END declaredMentoringStatus,
         _mentoring.participantId,
         COALESCE(
             CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
@@ -942,7 +989,7 @@ _SQL;
             MentoringRequestStatus::APPROVED_BY_MENTOR
         ]);
         
-        $currentTime = "'". (new \DateTime())->format('Y-m-d H:i:s') . "'";
+        $currentTime = "'". (new DateTime())->format('Y-m-d H:i:s') . "'";
         
         $sql = <<<_SQL
 SELECT 
@@ -1062,6 +1109,291 @@ FROM (
 _SQL;
         $query = $this->em->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
+    public function mentoringListOwnedOfPersonnel(string $personnelId, MentoringListFilterForConsultant $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        
+        $irrelevantDeclaredMentoringStatus = implode(", ", [
+            DeclaredMentoringStatus::CANCELLED, 
+            DeclaredMentoringStatus::DENIED_BY_MENTOR, 
+            DeclaredMentoringStatus::DENIED_BY_PARTICIPANT
+        ]);
+        
+        $irrelevantMentoringRequestStatus = implode(", ", [
+            MentoringRequestStatus::CANCELLED, 
+            MentoringRequestStatus::REJECTED
+        ]);
+        
+        $requestedStatus = MentoringRequestStatus::REQUESTED;
+        $requestedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$requestedStatus];
+        $offeredStatus = MentoringRequestStatus::OFFERED;
+        $offeredDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$offeredStatus];
+        $approvedStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $approvedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$approvedStatus];
+        $accepetedStatus = MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT;
+        $acceptedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$accepetedStatus];
+        $cancelledStatus = MentoringRequestStatus::CANCELLED;
+        $cancelledDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$cancelledStatus];
+        $rejectedStatus = MentoringRequestStatus::REJECTED;
+        $rejectedDisplayValue = MentoringRequestStatus::DISPLAY_VALUE[$rejectedStatus];
+        
+        $declaredByMentorStatus = DeclaredMentoringStatus::DECLARED_BY_MENTOR;
+        $declaredByMentorDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$declaredByMentorStatus];
+        $declaredByParticipantStatus = DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT;
+        $declaredByParticipantDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$declaredByParticipantStatus];
+        $approvedByParticipantStatus = DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT;
+        $approvedByParticipantDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$approvedByParticipantStatus];
+        $approvedByMentorStatus = DeclaredMentoringStatus::APPROVED_BY_MENTOR;
+        $approvedByMentorDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$approvedByMentorStatus];
+        $cancelledDeclareStatus = DeclaredMentoringStatus::CANCELLED;
+        $cancelledDeclareDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$cancelledDeclareStatus];
+        $deniedByMentorStatus = DeclaredMentoringStatus::DENIED_BY_MENTOR;
+        $deniedByMentorDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$deniedByMentorStatus];
+        $deniedByParticipantStatus = DeclaredMentoringStatus::DENIED_BY_PARTICIPANT;
+        $deniedByParticipantDisplayValue = DeclaredMentoringStatus::DISPLAY_VALUES[$deniedByParticipantStatus];
+        
+
+        
+        $sql = <<<_SQL
+SELECT 
+    _mentoring.mentoringRequestId,
+            CASE
+                WHEN _mentoring.mentoringRequestStatus = {$requestedStatus} THEN '{$requestedDisplayValue}'
+                WHEN _mentoring.mentoringRequestStatus = {$offeredStatus} THEN '$offeredDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$approvedStatus} THEN '$approvedDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$accepetedStatus} THEN '$acceptedDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$cancelledStatus} THEN '$cancelledDisplayValue'
+                WHEN _mentoring.mentoringRequestStatus = {$rejectedStatus} THEN '$rejectedDisplayValue'
+                ELSE null
+            END mentoringRequestStatus,
+    _mentoring.declaredMentoringId,
+            CASE
+                WHEN _mentoring.declaredMentoringStatus = {$declaredByMentorStatus} THEN '$declaredByMentorDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$declaredByParticipantStatus} THEN '$declaredByParticipantDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$approvedByMentorStatus} THEN '$approvedByMentorDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$approvedByParticipantStatus} THEN '$approvedByParticipantDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$cancelledDeclareStatus} THEN '$cancelledDeclareDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$deniedByMentorStatus} THEN '$deniedByMentorDisplayValue'
+                WHEN _mentoring.declaredMentoringStatus = {$deniedByParticipantStatus} THEN '$deniedByParticipantDisplayValue'
+                ELSE null
+            END declaredMentoringStatus,
+        _mentoring.participantId,
+        COALESCE(
+            CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+            CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+            Team.name
+        ) participantName,
+        _mentoring.reportSubmitted,
+    _mentoring.mentoringSlotId,
+        _mentoring.capacity,
+        _mentoring.totalBooking,
+        _mentoring.totalSubmittedReport,
+    _mentoring.startTime,
+    _mentoring.endTime,
+    
+    Consultant.id consultantId,
+        Consultant.Program_id programId,
+        Program.name programName
+FROM (
+    SELECT
+        MentoringRequest.id mentoringRequestId,
+                MentoringRequest.requestStatus mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            MentoringRequest.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        MentoringRequest.startTime,
+        MentoringRequest.endTime,
+        MentoringRequest.Consultant_id consultantId
+    FROM MentoringRequest
+        LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
+        LEFT JOIN Mentoring ON Mentoring.id = NegotiatedMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+    WHERE MentoringRequest.requestStatus NOT IN ({$irrelevantMentoringRequestStatus})
+            
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            null participantId,
+            null reportSubmitted,
+        MentoringSlot.id mentoringSlotId,
+            MentoringSlot.capacity,
+            _bookedMentoringSlot.totalBooking,
+            _bookedMentoringSlot.totalSubmittedReport,
+
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id consultantId
+    FROM MentoringSlot
+        INNER JOIN Consultant ON Consultant.id = MentoringSlot.Mentor_id AND Consultant.active = true
+        LEFT JOIN (
+            SELECT MentoringSlot_id, COUNT(*) totalBooking, COUNT(MentorReport.id) totalSubmittedReport
+            FROM BookedMentoringSlot
+                LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+                LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+            WHERE BookedMentoringSlot.cancelled = false
+            GROUP BY MentoringSlot_id
+        )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
+    WHERE MentoringSlot.cancelled = false
+                
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        DeclaredMentoring.id declaredMentoringId,
+                DeclaredMentoring.declaredStatus declaredMentoringStatus,
+            DeclaredMentoring.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.Consultant_id consultantId
+    FROM DeclaredMentoring
+        LEFT JOIN Mentoring ON Mentoring.id = DeclaredMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+    WHERE DeclaredMentoring.declaredStatus NOT IN ({$irrelevantDeclaredMentoringStatus})
+    
+)_mentoring
+    INNER JOIN Consultant
+        ON Consultant.id = _mentoring.consultantId
+        AND Consultant.Personnel_id = :personnelId
+    INNER JOIN Program ON Program.id = Consultant.Program_id
+    
+    LEFT JOIN Participant ON Participant.id = _mentoring.participantId
+        LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+        LEFT JOIN User ON User.id= UserParticipant.User_id
+        LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+        LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+        LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+        LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+    
+WHERE 1
+    {$filter->getCriteriaStatement($parameters)}
+_SQL;
+        $query = $this->em->getConnection()->prepare($sql);
+        return [
+            'total' => $this->totalMentoringOwnedOfPersonnel($personnelId, $filter),
+            'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
+        ];
+    }
+
+    public function totalMentoringOwnedOfPersonnel(string $personnelId, MentoringListFilterForConsultant $filter)
+    {
+        $parameters = [
+            'personnelId' => $personnelId,
+        ];
+        $irrelevantDeclaredMentoringStatus = implode(", ", [
+            DeclaredMentoringStatus::CANCELLED, 
+            DeclaredMentoringStatus::DENIED_BY_MENTOR, 
+            DeclaredMentoringStatus::DENIED_BY_PARTICIPANT
+        ]);
+        
+        $irrelevantMentoringRequestStatus = implode(", ", [
+            MentoringRequestStatus::CANCELLED, 
+            MentoringRequestStatus::REJECTED
+        ]);
+        
+        $sql = <<<_SQL
+SELECT COUNT(*) total
+FROM (
+    SELECT
+        MentoringRequest.id mentoringRequestId,
+                MentoringRequest.requestStatus mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            MentoringRequest.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        MentoringRequest.startTime,
+        MentoringRequest.endTime,
+        MentoringRequest.Consultant_id consultantId
+    FROM MentoringRequest
+        LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
+        LEFT JOIN Mentoring ON Mentoring.id = NegotiatedMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+    WHERE MentoringRequest.requestStatus NOT IN ({$irrelevantMentoringRequestStatus})
+            
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        null declaredMentoringId,
+                null declaredMentoringStatus,
+            null participantId,
+            null reportSubmitted,
+        MentoringSlot.id mentoringSlotId,
+            MentoringSlot.capacity,
+            _bookedMentoringSlot.totalBooking,
+            _bookedMentoringSlot.totalSubmittedReport,
+
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.Mentor_id consultantId
+    FROM MentoringSlot
+        INNER JOIN Consultant ON Consultant.id = MentoringSlot.Mentor_id AND Consultant.active = true
+        LEFT JOIN (
+            SELECT MentoringSlot_id, COUNT(*) totalBooking, COUNT(MentorReport.id) totalSubmittedReport
+            FROM BookedMentoringSlot
+                LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+                LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+            WHERE BookedMentoringSlot.cancelled = false
+            GROUP BY MentoringSlot_id
+        )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
+    WHERE MentoringSlot.cancelled = false
+                
+    UNION
+    SELECT
+        null mentoringRequestId,
+                null mentoringRequestStatus,
+        null bookedMentoringSlotId,
+        DeclaredMentoring.id declaredMentoringId,
+                DeclaredMentoring.declaredStatus declaredMentoringStatus,
+            DeclaredMentoring.Participant_id participantId,
+            IF(MentorReport.id IS NOT NULL, true, false) reportSubmitted,
+        null mentoringSlotId,
+            null capacity,
+            null totalBooking,
+            null totalSubmittedReport,
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.Consultant_id consultantId
+    FROM DeclaredMentoring
+        LEFT JOIN Mentoring ON Mentoring.id = DeclaredMentoring.Mentoring_id
+        LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+    WHERE DeclaredMentoring.declaredStatus NOT IN ({$irrelevantDeclaredMentoringStatus})
+    
+)_mentoring
+    INNER JOIN Consultant
+        ON Consultant.id = _mentoring.consultantId
+        AND Consultant.Personnel_id = :personnelId
+    
+WHERE 1
+    {$filter->getCriteriaStatement($parameters)}
+_SQL;
+        $query = $this->em->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchFirstColumn()[0];
     }
 
 }

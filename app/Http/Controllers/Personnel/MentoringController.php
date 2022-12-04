@@ -7,7 +7,9 @@ use Query\Domain\Task\Dependency\MentoringFilter;
 use Query\Domain\Task\Dependency\MentoringFilter\DeclaredMentoringFilter;
 use Query\Domain\Task\Dependency\MentoringListFilter;
 use Query\Domain\Task\GenericQueryPayload;
+use Query\Domain\Task\Personnel\MentoringListFilterForConsultant;
 use Query\Domain\Task\Personnel\MentoringListFilterForCoordinator;
+use Query\Domain\Task\Personnel\OwnedMentoringList;
 use Query\Domain\Task\Personnel\ViewAllMentoringPayload;
 use Query\Domain\Task\Personnel\ViewAllMentoringTask;
 use Query\Domain\Task\Personnel\ViewMentoringListInCoordinatedPrograms;
@@ -115,5 +117,38 @@ class MentoringController extends PersonnelBaseController
         $this->executePersonalQueryTask($task, $payload);
         
         return $this->singleQueryResponse($payload->result);
+    }
+    
+    public function ownedMentoringList()
+    {
+        $mentoringRepository = new CustomDoctrineMentoringRepository($this->em);
+        $task = new OwnedMentoringList($mentoringRepository);
+        
+        $from = $this->dateTimeImmutableOfQueryRequest('from');
+        $to = $this->dateTimeImmutableOfQueryRequest('to');
+        $order = $this->stripTagQueryRequest('orders');
+        $mentoringListFilter = (new MentoringListFilter($this->getPaginationFilter()))
+                ->setFrom($from)
+                ->setTo($to)
+                ->setOrder($order);
+        
+        $programId = $this->stripTagQueryRequest('programId');
+        $participantId = $this->stripTagQueryRequest('participantId');
+        $reportSubmitted = $this->filterBooleanOfQueryRequest('reportSubmitted');
+        $status = $this->stripTagQueryRequest('status');
+        $filter = (new MentoringListFilterForConsultant($mentoringListFilter))
+                ->setProgramId($programId)
+                ->setParticipantId($participantId)
+                ->setStatus($status)
+                ->setReportSubmitted($reportSubmitted);
+        $typeList = $this->request->query('typeList') ?? [];
+        foreach ($typeList as $type) {
+            $filter->addType($type);
+        }
+        
+        $payload = new CommonViewListPayload($filter);
+        $this->executePersonalQueryTask($task, $payload);
+        
+        return $this->listQueryResponse($payload->result);
     }
 }

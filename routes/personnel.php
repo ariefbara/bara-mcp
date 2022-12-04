@@ -115,6 +115,7 @@ $router->group($personnelAggregate, function () use ($router) {
     //mentoring route in personnel BC
     $router->get('/mentoring-list-in-coordinated-programs', ['uses' => "MentoringController@mentoringListInCoordinatedPrograms"]);
     $router->get('/summary-of-owned-mentoring', ['uses' => "MentoringController@summaryOfOwnedMentoring"]);
+    $router->get('/owned-mentoring-list', ['uses' => "MentoringController@ownedMentoringList"]);
     
     //program route in personnel BC
     $router->get('/list-of-coordinated-program', ['uses' => "ProgramController@listOfCoordinatedProgram"]);

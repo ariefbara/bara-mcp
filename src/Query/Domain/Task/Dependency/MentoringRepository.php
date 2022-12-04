@@ -2,6 +2,7 @@
 
 namespace Query\Domain\Task\Dependency;
 
+use Query\Domain\Task\Personnel\MentoringListFilterForConsultant;
 use Query\Domain\Task\Personnel\MentoringListFilterForCoordinator;
 
 interface MentoringRepository
@@ -19,4 +20,6 @@ interface MentoringRepository
             string $personnelId, MentoringListFilterForCoordinator $filter);
 
     public function summaryOfMentoringBelongsToPersonnel(string $personnelId);
+
+    public function mentoringListOwnedOfPersonnel(string $personnelId, MentoringListFilterForConsultant $filter);
 }
