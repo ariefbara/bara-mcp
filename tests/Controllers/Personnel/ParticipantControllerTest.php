@@ -7,6 +7,7 @@ use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfDedicatedMentor;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
@@ -15,6 +16,7 @@ use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfWorksheetForm;
@@ -27,7 +29,7 @@ class ParticipantControllerTest extends PersonnelTestCase
 {
     protected $viewSummaryListInCoordinatedProgramUri;
     protected $ListInCoordinatedProgramUri;
-    protected $ListInConsultedProgramUri;
+    protected $dedicatedMenteeListUri;
     
     protected $coordinatorOne;
     protected $coordinatorTwo;
@@ -46,6 +48,10 @@ class ParticipantControllerTest extends PersonnelTestCase
     protected $clientParticipantTwoA;
     protected $userParticipantThree;
     
+    protected $dedicatedMentorOne;
+    protected $dedicatedMentorTwo;
+    protected $dedicatedMentorThree;
+
     protected $completedMissionOneA;
     protected $completedMissionOneB;
     
@@ -66,6 +72,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('Coordinator')->truncate();
         $this->connection->table('Consultant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
         //
         $this->connection->table('Form')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
@@ -89,7 +96,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         
         $this->viewSummaryListInCoordinatedProgramUri = $this->personnelUri . "/participant-summary-list-in-coordinated-program";
         $this->ListInCoordinatedProgramUri = $this->personnelUri . "/participant-list-in-coordinated-program";
-        $this->ListInConsultedProgramUri = $this->personnelUri . "/participant-list-in-consulted-program";
+        $this->dedicatedMenteeListUri = $this->personnelUri . "/dedicated-mentee-list";
         
         $firm = $this->personnel->firm;
         
@@ -138,6 +145,10 @@ class ParticipantControllerTest extends PersonnelTestCase
         $this->clientParticipantTwoA= new RecordOfClientParticipant($clientOne, $participantTwoA);
         $this->userParticipantThree = new RecordOfUserParticipant($userOne, $participantThree);
         
+        $this->dedicatedMentorOne = new RecordOfDedicatedMentor($participantOne, $this->consultantOne, 1);
+        $this->dedicatedMentorTwo = new RecordOfDedicatedMentor($participantTwo, $this->consultantTwo, 2);
+        $this->dedicatedMentorThree = new RecordOfDedicatedMentor($participantOne, $this->consultantThree, 3);
+        
         //
         $this->completedMissionOneA = new RecordOfCompletedMission($participantOne, $this->missionOneA, '1a');
         $this->completedMissionOneB = new RecordOfCompletedMission($participantOne, $this->missionOneB, '1b');
@@ -177,6 +188,7 @@ class ParticipantControllerTest extends PersonnelTestCase
         $this->connection->table('Program')->truncate();
         $this->connection->table('Coordinator')->truncate();
         $this->connection->table('Consultant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
         //
         $this->connection->table('Form')->truncate();
         $this->connection->table('WorksheetForm')->truncate();
@@ -569,7 +581,7 @@ $this->disableExceptionHandling();
         $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->participant->id]);
     }
     
-    protected function ListInConsultedProgram()
+    protected function dedicatedMenteeList()
     {
         $this->consultantOne->program->insert($this->connection);
         $this->consultantTwo->program->insert($this->connection);
@@ -583,56 +595,75 @@ $this->disableExceptionHandling();
         $this->clientParticipantOne->insert($this->connection);
         $this->teamParticipantTwo->insert($this->connection);
         
-        $this->get($this->ListInConsultedProgramUri, $this->personnel->token);
-echo $this->ListInConsultedProgramUri;
+        $this->dedicatedMentorOne->insert($this->connection);
+        $this->dedicatedMentorTwo->insert($this->connection);
+        
+        $this->get($this->dedicatedMenteeListUri, $this->personnel->token);
+echo $this->dedicatedMenteeListUri;
 $this->seeJsonContains(['print']);
     }
-    public function test_listInConsultedProgram_200()
+    public function test_dedicatedMenteeList_200()
     {
 $this->disableExceptionHandling();
-        $this->ListInConsultedProgram();
+        $this->dedicatedMenteeList();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains([
-            'id' => $this->clientParticipantOne->participant->id,
-            'name' => $this->clientParticipantOne->client->getFullName(),
-        ]);
-        $this->seeJsonContains([
-            'id' => $this->teamParticipantTwo->participant->id,
-            'name' => $this->teamParticipantTwo->team->name,
-        ]);
+        $response = [
+            'list' => [
+                [
+                    'id' => $this->clientParticipantOne->participant->id,
+                    'name' => $this->clientParticipantOne->client->getFullName(),
+                ],
+                [
+                    'id' => $this->teamParticipantTwo->participant->id,
+                    'name' => $this->teamParticipantTwo->team->name,
+                ],
+            ],
+        ];
     }
-    public function test_listInConsultedProgram_excludeInacessibleParticipant_inNonConsultedProgram()
+    public function test_dedicatedMenteeList_excludeInacessibleParticipant_nonDedicatedMentee()
     {
-        $this->userParticipantThree->participant->program->insert($this->connection);
-        $this->userParticipantThree->user->insert($this->connection);
-        $this->userParticipantThree->insert($this->connection);
+        $this->dedicatedMentorTwo->cancelled = true;
         
-        $this->ListInConsultedProgram();
+        $this->dedicatedMenteeList();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['id' => $this->clientParticipantOne->participant->id]);
-        $this->seeJsonContains(['id' => $this->teamParticipantTwo->participant->id]);
-        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->participant->id]);
+        $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->participant->id]);
     }
-    public function test_listInConsultedProgram_excludeInacessibleParticipant_inInactiveConsultant()
+    public function test_dedicatedMenteeList_excludeInacessibleParticipant_dedicatedToOtherMentor()
     {
-        $this->consultantOne->active = false;
+        $otherPersonnel = new RecordOfPersonnel($this->personnel->firm, 'other');
+        $otherPersonnel->insert($this->connection);
+        $otherMentor = new RecordOfConsultant($this->clientParticipantOne->participant->program, $otherPersonnel, 'other');
+        $otherMentor->insert($this->connection);
         
-        $this->ListInConsultedProgram();
+        $this->dedicatedMentorOne->consultant = $otherMentor;
+        
+        $this->dedicatedMenteeList();
         $this->seeStatusCode(200);
         
         $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->participant->id]);
         $this->seeJsonContains(['id' => $this->teamParticipantTwo->participant->id]);
     }
-    public function test_listInConsultedProgram_allFilter_200()
+    public function test_dedicatedMenteeList_excludeInacessibleParticipant_inInactiveConsultant()
+    {
+        $this->consultantOne->active = false;
+        
+        $this->dedicatedMenteeList();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->participant->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->participant->id]);
+    }
+    public function test_dedicatedMenteeList_allFilter_200()
     {
 $this->disableExceptionHandling();
-        $this->ListInConsultedProgramUri .=
+        $this->dedicatedMenteeListUri .=
                 "?programId={$this->consultantOne->program->id}"
                 . "&name=client";
                 
-        $this->ListInConsultedProgram();
+        $this->dedicatedMenteeList();
         $this->seeStatusCode(200);
 // $this->seeJsonContains(['print']);
         

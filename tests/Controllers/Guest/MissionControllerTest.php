@@ -46,6 +46,8 @@ class MissionControllerTest extends ControllerTestCase
         $uri = "/api/guest/missions/{$this->missionTwo->id}";
         $this->get($uri);
         $this->seeStatusCode(200);
+//echo $uri;
+//$this->seeJsonContains(['print']);
         
         $response = [
             'id' => $this->missionTwo->id,
@@ -67,6 +69,8 @@ class MissionControllerTest extends ControllerTestCase
         $uri = "/api/guest/programs/{$this->program->id}/missions";
         $this->get($uri);
         $this->seeStatusCode(200);
+//echo $uri;
+//$this->seeJsonContains(['print']);
         
         $totalResponse = ['total' => 2];
         $this->seeJsonContains($totalResponse);

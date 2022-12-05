@@ -7,7 +7,7 @@ use Query\Domain\Task\CommonViewListPayload;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantListFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilterForCoordinator;
-use Query\Domain\Task\Personnel\ViewParticipantListInConsultedProgram;
+use Query\Domain\Task\Personnel\ViewDedicatedMenteeList;
 use Query\Domain\Task\Personnel\ViewParticipantListInCoordinatedProgram;
 use Query\Domain\Task\Personnel\ViewParticipantSummaryListInCoordinatedProgram;
 
@@ -59,10 +59,10 @@ class ParticipantController extends PersonnelBaseController
         return $this->listQueryResponse($payload->result);
     }
     
-    public function ListInConsultedProgram()
+    public function dedicatedMenteeList()
     {
         $participantRepository = $this->em->getRepository(Participant::class);
-        $task = new ViewParticipantListInConsultedProgram($participantRepository);
+        $task = new ViewDedicatedMenteeList($participantRepository);
         
         $programId = $this->stripTagQueryRequest('programId');
         $name = $this->stripTagQueryRequest('name');

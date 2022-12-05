@@ -24,6 +24,6 @@ interface ParticipantRepository
     public function listOfParticipantInAllProgramCoordinatedByPersonnel(string $personnelId,
             ParticipantListFilter $filter);
 
-    public function listOfParticipantInAllProgramConsultedByPersonnel(string $personnelId,
+    public function listOfParticipantInAllProgramDedicatedToPersonnel(string $personnelId,
             ParticipantListFilter $filter);
 }

@@ -54,6 +54,8 @@ class ConsultantControllerTest extends ControllerTestCase
         $uri = "/api/guest/consultants/{$this->consultantOne->id}";
         $this->get($uri);
         $this->seeStatusCode(200);
+echo $uri;
+$this->seeJsonContains(['print']);
         
         $response = [
             'id' => $this->consultantOne->id,
@@ -71,6 +73,9 @@ class ConsultantControllerTest extends ControllerTestCase
         $uri = "/api/guest/programs/{$this->program->id}/consultants";
         $this->get($uri);
         $this->seeStatusCode(200);
+//echo $uri;
+//$this->seeJsonContains(['print']);
+
         
         $totalResponse = ['total' => 1];
         $this->seeJsonContains($totalResponse);

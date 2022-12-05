@@ -5,7 +5,7 @@ namespace Query\Domain\Task\Personnel;
 use Query\Domain\Task\CommonViewListPayload;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantRepository;
 
-class ViewParticipantListInConsultedProgram implements PersonnelTask
+class ViewDedicatedMenteeList implements PersonnelTask
 {
 
     /**
@@ -28,7 +28,7 @@ class ViewParticipantListInConsultedProgram implements PersonnelTask
     public function execute(string $personnelId, $payload): void
     {
         $payload->result = $this->participantRepository
-                ->listOfParticipantInAllProgramConsultedByPersonnel($personnelId, $payload->getFilter());
+                ->listOfParticipantInAllProgramDedicatedToPersonnel($personnelId, $payload->getFilter());
     }
 
 }

@@ -106,7 +106,7 @@ $router->group($personnelAggregate, function () use ($router) {
     // participant related route in personnel BC
     $router->get('/participant-summary-list-in-coordinated-program', ['uses' => "ParticipantController@viewSummaryListInCoordinatedProgram"]);
     $router->get('/participant-list-in-coordinated-program', ['uses' => "ParticipantController@listInCoordinatedProgram"]);
-    $router->get('/participant-list-in-consulted-program', ['uses' => "ParticipantController@listInConsultedProgram"]);
+    $router->get('/dedicated-mentee-list', ['uses' => "ParticipantController@dedicatedMenteeList"]);
     
     // metric assignment report related route in personnel BC
     $router->get('/metric-assignment-report-list-in-coordinated-programs', ['uses' => "MetricAssignmentReportController@viewListInCoordinatedPrograms"]);

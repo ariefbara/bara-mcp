@@ -729,7 +729,7 @@ _SQL;
         return $query->executeQuery($parameters)->fetchAllAssociative();
     }
 
-    public function listOfParticipantInAllProgramConsultedByPersonnel(string $personnelId, ParticipantListFilter $filter)
+    public function listOfParticipantInAllProgramDedicatedToPersonnel(string $personnelId, ParticipantListFilter $filter)
     {
         $parameters = [
             'personnelId' => $personnelId,
@@ -745,8 +745,12 @@ SELECT
     ) name
                 
 FROM Participant
+    INNER JOIN DedicatedMentor
+        ON DedicatedMentor.Participant_id = Participant.id
+        AND DedicatedMentor.cancelled = false
+                
     INNER JOIN Consultant
-        ON Consultant.Program_id = Participant.Program_id
+        ON Consultant.id = DedicatedMentor.Consultant_id
         AND Consultant.Personnel_id = :personnelId
         AND Consultant.active = true
                 

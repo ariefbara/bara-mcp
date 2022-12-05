@@ -38,6 +38,9 @@ class ProgramControllerTest extends ControllerTestCase
         $uri = $this->programUri . "/{$this->programOne->id}";
         $this->get($uri);
         $this->seeStatusCode(200);
+echo $uri;
+$this->seeJsonContains(['print']);
+        
         $response = [
             'id' => $this->programOne->id,
             'name' => $this->programOne->name,
@@ -49,12 +52,15 @@ class ProgramControllerTest extends ControllerTestCase
             ],
         ];
         $this->seeJsonContains($response);
+        
     }
     
     public function test_showAll_200()
     {
         $this->get($this->programUri);
         $this->seeStatusCode(200);
+echo $this->programUri;
+$this->seeJsonContains(['print']);
         
         $totalResponse = ['total' => 1];
         $this->seeJsonContains($totalResponse);
