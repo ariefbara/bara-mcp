@@ -4,11 +4,16 @@ namespace Tests\Controllers\Personnel;
 
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 use SharedContext\Domain\ValueObject\RegistrationStatus;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantComment;
+use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantTask;
+use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMentoringRequest;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfWorksheet;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Task\RecordOfTaskReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
@@ -44,6 +49,11 @@ class CoordinatorDashboardSummaryControllerTest extends AggregatedCoordinatorInP
     protected $metricReportOne_pt1;
     protected $metricReportTwo_pt2;
     protected $metricReportThree_pt3;
+    //
+    protected $coordinatorTaskOne;
+    protected $coordinatorTaskTwo;
+    protected $consultantTaskTwoA;
+    protected $taskReportTwo;
 
     protected function setUp(): void
     {
@@ -64,6 +74,12 @@ class CoordinatorDashboardSummaryControllerTest extends AggregatedCoordinatorInP
         $this->connection->table('MentoringRequest')->truncate();
         $this->connection->table('MetricAssignment')->truncate();
         $this->connection->table('MetricAssignmentReport')->truncate();
+        //
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('Task')->truncate();
+        $this->connection->table('CoordinatorTask')->truncate();
+        $this->connection->table('ConsultantTask')->truncate();
+        $this->connection->table('TaskReport')->truncate();
         //
         $firm = $this->personnel->firm;
         $programOne = $this->coordinatorOne->program;
@@ -109,24 +125,42 @@ class CoordinatorDashboardSummaryControllerTest extends AggregatedCoordinatorInP
         $this->metricReportOne_pt1 = new RecordOfMetricAssignmentReport($metricAssignmentOne, 1);
         $this->metricReportTwo_pt2 = new RecordOfMetricAssignmentReport($metricAssignmentTwo, 2);
         $this->metricReportThree_pt3 = new RecordOfMetricAssignmentReport($metricAssignmentThree, 3);
+        //
+        $taskOne = new RecordOfTask($this->participantOne_prog1, 1);
+        $taskTwo = new RecordOfTask($this->participantTwo_prog2, 2);
+        $taskTwoA = new RecordOfTask($this->participantTwo_prog2, '2a');
+        
+        
+        $this->coordinatorTaskOne = new RecordOfCoordinatorTask($this->coordinatorOne, $taskOne);
+        $this->coordinatorTaskTwo = new RecordOfCoordinatorTask($this->coordinatorTwo, $taskTwo);
+        $this->consultantTaskTwoA = new RecordOfConsultantTask($mentorTwo, $taskTwoA);
+        
+        $this->taskReportTwo = new RecordOfTaskReport($taskTwo, 2);
+        
     }
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Registrant')->truncate();
-//        $this->connection->table('Participant')->truncate();
-//        $this->connection->table('Form')->truncate();
-//        $this->connection->table('FormRecord')->truncate();
-//        $this->connection->table('WorksheetForm')->truncate();
-//        $this->connection->table('Mission')->truncate();
-//        $this->connection->table('Worksheet')->truncate();
-//        $this->connection->table('Consultant')->truncate();
-//        $this->connection->table('ConsultationSetup')->truncate();
-//        $this->connection->table('MentoringRequest')->truncate();
-//        $this->connection->table('MetricAssignment')->truncate();
-//        $this->connection->table('MetricAssignmentReport')->truncate();
-//        $this->connection->table('Comment')->truncate();
-//        $this->connection->table('ConsultantComment')->truncate();
+        parent::tearDown();
+        $this->connection->table('Registrant')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('FormRecord')->truncate();
+        $this->connection->table('WorksheetForm')->truncate();
+        $this->connection->table('Mission')->truncate();
+        $this->connection->table('Worksheet')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('ConsultationSetup')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
+        $this->connection->table('MetricAssignment')->truncate();
+        $this->connection->table('MetricAssignmentReport')->truncate();
+        $this->connection->table('Comment')->truncate();
+        $this->connection->table('ConsultantComment')->truncate();
+        
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('Task')->truncate();
+        $this->connection->table('CoordinatorTask')->truncate();
+        $this->connection->table('ConsultantTask')->truncate();
+        $this->connection->table('TaskReport')->truncate();
     }
     
     protected function view()
@@ -168,8 +202,16 @@ class CoordinatorDashboardSummaryControllerTest extends AggregatedCoordinatorInP
         $this->metricReportOne_pt1->insert($this->connection);
         $this->metricReportTwo_pt2->insert($this->connection);
         $this->metricReportThree_pt3->insert($this->connection);
+        //
+        $this->coordinatorTaskOne->insert($this->connection);
+        $this->coordinatorTaskTwo->insert($this->connection);
+        $this->consultantTaskTwoA->insert($this->connection);
         
+        $this->taskReportTwo->insert($this->connection);
+        //
         $this->get($this->viewUri, $this->personnel->token);
+echo $this->viewUri;
+$this->seeJsonContains(['print']);
     }
     public function test_view_200()
     {
@@ -182,6 +224,7 @@ $this->disableExceptionHandling();
             'uncommentedWorksheetCount' => '3',
             'unconcludedMentoringRequestCount' => '3',
             'unreviewedMetricReportCount' => '3',
+            'incompleteTask' => '3',
         ];
         $this->seeJsonContains($response);
     }
@@ -369,5 +412,24 @@ $this->disableExceptionHandling();
         
         $response = [ 'unreviewedMetricReportCount' => '2' ];
         $this->seeJsonContains($response);
+    }
+    //
+    public function test_view_task_excludeCancelledTask()
+    {
+        $this->coordinatorTaskOne->task->cancelled = true;
+        $this->view();
+        $this->seeJsonContains(['incompleteTask' => '2']);
+    }
+    public function test_view_task_excludeTaskInNonCoordinatedProgram()
+    {
+        $this->coordinatorOne->active = false;
+        $this->view();
+        $this->seeJsonContains(['incompleteTask' => '2']);
+    }
+    public function test_view_task_excludeCompletedTask()
+    {
+        $this->taskReportTwo->reviewStatus = TaskReportReviewStatus::APPROVED;
+        $this->view();
+        $this->seeJsonContains(['incompleteTask' => '2']);
     }
 }

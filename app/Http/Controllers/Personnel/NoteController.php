@@ -39,7 +39,8 @@ class NoteController extends PersonnelBaseController
 
         $programId = $this->stripTagQueryRequest('programId');
         $participantId = $this->stripTagQueryRequest('participantId');
-        $noteOwnership = $this->stripTagQueryRequest('noteOwnership');
+//        $noteOwnership = $this->stripTagQueryRequest('noteOwnership');
+        $noteOwnership = NoteFilterForConsultant::BOTH;
 
         $filter = (new NoteFilterForConsultant($this->buildNoteFilter()))
                 ->setProgramId($programId)

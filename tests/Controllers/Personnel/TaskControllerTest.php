@@ -210,6 +210,18 @@ class TaskControllerTest extends PersonnelTestCase
         ];
         $this->seeJsonContains($response);
     }
+    public function test_viewTaskListInAllConsultedProgram_excludeTaskForNonDedicatedMentee()
+    {
+        $this->dedicatedMentorTwo->cancelled = true;
+        
+        $this->disableExceptionHandling();
+        $this->viewTaskListInAllConsultedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonDoesntContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
     public function test_viewTaskListInAllConsultedProgram_applyAllFilter()
     {
         $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
@@ -277,8 +289,8 @@ class TaskControllerTest extends PersonnelTestCase
     }
     public function test_viewTaskListInAllConsultedProgram_programIdIdFilter_200()
     {
-        $this->consultantTwo->insert($this->connection);
-        $this->dedicatedMentorTwo->consultant = $this->consultantTwo;
+//        $this->consultantTwo->insert($this->connection);
+//        $this->dedicatedMentorTwo->consultant = $this->consultantTwo;
         $this->viewTaskListInAllConsultedProgramUri .= "" 
                 . "?programId={$this->teamParticipantOne->participant->program->id}";
                 
@@ -291,8 +303,8 @@ class TaskControllerTest extends PersonnelTestCase
     }
     public function test_viewTaskListInAllConsultedProgram_participantIdFilter_200()
     {
-        $this->consultantTwo->insert($this->connection);
-        $this->dedicatedMentorTwo->consultant = $this->consultantTwo;
+//        $this->consultantTwo->insert($this->connection);
+//        $this->dedicatedMentorTwo->consultant = $this->consultantTwo;
         $this->viewTaskListInAllConsultedProgramUri .= "" 
                 . "?participantId={$this->teamParticipantOne->participant->id}";
                 
@@ -489,8 +501,8 @@ class TaskControllerTest extends PersonnelTestCase
         $this->coordinatorTaskOne->insert($this->connection);
 
         $this->get($this->viewAllTaskInCoordinatedProgramUri, $this->personnel->token);
- echo $this->viewAllTaskInCoordinatedProgramUri;
- $this->seeJsonContains(['print']);
+// echo $this->viewAllTaskInCoordinatedProgramUri;
+// $this->seeJsonContains(['print']);
     }
     public function test_viewAllTaskInCoordinatedProgram_200()
     {

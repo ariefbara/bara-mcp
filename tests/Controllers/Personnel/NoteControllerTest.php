@@ -438,6 +438,9 @@ $this->disableExceptionHandling();
     //
     protected function viewTaskListInConsultedPrograms()
     {
+        $this->consultantNoteOne_pt1->consultant = $this->ownConsultantOne_pm1;
+        $this->dedicatedMentor->insert($this->connection);
+        
         $this->ownConsultantOne_pm1->program->insert($this->connection);
         $this->ownConsultantTwo_pm2->program->insert($this->connection);
         $this->ownConsultantThree_pm3->program->insert($this->connection);
@@ -464,7 +467,10 @@ $this->disableExceptionHandling();
         $this->coordinatorNoteOne_pt2->insert($this->connection);
         $this->participantNoteOne_pt3->insert($this->connection);
         
+        
         $this->get($this->viewTaskListInConsultedProgramsUri, $this->personnel->token);
+echo $this->viewTaskListInConsultedProgramsUri;
+$this->seeJsonContains(['print']);
     }
     public function test_consultant_200()
     {
@@ -474,7 +480,7 @@ $this->disableExceptionHandling();
         
         $response = [
 //'printme',
-            'total' => '3',
+            'total' => '2',
             'list' => [
                 [
                     'name' => $this->consultantNoteOne_pt1->note->name,
@@ -505,31 +511,24 @@ $this->disableExceptionHandling();
                     //
                     'personnelName' => $this->coordinatorNoteOne_pt2->coordinator->personnel->getFullName(),
                     'participantName' => $this->teamParticipantTwo_pt2->team->name,
-                    'dedicatedMenteeId' => null,
+                    'dedicatedMenteeId' => $this->dedicatedMentor->id,
                     //
                     'consultantId' => $this->ownConsultantTwo_pm2->id,
                     'programName' => $this->ownConsultantTwo_pm2->program->name,
                 ],
-                [
-                    'name' => $this->participantNoteOne_pt3->note->name,
-                    'description' => $this->participantNoteOne_pt3->note->description,
-                    'modifiedTime' => $this->participantNoteOne_pt3->note->modifiedTime,
-                    'createdTime' => $this->participantNoteOne_pt3->note->createdTime,
-                    //
-                    'consultantNoteId' => null,
-                    'coordinatorNoteId' => null,
-                    'participantNoteId' => $this->participantNoteOne_pt3->id,
-                    //
-                    'personnelName' => null,
-                    'participantName' => $this->userParticipantThree_pt3->user->getFullName(),
-                    'dedicatedMenteeId' => null,
-                    //
-                    'consultantId' => $this->ownConsultantThree_pm3->id,
-                    'programName' => $this->ownConsultantThree_pm3->program->name,
-                ],
             ],
         ];
         $this->seeJsonContains($response);
+    }
+    public function test_consultant_excludeNoteForNonDedicatedMentee()
+    {
+        $this->dedicatedMentor->cancelled = true;
+        $this->viewTaskListInConsultedPrograms();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteOne_pt1->id]);
+        $this->seeJsonDoesntContains(['coordinatorNoteId' => $this->coordinatorNoteOne_pt2->id]);
     }
     public function test_consultant_excludeNoteFromNonConsultedProgram()
     {
@@ -538,15 +537,12 @@ $this->disableExceptionHandling();
         $this->viewTaskListInConsultedPrograms();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains(['total' => '2']);
+        $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteOne_pt1->id]);
         $this->seeJsonDoesntContains(['coordinatorNoteId' => $this->coordinatorNoteOne_pt2->id]);
-        $this->seeJsonContains(['participantNoteId' => $this->participantNoteOne_pt3->id]);
     }
     public function test_consultant_allFilterAndOrder()
     {
-        $this->consultantNoteOne_pt1->consultant = $this->ownConsultantOne_pm1;
-        
         $programId = $this->consultantNoteOne_pt1->participant->program->id;
         $participantId = $this->consultantNoteOne_pt1->participant->id;
         $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
@@ -571,59 +567,6 @@ $this->disableExceptionHandling();
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteOne_pt1->id]);
         $this->seeJsonDoesntContains(['coordinatorNoteId' => $this->coordinatorNoteOne_pt2->id]);
-        $this->seeJsonDoesntContains(['participantNoteId' => $this->participantNoteOne_pt3->id]);
-    }
-    public function test_consultant_noteOwnership_OWN_onlyReturnOwnedConsultantNotes()
-    {
-        $this->consultantNoteOne_pt1->consultant = $this->ownConsultantOne_pm1;
-        
-        $noteOwnership = 'OWN';
-        
-        $this->viewTaskListInConsultedProgramsUri .=
-                "?noteOwnership=$noteOwnership";
-        
-        $this->viewTaskListInConsultedPrograms();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '1']);
-        $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteOne_pt1->id]);
-        $this->seeJsonDoesntContains(['coordinatorNoteId' => $this->coordinatorNoteOne_pt2->id]);
-        $this->seeJsonDoesntContains(['participantNoteId' => $this->participantNoteOne_pt3->id]);
-    }
-    public function test_consultant_noteOwnership_MENTEE_onlyReturnNotesForDedicatedMentee()
-    {
-        $this->dedicatedMentor->insert($this->connection);
-        
-        $noteOwnership = 'MENTEE';
-        
-        $this->viewTaskListInConsultedProgramsUri .=
-                "?noteOwnership=$noteOwnership";
-        
-        $this->viewTaskListInConsultedPrograms();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '1']);
-        $this->seeJsonDoesntContains(['consultantNoteId' => $this->consultantNoteOne_pt1->id]);
-        $this->seeJsonContains(['coordinatorNoteId' => $this->coordinatorNoteOne_pt2->id]);
-        $this->seeJsonDoesntContains(['participantNoteId' => $this->participantNoteOne_pt3->id]);
-    }
-    public function test_consultant_noteOwnership_BOTH_onlyReturnOwnedNotesOrNotesForDedicatedMentee()
-    {
-        $this->consultantNoteOne_pt1->consultant = $this->ownConsultantOne_pm1;
-        $this->dedicatedMentor->insert($this->connection);
-        
-        $noteOwnership = 'BOTH';
-        
-        $this->viewTaskListInConsultedProgramsUri .=
-                "?noteOwnership=$noteOwnership";
-        
-        $this->viewTaskListInConsultedPrograms();
-        $this->seeStatusCode(200);
-        
-        $this->seeJsonContains(['total' => '2']);
-        $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteOne_pt1->id]);
-        $this->seeJsonContains(['coordinatorNoteId' => $this->coordinatorNoteOne_pt2->id]);
-        $this->seeJsonDoesntContains(['participantNoteId' => $this->participantNoteOne_pt3->id]);
     }
     public function test_consultant_participantIdFilter_200()
     {
@@ -635,6 +578,5 @@ $this->disableExceptionHandling();
         $this->seeJsonContains(['total' => '1']);
         $this->seeJsonContains(['consultantNoteId' => $this->consultantNoteOne_pt1->id]);
         $this->seeJsonDoesntContains(['coordinatorNoteId' => $this->coordinatorNoteOne_pt2->id]);
-        $this->seeJsonDoesntContains(['participantNoteId' => $this->participantNoteOne_pt3->id]);
     }
 }

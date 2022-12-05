@@ -4,6 +4,7 @@ namespace Tests\Controllers\Personnel;
 
 use DateTime;
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Activity\Invitee\RecordOfInviteeReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Activity\RecordOfInvitee;
@@ -11,16 +12,21 @@ use Tests\Controllers\RecordPreparation\Firm\Program\ActivityType\RecordOfActivi
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\MentoringSlot\RecordOfBookedMentoringSlot;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantComment;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantInvitee;
+use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfMentoringSlot;
+use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MentoringRequest\RecordOfNegotiatedMentoring;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfDedicatedMentor;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMentoringRequest;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfWorksheet;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Task\RecordOfTaskReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfComment;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfActivity;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfActivityType;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultationSetup;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
@@ -65,6 +71,11 @@ class MentorDashboardControllerTest extends PersonnelTestCase
     protected $worksheetOne_p1;
     protected $worksheetTwo_p2;
     protected $consultantCommentOne_w1;
+    //
+    protected $consultantTaskOne;
+    protected $coordinatorTaskTwo;
+    protected $consultantTaskThree;
+    protected $taskReportTwo;
 
     protected function setUp(): void
     {
@@ -102,7 +113,14 @@ class MentorDashboardControllerTest extends PersonnelTestCase
         $this->connection->table('Worksheet')->truncate();
         $this->connection->table('Comment')->truncate();
         $this->connection->table('ConsultantComment')->truncate();
+        //
+        $this->connection->table('Task')->truncate();
+        $this->connection->table('ConsultantTask')->truncate();
+        $this->connection->table('CoordinatorTask')->truncate();
+        $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('TaskReport')->truncate();
 
+        //
         $this->viewUri = $this->personnelUri . "/mentor-dashboard";
         //
         $firm = $this->personnel->firm;
@@ -207,43 +225,62 @@ class MentorDashboardControllerTest extends PersonnelTestCase
         
         $commentOne = new RecordOfComment($this->worksheetOne_p1, 1);
         $this->consultantCommentOne_w1 = new RecordOfConsultantComment($this->mentorOne, $commentOne);
+        
+        //
+        $taskOne = new RecordOfTask($participantOne, 1);
+        $taskTwo = new RecordOfTask($participantTwo, 2);
+        $taskThree = new RecordOfTask($participantTwo, 3);
+        
+        $coordinatorTwo = new RecordOfCoordinator($programTwo, $this->personnel, 2);
+        
+        $this->consultantTaskOne = new RecordOfConsultantTask($this->mentorOne, $taskOne);
+        $this->consultantTaskThree = new RecordOfConsultantTask($this->mentorTwo, $taskThree);
+        $this->coordinatorTaskTwo = new RecordOfCoordinatorTask($coordinatorTwo, $taskTwo);
+        
+        $this->taskReportTwo = new RecordOfTaskReport($taskTwo, 2);
     }
 
     protected function tearDown(): void
     {
-//        parent::tearDown();
-//        $this->connection->table('Program')->truncate();
-//        $this->connection->table('Consultant')->truncate();
-//        $this->connection->table('Client')->truncate();
-//        $this->connection->table('Team')->truncate();
-//        $this->connection->table('Participant')->truncate();
-//        $this->connection->table('ClientParticipant')->truncate();
-//        $this->connection->table('TeamParticipant')->truncate();
-//        $this->connection->table('DedicatedMentor')->truncate();
-//        //
-//        $this->connection->table('ConsultationSetup')->truncate();
-//        $this->connection->table('MentoringRequest')->truncate();
-//        //
-//        $this->connection->table('ActivityType')->truncate();
-//        $this->connection->table('Activity')->truncate();
-//        $this->connection->table('ActivityParticipant')->truncate();
-//        $this->connection->table('Invitee')->truncate();
-//        $this->connection->table('ConsultantInvitee')->truncate();
-//        $this->connection->table('InviteeReport')->truncate();
-//        //
-//        $this->connection->table('Mentoring')->truncate();
-//        $this->connection->table('NegotiatedMentoring')->truncate();
-//        $this->connection->table('MentoringSlot')->truncate();
-//        $this->connection->table('BookedMentoringSlot')->truncate();
-//        $this->connection->table('MentorReport')->truncate();
-//        //
-//        $this->connection->table('Form')->truncate();
-//        $this->connection->table('FormRecord')->truncate();
-//        $this->connection->table('WorksheetForm')->truncate();
-//        $this->connection->table('Mission')->truncate();
-//        $this->connection->table('Worksheet')->truncate();
-//        $this->connection->table('Comment')->truncate();
-//        $this->connection->table('ConsultantComment')->truncate();
+        parent::tearDown();
+        $this->connection->table('Program')->truncate();
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('Client')->truncate();
+        $this->connection->table('Team')->truncate();
+        $this->connection->table('Participant')->truncate();
+        $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
+        //
+        $this->connection->table('ConsultationSetup')->truncate();
+        $this->connection->table('MentoringRequest')->truncate();
+        //
+        $this->connection->table('ActivityType')->truncate();
+        $this->connection->table('Activity')->truncate();
+        $this->connection->table('ActivityParticipant')->truncate();
+        $this->connection->table('Invitee')->truncate();
+        $this->connection->table('ConsultantInvitee')->truncate();
+        $this->connection->table('InviteeReport')->truncate();
+        //
+        $this->connection->table('Mentoring')->truncate();
+        $this->connection->table('NegotiatedMentoring')->truncate();
+        $this->connection->table('MentoringSlot')->truncate();
+        $this->connection->table('BookedMentoringSlot')->truncate();
+        $this->connection->table('MentorReport')->truncate();
+        //
+        $this->connection->table('Form')->truncate();
+        $this->connection->table('FormRecord')->truncate();
+        $this->connection->table('WorksheetForm')->truncate();
+        $this->connection->table('Mission')->truncate();
+        $this->connection->table('Worksheet')->truncate();
+        $this->connection->table('Comment')->truncate();
+        $this->connection->table('ConsultantComment')->truncate();
+        
+        $this->connection->table('Task')->truncate();
+        $this->connection->table('ConsultantTask')->truncate();
+        $this->connection->table('CoordinatorTask')->truncate();
+        $this->connection->table('Coordinator')->truncate();
+        $this->connection->table('TaskReport')->truncate();
     }
     
     protected function view()
@@ -306,10 +343,21 @@ class MentorDashboardControllerTest extends PersonnelTestCase
         $this->worksheetOne_p1->insert($this->connection);
         $this->worksheetTwo_p2->insert($this->connection);
         //
+        $this->consultantTaskOne->insert($this->connection);
+        $this->consultantTaskThree->insert($this->connection);
+        
+        $this->coordinatorTaskTwo->coordinator->insert($this->connection);
+        $this->coordinatorTaskTwo->insert($this->connection);
+        
+        $this->taskReportTwo->insert($this->connection);
+        //
         $this->get($this->viewUri, $this->personnel->token);
+echo $this->viewUri;
+$this->seeJsonContains(['print']);
     }
     public function test_view_200()
     {
+$this->disableExceptionHandling();
         $this->view();
         $this->seeStatusCode(200);
         
@@ -318,6 +366,7 @@ class MentorDashboardControllerTest extends PersonnelTestCase
             'pendingActivityReport' => '2',
             'pendingMentoringReport' => '4',
             'newWorksheetSubmission' => '2',
+            'incompleteTask' => '3',
         ];
         $this->seeJsonContains($response);
     }
@@ -530,6 +579,35 @@ class MentorDashboardControllerTest extends PersonnelTestCase
         $this->view();
         $this->seeStatusCode(200);
         $this->seeJsonContains(['newWorksheetSubmission' => '1']);
+    }
+    //
+    public function test_view_excludeCompleteTask()
+    {
+        $this->taskReportTwo->reviewStatus = TaskReportReviewStatus::APPROVED;
+        $this->view();
+        $this->seeJsonContains(['incompleteTask' => '2']);
+    }
+    public function test_view_excludeCancelledTask()
+    {
+        $this->consultantTaskOne->task->cancelled = true;
+        $this->view();
+        $this->seeJsonContains(['incompleteTask' => '2']);
+    }
+    public function test_view_excludeTaskToNonDedicatedMentee()
+    {
+        $this->dedicatedMentorOne_m1p1->cancelled = true;
+        $this->otherMentor->insert($this->connection);
+        $this->consultantTaskOne->consultant = $this->otherMentor;
+        
+        $this->view();
+        $this->seeJsonContains(['incompleteTask' => '2']);
+    }
+    public function test_view_includeOwnTaskToNonDedicatedMentee()
+    {
+        $this->dedicatedMentorOne_m1p1->cancelled = true;
+        
+        $this->view();
+        $this->seeJsonContains(['incompleteTask' => '3']);
     }
 
 }

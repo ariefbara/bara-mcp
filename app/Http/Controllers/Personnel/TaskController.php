@@ -90,9 +90,12 @@ class TaskController extends PersonnelBaseController
         $filter = (new TaskListFilterForConsultant($taskListFilter))
                 ->setProgramId($programId)
                 ->setParticipantId($participantId);
-        if ($this->filterBooleanOfQueryRequest('onlyShowRelevantTask')) {
-            $filter->setOnlyShowRelevantTask();
-        }
+        
+//force to show owned task or task for dedicated mentee only
+        $filter->setOnlyShowRelevantTask();
+//        if ($this->filterBooleanOfQueryRequest('onlyShowRelevantTask')) {
+//            $filter->setOnlyShowRelevantTask();
+//        }
         $payload = new CommonViewListPayload($filter);
         
         $this->executePersonalQueryTask($task, $payload);

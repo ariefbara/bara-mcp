@@ -14,6 +14,7 @@ use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 use SharedContext\Domain\ValueObject\RegistrationStatus;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 
 class DoctrinePersonnelRepository extends EntityRepository implements PersonnelRepository, InterfaceForAuthorization, InterfaceForPersonnel,
         PersonnelRepository2
@@ -118,13 +119,15 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
 
     public function mentorDashboardSummary(string $personnelId)
     {
+        $approvedTaskReportStatus = TaskReportReviewStatus::APPROVED;
         $statement = <<<_STATEMENT
 SELECT 
     Consultant.Personnel_id as personnelId,
     SUM(_a.unrespondedMentoringRequest) as unrespondedMentoringRequest,
     SUM(_b.pendingActivityReport) as pendingActivityReport,
     SUM(_c.pendingNegotiatedMentoringReport) + SUM(_d.pendingBookedMentoringSlotReport) as pendingMentoringReport,
-    SUM(_e.newWorksheetSubmission) as newWorksheetSubmission
+    SUM(_e.newWorksheetSubmission) as newWorksheetSubmission,
+    SUM(_f.incompleteTask) as incompleteTask
 FROM Consultant
 LEFT JOIN (
     SELECT MentoringRequest.consultant_id as consultantId, COUNT(MentoringRequest.id) as unrespondedMentoringRequest
@@ -193,6 +196,24 @@ LEFT JOIN (
         )
     GROUP BY consultantId
 )_e ON _e.consultantId = Consultant.id
+LEFT JOIN (
+    SELECT
+        Consultant.id consultantId, COUNT(*) incompleteTask
+    FROM Task
+        LEFT JOIN TaskReport ON TaskReport.Task_id = Task.id
+        INNER JOIN Participant ON Participant.id = Task.Participant_id
+        LEFT JOIN DedicatedMentor 
+            ON DedicatedMentor.Participant_id = Participant.id
+            AND DedicatedMentor.cancelled = false
+        LEFT JOIN ConsultantTask ON ConsultantTask.Task_id = Task.id
+        INNER JOIN Consultant ON Consultant.id = ConsultantTask.Consultant_id OR Consultant.id = DedicatedMentor.Consultant_id
+    WHERE Task.cancelled = false
+        AND (
+            TaskReport.id IS NULL 
+            OR TaskReport.reviewStatus <> {$approvedTaskReportStatus}
+        )
+    GROUP BY consultantId
+)_f ON _f.consultantId = Consultant.id
 WHERE Consultant.active = true
     AND Consultant.Personnel_id = :personnelId
 GROUP BY personnelId
@@ -206,6 +227,7 @@ _STATEMENT;
 
     public function coordinatorDashboardSummary(string $personnelId)
     {
+        $approvedTaskReportStatus = TaskReportReviewStatus::APPROVED;
         $mentoringRequestProposedByParticipant = MentoringRequestStatus::REQUESTED;
         $mentoringRequestOfferedByMentor = MentoringRequestStatus::OFFERED;
         $newApplicantStatus = RegistrationStatus::REGISTERED;
@@ -214,7 +236,8 @@ SELECT
     SUM(_a.newApplicantInProgramCount) newApplicantCount,
     SUM(_b.uncommentedWorksheetCount) uncommentedWorksheetCount,
     SUM(_b.unconcludedMentoringRequestCount) unconcludedMentoringRequestCount,
-    SUM(_b.unreviewedMetricReportCount) unreviewedMetricReportCount
+    SUM(_b.unreviewedMetricReportCount) unreviewedMetricReportCount,
+    SUM(_c.incompleteTask) incompleteTask
 FROM Coordinator
 LEFT JOIN (
     SELECT COUNT(Registrant.id) newApplicantInProgramCount, Registrant.Program_id programId
@@ -258,6 +281,19 @@ LEFT JOIN (
     WHERE Participant.active = true
     GROUP BY programId
 )_b ON _b.programId = Coordinator.Program_id
+LEFT JOIN (
+    SELECT
+        Participant.Program_id programId, COUNT(*) incompleteTask
+    FROM Task
+        LEFT JOIN TaskReport ON TaskReport.Task_id = Task.id
+        INNER JOIN Participant ON Participant.id = Task.Participant_id
+    WHERE Task.cancelled = false 
+        AND (
+            TaskReport.id IS NULL 
+            OR TaskReport.reviewStatus <> {$approvedTaskReportStatus}
+        )
+    GROUP BY programId
+)_c ON _c.programId = Coordinator.Program_id
 WHERE Coordinator.active = true
     AND Coordinator.Personnel_id = :personnelId
 _STATEMENT;
