@@ -1286,6 +1286,8 @@ FROM (
     
 WHERE 1
     {$filter->getCriteriaStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
 _SQL;
         $query = $this->em->getConnection()->prepare($sql);
         return [
