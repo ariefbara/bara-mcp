@@ -242,45 +242,45 @@ class MentorDashboardControllerTest extends PersonnelTestCase
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('Program')->truncate();
-        $this->connection->table('Consultant')->truncate();
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('Team')->truncate();
-        $this->connection->table('Participant')->truncate();
-        $this->connection->table('ClientParticipant')->truncate();
-        $this->connection->table('TeamParticipant')->truncate();
-        $this->connection->table('DedicatedMentor')->truncate();
-        //
-        $this->connection->table('ConsultationSetup')->truncate();
-        $this->connection->table('MentoringRequest')->truncate();
-        //
-        $this->connection->table('ActivityType')->truncate();
-        $this->connection->table('Activity')->truncate();
-        $this->connection->table('ActivityParticipant')->truncate();
-        $this->connection->table('Invitee')->truncate();
-        $this->connection->table('ConsultantInvitee')->truncate();
-        $this->connection->table('InviteeReport')->truncate();
-        //
-        $this->connection->table('Mentoring')->truncate();
-        $this->connection->table('NegotiatedMentoring')->truncate();
-        $this->connection->table('MentoringSlot')->truncate();
-        $this->connection->table('BookedMentoringSlot')->truncate();
-        $this->connection->table('MentorReport')->truncate();
-        //
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('FormRecord')->truncate();
-        $this->connection->table('WorksheetForm')->truncate();
-        $this->connection->table('Mission')->truncate();
-        $this->connection->table('Worksheet')->truncate();
-        $this->connection->table('Comment')->truncate();
-        $this->connection->table('ConsultantComment')->truncate();
-        
-        $this->connection->table('Task')->truncate();
-        $this->connection->table('ConsultantTask')->truncate();
-        $this->connection->table('CoordinatorTask')->truncate();
-        $this->connection->table('Coordinator')->truncate();
-        $this->connection->table('TaskReport')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('Program')->truncate();
+//        $this->connection->table('Consultant')->truncate();
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('Team')->truncate();
+//        $this->connection->table('Participant')->truncate();
+//        $this->connection->table('ClientParticipant')->truncate();
+//        $this->connection->table('TeamParticipant')->truncate();
+//        $this->connection->table('DedicatedMentor')->truncate();
+//        //
+//        $this->connection->table('ConsultationSetup')->truncate();
+//        $this->connection->table('MentoringRequest')->truncate();
+//        //
+//        $this->connection->table('ActivityType')->truncate();
+//        $this->connection->table('Activity')->truncate();
+//        $this->connection->table('ActivityParticipant')->truncate();
+//        $this->connection->table('Invitee')->truncate();
+//        $this->connection->table('ConsultantInvitee')->truncate();
+//        $this->connection->table('InviteeReport')->truncate();
+//        //
+//        $this->connection->table('Mentoring')->truncate();
+//        $this->connection->table('NegotiatedMentoring')->truncate();
+//        $this->connection->table('MentoringSlot')->truncate();
+//        $this->connection->table('BookedMentoringSlot')->truncate();
+//        $this->connection->table('MentorReport')->truncate();
+//        //
+//        $this->connection->table('Form')->truncate();
+//        $this->connection->table('FormRecord')->truncate();
+//        $this->connection->table('WorksheetForm')->truncate();
+//        $this->connection->table('Mission')->truncate();
+//        $this->connection->table('Worksheet')->truncate();
+//        $this->connection->table('Comment')->truncate();
+//        $this->connection->table('ConsultantComment')->truncate();
+//        
+//        $this->connection->table('Task')->truncate();
+//        $this->connection->table('ConsultantTask')->truncate();
+//        $this->connection->table('CoordinatorTask')->truncate();
+//        $this->connection->table('Coordinator')->truncate();
+//        $this->connection->table('TaskReport')->truncate();
     }
     
     protected function view()
@@ -352,8 +352,8 @@ class MentorDashboardControllerTest extends PersonnelTestCase
         $this->taskReportTwo->insert($this->connection);
         //
         $this->get($this->viewUri, $this->personnel->token);
-echo $this->viewUri;
-$this->seeJsonContains(['print']);
+//echo $this->viewUri;
+//$this->seeJsonContains(['print']);
     }
     public function test_view_200()
     {

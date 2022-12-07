@@ -12,6 +12,7 @@ use Query\Domain\Model\Firm\Personnel;
 use Query\Domain\Task\Dependency\Firm\PersonnelRepository as PersonnelRepository2;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use SharedContext\Domain\ValueObject\DeclaredMentoringStatus;
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 use SharedContext\Domain\ValueObject\RegistrationStatus;
 use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
@@ -120,20 +121,30 @@ class DoctrinePersonnelRepository extends EntityRepository implements PersonnelR
     public function mentorDashboardSummary(string $personnelId)
     {
         $approvedTaskReportStatus = TaskReportReviewStatus::APPROVED;
+        $negotiatingMentoringRequest = implode(', ', [
+                MentoringRequestStatus::OFFERED,
+                MentoringRequestStatus::REQUESTED,
+        ]);
+        $confirmedDeclaredMentoringStatus = implode(", ", [
+                DeclaredMentoringStatus::APPROVED_BY_MENTOR,
+                DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT,
+       ]);
         $statement = <<<_STATEMENT
 SELECT 
     Consultant.Personnel_id as personnelId,
     SUM(_a.unrespondedMentoringRequest) as unrespondedMentoringRequest,
     SUM(_b.pendingActivityReport) as pendingActivityReport,
-    SUM(_c.pendingNegotiatedMentoringReport) + SUM(_d.pendingBookedMentoringSlotReport) as pendingMentoringReport,
+    COALESCE(SUM(_c.pendingNegotiatedMentoringReport), 0) 
+        + COALESCE(SUM(_d.pendingMentoringSlotReport), 0) 
+        + COALESCE(SUM(_declaredMentoring.pendingDeclaredMentoringReport), 0) 
+        as pendingMentoringReport,
     SUM(_e.newWorksheetSubmission) as newWorksheetSubmission,
     SUM(_f.incompleteTask) as incompleteTask
 FROM Consultant
 LEFT JOIN (
     SELECT MentoringRequest.consultant_id as consultantId, COUNT(MentoringRequest.id) as unrespondedMentoringRequest
     FROM MentoringRequest
-    INNER JOIN Participant ON Participant.id = MentoringRequest.Participant_id AND Participant.active = true
-    WHERE MentoringRequest.requestStatus = 0
+    WHERE MentoringRequest.requestStatus IN ({$negotiatingMentoringRequest})
     GROUP BY consultantId
 )_a ON _a.consultantId = Consultant.id
 LEFT JOIN (
@@ -150,15 +161,14 @@ LEFT JOIN (
     GROUP BY consultantId
 )_b ON _b.consultantId = Consultant.id
 LEFT JOIN (
-    SELECT 
+    SELECT
         MentoringRequest.Consultant_id as consultantId, 
         COUNT(NegotiatedMentoring.id) as pendingNegotiatedMentoringReport
-    FROM NegotiatedMentoring
-    INNER JOIN MentoringRequest 
-        ON MentoringRequest.id = NegotiatedMentoring.MentoringRequest_id AND MentoringRequest.endTime < NOW()
-    INNER JOIN Participant ON Participant.id = MentoringRequest.Participant_id AND Participant.active = true
+    FROM MentoringRequest
+    INNER JOIN NegotiatedMentoring ON NegotiatedMentoring.MentoringRequest_id = MentoringRequest.id
     WHERE 
-        NOT EXISTS (
+        MentoringRequest.endTime < NOW()
+        AND NOT EXISTS (
             SELECT 1
             FROM MentorReport
             WHERE Mentoring_id = NegotiatedMentoring.Mentoring_id
@@ -167,20 +177,34 @@ LEFT JOIN (
 )_c ON _c.consultantId = Consultant.id
 LEFT JOIN (
     SELECT 
-        MentoringSlot.Mentor_id as consultantId, 
-        COUNT(BookedMentoringSlot.id) as pendingBookedMentoringSlotReport
-    FROM BookedMentoringSlot
-    INNER JOIN MentoringSlot 
-        ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id AND MentoringSlot.endTime < NOW()
-    INNER JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id AND Participant.active = true
-    WHERE 
-        NOT EXISTS (
-            SELECT 1
-            FROM MentorReport
-            WHERE Mentoring_id = BookedMentoringSlot.Mentoring_id
-        )
+        MentoringSlot.Mentor_id consultantId, COUNT(*) pendingMentoringSlotReport
+    FROM MentoringSlot
+        LEFT JOIN (
+            SELECT MentoringSlot_id, COUNT(*) totalBooking, COUNT(MentorReport.id) totalSubmittedReport
+            FROM BookedMentoringSlot
+                LEFT JOIN Mentoring ON Mentoring.id = BookedMentoringSlot.Mentoring_id
+                LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+            WHERE BookedMentoringSlot.cancelled = false
+            GROUP BY MentoringSlot_id
+        )_bookedMentoringSlot ON _bookedMentoringSlot.MentoringSlot_id = MentoringSlot.id
+    WHERE MentoringSlot.cancelled = false
+        AND _bookedMentoringSlot.totalSubmittedReport < _bookedMentoringSlot.totalBooking
+        AND _bookedMentoringSlot.totalBooking IS NOT NULL
     GROUP BY consultantId
 )_d ON _d.consultantId = Consultant.id
+LEFT JOIN (
+    SELECT
+        DeclaredMentoring.Consultant_id consultantId,
+        COUNT(*) pendingDeclaredMentoringReport
+    FROM DeclaredMentoring
+    WHERE declaredStatus IN ({$confirmedDeclaredMentoringStatus})
+        AND NOT EXISTS (
+            SELECT 1
+            FROM MentorReport
+            WHERE Mentoring_id = DeclaredMentoring.Mentoring_id
+        )
+    GROUP BY consultantId
+)_declaredMentoring ON _declaredMentoring.consultantId = Consultant.id
 LEFT JOIN (
     SELECT DedicatedMentor.Consultant_id as consultantId, COUNT(Worksheet.id) as newWorksheetSubmission
     FROM DedicatedMentor
