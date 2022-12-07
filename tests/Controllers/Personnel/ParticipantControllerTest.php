@@ -599,8 +599,8 @@ $this->disableExceptionHandling();
         $this->dedicatedMentorTwo->insert($this->connection);
         
         $this->get($this->dedicatedMenteeListUri, $this->personnel->token);
-echo $this->dedicatedMenteeListUri;
-$this->seeJsonContains(['print']);
+//echo $this->dedicatedMenteeListUri;
+//$this->seeJsonContains(['print']);
     }
     public function test_dedicatedMenteeList_200()
     {

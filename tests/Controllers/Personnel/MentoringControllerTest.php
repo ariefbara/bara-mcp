@@ -926,4 +926,58 @@ $this->disableExceptionHandling();
         $this->seeJsonContains(['mentoringSlotId' => $this->mentoringSlotTwo->id]);
         $this->seeJsonContains(['declaredMentoringId' => $this->declaredMentoringThree->id]);
     }
+    public function test_ownedMentoringList_incompleteReportMentoring_bug20221207_shouldExcludeCompletedMentoringSlot()
+    {
+        $this->mentoringRequestOne->startTime = (new DateTime('-25 hours'))->format('Y-m-d H:i:s');
+        $this->mentoringRequestOne->endTime = (new DateTime('-24 hours'))->format('Y-m-d H:i:s');
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $this->mentoringSlotTwo->startTime = new DateTime('-25 hours');
+        $this->mentoringSlotTwo->endTime = new DateTime('-24 hours');
+        $this->declaredMentoringThree->declaredStatus = DeclaredMentoringStatus::APPROVED_BY_MENTOR;
+        
+        $this->mentorReportOne->mentoring = $this->bookedMentoringSlotTwoA->mentoring;
+        
+        $this->mentorReportOne->insert($this->connection);
+        $this->mentorReportTwo->insert($this->connection);
+        
+        $to = (new DateTime(''))->format('Y-m-d H:i:s');
+        $this->ownedMentoringListUri .= ""
+                . "?to=$to"
+                . "&status=confirmed"
+                . "&reportSubmitted=false";
+                
+        $this->ownedMentoringList();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '2']);
+        $this->seeJsonContains(['mentoringRequestId' => $this->mentoringRequestOne->id]);
+        $this->seeJsonDoesntContains(['mentoringSlotId' => $this->mentoringSlotTwo->id]);
+        $this->seeJsonContains(['declaredMentoringId' => $this->declaredMentoringThree->id]);
+    }
+    public function test_ownedMentoringList_incompleteReportMentoring_bug20221207_shouldExcludeEmptyMentoringSlot()
+    {
+        $this->mentoringRequestOne->startTime = (new DateTime('-25 hours'))->format('Y-m-d H:i:s');
+        $this->mentoringRequestOne->endTime = (new DateTime('-24 hours'))->format('Y-m-d H:i:s');
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::APPROVED_BY_MENTOR;
+        $this->mentoringSlotTwo->startTime = new DateTime('-25 hours');
+        $this->mentoringSlotTwo->endTime = new DateTime('-24 hours');
+        $this->declaredMentoringThree->declaredStatus = DeclaredMentoringStatus::APPROVED_BY_MENTOR;
+        
+        $this->bookedMentoringSlotTwo->cancelled = true;
+        $this->bookedMentoringSlotTwoA->cancelled = true;
+        
+        $to = (new DateTime(''))->format('Y-m-d H:i:s');
+        $this->ownedMentoringListUri .= ""
+                . "?to=$to"
+                . "&status=confirmed"
+                . "&reportSubmitted=false";
+                
+        $this->ownedMentoringList();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '2']);
+        $this->seeJsonContains(['mentoringRequestId' => $this->mentoringRequestOne->id]);
+        $this->seeJsonDoesntContains(['mentoringSlotId' => $this->mentoringSlotTwo->id]);
+        $this->seeJsonContains(['declaredMentoringId' => $this->declaredMentoringThree->id]);
+    }
 }

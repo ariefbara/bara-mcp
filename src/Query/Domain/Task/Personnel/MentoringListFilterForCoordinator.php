@@ -199,7 +199,10 @@ _STATEMENT;
             return <<<_STATEMENT
     AND (
         (_mentoring.reportSubmitted = false OR _mentoring.reportSubmitted IS NULL) 
-        OR (_mentoring.totalSubmittedReport < 2 * _mentoring.totalBooking AND _mentoring.totalBooking IS NOT NULL)
+        AND (
+            _mentoring.totalSubmittedReport < 2 * _mentoring.totalBooking
+            OR _mentoring.totalSubmittedReport IS NULL
+        )
     )
 _STATEMENT;
        }
