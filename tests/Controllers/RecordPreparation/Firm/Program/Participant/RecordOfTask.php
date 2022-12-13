@@ -19,6 +19,7 @@ class RecordOfTask implements Record
     public $cancelled;
     public $name;
     public $description;
+    public $dueDate;
     public $createdTime;
     public $modifiedTime;
 
@@ -28,6 +29,7 @@ class RecordOfTask implements Record
         $this->id = "task-$id-id";
         $this->cancelled = false;
         $this->name = "task $id name";
+        $this->dueDate = (new DateTime('+1 weeks'))->format('Y-m-d');
         $this->description = "task $id description";
         $this->createdTime = (new DateTime('-2 weeks'))->format('Y-m-d H:i:s');
         $this->modifiedTime = (new DateTime('-1 weeks'))->format('Y-m-d H:i:s');
@@ -41,6 +43,7 @@ class RecordOfTask implements Record
             'cancelled' => $this->cancelled,
             'name' => $this->name,
             'description' => $this->description,
+            'dueDate' => $this->dueDate,
             'createdTime' => $this->createdTime,
             'modifiedTime' => $this->modifiedTime,
         ];

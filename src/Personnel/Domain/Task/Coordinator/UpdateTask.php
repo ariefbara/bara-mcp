@@ -29,7 +29,7 @@ class UpdateTask implements CoordinatorTask
     {
         $coordinatorTask = $this->coordinatorTaskRepository->ofId($payload->getId());
         $coordinatorTask->assertManageableByCoordinator($coordinator);
-        $coordinatorTask->update($payload->getLabelData());
+        $coordinatorTask->update($payload->getTaskData());
     }
 
 }

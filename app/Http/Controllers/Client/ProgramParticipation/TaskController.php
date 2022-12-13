@@ -23,33 +23,35 @@ use Resources\QueryOrder;
 
 class TaskController extends ClientParticipantBaseController
 {
+    protected function getTaskListFilter()
+    {
+        $cancelledStatus = $this->filterBooleanOfQueryRequest('cancelled');
+        $completedStatus = $this->filterBooleanOfQueryRequest('completed');
+        $modifiedTimeFrom = $this->dateTimeImmutableOfQueryRequest('modifiedTimeFrom');
+        $modifiedTimeTo = $this->dateTimeImmutableOfQueryRequest('modifiedTimeTo');
+        $dueDateFrom = $this->dateTimeImmutableOfQueryRequest('dueDateFrom');
+        $dueDateTo = $this->dateTimeImmutableOfQueryRequest('dueDateTo');
+        $keyword = $this->stripTagQueryRequest('keyword');
+        $taskSource = $this->stripTagQueryRequest('taskSource');
+        $order = $this->stripTagQueryRequest('order');
+        
+        return (new TaskListFilter($this->getPaginationFilter()))
+                ->setCancelledStatus($cancelledStatus)
+                ->setCompletedStatus($completedStatus)
+                ->setModifiedTimeFrom($modifiedTimeFrom)
+                ->setModifiedTimeTo($modifiedTimeTo)
+                ->setDueDateFrom($dueDateFrom)
+                ->setDueDateTo($dueDateTo)
+                ->setKeyword($keyword)
+                ->setTaskSource($taskSource)
+                ->setOrder($order);
+    }
     public function viewAllTasks($programParticipationId)
     {
         $taskRepository = $this->em->getRepository(Task::class);
         $task = new ViewAllTask($taskRepository);
         
-        $paginationFilter = new PaginationFilter($this->getPage(), $this->getPageSize());
-        $cancelledStatus = $this->filterBooleanOfQueryRequest('cancelled');
-        $completedStatus = $this->filterBooleanOfQueryRequest('completed');
-        $from = $this->dateTimeImmutableOfQueryRequest('from');
-        $to = $this->dateTimeImmutableOfQueryRequest('to');
-        $keyword = $this->stripTagQueryRequest('keyword');
-        $taskSource = $this->stripTagQueryRequest('taskSource');
-        $modifiedTimeOrder = $this->stripTagQueryRequest('modifiedTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('modifiedTimeOrder')) : null;
-        $createdTimeOrder = $this->stripTagQueryRequest('createdTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('createdTimeOrder')) : null;
-        $filter = (new TaskListFilter($paginationFilter))
-                ->setCancelledStatus($cancelledStatus)
-                ->setCompletedStatus($completedStatus)
-                ->setFrom($from)
-                ->setTo($to)
-                ->setKeyword($keyword)
-                ->setTaskSource($taskSource)
-                ->setModifiedTimeOrder($modifiedTimeOrder)
-                ->setCreatedTimeOrder($createdTimeOrder);
-        
-        $payload = new CommonViewListPayload($filter);
+        $payload = new CommonViewListPayload($this->getTaskListFilter());
         $this->executeParticipantQueryTask($programParticipationId, $task, $payload);
         
         return $payload->result;
@@ -136,6 +138,7 @@ class TaskController extends ClientParticipantBaseController
             'description' => $task->getLabel()->getDescription(),
             'createdTime' => $task->getCreatedTime()->format('Y-m-d H:i:s'),
             'modifiedTime' => $task->getModifiedTime()->format('Y-m-d H:i:s'),
+            'dueDate' => $task->getDueDate()->format('Y-m-d'),
             'taskReport' => $this->arrayDataOfTaskReport($task->getTaskReport())
         ];
     }

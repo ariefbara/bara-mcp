@@ -18,6 +18,7 @@ class CoordinatorTest extends TestBase
     protected $coordinatorNoteId = 'coordinatorNoteId', $participant, $viewableByParticipant = true;
     //
     protected $coordinatorTaskId = 'coordinatorTaskId', $labelData;
+    protected $taskData;
 
     protected function setUp(): void
     {
@@ -29,6 +30,7 @@ class CoordinatorTest extends TestBase
         $this->participant = $this->buildMockOfClass(Participant::class);
         //
         $this->labelData = new LabelData('name', 'description');
+        $this->taskData = new Participant\TaskData($this->labelData, new \Monolog\DateTimeImmutable('+2 weeks'));
     }
     
     protected function executeTask()
@@ -70,7 +72,7 @@ class CoordinatorTest extends TestBase
     //
     protected function submitTask()
     {
-        return $this->coordinator->submitTask($this->coordinatorTaskId, $this->participant, $this->labelData);
+        return $this->coordinator->submitTask($this->coordinatorTaskId, $this->participant, $this->taskData);
     }
     public function test_submitTask_returnCoordinatorTask()
     {

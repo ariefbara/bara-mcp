@@ -38,7 +38,7 @@ class SubmitTask implements CoordinatorTask
     {
         $payload->submittedTaskId = $this->coordinatorTaskRepository->nextIdentity();
         $participant = $this->participantRepository->ofId($payload->getParticipantId());
-        $data = $payload->getLabelData();
+        $data = $payload->getTaskData();
         $coordinatorTask = $coordinator->submitTask($payload->submittedTaskId, $participant, $data);
         $this->coordinatorTaskRepository->add($coordinatorTask);
     }

@@ -8,7 +8,6 @@ use Personnel\Domain\Model\Firm\Program\Participant\Task\TaskReport;
 use Resources\DateTimeImmutableBuilder;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\Label;
-use SharedContext\Domain\ValueObject\LabelData;
 
 class Task
 {
@@ -36,6 +35,12 @@ class Task
      * @var Label
      */
     protected $label;
+    
+    /**
+     * 
+     * @var DateTimeImmutable
+     */
+    protected $dueDate;
 
     /**
      * 
@@ -54,12 +59,21 @@ class Task
      * @var TaskReport|null
      */
     protected $taskReport;
+    
+    protected function setDueDate(?\DateTimeImmutable $dueDate): void
+    {
+        if (!is_null($dueDate) && $dueDate <= new DateTimeImmutable('tomorrow')) {
+            throw RegularException::badRequest('if set, due date must be an upcoming date');
+        }
+        $this->dueDate = $dueDate;
+    }
 
-    public function __construct(Participant $participant, string $id, LabelData $data)
+    public function __construct(Participant $participant, string $id, TaskData $data)
     {
         $this->participant = $participant;
         $this->id = $id;
-        $this->label = new Label($data);
+        $this->label = new Label($data->getLabelData());
+        $this->setDueDate($data->getDueDate());
         $this->cancelled = false;
         $this->createdTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         $this->modifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
@@ -74,12 +88,14 @@ class Task
     }
 
     //
-    public function update(LabelData $data): void
+    public function update(TaskData $data): void
     {
         $this->assertNotCancelled();
         $previousLabel = $this->label;
-        $this->label = $this->label->update($data);
-        if (!$previousLabel->sameValueAs($this->label)) {
+        $previousDueDate = $this->dueDate;
+        $this->label = $this->label->update($data->getLabelData());
+        $this->setDueDate($data->getDueDate());
+        if (!$previousLabel->sameValueAs($this->label) || $previousDueDate != $this->dueDate) {
             $this->modifiedTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
         }
     }

@@ -38,6 +38,12 @@ class Task
      * 
      * @var DateTimeImmutable
      */
+    protected $dueDate;
+
+    /**
+     * 
+     * @var DateTimeImmutable
+     */
     protected $createdTime;
 
     /**
@@ -45,7 +51,7 @@ class Task
      * @var DateTimeImmutable
      */
     protected $modifiedTime;
-    
+
     /**
      * 
      * @var TaskReport|null
@@ -75,6 +81,11 @@ class Task
     public function getLabel(): Label
     {
         return $this->label;
+    }
+
+    public function getDueDate(): DateTimeImmutable
+    {
+        return $this->dueDate;
     }
 
     public function getCreatedTime(): DateTimeImmutable

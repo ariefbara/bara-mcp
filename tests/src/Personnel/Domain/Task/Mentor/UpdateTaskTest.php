@@ -2,12 +2,13 @@
 
 namespace Personnel\Domain\Task\Mentor;
 
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use Tests\src\Personnel\Domain\Task\Mentor\MentorTaskTestBase;
 
 class UpdateTaskTest extends MentorTaskTestBase
 {
     protected $service;
-    protected $payload, $labelData;
+    protected $payload, $taskData;
     
     protected function setUp(): void
     {
@@ -16,8 +17,8 @@ class UpdateTaskTest extends MentorTaskTestBase
         
         $this->service = new UpdateTask($this->consultantTaskRepository);
         //
-        $this->labelData = new \SharedContext\Domain\ValueObject\LabelData('name', 'description');
-        $this->payload = new UpdateTaskPayload($this->consultantTaskId, $this->labelData);
+        $this->taskData = $this->buildMockOfClass(TaskData::class);
+        $this->payload = new UpdateTaskPayload($this->consultantTaskId, $this->taskData);
     }
     
     protected function execute()
@@ -28,7 +29,7 @@ class UpdateTaskTest extends MentorTaskTestBase
     {
         $this->consultantTask->expects($this->once())
                 ->method('update')
-                ->with($this->labelData);
+                ->with($this->taskData);
         $this->execute();
     }
     public function test_execute_assertConsultantTaskManageableByConsultant()

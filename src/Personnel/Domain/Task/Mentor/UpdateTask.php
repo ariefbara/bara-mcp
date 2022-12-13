@@ -29,7 +29,7 @@ class UpdateTask implements MentorTask
     {
         $consultantTask = $this->consultantTaskRepository->ofId($payload->getId());
         $consultantTask->assertManageableByConsultant($mentor);
-        $consultantTask->update($payload->getLabelData());
+        $consultantTask->update($payload->getTaskData());
     }
 
 }

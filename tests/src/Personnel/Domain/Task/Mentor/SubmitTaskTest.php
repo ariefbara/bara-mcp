@@ -2,13 +2,13 @@
 
 namespace Personnel\Domain\Task\Mentor;
 
-use SharedContext\Domain\ValueObject\LabelData;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use Tests\src\Personnel\Domain\Task\Mentor\MentorTaskTestBase;
 
 class SubmitTaskTest extends MentorTaskTestBase
 {
     protected $task;
-    protected $payload, $labelData;
+    protected $payload, $taskData;
     protected function setUp(): void
     {
         parent::setUp();
@@ -17,8 +17,8 @@ class SubmitTaskTest extends MentorTaskTestBase
         
         $this->task = new SubmitTask($this->consultantTaskRepository, $this->participantRepository);
         //
-        $this->labelData = new LabelData('name', 'description');
-        $this->payload = new SubmitTaskPayload($this->participantId, $this->labelData);
+        $this->taskData = $this->buildMockOfClass(TaskData::class);
+        $this->payload = new SubmitTaskPayload($this->participantId, $this->taskData);
     }
     
     protected function execute()
@@ -33,7 +33,7 @@ class SubmitTaskTest extends MentorTaskTestBase
     {
         $this->mentor->expects($this->once())
                 ->method('submitTask')
-                ->with($this->consultantTaskId, $this->participant, $this->labelData)
+                ->with($this->consultantTaskId, $this->participant, $this->taskData)
                 ->willReturn($this->consultantTask);
         
         $this->consultantTaskRepository->expects($this->once())

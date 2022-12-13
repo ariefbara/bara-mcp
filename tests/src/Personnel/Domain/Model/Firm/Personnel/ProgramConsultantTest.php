@@ -49,6 +49,7 @@ class ProgramConsultantTest extends TestBase
     protected $consultantNoteId = 'consultantNoteId', $viewableByParticipant = true;
     protected $mentorTask, $payload = 'string represent task payload';
     protected $consultantTaskId = 'consultantTaskId', $labelData;
+    protected $taskData;
 
     protected function setUp(): void
     {
@@ -102,6 +103,7 @@ class ProgramConsultantTest extends TestBase
         $this->mentorTask = $this->buildMockOfInterface(MentorTask::class);
         //
         $this->labelData = new LabelData('name', 'description');
+        $this->taskData = new Participant\TaskData($this->labelData, new DateTimeImmutable('+1 months'));
     }
 
     protected function executeAcceptConsultationRequest()
@@ -502,7 +504,7 @@ class ProgramConsultantTest extends TestBase
     //
     protected function submitTask()
     {
-        return $this->programConsultant->submitTask($this->consultantCommentId, $this->participant, $this->labelData);
+        return $this->programConsultant->submitTask($this->consultantCommentId, $this->participant, $this->taskData);
     }
     public function test_submitTask_returnConsultantTask()
     {

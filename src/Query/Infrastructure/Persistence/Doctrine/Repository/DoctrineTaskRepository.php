@@ -30,6 +30,7 @@ SELECT
     Task.description,
     Task.createdTime,
     Task.modifiedTime,
+    Task.dueDate,
     Task.cancelled,
     CASE TaskReport.reviewStatus
         WHEN {$unreviewedReportStatus} THEN 'unreviewed'
@@ -141,6 +142,7 @@ SELECT
     Task.description,
     Task.createdTime,
     Task.modifiedTime,
+    Task.dueDate,
     Task.cancelled,
                 
     ConsultantTask.id consultantTaskId,
@@ -301,6 +303,7 @@ SELECT
     Task.description,
     Task.createdTime,
     Task.modifiedTime,
+    Task.dueDate,
     Task.cancelled,
     CASE TaskReport.reviewStatus
         WHEN {$unreviewedReportStatus} THEN 'unreviewed'

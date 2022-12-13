@@ -6,6 +6,7 @@ use Personnel\Domain\Model\Firm\Personnel;
 use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorNote;
 use Personnel\Domain\Model\Firm\Personnel\Coordinator\CoordinatorTask as CoordinatorTask2;
 use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use Personnel\Domain\Task\Coordinator\CoordinatorTask;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\ValueObject\LabelData;
@@ -57,7 +58,7 @@ class Coordinator
         return new CoordinatorNote($this, $participant, $coordinatorNoteId, $labelData, $viewableByParticipant);
     }
     
-    public function submitTask(string $coordinatorTaskId, Participant $participant, LabelData $data): CoordinatorTask2
+    public function submitTask(string $coordinatorTaskId, Participant $participant, TaskData $data): CoordinatorTask2
     {
         $participant->assertUsableInProgram($this->programId);
         return new CoordinatorTask2($this, $participant, $coordinatorTaskId, $data);

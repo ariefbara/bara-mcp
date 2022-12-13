@@ -2,6 +2,7 @@
 
 namespace Personnel\Domain\Model\Firm\Program\Participant;
 
+use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Task\TaskReport;
 use Resources\DateTimeImmutableBuilder;
@@ -17,7 +18,7 @@ class TaskTest extends TestBase
     //
     protected $id = 'newId';
     //
-    protected $newLabel;
+    protected $dueDate;
 
     protected function setUp(): void
     {
@@ -25,7 +26,8 @@ class TaskTest extends TestBase
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->labelData = new LabelData('name', 'description');
         
-        $this->task = new TestableTask($this->participant, 'id', $this->labelData);
+        $taskData = new TaskData($this->labelData, new DateTimeImmutable('+1 weeks'));
+        $this->task = new TestableTask($this->participant, 'id', $taskData);
         
         $this->label = $this->buildMockOfClass(Label::class);
         $this->task->label = $this->label;
@@ -37,12 +39,18 @@ class TaskTest extends TestBase
         
         //
         $this->newLabel = $this->buildMockOfClass(Label::class);
+        $this->dueDate = new DateTimeImmutable('+2 weeks');
+    }
+    
+    protected function getTaskData()
+    {
+        return new TaskData($this->labelData, $this->dueDate);
     }
     
     //
     protected function construct()
     {
-        return new TestableTask($this->participant, $this->id, $this->labelData);
+        return new TestableTask($this->participant, $this->id, $this->getTaskData());
     }
     public function test_construct_setProperties()
     {
@@ -51,8 +59,28 @@ class TaskTest extends TestBase
         $this->assertSame($this->id, $task->id);
         $this->assertFalse($task->cancelled);
         $this->assertInstanceOf(Label::class, $task->label);
+        $this->assertSame($this->dueDate, $task->dueDate);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $task->createdTime);
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $task->modifiedTime);
+    }
+    public function test_construct_dueDateNonDateTimeImmutableType_typeError()
+    {
+        $this->dueDate = 'non date time immutable type';
+        $this->expectException(\TypeError::class);
+        $this->construct();
+    }
+    public function test_construct_nullDueDate_void()
+    {
+        $this->dueDate = null;
+        $this->construct();
+        $this->markAsSuccess();
+    }
+    public function test_construct_notUpcomingDueDate_badRequest()
+    {
+        $this->dueDate = new DateTimeImmutable('tomorrow');
+        $this->assertRegularExceptionThrowed(function() {
+            $this->construct();
+        }, 'Bad Request', 'if set, due date must be an upcoming date');
     }
     
     //
@@ -62,20 +90,22 @@ class TaskTest extends TestBase
                 ->method('update')
                 ->with($this->labelData)
                 ->willReturn($this->newLabel);
-        $this->task->update($this->labelData);
+        $this->task->update($this->getTaskData());
     }
-    public function test_update_updateLabel()
+    public function test_update_updateLabelAndDueDate()
     {
         $this->update();
         $this->assertSame($this->newLabel, $this->task->label);
+        $this->assertSame($this->dueDate, $this->task->dueDate);
     }
     public function test_updateLabel_updateModifiedTime()
     {
         $this->update();
         $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $this->task->modifiedTime);
     }
-    public function test_updateLabel_sameLabel_preventUpdateModifiedTime()
+    public function test_updateLabel_sameLabelAndDueDate_preventUpdateModifiedTime()
     {
+        $this->dueDate = $this->task->dueDate;
         $this->label->expects($this->once())
                 ->method('sameValueAs')
                 ->with($this->newLabel)
@@ -85,12 +115,29 @@ class TaskTest extends TestBase
         $this->update();
         $this->assertEquals($previousModifiedTime, $this->task->modifiedTime);
     }
+    public function test_updateLabel_sameLabelDifferentDueDate_updateModifiedTime()
+    {
+        $this->label->expects($this->once())
+                ->method('sameValueAs')
+                ->with($this->newLabel)
+                ->willReturn(true);
+        $previousModifiedTime = $this->task->modifiedTime;
+        
+        $this->update();
+        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $this->task->modifiedTime);
+    }
     public function test_update_alreadyCancelled_forbidden()
     {
         $this->task->cancelled = true;
         $this->assertRegularExceptionThrowed(function () {
             $this->update();
         }, 'Forbidden', 'task already cancelled, no further changes allowed');
+    }
+    public function test_update_nonDateTimeImmutableDueDate_typeError()
+    {
+        $this->dueDate = 'string';
+        $this->expectException(\TypeError::class);
+        $this->update();
     }
     
     //
@@ -149,6 +196,7 @@ class TestableTask extends Task
     public $id;
     public $cancelled;
     public $label;
+    public $dueDate;
     public $createdTime;
     public $modifiedTime;
     public $taskReport;

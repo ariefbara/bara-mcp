@@ -2,14 +2,14 @@
 
 namespace Personnel\Domain\Task\Coordinator;
 
-use SharedContext\Domain\ValueObject\LabelData;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use Tests\src\Personnel\Domain\Task\Coordinator\CoordinatorTaskTestBase;
 
 class UpdateTaskTest extends CoordinatorTaskTestBase
 {
 
     protected $service;
-    protected $payload, $labelData;
+    protected $payload, $taskData;
 
     protected function setUp(): void
     {
@@ -18,8 +18,8 @@ class UpdateTaskTest extends CoordinatorTaskTestBase
 
         $this->service = new UpdateTask($this->coordinatorTaskRepository);
 
-        $this->labelData = new LabelData('name', 'description');
-        $this->payload = new UpdateTaskPayload($this->coordinatorTaskId, $this->labelData);
+        $this->taskData = $this->buildMockOfClass(TaskData::class);
+        $this->payload = new UpdateTaskPayload($this->coordinatorTaskId, $this->taskData);
     }
     
     protected function execute()
@@ -30,7 +30,7 @@ class UpdateTaskTest extends CoordinatorTaskTestBase
     {
         $this->coordinatorTask->expects($this->once())
                 ->method('update')
-                ->with($this->labelData);
+                ->with($this->taskData);
         
         $this->execute();
     }

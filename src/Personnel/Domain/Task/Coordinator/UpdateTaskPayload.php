@@ -2,6 +2,7 @@
 
 namespace Personnel\Domain\Task\Coordinator;
 
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use SharedContext\Domain\ValueObject\LabelData;
 
 class UpdateTaskPayload
@@ -15,14 +16,14 @@ class UpdateTaskPayload
 
     /**
      * 
-     * @var LabelData
+     * @var TaskData
      */
-    protected $labelData;
+    protected $taskData;
 
-    public function __construct(string $id, LabelData $labelData)
+    public function __construct(string $id, TaskData $taskData)
     {
         $this->id = $id;
-        $this->labelData = $labelData;
+        $this->taskData = $taskData;
     }
 
     public function getId(): string
@@ -30,9 +31,9 @@ class UpdateTaskPayload
         return $this->id;
     }
 
-    public function getLabelData(): LabelData
+    public function getTaskData(): TaskData
     {
-        return $this->labelData;
+        return $this->taskData;
     }
 
 }

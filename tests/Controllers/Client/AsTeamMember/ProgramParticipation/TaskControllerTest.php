@@ -269,6 +269,7 @@ $this->disableExceptionHandling();
                     'description' => $this->consultantTaskOne->task->description,
                     'createdTime' => $this->consultantTaskOne->task->createdTime,
                     'modifiedTime' => $this->consultantTaskOne->task->modifiedTime,
+                    'dueDate' => $this->consultantTaskOne->task->dueDate,
                     'cancelled' => strval(intval($this->consultantTaskOne->task->cancelled)),
                     //
                     'consultantTaskId' => $this->consultantTaskOne->id,
@@ -286,6 +287,7 @@ $this->disableExceptionHandling();
                     'description' => $this->coordinatorTaskOne->task->description,
                     'createdTime' => $this->coordinatorTaskOne->task->createdTime,
                     'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
+                    'dueDate' => $this->coordinatorTaskOne->task->dueDate,
                     'cancelled' => strval(intval($this->coordinatorTaskOne->task->cancelled)),
 //                    //
                     'consultantTaskId' => null,

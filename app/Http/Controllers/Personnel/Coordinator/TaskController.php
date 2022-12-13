@@ -41,7 +41,9 @@ class TaskController extends PersonnelBaseController
         
         $participantId = $this->stripTagsInputRequest('participantId');
         $labelData = new LabelData($this->stripTagsInputRequest('name'), $this->stripTagsInputRequest('description'));
-        $payload = new SubmitTaskPayload($participantId, $labelData);
+        $dueDate = $this->dateTimeImmutableOfInputRequest('dueDate');
+        $taskData = new Participant\TaskData($labelData, $dueDate);
+        $payload = new \Personnel\Domain\Task\Mentor\SubmitTaskPayload($participantId, $taskData);
         $this->executeCoordinatorTaskInPersonnelBC($coordinatorId, $task, $payload);
         
         $coordinatorTaskQueryRepository = $this->em->getRepository(CoordinatorTask::class);
@@ -58,7 +60,9 @@ class TaskController extends PersonnelBaseController
         $task = new UpdateTask($coordinatorTaskRepository);
         
         $labelData = new LabelData($this->stripTagsInputRequest('name'), $this->stripTagsInputRequest('description'));
-        $payload = new UpdateTaskPayload($id, $labelData);
+        $dueDate = $this->dateTimeImmutableOfInputRequest('dueDate');
+        $taskData = new Participant\TaskData($labelData, $dueDate);
+        $payload = new UpdateTaskPayload($id, $taskData);
         
         $this->executeCoordinatorTaskInPersonnelBC($coordinatorId, $task, $payload);
         
@@ -135,7 +139,7 @@ class TaskController extends PersonnelBaseController
                 ->setCancelledStatus($cancelledStatus)
                 ->setCompletedStatus($completedStatus)
                 ->setModifiedTimeOrder($modifiedTimeOrder)
-                ->setCreatedTimeOrder($createdTimeOrder)
+                ->setDueDateOrder($createdTimeOrder)
                 ->setParticipantId($participantId);
         $payload = new CommonViewListPayload($filter);
         
@@ -174,6 +178,7 @@ class TaskController extends PersonnelBaseController
             'id' => $task->getId(),
             'cancelled' => $task->isCancelled(),
             'name' => $task->getLabel()->getName(),
+            'dueDate' => $task->getDueDate()->format('Y-m-d'),
             'description' => $task->getLabel()->getDescription(),
             'createdTime' => $task->getCreatedTime()->format('Y-m-d H:i:s'),
             'modifiedTime' => $task->getModifiedTime()->format('Y-m-d H:i:s'),

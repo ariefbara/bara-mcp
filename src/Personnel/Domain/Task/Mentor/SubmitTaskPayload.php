@@ -2,7 +2,7 @@
 
 namespace Personnel\Domain\Task\Mentor;
 
-use SharedContext\Domain\ValueObject\LabelData;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 
 class SubmitTaskPayload
 {
@@ -15,15 +15,15 @@ class SubmitTaskPayload
 
     /**
      * 
-     * @var LabelData
+     * @var TaskData
      */
-    protected $labelData;
+    protected $taskData;
     public $submittedTaskId;
 
-    public function __construct(string $participantId, LabelData $labelData)
+    public function __construct(string $participantId, TaskData $taskData)
     {
         $this->participantId = $participantId;
-        $this->labelData = $labelData;
+        $this->taskData = $taskData;
     }
 
     public function getParticipantId(): string
@@ -31,9 +31,9 @@ class SubmitTaskPayload
         return $this->participantId;
     }
 
-    public function getLabelData(): LabelData
+    public function getTaskData(): TaskData
     {
-        return $this->labelData;
+        return $this->taskData;
     }
 
 }

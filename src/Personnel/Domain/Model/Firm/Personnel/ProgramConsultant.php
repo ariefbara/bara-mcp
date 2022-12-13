@@ -18,6 +18,7 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
 use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
 use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet;
 use Personnel\Domain\Model\Firm\Program\Participant\Worksheet\Comment;
 use Personnel\Domain\Task\Mentor\MentorTask;
@@ -275,7 +276,7 @@ class ProgramConsultant extends EntityContainEvents
         return new ConsultantNote($this, $participant, $consultantNoteId, $labelData, $viewableByParticipant);
     }
 
-    public function submitTask(string $consultantTaskId, Participant $participant, LabelData $data): ConsultantTask
+    public function submitTask(string $consultantTaskId, Participant $participant, TaskData $data): ConsultantTask
     {
         $participant->assertUsableInProgram($this->programId);
         return new ConsultantTask($this, $participant, $consultantTaskId, $data);

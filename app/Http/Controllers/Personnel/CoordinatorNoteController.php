@@ -107,7 +107,7 @@ class CoordinatorNoteController extends PersonnelBaseController
                 new QueryOrder($this->stripTagQueryRequest('createdTimeOrder')) : null;
         $noteFilter = (new NoteFilter())
                 ->setModifiedTimeOrder($modifiedTimeOrder)
-                ->setCreatedTimeOrder($createdTimeOrder);
+                ->setDueDateOrder($createdTimeOrder);
         
         $paginationFilter = new PaginationFilter($this->getPage(), $this->getPageSize());
         $coordinatorNoteFilter = (new CoordinatorNoteFilter($noteFilter, $paginationFilter))

@@ -40,7 +40,9 @@ class TaskController extends PersonnelBaseController
         
         $participantId = $this->stripTagsInputRequest('participantId');
         $labelData = new LabelData($this->stripTagsInputRequest('name'), $this->stripTagsInputRequest('description'));
-        $payload = new SubmitTaskPayload($participantId, $labelData);
+        $dueDate = $this->dateTimeImmutableOfInputRequest('dueDate');
+        $taskData = new Participant\TaskData($labelData, $dueDate);
+        $payload = new SubmitTaskPayload($participantId, $taskData);
         $this->executeExtendedMentorTaskInPersonnelContext($consultantId, $task, $payload);
         
         $consultantTaskRepository = $this->em->getRepository(ConsultantTask::class);
@@ -57,7 +59,9 @@ class TaskController extends PersonnelBaseController
         $task = new UpdateTask($consultantTaskRepository);
         
         $labelData = new LabelData($this->stripTagsInputRequest('name'), $this->stripTagsInputRequest('description'));
-        $payload = new UpdateTaskPayload($id, $labelData);
+        $dueDate = $this->dateTimeImmutableOfInputRequest('dueDate');
+        $taskData = new Participant\TaskData($labelData, $dueDate);
+        $payload = new UpdateTaskPayload($id, $taskData);
         
         $this->executeExtendedMentorTaskInPersonnelContext($consultantId, $task, $payload);
         
@@ -132,7 +136,7 @@ class TaskController extends PersonnelBaseController
                 ->setCancelledStatus($cancelledStatus)
                 ->setCompletedStatus($completedStatus)
                 ->setModifiedTimeOrder($modifiedTimeOrder)
-                ->setCreatedTimeOrder($createdTimeOrder)
+                ->setDueDateOrder($createdTimeOrder)
                 ->setParticipantId($participantId);
         $payload = new CommonViewListPayload($filter);
         
@@ -172,6 +176,7 @@ class TaskController extends PersonnelBaseController
             'cancelled' => $task->isCancelled(),
             'name' => $task->getLabel()->getName(),
             'description' => $task->getLabel()->getDescription(),
+            'dueDate' => $task->getDueDate()->format('Y-m-d'),
             'createdTime' => $task->getCreatedTime()->format('Y-m-d H:i:s'),
             'modifiedTime' => $task->getModifiedTime()->format('Y-m-d H:i:s'),
             'participant' => [

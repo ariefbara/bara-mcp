@@ -2,9 +2,11 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 
+use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Task;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use SharedContext\Domain\ValueObject\LabelData;
 use Tests\TestBase;
 
@@ -12,7 +14,7 @@ class ConsultantTaskTest extends TestBase
 {
     protected $consultant;
     protected $participant;
-    protected $labelData;
+    protected $taskData;
     protected $consultantTask, $task;
     //
     protected $id = 'newId';
@@ -22,16 +24,16 @@ class ConsultantTaskTest extends TestBase
         parent::setUp();
         $this->consultant = $this->buildMockOfClass(ProgramConsultant::class);
         $this->participant = $this->buildMockOfClass(Participant::class);
-        $this->labelData = new LabelData('name', 'description');
+        $this->taskData = new TaskData(new LabelData('name', 'description'), new DateTimeImmutable('+1 months'));
         
-        $this->consultantTask = new TestableConsultantTask($this->consultant, $this->participant, 'id', $this->labelData);
+        $this->consultantTask = new TestableConsultantTask($this->consultant, $this->participant, 'id', $this->taskData);
         $this->task = $this->buildMockOfClass(Task::class);
         $this->consultantTask->task = $this->task;
     }
     
     protected function construct()
     {
-        return new TestableConsultantTask($this->consultant, $this->participant, $this->id, $this->labelData);
+        return new TestableConsultantTask($this->consultant, $this->participant, $this->id, $this->taskData);
     }
     public function test_construct_setProperties()
     {
@@ -44,13 +46,13 @@ class ConsultantTaskTest extends TestBase
     //
     protected function update()
     {
-        $this->consultantTask->update($this->labelData);
+        $this->consultantTask->update($this->taskData);
     }
     public function test_update_updateTask()
     {
         $this->task->expects($this->once())
                 ->method('update')
-                ->with($this->labelData);
+                ->with($this->taskData);
         $this->update();
     }
     

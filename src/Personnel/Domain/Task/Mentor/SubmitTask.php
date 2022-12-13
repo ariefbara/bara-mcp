@@ -38,7 +38,7 @@ class SubmitTask implements MentorTask
     {
         $payload->submittedTaskId = $this->consultantTaskRepository->nextIdentity();
         $participant = $this->participantRepository->ofId($payload->getParticipantId());
-        $data = $payload->getLabelData();
+        $data = $payload->getTaskData();
         
         $consultantTask = $mentor->submitTask($payload->submittedTaskId, $participant, $data);
         $this->consultantTaskRepository->add($consultantTask);

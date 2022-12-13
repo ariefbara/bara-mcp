@@ -12,6 +12,11 @@ class TaskListFilter
 
     const CONSULTANT = 'CONSULTANT';
     const COORDINATOR = 'COORDINATOR';
+    //
+    const MODIFIED_TIME_ASC = 'modified-time-asc';
+    const MODIFIED_TIME_DESC = 'modified-time-desc';
+    const DUE_DATE_ASC = 'due-date-asc';
+    const DUE_DATE_DESC = 'due-date-desc';
 
     /**
      * 
@@ -35,13 +40,25 @@ class TaskListFilter
      * 
      * @var DateTimeImmutable|null
      */
-    protected $from;
+    protected $modifiedTimeFrom;
 
     /**
      * 
      * @var DateTimeImmutable|null
      */
-    protected $to;
+    protected $modifiedTimeTo;
+
+    /**
+     * 
+     * @var DateTimeImmutable|null
+     */
+    protected $dueDateFrom;
+
+    /**
+     * 
+     * @var DateTimeImmutable|null
+     */
+    protected $dueDateTo;
 
     /**
      * 
@@ -54,18 +71,12 @@ class TaskListFilter
      * @var string|null
      */
     protected $taskSource;
-
+    
     /**
      * 
-     * @var QueryOrder|null
+     * @var string|null
      */
-    protected $modifiedTimeOrder;
-
-    /**
-     * 
-     * @var QueryOrder|null
-     */
-    protected $createdTimeOrder;
+    protected $order;
 
     public function setCancelledStatus(?bool $cancelledStatus)
     {
@@ -79,15 +90,27 @@ class TaskListFilter
         return $this;
     }
 
-    public function setFrom(?DateTimeImmutable $from)
+    public function setModifiedTimeFrom(?DateTimeImmutable $modifiedTimeFrom)
     {
-        $this->from = $from;
+        $this->modifiedTimeFrom = $modifiedTimeFrom;
         return $this;
     }
 
-    public function setTo(?DateTimeImmutable $to)
+    public function setModifiedTimeTo(?DateTimeImmutable $modifiedTimeTo)
     {
-        $this->to = $to;
+        $this->modifiedTimeTo = $modifiedTimeTo;
+        return $this;
+    }
+
+    public function setDueDateFrom(?DateTimeImmutable $dueDateFrom)
+    {
+        $this->dueDateFrom = $dueDateFrom;
+        return $this;
+    }
+
+    public function setDueDateTo(?DateTimeImmutable $dueDateTo)
+    {
+        $this->dueDateTo = $dueDateTo;
         return $this;
     }
 
@@ -103,15 +126,17 @@ class TaskListFilter
         return $this;
     }
 
-    public function setModifiedTimeOrder(?QueryOrder $modifiedTimeOrder)
+    public function setOrder(?string $order)
     {
-        $this->modifiedTimeOrder = $modifiedTimeOrder;
-        return $this;
-    }
-
-    public function setCreatedTimeOrder(?QueryOrder $createdTimeOrder)
-    {
-        $this->createdTimeOrder = $createdTimeOrder;
+        $validOrder = [
+            self::MODIFIED_TIME_ASC,
+            self::MODIFIED_TIME_DESC,
+            self::DUE_DATE_ASC,
+            self::DUE_DATE_DESC,
+        ];
+        if (in_array($order, $validOrder)) {
+            $this->order = $order;
+        }
         return $this;
     }
 
@@ -134,7 +159,8 @@ _STATEMENT;
     protected function getCompletedStatusOptionalStatement(): ?string
     {
         $approvedTaskReport = TaskReportReviewStatus::APPROVED;
-        $ongoingTaskReport = implode(", ", [TaskReportReviewStatus::UNREVIEWED, TaskReportReviewStatus::REVISION_REQUIRED]);
+        $ongoingTaskReport = implode(", ",
+                [TaskReportReviewStatus::UNREVIEWED, TaskReportReviewStatus::REVISION_REQUIRED]);
         if (is_null($this->completedStatus)) {
             return null;
         }
@@ -152,25 +178,47 @@ _STATEMENT;
         }
     }
 
-    protected function getFromOptionalStatement(&$parameters): ?string
+    protected function getModifiedTimeFromOptionalStatement(&$parameters): ?string
     {
-        if (empty($this->from)) {
+        if (empty($this->modifiedTimeFrom)) {
             return null;
         }
-        $parameters['from'] = $this->from->format('Y-m-d H:i:s');
+        $parameters['modifiedTimeFrom'] = $this->modifiedTimeFrom->format('Y-m-d H:i:s');
         return <<<_STATEMENT
-    AND Task.modifiedTime >= :from
+    AND Task.modifiedTime >= :modifiedTimeFrom
 _STATEMENT;
     }
 
-    protected function getToOptionalStatement(&$parameters): ?string
+    protected function getModifiedTimeToOptionalStatement(&$parameters): ?string
     {
-        if (empty($this->to)) {
+        if (empty($this->modifiedTimeTo)) {
             return null;
         }
-        $parameters['to'] = $this->to->format('Y-m-d H:i:s');
+        $parameters['modifiedTimeTo'] = $this->modifiedTimeTo->format('Y-m-d H:i:s');
         return <<<_STATEMENT
-    AND Task.modifiedTime <= :to
+    AND Task.modifiedTime <= :modifiedTimeTo
+_STATEMENT;
+    }
+
+    protected function getDueDateFromOptionalStatement(&$parameters): ?string
+    {
+        if (empty($this->dueDateFrom)) {
+            return null;
+        }
+        $parameters['dueDateFrom'] = $this->dueDateFrom->setTime(0, 0, 0)->format('Y-m-d H:i:s');
+        return <<<_STATEMENT
+    AND Task.dueDate >= :dueDateFrom
+_STATEMENT;
+    }
+
+    protected function getDueDateToOptionalStatement(&$parameters): ?string
+    {
+        if (empty($this->dueDateTo)) {
+            return null;
+        }
+        $parameters['dueDateTo'] = $this->dueDateTo->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+        return <<<_STATEMENT
+    AND Task.dueDate <= :dueDateTo
 _STATEMENT;
     }
 
@@ -204,23 +252,26 @@ _STATEMENT;
     {
         return $this->getCancelledStatusOptionalStatement($parameters)
                 . $this->getCompletedStatusOptionalStatement()
-                . $this->getFromOptionalStatement($parameters)
-                . $this->getToOptionalStatement($parameters)
+                . $this->getModifiedTimeFromOptionalStatement($parameters)
+                . $this->getModifiedTimeToOptionalStatement($parameters)
+                . $this->getDueDateFromOptionalStatement($parameters)
+                . $this->getDueDateToOptionalStatement($parameters)
                 . $this->getKeywordOptionalStatement($parameters)
                 . $this->getTaskSourceOptionalStatement();
     }
 
     public function getOrderStatement(): ?string
     {
-        $orders = [];
-        if (!empty($this->modifiedTimeOrder)) {
-            $orders[] = "modifiedTime {$this->modifiedTimeOrder->getOrder()}";
+        switch ($this->order) {
+            case self::MODIFIED_TIME_ASC:
+                return "ORDER BY Task.modifiedTime ASC";
+            case self::MODIFIED_TIME_DESC:
+                return "ORDER BY Task.modifiedTime DESC";
+            case self::DUE_DATE_DESC:
+                return "ORDER BY Task.dueDate DESC";
+            default:
+                return "ORDER BY Task.dueDate ASC";
         }
-        if (!empty($this->createdTimeOrder)) {
-            $orders[] = "createdTime {$this->createdTimeOrder->getOrder()}";
-        }
-        $orderStatement = implode(', ', $orders);
-        return empty($orderStatement) ? '' : "ORDER BY {$orderStatement}";
     }
 
     public function getLimitStatement(): ?string

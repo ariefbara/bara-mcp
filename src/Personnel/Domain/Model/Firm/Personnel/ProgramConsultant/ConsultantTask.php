@@ -5,8 +5,8 @@ namespace Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Program\Participant;
 use Personnel\Domain\Model\Firm\Program\Participant\Task;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use Resources\Exception\RegularException;
-use SharedContext\Domain\ValueObject\LabelData;
 
 class ConsultantTask
 {
@@ -29,14 +29,14 @@ class ConsultantTask
      */
     protected $task;
 
-    public function __construct(ProgramConsultant $consultant, Participant $participant, string $id, LabelData $data)
+    public function __construct(ProgramConsultant $consultant, Participant $participant, string $id, TaskData $data)
     {
         $this->consultant = $consultant;
         $this->id = $id;
         $this->task = new Task($participant, $id, $data);
     }
 
-    public function update(LabelData $data): void
+    public function update(TaskData $data): void
     {
         $this->task->update($data);
     }

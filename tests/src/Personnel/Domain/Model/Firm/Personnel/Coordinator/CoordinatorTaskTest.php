@@ -2,8 +2,10 @@
 
 namespace Personnel\Domain\Model\Firm\Personnel\Coordinator;
 
+use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\Personnel\Coordinator;
 use Personnel\Domain\Model\Firm\Program\Participant;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use SharedContext\Domain\ValueObject\LabelData;
 use Tests\TestBase;
 
@@ -11,7 +13,7 @@ class CoordinatorTaskTest extends TestBase
 {
     protected $coordinator;
     protected $participant;
-    protected $labelData;
+    protected $taskData;
     protected $coordinatorTask, $task;
     protected $id = 'newId';
     
@@ -20,9 +22,9 @@ class CoordinatorTaskTest extends TestBase
         parent::setUp();
         $this->coordinator = $this->buildMockOfClass(Coordinator::class);
         $this->participant = $this->buildMockOfClass(Participant::class);
-        $this->labelData = new LabelData('name', 'description');
+        $this->taskData = new TaskData(new LabelData('name', 'description'), new DateTimeImmutable('+1 months'));
         
-        $this->coordinatorTask = new TestableCoordinatorTask($this->coordinator, $this->participant, $this->id, $this->labelData);
+        $this->coordinatorTask = new TestableCoordinatorTask($this->coordinator, $this->participant, $this->id, $this->taskData);
         $this->task = $this->buildMockOfClass(Participant\Task::class);
         $this->coordinatorTask->task = $this->task;
     }
@@ -30,7 +32,7 @@ class CoordinatorTaskTest extends TestBase
     //
     protected function construct()
     {
-        return new TestableCoordinatorTask($this->coordinator, $this->participant, $this->id, $this->labelData);
+        return new TestableCoordinatorTask($this->coordinator, $this->participant, $this->id, $this->taskData);
     }
     public function test_construct_setProperties()
     {
@@ -43,7 +45,7 @@ class CoordinatorTaskTest extends TestBase
     //
     protected function update()
     {
-        $this->coordinatorTask->update($this->labelData);
+        $this->coordinatorTask->update($this->taskData);
     }
     public function test_update_updateTask()
     {

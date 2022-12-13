@@ -2,13 +2,13 @@
 
 namespace Personnel\Domain\Task\Coordinator;
 
-use SharedContext\Domain\ValueObject\LabelData;
+use Personnel\Domain\Model\Firm\Program\Participant\TaskData;
 use Tests\src\Personnel\Domain\Task\Coordinator\CoordinatorTaskTestBase;
 
 class SubmitTaskTest extends CoordinatorTaskTestBase
 {
     protected $service;
-    protected $payload, $labelData;
+    protected $payload, $taskData;
     
     protected function setUp(): void
     {
@@ -18,8 +18,8 @@ class SubmitTaskTest extends CoordinatorTaskTestBase
         
         $this->service = new SubmitTask($this->coordinatorTaskRepository, $this->participantRepository);
         
-        $this->labelData = new LabelData('name', 'description');
-        $this->payload = new SubmitTaskPayload($this->participantId, $this->labelData);
+        $this->taskData = $this->buildMockOfClass(TaskData::class);
+        $this->payload = new SubmitTaskPayload($this->participantId, $this->taskData);
     }
     
     //
@@ -35,7 +35,7 @@ class SubmitTaskTest extends CoordinatorTaskTestBase
     {
         $this->coordinator->expects($this->once())
                 ->method('submitTask')
-                ->with($this->coordinatorTaskId, $this->participant, $this->labelData)
+                ->with($this->coordinatorTaskId, $this->participant, $this->taskData)
                 ->willReturn($this->coordinatorTask);
         
         $this->coordinatorTaskRepository->expects($this->once())

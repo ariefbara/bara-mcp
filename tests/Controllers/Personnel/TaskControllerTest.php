@@ -180,6 +180,7 @@ class TaskControllerTest extends PersonnelTestCase
                     'cancelled' => strval(intval($this->consultantTaskOne->task->cancelled)),
                     'createdTime' => $this->consultantTaskOne->task->createdTime,
                     'modifiedTime' => $this->consultantTaskOne->task->modifiedTime,
+                    'dueDate' => $this->consultantTaskOne->task->dueDate,
                     'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => $this->consultantTaskOne->id,
                     'coordinatorTaskId' => null,
@@ -196,6 +197,7 @@ class TaskControllerTest extends PersonnelTestCase
                     'cancelled' => strval(intval($this->coordinatorTaskOne->task->cancelled)),
                     'createdTime' => $this->coordinatorTaskOne->task->createdTime,
                     'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
+                    'dueDate' => $this->coordinatorTaskOne->task->dueDate,
                     'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => null,
                     'coordinatorTaskId' => $this->coordinatorTaskOne->id,
@@ -224,18 +226,23 @@ class TaskControllerTest extends PersonnelTestCase
     }
     public function test_viewTaskListInAllConsultedProgram_applyAllFilter()
     {
-        $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
-        $to = (new DateTime())->format('Y-m-d H:i:s');
+        $modifiedTimeFrom = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
+        $modifiedTimeTo = (new DateTime())->format('Y-m-d H:i:s');
+        $dueDateFrom = (new DateTime('-2 months'))->format('Y-m-d');
+        $dueDateTo = (new DateTime('+2 months'))->format('Y-m-d');
         $this->viewTaskListInAllConsultedProgramUri .= ""
                 . "?cancelled=false"
                 . "&completed=false"
-                . "&from=$from"
-                . "&to=$to"
+                . "&modifiedTimeFrom=$modifiedTimeFrom"
+                . "&modifiedTimeTo=$modifiedTimeTo"
+                . "&dueDateFrom=$dueDateFrom"
+                . "&dueDateTo=$dueDateTo"
                 . "&keyword=ask"
                 . "&taskSource=CONSULTANT"
                 . "&programId={$this->individualParticipantOne->participant->program->id}"
                 . "&participantId={$this->individualParticipantOne->participant->id}"
-                . "&onlyShowRelevantTask=true";
+                . "&onlyShowRelevantTask=true"
+                . "&order=due-date-desc";
                 
         $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
@@ -348,8 +355,8 @@ class TaskControllerTest extends PersonnelTestCase
     {
         $this->consultantTaskOne->task->modifiedTime = (new \DateTime('-1 days'))->format('Y-m-d H:i:s');
         
-        $from = (new \DateTime('-2 days'))->format('Y-m-d H:i:s');
-        $this->viewTaskListInAllConsultedProgramUri .= "?from=$from";
+        $modifiedTimeFrom = (new \DateTime('-2 days'))->format('Y-m-d H:i:s');
+        $this->viewTaskListInAllConsultedProgramUri .= "?modifiedTimeFrom=$modifiedTimeFrom";
                 
         $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
@@ -362,8 +369,8 @@ class TaskControllerTest extends PersonnelTestCase
     {
         $this->consultantTaskOne->task->modifiedTime = (new \DateTime('-100 days'))->format('Y-m-d H:i:s');
         
-        $to = (new \DateTime('-99 days'))->format('Y-m-d H:i:s');
-        $this->viewTaskListInAllConsultedProgramUri .= "?to=$to";
+        $modifiedTimeTo = (new \DateTime('-99 days'))->format('Y-m-d H:i:s');
+        $this->viewTaskListInAllConsultedProgramUri .= "?modifiedTimeTo=$modifiedTimeTo";
                 
         $this->viewTaskListInAllConsultedProgram();
         $this->seeStatusCode(200);
@@ -519,6 +526,7 @@ $this->disableExceptionHandling();
                     'cancelled' => strval(intval($this->consultantTaskOne->task->cancelled)),
                     'createdTime' => $this->consultantTaskOne->task->createdTime,
                     'modifiedTime' => $this->consultantTaskOne->task->modifiedTime,
+                    'dueDate' => $this->consultantTaskOne->task->dueDate,
                     'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => $this->consultantTaskOne->id,
                     'coordinatorTaskId' => null,
@@ -535,6 +543,7 @@ $this->disableExceptionHandling();
                     'cancelled' => strval(intval($this->coordinatorTaskOne->task->cancelled)),
                     'createdTime' => $this->coordinatorTaskOne->task->createdTime,
                     'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
+                    'dueDate' => $this->coordinatorTaskOne->task->dueDate,
                     'reviewStatus' => 'no-report-submitted',
                     'consultantTaskId' => null,
                     'coordinatorTaskId' => $this->coordinatorTaskOne->id,
@@ -565,18 +574,23 @@ $this->disableExceptionHandling();
         $this->coordinatorTaskOne->coordinator = $this->ownCoordinator_p2;
         
 $this->disableExceptionHandling();
-        $from = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
-        $to = (new DateTime())->format('Y-m-d H:i:s');
+        $modifiedTimeFrom = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
+        $modifiedTimeTo = (new DateTime())->format('Y-m-d H:i:s');
+        $dueDateFrom = (new DateTime('-2 months'))->format('Y-m-d');
+        $dueDateTo = (new DateTime('+2 months'))->format('Y-m-d');
         $this->viewAllTaskInCoordinatedProgramUri .= ""
                 . "?cancelled=false"
                 . "&completed=false"
-                . "&from=$from"
-                . "&to=$to"
+                . "&modifiedTimeFrom=$modifiedTimeFrom"
+                . "&modifiedTimeTo=$modifiedTimeTo"
+                . "&dueDateFrom=$dueDateFrom"
+                . "&dueDateTo=$dueDateTo"
                 . "&keyword=ask"
                 . "&taskSource=COORDINATOR"
                 . "&programId={$this->teamParticipantOne->participant->program->id}"
                 . "&participantId={$this->teamParticipantOne->participant->id}"
-                . "&onlyShowOwnedTask=true";
+                . "&onlyShowOwnedTask=true"
+                . "&order=due-date-desc";
                 
         $this->viewAllTaskInCoordinatedProgram();
         $this->seeStatusCode(200);
@@ -656,8 +670,8 @@ $this->disableExceptionHandling();
     {
         $this->consultantTaskOne->task->modifiedTime = (new \DateTime('-1 days'))->format('Y-m-d H:i:s');
         
-        $from = (new \DateTime('-2 days'))->format('Y-m-d H:i:s');
-        $this->viewAllTaskInCoordinatedProgramUri .= "?from=$from";
+        $modifiedTimeFrom = (new \DateTime('-2 days'))->format('Y-m-d H:i:s');
+        $this->viewAllTaskInCoordinatedProgramUri .= "?modifiedTimeFrom=$modifiedTimeFrom";
                 
         $this->viewAllTaskInCoordinatedProgram();
         $this->seeStatusCode(200);
@@ -670,8 +684,8 @@ $this->disableExceptionHandling();
     {
         $this->consultantTaskOne->task->modifiedTime = (new \DateTime('-100 days'))->format('Y-m-d H:i:s');
         
-        $to = (new \DateTime('-99 days'))->format('Y-m-d H:i:s');
-        $this->viewAllTaskInCoordinatedProgramUri .= "?to=$to";
+        $modifiedTimeTo = (new \DateTime('-99 days'))->format('Y-m-d H:i:s');
+        $this->viewAllTaskInCoordinatedProgramUri .= "?modifiedTimeTo=$modifiedTimeTo";
                 
         $this->viewAllTaskInCoordinatedProgram();
         $this->seeStatusCode(200);

@@ -20,31 +20,9 @@ class TaskController extends PersonnelBaseController
         $taskRepository = $this->em->getRepository(Task::class);
         $task = new ViewAllTaskInCoordinatoredProgram($taskRepository);
         
-        $paginationFilter = new PaginationFilter($this->getPage(), $this->getPageSize());
-        $cancelledStatus = $this->filterBooleanOfQueryRequest('cancelled');
-        $completedStatus = $this->filterBooleanOfQueryRequest('completed');
-        $from = $this->dateTimeImmutableOfQueryRequest('from');
-        $to = $this->dateTimeImmutableOfQueryRequest('to');
-        $keyword = $this->stripTagQueryRequest('keyword');
-        $taskSource = $this->stripTagQueryRequest('taskSource');
-        $modifiedTimeOrder = $this->stripTagQueryRequest('modifiedTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('modifiedTimeOrder')) : null;
-        $createdTimeOrder = $this->stripTagQueryRequest('createdTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('createdTimeOrder')) : null;
-        
-        $taskListFilter = (new TaskListFilter($paginationFilter))
-                ->setCancelledStatus($cancelledStatus)
-                ->setCompletedStatus($completedStatus)
-                ->setFrom($from)
-                ->setTo($to)
-                ->setKeyword($keyword)
-                ->setTaskSource($taskSource)
-                ->setModifiedTimeOrder($modifiedTimeOrder)
-                ->setCreatedTimeOrder($createdTimeOrder);
-        
         $programId = $this->stripTagQueryRequest('programId');
         $participantId = $this->stripTagQueryRequest('participantId');
-        $filter = (new TaskListFilterForCoordinator($taskListFilter))
+        $filter = (new TaskListFilterForCoordinator($this->getTaskListFilter()))
                 ->setParticipantId($participantId)
                 ->setProgramId($programId);
         if ($this->filterBooleanOfQueryRequest('onlyShowOwnedTask')) {
@@ -63,31 +41,9 @@ class TaskController extends PersonnelBaseController
         $taskRepository = $this->em->getRepository(Task::class);
         $task = new ViewAllRelevantTaskAsProgramConsultant($taskRepository);
         
-        $paginationFilter = new PaginationFilter($this->getPage(), $this->getPageSize());
-        $cancelledStatus = $this->filterBooleanOfQueryRequest('cancelled');
-        $completedStatus = $this->filterBooleanOfQueryRequest('completed');
-        $from = $this->dateTimeImmutableOfQueryRequest('from');
-        $to = $this->dateTimeImmutableOfQueryRequest('to');
-        $keyword = $this->stripTagQueryRequest('keyword');
-        $taskSource = $this->stripTagQueryRequest('taskSource');
-        $modifiedTimeOrder = $this->stripTagQueryRequest('modifiedTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('modifiedTimeOrder')) : null;
-        $createdTimeOrder = $this->stripTagQueryRequest('createdTimeOrder') ?
-                new QueryOrder($this->stripTagQueryRequest('createdTimeOrder')) : null;
-        
-        $taskListFilter = (new TaskListFilter($paginationFilter))
-                ->setCancelledStatus($cancelledStatus)
-                ->setCompletedStatus($completedStatus)
-                ->setFrom($from)
-                ->setTo($to)
-                ->setKeyword($keyword)
-                ->setTaskSource($taskSource)
-                ->setModifiedTimeOrder($modifiedTimeOrder)
-                ->setCreatedTimeOrder($createdTimeOrder);
-        
         $programId = $this->stripTagQueryRequest('programId');
         $participantId = $this->stripTagQueryRequest('participantId');
-        $filter = (new TaskListFilterForConsultant($taskListFilter))
+        $filter = (new TaskListFilterForConsultant($this->getTaskListFilter()))
                 ->setProgramId($programId)
                 ->setParticipantId($participantId);
         
@@ -101,5 +57,29 @@ class TaskController extends PersonnelBaseController
         $this->executePersonalQueryTask($task, $payload);
         
         return $this->listQueryResponse($payload->result);
+    }
+    
+    protected function getTaskListFilter()
+    {
+        $cancelledStatus = $this->filterBooleanOfQueryRequest('cancelled');
+        $completedStatus = $this->filterBooleanOfQueryRequest('completed');
+        $modifiedTimeFrom = $this->dateTimeImmutableOfQueryRequest('modifiedTimeFrom');
+        $modifiedTimeTo = $this->dateTimeImmutableOfQueryRequest('modifiedTimeTo');
+        $dueDateFrom = $this->dateTimeImmutableOfQueryRequest('dueDateFrom');
+        $dueDateTo = $this->dateTimeImmutableOfQueryRequest('dueDateTo');
+        $keyword = $this->stripTagQueryRequest('keyword');
+        $taskSource = $this->stripTagQueryRequest('taskSource');
+        $order = $this->stripTagQueryRequest('order');
+        
+        return (new TaskListFilter($this->getPaginationFilter()))
+                ->setCancelledStatus($cancelledStatus)
+                ->setCompletedStatus($completedStatus)
+                ->setModifiedTimeFrom($modifiedTimeFrom)
+                ->setModifiedTimeTo($modifiedTimeTo)
+                ->setDueDateFrom($dueDateFrom)
+                ->setDueDateTo($dueDateTo)
+                ->setKeyword($keyword)
+                ->setTaskSource($taskSource)
+                ->setOrder($order);
     }
 }

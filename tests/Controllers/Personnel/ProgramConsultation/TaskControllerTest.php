@@ -88,11 +88,13 @@ class TaskControllerTest extends ExtendedConsultantTestCase
             'participantId' => $this->clientParticipantOne->participant->id,
             'name' => 'new task name',
             'description' => 'new task description',
+            'dueDate' => (new \DateTimeImmutable('+1 months'))->format('Y-m-d'),
         ];
 
         $this->updateTaskRequest = [
             'name' => 'updated task name',
             'description' => 'updated task description',
+            'dueDate' => (new \DateTimeImmutable('+1 months'))->format('Y-m-d'),
         ];
     }
 
@@ -138,6 +140,7 @@ $this->disableExceptionHandling();
         $response = [
             'name' => $this->submitTaskRequest['name'],
             'description' => $this->submitTaskRequest['description'],
+            'dueDate' => $this->submitTaskRequest['dueDate'],
             'cancelled' => false,
             'createdTime' => $this->currentTimeString(),
             'modifiedTime' => $this->currentTimeString(),
@@ -157,6 +160,7 @@ $this->disableExceptionHandling();
         $taskEntry = [
             'name' => $this->submitTaskRequest['name'],
             'description' => $this->submitTaskRequest['description'],
+            'dueDate' => $this->submitTaskRequest['dueDate'],
             'cancelled' => false,
             'createdTime' => $this->currentTimeString(),
             'modifiedTime' => $this->currentTimeString(),
@@ -221,6 +225,7 @@ $this->disableExceptionHandling();
             'id' => $this->consultantTaskOne->id,
             'name' => $this->updateTaskRequest['name'],
             'description' => $this->updateTaskRequest['description'],
+            'dueDate' => $this->updateTaskRequest['dueDate'],
             'cancelled' => false,
             'createdTime' => $this->consultantTaskOne->task->createdTime,
             'modifiedTime' => $this->currentTimeString(),
@@ -241,6 +246,7 @@ $this->disableExceptionHandling();
             'id' => $this->consultantTaskOne->id,
             'name' => $this->updateTaskRequest['name'],
             'description' => $this->updateTaskRequest['description'],
+            'dueDate' => $this->updateTaskRequest['dueDate'],
             'cancelled' => false,
             'createdTime' => $this->consultantTaskOne->task->createdTime,
             'modifiedTime' => $this->currentTimeString(),
@@ -252,6 +258,7 @@ $this->disableExceptionHandling();
     {
         $this->updateTaskRequest['name'] = $this->consultantTaskOne->task->name;
         $this->updateTaskRequest['description'] = $this->consultantTaskOne->task->description;
+        $this->updateTaskRequest['dueDate'] = $this->consultantTaskOne->task->dueDate;
 
         $this->updateTask();
         $this->seeStatusCode(200);
