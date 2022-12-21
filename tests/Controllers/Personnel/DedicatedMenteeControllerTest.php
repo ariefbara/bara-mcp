@@ -211,6 +211,8 @@ class DedicatedMenteeControllerTest extends PersonnelTestCase
         $this->assignmentFieldValueFour_mar2af2->insert($this->connection);
         //
         $this->get($this->allWithSummaryUri, $this->personnel->token);
+//echo $this->allWithSummaryUri;
+//$this->seeJsonContains(['print']);
     }
     public function test_allWithSummary_200()
     {
@@ -293,6 +295,14 @@ $this->disableExceptionHandling();
             'completedMetric' => '0',
             'totalAssignedMetric' => '2',
         ]);
+    }
+    public function test_allWithSummary_noDedicatedMenteeBugCauseUndefinedOffset_fixed()
+    {
+        $this->dedicatedMentorOne->cancelled = true;
+        $this->dedicatedMentorTwo->cancelled = true;
+        $this->allWithSummary();
+        
+        $this->seeJsonContains(['total' => '0']);
     }
 
 }

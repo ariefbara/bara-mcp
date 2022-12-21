@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\Client\ProgramParticipation;
 
+use DateTime;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfParticipantFileInfo;
@@ -10,6 +11,7 @@ use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Task\RecordOfTa
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Task\TaskReport\RecordOfTaskReportAttachment;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
@@ -254,8 +256,9 @@ class TaskControllerTest extends ExtendedClientParticipantTestCase
         $this->consultantTaskOne->insert($this->connection);
         $this->coordinatorTaskOne->insert($this->connection);
         
-// echo $this->viewAllUri;
         $this->get($this->viewAllUri, $this->clientParticipant->client->token);
+// echo $this->viewAllUri;
+// $this->seeJsonContains(['print']);
     }
     public function test_viewAll_200()
     {
@@ -307,10 +310,34 @@ $this->disableExceptionHandling();
         ];
         $this->seeJsonContains($response);
     }
+    public function test_viewAll_includeAllFilters()
+    {
+        $modifiedTimeFrom = (new DateTime('-1 months'))->format('Y-m-d H:i:s');
+        $modifiedTimeTo = (new DateTime())->format('Y-m-d H:i:s');
+        $dueDateFrom = (new DateTime('-2 months'))->format('Y-m-d');
+        $dueDateTo = (new DateTime('+2 months'))->format('Y-m-d');
+        $this->viewAllUri .= ""
+                . "?cancelled=false"
+                . "&completed=false"
+                . "&modifiedTimeFrom=$modifiedTimeFrom"
+                . "&modifiedTimeTo=$modifiedTimeTo"
+                . "&dueDateFrom=$dueDateFrom"
+                . "&dueDateTo=$dueDateTo"
+                . "&keyword=ask"
+                . "&taskSource=COORDINATOR"
+                . "&order=due-date-desc";
+        
+        $this->viewAllTask();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
+        $this->seeJsonDoesntContains(['consultantTaskId' => $this->consultantTaskOne->id]);
+        $this->seeJsonContains(['coordinatorTaskId' => $this->coordinatorTaskOne->id]);
+    }
     public function test_viewAll_excludeUnmanagedTask_taskBelongsToOtherParticipant()
     {
         $program = $this->clientParticipant->participant->program;
-        $otherParticipant = new \Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant($program, 'other');
+        $otherParticipant = new RecordOfParticipant($program, 'other');
         $otherParticipant->insert($this->connection);
         
         $this->coordinatorTaskOne->task->participant = $otherParticipant;
@@ -325,8 +352,8 @@ $this->disableExceptionHandling();
     public function test_viewAll_excludeUnmanagedTask_useAllFilter()
     {
 $this->disableExceptionHandling();
-        $from = (new \DateTime('-2 months'))->format('Y-m-d H:i:s');
-        $to = (new \DateTime())->format('Y-m-d H:i:s');
+        $from = (new DateTime('-2 months'))->format('Y-m-d H:i:s');
+        $to = (new DateTime())->format('Y-m-d H:i:s');
         $this->viewAllUri .= "?cancelled=false"
                 . "&completed=false"
                 . "&from=$from"
@@ -353,8 +380,9 @@ $this->disableExceptionHandling();
         $this->consultantTaskOne->insert($this->connection);
         
         $uri = $this->clientParticipantUri . "/consultant-tasks/{$this->consultantTaskOne->id}";
-// echo $uri;
         $this->get($uri, $this->clientParticipant->client->token);
+// echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewConsultantTaskDetail_200()
     {
@@ -390,8 +418,9 @@ $this->disableExceptionHandling();
         $this->coordinatorTaskOne->insert($this->connection);
         
         $uri = $this->clientParticipantUri . "/coordinator-tasks/{$this->coordinatorTaskOne->id}";
-// echo $uri;
         $this->get($uri, $this->clientParticipant->client->token);
+// echo $uri;
+$this->seeJsonContains(['print']);
     }
     public function test_viewCoordinatorTaskDetail_200()
     {

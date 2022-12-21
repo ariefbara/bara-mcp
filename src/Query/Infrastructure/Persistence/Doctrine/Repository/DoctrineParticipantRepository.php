@@ -467,22 +467,19 @@ _STATEMENT;
     public function countOfAllParticipantsWithDedicatedMentorCorrespondToPersonnel(string $personnelId)
     {
         $statement = <<<_STATEMENT
-SELECT Consultant.Personnel_id personnelId, COUNT(DedicatedMentor.id) total
+SELECT COUNT(*) total
 FROM DedicatedMentor
-LEFT JOIN Consultant ON Consultant.id = DedicatedMentor.Consultant_id
-LEFT JOIN Participant ON Participant.id = DedicatedMentor.Participant_id
+INNER JOIN Consultant ON Consultant.id = DedicatedMentor.Consultant_id
+INNER JOIN Participant ON Participant.id = DedicatedMentor.Participant_id
 WHERE Consultant.Personnel_id = :personnelId
     AND Consultant.active = true
     AND Participant.active = true
     AND DedicatedMentor.cancelled = false
-GROUP BY personnelId
 _STATEMENT;
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
         $params = ["personnelId" => $personnelId];
-        $query->execute($params);
-
-        $result = $query->fetchAll(PDO::FETCH_ASSOC);
-        return $result[0]["total"];
+        
+        return $query->executeQuery($params)->fetchFirstColumn()[0];
     }
 
     public function summaryListInAllProgramsCoordinatedByPersonnel(string $personnelId,

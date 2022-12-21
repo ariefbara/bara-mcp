@@ -126,9 +126,10 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $this->clientParticipantOne->insert($this->connection);
 
         $uri = $this->coordinatorUri . "/tasks";
+        $this->post($uri, $this->submitTaskRequest, $this->coordinator->personnel->token);
 // echo $uri;
 // echo json_encode($this->submitTaskRequest);
-        $this->post($uri, $this->submitTaskRequest, $this->coordinator->personnel->token);
+// $this->seeJsonContains(['print']);
     }
     public function test_submit_201()
     {
@@ -210,9 +211,10 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $this->coordinatorTaskOne->insert($this->connection);
 
         $uri = $this->coordinatorUri . "/tasks/{$this->coordinatorTaskOne->id}";
+        $this->patch($uri, $this->updateTaskRequest, $this->coordinator->personnel->token);
 // echo $uri;
 // echo json_encode($this->updateTaskRequest);
-        $this->patch($uri, $this->updateTaskRequest, $this->coordinator->personnel->token);
+// $this->seeJsonContains(['print']);
     }
     public function test_updateTask_updateTask_200()
     {
@@ -523,8 +525,9 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $this->coordinatorTaskOne->insert($this->connection);
 
         $uri = $this->coordinatorUri . "/coordinator-tasks/{$this->coordinatorTaskOne->id}";
-// echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
+// echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewCoordinatorTask_200()
     {
@@ -622,8 +625,9 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $this->consultantTaskOne->insert($this->connection);
 
         $uri = $this->coordinatorUri . "/consultant-tasks/{$this->consultantTaskOne->id}";
-// echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
+// echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewConsultantTask_200()
     {

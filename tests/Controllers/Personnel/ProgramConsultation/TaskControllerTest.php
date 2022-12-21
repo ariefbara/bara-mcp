@@ -126,9 +126,10 @@ class TaskControllerTest extends ExtendedConsultantTestCase
         $this->clientParticipantOne->insert($this->connection);
 
         $uri = $this->consultantUri . "/tasks";
-// // echo $uri;
-// // echo json_encode($this->submitTaskRequest);
         $this->post($uri, $this->submitTaskRequest, $this->consultant->personnel->token);
+//echo $uri;
+//echo json_encode($this->submitTaskRequest);
+//$this->seeJsonContains(['print']);
     }
     public function test_submit_201()
     {
@@ -210,9 +211,10 @@ $this->disableExceptionHandling();
         $this->consultantTaskOne->insert($this->connection);
 
         $uri = $this->consultantUri . "/tasks/{$this->consultantTaskOne->id}";
-// // echo $uri;
-// // echo json_encode($this->updateTaskRequest);
         $this->patch($uri, $this->updateTaskRequest, $this->consultant->personnel->token);
+//echo $uri;
+//echo json_encode($this->updateTaskRequest);
+//$this->seeJsonContains(['print']);
     }
     public function test_updateTask_updateTask_200()
     {
@@ -523,8 +525,9 @@ $this->disableExceptionHandling();
         $this->consultantTaskOne->insert($this->connection);
 
         $uri = $this->consultantUri . "/consultant-tasks/{$this->consultantTaskOne->id}";
-// // echo $uri;
         $this->get($uri, $this->consultant->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewConsultantTask_200()
     {
@@ -622,8 +625,9 @@ $this->viewConsultantTaskDetail();
         $this->coordinatorTaskOne->insert($this->connection);
 
         $uri = $this->consultantUri . "/coordinator-tasks/{$this->coordinatorTaskOne->id}";
-// // echo $uri;
         $this->get($uri, $this->consultant->personnel->token);
+//echo $uri;
+$this->seeJsonContains(['print']);
     }
     public function test_viewCoordinatorTask_200()
     {
