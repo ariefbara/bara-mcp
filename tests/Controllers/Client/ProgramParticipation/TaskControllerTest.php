@@ -408,6 +408,12 @@ $this->disableExceptionHandling();
         ];
         $this->seeJsonContains($response);
     }
+    public function test_viewConsultantTaskDetail_emptyDueDate_200_bug20221229()
+    {
+        $this->consultantTaskOne->task->dueDate = null;
+        $this->viewConsultantTaskDetail();
+        $this->seeStatusCode(200);
+    }
     
     protected function viewCoordinatorTaskDetail()
     {
@@ -420,7 +426,7 @@ $this->disableExceptionHandling();
         $uri = $this->clientParticipantUri . "/coordinator-tasks/{$this->coordinatorTaskOne->id}";
         $this->get($uri, $this->clientParticipant->client->token);
 // echo $uri;
-$this->seeJsonContains(['print']);
+//$this->seeJsonContains(['print']);
     }
     public function test_viewCoordinatorTaskDetail_200()
     {

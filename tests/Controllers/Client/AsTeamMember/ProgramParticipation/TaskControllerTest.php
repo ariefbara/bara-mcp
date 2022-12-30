@@ -406,8 +406,15 @@ $this->disableExceptionHandling();
             'description' => $this->coordinatorTaskOne->task->description,
             'createdTime' => $this->coordinatorTaskOne->task->createdTime,
             'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
+            'dueDate' => $this->coordinatorTaskOne->task->dueDate,
             'taskReport' => null,
         ];
         $this->seeJsonContains($response);
+    }
+    public function test_viewCoordinatorTaskDetail_emptyDueDate_200_bug20221229()
+    {
+        $this->coordinatorTaskOne->task->dueDate = null;
+        $this->viewCoordinatorTaskDetail();
+        $this->seeStatusCode(200);
     }
 }

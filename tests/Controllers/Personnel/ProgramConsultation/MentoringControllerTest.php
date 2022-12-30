@@ -116,7 +116,6 @@ $this->disableExceptionHandling();
         $this->seeStatusCode(200);
         
         $response = [
-'!printMe' => 'printme',
             'total' => '5',
             'list' => [
                 [
@@ -451,6 +450,7 @@ $this->disableExceptionHandling();
         $this->bookedMentoringSlotThree->insert($this->connection);
         
         $uri = $this->consultantUri . "/booked-mentoring-slots/{$this->bookedMentoringSlotThree->id}";
+echo $uri;
         $this->get($uri, $this->consultant->personnel->token);
     }
     public function test_viewBookedMentoringSlotDetail_200()

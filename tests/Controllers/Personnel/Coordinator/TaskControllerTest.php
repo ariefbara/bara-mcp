@@ -200,6 +200,12 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $this->submit();
         $this->seeStatusCode(403);
     }
+    public function test_submit_emptyDueDate_200_bug20221229()
+    {
+        $this->submitTaskRequest['dueDate'] = null;
+        $this->submit();
+        $this->seeStatusCode(201);
+    }
 
     //
     protected function updateTask()

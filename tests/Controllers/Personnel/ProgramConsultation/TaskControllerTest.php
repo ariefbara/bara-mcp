@@ -200,6 +200,12 @@ $this->disableExceptionHandling();
         $this->submit();
         $this->seeStatusCode(403);
     }
+    public function test_submit_emptyDueDate_bug20221229()
+    {
+        $this->submitTaskRequest['dueDate'] = null;
+        $this->submit();
+        $this->seeStatusCode(201);
+    }
 
     //
     protected function updateTask()
@@ -627,7 +633,7 @@ $this->viewConsultantTaskDetail();
         $uri = $this->consultantUri . "/coordinator-tasks/{$this->coordinatorTaskOne->id}";
         $this->get($uri, $this->consultant->personnel->token);
 //echo $uri;
-$this->seeJsonContains(['print']);
+//$this->seeJsonContains(['print']);
     }
     public function test_viewCoordinatorTask_200()
     {

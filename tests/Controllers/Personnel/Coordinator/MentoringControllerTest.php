@@ -347,7 +347,7 @@ echo $uri;
     {
         $this->viewMentoringRequestDetail();
         $this->seeStatusCode(200);
-$this->seeJsonContains(['print']);
+//$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->mentoringRequestOne->id,
@@ -473,7 +473,7 @@ echo $uri;
 $this->disableExceptionHandling();
         $this->viewBookedMentoringSlotDetail();
         $this->seeStatusCode(200);
-$this->seeJsonContains(['print']);
+//$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->bookedMentoringSlotThree->id,
@@ -541,7 +541,7 @@ echo $uri;
 $this->disableExceptionHandling();
         $this->viewDeclaredMentoringDetail();
         $this->seeStatusCode(200);
-$this->seeJsonContains(['print']);
+//$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->declaredMentoringFour->id,
@@ -608,7 +608,7 @@ echo $uri;
 $this->disableExceptionHandling();
         $this->viewMentoringSlotDetail();
         $this->seeStatusCode(200);
-$this->seeJsonContains(['print']);
+//$this->seeJsonContains(['print']);
         
         $response = [
             'id' => $this->mentoringSlotThree->id,

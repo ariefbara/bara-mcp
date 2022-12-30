@@ -36,7 +36,7 @@ class Task
 
     /**
      * 
-     * @var DateTimeImmutable
+     * @var DateTimeImmutable|null
      */
     protected $dueDate;
 
@@ -83,7 +83,7 @@ class Task
         return $this->label;
     }
 
-    public function getDueDate(): DateTimeImmutable
+    public function getDueDate(): ?DateTimeImmutable
     {
         return $this->dueDate;
     }

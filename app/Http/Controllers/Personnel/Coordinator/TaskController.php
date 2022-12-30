@@ -178,7 +178,7 @@ class TaskController extends PersonnelBaseController
             'id' => $task->getId(),
             'cancelled' => $task->isCancelled(),
             'name' => $task->getLabel()->getName(),
-            'dueDate' => $task->getDueDate()->format('Y-m-d'),
+            'dueDate' => $task->getDueDate() ? $task->getDueDate()->format('Y-m-d') : null,
             'description' => $task->getLabel()->getDescription(),
             'createdTime' => $task->getCreatedTime()->format('Y-m-d H:i:s'),
             'modifiedTime' => $task->getModifiedTime()->format('Y-m-d H:i:s'),
