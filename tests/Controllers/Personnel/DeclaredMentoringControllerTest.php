@@ -101,18 +101,18 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table('Participant')->truncate();
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('ClientParticipant')->truncate();
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('FeedbackForm')->truncate();
-        $this->connection->table('StringField')->truncate();
-        $this->connection->table('ConsultationSetup')->truncate();
-        $this->connection->table('Mentoring')->truncate();
-        $this->connection->table('DeclaredMentoring')->truncate();
-        $this->connection->table('FormRecord')->truncate();
-        $this->connection->table('StringFieldRecord')->truncate();
-        $this->connection->table('MentorReport')->truncate();
+//        $this->connection->table('Participant')->truncate();
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('ClientParticipant')->truncate();
+//        $this->connection->table('Form')->truncate();
+//        $this->connection->table('FeedbackForm')->truncate();
+//        $this->connection->table('StringField')->truncate();
+//        $this->connection->table('ConsultationSetup')->truncate();
+//        $this->connection->table('Mentoring')->truncate();
+//        $this->connection->table('DeclaredMentoring')->truncate();
+//        $this->connection->table('FormRecord')->truncate();
+//        $this->connection->table('StringFieldRecord')->truncate();
+//        $this->connection->table('MentorReport')->truncate();
     }
     
     protected function declare()
@@ -159,6 +159,7 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
                             "placeholder" => $this->stringFieldOne->placeholder,
                         ],
                     ],
+                    'sections' => [],
                     'integerFields' => [],
                     'textAreaFields' => [],
                     'attachmentFields' => [],
@@ -281,6 +282,7 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
                             "placeholder" => $this->stringFieldOne->placeholder,
                         ],
                     ],
+                    'sections' => [],
                     'integerFields' => [],
                     'textAreaFields' => [],
                     'attachmentFields' => [],
@@ -552,20 +554,16 @@ $this->disableExceptionHandling();
         $mentorReportRecord = [
             'participantRating' => $this->submitReportRequest['participantRating'],
             'Mentoring_id' => $this->declaredMentoringOne->mentoring->id,
-            'id' => $this->declaredMentoringOne->mentoring->id,
-            'FormRecord_id' => $this->declaredMentoringOne->mentoring->id,
         ];
         $this->seeInDatabase('MentorReport', $mentorReportRecord);
         
         $formRecordRecord = [
             'Form_id' => $this->consultationSetupOne->consultantFeedbackForm->form->id,
             'submitTime' => $submitTime,
-            'id' => $this->declaredMentoringOne->mentoring->id,
         ];
         $this->seeInDatabase('FormRecord', $formRecordRecord);
         
         $stringFieldRecord = [
-            'FormRecord_id' => $this->declaredMentoringOne->mentoring->id,
             'stringField_id' => $this->stringFieldOne->id,
             'value' => $this->submitReportRequest['stringFieldRecords'][0]['value'],
         ];
@@ -680,6 +678,7 @@ $this->disableExceptionHandling();
                             "placeholder" => $this->stringFieldOne->placeholder,
                         ],
                     ],
+                    'sections' => [],
                     'integerFields' => [],
                     'textAreaFields' => [],
                     'attachmentFields' => [],

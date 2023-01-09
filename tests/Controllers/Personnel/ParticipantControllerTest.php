@@ -273,9 +273,9 @@ class ParticipantControllerTest extends PersonnelTestCase
 $this->disableExceptionHandling();
         $this->viewSummaryListInCoordinatedProgram();
         $this->seeStatusCode(200);
+$this->seeJsonContains(['print']);
         
         $response = [
-//'print',
             'total' => '4',
             'list' => [
                 [
