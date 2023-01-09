@@ -492,6 +492,9 @@ _STATEMENT;
         $sql = <<<_SQL
 SELECT
     Participant.id,
+    User.id userId,
+    Client.id clientId,
+    Team.id teamId,
     COALESCE(
         CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
         CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 

@@ -280,6 +280,9 @@ $this->disableExceptionHandling();
             'list' => [
                 [
                     'id' => $this->clientParticipantOne->participant->id,
+                    'userId' => null,
+                    'clientId' => $this->clientParticipantOne->client->id,
+                    'teamId' => null,
                     'name' => $this->clientParticipantOne->client->getFullName(),
                     //
                     'totalCompletedMission' => '2',
@@ -297,6 +300,9 @@ $this->disableExceptionHandling();
                 ],
                 [
                     'id' => $this->teamParticipantTwo->participant->id,
+                    'userId' => null,
+                    'clientId' => null,
+                    'teamId' => $this->teamParticipantTwo->team->id,
                     'name' => $this->teamParticipantTwo->team->name,
                     //
                     'totalCompletedMission' => null,
@@ -314,6 +320,9 @@ $this->disableExceptionHandling();
                 ],
                 [
                     'id' => $this->clientParticipantTwoA->participant->id,
+                    'userId' => null,
+                    'clientId' => $this->clientParticipantTwoA->client->id,
+                    'teamId' => null,
                     'name' => $this->clientParticipantTwoA->client->getFullName(),
                     //
                     'totalCompletedMission' => null,
@@ -331,6 +340,9 @@ $this->disableExceptionHandling();
                 ],
                 [
                     'id' => $this->userParticipantThree->participant->id,
+                    'userId' => $this->userParticipantThree->user->id,
+                    'clientId' => null,
+                    'teamId' => null,
                     'name' => $this->userParticipantThree->user->getFullName(),
                     //
                     'totalCompletedMission' => null,
