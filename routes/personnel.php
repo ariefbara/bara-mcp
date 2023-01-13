@@ -33,6 +33,7 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/programs/{programId}/evaluation-reports', ['uses' => "MentorEvaluationReportController@showAll"]);
     $router->get('/evaluation-reports/{id}', ['uses' => "MentorEvaluationReportController@show"]);
     
+    $router->post('/mentors/{mentorId}/mentoring-requests', ['uses' => "MentoringRequestController@propose"]);
     $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/approve', ['uses' => "MentoringRequestController@approve"]);
     $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/reject', ['uses' => "MentoringRequestController@reject"]);
     $router->patch('/mentors/{mentorId}/mentoring-requests/{id}/offer', ['uses' => "MentoringRequestController@offer"]);

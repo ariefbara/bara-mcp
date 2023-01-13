@@ -19,7 +19,6 @@ $generateDbPath = array(
 $generateProxyPath = [
     BASE_PATH . "/resources/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Query/Infrastructure/Persistence/Doctrine/Mapping",
-    BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
     BASE_PATH . "/src/Bara/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Firm/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Client/Infrastructure/Persistence/Doctrine/Mapping",
@@ -27,6 +26,7 @@ $generateProxyPath = [
     BASE_PATH . "/src/Personnel/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Participant/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Notification/Infrastructure/Persistence/Doctrine/Mapping",
+    BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping/ValueObject",
     BASE_PATH . "/src/SharedContext/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/Team/Infrastructure/Persistence/Doctrine/Mapping",
     BASE_PATH . "/src/ActivityCreator/Infrastructure/Persistence/Doctrine/Mapping",
@@ -40,8 +40,8 @@ $doctrineConfig->setProxyDir(dirname(__DIR__) . DIRECTORY_SEPARATOR . "mcp_proxy
  $conn = array(
     'driver' => 'pdo_mysql',
     'user' => 'root',
-    'password' => 'APURac421199df74e5371524',
-    'dbname' => 'bara_mcp'
+    'password' => 'astarte1',
+    'dbname' => 'bara-mcp'
  );
 //$conn = array(
 //    'driver' => 'pdo_sqlite',

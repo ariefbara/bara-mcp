@@ -19,13 +19,15 @@ use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipati
 class MentoringRequestControllerTest extends PersonnelTestCase
 {
     protected $mentorTwo;
+    protected $consultationSetupOne;
+    protected $consultationSetupTwo;
     protected $clientParticipantOne;
     protected $teamParticipantTwo;
     protected $mentoringRequestOne;
     protected $mentoringRequestTwo;
     protected $mentoringRequestThree;
     protected $mentoringSlotOne;
-    protected $offerRequest;
+    protected $offerRequest, $proposeRequest;
     protected $showAllUnrespondedUri;
 
     protected function setUp(): void
@@ -59,18 +61,25 @@ class MentoringRequestControllerTest extends PersonnelTestCase
         $teamOne = new RecordOfTeam($firm, $clientOne, '1');
         $this->teamParticipantTwo = new RecordOfTeamProgramParticipation($teamOne, $participantTwo);
         
-        $consultationSetupOne = new RecordOfConsultationSetup($program, null, null, '1');
-        $consultationSetupTwo = new RecordOfConsultationSetup($programTwo, null, null, '2');
+        $this->consultationSetupOne = new RecordOfConsultationSetup($program, null, null, '1');
+        $this->consultationSetupTwo = new RecordOfConsultationSetup($programTwo, null, null, '2');
         
-        $this->mentoringRequestOne = new RecordOfMentoringRequest($participantOne, $this->mentor, $consultationSetupOne, '1');
-        $this->mentoringRequestTwo = new RecordOfMentoringRequest($participantOne, $this->mentor, $consultationSetupOne, '2');
-        $this->mentoringRequestThree = new RecordOfMentoringRequest($participantTwo, $this->mentorTwo, $consultationSetupTwo, '3');
+        $this->mentoringRequestOne = new RecordOfMentoringRequest($participantOne, $this->mentor, $this->consultationSetupOne, '1');
+        $this->mentoringRequestTwo = new RecordOfMentoringRequest($participantOne, $this->mentor, $this->consultationSetupOne, '2');
+        $this->mentoringRequestThree = new RecordOfMentoringRequest($participantTwo, $this->mentorTwo, $this->consultationSetupTwo, '3');
         
-        $this->mentoringSlotOne = new RecordOfMentoringSlot($this->mentor, $consultationSetupOne, '1');
+        $this->mentoringSlotOne = new RecordOfMentoringSlot($this->mentor, $this->consultationSetupOne, '1');
         
         $this->showAllUnrespondedUri = $this->personnelUri . "/mentoring-requests/all-unresponded";
         
         $this->offerRequest = [
+            'startTime' => (new DateTimeImmutable('+600 minutes'))->format('Y-m-d H:i:s'),
+            'mediaType' => 'new media type',
+            'location' => 'new location',
+        ];
+        $this->proposeRequest = [
+            'consultationSetupId' => $this->consultationSetupOne->id,
+            'participantId' => $this->clientParticipantOne->participant->id,
             'startTime' => (new DateTimeImmutable('+600 minutes'))->format('Y-m-d H:i:s'),
             'mediaType' => 'new media type',
             'location' => 'new location',
@@ -91,6 +100,116 @@ class MentoringRequestControllerTest extends PersonnelTestCase
         $this->connection->table('Mentoring')->truncate();
         $this->connection->table('NegotiatedMentoring')->truncate();
         $this->connection->table('MentoringSlot')->truncate();
+    }
+    
+    protected function propose() {
+        $this->insertMentorDependency();
+        
+        $this->consultationSetupOne->insert($this->connection);
+        $this->clientParticipantOne->client->insert($this->connection);
+        $this->clientParticipantOne->insert($this->connection);
+        
+        $uri = $this->personnelUri . "/mentors/{$this->mentor->id}/mentoring-requests/";
+        $this->post($uri, $this->proposeRequest, $this->mentor->personnel->token);
+//echo $uri;
+//echo json_encode($this->proposeRequest);
+//$this->seeJsonContains(['print']);
+    }
+    public function test_propose_201() {
+$this->disableExceptionHandling();
+        $this->propose();
+        $this->seeStatusCode(201);
+        
+        $endTime = (new DateTimeImmutable('+660 minutes'))->format('Y-m-d H:i:s');
+        $response = [
+            'startTime' => $this->proposeRequest['startTime'],
+            'endTime' => $endTime,
+            'mediaType' => $this->proposeRequest['mediaType'],
+            'location' => $this->proposeRequest['location'],
+            'requestStatus' => MentoringRequestStatus::DISPLAY_VALUE[MentoringRequestStatus::OFFERED],
+            'participant' => [
+                'id' => $this->clientParticipantOne->participant->id,
+                'client' => [
+                    'id' => $this->clientParticipantOne->client->id,
+                    'name' => $this->clientParticipantOne->client->getFullName(),
+                ],
+                'team' => null,
+                'user' => null,
+            ],
+            'consultationSetup' => [
+                'id' => $this->consultationSetupOne->id,
+                'name' => $this->consultationSetupOne->name,
+            ],
+            'mentor' => [
+                'id' => $this->mentor->id,
+                'program' => [
+                    'id' => $this->mentor->program->id,
+                    'name' => $this->mentor->program->name,
+                ],
+                
+            ],
+        ];
+        $this->seeJsonContains($response);
+        
+        $record = [
+            'Consultant_id' => $this->mentor->id,
+            'Participant_id' => $this->clientParticipantOne->participant->id,
+            'ConsultationSetup_id' => $this->consultationSetupOne->id,
+            'startTime' => $this->proposeRequest['startTime'],
+            'endTime' => $endTime,
+            'mediaType' => $this->proposeRequest['mediaType'],
+            'location' => $this->proposeRequest['location'],
+            'requestStatus' => MentoringRequestStatus::OFFERED,
+        ];
+        $this->seeInDatabase('MentoringRequest', $record);
+    }
+    public function test_propose_obsoleteSchedule_403() {
+        $this->proposeRequest['startTime'] = (new DateTimeImmutable('-1 hours'))->format('Y-m-d H:i:s');
+        
+        $this->propose();
+        $this->seeStatusCode(403);
+    }
+    public function test_propose_unuseableConsultationSetup_belongsToOtherProgram_403() {
+        $this->mentorTwo->program->insert($this->connection);
+        $this->mentorTwo->insert($this->connection);
+        $this->consultationSetupOne->program = $this->mentorTwo->program;
+        
+        $this->propose();
+        $this->seeStatusCode(403);
+    }
+    public function test_propose_unusableConsultationSetup_disabled_403() {
+        $this->consultationSetupOne->removed = true;
+        
+        $this->propose();
+        $this->seeStatusCode(403);
+    }
+    public function test_propose_unusableParticipant_belongsToOtherProgram_403() {
+        $this->mentorTwo->program->insert($this->connection);
+        $this->mentorTwo->insert($this->connection);
+        $this->clientParticipantOne->participant->program = $this->mentorTwo->program;
+        
+        $this->propose();
+        $this->seeStatusCode(403);
+    }
+    public function test_propose_unusableParticipant_inactive_403() {
+        $this->clientParticipantOne->participant->active = false;
+        
+        $this->propose();
+        $this->seeStatusCode(403);
+    }
+    public function test_propose_conflictedSchedule_403() {
+        $this->mentoringRequestOne->requestStatus = MentoringRequestStatus::OFFERED;
+        $this->mentoringRequestOne->insert($this->connection);
+        $this->proposeRequest['startTime'] = $this->mentoringRequestOne->startTime;
+        
+        $this->propose();
+        $this->seeStatusCode(403);
+    }
+    public function test_propose_inactiveMentor_403() {
+        $this->mentor->active = false;
+        
+        $this->propose();
+        $this->seeStatusCode(403);
     }
     
     protected function reject()

@@ -50,6 +50,8 @@ class ProgramConsultantTest extends TestBase
     protected $mentorTask, $payload = 'string represent task payload';
     protected $consultantTaskId = 'consultantTaskId', $labelData;
     protected $taskData;
+    //
+    protected $mentoringRequestId = 'mentoringRequestId', $mentoringRequestData;
 
     protected function setUp(): void
     {
@@ -104,6 +106,9 @@ class ProgramConsultantTest extends TestBase
         //
         $this->labelData = new LabelData('name', 'description');
         $this->taskData = new Participant\TaskData($this->labelData, new DateTimeImmutable('+1 months'));
+        //
+        $this->mentoringRequestData = new ProgramConsultant\MentoringRequestData(
+                new \Monolog\DateTimeImmutable('+24 hours'), 'media type', 'location');
     }
 
     protected function executeAcceptConsultationRequest()
@@ -516,6 +521,32 @@ class ProgramConsultantTest extends TestBase
                 ->method('assertUsableInProgram')
                 ->with($this->programConsultant->programId);
         $this->submitTask();
+    }
+    
+    //
+    protected function requestMentoring() {
+        return $this->programConsultant->requestMentoring(
+                $this->mentoringRequestId, $this->consultationSetup, $this->participant, $this->mentoringRequestData);
+    }
+    public function test_requestMentoring_returnMentoringRequest() {
+        $this->assertInstanceOf(MentoringRequest::class, $this->requestMentoring());
+    }
+    public function test_requestMentoring_inactiveMentor_forbidden() {
+        $this->programConsultant->active = false;
+        $this->assertRegularExceptionThrowed(fn() => $this->requestMentoring(), 'Forbidden', 'forbidden: only active consultant can make this request');
+    }
+    public function test_requestMentoring_assertConsultationSetupUsableInProgram() {
+        $this->consultationSetup->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->requestMentoring();
+    }
+    public function test_requestMentoring_assertParticipantUsableInProgram() {
+        $this->participant->expects($this->once())
+                ->method('assertUsableInProgram')
+                ->with($this->programConsultant->programId);
+        $this->requestMentoring();
+        
     }
 }
 
