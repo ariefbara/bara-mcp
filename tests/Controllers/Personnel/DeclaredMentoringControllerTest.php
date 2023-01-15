@@ -128,6 +128,10 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
         
         $uri = $this->personnelUri . "/mentors/{$this->mentor->id}/declared-mentorings";
         $this->post($uri, $this->declareRequest, $this->personnel->token);
+        
+//echo $uri;
+//echo json_encode($this->declareRequest);
+//$this->seeJsonContains(['print']);
     }
     public function test_declare_201()
     {
@@ -250,6 +254,9 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
         
         $uri = $this->personnelUri . "/mentors/{$this->mentor->id}/declared-mentorings/{$this->declaredMentoringOne->id}/update";
         $this->patch($uri, $this->updateRequest, $this->personnel->token);
+//echo $uri;
+//echo json_encode($this->updateRequest);
+//$this->seeJsonContains(['print']);
     }
     public function test_update_200()
     {
@@ -364,6 +371,8 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
         
         $uri = $this->personnelUri . "/mentors/{$this->mentor->id}/declared-mentorings/{$this->declaredMentoringOne->id}/cancel";
         $this->patch($uri, [], $this->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_cancel_200()
     {
@@ -423,6 +432,8 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
         
         $uri = $this->personnelUri . "/mentors/{$this->mentor->id}/declared-mentorings/{$this->declaredMentoringOne->id}/approve";
         $this->patch($uri, [], $this->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_approve_200()
     {
@@ -483,6 +494,8 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
         
         $uri = $this->personnelUri . "/mentors/{$this->mentor->id}/declared-mentorings/{$this->declaredMentoringOne->id}/deny";
         $this->patch($uri, [], $this->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_deny_200()
     {
@@ -543,6 +556,10 @@ class DeclaredMentoringControllerTest extends PersonnelTestCase
         
         $uri = $this->personnelUri . "/mentors/{$this->mentor->id}/declared-mentorings/{$this->declaredMentoringOne->id}/submit-report";
         $this->put($uri, $this->submitReportRequest, $this->personnel->token);
+        
+//echo $uri;
+//echo json_encode($this->submitReportRequest);
+//$this->seeJsonContains(['print']);
     }
     public function test_submitReport_200()
     {

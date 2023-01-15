@@ -14,4 +14,8 @@ class DoctrineMentoringRequestRepository extends DoctrineEntityRepository implem
         return $this->findOneByIdOrDie($id, 'mentoring request');
     }
 
+    public function add(MentoringRequest $mentoringRequest): void {
+        $this->persist($mentoringRequest);
+    }
+
 }

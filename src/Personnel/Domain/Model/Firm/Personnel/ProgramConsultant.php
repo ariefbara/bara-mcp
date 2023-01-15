@@ -14,6 +14,7 @@ use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ConsultationSession;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\ContainSchedule;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\DeclaredMentoring;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest;
+use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequestData;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlot;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringSlotData;
 use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
@@ -31,8 +32,7 @@ use SharedContext\Domain\ValueObject\ConsultationSessionType;
 use SharedContext\Domain\ValueObject\LabelData;
 use SharedContext\Domain\ValueObject\ScheduleData;
 
-class ProgramConsultant extends EntityContainEvents
-{
+class ProgramConsultant extends EntityContainEvents {
 
     /**
      *
@@ -82,13 +82,11 @@ class ProgramConsultant extends EntityContainEvents
      */
     protected $mentoringSlots;
 
-    protected function __construct()
-    {
+    protected function __construct() {
         
     }
 
-    public function acceptConsultationRequest(string $consultationRequestId): void
-    {
+    public function acceptConsultationRequest(string $consultationRequestId): void {
         $this->assertActive();
 
         $consultationRequest = $this->findConsultationRequestOrDie($consultationRequestId);
@@ -109,8 +107,7 @@ class ProgramConsultant extends EntityContainEvents
     }
 
     public function offerConsultationRequestTime(
-            string $consultationRequestId, ConsultationRequestData $consultationRequestData): void
-    {
+            string $consultationRequestId, ConsultationRequestData $consultationRequestData): void {
         $this->assertActive();
 
         $consultationRequest = $this->findConsultationRequestOrDie($consultationRequestId);
@@ -127,8 +124,7 @@ class ProgramConsultant extends EntityContainEvents
     }
 
     public function submitNewCommentOnWorksheet(
-            string $consultantCommentId, Worksheet $worksheet, string $message): ConsultantComment
-    {
+            string $consultantCommentId, Worksheet $worksheet, string $message): ConsultantComment {
         $this->assertActive();
         $this->assertAssetBelongsToParticipantInSameProgram($worksheet);
 
@@ -136,8 +132,7 @@ class ProgramConsultant extends EntityContainEvents
         return new ConsultantComment($this, $consultantCommentId, $comment);
     }
 
-    public function submitReplyOnWorksheetComment(string $consultantCommentId, Comment $comment, string $message): ConsultantComment
-    {
+    public function submitReplyOnWorksheetComment(string $consultantCommentId, Comment $comment, string $message): ConsultantComment {
         $this->assertActive();
         $this->assertAssetBelongsToParticipantInSameProgram($comment);
 
@@ -146,8 +141,7 @@ class ProgramConsultant extends EntityContainEvents
     }
 
     protected function assertNoConsultationSessionInConflictWithConsultationRequest(
-            ConsultationRequest $consultationRequest): void
-    {
+            ConsultationRequest $consultationRequest): void {
         $p = function (ConsultationSession $consultationSession) use ($consultationRequest) {
             return $consultationSession->intersectWithConsultationRequest($consultationRequest);
         };
@@ -158,8 +152,7 @@ class ProgramConsultant extends EntityContainEvents
     }
 
     protected function assertNoOtherOfferedConsultationRequestInConflictWithConsultationRequest(
-            ConsultationRequest $consultationRequest): void
-    {
+            ConsultationRequest $consultationRequest): void {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('concluded', false));
         $p = function (ConsultationRequest $otherConsultationRequest) use ($consultationRequest) {
@@ -171,8 +164,7 @@ class ProgramConsultant extends EntityContainEvents
         }
     }
 
-    protected function findConsultationRequestOrDie(string $consultationRequestId): ConsultationRequest
-    {
+    protected function findConsultationRequestOrDie(string $consultationRequestId): ConsultationRequest {
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('id', $consultationRequestId));
         $consultationRequest = $this->consultationRequests->matching($criteria)->first();
@@ -183,29 +175,25 @@ class ProgramConsultant extends EntityContainEvents
         return $consultationRequest;
     }
 
-    protected function assertActive(): void
-    {
+    protected function assertActive(): void {
         if (!$this->active) {
             $errorDetail = "forbidden: only active consultant can make this request";
             throw RegularException::forbidden($errorDetail);
         }
     }
 
-    protected function assertAssetBelongsToParticipantInSameProgram(AssetBelongsToParticipantInProgram $asset): void
-    {
+    protected function assertAssetBelongsToParticipantInSameProgram(AssetBelongsToParticipantInProgram $asset): void {
         if (!$asset->belongsToParticipantInProgram($this->programId)) {
             $errorDetail = "forbidden: can only manage asset related to your program";
             throw RegularException::forbidden($errorDetail);
         }
     }
 
-    public function verifyAssetUsable(IUsableInProgram $asset): void
-    {
+    public function verifyAssetUsable(IUsableInProgram $asset): void {
         $asset->assertUsableInProgram($this->programId);
     }
 
-    public function executeTask(ITaskExecutableByMentor $task): void
-    {
+    public function executeTask(ITaskExecutableByMentor $task): void {
         if (!$this->active) {
             throw RegularException::forbidden('forbidden: only active mentor can make this request');
         }
@@ -214,8 +202,7 @@ class ProgramConsultant extends EntityContainEvents
 
     public function declareConsultationSession(
             string $consultationSessionId, Participant $participant, ConsultationSetup $consultationSetup,
-            DateTimeInterval $startEndTime, ConsultationChannel $channel): ConsultationSession
-    {
+            DateTimeInterval $startEndTime, ConsultationChannel $channel): ConsultationSession {
         if (!$consultationSetup->usableInProgram($this->programId)) {
             throw RegularException::forbidden('forbidden: unuseable consultation setup');
         }
@@ -228,16 +215,14 @@ class ProgramConsultant extends EntityContainEvents
     }
 
     public function createMentoringSlot(
-            string $mentoringSlotId, ConsultationSetup $consultationSetup, MentoringSlotData $mentoringSlotData): MentoringSlot
-    {
+            string $mentoringSlotId, ConsultationSetup $consultationSetup, MentoringSlotData $mentoringSlotData): MentoringSlot {
         if (!$consultationSetup->usableInProgram($this->programId)) {
             throw RegularException::forbidden('forbidden: unuseable consultation setup');
         }
         return new MentoringSlot($this, $mentoringSlotId, $consultationSetup, $mentoringSlotData);
     }
 
-    public function assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule(ContainSchedule $containSchedule): void
-    {
+    public function assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule(ContainSchedule $containSchedule): void {
         $p = function (MentoringRequest $mentoringRequest) use ($containSchedule) {
             return $mentoringRequest->isScheduledOrOfferedRequestInConflictWith($containSchedule);
         };
@@ -255,31 +240,37 @@ class ProgramConsultant extends EntityContainEvents
 
     public function declareMentoring(
             string $declaredMentoringId, Participant $participant, ConsultationSetup $consultationSetup,
-            ScheduleData $scheduleData): DeclaredMentoring
-    {
+            ScheduleData $scheduleData): DeclaredMentoring {
         $this->assertActive();
         $participant->assertUsableInProgram($this->programId);
         $consultationSetup->assertUsableInProgram($this->programId);
         return new DeclaredMentoring($this, $declaredMentoringId, $participant, $consultationSetup, $scheduleData);
     }
 
-    public function executeMentorTask(MentorTask $task, $payload): void
-    {
+    public function executeMentorTask(MentorTask $task, $payload): void {
         $this->assertActive();
         $task->execute($this, $payload);
     }
 
     public function submitNote(
-            string $consultantNoteId, Participant $participant, LabelData $labelData, bool $viewableByParticipant): ConsultantNote
-    {
+            string $consultantNoteId, Participant $participant, LabelData $labelData, bool $viewableByParticipant): ConsultantNote {
         $participant->assertUsableInProgram($this->programId);
         return new ConsultantNote($this, $participant, $consultantNoteId, $labelData, $viewableByParticipant);
     }
 
-    public function submitTask(string $consultantTaskId, Participant $participant, TaskData $data): ConsultantTask
-    {
+    public function submitTask(string $consultantTaskId, Participant $participant, TaskData $data): ConsultantTask {
         $participant->assertUsableInProgram($this->programId);
         return new ConsultantTask($this, $participant, $consultantTaskId, $data);
+    }
+
+    public function requestMentoring(
+            string $mentoringRequestId, ConsultationSetup $consultationSetup,
+            Participant $participant, MentoringRequestData $mentoringRequestData): MentoringRequest {
+        $this->assertActive();
+        $consultationSetup->assertUsableInProgram($this->programId);
+        $participant->assertUsableInProgram($this->programId);
+        return new MentoringRequest(
+                $this, $mentoringRequestId, $consultationSetup, $participant, $mentoringRequestData);
     }
 
 }

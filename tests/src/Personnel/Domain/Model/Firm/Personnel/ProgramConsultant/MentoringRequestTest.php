@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant;
 use Personnel\Domain\Model\Firm\Personnel\ProgramConsultant\MentoringRequest\NegotiatedMentoring;
 use Personnel\Domain\Model\Firm\Program\ConsultationSetup;
+use Personnel\Domain\Model\Firm\Program\Participant;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 use SharedContext\Domain\ValueObject\Schedule;
@@ -14,32 +15,32 @@ use Tests\TestBase;
 
 class MentoringRequestTest extends TestBase
 {
+    protected $participant;
     protected $mentoringRequest, $mentor, $requestStatus, $schedule, $consultationSetup;
     protected $startTime, $mediaType = 'new media type', $location = 'new location';
     protected $endTime;
     protected $containSchedule;
     protected $otherSchedule;
     protected $negotiatedMentoring, $formRecordData, $participantRating = 333;
+    //
+    protected $id = 'newId';
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->mentoringRequest = new TestableMentoringRequest();
         
         $this->mentor = $this->buildMockOfClass(ProgramConsultant::class);
-        $this->mentoringRequest->mentor = $this->mentor;
-        
-        $this->requestStatus = $this->buildMockOfClass(MentoringRequestStatus::class);
-        $this->mentoringRequest->requestStatus = $this->requestStatus;
-        
+        $this->participant = $this->buildMockOfClass(Participant::class);
         $this->consultationSetup = $this->buildMockOfClass(ConsultationSetup::class);
-        $this->mentoringRequest->consultationSetup = $this->consultationSetup;
-        
-        $this->schedule = $this->buildMockOfClass(Schedule::class);
-        $this->mentoringRequest->schedule = $this->schedule;
-        
         $this->startTime = new DateTimeImmutable('+24 hours');
         $this->endTime = new DateTimeImmutable('+25 hours');
+        
+        $mentoringRequestData = new MentoringRequestData(new \DateTimeImmutable('+48 hours'), 'media type', 'location');
+        $this->mentoringRequest = new TestabledMentoringRequest($this->mentor, 'id', $this->consultationSetup, $this->participant, $mentoringRequestData);
+        $this->requestStatus = $this->buildMockOfClass(MentoringRequestStatus::class);
+        $this->mentoringRequest->requestStatus = $this->requestStatus;
+        $this->schedule = $this->buildMockOfClass(Schedule::class);
+        $this->mentoringRequest->schedule = $this->schedule;
         
         $this->containSchedule = $this->buildMockOfInterface(ContainSchedule::class);
         $this->otherSchedule = $this->buildMockOfClass(Schedule::class);
@@ -50,6 +51,37 @@ class MentoringRequestTest extends TestBase
     protected function getMentoringRequestData()
     {
         return new MentoringRequestData($this->startTime, $this->mediaType, $this->location);
+    }
+    
+    protected function construct() {
+        $this->consultationSetup->expects($this->any())
+                ->method('calculateMentoringScheduleEndTimeFrom')
+                ->with($this->startTime)
+                ->willReturn($this->endTime);
+        return new TestabledMentoringRequest(
+                $this->mentor, $this->id, $this->consultationSetup, $this->participant, $this->getMentoringRequestData());
+    }
+    public function test_construct_setProperties() {
+        $mentoringRequest = $this->construct();
+        $this->assertEquals($this->mentor, $mentoringRequest->mentor);
+        $this->assertEquals($this->id, $mentoringRequest->id);
+        $this->assertEquals($this->consultationSetup, $mentoringRequest->consultationSetup);
+        $this->assertEquals($this->participant, $mentoringRequest->participant);
+        
+        $requestStatus = new MentoringRequestStatus(MentoringRequestStatus::OFFERED);
+        $this->assertEquals($requestStatus, $mentoringRequest->requestStatus);
+        
+        $schedule = new Schedule(new ScheduleData($this->startTime, $this->endTime, $this->mediaType, $this->location));
+        $this->assertEquals($schedule, $mentoringRequest->schedule);
+    }
+    public function test_construct_notUpcomingSchedule_forbidden() {
+        $this->startTime = new \DateTimeImmutable('-24 hours');
+        $this->assertRegularExceptionThrowed(fn() => $this->construct(), 'Forbidden','forbidden: can only offer upcoming schedule');
+    }
+    public function test_construct_assertMentorDoesntHaveConflictingSchedule() {
+        $this->mentor->expects($this->once())
+                ->method('assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule');
+        $this->construct();
     }
     
     protected function belongsToMentor()
@@ -258,8 +290,7 @@ class MentoringRequestTest extends TestBase
     
 }
 
-class TestableMentoringRequest extends MentoringRequest
-{
+class TestabledMentoringRequest extends MentoringRequest {
     public $mentor;
     public $id = 'mentoringRequestId';
     public $participant;
@@ -267,9 +298,4 @@ class TestableMentoringRequest extends MentoringRequest
     public $schedule;
     public $consultationSetup;
     public $negotiatedMentoring;
-    
-    function __construct()
-    {
-        parent::__construct();
-    }
 }

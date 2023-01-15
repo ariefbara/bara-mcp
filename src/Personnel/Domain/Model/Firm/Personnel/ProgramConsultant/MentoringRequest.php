@@ -12,8 +12,7 @@ use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 use SharedContext\Domain\ValueObject\Schedule;
 use SharedContext\Domain\ValueObject\ScheduleData;
 
-class MentoringRequest implements ContainSchedule
-{
+class MentoringRequest implements ContainSchedule {
 
     /**
      * 
@@ -57,30 +56,49 @@ class MentoringRequest implements ContainSchedule
      */
     protected $negotiatedMentoring;
 
-    protected function __construct()
-    {
+    protected function setSchedule(MentoringRequestData $mentoringRequestData): void {
+        $startTime = $mentoringRequestData->getStartTime();
+        $endTime = $this->consultationSetup->calculateMentoringScheduleEndTimeFrom($startTime);
+        $mediaType = $mentoringRequestData->getMediaType();
+        $location = $mentoringRequestData->getLocation();
+        $scheduleData = new ScheduleData($startTime, $endTime, $mediaType, $location);
+
+        $this->schedule = new Schedule($scheduleData);
+
+        if (!$this->schedule->isUpcoming()) {
+            throw RegularException::forbidden('forbidden: can only offer upcoming schedule');
+        }
         
-    }
-    
-    public function belongsToMentor(ProgramConsultant $mentor): bool
-    {
-        return $this->mentor === $mentor;   
+        $this->mentor->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule($this);
     }
 
-    public function assertBelongsToMentor(ProgramConsultant $mentor): void
-    {
+    public function __construct(
+            ProgramConsultant $mentor, string $id,
+            ConsultationSetup $consultationSetup, Participant $participant,
+            MentoringRequestData $data) {
+        $this->mentor = $mentor;
+        $this->id = $id;
+        $this->consultationSetup = $consultationSetup;
+        $this->participant = $participant;
+        $this->requestStatus = new MentoringRequestStatus(MentoringRequestStatus::OFFERED);
+        $this->setSchedule($data);
+    }
+
+    public function belongsToMentor(ProgramConsultant $mentor): bool {
+        return $this->mentor === $mentor;
+    }
+
+    public function assertBelongsToMentor(ProgramConsultant $mentor): void {
         if ($this->mentor !== $mentor) {
             throw RegularException::forbidden('forbidden: can only managed owned mentoring request');
         }
     }
 
-    public function reject(): void
-    {
+    public function reject(): void {
         $this->requestStatus = $this->requestStatus->reject();
     }
 
-    public function approve(): void
-    {
+    public function approve(): void {
         if (!$this->schedule->isUpcoming()) {
             throw RegularException::forbidden('forbidden: can only approve upcoming schedule');
         }
@@ -90,47 +108,30 @@ class MentoringRequest implements ContainSchedule
         $this->negotiatedMentoring = new NegotiatedMentoring($this, $this->id);
     }
 
-    public function offer(MentoringRequestData $mentoringRequestData): void
-    {
-        $startTime = $mentoringRequestData->getStartTime();
-        $endTime = $this->consultationSetup->calculateMentoringScheduleEndTimeFrom($startTime);
-        $mediaType = $mentoringRequestData->getMediaType();
-        $location = $mentoringRequestData->getLocation();
-        $scheduleData = new ScheduleData($startTime, $endTime, $mediaType, $location);
-
-        $this->schedule = new Schedule($scheduleData);
+    public function offer(MentoringRequestData $mentoringRequestData): void {
+        $this->setSchedule($mentoringRequestData);
         $this->requestStatus = $this->requestStatus->offer();
-
-        if (!$this->schedule->isUpcoming()) {
-            throw RegularException::forbidden('forbidden: can only offer upcoming schedule');
-        }
-        $this->mentor->assertScheduleNotInConflictWithExistingScheduleOrPotentialSchedule($this);
     }
 
-    public function isScheduledOrOfferedRequestInConflictWith(ContainSchedule $otherEvent): bool
-    {
+    public function isScheduledOrOfferedRequestInConflictWith(ContainSchedule $otherEvent): bool {
         $exptectedStatusList = [
             MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT,
             MentoringRequestStatus::APPROVED_BY_MENTOR,
             MentoringRequestStatus::OFFERED,
         ];
-        return $this !== $otherEvent
-                && $this->requestStatus->statusIn($exptectedStatusList) 
-                && $otherEvent->scheduleInConflictWith($this->schedule);
+        return $this !== $otherEvent && $this->requestStatus->statusIn($exptectedStatusList) && $otherEvent->scheduleInConflictWith($this->schedule);
     }
 
-    public function scheduleInConflictWith(Schedule $otherSchedule): bool
-    {
+    public function scheduleInConflictWith(Schedule $otherSchedule): bool {
         return $this->schedule->intersectWith($otherSchedule);
     }
-    
+
     public function processMentoringReport(
-            NegotiatedMentoring $negotiatedMentoring, FormRecordData $formRecordData, ?int $participantRating): void
-    {
+            NegotiatedMentoring $negotiatedMentoring, FormRecordData $formRecordData, ?int $participantRating): void {
         if (!$this->schedule->isAlreadyPassed()) {
             throw RegularException::forbidden('forbidden: can only submit report on past mentoring');
         }
         $this->consultationSetup->processReportIn($negotiatedMentoring, $formRecordData, $participantRating);
     }
-    
+
 }

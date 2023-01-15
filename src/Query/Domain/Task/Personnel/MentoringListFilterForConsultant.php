@@ -6,8 +6,7 @@ use Query\Domain\Task\Dependency\MentoringListFilter;
 use SharedContext\Domain\ValueObject\DeclaredMentoringStatus;
 use SharedContext\Domain\ValueObject\MentoringRequestStatus;
 
-class MentoringListFilterForConsultant
-{
+class MentoringListFilterForConsultant {
 
     const MENTORING_REQUEST_TYPE = 'mentoring-request';
     const MENTORING_SLOT_TYPE = 'mentoring-slot';
@@ -52,45 +51,42 @@ class MentoringListFilterForConsultant
      */
     protected $reportSubmitted;
 
-    public function setProgramId(?string $programId)
-    {
+    public function setProgramId(?string $programId) {
         $this->programId = $programId;
         return $this;
     }
-    public function setParticipantId(?string $participantId)
-    {
+
+    public function setParticipantId(?string $participantId) {
         $this->participantId = $participantId;
         return $this;
     }
-    public function addType(?string $type)
-    {
+
+    public function addType(?string $type) {
         if (in_array($type, [
-            self::MENTORING_REQUEST_TYPE, 
-            self::MENTORING_SLOT_TYPE, 
-            self::DECLARED_MENTORING_TYPE
-        ])) {
+                    self::MENTORING_REQUEST_TYPE,
+                    self::MENTORING_SLOT_TYPE,
+                    self::DECLARED_MENTORING_TYPE
+                ])) {
             $this->typeList[] = $type;
         }
         return $this;
     }
-    public function setStatus(?string $status)
-    {
+
+    public function setStatus(?string $status) {
         $this->status = $status;
         return $this;
     }
-    public function setReportSubmitted(?bool $reportSubmitted)
-    {
+
+    public function setReportSubmitted(?bool $reportSubmitted) {
         $this->reportSubmitted = $reportSubmitted;
         return $this;
     }
 
-    public function __construct(MentoringListFilter $mentoringListFilter)
-    {
+    public function __construct(MentoringListFilter $mentoringListFilter) {
         $this->mentoringListFilter = $mentoringListFilter;
     }
 
-    protected function getProgramIdCriteria(&$parameters): ?string
-    {
+    protected function getProgramIdCriteria(&$parameters): ?string {
         if (empty($this->programId)) {
             return null;
         }
@@ -99,8 +95,8 @@ class MentoringListFilterForConsultant
     AND Consultant.Program_id = :programId
 _STATEMENT;
     }
-    protected function getParticipantIdCriteria(&$parameters): ?string
-    {
+
+    protected function getParticipantIdCriteria(&$parameters): ?string {
         if (empty($this->participantId)) {
             return null;
         }
@@ -109,8 +105,8 @@ _STATEMENT;
     AND _mentoring.participantId = :participantId
 _STATEMENT;
     }
-    protected function getTypeCriteria(): ?string
-    {
+
+    protected function getTypeCriteria(): ?string {
         if (empty($this->typeList)) {
             return null;
         }
@@ -118,36 +114,36 @@ _STATEMENT;
         foreach (array_unique($this->typeList) as $type) {
             switch ($type) {
                 case self::MENTORING_REQUEST_TYPE:
-                    $typeSelection .= empty($typeSelection) ? "_mentoring.mentoringRequestId IS NOT NULL": "OR _mentoring.mentoringRequestId IS NOT NULL";
+                    $typeSelection .= empty($typeSelection) ? "_mentoring.mentoringRequestId IS NOT NULL" : " OR _mentoring.mentoringRequestId IS NOT NULL";
                     break;
                 case self::MENTORING_SLOT_TYPE:
-                    $typeSelection .= empty($typeSelection) ? "_mentoring.mentoringSlotId IS NOT NULL": "OR _mentoring.mentoringSlotId IS NOT NULL";
+                    $typeSelection .= empty($typeSelection) ? "_mentoring.mentoringSlotId IS NOT NULL" : " OR _mentoring.mentoringSlotId IS NOT NULL";
                     break;
                 case self::DECLARED_MENTORING_TYPE:
-                    $typeSelection .= empty($typeSelection) ? "_mentoring.declaredMentoringId IS NOT NULL": "OR _mentoring.declaredMentoringId IS NOT NULL";
+                    $typeSelection .= empty($typeSelection) ? "_mentoring.declaredMentoringId IS NOT NULL" : " OR _mentoring.declaredMentoringId IS NOT NULL";
                     break;
                 default:
                     break;
             }
+        }
         return empty($typeSelection) ? null : <<<_STATEMENT
     AND ({$typeSelection})
 _STATEMENT;
-        }
     }
-    protected function getStatusCriteria(): ?string
-    {
+
+    protected function getStatusCriteria(): ?string {
         if (empty($this->status)) {
             return null;
         }
         switch ($this->status) {
             case self::CONFIRMED_STATUS:
                 $confirmedMentoringRequstStatus = implode(", ", [
-                    MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT, 
+                    MentoringRequestStatus::ACCEPTED_BY_PARTICIPANT,
                     MentoringRequestStatus::APPROVED_BY_MENTOR
                 ]);
                 $confirmedDeclaredMentoringStatus = implode(", ", [
-                     DeclaredMentoringStatus::APPROVED_BY_MENTOR,
-                     DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT,
+                    DeclaredMentoringStatus::APPROVED_BY_MENTOR,
+                    DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT,
                 ]);
                 return <<<_STATEMENT
     AND (
@@ -158,12 +154,12 @@ _STATEMENT;
 _STATEMENT;
             case self::NEGOTIATING_STATUS:
                 $negotiatingMentoringRequstStatus = implode(", ", [
-                    MentoringRequestStatus::REQUESTED, 
+                    MentoringRequestStatus::REQUESTED,
                     MentoringRequestStatus::OFFERED
                 ]);
                 $negotiatingDeclaredMentoringStatus = implode(", ", [
-                     DeclaredMentoringStatus::DECLARED_BY_MENTOR,
-                     DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT,
+                    DeclaredMentoringStatus::DECLARED_BY_MENTOR,
+                    DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT,
                 ]);
                 return <<<_STATEMENT
     AND (
@@ -176,8 +172,8 @@ _STATEMENT;
                 return null;
         }
     }
-    protected function getReportSubmittedCriteria(): ?string
-    {
+
+    protected function getReportSubmittedCriteria(): ?string {
         if (is_null($this->reportSubmitted)) {
             return null;
         }
@@ -188,8 +184,7 @@ _STATEMENT;
         OR (_mentoring.totalSubmittedReport = _mentoring.totalBooking AND _mentoring.totalBooking IS NOT NULL)
     )
 _STATEMENT;
-        }
-        else {
+        } else {
             return <<<_STATEMENT
     AND (
         (_mentoring.reportSubmitted = false OR _mentoring.reportSubmitted IS NULL) 
@@ -199,11 +194,10 @@ _STATEMENT;
         )
     )
 _STATEMENT;
-       }
+        }
     }
 
-    public function getCriteriaStatement(&$parameters): ?string
-    {
+    public function getCriteriaStatement(&$parameters): ?string {
         return $this->mentoringListFilter->getCriteriaStatement($parameters)
                 . $this->getProgramIdCriteria($parameters)
                 . $this->getParticipantIdCriteria($parameters)
@@ -212,13 +206,11 @@ _STATEMENT;
                 . $this->getReportSubmittedCriteria();
     }
 
-    public function getOrderStatement(): ?string
-    {
+    public function getOrderStatement(): ?string {
         return $this->mentoringListFilter->getOrderStatement();
     }
 
-    public function getLimitStatement(): ?string
-    {
+    public function getLimitStatement(): ?string {
         return $this->mentoringListFilter->getLimitStatement();
     }
 

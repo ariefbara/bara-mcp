@@ -46,5 +46,5 @@ class MentoringRequestData
         $this->mediaType = $mediaType;
         $this->location = $location;
     }
-
+    
 }
