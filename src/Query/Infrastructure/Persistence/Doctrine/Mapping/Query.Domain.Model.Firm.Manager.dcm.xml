@@ -7,6 +7,7 @@
         
         <many-to-one  field="firm" 
                       target-entity="Query\Domain\Model\Firm"
+                      inversed-by="managers"
         >
             <join-column name="Firm_id" referenced-column-name="id" />
         </many-to-one>

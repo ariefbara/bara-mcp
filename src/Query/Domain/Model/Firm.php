@@ -2,10 +2,12 @@
 
 namespace Query\Domain\Model;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Query\Application\Service\Client\ClientRepository;
 use Query\Domain\Model\Firm\BioSearchFilter;
 use Query\Domain\Model\Firm\ClientSearchRequest;
 use Query\Domain\Model\Firm\FirmFileInfo;
+use Query\Domain\Model\Firm\Manager;
 
 class Firm
 {
@@ -63,6 +65,12 @@ class Firm
      * @var BioSearchFilter|null
      */
     protected $bioSearchFilter;
+
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $managers;
 
     function getId(): string
     {
@@ -122,6 +130,15 @@ class Firm
     public function getWhitelableMailSenderName(): string
     {
         return $this->firmWhitelableInfo->getMailSenderName();
+    }
+    
+    /**
+     * 
+     * @return Manager[]
+     */
+    public function getActiveManagerList()
+    {
+        return $this->managers->toArray();
     }
 
     public function viewAllClients(ClientRepository $clientRepository, ClientSearchRequest $clientSearchRequest): array

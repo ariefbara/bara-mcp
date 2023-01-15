@@ -12,7 +12,7 @@ $router->post('/api/user-signup', ['uses' => "SignupController@userSignup"]);
 $router->post('/api/user-login', ['uses' => "LoginController@userLogin"]);
 
 $guestAggregate = [
-    'prefix' => '/api/guest',
+    'prefix' => '/api/v1',
     'namespace' => 'Guest',
 ];
 $router->group($guestAggregate, function () use ($router) {
@@ -61,6 +61,7 @@ $router->group($guestAggregate, function () use ($router) {
     
     $router->group(['prefix' => '/firms'], function () use($router) {
         $controller = "FirmController";
+        $router->post("", ["uses" => "$controller@add"]);
         $router->get("/{firmId}", ["uses" => "$controller@show"]);
         $router->get("", ["uses" => "$controller@showAll"]);
     });

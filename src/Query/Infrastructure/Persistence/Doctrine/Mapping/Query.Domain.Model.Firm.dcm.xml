@@ -29,5 +29,10 @@
                     mapped-by="firm"
         />
         
+        <one-to-many  field="managers" 
+                      target-entity="Query\Domain\Model\Firm\Manager"
+                      mapped-by="firm"
+        />
+        
     </entity>
 </doctrine-mapping>

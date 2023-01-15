@@ -3,13 +3,52 @@
 namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
-use Query\ {
-    Application\Service\FirmView,
-    Domain\Model\Firm
-};
+use Bara\Application\Service\FirmAdd;
+use Bara\Domain\Model\Firm as Firm2;
+use Bara\Domain\Model\Firm\ManagerData;
+use Bara\Domain\Model\FirmData;
+use Query\Application\Service\FirmView;
+use Query\Domain\Model\Firm;
 
 class FirmController extends Controller
 {
+    
+    private function getFirmData()
+    {
+        $name = $this->stripTagsInputRequest('name');
+        $identifier = $this->stripTagsInputRequest('identifier');
+        $whitelableInfo = $this->request->input('whitelableInfo') ?? [];
+        $whitelableUrl = $whitelableInfo['url'] ?? null;
+        $whitelableMailSenderAddress = $whitelableInfo['mailSenderAddress'] ?? null;
+        $whitelableMailSenderName = $whitelableInfo['mailSenderName'] ?? null;
+        $sharingPercentage = $this->stripTagsInputRequest('sharingPercentage');
+        return new FirmData(
+                $name, $identifier, $whitelableUrl, $whitelableMailSenderAddress, $whitelableMailSenderName,
+                $sharingPercentage);
+    }
+
+    private function getManagerData()
+    {
+        $managers = $this->request->input('managers') ?? [];
+        $managerInput = $managers[0] ?? [];
+        $name = $this->stripTagsVariable($managerInput['name']);
+        $email = $this->stripTagsVariable($managerInput['email']);
+        $password = $this->stripTagsVariable($managerInput['password']);
+        $phone = $this->stripTagsVariable($managerInput['phone']);
+        return new ManagerData($name, $email, $password, $phone);
+    }
+    
+    public function add()
+    {
+        $firmRepository = $this->em->getRepository(Firm2::class);
+        $service = new FirmAdd($firmRepository);
+        $addedFirmId = $service->execute($this->getFirmData(), $this->getManagerData());
+        
+        $firm = $this->buildViewService()->showById($addedFirmId);
+        return $this->commandCreatedResponse($this->arrayDataOfFirm($firm));
+    }
+    
+    
 
     public function show($firmId)
     {
@@ -27,9 +66,26 @@ class FirmController extends Controller
 
     protected function arrayDataOfFirm(Firm $firm): array
     {
+        $managers = [];
+        foreach ($firm->getActiveManagerList() as $manager) {
+            $managers[] = [
+                'id' => $manager->getId(),
+                'name' => $manager->getName(),
+                'email' => $manager->getEmail(),
+                'phone' => $manager->getPhone(),
+            ];
+        }
         return [
             "id" => $firm->getId(),
             "name" => $firm->getName(),
+            "identifier" => $firm->getIdentifier(),
+            "sharingPercentage" => $firm->getSharingPercentage(),
+            'whitelableInfo' => [
+                "url" => $firm->getWhitelableUrl(),
+                "mailSenderAddress" => $firm->getWhitelableMailSenderAddress(),
+                "mailSenderName" => $firm->getWhitelableMailSenderName(),
+            ],
+            'managers' => $managers,
         ];
     }
 
