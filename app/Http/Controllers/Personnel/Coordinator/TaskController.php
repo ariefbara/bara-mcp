@@ -185,8 +185,8 @@ class TaskController extends PersonnelBaseController
             'participant' => [
                 'id' => $task->getParticipant()->getId(),
                 'client' => $this->arrayDataOfClient($task->getParticipant()->getClientParticipant()),
-                'team' => $this->arrayDataOfClient($task->getParticipant()->getTeamParticipant()),
-                'user' => $this->arrayDataOfClient($task->getParticipant()->getUserParticipant()),
+                'team' => $this->arrayDataOfTeam($task->getParticipant()->getTeamParticipant()),
+                'user' => $this->arrayDataOfUser($task->getParticipant()->getUserParticipant()),
             ],
             'taskReport' => $this->arrayDataOfTaskReport($task->getTaskReport())
         ];

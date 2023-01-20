@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\Personnel\Coordinator;
 
+use DateTimeImmutable;
 use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantTask;
@@ -16,17 +17,21 @@ use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
+use Tests\Controllers\RecordPreparation\Firm\Team\RecordOfTeamProgramParticipation;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 class TaskControllerTest extends ExtendedCoordinatorTestCase
 {
 
     protected $clientParticipantOne;
+    protected $teamParticipantOne;
     protected $coordinatorTaskOne;
     protected $consultantTaskOne;
     protected $taskReportOne;
     protected $taskReportAttachmentOne;
     protected $taskReportAttachmentTwo;
+    
     //
     protected $submitTaskRequest;
     protected $updateTaskRequest;
@@ -35,8 +40,10 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
     {
         parent::setUp();
         $this->connection->table('Client')->truncate();
+        $this->connection->table('Team')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
+        $this->connection->table('TeamParticipant')->truncate();
 
         $this->connection->table('Consultant')->truncate();
 
@@ -54,12 +61,15 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $firm = $program->firm;
 
         $clientOne = new RecordOfClient($firm, 1);
+        $teamOne = new RecordOfTeam($firm, $clientOne, 1);
 
         $personnelOne = new RecordOfPersonnel($firm, 1);
 
         $participantOne = new RecordOfParticipant($program, 1);
+        $participantTwo = new RecordOfParticipant($program, 2);
 
         $this->clientParticipantOne = new RecordOfClientParticipant($clientOne, $participantOne);
+        $this->teamParticipantOne = new RecordOfTeamProgramParticipation($teamOne, $participantTwo);
 
         $consultantOne = new RecordOfConsultant($program, $personnelOne, 1);
 
@@ -87,13 +97,13 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
             'participantId' => $this->clientParticipantOne->participant->id,
             'name' => 'new task name',
             'description' => 'new task description',
-            'dueDate' => (new \DateTimeImmutable('+1 months'))->format('Y-m-d'),
+            'dueDate' => (new DateTimeImmutable('+1 months'))->format('Y-m-d'),
         ];
 
         $this->updateTaskRequest = [
             'name' => 'updated task name',
             'description' => 'updated task description',
-            'dueDate' => (new \DateTimeImmutable('+1 months'))->format('Y-m-d'),
+            'dueDate' => (new DateTimeImmutable('+1 months'))->format('Y-m-d'),
         ];
     }
 
@@ -203,6 +213,15 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
     public function test_submit_emptyDueDate_200_bug20221229()
     {
         $this->submitTaskRequest['dueDate'] = null;
+        $this->submit();
+        $this->seeStatusCode(201);
+    }
+    public function test_submit_submitTaskForTeamParticipant_201() {
+$this->disableExceptionHandling();
+        $this->teamParticipantOne->team->insert($this->connection);
+        $this->teamParticipantOne->insert($this->connection);
+        
+        $this->submitTaskRequest['participantId'] = $this->teamParticipantOne->participant->id;
         $this->submit();
         $this->seeStatusCode(201);
     }
@@ -610,6 +629,15 @@ class TaskControllerTest extends ExtendedCoordinatorTestCase
         $this->viewCoordinatorTaskDetail();
         $this->seeStatusCode(404);
     }
+    public function test_viewCoordinatorTaskDetail_participantTypeIsTeam_200_bug20230120() {
+$this->disableExceptionHandling();
+        $this->teamParticipantOne->team->insert($this->connection);
+        $this->teamParticipantOne->insert($this->connection);
+        $this->coordinatorTaskOne->task->participant = $this->teamParticipantOne->participant;
+        
+        $this->viewCoordinatorTaskDetail();
+        $this->seeStatusCode(200);
+    }
     public function test_viewCoordinatorTaskDetail_inactiveCoordinator_403()
     {
         $this->coordinator->active = false;
@@ -711,6 +739,15 @@ $this->disableExceptionHandling();
 
         $this->viewConsultantTaskDetail();
         $this->seeStatusCode(404);
+    }
+    public function test_viewConsultantTaskDetail_participantTypeIsTeam_200_bug20230120() {
+        $this->disableExceptionHandling();
+        $this->teamParticipantOne->team->insert($this->connection);
+        $this->teamParticipantOne->insert($this->connection);
+        $this->consultantTaskOne->task->participant = $this->teamParticipantOne->participant;
+        
+        $this->viewCoordinatorTaskDetail();
+        $this->seeStatusCode(200);
     }
     public function test_viewConsultantTaskDetail_inactiveCoordinator_403()
     {
