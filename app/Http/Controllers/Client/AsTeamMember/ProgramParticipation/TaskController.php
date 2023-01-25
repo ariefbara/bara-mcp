@@ -154,6 +154,7 @@ class TaskController extends AsTeamMemberBaseController
         }
         return [
             'content' => $taskReport->getContent(),
+            'reviewStatus' => $taskReport->getReviewStatus()->getDisplayValue(),
             'attachments' => $attachments,
         ];
     }

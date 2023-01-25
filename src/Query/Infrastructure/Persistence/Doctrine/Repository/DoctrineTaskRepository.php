@@ -132,6 +132,10 @@ _STATEMENT;
 
     public function allTaskForParticipant(string $participantId, TaskListFilter $taskListFilter)
     {
+        $unreviewedReportStatus = TaskReportReviewStatus::UNREVIEWED;
+        $approvedReportStatus = TaskReportReviewStatus::APPROVED;
+        $revisionRequiredReviewStatus = TaskReportReviewStatus::REVISION_REQUIRED;
+        
         $parameters = [
             'participantId' => $participantId,
         ];
@@ -144,6 +148,12 @@ SELECT
     Task.modifiedTime,
     Task.dueDate,
     Task.cancelled,
+    CASE TaskReport.reviewStatus
+        WHEN {$unreviewedReportStatus} THEN 'unreviewed'
+        WHEN {$approvedReportStatus} THEN 'approved'
+        WHEN {$revisionRequiredReviewStatus} THEN 'revision-required'
+        ELSE 'no-report-submitted'
+    END reviewStatus,
                 
     ConsultantTask.id consultantTaskId,
     Consultant.id consultantId,

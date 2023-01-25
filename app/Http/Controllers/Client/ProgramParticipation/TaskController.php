@@ -153,6 +153,7 @@ class TaskController extends ClientParticipantBaseController
         }
         return [
             'content' => $taskReport->getContent(),
+            'reviewStatus' => $taskReport->getReviewStatus()->getDisplayValue(),
             'attachments' => $attachments,
         ];
     }

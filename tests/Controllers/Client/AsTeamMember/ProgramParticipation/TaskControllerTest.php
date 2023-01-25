@@ -2,6 +2,8 @@
 
 namespace Tests\Controllers\Client\AsTeamMember\ProgramParticipation;
 
+use DateTime;
+use SharedContext\Domain\ValueObject\TaskReportReviewStatus;
 use Tests\Controllers\RecordPreparation\Firm\Program\Consultant\RecordOfConsultantTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Coordinator\RecordOfCoordinatorTask;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfParticipantFileInfo;
@@ -10,6 +12,7 @@ use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Task\RecordOfTa
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Task\TaskReport\RecordOfTaskReportAttachment;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfCoordinator;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
@@ -271,6 +274,7 @@ $this->disableExceptionHandling();
                     'modifiedTime' => $this->consultantTaskOne->task->modifiedTime,
                     'dueDate' => $this->consultantTaskOne->task->dueDate,
                     'cancelled' => strval(intval($this->consultantTaskOne->task->cancelled)),
+                    'reviewStatus' => 'no-report-submitted',
                     //
                     'consultantTaskId' => $this->consultantTaskOne->id,
                     'consultantId' => $this->consultantTaskOne->consultant->id,
@@ -289,6 +293,7 @@ $this->disableExceptionHandling();
                     'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
                     'dueDate' => $this->coordinatorTaskOne->task->dueDate,
                     'cancelled' => strval(intval($this->coordinatorTaskOne->task->cancelled)),
+                    'reviewStatus' => 'no-report-submitted',
 //                    //
                     'consultantTaskId' => null,
                     'consultantId' => null,
@@ -307,7 +312,7 @@ $this->disableExceptionHandling();
     public function test_viewAll_excludeUnmanagedTask_taskBelongsToOtherParticipant()
     {
         $program = $this->teamParticipant->participant->program;
-        $otherParticipant = new \Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant($program, 'other');
+        $otherParticipant = new RecordOfParticipant($program, 'other');
         $otherParticipant->insert($this->connection);
         
         $this->coordinatorTaskOne->task->participant = $otherParticipant;
@@ -322,8 +327,8 @@ $this->disableExceptionHandling();
     public function test_viewAll_excludeUnmanagedTask_useAllFilter()
     {
 $this->disableExceptionHandling();
-        $from = (new \DateTime('-2 months'))->format('Y-m-d H:i:s');
-        $to = (new \DateTime())->format('Y-m-d H:i:s');
+        $from = (new DateTime('-2 months'))->format('Y-m-d H:i:s');
+        $to = (new DateTime())->format('Y-m-d H:i:s');
         $this->viewAllUri .= "?cancelled=false"
                 . "&completed=false"
                 . "&from=$from"
@@ -349,6 +354,8 @@ $this->disableExceptionHandling();
         $this->consultantTaskOne->consultant->insert($this->connection);
         $this->consultantTaskOne->insert($this->connection);
         
+        $this->taskReportOne->insert($this->connection);
+        
         $uri = $this->teamParticipantUri . "/consultant-tasks/{$this->consultantTaskOne->id}";
         $this->get($uri, $this->teamMember->client->token);
     }
@@ -371,7 +378,11 @@ $this->disableExceptionHandling();
             'description' => $this->consultantTaskOne->task->description,
             'createdTime' => $this->consultantTaskOne->task->createdTime,
             'modifiedTime' => $this->consultantTaskOne->task->modifiedTime,
-            'taskReport' => null,
+            'taskReport' => [
+                'content' => $this->taskReportOne->content,
+                'reviewStatus' => TaskReportReviewStatus::DISPLAY_VALUE[$this->taskReportOne->reviewStatus],
+                'attachments' => [],
+            ],
         ];
         $this->seeJsonContains($response);
     }
@@ -383,6 +394,9 @@ $this->disableExceptionHandling();
         $this->coordinatorTaskOne->coordinator->personnel->insert($this->connection);
         $this->coordinatorTaskOne->coordinator->insert($this->connection);
         $this->coordinatorTaskOne->insert($this->connection);
+        
+        $this->taskReportOne->task = $this->coordinatorTaskOne->task;
+        $this->taskReportOne->insert($this->connection);
         
         $uri = $this->teamParticipantUri . "/coordinator-tasks/{$this->coordinatorTaskOne->id}";
         $this->get($uri, $this->teamMember->client->token);
@@ -407,7 +421,11 @@ $this->disableExceptionHandling();
             'createdTime' => $this->coordinatorTaskOne->task->createdTime,
             'modifiedTime' => $this->coordinatorTaskOne->task->modifiedTime,
             'dueDate' => $this->coordinatorTaskOne->task->dueDate,
-            'taskReport' => null,
+            'taskReport' => [
+                'content' => $this->taskReportOne->content,
+                'reviewStatus' => TaskReportReviewStatus::DISPLAY_VALUE[$this->taskReportOne->reviewStatus],
+                'attachments' => [],
+            ],
         ];
         $this->seeJsonContains($response);
     }
