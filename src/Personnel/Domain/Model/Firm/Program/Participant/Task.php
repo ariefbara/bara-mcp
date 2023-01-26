@@ -62,7 +62,7 @@ class Task
     
     protected function setDueDate(?\DateTimeImmutable $dueDate): void
     {
-        if (!is_null($dueDate) && $dueDate <= new DateTimeImmutable('tomorrow')) {
+        if (!is_null($dueDate) && $dueDate <= new DateTimeImmutable('today')) {
             throw RegularException::badRequest('if set, due date must be an upcoming date');
         }
         $this->dueDate = $dueDate;

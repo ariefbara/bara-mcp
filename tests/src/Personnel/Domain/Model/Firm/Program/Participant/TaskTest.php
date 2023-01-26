@@ -39,7 +39,7 @@ class TaskTest extends TestBase
         
         //
         $this->newLabel = $this->buildMockOfClass(Label::class);
-        $this->dueDate = new DateTimeImmutable('+2 weeks');
+        $this->dueDate = new DateTimeImmutable('tomorrow');
     }
     
     protected function getTaskData()
@@ -77,7 +77,7 @@ class TaskTest extends TestBase
     }
     public function test_construct_notUpcomingDueDate_badRequest()
     {
-        $this->dueDate = new DateTimeImmutable('tomorrow');
+        $this->dueDate = new DateTimeImmutable('today');
         $this->assertRegularExceptionThrowed(function() {
             $this->construct();
         }, 'Bad Request', 'if set, due date must be an upcoming date');

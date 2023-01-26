@@ -225,6 +225,12 @@ $this->disableExceptionHandling();
         $this->submit();
         $this->seeStatusCode(201);
     }
+    public function test_submit_tomorrowDueDate_200_bug20230126()
+    {
+        $this->submitTaskRequest['dueDate'] = (new DateTimeImmutable('tomorrow'))->format('Y-m-d');
+        $this->submit();
+        $this->seeStatusCode(201);
+    }
 
     //
     protected function updateTask()
