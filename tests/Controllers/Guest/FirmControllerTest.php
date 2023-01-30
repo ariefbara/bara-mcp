@@ -143,18 +143,23 @@ $this->disableExceptionHandling();
         $this->seeStatusCode(200);
         
         $response = [
-            'list' => [
+            'data' => [
                 [
                     'id' => $this->firmOne->id,
                     'name' => $this->firmOne->name,
+                    'identifier' => $this->firmOne->identifier,
+                    'sharingPercentage' => $this->firmOne->sharingPercentage,
                 ],
                 [
                     'id' => $this->firmTwo->id,
                     'name' => $this->firmTwo->name,
+                    'identifier' => $this->firmTwo->identifier,
+                    'sharingPercentage' => $this->firmTwo->sharingPercentage,
                 ],
             ],
         ];
         $this->seeJsonContains($response);
+//$this->seeJsonContains(['print']);
     }
     
     protected function viewDetail()

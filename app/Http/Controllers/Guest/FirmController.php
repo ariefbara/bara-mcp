@@ -12,7 +12,7 @@ use Query\Domain\Model\Firm;
 
 class FirmController extends Controller
 {
-    
+
     private function getFirmData()
     {
         $name = $this->stripTagsInputRequest('name');
@@ -22,16 +22,16 @@ class FirmController extends Controller
         $whitelableMailSenderAddress = $whitelableInfo['mailSenderAddress'] ?? null;
         $whitelableMailSenderName = $whitelableInfo['mailSenderName'] ?? null;
         $sharingPercentage = $this->stripTagsInputRequest('sharingPercentage');
-        
+
         $firmData = new FirmData(
                 $name, $identifier, $whitelableUrl, $whitelableMailSenderAddress, $whitelableMailSenderName,
                 $sharingPercentage);
-        
+
         $listOfManager = $this->request->input('managers') ?? [];
         foreach ($listOfManager as $managerInput) {
             $firmData->addManager($this->getManagerData($managerInput));
         }
-        
+
         return $firmData;
     }
 
@@ -43,18 +43,16 @@ class FirmController extends Controller
         $phone = $this->stripTagsVariable($managerInput['phone']);
         return new ManagerData($name, $email, $password, $phone);
     }
-    
+
     public function add()
     {
         $firmRepository = $this->em->getRepository(Firm2::class);
         $service = new FirmAdd($firmRepository);
         $addedFirmId = $service->execute($this->getFirmData());
-        
+
         $firm = $this->buildViewService()->showById($addedFirmId);
         return $this->commandCreatedResponse($this->arrayDataOfFirm($firm));
     }
-    
-    
 
     public function show($firmId)
     {
@@ -67,7 +65,17 @@ class FirmController extends Controller
     {
         $service = $this->buildViewService();
         $firms = $service->showAll($this->getPage(), $this->getPageSize());
-        return $this->commonIdNameListQueryResponse($firms);
+
+        $result = [];
+        foreach ($firms as $firm) {
+            $result[] = [
+                "id" => $firm->getId(),
+                "name" => $firm->getName(),
+                "identifier" => $firm->getIdentifier(),
+                "sharingPercentage" => $firm->getSharingPercentage(),
+            ];
+        }
+        return $this->listQueryResponse($result);
     }
 
     protected function arrayDataOfFirm(Firm $firm): array
