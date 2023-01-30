@@ -22,15 +22,21 @@ class FirmController extends Controller
         $whitelableMailSenderAddress = $whitelableInfo['mailSenderAddress'] ?? null;
         $whitelableMailSenderName = $whitelableInfo['mailSenderName'] ?? null;
         $sharingPercentage = $this->stripTagsInputRequest('sharingPercentage');
-        return new FirmData(
+        
+        $firmData = new FirmData(
                 $name, $identifier, $whitelableUrl, $whitelableMailSenderAddress, $whitelableMailSenderName,
                 $sharingPercentage);
+        
+        $listOfManager = $this->request->input('managers') ?? [];
+        foreach ($listOfManager as $managerInput) {
+            $firmData->addManager($this->getManagerData($managerInput));
+        }
+        
+        return $firmData;
     }
 
-    private function getManagerData()
+    private function getManagerData($managerInput)
     {
-        $managers = $this->request->input('managers') ?? [];
-        $managerInput = $managers[0] ?? [];
         $name = $this->stripTagsVariable($managerInput['name']);
         $email = $this->stripTagsVariable($managerInput['email']);
         $password = $this->stripTagsVariable($managerInput['password']);
@@ -42,7 +48,7 @@ class FirmController extends Controller
     {
         $firmRepository = $this->em->getRepository(Firm2::class);
         $service = new FirmAdd($firmRepository);
-        $addedFirmId = $service->execute($this->getFirmData(), $this->getManagerData());
+        $addedFirmId = $service->execute($this->getFirmData());
         
         $firm = $this->buildViewService()->showById($addedFirmId);
         return $this->commandCreatedResponse($this->arrayDataOfFirm($firm));

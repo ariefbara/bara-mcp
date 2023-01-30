@@ -2,6 +2,8 @@
 
 namespace Bara\Domain\Model;
 
+use Bara\Domain\Model\Firm\ManagerData;
+
 class FirmData
 {
 
@@ -41,6 +43,12 @@ class FirmData
      */
     protected $sharingPercentage;
 
+    /**
+     * 
+     * @var ManagerData[]
+     */
+    protected $listOfManagerData = [];
+
     function getName(): ?string
     {
         return $this->name;
@@ -71,6 +79,11 @@ class FirmData
         return $this->sharingPercentage;
     }
 
+    public function getListOfManagerData(): array
+    {
+        return $this->listOfManagerData;
+    }
+
     public function __construct(
             ?string $name, ?string $identifier, ?string $whitelableUrl, ?string $whitelableMailSenderAddress,
             ?string $whitelableMailSenderName, ?float $sharingPercentage)
@@ -93,4 +106,11 @@ class FirmData
 //        $this->whitelableMailSenderAddress = $whitelableMailSenderAddress;
 //        $this->whitelableMailSenderName = $whitelableMailSenderName;
 //    }
+
+    public function addManager(ManagerData $managerData): self
+    {
+        $this->listOfManagerData[] = $managerData;
+        return $this;
+    }
+
 }

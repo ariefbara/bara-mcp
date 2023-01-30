@@ -24,23 +24,14 @@ class FirmAddTest extends TestBase
         $this->firmRepository = $this->buildMockOfInterface(FirmRepository::class);
         $this->service = new FirmAdd($this->firmRepository);
 
-        $this->managerData = $this->buildMockOfClass(ManagerData::class);
-        $this->managerData->expects($this->any())
-            ->method('getName')
-            ->willReturn('admin name');
-        $this->managerData->expects($this->any())
-            ->method('getEmail')
-            ->willReturn('admin@email.org');
-        $this->managerData->expects($this->any())
-            ->method('getPassword')
-            ->willReturn('password123');
-        
-        $this->firmData = new FirmData('name', 'identifier', 'http://firm.com', 'noreply@firm.com', 'firm name');
+        $this->managerData = new ManagerData('new manager', 'newmanager@email.org', 'password123', '08341234134');
+        $this->firmData = (new FirmData('name', 'identifier', 'http://firm.com', 'noreply@firm.com', 'firm name', 5))
+                ->addManager($this->managerData);
     }
 
     private function execute()
     {
-        return $this->service->execute($this->firmData, $this->managerData);
+        return $this->service->execute($this->firmData);
     }
 
     public function test_execute_addFirmToRepository()

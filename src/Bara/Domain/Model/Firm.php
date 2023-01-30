@@ -2,17 +2,14 @@
 
 namespace Bara\Domain\Model;
 
-use Bara\Domain\Model\Firm\{
-    Manager,
-    ManagerData
-};
+use Bara\Domain\Model\Firm\Manager;
+use Bara\Domain\Model\Firm\ManagerData;
 use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\FirmWhitelableInfo;
-use Resources\{
-    Uuid,
-    ValidationRule,
-    ValidationService
-};
+use Resources\Exception\RegularException;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
 class Firm
 {
@@ -88,7 +85,13 @@ class Firm
         $this->sharingPercentage = $sharingPercentage;
     }
 
-    function __construct(string $id, FirmData $firmData, ManagerData $managerData)
+    protected function addManager(ManagerData $managerData): void
+    {
+        $managerId = Uuid::generateUuid4();
+        $manager = new Manager($this, $managerId, $managerData);
+        $this->managers->add($manager);
+    }
+    function __construct(string $id, FirmData $firmData)
     {
         $this->id = $id;
         $this->setName($firmData->getName());
@@ -100,9 +103,13 @@ class Firm
         $this->suspended = false;
 
         $this->managers = new ArrayCollection();
-        $managerId = Uuid::generateUuid4();
-        $manager = new Manager($this, $managerId, $managerData);
-        $this->managers->add($manager);
+        foreach ($firmData->getListOfManagerData() as $managerData) {
+            $this->addManager($managerData);
+        }
+        
+        if ($this->managers->isEmpty()) {
+            throw RegularException::forbidden('firm required at least one manager');
+        }
     }
 
     public function suspend(): void

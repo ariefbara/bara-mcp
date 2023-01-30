@@ -25,10 +25,16 @@ class FirmControllerTest extends \Tests\Controllers\ControllerTestCase
         ],
         'managers' => [
             [
-                'name' => 'new manager name',
-                'email' => 'newManager@newFirm.org',
+                'name' => 'new manager 1 name',
+                'email' => 'newManager1@newFirm.org',
                 'password' => 'iousehr12312k3j',
                 'phone' => '081323211233',
+            ],
+            [
+                'name' => 'new manager 2 name',
+                'email' => 'newManager2@newFirm.org',
+                'password' => 'iousehr12312k3j',
+                'phone' => '081323211235',
             ],
         ],
     ];
@@ -100,10 +106,24 @@ $this->disableExceptionHandling();
         ];
         $this->seeJsonContains($managerResponse);
         
+        $managerResponse = [
+            'name' => $this->addFirmRequest['managers'][1]['name'],
+            'email' => $this->addFirmRequest['managers'][1]['email'],
+            'phone' => $this->addFirmRequest['managers'][1]['phone'],
+        ];
+        $this->seeJsonContains($managerResponse);
+        
         $managerEntry = [
             'name' => $this->addFirmRequest['managers'][0]['name'],
             'email' => $this->addFirmRequest['managers'][0]['email'],
             'phone' => $this->addFirmRequest['managers'][0]['phone'],
+        ];
+        $this->seeInDatabase('Manager', $managerEntry);
+        
+        $managerEntry = [
+            'name' => $this->addFirmRequest['managers'][1]['name'],
+            'email' => $this->addFirmRequest['managers'][1]['email'],
+            'phone' => $this->addFirmRequest['managers'][1]['phone'],
         ];
         $this->seeInDatabase('Manager', $managerEntry);
     }

@@ -35,19 +35,21 @@ class FirmTest extends TestBase
                 ->willReturn('password123');
 
         $firmData = new FirmData('name', 'identifier', 'http://firm.com', 'admin@firm.com', 'firm name', 0);
-        $this->firm = new TestableFirm('id', $firmData, $this->managerData);
+        $firmData->addManager($this->managerData);
+        $this->firm = new TestableFirm('id', $firmData);
     }
 
     protected function getFirmData()
     {
-        return new FirmData(
+        return (new FirmData(
                 $this->name, $this->identifier, $this->whitelableUrl, $this->whitelableMailSenderAddress,
-                $this->whitelableWhitelableSenderName, $this->sharingPercentage);
+                $this->whitelableWhitelableSenderName, $this->sharingPercentage))
+                ->addManager($this->managerData);
     }
 
     private function executeConstruct()
     {
-        return new TestableFirm($this->id, $this->getFirmData(), $this->managerData);
+        return new TestableFirm($this->id, $this->getFirmData());
     }
 
     public function test_construct_setProperties()
@@ -117,6 +119,15 @@ class FirmTest extends TestBase
     {
         $this->firm->suspend();
         $this->assertTrue($this->firm->suspended);
+    }
+    public function test_construct_noManagerIncluded_forbidden()
+    {
+        $this->assertRegularExceptionThrowed(function () {
+            $firmData = new FirmData(
+                $this->name, $this->identifier, $this->whitelableUrl, $this->whitelableMailSenderAddress,
+                $this->whitelableWhitelableSenderName, $this->sharingPercentage);
+            new TestableFirm($this->id, $firmData);
+        }, 'Forbidden', 'firm required at least one manager');
     }
 
 }
