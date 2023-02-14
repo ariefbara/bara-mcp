@@ -53,6 +53,17 @@ class NegotiatedMentoringController extends AsTeamMemberBaseController
             'id' => $negotiatedMentoring->getId(),
             'mentoringRequest' => [
                 'id' => $negotiatedMentoring->getMentoringRequest()->getId(),
+                'startTime' => $negotiatedMentoring->getMentoringRequest()->getStartTimeString(),
+                'endTime' => $negotiatedMentoring->getMentoringRequest()->getEndTimeString(),
+                'location' => $negotiatedMentoring->getMentoringRequest()->getLocation(),
+                'mediaType' => $negotiatedMentoring->getMentoringRequest()->getMediaType(),
+                'consultant' => [
+                    'id' => $negotiatedMentoring->getMentoringRequest()->getMentor()->getId(),
+                    'personnel' => [
+                        'id' => $negotiatedMentoring->getMentoringRequest()->getMentor()->getPersonnel()->getId(),
+                        'name' => $negotiatedMentoring->getMentoringRequest()->getMentor()->getPersonnel()->getName(),
+                    ],
+                ],
                 'consultationSetup' => [
                     'id' => $negotiatedMentoring->getMentoringRequest()->getConsultationSetup()->getId(),
                     'participantFeedbackForm' => $this->arrayDataOfFeedbackForm($participantFeedbackform),

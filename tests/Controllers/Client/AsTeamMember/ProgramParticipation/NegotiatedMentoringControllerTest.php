@@ -239,6 +239,7 @@ class NegotiatedMentoringControllerTest extends ExtendedTeamParticipantTestCase
         
         $uri = $this->teamParticipantUri . "/negotiated-mentorings/{$this->negotiatedMentoringOne->id}";
         $this->get($uri, $this->teamMember->client->token);
+//echo $uri;
     }
     public function test_show_200()
     {
@@ -249,6 +250,17 @@ class NegotiatedMentoringControllerTest extends ExtendedTeamParticipantTestCase
             'id' => $this->negotiatedMentoringOne->id,
             'mentoringRequest' => [
                 'id' => $this->negotiatedMentoringOne->mentoringRequest->id,
+                'startTime' => $this->negotiatedMentoringOne->mentoringRequest->startTime,
+                'endTime' => $this->negotiatedMentoringOne->mentoringRequest->endTime,
+                'location' => $this->negotiatedMentoringOne->mentoringRequest->location,
+                'mediaType' => $this->negotiatedMentoringOne->mentoringRequest->mediaType,
+                'consultant' => [
+                    'id' => $this->negotiatedMentoringOne->mentoringRequest->mentor->id,
+                    'personnel' => [
+                        'id' => $this->negotiatedMentoringOne->mentoringRequest->mentor->personnel->id,
+                        'name' => $this->negotiatedMentoringOne->mentoringRequest->mentor->personnel->getFullName(),
+                    ],
+                ],
                 'consultationSetup' => [
                     'id' => $this->negotiatedMentoringOne->mentoringRequest->consultationSetup->id,
                     'participantFeedbackForm' => [
@@ -267,6 +279,7 @@ class NegotiatedMentoringControllerTest extends ExtendedTeamParticipantTestCase
                                 "placeholder" => $this->stringFieldOne->placeholder,
                             ],
                         ],
+                        'sections' => [],
                         'integerFields' => [],
                         'textAreaFields' => [],
                         'attachmentFields' => [],
