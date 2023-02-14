@@ -242,6 +242,17 @@ class NegotiatedMentoringControllerTest extends ExtendedClientParticipantTestCas
             'id' => $this->negotiatedMentoringOne->id,
             'mentoringRequest' => [
                 'id' => $this->negotiatedMentoringOne->mentoringRequest->id,
+                'startTime' => $this->negotiatedMentoringOne->mentoringRequest->startTime,
+                'endTime' => $this->negotiatedMentoringOne->mentoringRequest->endTime,
+                'location' => $this->negotiatedMentoringOne->mentoringRequest->location,
+                'mediaType' => $this->negotiatedMentoringOne->mentoringRequest->mediaType,
+                'consultant' => [
+                    'id' => $this->negotiatedMentoringOne->mentoringRequest->mentor->id,
+                    'personnel' => [
+                        'id' => $this->negotiatedMentoringOne->mentoringRequest->mentor->personnel->id,
+                        'name' => $this->negotiatedMentoringOne->mentoringRequest->mentor->personnel->getFullName(),
+                    ],
+                ],
                 'consultationSetup' => [
                     'id' => $this->negotiatedMentoringOne->mentoringRequest->consultationSetup->id,
                     'participantFeedbackForm' => [
@@ -260,6 +271,7 @@ class NegotiatedMentoringControllerTest extends ExtendedClientParticipantTestCas
                                 "placeholder" => $this->stringFieldOne->placeholder,
                             ],
                         ],
+                        'sections' => [],
                         'integerFields' => [],
                         'textAreaFields' => [],
                         'attachmentFields' => [],
