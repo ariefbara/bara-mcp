@@ -5,6 +5,7 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityManager;
 use Query\Domain\Task\Dependency\ScheduleFilter;
 use Query\Domain\Task\Dependency\ScheduleRepository;
+use SharedContext\Domain\ValueObject\DeclaredMentoringStatus;
 
 class CustomDoctrineScheduleRepository implements ScheduleRepository
 {
@@ -25,6 +26,7 @@ class CustomDoctrineScheduleRepository implements ScheduleRepository
         $parameters = ["clientId" => $clientId];
         $statement = <<<_STATEMENT
 SELECT
+    startTime,
     startTime,
     teamId,
     programId,
@@ -131,7 +133,7 @@ _STATEMENT;
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
-    
+
     protected function totalCountOfAllScheduleBelongsToClient(string $clientId, ScheduleFilter $filter): ?int
     {
         $parameters = ["clientId" => $clientId];
@@ -276,7 +278,7 @@ _STATEMENT;
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
-    
+
     public function totalScheduleBelongsToParticipant(string $participantId, ScheduleFilter $filter): ?int
     {
         $parameters = ["participantId" => $participantId];
@@ -321,6 +323,250 @@ FROM (
 _STATEMENT;
         $query = $this->em->getConnection()->prepare($statement);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function allScheduleInProgram(string $programId, ScheduleFilter $filter): array
+    {
+        $parameters = ["programId" => $programId];
+        $activeDeclaredStatus = implode(' ,', [
+            DeclaredMentoringStatus::APPROVED_BY_MENTOR,
+            DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT,
+            DeclaredMentoringStatus::DECLARED_BY_MENTOR,
+            DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT,
+        ]);
+        $statement = <<<_STATEMENT
+SELECT
+    _a.mentoringSlotId,
+    _a.mentoringSlotCapacity,
+    _a.bookedSlotCount,
+    _a.bookedParticipants,
+
+    _a.negotiatedMentoringId,
+    _a.declaredMentoringId,
+    _a.consultantId,
+    CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) personnelName,
+    _a.participantId,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) participantName,
+
+    _a.consultationSetupName,
+
+    _a.startTime,
+    _a.endTime,
+    _a.mediaType,
+    _a.location,
+
+    _a.activityName,
+    _a.activityDescription,
+    _a.activityNote,
+    _a.invitationCount,
+    _a.inviteeList
+    -- 
+FROM (
+    SELECT
+        MentoringSlot.id mentoringSlotId,
+        MentoringSlot.capacity mentoringSlotCapacity,
+        _a1.bookedSlotCount,
+        _a1.bookedParticipants,
+        null negotiatedMentoringId,
+        null declaredMentoringId,
+        null activityId,
+
+        ConsultationSetup.name consultationSetupName,
+        MentoringSlot.Mentor_id consultantId,
+        null participantId,
+
+        MentoringSlot.startTime,
+        MentoringSlot.endTime,
+        MentoringSlot.mediaType,
+        MentoringSlot.location,
+
+        null activityName,
+        null activityDescription,
+        null activityNote,
+        null invitationCount,
+        null inviteeList
+
+    FROM MentoringSlot
+        INNER JOIN ConsultationSetup ON ConsultationSetup.id = MentoringSlot.ConsultationSetup_id AND ConsultationSetup.Program_id = :programId
+        LEFT JOIN (
+            SELECT 
+                BookedMentoringSlot.MentoringSlot_id mentoringSlotId,
+                COUNT(BookedMentoringSlot.id) bookedSlotCount,
+                GROUP_CONCAT(
+                    COALESCE(
+                        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+                        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+                        Team.name
+                    )
+                    SEPARATOR ', '
+                ) as bookedParticipants
+            FROM BookedMentoringSlot
+                INNER JOIN Participant ON Participant.id = BookedMentoringSlot.Participant_id
+                -- 
+                LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+                LEFT JOIN User ON User.id= UserParticipant.User_id
+                LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+                LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+                LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+                LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+            WHERE BookedMentoringSlot.cancelled = false
+            GROUP BY mentoringSlotId
+        )_a1 ON _a1.mentoringSlotId = MentoringSlot.id
+        WHERE MentoringSlot.cancelled = false
+        {$filter->getSqlFromClause('MentoringSlot.startTime', $parameters)}
+        {$filter->getSqlToClause('MentoringSlot.startTime', $parameters)}
+        
+    UNION
+    SELECT
+        null mentoringSlotId,
+        null mentoringSlotCapacity,
+        null bookedSlotCount,
+        null bookedParticipants,
+        NegotiatedMentoring.id negotiatedMentoringId,
+        null declaredMentoringId,
+        null activityId,
+
+        ConsultationSetup.name consultationSetupName,
+        MentoringRequest.Consultant_id consultantId,
+        MentoringRequest.Participant_id participantId,
+
+        MentoringRequest.startTime,
+        MentoringRequest.endTime,
+        MentoringRequest.mediaType,
+        MentoringRequest.location,
+
+        null activityName,
+        null activityDescription,
+        null activityNote,
+        null invitationCount,
+        null inviteeList
+
+    FROM NegotiatedMentoring
+        INNER JOIN MentoringRequest ON MentoringRequest.id = NegotiatedMentoring.MentoringRequest_id
+        INNER JOIN ConsultationSetup ON ConsultationSetup.id = MentoringRequest.ConsultationSetup_id AND ConsultationSetup.Program_id = :programId
+        {$filter->getSqlFromClause('MentoringRequest.startTime', $parameters)}
+        {$filter->getSqlToClause('MentoringRequest.startTime', $parameters)}
+
+    UNION
+    SELECT
+        null mentoringSlotId,
+        null mentoringSlotCapacity,
+        null bookedSlotCount,
+        null bookedParticipants,
+        null negotiatedMentoringId,
+        DeclaredMentoring.id declaredMentoringId,
+        null activityId,
+        -- 
+        ConsultationSetup.name consultationSetupName,
+        DeclaredMentoring.Consultant_id consultantId,
+        DeclaredMentoring.Participant_id participantId,
+        -- 
+        DeclaredMentoring.startTime,
+        DeclaredMentoring.endTime,
+        DeclaredMentoring.mediaType,
+        DeclaredMentoring.location,
+        -- 
+        null activityName,
+        null activityDescription,
+        null activityNote,
+        null invitationCount,
+        null inviteeList
+        -- 
+    FROM DeclaredMentoring
+        INNER JOIN ConsultationSetup ON ConsultationSetup.id = DeclaredMentoring.ConsultationSetup_id AND ConsultationSetup.Program_id = :programId
+        INNER JOIN Consultant ON Consultant.id = DeclaredMentoring.Consultant_id
+        INNER JOIN Participant ON Participant.id = DeclaredMentoring.Participant_id
+    WHERE DeclaredMentoring.declaredStatus IN ({$activeDeclaredStatus})
+        {$filter->getSqlFromClause('DeclaredMentoring.startTime', $parameters)}
+        {$filter->getSqlToClause('DeclaredMentoring.endTime', $parameters)}
+
+    UNION
+    SELECT 
+        null mentoringSlotId,
+        null mentoringSlotCapacity,
+        null bookedSlotCount,
+        null bookedParticipants,
+        null negotiatedMentoringId,
+        null declaredMentoringId,
+        Activity.id activityId,
+
+        null consultationSetupName,
+        null consultantId,
+        null participantId,
+
+        Activity.startDateTime startTime,
+        Activity.endDateTime endTime,
+        null mediaType,
+        Activity.location,
+
+        Activity.name activityName,
+        Activity.description activityDescription,
+        Activity.note activityNote,
+        _a4.invitationCount,
+        _a4.inviteeList
+
+    FROM Activity
+        INNER JOIN ActivityType ON ActivityType.id = Activity.ActivityType_id AND ActivityType.Program_id = :programId
+        LEFT JOIN (
+            SELECT Invitee.Activity_id activityId,
+                COUNT(Invitee.id) invitationCount,
+                GROUP_CONCAT(
+                    COALESCE(
+                        CONCAT(User.firstName, ' ', COALESCE(User.lastName, ''), ' [user-participant]', CASE WHEN Invitee.anInitiator THEN ' [initiator]' ELSE '' END), 
+                        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, ''), ' [client-participant]', CASE WHEN Invitee.anInitiator THEN ' [initiator]' ELSE '' END), 
+                        CONCAT(Team.name, ' [team-participant]', CASE WHEN Invitee.anInitiator THEN ' [initiator]' ELSE '' END),
+                        CONCAT(Coordinator_Personnel.firstName, ' ', COALESCE(Coordinator_Personnel.lastName, ''), ' [coordinator]', CASE WHEN Invitee.anInitiator THEN ' [initiator]' ELSE '' END), 
+                        CONCAT(Consultant_Personnel.firstName, ' ', COALESCE(Consultant_Personnel.lastName, ''), ' [consultant]', CASE WHEN Invitee.anInitiator THEN ' [initiator]' ELSE '' END), 
+                        CONCAT(Consultant_Personnel.firstName, ' ', COALESCE(Consultant_Personnel.lastName, ''), ' [consultant]', CASE WHEN Invitee.anInitiator THEN ' [initiator]' ELSE '' END), 
+                        CONCAT(Manager.name, ' [manager]')
+                    )
+                    SEPARATOR ', '
+                ) inviteeList
+            FROM Invitee
+                LEFT JOIN CoordinatorInvitee ON CoordinatorInvitee.Invitee_id = Invitee.id
+                LEFT JOIN Coordinator ON Coordinator.id = CoordinatorInvitee.Coordinator_id
+                LEFT JOIN Personnel AS Coordinator_Personnel ON Coordinator_Personnel.id = Coordinator.Personnel_id
+
+                LEFT JOIN ConsultantInvitee ON ConsultantInvitee.Invitee_id = Invitee.id
+                LEFT JOIN Consultant ON Consultant.id = ConsultantInvitee.Consultant_id
+                LEFT JOIN Personnel AS Consultant_Personnel ON Consultant_Personnel.id = Consultant.Personnel_id
+
+                LEFT JOIN ManagerInvitee ON ManagerInvitee.Invitee_id = Invitee.id
+                LEFT JOIN Manager ON Manager.id = ManagerInvitee.Manager_id
+
+                LEFT JOIN ParticipantInvitee ON ParticipantInvitee.Invitee_id = Invitee.id
+                LEFT JOIN UserParticipant ON UserParticipant.Participant_id = ParticipantInvitee.Participant_id
+                LEFT JOIN User ON User.id= UserParticipant.User_id
+                LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = ParticipantInvitee.Participant_id
+                LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+                LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = ParticipantInvitee.Participant_id
+                LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+
+            WHERE Invitee.cancelled = false
+            GROUP BY activityId
+        )_a4 ON _a4.activityId = Activity.id
+    WHERE Activity.cancelled = false
+        {$filter->getSqlFromClause('Activity.startDateTime', $parameters)}
+        {$filter->getSqlToClause('Activity.startDateTime', $parameters)}
+)_a
+    LEFT JOIN Consultant ON Consultant.id = _a.consultantId
+    LEFT JOIN Personnel ON Personnel.id = Consultant.Personnel_id
+    -- 
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = _a.participantId
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = _a.participantId
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = _a.participantId
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+    -- 
+ORDER BY startTime {$filter->getOrderDirection()}
+_STATEMENT;
+        $query = $this->em->getConnection()->prepare($statement);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
     }
 
 }

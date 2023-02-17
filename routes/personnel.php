@@ -579,6 +579,12 @@ $router->group($personnelAggregate, function () use ($router) {
         $router->get("/coordinator-notes/{id}", ["uses" => "NoteController@viewCoordinatorNoteDetail"]);
         $router->get("/participant-notes/{id}", ["uses" => "NoteController@viewParticipantNoteDetail"]);
         
+        // schedule for program dashboard
+        $router->get("/schedules", ["uses" => "ScheduleInProgramController@viewAll"]);
+        
+        // schedule for program dashboard
+        $router->get("/program-dashboard", ["uses" => "ProgramDashboardController@view"]);
+        
     });
     
     $consultantAggregate = [

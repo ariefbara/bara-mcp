@@ -19,4 +19,6 @@ interface ProgramRepository
     public function listOfProgram(ProgramListFilter $filter);
 
     public function aPublishedProgram(string $id): Program;
+    
+    public function aProgramSummary(string $id): array;
 }

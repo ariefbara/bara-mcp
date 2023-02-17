@@ -15,6 +15,7 @@ use Query\Domain\Service\Firm\Program\ParticipantRepository as InterfaceForDomai
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantListFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantRepository as ParticipantRepository2;
+use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilter;
 use Query\Domain\Task\Dependency\Firm\Program\ParticipantSummaryListFilterForCoordinator;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
@@ -765,6 +766,152 @@ WHERE 1
     {$filter->getCriteriaStatement($parameters)}
 _SQL;
         
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
+    public function participantListWithMetricSummaryInProgram(string $programId, ParticipantSummaryListFilter $filter)
+    {
+        $parameters = [
+            'programId' => $programId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Participant.id,
+    User.id userId,
+    Client.id clientId,
+    Team.id teamId,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) name,
+    
+    ROUND(_metricAssignment.normalizedAchievement * 100) normalizedAchievement,
+    ROUND(_metricAssignment.achievement * 100) achievement,
+    _metricAssignment.completedMetric,
+    _metricAssignment.totalAssignedMetric
+    
+FROM Participant
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+                
+    LEFT JOIN (
+        SELECT
+            MetricAssignment.Participant_id,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(AssignmentFieldValue.inputValue/AssignmentField.target) / COUNT(AssignmentField.target),
+                NULL
+            ) achievement,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(
+                    IF(
+                        AssignmentFieldValue.inputValue >= AssignmentField.target, 
+                        1, 
+                        AssignmentFieldValue.inputValue / AssignmentField.target
+                    )
+                ) / COUNT(AssignmentField.target),
+                NULL
+            ) normalizedAchievement,
+            IF(
+                COUNT(AssignmentField.target) IS NOT NULL,
+                SUM(IF(AssignmentFieldValue.inputValue >= AssignmentField.target, 1, 0)),
+                NULL
+            ) completedMetric,
+            COUNT(AssignmentField.target) totalAssignedMetric
+            
+        FROM MetricAssignment
+            LEFT JOIN AssignmentField ON AssignmentField.MetricAssignment_id = MetricAssignment.id
+                
+            LEFT JOIN (
+                SELECT _mar2.id, _mar2.MetricAssignment_id
+                FROM (
+                    SELECT MetricAssignment_id, MAX(observationTime) observationTime
+                    FROM MetricAssignmentReport
+                    WHERE approved = true AND removed = false
+                    GROUP BY MetricAssignment_id
+                )_mar1
+                INNER JOIN MetricAssignmentReport _mar2 USING (MetricAssignment_id, observationTime)
+            )_metricAssignmentReport ON _metricAssignmentReport.MetricAssignment_id = MetricAssignment.id
+            
+            LEFT JOIN AssignmentFieldValue 
+                ON AssignmentFieldValue.MetricAssignmentReport_id = _metricAssignmentReport.id
+                AND AssignmentFieldValue.AssignmentField_id = AssignmentField.id
+                
+        GROUP BY Participant_id
+    )_metricAssignment ON _metricAssignment.Participant_id = Participant.id
+                
+WHERE
+    Participant.Program_id = :programId
+    AND Participant.active = true
+    {$filter->getCriteriaStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+    
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
+        
+    }
+
+    public function participantListWithMissionSummaryInProgram(string $programId, ParticipantSummaryListFilter $filter)
+    {
+        $parameters = [
+            'programId' => $programId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Participant.id,
+    User.id userId,
+    Client.id clientId,
+    Team.id teamId,
+    COALESCE(
+        CONCAT(User.firstName, ' ', COALESCE(User.lastName, '')), 
+        CONCAT(Client.firstName, ' ', COALESCE(Client.lastName, '')), 
+        Team.name
+    ) name,
+    
+    _completedMission.totalCompletedMission,
+    _mission.totalMission,
+    ROUND((_completedMission.totalCompletedMission / _mission.totalMission) * 100) missionCompletion
+    
+FROM Participant
+    LEFT JOIN UserParticipant ON UserParticipant.Participant_id = Participant.id
+    LEFT JOIN User ON User.id= UserParticipant.User_id
+    LEFT JOIN ClientParticipant ON ClientParticipant.Participant_id = Participant.id
+    LEFT JOIN Client ON Client.id = ClientParticipant.Client_id
+    LEFT JOIN TeamParticipant ON TeamParticipant.Participant_id = Participant.id
+    LEFT JOIN Team ON Team.id = TeamParticipant.Team_id
+
+    LEFT JOIN (
+        SELECT COUNT(DISTINCT Mission_id) totalCompletedMission, Participant_id
+        FROM CompletedMission
+            INNER JOIN Mission ON Mission.id = CompletedMission.Mission_id AND Mission.published = true
+        GROUP BY Participant_id
+    )_completedMission ON _completedMission.Participant_id = Participant.id
+    
+    LEFT JOIN (
+        SELECT COUNT(*) totalMission, Program_id
+        FROM Mission
+        WHERE Mission.Published = true
+        GROUP BY Program_id
+    )_mission ON _mission.Program_id = Participant.Program_id
+
+WHERE Participant.Program_id = :programId
+    AND Participant.active = true
+    {$filter->getCriteriaStatement($parameters)}
+{$filter->getOrderStatement()}
+{$filter->getLimitStatement()}
+_SQL;
+    
         $query = $this->getEntityManager()->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchAllAssociative();
     }

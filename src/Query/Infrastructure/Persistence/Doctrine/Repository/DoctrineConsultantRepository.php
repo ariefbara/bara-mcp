@@ -12,10 +12,13 @@ use Query\Application\Service\Firm\Program\ConsultantRepository;
 use Query\Application\Service\Personnel\AsProgramConsultant\ConsultantRepository as ConsultantRepository3;
 use Query\Domain\Model\Firm\Program\Consultant;
 use Query\Domain\Service\Firm\Program\MentorRepository;
+use Query\Domain\Task\Dependency\Firm\Program\ConsultantRepository as ConsultantRepository4;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use SharedContext\Domain\ValueObject\DeclaredMentoringStatus;
 
-class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization, InterfaceForGuest, ConsultantRepository2, MentorRepository, ConsultantRepository3
+class DoctrineConsultantRepository extends EntityRepository implements ConsultantRepository, InterfaceForAuthorization, InterfaceForGuest,
+        ConsultantRepository2, MentorRepository, ConsultantRepository3, ConsultantRepository4
 {
 
     public function aProgramConsultationOfPersonnel(string $firmId, string $personnelId, string $programConsultationId): Consultant
@@ -154,7 +157,6 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
         $consultant = $this->findOneBy([
             'id' => $id,
             'active' => true,
-            
         ]);
         if (empty($consultant)) {
             throw RegularException::notFound('not found: consultant not found');
@@ -169,7 +171,7 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
             'personnelId' => $personnelId,
             'consultantId' => $consultantId,
         ];
-        
+
         $qb = $this->createQueryBuilder('consultant');
         $qb->select('consultant')
                 ->andWhere($qb->expr()->eq('consultant.id', ':consultantId'))
@@ -179,7 +181,7 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -193,7 +195,7 @@ class DoctrineConsultantRepository extends EntityRepository implements Consultan
         $params = [
             "participantId" => $participantId,
         ];
-        
+
         $totalStatement = <<<_TOTAL
 SELECT COUNT(Consultant.id) total
 FROM Consultant
@@ -207,8 +209,7 @@ _TOTAL;
         $totalQuery = $em->getConnection()->prepare($totalStatement);
         $totalQuery->execute($params);
         $total = $totalQuery->fetchAll(PDO::FETCH_ASSOC)[0]['total'];
-        
-        
+
         $offset = $pageSize * ($page - 1);
         $statement = <<<_STATEMENT
 SELECT
@@ -232,7 +233,7 @@ GROUP BY Consultant.id
 ORDER BY isDedicatedMentor DESC
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
-        
+
         $offset = $pageSize * ($page - 1);
         $query = $em->getConnection()->prepare($statement);
         $query->execute($params);
@@ -248,7 +249,7 @@ _STATEMENT;
             'programId' => $programId,
             'mentorId' => $mentorId,
         ];
-        
+
         $qb = $this->createQueryBuilder('mentor');
         $qb->select('mentor')
                 ->andWhere($qb->expr()->eq('mentor.id', ':mentorId'))
@@ -256,7 +257,7 @@ _STATEMENT;
                 ->andWhere($qb->expr()->eq('program.id', ':programId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
@@ -271,7 +272,7 @@ _STATEMENT;
             'personnelId' => $personnelId,
             'programId' => $programId,
         ];
-        
+
         $qb = $this->createQueryBuilder('mentor');
         $qb->select('mentor')
                 ->leftJoin('mentor.program', 'program')
@@ -282,12 +283,116 @@ _STATEMENT;
                 ->andWhere($qb->expr()->eq('firm.id', ':firmId'))
                 ->setParameters($params)
                 ->setMaxResults(1);
-        
+
         try {
             return $qb->getQuery()->getSingleResult();
         } catch (NoResultException $ex) {
             throw RegularException::notFound('not found: consultant not found');
         }
+    }
+
+    public function consultantSummaryListInProgram(string $programId): array
+    {
+        $activeDeclaredStatus = implode(' ,', [
+            DeclaredMentoringStatus::APPROVED_BY_MENTOR,
+            DeclaredMentoringStatus::APPROVED_BY_PARTICIPANT,
+            DeclaredMentoringStatus::DECLARED_BY_MENTOR,
+            DeclaredMentoringStatus::DECLARED_BY_PARTICIPANT,
+        ]);
+        $parameters = [
+            'programId' => $programId,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Consultant.id,
+    CONCAT(Personnel.firstName, ' ', COALESCE(Personnel.lastName, '')) name,
+    _a.averageMentorRating,
+    _a.submittedReportCount,
+    _a.completedSessionCount,
+    _a.completedMenteeCount,
+    _b.worksheetCommentCount,
+    _c.missionDiscussionCount,
+    (_d.upcomingNegotiatedMentoringCount + _e.upcomingMentoringSlotCount) upcomingSessionCount,
+    (_d.upcomingNegotiatedMentoringCount + _e.upcomingMentoringSlotParticipantCount) upcomingMenteeCount,
+    _e.availableMentoringSlotSessionCount,
+    _e.availableSlotCount
+FROM Consultant
+    INNER JOIN Personnel ON Personnel.id = Consultant.Personnel_id
+    LEFT JOIN (
+        SELECT
+            AVG(ParticipantReport.mentorRating) averageMentorRating,
+            COUNT(MentorReport.id) submittedReportCount,
+            COUNT(Mentoring.id) completedMenteeCount,
+            (COUNT(NegotiatedMentoring.id) + COUNT(DeclaredMentoring.id) + COUNT(DISTINCT MentoringSlot.id)) completedSessionCount,
+            COALESCE(MentoringRequest.Consultant_id, DeclaredMentoring.Consultant_id, MentoringSlot.Mentor_id) consultantId
+        FROM Mentoring
+            LEFT JOIN NegotiatedMentoring ON NegotiatedMentoring.Mentoring_id = Mentoring.id
+            LEFT JOIN MentoringRequest 
+                ON MentoringRequest.id = NegotiatedMentoring.MentoringRequest_id
+                AND MentoringRequest.endTime < NOW()
+            LEFT JOIN DeclaredMentoring ON DeclaredMentoring.Mentoring_id = Mentoring.id
+                AND DeclaredMentoring.endTime < NOW()
+                AND DeclaredMentoring.declaredStatus IN ({$activeDeclaredStatus})
+            LEFT JOIN BookedMentoringSlot 
+                ON BookedMentoringSlot.Mentoring_id = Mentoring.id
+                AND BookedMentoringSlot.cancelled = false
+            LEFT JOIN MentoringSlot 
+                ON MentoringSlot.id = BookedMentoringSlot.MentoringSlot_id
+                AND MentoringSlot.endTime < NOW()
+                AND MentoringSlot.cancelled = false
+            LEFT JOIN ParticipantReport ON ParticipantReport.Mentoring_id = Mentoring.id
+            LEFT JOIN MentorReport ON MentorReport.Mentoring_id = Mentoring.id
+        GROUP BY consultantId
+    )_a ON _a.consultantId = Consultant.id
+    LEFT JOIN (
+        SELECT COUNT(ConsultantComment.id) worksheetCommentCount,
+            ConsultantComment.Consultant_id consultantId
+        FROM ConsultantComment
+            INNER JOIN Comment ON Comment.id = ConsultantComment.Comment_id AND Comment.removed = false
+        GROUP BY consultantId
+    )_b ON _b.consultantId = Consultant.id
+    LEFT JOIN (
+        SELECT COUNT(MissionComment.id) missionDiscussionCount,
+            MissionComment.rolePaths->>'$.mentor' consultantId
+        FROM MissionComment
+        GROUP BY consultantId
+    )_c ON _c.consultantId = Consultant.id
+    LEFT JOIN (
+        SELECT MentoringRequest.Consultant_id consultantId,
+            COUNT(NegotiatedMentoring.id) upcomingNegotiatedMentoringCount
+        FROM NegotiatedMentoring
+            INNER JOIN MentoringRequest 
+                ON MentoringRequest.id = NegotiatedMentoring.MentoringRequest_id
+                AND MentoringRequest.startTime > NOW()
+        GROUP BY consultantId
+    )_d on _d.consultantId = Consultant.id
+    LEFT JOIN (
+        SELECT
+            MentoringSlot.Mentor_id consultantId,
+            SUM(IF(_e1.bookCount IS NOT NULL, 1, 0)) upcomingMentoringSlotCount,
+            SUM(_e1.bookCount) upcomingMentoringSlotParticipantCount,
+            SUM(IF(MentoringSlot.capacity > COALESCE(_e1.bookCount, 0), 1, 0)) availableMentoringSlotSessionCount,
+            SUM(MentoringSlot.capacity) - SUM(_e1.bookCount) availableSlotCount
+        FROM MentoringSlot
+            LEFT JOIN (
+                SELECT 
+                    BookedMentoringSlot.MentoringSlot_id mentoringSlotId,
+                    COUNT(BookedMentoringSlot.id) bookCount
+                FROM BookedMentoringSlot
+                WHERE BookedMentoringSlot.cancelled = false
+                GROUP BY mentoringSlotId
+            )_e1 ON _e1.mentoringSlotId = MentoringSlot.id
+        WHERE MentoringSlot.startTime > NOW()
+            AND MentoringSlot.cancelled = false
+        GROUP BY consultantId
+    )_e ON _e.consultantId = Consultant.id
+WHERE Consultant.Program_id = :programId
+    AND Consultant.active = true
+_SQL;
+        
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative();
     }
 
 }

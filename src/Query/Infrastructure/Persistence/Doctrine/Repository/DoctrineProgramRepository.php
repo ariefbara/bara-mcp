@@ -14,6 +14,7 @@ use Query\Domain\Task\PaginationPayload;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 use Resources\Infrastructure\Persistence\Doctrine\Repository\DoctrineEntityRepository;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class DoctrineProgramRepository extends DoctrineEntityRepository implements ProgramRepository, InterfaceForPublic, ProgramRepository2, ProgramRepository3
 {
@@ -351,6 +352,124 @@ _SQL;
         
         $query = $this->getEntityManager()->getConnection()->prepare($sql);
         return $query->executeQuery($parameters)->fetchAllAssociative();
+    }
+
+    public function aProgramSummary(string $id): array
+    {
+        $newApplicantStatus = RegistrationStatus::REGISTERED;
+        $parameters = [
+            'programId' => $id,
+        ];
+        
+        $sql = <<<_SQL
+SELECT
+    Program.id,
+    Program.name,
+    _a.participantCount,
+    _a.minCompletedMission,
+    _a.maxCompletedMission,
+    _a.averageCompletedMission,
+    _c.missionCount,
+    _b.minMetricAchievement,
+    _b.maxMetricAchievement,
+    _b.averageMetricAchievement,
+    _b.minMetricCompletion,
+    _b.maxMetricCompletion,
+    _b.averageMetricCompletion,
+    _d.newApplicantInProgramCount,
+    _e.unreviewedMetricReportCount
+FROM Program
+LEFT JOIN (
+    SELECT 
+        programId,
+        COUNT(participantId) participantCount,
+        MIN(completedMissionCount) minCompletedMission,
+        MAX(completedMissionCount) maxCompletedMission,
+        AVG(completedMissionCount) averageCompletedMission
+    FROM (
+        SELECT 
+            Participant.id participantId, 
+            Participant.Program_id programId, 
+            COUNT(CompletedMission.id) completedMissionCount
+        FROM Participant
+        LEFT JOIN CompletedMission ON CompletedMission.Participant_id = Participant.id
+        WHERE Participant.active = true
+        GROUP BY Participant.id
+    )_a1
+    GROUP BY programId
+)_a ON _a.programId = Program.id
+LEFT JOIN (
+    SELECT 
+        programId, 
+        MIN(metricAchievement) minMetricAchievement,
+        MAX(metricAchievement) maxMetricAchievement,
+        AVG(metricAchievement) averageMetricAchievement,
+        MIN(metricCompletion) minMetricCompletion,
+        MAX(metricCompletion) maxMetricCompletion,
+        AVG(metricCompletion) averageMetricCompletion
+    FROM (
+        SELECT 
+            Participant.Program_id programId, 
+            MetricAssignment.id metricAssignmentId,
+            SUM(
+                CASE 
+                    WHEN _b1a.inputValue >= AssignmentField.target 
+                    THEN AssignmentField.target 
+                    ELSE COALESCE(_b1a.inputValue, 0)
+                END
+                /AssignmentField.target
+            )/COUNT(AssignmentField.id) metricAchievement,
+            SUM(
+                CASE WHEN _b1a.inputValue >= AssignmentField.target THEN 1 ELSE 0 END
+            )/COUNT(AssignmentField.id) metricCompletion
+        FROM MetricAssignment
+        INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+        INNER JOIN AssignmentField 
+            ON AssignmentField.MetricAssignment_id = MetricAssignment.id 
+            and AssignmentField.disabled = false
+        LEFT JOIN (
+            SELECT AssignmentFieldValue.AssignmentField_id assignmentFieldId, AssignmentFieldValue.inputValue
+            FROM (
+                SElECT MetricAssignment_id, MAX(observationTime) observationTime
+                FROM MetricAssignmentReport
+                WHERE approved = true AND removed = false
+                GROUP BY MetricAssignment_id
+            )_b1a1
+            INNER JOIN MetricAssignmentReport USING (MetricAssignment_id, observationTime)
+            INNER JOIN AssignmentFieldValue 
+                ON AssignmentFieldValue.MetricAssignmentReport_id = MetricAssignmentReport.id
+        )_b1a ON _b1a.assignmentFieldId = AssignmentField.id
+        GROUP BY metricAssignmentId
+    )_b1
+    GROUP BY programId
+)_b ON _b.programId = Program.id
+LEFT JOIN (
+    SELECT Mission.Program_id programId, COUNT(Mission.id) missionCount
+    FROM Mission
+    WHERE Mission.published = true
+    GROUP BY programId
+)_c ON _c.programId = Program.id
+LEFT JOIN (
+    SELECT COUNT(Registrant.id) newApplicantInProgramCount, Registrant.Program_id programId
+    FROM Registrant
+    WHERE Registrant.status = {$newApplicantStatus}
+    GROUP BY programId
+)_d ON _d.programId = Program.id
+LEFT JOIN (
+    SELECT
+        COUNT(MetricAssignmentReport.id) unreviewedMetricReportCount,
+        Participant.Program_id programId
+    FROM MetricAssignmentReport
+        INNER JOIN MetricAssignment ON MetricAssignment.id = MetricAssignmentReport.MetricAssignment_id
+        INNER JOIN Participant ON Participant.id = MetricAssignment.Participant_id AND Participant.active = true
+    WHERE MetricAssignmentReport.removed = false AND MetricAssignmentReport.approved IS NULL
+    GROUP BY programId
+)_e ON _e.programId = Program.id
+WHERE Program.id = :programId
+_SQL;
+        
+        $query = $this->getEntityManager()->getConnection()->prepare($sql);
+        return $query->executeQuery($parameters)->fetchAllAssociative()[0] ?? [];
     }
 
 }
