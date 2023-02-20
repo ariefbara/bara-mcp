@@ -495,13 +495,13 @@ $router->group($personnelAggregate, function () use ($router) {
     ];
     $router->group($coordinatorAggregate, function () use ($router) {
         
-        $router->group(['prefix' => '/activities'], function () use($router) {
-            $controller = "ActivityController";
-            $router->post("", ["uses" => "$controller@initiate"]);
-            $router->patch("/{activityId}", ["uses" => "$controller@update"]);
-            $router->get("", ["uses" => "$controller@showAll"]);
-            $router->get("/{activityId}", ["uses" => "$controller@show"]);
-        });
+//        $router->group(['prefix' => '/activities'], function () use($router) {
+//            $controller = "ActivityController";
+//            $router->post("", ["uses" => "$controller@initiate"]);
+//            $router->patch("/{activityId}", ["uses" => "$controller@update"]);
+//            $router->get("", ["uses" => "$controller@showAll"]);
+//            $router->get("/{activityId}", ["uses" => "$controller@show"]);
+//        });
 
         $activityAggregate = [
             'prefix' => '/activities/{activityId}',
@@ -533,6 +533,8 @@ $router->group($personnelAggregate, function () use ($router) {
             $controller = "NotificationController";
             $router->get("", ["uses" => "$controller@showAll"]);
         });
+        
+        $router->get("/activities/{activityId}", ["uses" => "ActivityController@viewActivityDetail"]);
         
         $router->get("/mentor-evaluation-reports/summary", ["uses" => "MentorEvaluationReportController@summary"]);
         $router->get("/mentor-evaluation-reports/download-xls-summary", ["uses" => "MentorEvaluationReportController@downloadXlsSummary"]);

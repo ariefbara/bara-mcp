@@ -25,5 +25,10 @@
         <field name="cancelled" type="boolean" />
         <field name="createdTime" type="datetime_immutable" nullable="false"/>
         
+        <one-to-many  field="invitees" 
+                      target-entity="Query\Domain\Model\Firm\Program\Activity\Invitee"
+                      mapped-by="activity"
+        />
+        
     </entity>
 </doctrine-mapping>

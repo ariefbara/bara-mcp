@@ -3,13 +3,8 @@
 namespace Query\Domain\Model\Firm\Program;
 
 use DateTimeImmutable;
-use Query\Domain\Model\Firm\{
-    Manager\ManagerActivity,
-    Program,
-    Program\Consultant\ConsultantActivity,
-    Program\Coordinator\CoordinatorActivity,
-    Program\Participant\ParticipantActivity
-};
+use Doctrine\Common\Collections\ArrayCollection;
+use Query\Domain\Model\Firm\Program\Activity\Invitee;
 use Resources\Domain\ValueObject\DateTimeInterval;
 
 class Activity
@@ -69,6 +64,12 @@ class Activity
      */
     protected $createdTime;
 
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $invitees;
+
     function getActivityType(): ActivityType
     {
         return $this->activityType;
@@ -122,6 +123,17 @@ class Activity
     function getEndTimeString(): string
     {
         return $this->startEndTime->getEndTime()->format("Y-m-d H:i:s");
+    }
+
+    /**
+     * 
+     * @param Invitee $invitee
+     * @return Invitee[]
+     */
+    public function iterateActiveInviteeList()
+    {
+        $p = fn(Invitee $invitee) => !$invitee->isCancelled();
+        return $this->invitees->filter($p)->getIterator();
     }
 
 }

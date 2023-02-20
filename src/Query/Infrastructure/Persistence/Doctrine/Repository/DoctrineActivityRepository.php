@@ -5,16 +5,12 @@ namespace Query\Infrastructure\Persistence\Doctrine\Repository;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NoResultException;
 use Query\Application\Service\Firm\Program\ActivityRepository;
-use Query\Domain\Model\Firm\Manager\ManagerActivity;
 use Query\Domain\Model\Firm\Program\Activity;
-use Query\Domain\Model\Firm\Program\Consultant\ConsultantActivity;
-use Query\Domain\Model\Firm\Program\Coordinator\CoordinatorActivity;
-use Query\Domain\Model\Firm\Program\Participant\ParticipantActivity;
+use Query\Domain\Task\Dependency\Firm\Program\ActivityType\ActivityRepository as ActivityRepository2;
 use Query\Infrastructure\QueryFilter\ActivityFilter;
 use Resources\Exception\RegularException;
-use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
 
-class DoctrineActivityRepository extends EntityRepository implements ActivityRepository
+class DoctrineActivityRepository extends EntityRepository implements ActivityRepository, ActivityRepository2
 {
 
     public function anActivityInProgram(string $firmId, string $programId, string $activityId): Activity
@@ -78,7 +74,7 @@ class DoctrineActivityRepository extends EntityRepository implements ActivityRep
             "firmId" => $firmId,
             "programId" => $programId,
         ];
-        
+
         $statement = <<<_STATEMENT
 SELECT
     Activity.id,
@@ -127,7 +123,8 @@ WHERE Program.Firm_id = :firmId
     {$activityFilter->writeToSqlClause('Activity', $parameters)}
     {$activityFilter->writeCancelledStatusSqlClause('Activity', $parameters)}
     {$activityFilter->writeActivityTypeSqlClause('ActivityType', $parameters)}
-    {$activityFilter->writeInitiatorTypeSqlClause('ManagerInvitee.Manager_id', 'CoordinatorInvitee.Coordinator_id', 'ConsultantInvitee.Consultant_id', 'ParticipantInvitee.Participant_id', $parameters)}
+    {$activityFilter->writeInitiatorTypeSqlClause('ManagerInvitee.Manager_id', 'CoordinatorInvitee.Coordinator_id',
+                        'ConsultantInvitee.Consultant_id', 'ParticipantInvitee.Participant_id', $parameters)}
 {$activityFilter->writeOrderSqlClause('Activity')}
 LIMIT {$offset}, {$pageSize}
 _STATEMENT;
@@ -137,14 +134,14 @@ _STATEMENT;
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
-    
+
     public function totalCountOfAllActivitiesInProgram(string $firmId, string $programId, ActivityFilter $activityFilter): ?int
     {
         $parameters = [
             "firmId" => $firmId,
             "programId" => $programId,
         ];
-        
+
         $statement = <<<_STATEMENT
 SELECT COUNT(Activity.id) total
 FROM Activity
@@ -161,10 +158,35 @@ WHERE Program.Firm_id = :firmId
     {$activityFilter->writeToSqlClause('Activity', $parameters)}
     {$activityFilter->writeCancelledStatusSqlClause('Activity', $parameters)}
     {$activityFilter->writeActivityTypeSqlClause('ActivityType', $parameters)}
-    {$activityFilter->writeInitiatorTypeSqlClause('ManagerInvitee.Manager_id', 'CoordinatorInvitee.Coordinator_id', 'ConsultantInvitee.Consultant_id', 'ParticipantInvitee.Participant_id', $parameters)}
+    {$activityFilter->writeInitiatorTypeSqlClause('ManagerInvitee.Manager_id', 'CoordinatorInvitee.Coordinator_id',
+                        'ConsultantInvitee.Consultant_id', 'ParticipantInvitee.Participant_id', $parameters)}
 _STATEMENT;
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];
+    }
+
+    public function activityDetailInProgram(string $programId, string $id): Activity
+    {
+        $params = [
+            "programId" => $programId,
+            "activityId" => $id,
+        ];
+
+        $qb = $this->createQueryBuilder("activity");
+        $qb->select("activity")
+                ->andWhere($qb->expr()->eq("activity.id", ":activityId"))
+                ->leftJoin("activity.activityType", "activityType")
+                ->leftJoin("activityType.program", "program")
+                ->andWhere($qb->expr()->eq("program.id", ":programId"))
+                ->setParameters($params)
+                ->setMaxResults(1);
+
+        try {
+            return $qb->getQuery()->getSingleResult();
+        } catch (NoResultException $ex) {
+            $errorDetail = "not found: activity not found";
+            throw RegularException::notFound($errorDetail);
+        }
     }
 
 }

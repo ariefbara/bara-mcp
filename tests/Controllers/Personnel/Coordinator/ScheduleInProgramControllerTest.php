@@ -208,8 +208,8 @@ class ScheduleInProgramControllerTest extends ExtendedCoordinatorTestCase
         $this->participantInviteeOneC->insert($this->connection);
         //
         $this->get($this->uri, $this->coordinator->personnel->token);
-echo $this->uri;
-$this->seeJsonContains(['print']);
+//echo $this->uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewAll_200()
     {

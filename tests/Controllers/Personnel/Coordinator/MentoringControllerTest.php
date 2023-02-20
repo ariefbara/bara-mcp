@@ -340,14 +340,14 @@ $this->disableExceptionHandling();
         $this->mentoringRequestOne->insert($this->connection);
         
         $uri = $this->coordinatorUri . "/mentoring-requests/{$this->mentoringRequestOne->id}";
-echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewMentoringRequestDetail_200()
     {
         $this->viewMentoringRequestDetail();
         $this->seeStatusCode(200);
-//$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->mentoringRequestOne->id,
@@ -402,6 +402,8 @@ echo $uri;
         
         $uri = $this->coordinatorUri . "/negotiated-mentorings/{$this->negotiatedMentoringTwo->id}";
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewNegotiatedMentoringDetail_200()
     {
@@ -465,15 +467,15 @@ echo $uri;
         $this->bookedMentoringSlotThree->insert($this->connection);
         
         $uri = $this->coordinatorUri . "/booked-mentoring-slots/{$this->bookedMentoringSlotThree->id}";
-echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewBookedMentoringSlotDetail_200()
     {
 $this->disableExceptionHandling();
         $this->viewBookedMentoringSlotDetail();
         $this->seeStatusCode(200);
-//$this->seeJsonContains(['print']);
         
         $respose = [
             'id' => $this->bookedMentoringSlotThree->id,
@@ -533,8 +535,9 @@ $this->disableExceptionHandling();
         $this->declaredMentoringFour->insert($this->connection);
         
         $uri = $this->coordinatorUri . "/declared-mentorings/{$this->declaredMentoringFour->id}";
-echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewDeclaredMentoringDetail_200()
     {
@@ -600,15 +603,15 @@ $this->disableExceptionHandling();
         $this->bookedMentoringSlotThree->insert($this->connection);
         
         $uri = $this->coordinatorUri . "/mentoring-slots/{$this->bookedMentoringSlotThree->mentoringSlot->id}";
-echo $uri;
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_viewMentoringSlotDetail_200()
     {
 $this->disableExceptionHandling();
         $this->viewMentoringSlotDetail();
         $this->seeStatusCode(200);
-//$this->seeJsonContains(['print']);
         
         $response = [
             'id' => $this->mentoringSlotThree->id,
