@@ -296,48 +296,48 @@ class ProgramDashboardControllerTest extends ExtendedCoordinatorTestCase
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-        $this->connection->table('Client')->truncate();
-        $this->connection->table('Team')->truncate();
-        $this->connection->table('User')->truncate();
-        //
-        $this->connection->table('Registrant')->truncate();
-        $this->connection->table('ClientRegistrant')->truncate();
-        $this->connection->table('TeamRegistrant')->truncate();
-        $this->connection->table('UserRegistrant')->truncate();
-        //
-        $this->connection->table('Participant')->truncate();
-        $this->connection->table('ClientParticipant')->truncate();
-        $this->connection->table('TeamParticipant')->truncate();
-        $this->connection->table('UserParticipant')->truncate();
-        //
-        $this->connection->table('Mission')->truncate();
-        $this->connection->table('CompletedMission')->truncate();
-        //
-        $this->connection->table('Metric')->truncate();
-        $this->connection->table('MetricAssignment')->truncate();
-        $this->connection->table('AssignmentField')->truncate();
-        $this->connection->table('MetricAssignmentReport')->truncate();
-        $this->connection->table('AssignmentFieldValue')->truncate();
-        //
-        $this->connection->table('Consultant')->truncate();
-        
-        $this->connection->table('Form')->truncate();
-        $this->connection->table('FormRecord')->truncate();
-        $this->connection->table('Worksheet')->truncate();
-        
-        $this->connection->table('Comment')->truncate();
-        $this->connection->table('ConsultantComment')->truncate();
-        $this->connection->table('MissionComment')->truncate();
-        //
-        $this->connection->table('Mentoring')->truncate();
-        $this->connection->table('MentoringRequest')->truncate();
-        $this->connection->table('NegotiatedMentoring')->truncate();
-        $this->connection->table('MentoringSlot')->truncate();
-        $this->connection->table('BookedMentoringSlot')->truncate();
-        $this->connection->table('DeclaredMentoring')->truncate();
-        $this->connection->table('ParticipantReport')->truncate();
-        $this->connection->table('MentorReport')->truncate();
+//        parent::tearDown();
+//        $this->connection->table('Client')->truncate();
+//        $this->connection->table('Team')->truncate();
+//        $this->connection->table('User')->truncate();
+//        //
+//        $this->connection->table('Registrant')->truncate();
+//        $this->connection->table('ClientRegistrant')->truncate();
+//        $this->connection->table('TeamRegistrant')->truncate();
+//        $this->connection->table('UserRegistrant')->truncate();
+//        //
+//        $this->connection->table('Participant')->truncate();
+//        $this->connection->table('ClientParticipant')->truncate();
+//        $this->connection->table('TeamParticipant')->truncate();
+//        $this->connection->table('UserParticipant')->truncate();
+//        //
+//        $this->connection->table('Mission')->truncate();
+//        $this->connection->table('CompletedMission')->truncate();
+//        //
+//        $this->connection->table('Metric')->truncate();
+//        $this->connection->table('MetricAssignment')->truncate();
+//        $this->connection->table('AssignmentField')->truncate();
+//        $this->connection->table('MetricAssignmentReport')->truncate();
+//        $this->connection->table('AssignmentFieldValue')->truncate();
+//        //
+//        $this->connection->table('Consultant')->truncate();
+//        
+//        $this->connection->table('Form')->truncate();
+//        $this->connection->table('FormRecord')->truncate();
+//        $this->connection->table('Worksheet')->truncate();
+//        
+//        $this->connection->table('Comment')->truncate();
+//        $this->connection->table('ConsultantComment')->truncate();
+//        $this->connection->table('MissionComment')->truncate();
+//        //
+//        $this->connection->table('Mentoring')->truncate();
+//        $this->connection->table('MentoringRequest')->truncate();
+//        $this->connection->table('NegotiatedMentoring')->truncate();
+//        $this->connection->table('MentoringSlot')->truncate();
+//        $this->connection->table('BookedMentoringSlot')->truncate();
+//        $this->connection->table('DeclaredMentoring')->truncate();
+//        $this->connection->table('ParticipantReport')->truncate();
+//        $this->connection->table('MentorReport')->truncate();
     }
     
     //
@@ -425,8 +425,8 @@ class ProgramDashboardControllerTest extends ExtendedCoordinatorTestCase
         $this->mentorReportTwoA->insert($this->connection);
         
         $this->get($this->uri, $this->coordinator->personnel->token);
-echo $this->uri;
-$this->seeJsonContains(['print']);
+//echo $this->uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_view_200()
     {

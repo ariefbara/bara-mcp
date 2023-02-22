@@ -354,7 +354,8 @@ FROM Consultant
     )_b ON _b.consultantId = Consultant.id
     LEFT JOIN (
         SELECT COUNT(MissionComment.id) missionDiscussionCount,
-            MissionComment.rolePaths->>'$.mentor' consultantId
+            JSON_UNQUOTE(JSON_EXTRACT(MissionComment.rolePaths ,'$.mentor')) consultantId
+            -- MissionComment.rolePaths->>'$.mentor' consultantId
         FROM MissionComment
         GROUP BY consultantId
     )_c ON _c.consultantId = Consultant.id
