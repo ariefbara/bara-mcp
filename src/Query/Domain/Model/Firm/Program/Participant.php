@@ -108,6 +108,12 @@ class Participant extends EntityContainEvents
      * @var ArrayCollection
      */
     protected $completedMissions;
+    
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $dedicatedMentors;
 
     public function getProgram(): Program
     {
@@ -163,6 +169,17 @@ class Participant extends EntityContainEvents
         $criteria = Criteria::create()
                 ->andWhere(Criteria::expr()->eq('removed', false));
         return $this->participantProfiles->matching($criteria)->getIterator();
+    }
+    
+    /**
+     * 
+     * @return DedicatedMentor[]
+     */
+    public function iterateActiveDedicatedMentors()
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('cancelled', false));
+        return $this->dedicatedMentors->matching($criteria)->getIterator();
     }
 
     public function getLastCompletedMission(): ?CompletedMission

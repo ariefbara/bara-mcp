@@ -7,14 +7,17 @@ use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport\RecordOfAssignmentFieldValue;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfAssignmentField;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\MetricAssignment\RecordOfMetricAssignmentReport;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfDedicatedMentor;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfMetricAssignment;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfParticipantProfile;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\Worksheet\RecordOfCompletedMission;
+use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfConsultant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMetric;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfMission;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfProgramsProfileForm;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfClient;
+use Tests\Controllers\RecordPreparation\Firm\RecordOfPersonnel;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProfileForm;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfTeam;
@@ -53,6 +56,9 @@ class ParticipantControllerTest extends ExtendedCoordinatorTestCase
     protected $assignmentFieldValueTwo_mar1af2;
     protected $assignmentFieldValueThree_mar2af1;
     protected $assignmentFieldValueFour_mar2af2;
+    
+    protected $dedicatedMentorOne;
+    protected $dedicatedMentorTwo;
 
     protected function setUp(): void
     {
@@ -60,13 +66,16 @@ class ParticipantControllerTest extends ExtendedCoordinatorTestCase
         $this->connection->table('Client')->truncate();
         $this->connection->table('Team')->truncate();
         $this->connection->table('T_Member')->truncate();
+        //
         $this->connection->table('User')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
         $this->connection->table('UserParticipant')->truncate();
+        //
         $this->connection->table('Mission')->truncate();
         $this->connection->table('CompletedMission')->truncate();
+        //
         $this->connection->table('Form')->truncate();
         $this->connection->table('ProfileForm')->truncate();
         $this->connection->table('ProgramsProfileForm')->truncate();
@@ -77,6 +86,9 @@ class ParticipantControllerTest extends ExtendedCoordinatorTestCase
         $this->connection->table('AssignmentField')->truncate();
         $this->connection->table('MetricAssignmentReport')->truncate();
         $this->connection->table('AssignmentFieldValue')->truncate();
+        //
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
         
         $firm = $this->personnel->firm;
         $program = $this->coordinator->program;
@@ -145,7 +157,15 @@ class ParticipantControllerTest extends ExtendedCoordinatorTestCase
         $this->assignmentFieldValueTwo_mar1af2 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportOne, $this->assignmentFieldTwo, 2);
         $this->assignmentFieldValueThree_mar2af1 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportTwo_last, $this->assignmentFieldOne, 3);
         $this->assignmentFieldValueFour_mar2af2 = new RecordOfAssignmentFieldValue($this->metricAssignmentReportTwo_last, $this->assignmentFieldTwo, 4);
+        //
+        $personnelOne = new RecordOfPersonnel($firm, 1);
+        $personnelTwo = new RecordOfPersonnel($firm, 2);
         
+        $consultantOne = new RecordOfConsultant($program, $personnelOne, 1);
+        $consultantTwo = new RecordOfConsultant($program, $personnelTwo, 2);
+        
+        $this->dedicatedMentorOne = new RecordOfDedicatedMentor($participantOne, $consultantOne, 1);
+        $this->dedicatedMentorTwo = new RecordOfDedicatedMentor($participantOne, $consultantTwo, 2);
     }
     protected function tearDown(): void
     {
@@ -153,13 +173,16 @@ class ParticipantControllerTest extends ExtendedCoordinatorTestCase
         $this->connection->table('Client')->truncate();
         $this->connection->table('Team')->truncate();
         $this->connection->table('T_Member')->truncate();
+        //
         $this->connection->table('User')->truncate();
         $this->connection->table('Participant')->truncate();
         $this->connection->table('ClientParticipant')->truncate();
         $this->connection->table('TeamParticipant')->truncate();
         $this->connection->table('UserParticipant')->truncate();
+        //
         $this->connection->table('Mission')->truncate();
         $this->connection->table('CompletedMission')->truncate();
+        //
         $this->connection->table('Form')->truncate();
         $this->connection->table('ProfileForm')->truncate();
         $this->connection->table('ProgramsProfileForm')->truncate();
@@ -170,6 +193,9 @@ class ParticipantControllerTest extends ExtendedCoordinatorTestCase
         $this->connection->table('AssignmentField')->truncate();
         $this->connection->table('MetricAssignmentReport')->truncate();
         $this->connection->table('AssignmentFieldValue')->truncate();
+        //
+        $this->connection->table('Consultant')->truncate();
+        $this->connection->table('DedicatedMentor')->truncate();
     }
     
     protected function persistSharedDependency()
@@ -205,6 +231,15 @@ class ParticipantControllerTest extends ExtendedCoordinatorTestCase
         $this->assignmentFieldValueTwo_mar1af2->insert($this->connection);
         $this->assignmentFieldValueThree_mar2af1->insert($this->connection);
         $this->assignmentFieldValueFour_mar2af2->insert($this->connection);
+        //
+        $this->dedicatedMentorOne->consultant->personnel->insert($this->connection);
+        $this->dedicatedMentorTwo->consultant->personnel->insert($this->connection);
+        
+        $this->dedicatedMentorOne->consultant->insert($this->connection);
+        $this->dedicatedMentorTwo->consultant->insert($this->connection);
+        
+        $this->dedicatedMentorOne->insert($this->connection);
+        $this->dedicatedMentorTwo->insert($this->connection);
     }
     
     protected function viewClientParticipantDetail()
@@ -295,6 +330,32 @@ $this->disableExceptionHandling();
                     'profileForm' => [
                         'id' => $this->participantProfileTwo->programsProfileForm->id,
                         'name' => $this->participantProfileTwo->programsProfileForm->profileForm->form->name,
+                    ],
+                ],
+            ],
+            'dedicatedMentors' => [
+                [
+                    'id' => $this->dedicatedMentorOne->id,
+                    'modifiedTime' => $this->dedicatedMentorOne->modifiedTime,
+                    'consultant' => [
+                        'id' => $this->dedicatedMentorOne->consultant->id,
+                        'personnel' => [
+                            'id' => $this->dedicatedMentorOne->consultant->personnel->id,
+                            'name' => $this->dedicatedMentorOne->consultant->personnel->getFullName(),
+                            'bio' => $this->dedicatedMentorOne->consultant->personnel->bio,
+                        ],
+                    ],
+                ],
+                [
+                    'id' => $this->dedicatedMentorTwo->id,
+                    'modifiedTime' => $this->dedicatedMentorTwo->modifiedTime,
+                    'consultant' => [
+                        'id' => $this->dedicatedMentorTwo->consultant->id,
+                        'personnel' => [
+                            'id' => $this->dedicatedMentorTwo->consultant->personnel->id,
+                            'name' => $this->dedicatedMentorTwo->consultant->personnel->getFullName(),
+                            'bio' => $this->dedicatedMentorTwo->consultant->personnel->bio,
+                        ],
                     ],
                 ],
             ],
@@ -439,6 +500,32 @@ $this->disableExceptionHandling();
                     ],
                 ],
             ],
+            'dedicatedMentors' => [
+                [
+                    'id' => $this->dedicatedMentorOne->id,
+                    'modifiedTime' => $this->dedicatedMentorOne->modifiedTime,
+                    'consultant' => [
+                        'id' => $this->dedicatedMentorOne->consultant->id,
+                        'personnel' => [
+                            'id' => $this->dedicatedMentorOne->consultant->personnel->id,
+                            'name' => $this->dedicatedMentorOne->consultant->personnel->getFullName(),
+                            'bio' => $this->dedicatedMentorOne->consultant->personnel->bio,
+                        ],
+                    ],
+                ],
+                [
+                    'id' => $this->dedicatedMentorTwo->id,
+                    'modifiedTime' => $this->dedicatedMentorTwo->modifiedTime,
+                    'consultant' => [
+                        'id' => $this->dedicatedMentorTwo->consultant->id,
+                        'personnel' => [
+                            'id' => $this->dedicatedMentorTwo->consultant->personnel->id,
+                            'name' => $this->dedicatedMentorTwo->consultant->personnel->getFullName(),
+                            'bio' => $this->dedicatedMentorTwo->consultant->personnel->bio,
+                        ],
+                    ],
+                ],
+            ],
         ];
         $this->seeJsonContains($response);
     }
@@ -547,6 +634,32 @@ $this->disableExceptionHandling();
                     'profileForm' => [
                         'id' => $this->participantProfileTwo->programsProfileForm->id,
                         'name' => $this->participantProfileTwo->programsProfileForm->profileForm->form->name,
+                    ],
+                ],
+            ],
+            'dedicatedMentors' => [
+                [
+                    'id' => $this->dedicatedMentorOne->id,
+                    'modifiedTime' => $this->dedicatedMentorOne->modifiedTime,
+                    'consultant' => [
+                        'id' => $this->dedicatedMentorOne->consultant->id,
+                        'personnel' => [
+                            'id' => $this->dedicatedMentorOne->consultant->personnel->id,
+                            'name' => $this->dedicatedMentorOne->consultant->personnel->getFullName(),
+                            'bio' => $this->dedicatedMentorOne->consultant->personnel->bio,
+                        ],
+                    ],
+                ],
+                [
+                    'id' => $this->dedicatedMentorTwo->id,
+                    'modifiedTime' => $this->dedicatedMentorTwo->modifiedTime,
+                    'consultant' => [
+                        'id' => $this->dedicatedMentorTwo->consultant->id,
+                        'personnel' => [
+                            'id' => $this->dedicatedMentorTwo->consultant->personnel->id,
+                            'name' => $this->dedicatedMentorTwo->consultant->personnel->getFullName(),
+                            'bio' => $this->dedicatedMentorTwo->consultant->personnel->bio,
+                        ],
                     ],
                 ],
             ],

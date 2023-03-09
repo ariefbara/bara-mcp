@@ -58,6 +58,11 @@ class ClientParticipant implements ContainEvents
         return $this->id;
     }
 
+    public function getParticipant(): Participant
+    {
+        return $this->participant;
+    }
+
     protected function __construct()
     {
         ;
@@ -211,7 +216,7 @@ class ClientParticipant implements ContainEvents
     {
         $this->participant->executeTaskInProgram($task);
     }
-    
+
     public function executeQueryTask(ParticipantQueryTask $task, $payload): void
     {
         $this->participant->executeQueryTask($task, $payload);

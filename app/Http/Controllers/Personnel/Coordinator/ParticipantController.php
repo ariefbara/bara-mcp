@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Personnel\Coordinator;
 
 use Query\Domain\Model\Firm\Client\ClientParticipant;
+use Query\Domain\Model\Firm\Program\Participant;
 use Query\Domain\Model\Firm\Program\Participant\CompletedMission;
+use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\AssignmentField;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment\MetricAssignmentReport;
@@ -18,7 +20,7 @@ use Query\Domain\Task\InProgram\ViewUserParticipantDetail;
 
 class ParticipantController extends CoordinatorBaseController
 {
-
+    
     public function viewTeamParticipantDetail($coordinatorId, $id)
     {
         $teamParticipantRepository = $this->em->getRepository(TeamProgramParticipation::class);
@@ -40,25 +42,15 @@ class ParticipantController extends CoordinatorBaseController
                 ],
             ];
         }
-
-        $profiles = [];
-        foreach ($teamParticipant->iterateActiveParticipantProfiles() as $profile) {
-            $profiles[] = $this->detailOfParticipantProfile($profile);
-        }
         
-        return [
+        return array_merge($this->detailOfParticipant($teamParticipant->getProgramParticipation()), [
             'id' => $teamParticipant->getId(),
             'team' => [
                 'id' => $teamParticipant->getTeam()->getId(),
                 'name' => $teamParticipant->getTeam()->getName(),
                 'members' => $teamMembers
             ],
-            'completedMissionCount' => $teamParticipant->getCompletedMissionCount(),
-            'activeMissionCount' => $teamParticipant->getActiveMissionCount(),
-            'lastCompletedMission' => $this->detailOfLastCompletedMission($teamParticipant->getLastCompletedMission()),
-            'metricAssignment' => $this->detailOfMetricAssignment($teamParticipant->getMetricAssignment()),
-            'profiles' => $profiles,
-        ];
+        ]);
     }
 
     public function viewClientParticipantDetail($coordinatorId, $id)
@@ -72,23 +64,13 @@ class ParticipantController extends CoordinatorBaseController
     }
     protected function detailOfClientParticipant(ClientParticipant $clientParticipant): array
     {
-        $profiles = [];
-        foreach ($clientParticipant->iterateActiveParticipantProfiles() as $profile) {
-            $profiles[] = $this->detailOfParticipantProfile($profile);
-        }
-        
-        return [
+        return array_merge($this->detailOfParticipant($clientParticipant->getParticipant()), [
             'id' => $clientParticipant->getId(),
             'client' => [
                 'id' => $clientParticipant->getClient()->getId(),
                 'name' => $clientParticipant->getClient()->getFullName(),
             ],
-            'completedMissionCount' => $clientParticipant->getCompletedMissionCount(),
-            'activeMissionCount' => $clientParticipant->getActiveMissionCount(),
-            'lastCompletedMission' => $this->detailOfLastCompletedMission($clientParticipant->getLastCompletedMission()),
-            'metricAssignment' => $this->detailOfMetricAssignment($clientParticipant->getMetricAssignment()),
-            'profiles' => $profiles,
-        ];
+        ]);
     }
 
     public function viewUserParticipantDetail($coordinatorId, $id)
@@ -102,25 +84,37 @@ class ParticipantController extends CoordinatorBaseController
     }
     protected function detailOfUserParticipant(UserParticipant $userParticipant): array
     {
-        $profiles = [];
-        foreach ($userParticipant->iterateActiveParticipantProfiles() as $profile) {
-            $profiles[] = $this->detailOfParticipantProfile($profile);
-        }
-        
-        return [
+        return array_merge($this->detailOfParticipant($userParticipant->getParticipant()), [
             'id' => $userParticipant->getId(),
             'user' => [
                 'id' => $userParticipant->getUser()->getId(),
                 'name' => $userParticipant->getUser()->getFullName(),
             ],
-            'completedMissionCount' => $userParticipant->getCompletedMissionCount(),
-            'activeMissionCount' => $userParticipant->getActiveMissionCount(),
-            'lastCompletedMission' => $this->detailOfLastCompletedMission($userParticipant->getLastCompletedMission()),
-            'profiles' => $profiles,
-            'metricAssignment' => $this->detailOfMetricAssignment($userParticipant->getMetricAssignment()),
-        ];
+        ]);
     }
 
+    protected function detailOfParticipant(Participant $participant): array
+    {
+        $profiles = [];
+        foreach ($participant->iterateActiveParticipantProfiles() as $profile) {
+            $profiles[] = $this->detailOfParticipantProfile($profile);
+        }
+        //
+        $dedicatedMentors = [];
+        foreach ($participant->iterateActiveDedicatedMentors() as $dedicatedMentor) {
+            $dedicatedMentors[] = $this->detailOfDedicatedMentor($dedicatedMentor);
+        }
+        
+        return [
+            'completedMissionCount' => $participant->getCompletedMissionCount(),
+            'activeMissionCount' => $participant->getActiveMissionCount(),
+            'lastCompletedMission' => $this->detailOfLastCompletedMission($participant->getLastCompletedMission()),
+            'metricAssignment' => $this->detailOfMetricAssignment($participant->getMetricAssignment()),
+            'profiles' => $profiles,
+            'dedicatedMentors' => $dedicatedMentors,
+        ];
+    }
+    //
     protected function detailOfParticipantProfile(ParticipantProfile $profile): ?array
     {
         return [
@@ -129,6 +123,21 @@ class ParticipantController extends CoordinatorBaseController
             'profileForm' => [
                 'id' => $profile->getProgramsProfileForm()->getId(),
                 'name' => $profile->getProgramsProfileForm()->getProfileForm()->getName(),
+            ],
+        ];
+    }
+    protected function detailOfDedicatedMentor(DedicatedMentor $dedicatedMentor): array
+    {
+        return [
+            'id' => $dedicatedMentor->getId(),
+            'modifiedTime' => $dedicatedMentor->getModifiedTimeString(),
+            'consultant' => [
+                'id' => $dedicatedMentor->getConsultant()->getId(),
+                'personnel' => [
+                    'id' => $dedicatedMentor->getConsultant()->getPersonnel()->getId(),
+                    'name' => $dedicatedMentor->getConsultant()->getPersonnel()->getName(),
+                    'bio' => $dedicatedMentor->getConsultant()->getPersonnel()->getBio(),
+                ],
             ],
         ];
     }
