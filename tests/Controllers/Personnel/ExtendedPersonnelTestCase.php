@@ -14,6 +14,11 @@ class ExtendedPersonnelTestCase extends ControllerTestCase
      * @var RecordOfPersonnel
      */
     protected $personnel;
+    /**
+     * 
+     * @var RecordOfPersonnel
+     */
+    protected $otherPersonnel;
     protected $personnelUri;
 
     protected function setUp(): void
@@ -23,8 +28,9 @@ class ExtendedPersonnelTestCase extends ControllerTestCase
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Personnel')->truncate();
         
-        $firm = new RecordOfFirm(99);
-        $this->personnel = new RecordOfPersonnel($firm, 99);
+        $firm = new RecordOfFirm('main');
+        $this->personnel = new RecordOfPersonnel($firm, 'main');
+        $this->otherPersonnel = new RecordOfPersonnel($firm, 'other');
         
         $this->personnelUri = "/api/personnel";
     }

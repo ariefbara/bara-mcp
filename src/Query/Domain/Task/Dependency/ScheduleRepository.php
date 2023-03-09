@@ -10,4 +10,6 @@ interface ScheduleRepository
     public function allScheduleBelongsToParticipant(string $participantId, ScheduleFilter $filter): array;
     
     public function allScheduleInProgram(string $programId, ScheduleFilter $filter): array ;
+    
+    public function allScheduleBelongsToPersonnel(string $personnelId, ScheduleFilter $filter): array;
 }

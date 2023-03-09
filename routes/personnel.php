@@ -126,6 +126,9 @@ $router->group($personnelAggregate, function () use ($router) {
     $router->get('/mission-list-in-coordinated-program', ['uses' => "MissionController@missionListInCoordinatedProgram"]);
     $router->get('/mission-list-in-consulted-program', ['uses' => "MissionController@missionListInConsultedProgram"]);
     
+    //schedule route in personnel BC
+    $router->get('/schedules', ['uses' => "ScheduleController@showAll"]);
+    
     $router->group(['prefix' => '/profile'], function () use($router) {
         $controller = "AccountController";
         $router->patch("/update", ["uses" => "AccountController@updateProfile"]);
