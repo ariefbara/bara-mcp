@@ -9,9 +9,10 @@ use Query\Application\Service\Personnel\RegistrantRepository as InterfaceForPers
 use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Registrant;
 use Query\Domain\Task\Dependency\Firm\Program\RegistrantRepository as RegistrantRepository2;
-use Query\Domain\Task\Dependency\PaginationFilter;
 use Resources\Exception\RegularException;
 use Resources\Infrastructure\Persistence\Doctrine\PaginatorBuilder;
+use Resources\OffsetLimit;
+use Resources\SearchFilter;
 use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class DoctrineRegistrantRepository extends EntityRepository implements RegistrantRepository, InterfaceForPersonnel, RegistrantRepository2
@@ -143,9 +144,9 @@ class DoctrineRegistrantRepository extends EntityRepository implements Registran
         }
     }
 
-    public function allNewRegistrantManageableByPersonnel(string $personnelId, PaginationFilter $pagination)
+    public function allNewRegistrantManageableByPersonnel(
+            string $personnelId, SearchFilter $searchFilter, OffsetLimit $offsetLimit)
     {
-        $offset = $pagination->getPageSize() * ($pagination->getPage() - 1);
         $registeredStatus = RegistrationStatus::REGISTERED;
 
         $parameters = [
@@ -184,17 +185,18 @@ LEFT JOIN (
         LEFT JOIN Team ON Team.id = TeamRegistrant.Team_id
 )_d ON _d.registrantId = Registrant.id
 WHERE Registrant.status = $registeredStatus
-ORDER BY Registrant.registeredTime ASC
-LIMIT {$offset}, {$pagination->getPageSize()}
+    {$searchFilter->getEvaluationStatement($parameters)}
+{$offsetLimit->geOrderStatement()}
+{$offsetLimit->geLimitStatement()}
 _STATEMENT;
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
         return [
-            'total' => $this->countOfAllNewRegistrantManageableByPersonnel($personnelId, $pagination),
+            'total' => $this->countOfAllNewRegistrantManageableByPersonnel($personnelId, $searchFilter),
             'list' => $query->executeQuery($parameters)->fetchAllAssociative(),
         ];
     }
 
-    public function countOfAllNewRegistrantManageableByPersonnel(string $personnelId, PaginationFilter $pagination)
+    public function countOfAllNewRegistrantManageableByPersonnel(string $personnelId, SearchFilter $searchFilter)
     {
         $registeredStatus = RegistrationStatus::REGISTERED;
 
@@ -211,6 +213,7 @@ INNER JOIN (
         AND Coordinator.Personnel_id = :personnelId
 )_a ON _a.programId = Registrant.Program_id
 WHERE Registrant.status = $registeredStatus
+    {$searchFilter->getEvaluationStatement($parameters)}
 _STATEMENT;
         $query = $this->getEntityManager()->getConnection()->prepare($statement);
         return $query->executeQuery($parameters)->fetchFirstColumn()[0];

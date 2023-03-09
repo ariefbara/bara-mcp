@@ -26,8 +26,8 @@ class ViewAllNewProgramApplicant implements PersonnelTask
      */
     public function execute(string $personnelId, $payload): void
     {
-        $payload->result = $this->registrantRepository
-                ->allNewRegistrantManageableByPersonnel($personnelId, $payload->getPaginationFilter());
+        $payload->result = $this->registrantRepository->allNewRegistrantManageableByPersonnel(
+                $personnelId, $payload->getSearchFilter(), $payload->getOffsetLimit());
     }
 
 }

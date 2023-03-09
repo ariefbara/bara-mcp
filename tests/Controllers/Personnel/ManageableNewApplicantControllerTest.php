@@ -15,6 +15,8 @@ use Tests\Controllers\RecordPreparation\User\RecordOfUserRegistrant;
 
 class ManageableNewApplicantControllerTest extends AggregatedCoordinatorInPersonnelContextTestCase
 {
+    protected $programOne;
+    protected $programTwo;
     protected $clientRegistrantOne_p1;
     protected $teamRegistrantTwo_p2;
     protected $userRegistrantThree_p1;
@@ -35,8 +37,8 @@ class ManageableNewApplicantControllerTest extends AggregatedCoordinatorInPerson
         
         $firm = $this->personnel->firm;
         
-        $programOne = $this->coordinatorOne->program;
-        $programTwo = $this->coordinatorTwo->program;
+        $this->programOne = $this->coordinatorOne->program;
+        $this->programTwo = $this->coordinatorTwo->program;
         
         $clientOne = new RecordOfClient($firm, 1);
         
@@ -44,9 +46,9 @@ class ManageableNewApplicantControllerTest extends AggregatedCoordinatorInPerson
         
         $userOne = new RecordOfUser(1);
         
-        $registrantOne = new RecordOfRegistrant($programOne, 1);
-        $registrantTwo = new RecordOfRegistrant($programTwo, 2);
-        $registrantThree = new RecordOfRegistrant($programOne, 3);
+        $registrantOne = new RecordOfRegistrant($this->programOne, 1);
+        $registrantTwo = new RecordOfRegistrant($this->programTwo, 2);
+        $registrantThree = new RecordOfRegistrant($this->programOne, 3);
         
         $this->clientRegistrantOne_p1 = new RecordOfClientRegistrant($clientOne, $registrantOne);
         $this->teamRegistrantTwo_p2 = new RecordOfTeamProgramRegistration($teamOne, $registrantTwo);
@@ -165,6 +167,17 @@ $this->disableExceptionHandling();
         $this->seeStatusCode(200);
         
         $this->seeJsonContains(['total' => '3']);
+        $this->seeJsonDoesntContains(['id' => $this->clientRegistrantOne_p1->id]);
+        $this->seeJsonContains(['id' => $this->teamRegistrantTwo_p2->id]);
+        $this->seeJsonDoesntContains(['id' => $this->userRegistrantThree_p1->id]);
+    }
+    public function test_viewAll_programFilter()
+    {
+        $this->viewAllUri .= "?programId={$this->coordinatorTwo->program->id}";
+        $this->viewAll();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '1']);
         $this->seeJsonDoesntContains(['id' => $this->clientRegistrantOne_p1->id]);
         $this->seeJsonContains(['id' => $this->teamRegistrantTwo_p2->id]);
         $this->seeJsonDoesntContains(['id' => $this->userRegistrantThree_p1->id]);

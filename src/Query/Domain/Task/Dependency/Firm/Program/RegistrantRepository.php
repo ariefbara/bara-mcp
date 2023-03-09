@@ -3,12 +3,14 @@
 namespace Query\Domain\Task\Dependency\Firm\Program;
 
 use Query\Domain\Model\Firm\Program\Registrant;
-use Query\Domain\Task\Dependency\PaginationFilter;
+use Resources\OffsetLimit;
+use Resources\SearchFilter;
 
 interface RegistrantRepository
 {
 
-    public function allNewRegistrantManageableByPersonnel(string $personnelId, PaginationFilter $pagination);
+    public function allNewRegistrantManageableByPersonnel(
+            string $personnelId, SearchFilter $searchFilter, OffsetLimit $offsetLimit);
 
     public function aRegistrantInProgram(string $programId, string $id): Registrant;
 }

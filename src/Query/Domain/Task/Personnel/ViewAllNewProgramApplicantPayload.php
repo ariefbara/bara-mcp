@@ -2,26 +2,45 @@
 
 namespace Query\Domain\Task\Personnel;
 
-use Query\Domain\Task\Dependency\PaginationFilter;
+use Resources\OffsetLimit;
+use Resources\SearchFilter;
 
 class ViewAllNewProgramApplicantPayload
 {
 
     /**
      * 
-     * @var PaginationFilter
+     * @var SearchFilter
      */
-    protected $paginationFilter;
+    protected $searchFilter;
+
+    /**
+     * 
+     * @var OffsetLimit
+     */
+    protected $offsetLimit;
     public $result;
 
-    public function getPaginationFilter(): PaginationFilter
+    public function getSearchFilter(): SearchFilter
     {
-        return $this->paginationFilter;
+        return $this->searchFilter;
     }
 
-    public function __construct(PaginationFilter $paginationFilter)
+    public function getOffsetLimit(): OffsetLimit
     {
-        $this->paginationFilter = $paginationFilter;
+        return $this->offsetLimit;
+    }
+
+    public function setSearchFilter(SearchFilter $searchFilter)
+    {
+        $this->searchFilter = $searchFilter;
+        return $this;
+    }
+
+    public function setOffsetLimit(OffsetLimit $offsetLimit)
+    {
+        $this->offsetLimit = $offsetLimit;
+        return $this;
     }
 
 }
