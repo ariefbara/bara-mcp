@@ -56,6 +56,7 @@ class ProgramsProfileFormControllerTest extends AsProgramRegistrantTestCase
                 "id" => $this->programsProfileFormOne->profileForm->id,
                 "name" => $this->programsProfileFormOne->profileForm->form->name,
                 "description" => $this->programsProfileFormOne->profileForm->form->description,
+                "sections" => [],
                 "stringFields" => [],
                 "integerFields" => [],
                 "textAreaFields" => [],
@@ -80,6 +81,7 @@ class ProgramsProfileFormControllerTest extends AsProgramRegistrantTestCase
     
     public function test_showAll_200()
     {
+$this->disableExceptionHandling();
         $response = [
             "total" => 1,
             "list" => [

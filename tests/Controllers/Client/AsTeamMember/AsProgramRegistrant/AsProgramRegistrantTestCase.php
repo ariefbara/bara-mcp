@@ -2,6 +2,7 @@
 
 namespace Tests\Controllers\Client\AsTeamMember\AsProgramRegistrant;
 
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 use Tests\Controllers\Client\AsTeamMember\AsTeamMemberTestCase;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfRegistrant;
 use Tests\Controllers\RecordPreparation\Firm\RecordOfProgram;
@@ -49,7 +50,7 @@ class AsProgramRegistrantTestCase extends AsTeamMemberTestCase
     
     protected function setRegistrationConcluded()
     {
-        $this->programRegistration->registrant->concluded = true;
+        $this->programRegistration->registrant->status = RegistrationStatus::REJECTED;
         $this->connection->table("Registrant")->truncate();
         $this->connection->table("Registrant")->insert($this->programRegistration->registrant->toArrayForDbEntry());
     }
