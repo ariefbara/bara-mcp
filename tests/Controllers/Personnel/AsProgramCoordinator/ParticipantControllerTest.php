@@ -276,6 +276,8 @@ echo $uri;
         $this->memberTwo->insert($this->connection);
 
         $this->get($this->participantUri, $this->coordinator->personnel->token);
+//echo $this->participantUri;
+//$this->seeJsonContains(['print']);
     }
     public function test_showAll()
     {

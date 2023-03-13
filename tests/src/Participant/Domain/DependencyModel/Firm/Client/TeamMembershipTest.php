@@ -122,26 +122,26 @@ class TeamMembershipTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
 
-    protected function executeRegisterTeamToProgram()
-    {
-        return $this->teamMembership->registerTeamToProgram($this->teamProgramRegistrationId, $this->program);
-    }
-    public function test_registerTeamToProgram_returnTeamsRegisterToProgramResult()
-    {
-        $this->team->expects($this->once())
-                ->method("registerToProgram")
-                ->with($this->teamProgramRegistrationId, $this->program)
-                ->willReturn($this->teamProgramRegistration);
-        $this->assertEquals($this->teamProgramRegistration, $this->executeRegisterTeamToProgram());
-    }
-    public function test_registerTeamToProgram_inactiveMember_forbiddenError()
-    {
-        $this->teamMembership->active = false;
-        $operation = function () {
-            $this->executeRegisterTeamToProgram();
-        };
-        $this->assertInactiveTeamMembershipForbiddenError($operation);
-    }
+//    protected function executeRegisterTeamToProgram()
+//    {
+//        return $this->teamMembership->registerTeamToProgram($this->teamProgramRegistrationId, $this->program);
+//    }
+//    public function test_registerTeamToProgram_returnTeamsRegisterToProgramResult()
+//    {
+//        $this->team->expects($this->once())
+//                ->method("registerToProgram")
+//                ->with($this->teamProgramRegistrationId, $this->program)
+//                ->willReturn($this->teamProgramRegistration);
+//        $this->assertEquals($this->teamProgramRegistration, $this->executeRegisterTeamToProgram());
+//    }
+//    public function test_registerTeamToProgram_inactiveMember_forbiddenError()
+//    {
+//        $this->teamMembership->active = false;
+//        $operation = function () {
+//            $this->executeRegisterTeamToProgram();
+//        };
+//        $this->assertInactiveTeamMembershipForbiddenError($operation);
+//    }
 
     protected function executeCancelTeamProgramRegistration()
     {

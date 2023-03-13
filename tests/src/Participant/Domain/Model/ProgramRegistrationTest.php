@@ -6,27 +6,35 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Participant\Domain\DependencyModel\Firm\Program;
 use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\Model\Registrant\RegistrantProfile;
-use Resources\DateTimeImmutableBuilder;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 use Tests\TestBase;
 
 class ProgramRegistrationTest extends TestBase
 {
     protected $program;
-    protected $programRegistration;
+    protected $programRegistration, $status;
     protected $profile;
 
     protected $id = 'programRegistrationId';
-    
+    protected $otherStatus;
+
+
     protected $programsProfileForm, $formRecordData;
     protected $registrantProfile;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->program = $this->buildMockOfClass(Program::class);
         
-        $this->programRegistration = new TestableProgramRegistration($this->program, 'id');
+        $this->programRegistration = new TestableProgramRegistration();
+        $this->program = $this->buildMockOfClass(Program::class);
+        $this->programRegistration->program = $this->program;
+        
+        $this->status = $this->buildMockOfClass(RegistrationStatus::class);
+        $this->otherStatus = $this->buildMockOfClass(RegistrationStatus::class);
+        $this->programRegistration->status = $this->status;
+        
         $this->programRegistration->profiles = new ArrayCollection();
         
         $this->profile = $this->buildMockOfClass(RegistrantProfile::class);
@@ -44,39 +52,37 @@ class ProgramRegistrationTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
     }
     
-    public function test_construct_setProperties()
-    {
-        $programRegistration = new TestableProgramRegistration($this->program, $this->id);
-        $this->assertEquals($this->program, $programRegistration->program);
-        $this->assertEquals($this->id, $programRegistration->id);
-        $this->assertFalse($programRegistration->concluded);
-        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $programRegistration->registeredTime);
-        $this->assertNull($programRegistration->note);
-    }
+//    public function test_construct_setProperties()
+//    {
+//        $programRegistration = new TestableProgramRegistration($this->program, $this->id);
+//        $this->assertEquals($this->program, $programRegistration->program);
+//        $this->assertEquals($this->id, $programRegistration->id);
+//        $this->assertFalse($programRegistration->concluded);
+//        $this->assertEquals(DateTimeImmutableBuilder::buildYmdHisAccuracy(), $programRegistration->registeredTime);
+//        $this->assertNull($programRegistration->note);
+//    }
     
     protected function executeCancel()
     {
         $this->programRegistration->cancel();
     }
-    public function test_cancel_setConcludedTrueAndNoteCancelled()
+    public function test_cancel_setStatusCancelled()
     {
+        $this->status->expects($this->once())
+                ->method('cancel')
+                ->willReturn($this->otherStatus);
         $this->executeCancel();
-        $this->assertTrue($this->programRegistration->concluded);
-        $this->assertEquals('cancelled', $this->programRegistration->note);
-    }
-    public function test_cancel_alreadyConcluded_forbiddenError()
-    {
-        $this->programRegistration->concluded = true;
-        
-        $operation = function (){
-            $this->executeCancel();
-        };
-        $errorDetail = 'forbidden: program registration already concluded';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+        $this->assertSame($this->otherStatus, $this->programRegistration->status);
+//        $this->executeCancel();
+//        $this->assertTrue($this->programRegistration->concluded);
+//        $this->assertEquals('cancelled', $this->programRegistration->note);
     }
     
     protected function executeIsUnconcludedRegistrationToProgram()
     {
+//        $this->status->expects($this->any())
+//                ->method('isConcluded')
+//                ->willReturn(false);
         return $this->programRegistration->isUnconcludedRegistrationToProgram($this->program);
     }
     public function test_isUnconcludedRegistrationToProgram_returnTrue()
@@ -90,12 +96,17 @@ class ProgramRegistrationTest extends TestBase
     }
     public function test_isUnconcludedRegistrationToProgram_concludedProgramRegistration_returnFalse()
     {
-        $this->programRegistration->concluded = true;
+        $this->status->expects($this->any())
+                ->method('isConcluded')
+                ->willReturn(true);
         $this->assertFalse($this->executeIsUnconcludedRegistrationToProgram());
     }
     
     protected function executeSubmitProfile()
     {
+        $this->status->expects($this->any())
+                ->method('isConcluded')
+                ->willReturn(false);
         $this->programsProfileForm->expects($this->any())->method("programEquals")->willReturn(true);
         $this->programRegistration->submitProfile($this->programsProfileForm, $this->formRecordData);
     }
@@ -140,7 +151,9 @@ class ProgramRegistrationTest extends TestBase
     }
     public function test_executeSubmitProfile_concludedRegistrant_forbidden()
     {
-        $this->programRegistration->concluded = true;
+        $this->status->expects($this->any())
+                ->method('isConcluded')
+                ->willReturn(true);
         $this->assertConcludedRegistrantForbidden(function (){
             $this->executeSubmitProfile();
         });
@@ -148,6 +161,9 @@ class ProgramRegistrationTest extends TestBase
     
     protected function executeRemoveProfile()
     {
+        $this->status->expects($this->any())
+                ->method('isConcluded')
+                ->willReturn(false);
         $this->registrantProfile->expects($this->any())
                 ->method("belongsToRegistrant")
                 ->willReturn(true);
@@ -173,7 +189,9 @@ class ProgramRegistrationTest extends TestBase
     }
     public function test_removeProfile_concludedRegistration_forbidden()
     {
-        $this->programRegistration->concluded = true;
+        $this->status->expects($this->any())
+                ->method('isConcluded')
+                ->willReturn(true);
         $this->assertConcludedRegistrantForbidden(function (){
             $this->executeRemoveProfile();
         });
@@ -184,8 +202,12 @@ class TestableProgramRegistration extends ProgramRegistration
 {
     public $program;
     public $id;
-    public $concluded;
+    public $status;
     public $registeredTime;
-    public $note;
     public $profiles;
+    
+    function __construct()
+    {
+        parent::__construct();
+    }
 }

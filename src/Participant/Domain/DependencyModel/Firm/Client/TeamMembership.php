@@ -83,11 +83,11 @@ class TeamMembership extends EntityContainEvents
         }
     }
 
-    public function registerTeamToProgram(string $teamProgramRegistrationId, Program $program): TeamProgramRegistration
-    {
-        $this->assertActive();
-        return $this->team->registerToProgram($teamProgramRegistrationId, $program);
-    }
+//    public function registerTeamToProgram(string $teamProgramRegistrationId, Program $program): TeamProgramRegistration
+//    {
+//        $this->assertActive();
+//        return $this->team->registerToProgram($teamProgramRegistrationId, $program);
+//    }
 
     public function cancelTeamprogramRegistration(TeamProgramRegistration $teamProgramRegistration): void
     {

@@ -32,63 +32,63 @@ class TeamTest extends TestBase
         
         $this->program = $this->buildMockOfClass(Program::class);
     }
-    protected function executeRegisterToProgram()
-    {
-        $this->program->expects($this->any())
-                ->method('firmIdEquals')
-                ->willReturn(true);
-        $this->program->expects($this->any())
-                ->method('isRegistrationOpenFor')
-                ->willReturn(true);
-        return $this->team->registerToProgram($this->teamProgramRegistrationId, $this->program);
-    }
-    public function test_executeRegisterToProgram_returnProgramRegistration()
-    {
-        $this->program->expects($this->any())
-                ->method('firmIdEquals')
-                ->willReturn(true);
-        $this->program->expects($this->any())
-                ->method('isRegistrationOpenFor')
-                ->willReturn(true);
-        $teamProgramRegistration = new TeamProgramRegistration($this->team, $this->teamProgramRegistrationId, $this->program);
-        $this->assertEquals($teamProgramRegistration, $this->executeRegisterToProgram());
-    }
-    public function test_registerToProgram_programFromDifferentFirm_forbiddenError()
-    {
-        $this->program->expects($this->once())
-                ->method('firmIdEquals')
-                ->with($this->team->firmId)
-                ->willReturn(false);
-        $operation = function (){
-            $this->executeRegisterToProgram();
-        };
-        $errorDetail = 'forbidden: cannot register to program from different firm';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
-    public function test_registerToProgram_haveUnconcludedRegistrationToSameProgram_forbiddenError()
-    {
-        $this->teamProgramRegistration->expects($this->once())
-                ->method('isUnconcludedRegistrationToProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $operation = function (){
-            $this->executeRegisterToProgram();
-        };
-        $errorDetail = 'forbidden: your team already registered to this program';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
-    public function test_registerToProgram_alreadyActiveParticipantOfSameProgram_forbiddenError()
-    {
-        $this->teamProgramParticipation->expects($this->once())
-                ->method('isActiveParticipantOfProgram')
-                ->with($this->program)
-                ->willReturn(true);
-        $operation = function (){
-            $this->executeRegisterToProgram();
-        };
-        $errorDetail = 'forbidden: your team already participante in this program';
-        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
-    }
+//    protected function executeRegisterToProgram()
+//    {
+//        $this->program->expects($this->any())
+//                ->method('firmIdEquals')
+//                ->willReturn(true);
+//        $this->program->expects($this->any())
+//                ->method('isRegistrationOpenFor')
+//                ->willReturn(true);
+//        return $this->team->registerToProgram($this->teamProgramRegistrationId, $this->program);
+//    }
+//    public function test_executeRegisterToProgram_returnProgramRegistration()
+//    {
+//        $this->program->expects($this->any())
+//                ->method('firmIdEquals')
+//                ->willReturn(true);
+//        $this->program->expects($this->any())
+//                ->method('isRegistrationOpenFor')
+//                ->willReturn(true);
+//        $teamProgramRegistration = new TeamProgramRegistration($this->team, $this->teamProgramRegistrationId, $this->program);
+//        $this->assertEquals($teamProgramRegistration, $this->executeRegisterToProgram());
+//    }
+//    public function test_registerToProgram_programFromDifferentFirm_forbiddenError()
+//    {
+//        $this->program->expects($this->once())
+//                ->method('firmIdEquals')
+//                ->with($this->team->firmId)
+//                ->willReturn(false);
+//        $operation = function (){
+//            $this->executeRegisterToProgram();
+//        };
+//        $errorDetail = 'forbidden: cannot register to program from different firm';
+//        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+//    }
+//    public function test_registerToProgram_haveUnconcludedRegistrationToSameProgram_forbiddenError()
+//    {
+//        $this->teamProgramRegistration->expects($this->once())
+//                ->method('isUnconcludedRegistrationToProgram')
+//                ->with($this->program)
+//                ->willReturn(true);
+//        $operation = function (){
+//            $this->executeRegisterToProgram();
+//        };
+//        $errorDetail = 'forbidden: your team already registered to this program';
+//        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+//    }
+//    public function test_registerToProgram_alreadyActiveParticipantOfSameProgram_forbiddenError()
+//    {
+//        $this->teamProgramParticipation->expects($this->once())
+//                ->method('isActiveParticipantOfProgram')
+//                ->with($this->program)
+//                ->willReturn(true);
+//        $operation = function (){
+//            $this->executeRegisterToProgram();
+//        };
+//        $errorDetail = 'forbidden: your team already participante in this program';
+//        $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
+//    }
 }
 
 class TestableTeam extends Team

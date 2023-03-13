@@ -41,16 +41,16 @@ class Team
         
     }
 
-    public function registerToProgram(string $teamProgramRegistrationId, Program $program): TeamProgramRegistration
-    {
-        if (!$program->firmIdEquals($this->firmId)) {
-            $errorDetail = 'forbidden: cannot register to program from different firm';
-            throw RegularException::forbidden($errorDetail);
-        }
-        $this->assertNoUnconcludedRegistrationToSameProgram($program);
-        $this->assertNoActiveParticipationInSameProgram($program);
-        return new TeamProgramRegistration($this, $teamProgramRegistrationId, $program);
-    }
+//    public function registerToProgram(string $teamProgramRegistrationId, Program $program): TeamProgramRegistration
+//    {
+//        if (!$program->firmIdEquals($this->firmId)) {
+//            $errorDetail = 'forbidden: cannot register to program from different firm';
+//            throw RegularException::forbidden($errorDetail);
+//        }
+//        $this->assertNoUnconcludedRegistrationToSameProgram($program);
+//        $this->assertNoActiveParticipationInSameProgram($program);
+//        return new TeamProgramRegistration($this, $teamProgramRegistrationId, $program);
+//    }
     
     protected function assertNoUnconcludedRegistrationToSameProgram(Program $program): void
     {

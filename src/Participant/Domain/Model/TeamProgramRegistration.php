@@ -31,18 +31,22 @@ class TeamProgramRegistration implements AssetBelongsToTeamInterface
      * @var ProgramRegistration
      */
     protected $programRegistration;
-
-    public function __construct(Team $team, string $id, Program $program)
+    
+    protected function __construct()
     {
-        if (!$program->isRegistrationOpenFor(ParticipantTypes::TEAM_TYPE)) {
-            $errorDetail = "forbidden: program registration is closed or unavailable for team";
-            throw RegularException::forbidden($errorDetail);
-        }
-
-        $this->team = $team;
-        $this->id = $id;
-        $this->programRegistration = new ProgramRegistration($program, $id);
     }
+
+//    public function __construct(Team $team, string $id, Program $program)
+//    {
+//        if (!$program->isRegistrationOpenFor(ParticipantTypes::TEAM_TYPE)) {
+//            $errorDetail = "forbidden: program registration is closed or unavailable for team";
+//            throw RegularException::forbidden($errorDetail);
+//        }
+//
+//        $this->team = $team;
+//        $this->id = $id;
+//        $this->programRegistration = new ProgramRegistration($program, $id);
+//    }
 
     public function cancel(): void
     {

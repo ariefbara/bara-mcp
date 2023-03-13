@@ -172,16 +172,6 @@ class ProgramRegistrationController extends AsTeamMemberBaseController
         return new ViewTeamProgramRegistration($teamProgramRegistrationRepository);
     }
 
-    protected function buildRegisterService()
-    {
-        $teamProgramRegistrationRepository = $this->em->getRepository(TeamProgramRegistration::class);
-        $teamMembershipRepository = $this->em->getRepository(TeamMembership::class);
-        $programRepository = $this->em->getRepository(Program::class);
-
-        return new RegisterTeamToProgram($teamProgramRegistrationRepository, $teamMembershipRepository,
-                $programRepository);
-    }
-
     protected function buildCancelService()
     {
         $teamProgramRegistrationRepository = $this->em->getRepository(TeamProgramRegistration::class);

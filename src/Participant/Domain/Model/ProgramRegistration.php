@@ -11,6 +11,7 @@ use Resources\DateTimeImmutableBuilder;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 use SharedContext\Domain\Model\SharedEntity\FormRecordData;
+use SharedContext\Domain\ValueObject\RegistrationStatus;
 
 class ProgramRegistration
 {
@@ -29,9 +30,9 @@ class ProgramRegistration
 
     /**
      *
-     * @var bool
+     * @var RegistrationStatus
      */
-    protected $concluded;
+    protected $status;
 
     /**
      *
@@ -51,33 +52,27 @@ class ProgramRegistration
      */
     protected $profiles;
 
-    public function isConcluded(): bool
+    protected function __construct()
     {
-        return $this->concluded;
     }
 
-    public function __construct(Program $program, string $id)
-    {
-        $this->program = $program;
-        $this->id = $id;
-        $this->concluded = false;
-        $this->registeredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
-        $this->note = null;
-    }
+//    public function __construct(Program $program, string $id)
+//    {
+//        $this->program = $program;
+//        $this->id = $id;
+//        $this->concluded = false;
+//        $this->registeredTime = DateTimeImmutableBuilder::buildYmdHisAccuracy();
+//        $this->note = null;
+//    }
 
     public function cancel(): void
     {
-        if ($this->concluded) {
-            $errorDetail = 'forbidden: program registration already concluded';
-            throw RegularException::forbidden($errorDetail);
-        }
-        $this->concluded = true;
-        $this->note = 'cancelled';
+        $this->status = $this->status->cancel();
     }
 
     public function isUnconcludedRegistrationToProgram(Program $program): bool
     {
-        return !$this->isConcluded() && $this->program === $program;
+        return !$this->status->isConcluded() && $this->program === $program;
     }
 
     public function submitProfile(ProgramsProfileForm $programsProfileForm, FormRecordData $formRecordData): void
@@ -112,7 +107,7 @@ class ProgramRegistration
     
     protected function assertUnconcluded(): void
     {
-        if ($this->concluded) {
+        if ($this->status->isConcluded()) {
             $errorDetail = "forbidden: only unconcluded registrant can make this request";
             throw RegularException::forbidden($errorDetail);
         }
