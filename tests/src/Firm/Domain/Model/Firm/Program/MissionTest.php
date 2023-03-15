@@ -16,10 +16,10 @@ class MissionTest extends TestBase
 {
 
     protected $program;
-    protected $worksheetForm;
     protected $mission;
     protected $id = 'mission-id', $name = 'new mission name', $description = 'new mission description', $position = 'mission positioin';
     protected $firm;
+    protected $worksheetForm;
     protected $missionCommentId = 'mission-comment-id', $missionCommentData, $userId = 'user-id', $userName = 'user name';
     protected $learningMaterialId = 'learning-material-id', $learningMaterialData;
 
@@ -27,15 +27,15 @@ class MissionTest extends TestBase
     {
         parent::setUp();
         $this->program = $this->buildMockOfClass(Program::class);
-        $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
 
         $missionData = new MissionData('name', 'description', 'position');
-        $this->mission = new TestableMission($this->program, 'id', $this->worksheetForm, $missionData);
+        $this->mission = new TestableMission($this->program, 'id', $missionData);
         $this->mission->branches = new ArrayCollection();
 
         $this->participant = $this->buildMockOfClass(Participant::class);
         $this->firm = $this->buildMockOfClass(Firm::class);
         
+        $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
         $this->missionCommentData = new MissionCommentData('message');
         $this->learningMaterialData = new LearningMaterialData('name', 'content');
     }
@@ -54,11 +54,11 @@ class MissionTest extends TestBase
         $this->assertFalse($this->mission->belongsToProgram($program));
     }
 
+    //
     protected function executeConstruct()
     {
-        return new TestableMission($this->program, $this->id, $this->worksheetForm, $this->getMissionData());
+        return new TestableMission($this->program, $this->id, $this->getMissionData());
     }
-
     public function test_construct_setProperties()
     {
         $mission = $this->executeConstruct();
@@ -68,7 +68,7 @@ class MissionTest extends TestBase
         $this->assertEquals($this->name, $mission->name);
         $this->assertEquals($this->description, $mission->description);
         $this->assertEquals($this->position, $mission->position);
-        $this->assertEquals($this->worksheetForm, $mission->worksheetForm);
+        $this->assertNull($mission->worksheetForm);
         $this->assertFalse($mission->published);
     }
     public function test_construct_emptyName_throwEx()
@@ -81,9 +81,10 @@ class MissionTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
 
+    //
     protected function executeCreateBranch()
     {
-        return $this->mission->createBranch($this->id, $this->worksheetForm, $this->getMissionData());
+        return $this->mission->createBranch($this->id, $this->getMissionData());
     }
     public function test_createBranch_createBranchMission()
     {
@@ -96,6 +97,7 @@ class MissionTest extends TestBase
         $this->assertEquals($this->position, $branchMission->position);
     }
 
+    //
     protected function executeUpdate()
     {
         $this->mission->update($this->getMissionData());
@@ -117,6 +119,7 @@ class MissionTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Bad Request', $errorDetail);
     }
 
+    //
     protected function executePublish()
     {
         $this->mission->publish();
@@ -136,26 +139,31 @@ class MissionTest extends TestBase
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
     
-    protected function executeChangeWorksheetForm()
+    //
+    protected function assignWorksheetForm()
     {
-        $this->mission->worksheetForm = null;
-        $this->mission->changeWorksheetForm($this->worksheetForm);
+        $this->mission->assignWorksheetForm($this->worksheetForm);
     }
-    public function test_changeWorksheetForm_setWorksheetForm()
+    public function test_assignWorksheetForm_setWorksheetForm()
     {
-        $this->executeChangeWorksheetForm();
-        $this->assertEquals($this->worksheetForm, $this->mission->worksheetForm);
-    }
-    public function test_changeWorksheetForm_publishedMission_forbidden()
-    {
-        $this->mission->published = true;
-        $operation = function (){
-            $this->executeChangeWorksheetForm();
-        };
-        $errorDetail = "forbidden: can only change worksheet form of unpublished mission";
-        $this->assertRegularExceptionThrowed($operation, "Forbidden", $errorDetail);
+        $this->assignWorksheetForm();
+        $this->assertSame($this->worksheetForm, $this->mission->worksheetForm);
     }
     
+    //
+    protected function assertManageableInFirm()
+    {
+        $this->mission->assertManageableInFirm($this->firm);
+    }
+    public function test_assertManageableInFirm_assertProgramManageableInFirm()
+    {
+        $this->program->expects($this->once())
+                ->method('assertManageableInFirm')
+                ->with($this->firm);
+        $this->assertManageableInFirm();
+    }
+    
+    //
     public function test_belongsToFirm_returnProgramsBelongsToFirmResult()
     {
         $this->program->expects($this->once())

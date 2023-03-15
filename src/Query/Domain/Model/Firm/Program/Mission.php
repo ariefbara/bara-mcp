@@ -58,7 +58,7 @@ class Mission
 
     /**
      *
-     * @var WorksheetForm
+     * @var WorksheetForm|null
      */
     protected $worksheetForm;
 
@@ -103,7 +103,7 @@ class Mission
         return $this->published;
     }
 
-    function getWorksheetForm(): WorksheetForm
+    function getWorksheetForm(): ?WorksheetForm
     {
         return $this->worksheetForm;
     }

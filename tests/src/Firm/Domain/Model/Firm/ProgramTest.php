@@ -64,6 +64,8 @@ class ProgramTest extends TestBase
     //
     protected $applicant;
     protected $registrationPhase;
+    //
+    protected $missionId = 'missionId', $missionData;
 
     protected function setUp(): void
     {
@@ -131,6 +133,8 @@ class ProgramTest extends TestBase
         $this->registrationPhase = $this->buildMockOfClass(RegistrationPhase::class);
         $this->program->registrationPhases = new ArrayCollection();
         $this->program->registrationPhases->add($this->registrationPhase);
+        //
+        $this->missionData = new MissionData('name', 'description', 1);
     }
 
     protected function getProgramData()
@@ -437,14 +441,14 @@ class ProgramTest extends TestBase
         $this->assertEquals($id, $this->executeAssignProfileForm());
     }
     
+    //
+    protected function createRootMission()
+    {
+        return $this->program->createRootMission($this->missionId, $this->missionData);
+    }
     public function test_createRootMission_returnMission()
     {
-        $worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
-        $missionData = $this->buildMockOfClass(MissionData::class);
-        $missionData->expects($this->any())->method('getName')->willReturn('mission name');
-        $mission = new Mission($this->program, $missionId = 'missionId', $worksheetForm, $missionData);
-        
-        $this->assertEquals($mission, $this->program->createRootMission($missionId, $worksheetForm, $missionData));
+        $this->assertInstanceOf(Mission::class, $this->createRootMission());
     }
     
     public function test_isManageableByFirm_sameFirm_returnTrue()
@@ -573,6 +577,22 @@ class ProgramTest extends TestBase
         $this->assertRegularExceptionThrowed(function(){
             $this->assertAccessibleInFirm();
         }, 'Forbidden', 'forbidden: can only access entity belongs to firm');
+    }
+    
+    //
+    protected function assertManageableInFirm()
+    {
+        $this->program->assertManageableInFirm($this->firm);
+    }
+    public function test_assertManageableInFirm_diffFirm_forbidden()
+    {
+        $this->program->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(fn() => $this->assertManageableInFirm(), 'Forbidden', 'unmanaged program');
+    }
+    public function test_assertManageableInFirm_sameFirm_void()
+    {
+        $this->assertManageableInFirm();
+        $this->markAsSuccess();
     }
     
     protected function executeTask()

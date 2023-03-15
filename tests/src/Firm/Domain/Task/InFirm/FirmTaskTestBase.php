@@ -9,12 +9,14 @@ use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial;
 use Firm\Domain\Model\Firm\Team;
+use Firm\Domain\Model\Firm\WorksheetForm;
 use Firm\Domain\Task\Dependency\Firm\ClientRepository;
 use Firm\Domain\Task\Dependency\Firm\FirmFileInfoRepository;
 use Firm\Domain\Task\Dependency\Firm\Program\Mission\LearningMaterialRepository;
 use Firm\Domain\Task\Dependency\Firm\Program\MissionRepository;
 use Firm\Domain\Task\Dependency\Firm\ProgramRepository;
 use Firm\Domain\Task\Dependency\Firm\TeamRepository;
+use Firm\Domain\Task\Dependency\Firm\WorksheetFormRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestBase;
 
@@ -116,6 +118,27 @@ class FirmTaskTestBase extends TestBase
                 ->method('aMissionOfId')
                 ->with($this->missionId)
                 ->willReturn($this->mission);
+    }
+
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $worksheetFormRepository;
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $worksheetForm;
+    protected $worksheetFormId = 'worksheetFormId';
+    protected function setWorksheetFormRelatedDependency(): void
+    {
+        $this->worksheetForm = $this->buildMockOfClass(WorksheetForm::class);
+        $this->worksheetFormRepository = $this->buildMockOfInterface(WorksheetFormRepository::class);
+        $this->worksheetFormRepository->expects($this->any())
+                ->method('aWorksheetFormOfId')
+                ->with($this->worksheetFormId)
+                ->willReturn($this->worksheetForm);
     }
 
     /**

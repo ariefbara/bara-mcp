@@ -63,7 +63,7 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm, AssetInProgram
 
     /**
      *
-     * @var WorksheetForm
+     * @var WorksheetForm|null
      */
     protected $worksheetForm;
 
@@ -72,7 +72,6 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm, AssetInProgram
      * @var ArrayCollection
      */
     protected $branches = null;
-
 
     protected function setName(string $name): void
     {
@@ -87,21 +86,20 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm, AssetInProgram
     {
         return $this->program === $program;
     }
-    
-    public function __construct(Program $program, string $id, WorksheetForm $worksheetForm, MissionData $missionData)
+
+    public function __construct(Program $program, string $id, MissionData $missionData)
     {
         $this->program = $program;
         $this->id = $id;
         $this->setName($missionData->getName());
         $this->description = $missionData->getDescription();
         $this->position = $missionData->getPosition();
-        $this->worksheetForm = $worksheetForm;
         $this->published = false;
     }
 
-    public function createBranch(string $id, WorksheetForm $worksheetForm, MissionData $missionData): self
+    public function createBranch(string $id, MissionData $missionData): self
     {
-        $branch = new static($this->program, $id, $worksheetForm, $missionData);
+        $branch = new static($this->program, $id, $missionData);
         $branch->parent = $this;
         return $branch;
     }
@@ -118,22 +116,30 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm, AssetInProgram
         $this->assertUnpublished();
         $this->published = true;
     }
-    
-    public function changeWorksheetForm(WorksheetForm $worksheetForm): void
+
+    public function assignWorksheetForm(WorksheetForm $worksheetForm): void
     {
-        if ($this->published) {
-            $errorDetail = "forbidden: can only change worksheet form of unpublished mission";
-            throw RegularException::forbidden($errorDetail);
-        }
         $this->worksheetForm = $worksheetForm;
     }
 
+    //
     protected function assertUnpublished(): void
     {
         if ($this->published) {
             $errorDetail = "forbidden: request only valid for non published mission";
             throw RegularException::forbidden($errorDetail);
         }
+    }
+
+    //
+    public function assertAccessibleInFirm(Firm $firm): void
+    {
+        $this->program->assertAccessibleInFirm($firm);
+    }
+
+    public function assertManageableInFirm(Firm $firm): void
+    {
+        $this->program->assertManageableInFirm($firm);
     }
 
     public function belongsToFirm(Firm $firm): bool
@@ -145,21 +151,17 @@ class Mission implements AssetBelongsToFirm, ManageableByFirm, AssetInProgram
     {
         return $this->program->isManageableByFirm($firm);
     }
-    
+
+    //
     public function receiveComment(
             string $missionCommentId, MissionCommentData $missionCommentData, string $userId, string $userName): MissionComment
     {
         return new MissionComment($this, $missionCommentId, $missionCommentData, $userId, $userName);
     }
-    
+
     public function addLearningMaterial(string $learningMaterialId, LearningMaterialData $learningMaterialData): LearningMaterial
     {
         return new LearningMaterial($this, $learningMaterialId, $learningMaterialData);
-    }
-    
-    public function assertAccessibleInFirm(Firm $firm): void
-    {
-        $this->program->assertAccessibleInFirm($firm);
     }
 
 }

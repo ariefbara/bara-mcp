@@ -9,14 +9,14 @@ use Firm\Domain\Model\AssetBelongsToFirm;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Manager\ManagerAttendee;
 use Firm\Domain\Model\Firm\Program\ActivityType;
+use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
+use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\CanAttendMeeting;
 use Firm\Domain\Model\Firm\Program\Consultant;
 use Firm\Domain\Model\Firm\Program\ConsultationSetup;
 use Firm\Domain\Model\Firm\Program\Coordinator;
 use Firm\Domain\Model\Firm\Program\EvaluationPlan;
 use Firm\Domain\Model\Firm\Program\EvaluationPlanData;
-use Firm\Domain\Model\Firm\Program\ActivityType\Meeting;
-use Firm\Domain\Model\Firm\Program\ActivityType\MeetingData;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\MissionData;
 use Firm\Domain\Model\Firm\Program\ProgramsProfileForm;
@@ -78,7 +78,7 @@ class Manager implements CanAttendMeeting
      * @var bool
      */
     protected $removed = false;
-    
+
     /**
      * 
      * @var ArrayCollection
@@ -340,17 +340,17 @@ class Manager implements CanAttendMeeting
         $this->assertActive();
         $task->execute($this->firm);
     }
-    
+
     public function initiateMeeting(string $meetingId, ActivityType $activityType, MeetingData $meetingData): Meeting
     {
         $this->assertActive();
         $activityType->assertUsableInFirm($this->firm);
         $meeting = $activityType->createMeeting($meetingId, $meetingData);
-        
+
         $id = Uuid::generateUuid4();
         $managerAttendee = new ManagerAttendee($this, $id, $meeting, true);
         $this->meetingInvitations->add($managerAttendee);
-        
+
         return $meeting;
     }
 
@@ -358,7 +358,7 @@ class Manager implements CanAttendMeeting
     {
         $this->assertActive();
         $meeting->assertUsableInFirm($this->firm);
-        
+
         $p = function (ManagerAttendee $managerAttendee) use ($meeting) {
             return $managerAttendee->isActiveAttendeeOfMeeting($meeting);
         };
@@ -368,7 +368,7 @@ class Manager implements CanAttendMeeting
             $this->meetingInvitations->add($mangaerAttendee);
         }
     }
-    
+
     public function executeTaskInProgram(Program $program, ITaskInProgramExecutableByManager $task): void
     {
         if ($this->removed) {
@@ -379,13 +379,21 @@ class Manager implements CanAttendMeeting
         }
         $task->executeInProgram($program);
     }
-    
+
     public function executeFirmTask(FirmTaskExecutableByManager $task): void
     {
         if ($this->removed) {
             throw RegularException::forbidden("forbidden: only active manager can make this request");
         }
         $task->executeInFirm($this->firm);
+    }
+
+    public function executeTaskInFirm(ManagerTaskInFirm $task, $payload): void
+    {
+        if ($this->removed) {
+            throw RegularException::forbidden("only active manager can make this request");
+        }
+        $task->executeInFirm($this->firm, $payload);
     }
 
 }

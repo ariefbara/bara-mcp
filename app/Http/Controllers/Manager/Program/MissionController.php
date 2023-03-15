@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Manager\Program;
 
 use App\Http\Controllers\Manager\ManagerBaseController;
-use Firm\Application\Service\Firm\Program\ProgramCompositionId;
 use Firm\Application\Service\Manager\ChangeMissionWorksheetForm;
 use Firm\Application\Service\Manager\CreateBranchMission;
 use Firm\Application\Service\Manager\CreateRootMission;
@@ -13,13 +12,25 @@ use Firm\Domain\Model\Firm\Manager;
 use Firm\Domain\Model\Firm\Program;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\WorksheetForm;
+use Firm\Domain\Task\InFirm\Program\Mission\AssignWorksheetFormToMission;
+use Firm\Domain\Task\InFirm\Program\Mission\AssignWorksheetFormToMissionPayload;
+use Firm\Domain\Task\InFirm\Program\Mission\CreateBranchMission as CreateBranchMission2;
+use Firm\Domain\Task\InFirm\Program\Mission\CreateBranchMissionPayload;
+use Firm\Domain\Task\InFirm\Program\Mission\CreateRootMission as CreateRootMission2;
+use Firm\Domain\Task\InFirm\Program\Mission\CreateRootMissionPayload;
 use Query\Application\Service\Firm\Program\Mission\ViewLearningMaterial;
 use Query\Application\Service\Firm\Program\ViewMission;
 use Query\Domain\Model\Firm\Program\Mission as Mission2;
+use Resources\Infrastructure\Persistence\Doctrine\DoctrineTransactionalSession;
 
 class MissionController extends ManagerBaseController
 {
-    
+
+    protected function repository()
+    {
+        return $this->em->getRepository(Mission::class);
+    }
+
     protected function getMissionData()
     {
         $name = $this->stripTagsInputRequest('name');
@@ -30,21 +41,47 @@ class MissionController extends ManagerBaseController
 
     public function addRoot($programId)
     {
-        $worksheetFormId = $this->stripTagsInputRequest('worksheetFormId');
-        $missionId = $this->buildAddRootService()
-                ->execute($this->firmId(), $this->managerId(), $programId, $worksheetFormId, $this->getMissionData());
-        
-        $mission = $this->buildViewService()->showById($this->firmId(), $programId, $missionId);
+        $transactionalSession = new DoctrineTransactionalSession($this->em);
+        $missionData = $this->getMissionData();
+        $payload = (new CreateRootMissionPayload())
+                ->setMissionData($missionData)
+                ->setProgramId($programId);
+
+        $transactionalSession->executeAtomically(function () use ($payload) {
+            $programRepository = $this->em->getRepository(Program::class);
+            $task = new CreateRootMission2($this->repository(), $programRepository);
+            $this->executeTaskInFirm($task, $payload);
+
+            $worksheetFormId = $this->stripTagsInputRequest('worksheetFormId');
+            if ($worksheetFormId) {
+                $this->executeAssignWorksheetFormTask($payload->getMissionData()->id, $worksheetFormId);
+            }
+            //
+        });
+
+        $mission = $this->buildViewService()->showById($this->firmId(), $programId, $missionData->id);
         return $this->commandCreatedResponse($this->arrayDataOfMission($mission, $programId));
     }
 
     public function addBranch($programId, $missionId)
     {
-        $worksheetFormId = $this->stripTagsInputRequest('worksheetFormId');
-        $branchId = $this->buildAddBranchService()
-                ->execute($this->firmId(), $this->managerId(), $missionId, $worksheetFormId, $this->getMissionData());
-        
-        $mission = $this->buildViewService()->showById($this->firmId(), $programId, $branchId);
+        $transactionalSession = new DoctrineTransactionalSession($this->em);
+        $missionData = $this->getMissionData();
+        $payload = (new CreateBranchMissionPayload())
+                ->setMissionData($missionData)
+                ->setParentMissionId($missionId);
+
+        $transactionalSession->executeAtomically(function () use ($payload) {
+            $task = new CreateBranchMission2($this->repository());
+            $this->executeTaskInFirm($task, $payload);
+
+            $worksheetFormId = $this->stripTagsInputRequest('worksheetFormId');
+            if ($worksheetFormId) {
+                $this->executeAssignWorksheetFormTask($payload->getMissionData()->id, $worksheetFormId);
+            }
+        });
+
+        $mission = $this->buildViewService()->showById($this->firmId(), $programId, $missionData->id);
         return $this->commandCreatedResponse($this->arrayDataOfMission($mission, $programId));
     }
 
@@ -53,16 +90,34 @@ class MissionController extends ManagerBaseController
         $this->buildUpdateService()->execute($this->firmId(), $this->managerId(), $missionId, $this->getMissionData());
         return $this->show($programId, $missionId);
     }
-    
-    public function changeWorksheetForm($programId, $missionId)
+
+    public function assignWorksheetForm($programId, $missionId)
     {
         $worksheetFormId = $this->stripTagsInputRequest("worksheetFormId");
-        $this->buildChangeChangeWorksheetFormService()
-                ->execute($this->firmId(), $this->managerId(), $missionId, $worksheetFormId);
-        
+        $this->executeAssignWorksheetFormTask($missionId, $worksheetFormId);
         return $this->show($programId, $missionId);
     }
-    
+
+    protected function executeAssignWorksheetFormTask($missionId, $worksheetFormId)
+    {
+        $worksheetFormRepository = $this->em->getRepository(WorksheetForm::class);
+        $task = new AssignWorksheetFormToMission($this->repository(), $worksheetFormRepository);
+
+        $payload = (new AssignWorksheetFormToMissionPayload())
+                ->setMissionId($missionId)
+                ->setWorksheetFormId($worksheetFormId);
+        $this->executeTaskInFirm($task, $payload);
+    }
+
+//    public function changeWorksheetForm($programId, $missionId)
+//    {
+//        $worksheetFormId = $this->stripTagsInputRequest("worksheetFormId");
+//        $this->buildChangeChangeWorksheetFormService()
+//                ->execute($this->firmId(), $this->managerId(), $missionId, $worksheetFormId);
+//
+//        return $this->show($programId, $missionId);
+//    }
+
     public function publish($programId, $missionId)
     {
         $this->buildPublishService()->execute($this->firmId(), $this->managerId(), $missionId);
@@ -80,7 +135,7 @@ class MissionController extends ManagerBaseController
     {
         $service = $this->buildViewService();
         $missions = $service->showAll($this->firmId(), $programId, $this->getPage(), $this->getPageSize(), false);
-        
+
         $result = [];
         $result['total'] = count($missions);
         foreach ($missions as $mission) {
@@ -88,7 +143,7 @@ class MissionController extends ManagerBaseController
         }
         return $this->listQueryResponse($result);
     }
-    
+
     protected function arrayDataOfMission(Mission2 $mission, string $programId): array
     {
         $learningMaterialRepository = $this->em->getRepository(Mission2\LearningMaterial::class);
@@ -98,12 +153,12 @@ class MissionController extends ManagerBaseController
         foreach ($learningMaterials as $learningMaterial) {
             $learningMaterialResult[] = $this->arrayDataOfLearningMaterial($learningMaterial);
         }
-        
-        $parentData = empty($mission->getParent())? null: 
-            [
-              "id" => $mission->getParent()->getId(),  
-              "name" => $mission->getParent()->getName(),  
-            ];
+
+        $parentData = empty($mission->getParent()) ? null :
+                [
+            "id" => $mission->getParent()->getId(),
+            "name" => $mission->getParent()->getName(),
+        ];
         return [
             "parent" => $parentData,
             "id" => $mission->getId(),
@@ -111,13 +166,19 @@ class MissionController extends ManagerBaseController
             "description" => $mission->getDescription(),
             "position" => $mission->getPosition(),
             "published" => $mission->isPublished(),
-            "worksheetForm" => [
-                "id" => $mission->getWorksheetForm()->getId(),
-                "name" => $mission->getWorksheetForm()->getName(),
-            ],
+            "worksheetForm" => $this->arrayDataOfWorksheetForm($mission->getWorksheetForm()),
             'learningMaterials' => $learningMaterialResult,
         ];
     }
+
+    protected function arrayDataOfWorksheetForm(?\Query\Domain\Model\Firm\WorksheetForm $worksheetForm): ?array
+    {
+        return empty($worksheetForm) ? null : [
+            "id" => $worksheetForm->getId(),
+            "name" => $worksheetForm->getName(),
+        ];
+    }
+
     protected function arrayDataOfLearningMaterial(Mission2\LearningMaterial $learningMaterial): array
     {
         return [
@@ -125,15 +186,17 @@ class MissionController extends ManagerBaseController
             'name' => $learningMaterial->getName(),
         ];
     }
-    
+
     protected function buildAddRootService()
     {
         $managerRepository = $this->em->getRepository(Manager::class);
         $programRepository = $this->em->getRepository(Program::class);
         $worksheetFormRepository = $this->em->getRepository(WorksheetForm::class);
         $missionRepository = $this->em->getRepository(Mission::class);
-        return new CreateRootMission($managerRepository, $programRepository, $worksheetFormRepository, $missionRepository);
+        return new CreateRootMission($managerRepository, $programRepository, $worksheetFormRepository,
+                $missionRepository);
     }
+
     protected function buildAddBranchService()
     {
         $managerRepository = $this->em->getRepository(Manager::class);
@@ -141,24 +204,27 @@ class MissionController extends ManagerBaseController
         $worksheetFormRepository = $this->em->getRepository(WorksheetForm::class);
         return new CreateBranchMission($managerRepository, $missionRepository, $worksheetFormRepository);
     }
+
     protected function buildUpdateService()
     {
         $managerRepository = $this->em->getRepository(Manager::class);
         $missionRepository = $this->em->getRepository(Mission::class);
         return new UpdateMission($managerRepository, $missionRepository);
     }
-    
+
     protected function buildPublishService()
     {
         $managerRepository = $this->em->getRepository(Manager::class);
         $missionRepository = $this->em->getRepository(Mission::class);
         return new PublishMission($managerRepository, $missionRepository);
     }
+
     protected function buildViewService()
     {
         $missionRepository = $this->em->getRepository(Mission2::class);
         return new ViewMission($missionRepository);
     }
+
     protected function buildChangeChangeWorksheetFormService()
     {
         $missionRepository = $this->em->getRepository(Mission::class);

@@ -78,6 +78,7 @@ class MissionControllerTest extends MissionTestCase
     
     public function test_addRoot()
     {
+$this->disableExceptionHandling();
         $this->connection->table('Mission')->truncate();
         
         $response = [
@@ -115,6 +116,24 @@ class MissionControllerTest extends MissionTestCase
         $this->post($this->missionUri, $this->missionInput, $this->manager->token)
             ->seeStatusCode(400);
     }
+    public function test_addRoot_withoutWorksheetForm()
+    {
+        $this->missionInput['worksheetFormId'] = null;
+        $this->post($this->missionUri, $this->missionInput, $this->manager->token);
+        $this->seeStatusCode(201);
+        
+        $this->seeJsonContains([
+            "parent" => null,
+            "name" => $this->missionInput['name'],
+            "description" => $this->missionInput['description'],
+            'worksheetForm' => null,
+        ]);
+        $this->seeInDatabase('Mission', [
+            "Program_id" => $this->program->id,
+            "name" => $this->missionInput['name'],
+            'WorksheetForm_id' => null,
+        ]);
+    }
     public function test_addRoot_userNotManager_error401()
     {
         $this->connection->table('Mission')->truncate();
@@ -131,24 +150,6 @@ class MissionControllerTest extends MissionTestCase
         $this->missionInput['worksheetFormId'] = 'non-existing-worksheet';
         $this->post($this->missionUri, $this->missionInput, $this->manager->token)
             ->seeStatusCode(404);
-    }
-    public function test_addRoot_globalWorksheetForm_201()
-    {
-        $this->missionInput['worksheetFormId'] = $this->globalWorksheetForm->id;
-        
-        $this->post($this->missionUri, $this->missionInput, $this->manager->token)
-            ->seeStatusCode(201);
-        
-        $missionRecord = [
-            "Program_id" => $this->program->id,
-            "parent_id" => null,
-            "WorksheetForm_id" => $this->globalWorksheetForm->id,
-            "name" => $this->missionInput['name'],
-            "description" => $this->missionInput['description'],
-            "position" => $this->missionInput['position'],
-            "published" => false,
-        ];
-        $this->seeInDatabase('Mission', $missionRecord);
     }
     
     public function test_addBranch()
@@ -184,21 +185,28 @@ class MissionControllerTest extends MissionTestCase
         ];
         $this->seeInDatabase('Mission', $missionRecord);
     }
-    public function test_addBranch_useGlobalWorksheetForm_201()
+    public function test_addBranch_withoutWorksheetForm_200()
     {
-        $this->missionInput['worksheetFormId'] = $this->globalWorksheetForm->id;
+        $this->missionInput['worksheetFormId'] = null;
+        
         $uri = $this->missionUri . "/{$this->missionOne->id}";
-        $this->post($uri, $this->missionInput, $this->manager->token)
-            ->seeStatusCode(201);
+        $this->post($uri, $this->missionInput, $this->manager->token);
+        $this->seeStatusCode(201);
+        $this->seeJsonContains([
+            "parent" => [
+                "id" => $this->missionOne->id,
+                "name" => $this->missionOne->name,
+            ],
+            "name" => $this->missionInput['name'],
+            "description" => $this->missionInput['description'],
+            "worksheetForm" => null,
+        ]);
         
         $missionRecord = [
             "Program_id" => $this->program->id,
             "parent_id" => $this->missionOne->id,
-            "WorksheetForm_id" => $this->globalWorksheetForm->id,
+            "WorksheetForm_id" => null,
             "name" => $this->missionInput['name'],
-            "description" => $this->missionInput['description'],
-            "position" => $this->missionInput['position'],
-            "published" => false,
         ];
         $this->seeInDatabase('Mission', $missionRecord);
     }
@@ -268,40 +276,25 @@ class MissionControllerTest extends MissionTestCase
             ->seeStatusCode(200);
     }
     
-    public function test_changeWorksheetForm_200()
+    public function test_assignWorksheetForm_200()
     {
 $this->disableExceptionHandling();
-        $response = [
+        
+        $uri = $this->missionUri . "/{$this->mission->id}/assign-worksheet-form";
+        $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token);
+        $this->seeStatusCode(200);
+        $this->seeJsonContains([
             "id" => $this->mission->id,
             "worksheetForm" => [
                 "id" => $this->worksheetFormTwo->id,
                 "name" => $this->worksheetFormTwo->form->name,
             ],
-        ];
+        ]);
         
-        $uri = $this->missionUri . "/{$this->mission->id}/change-worksheet-form";
-        $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($response);
-        
-        $missionEntry = [
+        $this->seeInDatabase("Mission", [
             "id" => $this->mission->id,
             "worksheetForm_id" => $this->changeWorksheetFormInput["worksheetFormId"],
-        ];
-        $this->seeInDatabase("Mission", $missionEntry);
-    }
-    public function test_changeWorksheetForm_useGlobalWorksheetForm_200()
-    {
-        $this->changeWorksheetFormInput['worksheetFormId'] = $this->globalWorksheetForm->id;
-        $uri = $this->missionUri . "/{$this->mission->id}/change-worksheet-form";
-        $this->patch($uri, $this->changeWorksheetFormInput, $this->manager->token)
-                ->seeStatusCode(200);
-        
-        $missionEntry = [
-            "id" => $this->mission->id,
-            "worksheetForm_id" => $this->changeWorksheetFormInput["worksheetFormId"],
-        ];
-        $this->seeInDatabase("Mission", $missionEntry);
+        ]);
     }
     
     public function test_publish()

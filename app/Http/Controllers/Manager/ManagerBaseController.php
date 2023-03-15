@@ -70,4 +70,11 @@ class ManagerBaseController extends Controller
                 ->execute($this->firmId(), $this->managerId(), $task);
     }
 
+    protected function executeTaskInFirm($task, $payload): void
+    {
+        $managerRepository = $this->em->getRepository(\Firm\Domain\Model\Firm\Manager::class);
+        (new \Firm\Application\Service\Manager\ExecuteTaskInFirm($managerRepository))
+                ->execute($this->firmId(), $this->managerId(), $task, $payload);
+    }
+
 }

@@ -32,7 +32,6 @@ use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
-use SharedContext\Domain\ValueObject\ItemInfo;
 use SharedContext\Domain\ValueObject\ProgramSnapshot;
 use SharedContext\Domain\ValueObject\ProgramType;
 
@@ -226,6 +225,47 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         $this->removed = true;
     }
 
+    //
+    public function assertFileUsable(FirmFileInfo $firmFileInfo): void
+    {
+        $firmFileInfo->assertUsableInFirm($this->firm);
+    }
+
+    public function assertCanAcceptParticipantOfType(string $type): void
+    {
+        if (!$this->participantTypes->hasType($type)) {
+            throw RegularException::forbidden("forbidden: {$type} in not accomodate in this program");
+        }
+    }
+
+    public function assertUsableInFirm(Firm $firm): void
+    {
+        if (!$this->published) {
+            throw RegularException::forbidden('forbidden: unable to use unpublished program');
+        }
+        if ($this->removed) {
+            throw RegularException::forbidden('forbidden: unable to use removed program');
+        }
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('forbidden: can only owned program');
+        }
+    }
+
+    public function assertAccessibleInFirm(Firm $firm): void
+    {
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('forbidden: can only access entity belongs to firm');
+        }
+    }
+
+    public function assertManageableInFirm(Firm $firm): void
+    {
+        if ($this->firm !== $firm) {
+            throw RegularException::forbidden('unmanaged program');
+        }
+    }
+
+    //
     public function assignPersonnelAsConsultant(Personnel $personnel): string
     {
         $criteria = Criteria::create()
@@ -328,9 +368,9 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         return $assignedProfileForm->getId();
     }
 
-    public function createRootMission(string $missionId, WorksheetForm $worksheetForm, MissionData $missionData): Mission
+    public function createRootMission(string $missionId, MissionData $missionData): Mission
     {
-        return new Mission($this, $missionId, $worksheetForm, $missionData);
+        return new Mission($this, $missionId, $missionData);
     }
 
     public function isManageableByFirm(Firm $firm): bool
@@ -351,38 +391,6 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
     public function createSponsor(string $sponsorId, SponsorData $sponsorData): Sponsor
     {
         return new Sponsor($this, $sponsorId, $sponsorData);
-    }
-
-    public function assertFileUsable(FirmFileInfo $firmFileInfo): void
-    {
-        $firmFileInfo->assertUsableInFirm($this->firm);
-    }
-
-    public function assertCanAcceptParticipantOfType(string $type): void
-    {
-        if (!$this->participantTypes->hasType($type)) {
-            throw RegularException::forbidden("forbidden: {$type} in not accomodate in this program");
-        }
-    }
-
-    public function assertUsableInFirm(Firm $firm): void
-    {
-        if (!$this->published) {
-            throw RegularException::forbidden('forbidden: unable to use unpublished program');
-        }
-        if ($this->removed) {
-            throw RegularException::forbidden('forbidden: unable to use removed program');
-        }
-        if ($this->firm !== $firm) {
-            throw RegularException::forbidden('forbidden: can only owned program');
-        }
-    }
-
-    public function assertAccessibleInFirm(Firm $firm): void
-    {
-        if ($this->firm !== $firm) {
-            throw RegularException::forbidden('forbidden: can only access entity belongs to firm');
-        }
     }
 
     public function executeTask(IProgramTask $task, $payload): void
@@ -407,11 +415,11 @@ class Program extends EntityContainEvents implements AssetBelongsToFirm, Managea
         if (!$this->participantTypes->hasType($applicant->getUserType())) {
             throw RegularException::forbidden("applicant of type {$applicant->getUserType()} is unsupported");
         }
-        
+
         $applicant->assertBelongsInFirm($this->firm);
         $applicant->assertNoActiveParticipationOrOngoingRegistrationInProgram($this);
         $applicant->assertTypeIncludedIn($this->participantTypes);
-        
+
         $id = Uuid::generateUuid4();
         if ($this->autoAccept && empty($this->price)) {
             $participant = new Participant($this, $id);

@@ -188,7 +188,7 @@ $router->group($managerAggregate, function () use ($router) {
             $router->post("", ["uses" => "$controller@addRoot"]);
             $router->post("/{missionId}", ["uses" => "$controller@addBranch"]);
             $router->patch("/{missionId}/update", ["uses" => "$controller@update"]);
-            $router->patch("/{missionId}/change-worksheet-form", ["uses" => "$controller@changeWorksheetForm"]);
+            $router->patch("/{missionId}/assign-worksheet-form", ["uses" => "$controller@assignWorksheetForm"]);
             $router->patch("/{missionId}/publish", ["uses" => "$controller@publish"]);
             $router->get("/{missionId}", ["uses" => "$controller@show"]);
             $router->get("", ["uses" => "$controller@showAll"]);

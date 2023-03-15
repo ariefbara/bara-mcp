@@ -15,7 +15,6 @@ class WorksheetFormTest extends TestBase
     protected $id = 'worksheet-form-id';
     protected $formData;
 
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -72,6 +71,27 @@ class WorksheetFormTest extends TestBase
     {
         $this->worksheetForm->firm = null;
         $this->assertTrue($this->worksheetForm->isManageableByFirm($this->firm));
+    }
+    
+    //
+    protected function assertAccessibleInFirm()
+    {
+        $this->worksheetForm->assertAccessibleInFirm($this->firm);
+    }
+    public function test_assertAccessibleInFirm_diffFirm_forbidden()
+    {
+        $this->worksheetForm->firm = $this->buildMockOfClass(Firm::class);
+        $this->assertRegularExceptionThrowed(fn() => $this->assertAccessibleInFirm(), 'Forbidden', 'inaccessible worksheet form');
+    }
+    public function test_assertAccessibleInFirm_activeFormInSameFirm_void()
+    {
+        $this->assertAccessibleInFirm();
+        $this->markAsSuccess();
+    }
+    public function test_assertAccessibleInFirm_removedForm_forbidden()
+    {
+        $this->worksheetForm->removed = true;
+        $this->assertRegularExceptionThrowed(fn() => $this->assertAccessibleInFirm(), 'Forbidden', 'inaccessible worksheet form');
     }
 }
 

@@ -7,10 +7,11 @@ use Doctrine\ORM\NoResultException;
 use Firm\Application\Service\Firm\WorksheetFormRepository;
 use Firm\Application\Service\Manager\WorksheetFormRepository as InterfaceForManager;
 use Firm\Domain\Model\Firm\WorksheetForm;
+use Firm\Domain\Task\Dependency\Firm\WorksheetFormRepository as WorksheetFormRepository2;
 use Resources\Exception\RegularException;
 use Resources\Uuid;
 
-class DoctrineWorksheetFormRepository extends EntityRepository implements WorksheetFormRepository, InterfaceForManager
+class DoctrineWorksheetFormRepository extends EntityRepository implements WorksheetFormRepository, InterfaceForManager, WorksheetFormRepository2
 {
 
     public function add(WorksheetForm $worksheetForm): void

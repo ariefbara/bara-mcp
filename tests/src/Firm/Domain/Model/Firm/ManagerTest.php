@@ -49,9 +49,10 @@ class ManagerTest extends TestBase
     
     protected $meeting, $managerAttendee;
     
+    protected $payload = 'task payload';
     protected $taskInProgramExecutableByManager;
-    
     protected $firmTask;
+    protected $taskInFirm;
 
     protected function setUp(): void
     {
@@ -97,6 +98,7 @@ class ManagerTest extends TestBase
         $this->taskInProgramExecutableByManager = $this->buildMockOfInterface(ITaskInProgramExecutableByManager::class);
         
         $this->firmTask = $this->buildMockOfInterface(FirmTaskExecutableByManager::class);
+        $this->taskInFirm = $this->buildMockOfInterface(ManagerTaskInFirm::class);
     }
 
     protected function setAssetBelongsToFirm(MockObject $asset): void
@@ -781,6 +783,24 @@ class ManagerTest extends TestBase
         $this->assertRegularExceptionThrowed(function() {
             $this->executeFirmTask();
         }, 'Forbidden', 'forbidden: only active manager can make this request');
+    }
+    
+    //
+    protected function executeTaskInFirm()
+    {
+        $this->manager->executeTaskInFirm($this->taskInFirm, $this->payload);
+    }
+    public function test_executeTaskInFirm_executeTask()
+    {
+        $this->taskInFirm->expects($this->once())
+                ->method('executeInFirm')
+                ->with($this->firm, $this->payload);
+        $this->executeTaskInFirm();
+    }
+    public function test_executeTaskInFirm_inactiveManager_forbidden()
+    {
+        $this->manager->removed = true;
+        $this->assertRegularExceptionThrowed(fn() => $this->executeTaskInFirm(), 'Forbidden', 'only active manager can make this request');
     }
 }
 

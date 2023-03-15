@@ -5,6 +5,8 @@ namespace Firm\Domain\Model\Firm\Program;
 class MissionData
 {
 
+    public $id;
+
     /**
      * 
      * @var string|null
