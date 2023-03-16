@@ -2,10 +2,14 @@
 
 namespace Tests\src\Participant\Domain\Task\Participant;
 
+use Participant\Domain\DependencyModel\Firm\Program\Mission\LearningMaterial;
 use Participant\Domain\Model\Participant;
+use Participant\Domain\Model\Participant\LearningProgress;
 use Participant\Domain\Model\Participant\ParticipantFileInfo;
 use Participant\Domain\Model\Participant\ParticipantNote;
 use Participant\Domain\Model\Participant\Task;
+use Participant\Domain\Task\Dependency\Firm\Program\Mission\LearningMaterialRepository;
+use Participant\Domain\Task\Dependency\Firm\Program\Participant\LearningProgressRepository;
 use Participant\Domain\Task\Dependency\Firm\Program\Participant\ParticipantFileInfoRepository;
 use Participant\Domain\Task\Dependency\Firm\Program\Participant\ParticipantNoteRepository;
 use Participant\Domain\Task\Dependency\Firm\Program\Participant\TaskRepository;
@@ -87,5 +91,47 @@ class ParticipantTaskTestBase extends TestBase
                 ->method('ofId')
                 ->with($this->taskId)
                 ->willReturn($this->task);
+    }
+    
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $learningMaterialRepository;
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $learningMaterial;
+    protected $learningMaterialId = 'learningMaterialId';
+    protected function setupLearningMaterialDependency()
+    {
+        $this->learningMaterialRepository = $this->buildMockOfInterface(LearningMaterialRepository::class);
+        $this->learningMaterial = $this->buildMockOfClass(LearningMaterial::class);
+        $this->learningMaterialRepository->expects($this->any())
+                ->method('ofId')
+                ->with($this->learningMaterialId)
+                ->willReturn($this->learningMaterial);
+    }
+    
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $learningProgressRepository;
+    /**
+     * 
+     * @var MockObject
+     */
+    protected $learningProgress;
+    protected $learningProgressId = 'learningProgressId';
+    protected function setupLearningProgressDependency()
+    {
+        $this->learningProgressRepository = $this->buildMockOfInterface(LearningProgressRepository::class);
+        $this->learningProgress = $this->buildMockOfClass(LearningProgress::class);
+        $this->learningProgressRepository->expects($this->any())
+                ->method('ofId')
+                ->with($this->learningProgressId)
+                ->willReturn($this->learningProgress);
     }
 }

@@ -18,6 +18,8 @@ use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\ContainSchedule;
 use Participant\Domain\Model\Participant\DeclaredMentoring;
+use Participant\Domain\Model\Participant\LearningProgress;
+use Participant\Domain\Model\Participant\LearningProgressData;
 use Participant\Domain\Model\Participant\MentoringRequest;
 use Participant\Domain\Model\Participant\MentoringRequestData;
 use Participant\Domain\Model\Participant\MetricAssignment;
@@ -78,6 +80,8 @@ ParticipantTest extends TestBase
     protected $participantNoteId = 'participantNoteId', $labelData;
     //
     protected $participantFileInfoId = 'participantFileInfoId', $fileInfoData;
+    //
+    protected $learningProgress, $learningMaterial, $learningProgressData;
 
     protected function setUp(): void
     {
@@ -168,6 +172,12 @@ ParticipantTest extends TestBase
         //
         $this->participantFileInfoOne = $this->buildMockOfClass(ParticipantFileInfo::class);
         $this->participantFileInfoTwo = $this->buildMockOfClass(ParticipantFileInfo::class);
+        //
+        $this->learningProgress = $this->buildMockOfClass(LearningProgress::class);
+        $this->participant->learningProgresses = new ArrayCollection();
+        $this->participant->learningProgresses->add($this->learningProgress);
+        $this->learningMaterial = $this->buildMockOfClass(Mission\LearningMaterial::class);
+        $this->learningProgressData = (new LearningProgressData())->setMarkAsCompleted(false);
     }
     protected function assertOperationCauseInactiveParticipantForbiddenError(callable $operation): void
     {
@@ -213,7 +223,23 @@ ParticipantTest extends TestBase
         $errorDetail = 'forbidden: participant already inactive';
         $this->assertRegularExceptionThrowed($operation, 'Forbidden', $errorDetail);
     }
+    
+    //
+    protected function isProgramEquals()
+    {
+        return $this->participant->isProgramEquals($this->program);
+    }
+    public function test_isProgramEquals_sameProgram_returnTrue()
+    {
+        $this->assertTrue($this->isProgramEquals());
+    }
+    public function test_isProgramEquals_diffProgram_returnFalse()
+    {
+        $this->participant->program = $this->buildMockOfClass(Program::class);
+        $this->assertFalse($this->isProgramEquals());
+    }
 
+    //
     protected function executeSubmitConsultationRequest()
     {
         $this->consultationSetup->expects($this->any())
@@ -894,6 +920,38 @@ ParticipantTest extends TestBase
         $this->uploadFile();
     }
     
+    //
+    protected function submitLearningProgress()
+    {
+        $this->participant->submitLearningProgress($this->learningMaterial, $this->learningProgressData);
+    }
+    public function test_submitLearningProgress_addLearningProgressToCollection()
+    {
+        $this->submitLearningProgress();
+        $this->assertEquals(2, $this->participant->learningProgresses->count());
+        $this->assertInstanceOf(LearningProgress::class, $this->participant->learningProgresses->last());
+    }
+    public function test_submitLearningProgress_hasProgressAssociateWithSameMaterial_updateExistingProgress()
+    {
+        $this->learningProgress->expects($this->once())
+                ->method('isAssociateWithLearningMaterial')
+                ->with($this->learningMaterial)
+                ->willReturn(true);
+        $this->learningProgress->expects($this->once())
+                ->method('update')
+                ->with($this->learningProgressData);
+        $this->submitLearningProgress();
+    }
+    public function test_submitLearningProgress_hasProgressAssociateWithSameMaterial_preventAddNewProgress()
+    {
+        $this->learningProgress->expects($this->once())
+                ->method('isAssociateWithLearningMaterial')
+                ->with($this->learningMaterial)
+                ->willReturn(true);
+        $this->submitLearningProgress();
+        $this->assertEquals(1, $this->participant->learningProgresses->count());
+    }
+    
 }
 
 class TestableParticipant extends Participant
@@ -914,6 +972,7 @@ class TestableParticipant extends Participant
     public $okrPeriods;
     public $mentoringRequests;
     public $bookedMentorings;
+    public $learningProgresses;
 
     function __construct()
     {

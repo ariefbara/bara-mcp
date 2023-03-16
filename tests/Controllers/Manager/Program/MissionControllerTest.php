@@ -133,6 +133,9 @@ $this->disableExceptionHandling();
             "name" => $this->missionInput['name'],
             'WorksheetForm_id' => null,
         ]);
+//echo $this->missionUri;
+//echo " || payload:" . json_encode($this->missionInput);
+//$this->seeJsonContains(['print']);
     }
     public function test_addRoot_userNotManager_error401()
     {
@@ -209,6 +212,9 @@ $this->disableExceptionHandling();
             "name" => $this->missionInput['name'],
         ];
         $this->seeInDatabase('Mission', $missionRecord);
+//echo $uri;
+//echo " || payload:" . json_encode($this->missionInput);
+//$this->seeJsonContains(['print']);
     }
     public function test_addBranch_emptyName_error400()
     {
@@ -295,6 +301,10 @@ $this->disableExceptionHandling();
             "id" => $this->mission->id,
             "worksheetForm_id" => $this->changeWorksheetFormInput["worksheetFormId"],
         ]);
+        
+//echo $uri;
+//echo " || payload:" . json_encode($this->changeWorksheetFormInput);
+//$this->seeJsonContains(['print']);
     }
     
     public function test_publish()

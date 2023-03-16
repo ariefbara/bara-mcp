@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping>
+    <entity name="Query\Domain\Model\Firm\Program\Participant\LearningProgress" 
+            table="LearningProgress"
+            repository-class="Query\Infrastructure\Persistence\Doctrine\Repository\DoctrineLearningProgressRepository"
+    >
+        
+        <many-to-one  field="participant" 
+                      target-entity="Query\Domain\Model\Firm\Program\Participant"
+                      inversed-by="learningProgresses"
+        >
+            <join-column name="Participant_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        <many-to-one  field="learningMaterial" 
+                      target-entity="Query\Domain\Model\Firm\Program\Mission\LearningMaterial"
+        >
+            <join-column name="LearningMaterial_id" referenced-column-name="id" />
+        </many-to-one>
+        
+        
+        <id name="id" type="guid" />
+        <field name="lastModifiedTime" type="datetime_immutable" nullable="true"/>
+        <field name="progressMark" type="string" length="1024" nullable="true"/>
+        <field name="markAsCompleted" type="boolean">
+            <options><option name="default">0</option></options>
+        </field>
+        
+    </entity>
+</doctrine-mapping>

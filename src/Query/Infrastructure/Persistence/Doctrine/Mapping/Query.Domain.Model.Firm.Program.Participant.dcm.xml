@@ -55,5 +55,10 @@
                       mapped-by="participant"
         />
         
+        <one-to-many field="learningProgresses" 
+                     target-entity="Query\Domain\Model\Firm\Program\Participant\LearningProgress" 
+                     mapped-by="participant"
+        />
+        
     </entity>
 </doctrine-mapping>

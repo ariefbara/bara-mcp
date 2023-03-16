@@ -73,5 +73,12 @@
                      mapped-by="participant"
         />
         
+        <one-to-many field="learningProgresses" 
+                     target-entity="Participant\Domain\Model\Participant\LearningProgress" 
+                     mapped-by="participant"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

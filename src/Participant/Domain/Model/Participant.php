@@ -12,6 +12,7 @@ use Participant\Domain\DependencyModel\Firm\Program\Consultant;
 use Participant\Domain\DependencyModel\Firm\Program\Consultant\MentoringSlot;
 use Participant\Domain\DependencyModel\Firm\Program\ConsultationSetup;
 use Participant\Domain\DependencyModel\Firm\Program\Mission;
+use Participant\Domain\DependencyModel\Firm\Program\Mission\LearningMaterial;
 use Participant\Domain\DependencyModel\Firm\Program\ProgramsProfileForm;
 use Participant\Domain\DependencyModel\Firm\Team;
 use Participant\Domain\Model\Participant\BookedMentoringSlot;
@@ -20,6 +21,8 @@ use Participant\Domain\Model\Participant\ConsultationRequest;
 use Participant\Domain\Model\Participant\ConsultationRequestData;
 use Participant\Domain\Model\Participant\ConsultationSession;
 use Participant\Domain\Model\Participant\DeclaredMentoring;
+use Participant\Domain\Model\Participant\LearningProgress;
+use Participant\Domain\Model\Participant\LearningProgressData;
 use Participant\Domain\Model\Participant\ManageableByParticipant;
 use Participant\Domain\Model\Participant\MentoringRequest;
 use Participant\Domain\Model\Participant\MentoringRequestData;
@@ -141,6 +144,12 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
      */
     protected $bookedMentorings;
 
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $learningProgresses;
+
     protected function __construct()
     {
         
@@ -174,7 +183,14 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $this->active = false;
         $this->note = 'quit';
     }
+    
+    //
+    public function isProgramEquals(Program $program): bool
+    {
+        return $this->program === $program;
+    }
 
+    //
     public function submitConsultationRequest(
             string $consultationRequestId, ConsultationSetup $consultationSetup, Consultant $consultant,
             ConsultationRequestData $consultationRequestData, ?TeamMembership $teamMember = null): ConsultationRequest
@@ -509,6 +525,20 @@ class Participant extends EntityContainEvents implements AssetBelongsToTeamInter
         $fileInfoData->addFolder($this->id);
 
         return new ParticipantFileInfo($this, $participantFileInfoId, $fileInfoData);
+    }
+
+    public function submitLearningProgress(
+            LearningMaterial $learningMaterial, LearningProgressData $learningProgressData)
+    {
+        $p = fn(LearningProgress $learningProgress) => $learningProgress->isAssociateWithLearningMaterial($learningMaterial);
+        $learningProgress = $this->learningProgresses->filter($p)->first();
+        if ($learningProgress) {
+            $learningProgress->update($learningProgressData);
+        } else {
+            $learningProgress = new LearningProgress($this, $learningMaterial, Uuid::generateUuid4(), $learningProgressData);
+            $this->learningProgresses->add($learningProgress);
+        }
+        $learningProgressData->id = $learningProgress->getId();
     }
 
 }

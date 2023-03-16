@@ -3,14 +3,11 @@
 namespace Participant\Domain\DependencyModel\Firm\Program;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Participant\Domain\DependencyModel\Firm\ {
-    Program,
-    WorksheetForm
-};
-use SharedContext\Domain\Model\SharedEntity\ {
-    FormRecord,
-    FormRecordData
-};
+use Participant\Domain\DependencyModel\Firm\Program;
+use Participant\Domain\DependencyModel\Firm\WorksheetForm;
+use Participant\Domain\Model\Participant;
+use SharedContext\Domain\Model\SharedEntity\FormRecord;
+use SharedContext\Domain\Model\SharedEntity\FormRecordData;
 
 class Mission
 {
@@ -55,11 +52,6 @@ class Mission
     {
         ;
     }
-    
-    public function programEquals(Program $program): bool
-    {
-        return $this->program === $program;
-    }
 
     public function isRootMission(): bool
     {
@@ -71,6 +63,18 @@ class Mission
         return $this->branches->contains($mission);
     }
 
+    //
+    public function programEquals(Program $program): bool
+    {
+        return $this->program === $program;
+    }
+    
+    public function isSameProgramAsParticipant(Participant $participant): bool
+    {
+        return $participant->isProgramEquals($this->program);
+    }
+
+    //
     public function createWorksheetFormRecord(string $formRecordId, FormRecordData $formRecordData): FormRecord
     {
         return $this->worksheetForm->createFormRecord($formRecordId, $formRecordData);

@@ -106,6 +106,13 @@ $router->group($clientAggregate, function () use ($router) {
     ];
     $router->group($programParticipationAggregate, function () use ($router) {
         
+        $router->put('/learning-progress', ['uses' => "LearningProgressController@submit"]);
+        $router->patch('/learning-progress/{id}/update-progress-mark', ['uses' => "LearningProgressController@updateProgressMark"]);
+        $router->patch('/learning-progress/{id}/mark-complete', ['uses' => "LearningProgressController@markComplete"]);
+        $router->patch('/learning-progress/{id}/unmark-complete-status', ['uses' => "LearningProgressController@unmarkCompleteStatus"]);
+        $router->get('/learning-progress/{id}', ['uses' => "LearningProgressController@viewDetail"]);
+        $router->get('/learning-progress', ['uses' => "LearningProgressController@viewList"]);
+        
         $router->get('/summary', ['uses' => "SummaryController@show"]);
         $router->get('/activity-logs/all', ['uses' => "ActivityLogController@showAll"]);
         $router->get('/activity-logs/self', ['uses' => "ActivityLogController@showSelfActivityLogs"]);

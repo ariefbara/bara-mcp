@@ -16,6 +16,7 @@ use Query\Domain\Model\Firm\Program\Mission\MissionComment;
 use Query\Domain\Model\Firm\Program\Participant\CompletedMission;
 use Query\Domain\Model\Firm\Program\Participant\DedicatedMentor;
 use Query\Domain\Model\Firm\Program\Participant\Evaluation;
+use Query\Domain\Model\Firm\Program\Participant\LearningProgress;
 use Query\Domain\Model\Firm\Program\Participant\MetricAssignment;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
@@ -108,12 +109,18 @@ class Participant extends EntityContainEvents
      * @var ArrayCollection
      */
     protected $completedMissions;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $dedicatedMentors;
+
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $learningProgresses;
 
     public function getProgram(): Program
     {
@@ -170,7 +177,7 @@ class Participant extends EntityContainEvents
                 ->andWhere(Criteria::expr()->eq('removed', false));
         return $this->participantProfiles->matching($criteria)->getIterator();
     }
-    
+
     /**
      * 
      * @return DedicatedMentor[]
@@ -189,12 +196,12 @@ class Participant extends EntityContainEvents
         $lastCompletedMission = $this->completedMissions->matching($criteria)->first();
         return empty($lastCompletedMission) ? null : $lastCompletedMission;
     }
-    
+
     public function getCompletedMissionCount(): int
     {
         return $this->completedMissions->count();
     }
-    
+
     public function getActiveMissionCount(): int
     {
         return $this->program->getActiveMissionCount();
@@ -405,11 +412,18 @@ class Participant extends EntityContainEvents
         }
         $task->executeTaskInProgram($this->program->getId());
     }
-    
+
     public function executeQueryTask(ParticipantQueryTask $task, $payload): void
     {
         $this->assertActive();
         $task->execute($this, $payload);
+    }
+
+    public function lastModifiedLearningProgress(): ?LearningProgress
+    {
+        $criteria = Criteria::create()
+                ->orderBy(['lastModifiedTime' => Criteria::DESC]);
+        return $this->learningProgresses->matching($criteria)->first() ?: null;
     }
 
 }

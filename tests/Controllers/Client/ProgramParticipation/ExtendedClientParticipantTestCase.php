@@ -16,6 +16,17 @@ class ExtendedClientParticipantTestCase extends ClientTestCase
      */
     protected $clientParticipant;
     protected $clientParticipantUri;
+    
+    /**
+     * 
+     * @var RecordOfParticipant
+     */
+    protected $otherParticipant;
+    /**
+     * 
+     * @var RecordOfProgram
+     */
+    protected $otherProgram;
 
     protected function setUp(): void
     {
@@ -26,6 +37,9 @@ class ExtendedClientParticipantTestCase extends ClientTestCase
         
         $firm = $this->client->firm;
         $program = new RecordOfProgram($firm, '999');
+        $this->otherProgram = new RecordOfProgram($firm, 'other');
+        
+        $this->otherParticipant = new RecordOfParticipant($program, 'other');
         $participant = new RecordOfParticipant($program, '999');
         $this->clientParticipant = new RecordOfClientParticipant($this->client, $participant);
         
