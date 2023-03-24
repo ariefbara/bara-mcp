@@ -14,6 +14,7 @@ class ManagerTest extends TestBase
     
     protected $task;
     protected $program, $taskInProgram;
+    protected $managerQueryInFirm, $payload = 'task payload';
 
     protected function setUp(): void
     {
@@ -29,6 +30,8 @@ class ManagerTest extends TestBase
         
         $this->program = $this->buildMockOfClass(Program::class);
         $this->taskInProgram = $this->buildMockOfInterface(ITaskInProgramExecutableByManager::class);
+        //
+        $this->managerQueryInFirm = $this->buildMockOfInterface(ManagerQueryInFirm::class);
     }
     
     public function test_passwordMatcher_returnPasswordMatchComparisonResult()
@@ -56,7 +59,7 @@ class ManagerTest extends TestBase
         $this->manager->removed = true;
         $this->assertRegularExceptionThrowed(function (){
             $this->executeTaskInFirm();
-        }, 'Forbidden', 'forbidden: only active manager can make this request');
+        }, 'Forbidden', 'only active manager can make this request');
     }
     
     protected function executeTaskInProgram()
@@ -83,6 +86,24 @@ class ManagerTest extends TestBase
         $this->assertRegularExceptionThrowed(function (){
             $this->executeTaskInProgram();
         }, 'Forbidden', 'forbidden: unable to manage program, probably belongs to other firm');
+    }
+    
+    //
+    protected function executeQueryInFirm()
+    {
+        $this->manager->executeQueryInFirm($this->managerQueryInFirm, $this->payload);
+    }
+    public function test_executeQueryInFirm_executeQuery()
+    {
+        $this->managerQueryInFirm->expects($this->once())
+                ->method('executeQueryInFirm')
+                ->with($this->firm, $this->payload);
+        $this->executeQueryInFirm();
+    }
+    public function test_executeQueryInFirm_inactiveManager_forbidden()
+    {
+        $this->manager->removed = true;
+        $this->assertRegularExceptionThrowed(fn() => $this->executeQueryInFirm(), 'Forbidden', 'only active manager can make this request');
     }
 }
 

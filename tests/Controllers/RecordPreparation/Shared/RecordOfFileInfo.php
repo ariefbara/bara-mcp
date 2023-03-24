@@ -8,13 +8,16 @@ use Tests\Controllers\RecordPreparation\Record;
 class RecordOfFileInfo implements Record
 {
     public $id, $folders, $name, $size;
+    public $bucketName, $objectName;
     
-    function __construct($index)
+    function __construct($index, ?string $bucketName = null, ?string $objectName = null)
     {
         $this->id = "fileInfo-$index-id";
         $this->folders = null;
         $this->name = "file info $index name.txt";
         $this->size = null;
+        $this->bucketName = $bucketName;
+        $this->objectName = $objectName;
     }
 
     
@@ -25,6 +28,8 @@ class RecordOfFileInfo implements Record
             "folders" => $this->folders,
             "name" => $this->name,
             "size" => $this->size,
+            "bucketName" => $this->bucketName,
+            "objectName" => $this->objectName,
         ];
     }
     

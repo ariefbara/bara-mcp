@@ -28,6 +28,8 @@ class FileInfo
      * @var float
      */
     protected $size = null;
+    protected string $bucketName;
+    protected string $objectName;
 
     function getId(): string
     {
@@ -47,6 +49,16 @@ class FileInfo
     function getSize(): ?float
     {
         return $this->size;
+    }
+
+    public function getBucketName(): string
+    {
+        return $this->bucketName;
+    }
+
+    public function getObjectName(): string
+    {
+        return $this->objectName;
     }
 
     protected function __construct()

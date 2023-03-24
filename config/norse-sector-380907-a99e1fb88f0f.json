@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "norse-sector-380907",
+  "private_key_id": "a99e1fb88f0f07066e12e482d657310f5c8b5d9b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCcsJKkhIGd3GwL\nD1C5z9GYqb5d0UkKZ2nqXRwifx4pKaHUkBWwPxsP6SdwMd3raQ96fgF1j3NF9nv5\nFuahZ0Gj3HG2CQAOilncbM/DLPzYhitnPYhxkNOG+ETFJDR5HzwIFaEbHCbFei9a\nJ3p7RiLcQp1rtfARHazYmbDUUe8XDubRTICzV0FiQ7rbktTlPPXNFXUwkVSgtyzv\nceQWU+d9VSbRDyinsMlHqP6r34JrSxx/p8GrDaep6kn57Cvq+V1cW6p+CY3otDY7\nwqVPh+IcBN4LU2VS3p37wsVG/rfXeAuIp8l5qHJdc/OovxIyxEP6OdFrUD6f8uao\nG+/EzxYlAgMBAAECggEADGPzHf2DcWwELYYMbxEbD4HWwFJOfrs0QdiTOGV0dAgA\ngyT8rhH4w3PqDuIb8iO971oGUVlNYdourgEXWOqSeHvJZdNwNMt7H9DenLNn8ChV\n8iVIbvCR+uGS20MJv405K6DS5f2pJuMKr7ag+x1jStHIDdkr2XKkX9bGyAINpcqZ\nGy4kD8VUnDJvkXsAwbWLu4zUb178YXMZWvpWpJz52jec1UpYqIHG9o9e12G0XehF\n7qE2r+tSYGK3VLecilg+fsKI7h0vOhYKXkBV+dUI8pFk02esN6IYPxPSCFZ8YRrD\n1GCf8oaMFmTd5868/xs0AohweajGIzOMRfC67qWdcQKBgQDNQKEM2AavaP7wnsNn\nWPBnNFbL/VJWGgXbN4UMT4YewAAXC8CED03Zrg7cgM65yRWTXoBF7Bfn4Jmhrz7l\nvo/6jsJFI0+PJEUk9TcXciouX67cmNFlXqQBt7Opx6C5XCpN1fLkoFdYNLEE2ATm\npgUiSqfS5M3/3s9eOlw6FdRIUQKBgQDDbi+kOLTkA4ymk5Lw4dhgUpjII1LEAEx3\nfdtRMMbeweDrtxJfNw4u4eywt8PDrygi3lYlAD4qAZD8wctVEa+NFEcaJancwHXp\nTW0RkDTELQt9fbJM+6bqu+csDe/BmkXpHJjgqLv9RL5S9wL74mzrb3RWtDB+Wvd8\n4ODmIvBPlQKBgDVDc0ew+7MjbR0mJhE4rFIr6+ZN28MKR8DGnJlAPc7XBm70lsXu\nbsZxe9vO9VaTDy1KFcGPbfi3eUbTAmB+XkCoMVPdwPSldegMVnqYHsgf/nGymoxS\nzf7AHDiP3G6ds0C1p62aym/SZKmcIVF1fdmTRA/fXnHq8SdDv9E2/vqxAoGBAJ+T\n9573Fu4g39adJh0/rTlp+ItkHI8jV00zHcS8OYdndMvE32GUSSaLIIRkaZv+CJ4A\nQwNPoXMXeFaLwAakvF5MsoptOrihBycMLAVtZUjTJ1C/NLqbun5uFKPqdV33JSLm\nUQcRgP+cBHUmce9PwnS0u6CY3ggvK2tzDPGeke/JAoGBALDmJN0fbTxQR6rHvBtQ\nEiEaBISnlzw38NZC5SCAZhL+I33hduVDPAAdyCAxc+QhI3GzNZrqUUwVvIHewHoc\nC/8OyOdh0TlZrSOOIXaHvDrNb3RnLzxvrnsJ9isDhVLEiPPMLHXQJA/3L1AaBSRj\nqFK0x74JJAma//9GX191rT2q\n-----END PRIVATE KEY-----\n",
+  "client_email": "first-service-account@norse-sector-380907.iam.gserviceaccount.com",
+  "client_id": "106045254977688548199",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/first-service-account%40norse-sector-380907.iam.gserviceaccount.com"
+}

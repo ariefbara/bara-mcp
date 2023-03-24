@@ -7,6 +7,8 @@ $managerAggregate = [
 ];
 $router->group($managerAggregate, function () use ($router) {
     
+    $router->post('/firm-file-infos', ['uses' => "FirmFileInfoController@create"]);
+    //
     $router->post('/upload-firm-file', ['uses' => "UploadFileController@upload"]);
     $router->post('/upload-personal-file', ['uses' => "FileUploadController@upload"]);
     

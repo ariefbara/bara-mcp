@@ -13,6 +13,7 @@
         "doctrine/orm": "2.9.5",
         "eluceo/ical": "^0.16.1",
         "firebase/php-jwt": "^5.2",
+        "google/cloud-storage": "^1.30",
         "laravel/lumen-framework": "^7.0",
         "league/flysystem": "^1.0",
         "nordsoftware/lumen-cors": "^3.3",

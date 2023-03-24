@@ -49,11 +49,16 @@ class FirmFileInfo
         return $this->removed;
     }
 
+    public function getFileInfo(): FileInfo
+    {
+        return $this->fileInfo;
+    }
+
     public function __construct()
     {
         
     }
-    
+
     function getFolders(): array
     {
         return $this->fileInfo->getFolders();

@@ -31,8 +31,7 @@ class FirmTest extends TestBase
     {
         parent::setUp();
         $this->firm = new TestableFirm();
-        $this->fileInfoData = $this->buildMockOfClass(FileInfoData::class);
-        $this->fileInfoData->expects($this->any())->method("getName")->willReturn("filename.txt");
+        $this->fileInfoData = new FileInfoData('filename.ext', null);
         
         $this->profileForm = $this->buildMockOfClass(ProfileForm::class);
         
@@ -44,17 +43,26 @@ class FirmTest extends TestBase
         $this->client = $this->buildMockOfClass(Client::class);
     }
     
+    //
+    protected function createFileInfo()
+    {
+        return $this->firm->createFileInfo($this->firmFileInfoId, $this->fileInfoData);
+    }
     public function test_createFileInfo_returnFirmFileInfo()
     {
-        $firmFileInfo = new FirmFileInfo($this->firm, $this->firmFileInfoId, $this->fileInfoData);
-        $this->assertEquals($firmFileInfo, $this->firm->createFileInfo($this->firmFileInfoId, $this->fileInfoData));
+        $this->assertInstanceOf(FirmFileInfo::class, $this->createFileInfo());
+    }
+    public function test_createFileInfo_setIdentifierAsFileInfoDataBucket()
+    {
+        $this->createFileInfo();
+        $this->assertEquals($this->firm->identifier, $this->fileInfoData->bucketName);
     }
     
+    //
     protected function executeUpdateProfile()
     {
         $this->firm->updateProfile($this->firmFileInfo, $this->displaySetting);
     }
-    
     public function test_updateProfile_setLogoAndDisplaySetting()
     {
         $this->executeUpdateProfile();
@@ -68,6 +76,7 @@ class FirmTest extends TestBase
         $this->assertNull($this->firm->logo);
     }
     
+    //
     protected function executeSetBioSearchFilter()
     {
         $this->firm->setBioSearchFilter($this->bioSearchFilterData);
@@ -86,6 +95,7 @@ class FirmTest extends TestBase
         $this->executeSetBioSearchFilter();
     }
     
+    //
     protected function createClient()
     {
         return $this->firm->createClient($this->clientId, $this->clientRegistrationData);
@@ -95,6 +105,7 @@ class FirmTest extends TestBase
         $this->assertInstanceOf(Client::class, $this->createClient());
     }
     
+    //
     protected function createTeam()
     {
         $teamData = new TeamData($this->teamName);
@@ -112,7 +123,7 @@ class TestableFirm extends Firm
 {
     public $id = 'firmId';
     public $name;
-    public $identifier;
+    public $identifier = 'firm-identifier';
     public $firmWhitelableInfo;
     public $logo;
     public $displaySetting;

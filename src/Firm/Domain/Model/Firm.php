@@ -76,6 +76,7 @@ class Firm
 
     public function createFileInfo(string $firmFileInfoId, FileInfoData $fileInfoData): FirmFileInfo
     {
+        $fileInfoData->setBucketName($this->identifier);
         return new FirmFileInfo($this, $firmFileInfoId, $fileInfoData);
     }
 

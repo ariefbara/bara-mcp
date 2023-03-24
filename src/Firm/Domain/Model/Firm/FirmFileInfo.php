@@ -3,12 +3,13 @@
 namespace Firm\Domain\Model\Firm;
 
 use Firm\Domain\Model\Firm;
+use Resources\Application\Event\ContainEvents;
 use Resources\Exception\RegularException;
 use SharedContext\Domain\Model\SharedEntity\FileInfo;
 use SharedContext\Domain\Model\SharedEntity\FileInfoData;
 use SharedContext\Domain\Service\CanBeSavedInStorage;
 
-class FirmFileInfo implements CanBeSavedInStorage
+class FirmFileInfo implements CanBeSavedInStorage, ContainEvents
 {
 
     /**
@@ -28,7 +29,7 @@ class FirmFileInfo implements CanBeSavedInStorage
      * @var FileInfo
      */
     protected $fileInfo;
-    
+
     /**
      *
      * @var bool
@@ -47,12 +48,17 @@ class FirmFileInfo implements CanBeSavedInStorage
     {
         return $this->fileInfo->getFullyQualifiedFileName();
     }
-    
+
     public function assertUsableInFirm(Firm $firm): void
     {
         if ($this->firm !== $firm) {
             throw RegularException::forbidden("forbidden: unable to use file, either doesn't exist or doesn't belongs to your firm");
         }
+    }
+
+    public function pullRecordedEvents(): array
+    {
+        return $this->fileInfo->pullRecordedEvents();
     }
 
 }

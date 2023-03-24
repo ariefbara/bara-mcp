@@ -22,8 +22,8 @@ class ExtendedManagerTestCase extends ControllerTestCase
         $this->connection->table('Firm')->truncate();
         $this->connection->table('Manager')->truncate();
 
-        $firm = new RecordOfFirm('00');
-        $this->manager = new RecordOfManager($firm, '00');
+        $firm = new RecordOfFirm('main');
+        $this->manager = new RecordOfManager($firm, 'main');
     }
 
     protected function tearDown(): void

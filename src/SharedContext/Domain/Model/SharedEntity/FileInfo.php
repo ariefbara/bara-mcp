@@ -2,13 +2,13 @@
 
 namespace SharedContext\Domain\Model\SharedEntity;
 
-use Resources\ {
-    ValidationRule,
-    ValidationService
-};
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\ValidationRule;
+use Resources\ValidationService;
+use SharedContext\Domain\Event\FileInfoCreatedEvent;
 use SharedContext\Domain\Service\CanBeSavedInStorage;
 
-class FileInfo implements CanBeSavedInStorage
+class FileInfo extends EntityContainEvents implements CanBeSavedInStorage
 {
 
     /**
@@ -34,6 +34,8 @@ class FileInfo implements CanBeSavedInStorage
      * @var float
      */
     protected $size = null;
+    protected string $bucketName;
+    protected string $objectName;
 
     protected function setName(string $name): void
     {
@@ -60,6 +62,11 @@ class FileInfo implements CanBeSavedInStorage
         $this->setFolders($fileInfoData->getFolders());
         $this->setName($fileInfoData->getName());
         $this->size = $fileInfoData->getSize();
+        $this->bucketName = $fileInfoData->bucketName;
+        $this->objectName = (isset($fileInfoData->directory) ? "{$fileInfoData->directory}/"  : "") . $this->id;
+        
+        $event = new FileInfoCreatedEvent($this->bucketName, $this->objectName);
+        $this->recordEvent($event);
     }
 
     public function getFullyQualifiedFileName(): string

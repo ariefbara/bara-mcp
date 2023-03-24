@@ -7,6 +7,7 @@ use App\Jobs\SendImmediateMailJob;
 use Countable;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
+use Google\Cloud\Storage\StorageClient;
 use Illuminate\Http\Request;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use League\Flysystem\Adapter\Local;
@@ -17,12 +18,14 @@ use Notification\Infrastructure\MailManager\SwiftMailSender;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Query\Domain\Service\DataFinder;
 use Query\Infrastructure\QueryFilter\TimeIntervalFilter;
+use Resources\Infrastructure\Persistence\Google\GoogleStorage;
 use Resources\PaginationFilter;
 use SharedContext\Infrastructure\Persistence\Flysystem\FlysystemFileRepository;
 use Swift_Mailer;
 use Swift_SmtpTransport;
 use Symfony\Component\HttpFoundation\Response;
 use function env;
+use function Google\Cloud\Core\Lock\fopen;
 use function GuzzleHttp\json_encode;
 use function response;
 
@@ -323,6 +326,15 @@ class Controller extends BaseController
     protected function getPaginationFilter(): PaginationFilter
     {
         return new PaginationFilter($this->getPage(), $this->getPageSize());
+    }
+    
+    //
+    protected function createGoogleStorage(): GoogleStorage
+    {
+        $storage = new StorageClient([
+            'keyFilePath' => dirname(__DIR__, 3). '/config/norse-sector-380907-a99e1fb88f0f.json',
+        ]);
+        return new GoogleStorage($storage);
     }
     
 }

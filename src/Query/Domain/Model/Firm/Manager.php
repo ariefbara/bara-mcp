@@ -115,11 +115,17 @@ class Manager
         return $this->password->match($password);
     }
     
-    public function executeTaskInFirm(ITaskInFirmExecutableByManager $task): void
+    //
+    protected function assertActive()
     {
         if ($this->removed) {
-            throw RegularException::forbidden('forbidden: only active manager can make this request');
+            throw RegularException::forbidden('only active manager can make this request');
         }
+    }
+    
+    public function executeTaskInFirm(ITaskInFirmExecutableByManager $task): void
+    {
+        $this->assertActive();
         $task->executeTaskInFirm($this->firm);
     }
     
@@ -129,6 +135,12 @@ class Manager
             throw RegularException::forbidden("forbidden: unable to manage program, probably belongs to other firm");
         }
         $task->executeInProgram($program);
+    }
+    
+    public function executeQueryInFirm(ManagerQueryInFirm $query, $payload): void
+    {
+        $this->assertActive();
+        $query->executeQueryInFirm($this->firm, $payload);
     }
 
 }

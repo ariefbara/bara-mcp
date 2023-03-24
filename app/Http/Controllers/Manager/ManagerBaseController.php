@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Doctrine\ORM\EntityManager;
 use Illuminate\Http\Request;
 use Query\Application\Auth\Firm\ManagerAuthorization;
+use Query\Application\Service\Manager\ExecuteQueryInFirm;
 use Query\Application\Service\Manager\ExecuteTaskInFirm;
 use Query\Application\Service\Manager\ExecuteTaskInProgram;
 use Query\Domain\Model\Firm\ITaskInFirmExecutableByManager;
@@ -75,6 +76,13 @@ class ManagerBaseController extends Controller
         $managerRepository = $this->em->getRepository(\Firm\Domain\Model\Firm\Manager::class);
         (new \Firm\Application\Service\Manager\ExecuteTaskInFirm($managerRepository))
                 ->execute($this->firmId(), $this->managerId(), $task, $payload);
+    }
+
+    protected function executeQueryInFirm($query, $payload): void
+    {
+        $managerRepository = $this->em->getRepository(Manager::class);
+        (new ExecuteQueryInFirm($managerRepository))
+                ->execute($this->firmId(), $this->managerId(), $query, $payload);
     }
 
 }

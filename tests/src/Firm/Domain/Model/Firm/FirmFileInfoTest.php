@@ -64,6 +64,18 @@ class FirmFileInfoTest extends TestBase
             $this->assertUsableInFirm();
         }, 'Forbidden', "forbidden: unable to use file, either doesn't exist or doesn't belongs to your firm");
     }
+    
+    //
+    protected function pullRecordedEvents()
+    {
+        return $this->firmFileInfo->pullRecordedEvents();
+    }
+    public function test_pullRecordedEvents_returnAllEventsPulledFromFileInfo()
+    {
+        $this->fileInfo->expects($this->once())
+                ->method('pullRecordedEvents');
+        $this->pullRecordedEvents();
+    }
 }
 
 class TestableFirmFileInfo extends FirmFileInfo

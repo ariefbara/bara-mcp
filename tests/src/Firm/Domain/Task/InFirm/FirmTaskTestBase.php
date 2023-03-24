@@ -162,17 +162,9 @@ class FirmTaskTestBase extends TestBase
                 ->willReturn($this->learningMaterial);
     }
 
-    /**
-     * 
-     * @var MockObject
-     */
-    protected $firmFileInfoRepository;
-    /**
-     * 
-     * @var MockObject
-     */
-    protected $firmFileInfo;
-    protected $firmFileInfoId = 'firmFileInfoId';
+    protected MockObject $firmFileInfoRepository;
+    protected MockObject$firmFileInfo;
+    protected string $firmFileInfoId = 'firmFileInfoId';
     protected function setFirmFileInfoRelatedDependency(): void
     {
         $this->firmFileInfo = $this->buildMockOfClass(FirmFileInfo::class);
@@ -182,5 +174,5 @@ class FirmTaskTestBase extends TestBase
                 ->with($this->firmFileInfoId)
                 ->willReturn($this->firmFileInfo);
     }
-
+    
 }

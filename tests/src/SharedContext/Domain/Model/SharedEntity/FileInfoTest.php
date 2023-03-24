@@ -2,25 +2,29 @@
 
 namespace SharedContext\Domain\Model\SharedEntity;
 
+use SharedContext\Domain\Event\FileInfoCreatedEvent;
 use Tests\TestBase;
 
 class FileInfoTest extends TestBase
 {
     protected $fileInfo;
-    protected $id = 'fileInfoId', $name = 'filename.jpg', $size = 3.4;
+    protected $id = 'fileInfoId', $name = 'filename.jpg', $size = 3.4, $bucketName = 'bucket', $directory = 'directory';
     protected $folders = ['path', 'to', 'folder'];
     
     protected function setUp(): void {
         parent::setUp();
-        $request = new FileInfoData('file_name.pdf', 1.1);
+        $request = (new FileInfoData('file_name.pdf', 1.1))->setBucketName('buck')->setDirectory('dir');
         $request->addFolder('path');
         $request->addFolder('to');
         $request->addFolder('folder');
         $this->fileInfo = new TestableFileInfo('id', $request);
+        $this->fileInfo->recordedEvents = [];
     }
     
     protected function getFileInfoData() {
-        $fileInfoData =  new FileInfoData($this->name, $this->size);
+        $fileInfoData =  (new FileInfoData($this->name, $this->size))
+                ->setBucketName($this->bucketName)
+                ->setDirectory($this->directory);
         foreach ($this->folders as $folder) {
             $fileInfoData->addFolder($folder);
         }
@@ -35,6 +39,18 @@ class FileInfoTest extends TestBase
         $this->assertEquals($this->folders, $fileInfo->folders);
         $this->assertEquals($this->name, $fileInfo->name);
         $this->assertEquals($this->size, $fileInfo->size);
+    }
+    public function test_construct_setBucketAndObjectName()
+    {
+        $fileInfo = $this->executeConstruct();
+        $this->assertSame($this->bucketName, $fileInfo->bucketName);
+        $this->assertSame("{$this->directory}/{$this->id}", $fileInfo->objectName);
+    }
+    public function test_construct_emptyDirectory_setObjectNameWithoutDirectory()
+    {
+        $this->directory = null;
+        $fileInfo = $this->executeConstruct();
+        $this->assertSame("{$this->id}", $fileInfo->objectName);
     }
     function test_construct_invalidNameFormat_throwEx() {
         $this->name = 'invalid filename';
@@ -65,6 +81,12 @@ class FileInfoTest extends TestBase
         $fileInfo = $this->executeConstruct();
         $this->assertEquals('root-path_', $fileInfo->folders['0']);
     }
+    public function test_construct_recordFileInfoCreatedEvent()
+    {
+        $fileInfo = $this->executeConstruct();
+        $event = new FileInfoCreatedEvent($this->bucketName, "{$this->directory}/{$this->id}");
+        $this->assertEquals($event, $fileInfo->recordedEvents[0]);
+    }
     
     function test_getFullyQualifiedFileName_returnPathToFile() {
         $expectedFileName = 
@@ -82,5 +104,8 @@ class FileInfoTest extends TestBase
 
 class TestableFileInfo extends FileInfo{
     public $id, $folders, $name, $size;
+    public string $bucketName;
+    public string $objectName;
+    public $recordedEvents;
 }
 
