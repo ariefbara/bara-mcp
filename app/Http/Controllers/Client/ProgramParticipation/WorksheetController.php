@@ -116,7 +116,11 @@ class WorksheetController extends ClientBaseController
 
     protected function arrayDataOfWorksheet(Worksheet $worksheet): array
     {
-        $data = (new FormRecordToArrayDataConverter())->convert($worksheet);
+        if ($worksheet->getFormRecord()) {
+            $data = (new FormRecordToArrayDataConverter())->convert($worksheet);
+        } else {
+            $data = [];
+        }
         $parent = empty($worksheet->getParent()) ? null : $this->arrayDataOfParentWorksheet($worksheet->getParent());
         $data['id'] = $worksheet->getId();
         $data['parent'] = $parent;
@@ -126,12 +130,16 @@ class WorksheetController extends ClientBaseController
             "name" => $worksheet->getMission()->getName(),
             "position" => $worksheet->getMission()->getPosition(),
         ];
-        $data['mission']['worksheetForm'] = (new FormToArrayDataConverter())->convert($worksheet->getMission()->getWorksheetForm());
-        $data['mission']['worksheetForm']['id'] = $worksheet->getMission()->getWorksheetForm()->getId();
+        if ($worksheet->getMission()->getWorksheetForm()) {
+            $data['mission']['worksheetForm'] = (new FormToArrayDataConverter())->convert($worksheet->getMission()->getWorksheetForm());
+            $data['mission']['worksheetForm']['id'] = $worksheet->getMission()->getWorksheetForm()->getId();
+        } else {
+            $data['mission']['worksheetForm'] = null;
+        }
         foreach ($worksheet->getActiveChildren() as $childWorksheet) {
             $data["children"][] = $this->arrayDataOfChildWorksheet($childWorksheet);
         }
-        
+
         return $data;
     }
 
@@ -145,6 +153,7 @@ class WorksheetController extends ClientBaseController
             "parent" => $parent,
         ];
     }
+
     protected function arrayDataOfChildWorksheet(Worksheet $childWorksheet): array
     {
         return [

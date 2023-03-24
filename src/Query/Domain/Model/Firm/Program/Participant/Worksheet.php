@@ -44,7 +44,7 @@ class Worksheet implements ContainFormRecordInterface
 
     /**
      *
-     * @var FormRecord
+     * @var FormRecord|null
      */
     protected $formRecord;
 
@@ -85,7 +85,7 @@ class Worksheet implements ContainFormRecordInterface
         return $this->mission;
     }
 
-    function getFormRecord(): FormRecord
+    function getFormRecord(): ?FormRecord
     {
         return $this->formRecord;
     }

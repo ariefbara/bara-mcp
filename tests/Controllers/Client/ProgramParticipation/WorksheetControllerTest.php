@@ -124,6 +124,37 @@ class WorksheetControllerTest extends WorksheetTestCase
         $this->post($this->worksheetUri, $this->worksheetInput, $this->client->token)
                 ->seeStatusCode(403);
     }
+    public function test_submitRoot_missionWithoutWorksheetForm_201()
+    {
+$this->disableExceptionHandling();
+        $this->connection->table('Mission')->truncate();
+        $this->connection->table('Worksheet')->truncate();
+        $this->connection->table('FormRecord')->truncate();
+        
+        $this->mission->worksheetForm = null;
+        $this->mission->insert($this->connection);
+        
+        $this->post($this->worksheetUri, $this->worksheetInput, $this->client->token);
+        $this->seeStatusCode(201);
+        
+        $this->seeJsonContains([
+            "name" => $this->worksheetInput['name'],
+            "parent" => null,
+            "mission" => [
+                "id" => $this->mission->id,
+                "name" => $this->mission->name,
+                "position" => $this->mission->position,
+                "worksheetForm" => null,
+            ],
+        ]);
+        
+        $completedMissionEntry = [
+            "Participant_id" => $this->programParticipation->participant->id,
+            "Mission_id" => $this->mission->id,
+            "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
+        ];
+        $this->seeInDatabase("CompletedMission", $completedMissionEntry);
+    }
     
     public function test_submitBranch()
     {
@@ -240,6 +271,42 @@ class WorksheetControllerTest extends WorksheetTestCase
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->post($uri, $this->worksheetInput, $this->client->token)
                 ->seeStatusCode(403);
+    }
+    public function test_submitBranch_missionWithoutWorksheetForm_201()
+    {
+        $this->connection->table('Mission')->truncate();
+        $this->mission->insert($this->connection);
+        $this->branchMission->worksheetForm = null;
+        $this->branchMission->insert($this->connection);
+        
+        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        
+        $uri = $this->worksheetUri . "/{$this->worksheet->id}";
+        $this->post($uri, $this->worksheetInput, $this->client->token);
+        $this->seeStatusCode(201);
+        
+        $this->seeJsonContains([
+            "name" => $this->worksheetInput['name'],
+            "parent" => [
+                'id' => $this->worksheet->id,
+                'name' => $this->worksheet->name,
+                'parent' => null,
+            ],
+            "mission" => [
+                "id" => $this->branchMission->id,
+                "name" => $this->branchMission->name,
+                "position" => $this->branchMission->position,
+                "worksheetForm" => null,
+            ],
+        ]);
+        
+        $worksheetEntry = [
+            "parent_id" => $this->worksheet->id,
+            "name" => $this->worksheetInput['name'],
+            "Participant_id" => $this->programParticipation->id,
+            "removed" => false,
+        ];
+        $this->seeInDatabase('Worksheet', $worksheetEntry);
     }
     
     public function test_update()

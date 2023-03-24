@@ -68,16 +68,16 @@ class Mission
     {
         return $this->program === $program;
     }
-    
+
     public function isSameProgramAsParticipant(Participant $participant): bool
     {
         return $participant->isProgramEquals($this->program);
     }
 
     //
-    public function createWorksheetFormRecord(string $formRecordId, FormRecordData $formRecordData): FormRecord
+    public function createWorksheetFormRecord(string $formRecordId, FormRecordData $formRecordData): ?FormRecord
     {
-        return $this->worksheetForm->createFormRecord($formRecordId, $formRecordData);
+        return isset($this->worksheetForm) ? $this->worksheetForm->createFormRecord($formRecordId, $formRecordData) : null;
     }
 
 }
