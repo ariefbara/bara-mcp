@@ -60,9 +60,20 @@ class LearningMaterialTest extends TestBase
             $this->construct();
         }, 'Bad Request', 'bad request: learning material name is mandatory');
     }
+    public function test_construct_multiAttachment_badRequest()
+    {
+        $data = new LearningMaterialData($this->name, $this->content);
+        $data->addAttachment($this->firmFileInfo);
+        $data->addAttachment($this->buildMockOfClass(FirmFileInfo::class));
+        
+        $this->assertRegularExceptionThrowed(fn() => new TestableLearningMaterial($this->mission, 'id', $data), 'Bad Request', 'only one active attachment allowed');
+    }
     
     protected function update()
     {
+        $this->learningAttachment->expects($this->any())
+                ->method('isDisabled')
+                ->willReturn(true);
         $this->learningMaterial->update($this->getLearningMaterialData());
     }
     public function test_update_changeNameAndDescription()
@@ -90,6 +101,13 @@ class LearningMaterialTest extends TestBase
         $this->update();
         $this->assertEquals(2, $this->learningMaterial->learningAttachments->count());
         $this->assertInstanceOf(LearningAttachment::class, $this->learningMaterial->learningAttachments->last());
+    }
+    public function test_update_updateCauseMoreMultiActiveAttachment_badRequest()
+    {
+        $this->learningAttachment->expects($this->any())
+                ->method('isDisabled')
+                ->willReturn(false);
+        $this->assertRegularExceptionThrowed(fn() => $this->update(), 'Bad Request', 'only one active attachment allowed');
     }
     
     public function test_remove_setRemovedFlagTrue()

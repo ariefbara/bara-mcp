@@ -61,13 +61,13 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         
         $this->learningAttachmentOne_lm1 = new RecordOfLearningAttachment($this->learningMaterialOne_m1, $this->firmFileInfoOne, '1');
         $this->learningAttachmentTwo_lm2 = new RecordOfLearningAttachment($this->learningMaterialOne_m1, $this->firmFileInfoTwo, '2');
+        $this->learningAttachmentOne_lm1->disabled = true;
         
         $this->learningMaterialRequest = [
             'name' => 'new learning material name',
             'content' => 'new learning material content',
             'attachmentFileIdList' => [
                 $this->firmFileInfoOne->id,
-                $this->firmFileInfoTwo->id,
             ],
         ];
         
@@ -133,14 +133,6 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         ];
         $this->seeJsonContains($attachmentOneResponse);
         
-        $attachmentTwoResponse = [
-            'disabled' => false,
-            'firmFileInfo' => [
-                'id' => $this->firmFileInfoTwo->id,
-                'path' => $this->firmFileInfoTwo->fileInfo->getFullyPath(),
-            ],
-        ];
-        $this->seeJsonContains($attachmentTwoResponse);
         
         $attachmentOneRecord = [
             'FirmFileInfo_id' => $this->firmFileInfoOne->id,
@@ -148,11 +140,6 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         ];
         $this->seeInDatabase('LearningAttachment', $attachmentOneRecord);
         
-        $attachmentTwoRecord = [
-            'FirmFileInfo_id' => $this->firmFileInfoTwo->id,
-            'disabled' => false,
-        ];
-        $this->seeInDatabase('LearningAttachment', $attachmentTwoRecord);
     }
     public function test_add_emptyName_400()
     {
@@ -182,6 +169,12 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         
         $this->add();
         $this->seeStatusCode(401);
+    }
+    public function test_add_multiAttachment_400()
+    {
+        $this->learningMaterialRequest['attachmentFileIdList'][] = $this->firmFileInfoTwo->id;
+        $this->add();
+        $this->seeStatusCode(400);
     }
     
     protected function update()
@@ -230,15 +223,15 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         $attachmentTwoResponse = [
             'disabled' => false,
             'firmFileInfo' => [
-                'id' => $this->firmFileInfoTwo->id,
-                'path' => $this->firmFileInfoTwo->fileInfo->getFullyPath(),
+                'id' => $this->firmFileInfoOne->id,
+                'path' => $this->firmFileInfoOne->fileInfo->getFullyPath(),
             ],
         ];
         $this->seeJsonContains($attachmentTwoResponse);
         
         $attachmentTwoRecord = [
             'LearningMaterial_id' => $this->learningMaterialOne_m1->id,
-            'FirmFileInfo_id' => $this->firmFileInfoTwo->id,
+            'FirmFileInfo_id' => $this->firmFileInfoOne->id,
             'disabled' => false,
         ];
         $this->seeInDatabase('LearningAttachment', $attachmentTwoRecord);
@@ -309,7 +302,7 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
     public function test_update_inaccessibleFirmFileInfo_403()
     {
         $this->otherFirm->insert($this->connection);
-        $this->firmFileInfoTwo->firm = $this->otherFirm;
+        $this->firmFileInfoOne->firm = $this->otherFirm;
         
         $this->update();
         $this->seeStatusCode(403);
@@ -319,6 +312,12 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         $this->manager->removed = true;
         $this->update();
         $this->seeStatusCode(401);
+    }
+    public function test_update_updateCauseMultiAttachment_400()
+    {
+        $this->learningMaterialRequest['attachmentFileIdList'][] = $this->firmFileInfoTwo->id;
+        $this->update();
+        $this->seeStatusCode(400);
     }
     
     protected function remove()
@@ -393,14 +392,14 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
             'content' => $this->learningMaterialOne_m1->content,
             'removed' => false,
             'learningAttachments' => [
-                [
-                    'id' => $this->learningAttachmentOne_lm1->id,
-                    'disabled' => $this->learningAttachmentOne_lm1->disabled,
-                    'firmFileInfo' => [
-                        'id' => $this->learningAttachmentOne_lm1->firmFileInfo->id,
-                        'path' => $this->learningAttachmentOne_lm1->firmFileInfo->fileInfo->getFullyPath(),
-                    ],
-                ],
+//                [
+//                    'id' => $this->learningAttachmentOne_lm1->id,
+//                    'disabled' => $this->learningAttachmentOne_lm1->disabled,
+//                    'firmFileInfo' => [
+//                        'id' => $this->learningAttachmentOne_lm1->firmFileInfo->id,
+//                        'path' => $this->learningAttachmentOne_lm1->firmFileInfo->fileInfo->getFullyPath(),
+//                    ],
+//                ],
                 [
                     'id' => $this->learningAttachmentTwo_lm2->id,
                     'disabled' => $this->learningAttachmentTwo_lm2->disabled,

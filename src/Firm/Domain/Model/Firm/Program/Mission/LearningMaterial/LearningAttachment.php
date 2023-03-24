@@ -33,6 +33,11 @@ class LearningAttachment
      */
     protected $firmFileInfo;
 
+    public function isDisabled(): bool
+    {
+        return $this->disabled;
+    }
+
     public function __construct(LearningMaterial $learningMaterial, string $id, FirmFileInfo $firmFileInfo)
     {
         $this->learningMaterial = $learningMaterial;

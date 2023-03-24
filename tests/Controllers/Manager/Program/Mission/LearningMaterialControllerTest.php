@@ -38,6 +38,7 @@ class LearningMaterialControllerTest extends MissionTestCase
 
     public function test_add()
     {
+$this->disableExceptionHandling();
         $response = [
             "name" => $this->learningMaterialInput['name'],
             "content" => $this->learningMaterialInput['content'],

@@ -16,9 +16,9 @@ class RecordOfFileInfo implements Record
         $this->folders = null;
         $this->name = "file info $index name.txt";
         $this->size = null;
-        $this->bucketName = $bucketName;
-        $this->objectName = $objectName;
-        $this->contentType = $contentType;
+        $this->bucketName = $bucketName ?? 'default-bucket-name';
+        $this->objectName = $objectName ?? 'default-object-name';
+        $this->contentType = $contentType ?? 'application/octet-stream';
     }
 
     

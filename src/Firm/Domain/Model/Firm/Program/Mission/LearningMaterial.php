@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Firm\Domain\Model\Firm;
 use Firm\Domain\Model\Firm\Program\Mission;
 use Firm\Domain\Model\Firm\Program\Mission\LearningMaterial\LearningAttachment;
+use Resources\Exception\RegularException;
 use Resources\Uuid;
 use Resources\ValidationRule;
 use Resources\ValidationService;
@@ -42,13 +43,13 @@ class LearningMaterial
      * @var bool
      */
     protected $removed = false;
-    
+
     /**
      * 
      * @var ArrayCollection
      */
     protected $learningAttachments;
-    
+
     protected function setName(string $name): void
     {
         ValidationService::build()
@@ -64,11 +65,15 @@ class LearningMaterial
         $this->setName($data->getName());
         $this->content = $data->getContent();
         $this->removed = false;
-        
+
         $this->learningAttachments = new ArrayCollection();
         $this->addAttachments($data);
+
+        if ($this->learningAttachments->count() > 1) {
+            throw RegularException::badRequest('only one active attachment allowed');
+        }
     }
-    
+
     protected function addAttachments(LearningMaterialData $data): void
     {
         foreach ($data->iterateFirmFileInfoInAttachmentList() as $firmFileInfo) {
@@ -82,19 +87,24 @@ class LearningMaterial
     {
         $this->setName($data->getName());
         $this->content = $data->getContent();
-        
+
         foreach ($this->learningAttachments->getIterator() as $learningAttachment) {
             $learningAttachment->update($data);
         }
-        
+
         $this->addAttachments($data);
+        
+        $p = fn(LearningAttachment $attachment) => !$attachment->isDisabled();
+        if ($this->learningAttachments->filter($p)->count() > 1) {
+            throw RegularException::badRequest('only one active attachment allowed');
+        }
     }
 
     public function remove(): void
     {
         $this->removed = true;
     }
-    
+
     public function assertAccessibleInFirm(Firm $firm): void
     {
         $this->mission->assertAccessibleInFirm($firm);
