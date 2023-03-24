@@ -36,7 +36,9 @@ class FirmFileInfoController extends ManagerBaseController
         $task = new CreateFirmFileInfo($this->repository(), $dispatcher);
         
         $name = $this->request->input('name');
-        $payload = new FileInfoData($name, null);
+        $contentType = $this->request->input('contentType') ?? null;
+        $payload = (new FileInfoData($name, null))
+                ->setContentType($contentType);
         
         $transactionalSession = new DoctrineTransactionalSession($this->em);
         $transactionalSession->executeAtomically(function () use ($task, $payload, $dispatcher){

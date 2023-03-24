@@ -6,6 +6,7 @@ class FirmFileInfoControllerTest extends ExtendedManagerTestCase
 {
     protected $fileInfoInput = [
         'name' => 'newfile.mp4',
+        'contentType' => 'video/mp4',
     ];
     protected $firmFileInfoUri;
 
@@ -48,6 +49,7 @@ $this->disableExceptionHandling();
         
         $this->seeInDatabase('FileInfo', [
             'name' => $this->fileInfoInput['name'],
+            'contentType' => $this->fileInfoInput['contentType'],
             'bucketName' => $this->manager->firm->identifier,
         ]);
 $this->seeJsonContains(['print']);

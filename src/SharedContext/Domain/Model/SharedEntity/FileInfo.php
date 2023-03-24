@@ -36,6 +36,7 @@ class FileInfo extends EntityContainEvents implements CanBeSavedInStorage
     protected $size = null;
     protected string $bucketName;
     protected string $objectName;
+    protected ?string $contentType;
 
     protected function setName(string $name): void
     {
@@ -63,9 +64,9 @@ class FileInfo extends EntityContainEvents implements CanBeSavedInStorage
         $this->setName($fileInfoData->getName());
         $this->size = $fileInfoData->getSize();
         $this->bucketName = $fileInfoData->bucketName;
-        $this->objectName = (isset($fileInfoData->directory) ? "{$fileInfoData->directory}/"  : "") . $this->id;
-        
-        $event = new FileInfoCreatedEvent($this->bucketName, $this->objectName);
+        $this->objectName = (isset($fileInfoData->directory) ? "{$fileInfoData->directory}/" : "") . $this->id;
+        $this->contentType = $fileInfoData->contentType ?? null;
+        $event = new FileInfoCreatedEvent($this->bucketName, $this->objectName, $this->contentType);
         $this->recordEvent($event);
     }
 

@@ -30,6 +30,7 @@ class FileInfo
     protected $size = null;
     protected string $bucketName;
     protected string $objectName;
+    protected ?string $contentType;
 
     function getId(): string
     {
@@ -59,6 +60,11 @@ class FileInfo
     public function getObjectName(): string
     {
         return $this->objectName;
+    }
+
+    public function getContentType(): ?string
+    {
+        return $this->contentType;
     }
 
     protected function __construct()

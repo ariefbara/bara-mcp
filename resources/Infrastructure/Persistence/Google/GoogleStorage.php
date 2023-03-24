@@ -28,11 +28,14 @@ class GoogleStorage
         $this->storage->createBucket($bucketName, $bucketOptions);
     }
 
-    public function createSignedUploadForObjectInBucket(string $bucket, string $object): string
+    public function createSignedUploadForObjectInBucket(string $bucket, string $object, string $contentType): string
     {
         return $this->storage->bucket($bucket)
                         ->object($object)
-                        ->beginSignedUploadSession(['version' => 'v4']);
+                        ->beginSignedUploadSession([
+                            'version' => 'v4',
+                            'contentType' => $contentType,
+                        ]);
 //                ->signedUrl(new \DateTime('+ 6 hours'), [
 //                    'method' => 'PUT',
 //                    'contentType' => 'application/octet-stream',

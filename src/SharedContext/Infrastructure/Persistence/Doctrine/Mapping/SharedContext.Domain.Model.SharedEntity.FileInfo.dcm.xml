@@ -10,6 +10,7 @@
         <field name="size" type="float" nullable="true"/>
         <field name="bucketName" type="string" length="255" nullable="false"/>
         <field name="objectName" type="string" length="255" nullable="false"/>
+        <field name="contentType" type="string" length="255" nullable="true"/>
         
     </entity>
 </doctrine-mapping>

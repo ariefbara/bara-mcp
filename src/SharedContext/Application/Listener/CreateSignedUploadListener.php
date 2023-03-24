@@ -31,7 +31,7 @@ class CreateSignedUploadListener implements Listener
     protected function execute(FileInfoCreatedEvent $event): void
     {
         $this->signedUploadUrl = $this->googleStorage
-                ->createSignedUploadForObjectInBucket($event->getBucketName(), $event->getObjectName());
+                ->createSignedUploadForObjectInBucket($event->getBucketName(), $event->getObjectName(), $event->getContentType());
     }
 
 }

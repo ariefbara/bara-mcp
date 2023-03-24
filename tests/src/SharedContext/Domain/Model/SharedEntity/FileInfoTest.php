@@ -8,7 +8,7 @@ use Tests\TestBase;
 class FileInfoTest extends TestBase
 {
     protected $fileInfo;
-    protected $id = 'fileInfoId', $name = 'filename.jpg', $size = 3.4, $bucketName = 'bucket', $directory = 'directory';
+    protected $id = 'fileInfoId', $name = 'filename.jpg', $size = 3.4, $bucketName = 'bucket', $directory = 'directory', $contentType = 'application/pdf';
     protected $folders = ['path', 'to', 'folder'];
     
     protected function setUp(): void {
@@ -24,6 +24,7 @@ class FileInfoTest extends TestBase
     protected function getFileInfoData() {
         $fileInfoData =  (new FileInfoData($this->name, $this->size))
                 ->setBucketName($this->bucketName)
+                ->setContentType($this->contentType)
                 ->setDirectory($this->directory);
         foreach ($this->folders as $folder) {
             $fileInfoData->addFolder($folder);
@@ -40,10 +41,11 @@ class FileInfoTest extends TestBase
         $this->assertEquals($this->name, $fileInfo->name);
         $this->assertEquals($this->size, $fileInfo->size);
     }
-    public function test_construct_setBucketAndObjectName()
+    public function test_construct_setBucketContentTypeAndObjectName()
     {
         $fileInfo = $this->executeConstruct();
         $this->assertSame($this->bucketName, $fileInfo->bucketName);
+        $this->assertSame($this->contentType, $fileInfo->contentType);
         $this->assertSame("{$this->directory}/{$this->id}", $fileInfo->objectName);
     }
     public function test_construct_emptyDirectory_setObjectNameWithoutDirectory()
@@ -84,7 +86,7 @@ class FileInfoTest extends TestBase
     public function test_construct_recordFileInfoCreatedEvent()
     {
         $fileInfo = $this->executeConstruct();
-        $event = new FileInfoCreatedEvent($this->bucketName, "{$this->directory}/{$this->id}");
+        $event = new FileInfoCreatedEvent($this->bucketName, "{$this->directory}/{$this->id}", $this->contentType);
         $this->assertEquals($event, $fileInfo->recordedEvents[0]);
     }
     
@@ -105,6 +107,7 @@ class FileInfoTest extends TestBase
 class TestableFileInfo extends FileInfo{
     public $id, $folders, $name, $size;
     public string $bucketName;
+    public ?string $contentType;
     public string $objectName;
     public $recordedEvents;
 }

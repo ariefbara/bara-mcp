@@ -9,6 +9,7 @@ class FileInfoData
     public string $id;
     public ?string $bucketName;
     public ?string $directory;
+    public ?string $contentType;
 
     public function setId(string $id)
     {
@@ -25,6 +26,12 @@ class FileInfoData
     public function setDirectory(?string $directory)
     {
         $this->directory = $directory;
+        return $this;
+    }
+
+    public function setContentType(?string $contentType)
+    {
+        $this->contentType = $contentType;
         return $this;
     }
 

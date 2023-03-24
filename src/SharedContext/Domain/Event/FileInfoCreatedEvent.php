@@ -16,6 +16,7 @@ class FileInfoCreatedEvent implements Event
 
     protected string $bucketName;
     protected string $objectName;
+    protected ?string $contentType;
 
     public function getBucketName(): string
     {
@@ -27,10 +28,16 @@ class FileInfoCreatedEvent implements Event
         return $this->objectName;
     }
 
-    public function __construct(string $bucketName, string $objectName)
+    public function getContentType(): ?string
+    {
+        return $this->contentType;
+    }
+
+    public function __construct(string $bucketName, string $objectName, ?string $contentType)
     {
         $this->bucketName = $bucketName;
         $this->objectName = $objectName;
+        $this->contentType = $contentType;
     }
 
 }

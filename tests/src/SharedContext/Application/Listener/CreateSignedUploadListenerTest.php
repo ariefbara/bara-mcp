@@ -19,7 +19,7 @@ class CreateSignedUploadListenerTest extends TestBase
         $this->googleStorage = $this->buildMockOfClass(GoogleStorage::class);
         $this->listener = new CreateSignedUploadListener($this->googleStorage);
         //
-        $this->event = new FileInfoCreatedEvent('bucket', 'object');
+        $this->event = new FileInfoCreatedEvent('bucket', 'object', 'contentType');
     }
     
     //
@@ -31,7 +31,7 @@ class CreateSignedUploadListenerTest extends TestBase
     {
         $this->googleStorage->expects($this->once())
                 ->method('createSignedUploadForObjectInBucket')
-                ->with($this->event->getBucketName(), $this->event->getObjectName())
+                ->with($this->event->getBucketName(), $this->event->getObjectName(), $this->event->getContentType())
                 ->willReturn($signedUrl = 'https://storage.google.com/asdkfjsldfjlsakdjflasdfsdfsdfl');
         $this->handle();
         $this->assertEquals($signedUrl, $this->listener->getSignedUploadUrl());
