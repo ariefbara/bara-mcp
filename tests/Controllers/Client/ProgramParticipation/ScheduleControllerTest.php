@@ -171,6 +171,9 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
             'list' => [
                 [
                     'startTime' => $this->negotiatedMentoringOne_m1->mentoringRequest->startTime,
+                    'teamId' => null,
+                    'programId' => $this->negotiatedMentoringOne_m1->mentoringRequest->participant->program->id,
+                    'programType' => $this->negotiatedMentoringOne_m1->mentoringRequest->participant->program->programType,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => $this->negotiatedMentoringOne_m1->id,
                     'mentorName' => $this->negotiatedMentoringOne_m1->mentoringRequest->mentor->personnel->getFullName(),
@@ -180,6 +183,9 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                 ],
                 [
                     'startTime' => $this->negotiatedMentoringTwo_m2->mentoringRequest->startTime,
+                    'teamId' => null,
+                    'programId' => $this->negotiatedMentoringTwo_m2->mentoringRequest->participant->program->id,
+                    'programType' => $this->negotiatedMentoringTwo_m2->mentoringRequest->participant->program->programType,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => $this->negotiatedMentoringTwo_m2->id,
                     'mentorName' => $this->negotiatedMentoringTwo_m2->mentoringRequest->mentor->personnel->getFullName(),
@@ -189,6 +195,9 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                 ],
                 [
                     'startTime' => $this->bookedMentoringSlotOne_m1->mentoringSlot->startTime->format('Y-m-d H:i:s'),
+                    'teamId' => null,
+                    'programId' => $this->bookedMentoringSlotOne_m1->mentoringSlot->consultant->program->id,
+                    'programType' => $this->bookedMentoringSlotOne_m1->mentoringSlot->consultant->program->programType,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotOne_m1->id,
                     'negotiatedMentoringId' => null,
                     'mentorName' => $this->bookedMentoringSlotOne_m1->mentoringSlot->consultant->personnel->getFullName(),
@@ -198,6 +207,9 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                 ],
                 [
                     'startTime' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->startTime->format('Y-m-d H:i:s'),
+                    'teamId' => null,
+                    'programId' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->consultant->program->id,
+                    'programType' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->consultant->program->programType,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotTwo_m2->id,
                     'negotiatedMentoringId' => null,
                     'mentorName' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->consultant->personnel->getFullName(),
@@ -207,6 +219,9 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                 ],
                 [
                     'startTime' => $this->participantInviteeOne->invitee->activity->startDateTime,
+                    'teamId' => null,
+                    'programId' => $this->participantInviteeOne->participant->program->id,
+                    'programType' => $this->participantInviteeOne->participant->program->programType,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => null,
                     'mentorName' => null,
@@ -216,6 +231,9 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                 ],
                 [
                     'startTime' => $this->participantInviteeTwo->invitee->activity->startDateTime,
+                    'teamId' => null,
+                    'programId' => $this->participantInviteeTwo->participant->program->id,
+                    'programType' => $this->participantInviteeTwo->participant->program->programType,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => null,
                     'mentorName' => null,
