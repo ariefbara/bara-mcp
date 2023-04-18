@@ -163,6 +163,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
     }
     public function test_showAll_200()
     {
+$this->disableExceptionHandling();
         $this->showAll();
         $this->seeStatusCode(200);
         
@@ -174,6 +175,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                     'teamId' => null,
                     'programId' => $this->negotiatedMentoringOne_m1->mentoringRequest->participant->program->id,
                     'programType' => $this->negotiatedMentoringOne_m1->mentoringRequest->participant->program->programType,
+                    'participantId' => $this->negotiatedMentoringOne_m1->mentoringRequest->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => $this->negotiatedMentoringOne_m1->id,
                     'mentorName' => $this->negotiatedMentoringOne_m1->mentoringRequest->mentor->personnel->getFullName(),
@@ -186,6 +188,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                     'teamId' => null,
                     'programId' => $this->negotiatedMentoringTwo_m2->mentoringRequest->participant->program->id,
                     'programType' => $this->negotiatedMentoringTwo_m2->mentoringRequest->participant->program->programType,
+                    'participantId' => $this->negotiatedMentoringTwo_m2->mentoringRequest->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => $this->negotiatedMentoringTwo_m2->id,
                     'mentorName' => $this->negotiatedMentoringTwo_m2->mentoringRequest->mentor->personnel->getFullName(),
@@ -198,6 +201,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                     'teamId' => null,
                     'programId' => $this->bookedMentoringSlotOne_m1->mentoringSlot->consultant->program->id,
                     'programType' => $this->bookedMentoringSlotOne_m1->mentoringSlot->consultant->program->programType,
+                    'participantId' => $this->bookedMentoringSlotOne_m1->participant->id,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotOne_m1->id,
                     'negotiatedMentoringId' => null,
                     'mentorName' => $this->bookedMentoringSlotOne_m1->mentoringSlot->consultant->personnel->getFullName(),
@@ -210,6 +214,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                     'teamId' => null,
                     'programId' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->consultant->program->id,
                     'programType' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->consultant->program->programType,
+                    'participantId' => $this->bookedMentoringSlotTwo_m2->participant->id,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotTwo_m2->id,
                     'negotiatedMentoringId' => null,
                     'mentorName' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->consultant->personnel->getFullName(),
@@ -222,6 +227,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                     'teamId' => null,
                     'programId' => $this->participantInviteeOne->participant->program->id,
                     'programType' => $this->participantInviteeOne->participant->program->programType,
+                    'participantId' => $this->participantInviteeOne->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => null,
                     'mentorName' => null,
@@ -234,6 +240,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
                     'teamId' => null,
                     'programId' => $this->participantInviteeTwo->participant->program->id,
                     'programType' => $this->participantInviteeTwo->participant->program->programType,
+                    'participantId' => $this->participantInviteeTwo->participant->id,
                     'bookedMentoringSlotId' => null,
                     'negotiatedMentoringId' => null,
                     'mentorName' => null,
@@ -244,6 +251,7 @@ class ScheduleControllerTest extends ExtendedClientParticipantTestCase
             ],
         ];
         $this->seeJsonContains($response);
+//$this->seeJsonContains(['print']);
     }
     public function test_showAll_paginationApply()
     {

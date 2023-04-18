@@ -70,6 +70,8 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         
         $uri = $this->asProgramCoordinatorUri . "/objective-progress-reports/{$this->objectiveProgressReportOne->id}/approve";
         $this->patch($uri, [], $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_approve_200()
     {
@@ -110,6 +112,8 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         
         $uri = $this->asProgramCoordinatorUri . "/objective-progress-reports/{$this->objectiveProgressReportOne->id}/reject";
         $this->patch($uri, [], $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_reject_200()
     {
@@ -155,6 +159,8 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         
         $uri = $this->asProgramCoordinatorUri . "/objective-progress-reports/{$this->objectiveProgressReportOne->id}";
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_show_200()
     {
@@ -204,6 +210,8 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         
         $uri = $this->asProgramCoordinatorUri . "/objectives/{$this->objective->id}/objective-progress-reports";
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_showAll_200()
     {

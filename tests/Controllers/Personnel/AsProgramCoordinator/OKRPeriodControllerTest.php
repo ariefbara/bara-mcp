@@ -85,6 +85,8 @@ class OKRPeriodControllerTest extends AsProgramCoordinatorTestCase
         $this->okrPeriodOne->insert($this->connection);
         $uri = $this->asProgramCoordinatorUri . "/okr-periods/{$this->okrPeriodOne->id}/approve";
         $this->patch($uri, [], $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_approve_200()
     {
@@ -121,6 +123,8 @@ class OKRPeriodControllerTest extends AsProgramCoordinatorTestCase
         $this->okrPeriodOne->insert($this->connection);
         $uri = $this->asProgramCoordinatorUri . "/okr-periods/{$this->okrPeriodOne->id}/reject";
         $this->patch($uri, [], $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_Reject_200()
     {
@@ -173,6 +177,8 @@ class OKRPeriodControllerTest extends AsProgramCoordinatorTestCase
         
         $uri = $this->asProgramCoordinatorUri . "/okr-periods/{$this->okrPeriodOne->id}";
         $this->get($uri, $this->coordinator->personnel->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_show_200()
     {
@@ -274,6 +280,8 @@ class OKRPeriodControllerTest extends AsProgramCoordinatorTestCase
         $this->okrPeriodTwo->insert($this->connection);
         $uri = $this->asProgramCoordinatorUri . "/participants/{$this->participant->id}/okr-periods";
         $this->get($uri, $this->coordinator->personnel->token);
+echo $uri;
+$this->seeJsonContains(['print']);
     }
     public function test_showAll_200()
     {

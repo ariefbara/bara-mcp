@@ -88,6 +88,9 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         
         $uri = $this->programParticipationUri . "/{$this->programParticipation->participant->id}/objectives/{$this->objective->id}/objective-progress-reports";
         $this->post($uri, $this->objectiveProgressReportRequest, $this->client->token);
+//echo $uri;
+//echo ' :: payload: ' . json_encode($this->objectiveProgressReportRequest);
+//$this->seeJsonContains(['print']);
     }
     public function test_submit_201()
     {
@@ -218,6 +221,9 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         
         $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
         $this->patch($uri, $this->objectiveProgressReportRequest, $this->client->token);
+//echo $uri;
+//echo ' :: payload: ' . json_encode($this->objectiveProgressReportRequest);
+//$this->seeJsonContains(['print']);
     }
     public function test_update_200()
     {
@@ -363,6 +369,8 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         
         $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
         $this->delete($uri, [], $this->client->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
     }
     public function test_cancel_200()
     {
@@ -407,6 +415,8 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
        
        $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
        $this->get($uri, $this->client->token);       
+//echo $uri;
+//$this->seeJsonContains(['print']);
    }
    public function test_show_200()
    {
@@ -460,6 +470,8 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
        
        $uri = $this->programParticipationUri . "/{$this->programParticipation->participant->id}/objectives/{$this->objective->id}/objective-progress-reports";
        $this->get($uri, $this->client->token);
+//echo $uri;
+//$this->seeJsonContains(['print']);
    }
    public function test_showAll_200()
    {
