@@ -42,5 +42,11 @@ class RecordOfTeamFileInfo implements Record
             "removed" => $this->removed,
         ];
     }
+    
+    public function insert(\Illuminate\Database\ConnectionInterface $connection)
+    {
+        $this->fileInfo->insert($connection);
+        $connection->table('TeamFileInfo')->insert($this->toArrayForDbEntry());
+    }
 
 }

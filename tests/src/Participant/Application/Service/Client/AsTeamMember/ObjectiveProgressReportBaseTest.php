@@ -37,6 +37,6 @@ class ObjectiveProgressReportBaseTest extends TeamMemberBaseTest
                 ->method('nextIdentity')
                 ->willReturn($this->nextObjectiveProgressReportId);
         
-        $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
+        $this->objectiveProgressReportData = new ObjectiveProgressReportData(new \DateTimeImmutable('-1 months'));
     }
 }

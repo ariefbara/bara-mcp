@@ -3,12 +3,14 @@
 namespace Tests\Controllers\Personnel\AsProgramCoordinator;
 
 use SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport\RecordOfKeyResultProgressReportAttachment;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\RecordOfKeyResultProgressReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\RecordOfKeyResult;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\RecordOfObjectiveProgressReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\RecordOfObjective;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfOKRPeriod;
 use Tests\Controllers\RecordPreparation\Firm\Program\RecordOfParticipant;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
 
 class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
@@ -21,6 +23,9 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
     protected $keyResultPR21_objPR1_kr2;
     protected $keyResultPR12_objPR2_kr1;
     
+    protected $attachment_111;
+    protected $attachment_112;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -30,6 +35,8 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table('ObjectiveProgressReport')->truncate();
         $this->connection->table('KeyResult')->truncate();
         $this->connection->table('KeyResultProgressReport')->truncate();
+        $this->connection->table('KeyResultProgressReportAttachment')->truncate();
+        $this->connection->table('FileInfo')->truncate();
         
         $program = $this->coordinator->program;
         
@@ -48,6 +55,12 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         $this->keyResultPR11_objPR1_kr1 = new RecordOfKeyResultProgressReport($this->objectiveProgressReportOne, $keyResultOne, 11);
         $this->keyResultPR21_objPR1_kr2 = new RecordOfKeyResultProgressReport($this->objectiveProgressReportOne, $keyResultTwo, 21);
         $this->keyResultPR12_objPR2_kr1 = new RecordOfKeyResultProgressReport($this->objectiveProgressReportTwo, $keyResultOne, 12);
+        
+        $fileInfoOne = new RecordOfFileInfo(1);
+        $fileInfoTwo = new RecordOfFileInfo(2);
+        
+        $this->attachment_111 = new RecordOfKeyResultProgressReportAttachment($this->keyResultPR11_objPR1_kr1, $fileInfoOne, 111);
+        $this->attachment_112 = new RecordOfKeyResultProgressReportAttachment($this->keyResultPR11_objPR1_kr1, $fileInfoTwo, 112);
     }
     
     protected function tearDown(): void
@@ -59,6 +72,8 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         $this->connection->table('ObjectiveProgressReport')->truncate();
         $this->connection->table('KeyResult')->truncate();
         $this->connection->table('KeyResultProgressReport')->truncate();
+        $this->connection->table('KeyResultProgressReportAttachment')->truncate();
+        $this->connection->table('FileInfo')->truncate();
     }
     
     protected function executeApprove()
@@ -157,6 +172,12 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
         $this->keyResultPR21_objPR1_kr2->keyResult->insert($this->connection);
         $this->keyResultPR21_objPR1_kr2->insert($this->connection);
         
+        $this->attachment_111->fileInfo->insert($this->connection);
+        $this->attachment_112->fileInfo->insert($this->connection);
+        
+        $this->attachment_111->insert($this->connection);
+        $this->attachment_112->insert($this->connection);
+        
         $uri = $this->asProgramCoordinatorUri . "/objective-progress-reports/{$this->objectiveProgressReportOne->id}";
         $this->get($uri, $this->coordinator->personnel->token);
 //echo $uri;
@@ -183,6 +204,20 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
                        'target' => $this->keyResultPR11_objPR1_kr1->keyResult->target,
                        'weight' => $this->keyResultPR11_objPR1_kr1->keyResult->weight,
                    ],
+                   'attachments' => [
+                       [
+                           'fileInfo' => [
+                               'id' => $this->attachment_111->fileInfo->id,
+                               'path' => $this->attachment_111->fileInfo->getFullyPath(),
+                           ],
+                       ],
+                       [
+                           'fileInfo' => [
+                               'id' => $this->attachment_112->fileInfo->id,
+                               'path' => $this->attachment_112->fileInfo->getFullyPath(),
+                           ],
+                       ],
+                   ],
                ],
                [
                    'id' => $this->keyResultPR21_objPR1_kr2->id,
@@ -194,6 +229,7 @@ class ObjectiveProgressReportControllerTest extends AsProgramCoordinatorTestCase
                        'target' => $this->keyResultPR21_objPR1_kr2->keyResult->target,
                        'weight' => $this->keyResultPR21_objPR1_kr2->keyResult->weight,
                    ],
+                   'attachments' => [],
                ],
            ],
        ];

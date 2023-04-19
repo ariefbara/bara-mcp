@@ -13,7 +13,9 @@ use Query\Application\Service\Client\AsProgramParticipant\ViewObjectiveProgressR
 use Query\Domain\Model\Firm\Client\ClientParticipant;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport\KeyResultProgressReportAttachment;
 use Query\Domain\Service\ObjectiveProgressReportFinder;
+use SharedContext\Domain\Model\SharedEntity\FileInfo;
 
 class ObjectiveProgressReportController extends ClientBaseController
 {
@@ -43,6 +45,9 @@ class ObjectiveProgressReportController extends ClientBaseController
         foreach ($this->request->input('keyResultProgressReports') as $keyResultProgressReport) {
             $value = $keyResultProgressReport['value'];
             $keyResultProgressReportData = new ObjectiveProgressReport2\KeyResultProgressReportData($value);
+            foreach ($keyResultProgressReport['fileInfoIdListOfAttachment'] as $fileInfoId) {
+                $keyResultProgressReportData->addFileInfoIdAsAttachment($fileInfoId);
+            }
             $keyResultId = $keyResultProgressReport['keyResultId'];
             $data->addKeyResultProgressReportData($keyResultProgressReportData, $keyResultId);
         }
@@ -71,16 +76,16 @@ class ObjectiveProgressReportController extends ClientBaseController
         $result = [];
         $result['total'] = count($objectiveProgressReports);
         foreach ($objectiveProgressReports as $objectiveProgressReport) {
-            $result['list'][] = $this->arrayDataOfObjectiveProgressReport($objectiveProgressReport);
+            $result['list'][] = $this->arrayDataOfObjectiveProgressReport($objectiveProgressReport, false);
         }
         return $this->listQueryResponse($result);
     }
 
-    protected function arrayDataOfObjectiveProgressReport(ObjectiveProgressReport $objectiveProgressReport): array
+    protected function arrayDataOfObjectiveProgressReport(ObjectiveProgressReport $objectiveProgressReport, $includeAttachment = true): array
     {
         $keyResultProgressReports = [];
         foreach ($objectiveProgressReport->iterateKeyResultProgressReports() as $keyResultProgressReport) {
-            $keyResultProgressReports[] = $this->arrayDataOfKeyResultProgressReport($keyResultProgressReport);
+            $keyResultProgressReports[] = $this->arrayDataOfKeyResultProgressReport($keyResultProgressReport, $includeAttachment);
         }
         return [
             'id' => $objectiveProgressReport->getId(),
@@ -91,9 +96,9 @@ class ObjectiveProgressReportController extends ClientBaseController
             'keyResultProgressReports' => $keyResultProgressReports,
         ];
     }
-    protected function arrayDataOfKeyResultProgressReport(KeyResultProgressReport $keyResultProgressReport): array
+    protected function arrayDataOfKeyResultProgressReport(KeyResultProgressReport $keyResultProgressReport, $includeAttachment = true): array
     {
-        return [
+        $result = [
             'id' => $keyResultProgressReport->getId(),
             'value' => $keyResultProgressReport->getValue(),
             'disabled' => $keyResultProgressReport->isDisabled(),
@@ -102,6 +107,24 @@ class ObjectiveProgressReportController extends ClientBaseController
                 'name' => $keyResultProgressReport->getKeyResult()->getName(),
                 'target' => $keyResultProgressReport->getKeyResult()->getTarget(),
                 'weight' => $keyResultProgressReport->getKeyResult()->getWeight(),
+            ],
+        ];
+        if ($includeAttachment) {
+            $attachments = [];
+            foreach ($keyResultProgressReport->getAttachments() as $attachment) {
+                $attachments[] = $this->arrayDataOfAttachment($attachment);
+            }
+            $result['attachments'] = $attachments;
+        }
+        return $result;
+        
+    }
+    private function arrayDataOfAttachment(KeyResultProgressReportAttachment $attachment): array
+    {
+        return [
+            'fileInfo' => [
+                'id' => $attachment->getFileInfo()->getId(),
+                'path' => $attachment->getFileInfo()->getFullyQualifiedFileName(),
             ],
         ];
     }
@@ -119,14 +142,16 @@ class ObjectiveProgressReportController extends ClientBaseController
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
         $objectiveRepository = $this->em->getRepository(Objective::class);
         $objectiveProgressReportRepository = $this->em->getRepository(ObjectiveProgressReport2::class);
-        return new SubmitObjectiveProgressReport($clientParticipantRepository, $objectiveRepository, $objectiveProgressReportRepository);
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        return new SubmitObjectiveProgressReport($clientParticipantRepository, $objectiveRepository, $objectiveProgressReportRepository, $fileInfoRepository);
     }
 
     protected function buildUpdateService()
     {
         $clientParticipantRepository = $this->em->getRepository(ClientParticipant2::class);
         $objectiveProgressReportRepository = $this->em->getRepository(ObjectiveProgressReport2::class);
-        return new UpdateObjectiveProgressReport($clientParticipantRepository, $objectiveProgressReportRepository);
+        $fileInfoRepository = $this->em->getRepository(FileInfo::class);
+        return new UpdateObjectiveProgressReport($clientParticipantRepository, $objectiveProgressReportRepository, $fileInfoRepository);
     }
 
     protected function buildCancelService()

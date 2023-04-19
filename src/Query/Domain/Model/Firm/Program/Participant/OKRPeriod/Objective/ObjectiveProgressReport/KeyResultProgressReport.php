@@ -2,8 +2,11 @@
 
 namespace Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Criteria;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\KeyResult;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport\KeyResultProgressReportAttachment;
 
 class KeyResultProgressReport
 {
@@ -38,6 +41,12 @@ class KeyResultProgressReport
      */
     protected $disabled;
 
+    /**
+     * 
+     * @var ArrayCollection
+     */
+    protected $attachments;
+
     public function getObjectiveProgressReport(): ObjectiveProgressReport
     {
         return $this->objectiveProgressReport;
@@ -61,6 +70,17 @@ class KeyResultProgressReport
     public function isDisabled(): bool
     {
         return $this->disabled;
+    }
+
+    /**
+     * 
+     * @return KeyResultProgressReportAttachment
+     */
+    public function getAttachments()
+    {
+        $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('removed', false));
+        return $this->attachments->matching($criteria)->getIterator();
     }
 
     protected function __construct()

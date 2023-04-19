@@ -2,6 +2,7 @@
 
 namespace Tests\src\Participant\Application\Service\Client;
 
+use DateTimeImmutable;
 use Participant\Application\Service\Participant\ObjectiveProgressReportRepository;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReportData;
@@ -21,6 +22,10 @@ class ObjectiveProgressReportTestBase extends ClientTestBase
     protected $objectiveProgressReport;
     protected $nextObjectiveProgressReportId = 'nextObjectiveProgressReportId';
     protected $objectiveProgressReportId = 'objectiveProgressReportId';
+    /**
+     * 
+     * @var ObjectiveProgressReportData
+     */
     protected $objectiveProgressReportData;
     
     protected function setUp(): void
@@ -37,6 +42,6 @@ class ObjectiveProgressReportTestBase extends ClientTestBase
                 ->method('nextIdentity')
                 ->willReturn($this->nextObjectiveProgressReportId);
         
-        $this->objectiveProgressReportData = $this->buildMockOfClass(ObjectiveProgressReportData::class);
+        $this->objectiveProgressReportData = new ObjectiveProgressReportData(new DateTimeImmutable('-1 weeks'));
     }
 }

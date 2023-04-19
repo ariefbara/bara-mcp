@@ -10,6 +10,7 @@ use Query\Application\Service\Coordinator\ViewObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Coordinator;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport;
 use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport;
+use Query\Domain\Model\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport\KeyResultProgressReportAttachment;
 
 class ObjectiveProgressReportController extends AsProgramCoordinatorBaseController
 {
@@ -48,11 +49,11 @@ class ObjectiveProgressReportController extends AsProgramCoordinatorBaseControll
         return $this->listQueryResponse($result);
     }
     
-    protected function arrayDataOfObjectiveProgressReport(ObjectiveProgressReport $objectiveProgressReport): array
+    protected function arrayDataOfObjectiveProgressReport(ObjectiveProgressReport $objectiveProgressReport, $includeAttachment = true): array
     {
         $keyResultProgressReports = [];
         foreach ($objectiveProgressReport->iterateKeyResultProgressReports() as $keyResultProgressReport) {
-            $keyResultProgressReports[] = $this->arrayDataOfKeyResultProgressReport($keyResultProgressReport);
+            $keyResultProgressReports[] = $this->arrayDataOfKeyResultProgressReport($keyResultProgressReport, $includeAttachment);
         }
         return [
             'id' => $objectiveProgressReport->getId(),
@@ -63,9 +64,9 @@ class ObjectiveProgressReportController extends AsProgramCoordinatorBaseControll
             'keyResultProgressReports' => $keyResultProgressReports,
         ];
     }
-    protected function arrayDataOfKeyResultProgressReport(KeyResultProgressReport $keyResultProgressReport): array
+    protected function arrayDataOfKeyResultProgressReport(KeyResultProgressReport $keyResultProgressReport, $includeAttachment = true): array
     {
-        return [
+        $result = [
             'id' => $keyResultProgressReport->getId(),
             'value' => $keyResultProgressReport->getValue(),
             'disabled' => $keyResultProgressReport->isDisabled(),
@@ -74,6 +75,23 @@ class ObjectiveProgressReportController extends AsProgramCoordinatorBaseControll
                 'name' => $keyResultProgressReport->getKeyResult()->getName(),
                 'target' => $keyResultProgressReport->getKeyResult()->getTarget(),
                 'weight' => $keyResultProgressReport->getKeyResult()->getWeight(),
+            ],
+        ];
+        if ($includeAttachment) {
+            $attachments = [];
+            foreach ($keyResultProgressReport->getAttachments() as $attachment) {
+                $attachments[] = $this->arrayDataOfAttachment($attachment);
+            }
+            $result['attachments'] = $attachments;
+        }
+        return $result;
+    }
+    private function arrayDataOfAttachment(KeyResultProgressReportAttachment $attachment): array
+    {
+        return [
+            'fileInfo' => [
+                'id' => $attachment->getFileInfo()->getId(),
+                'path' => $attachment->getFileInfo()->getFullyQualifiedFileName(),
             ],
         ];
     }
