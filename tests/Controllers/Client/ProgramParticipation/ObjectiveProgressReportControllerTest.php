@@ -7,24 +7,32 @@ use DateTime;
 use DateTimeImmutable;
 use SharedContext\Domain\ValueObject\OKRPeriodApprovalStatus;
 use Tests\Controllers\Client\ProgramParticipationTestCase;
+use Tests\Controllers\RecordPreparation\Firm\Client\RecordOfClientFileInfo;
+use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport\RecordOfKeyResultProgressReportAttachment;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\ObjectiveProgressReport\RecordOfKeyResultProgressReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\RecordOfKeyResult;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\Objective\RecordOfObjectiveProgressReport;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\OKRPeriod\RecordOfObjective;
 use Tests\Controllers\RecordPreparation\Firm\Program\Participant\RecordOfOKRPeriod;
+use Tests\Controllers\RecordPreparation\Shared\RecordOfFileInfo;
 
-class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
-{
+class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase{
     protected $objectiveProgressReportUri;
     protected $objectivePR1;
     protected $objectivePR2;
     protected $keyResultPR1_ObjPR1_KR1_11;
     protected $keyResultPR2_ObjPR1_KR2_12;
     protected $keyResultPR1_ObjPR2_KR1_21;
+    
+    protected $attachment_111;
+    protected $attachment_112;
 
     protected $objective;
     protected $keyResultOne;
     protected $keyResultTwo;
+    
+    protected $clientFileInfoOne;
+    protected $clientFileInfoTwo;
     protected $objectiveProgressReportRequest;
 
     protected function setUp(): void
@@ -35,6 +43,9 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ObjectiveProgressReport')->truncate();
         $this->connection->table('KeyResult')->truncate();
         $this->connection->table('KeyResultProgressReport')->truncate();
+        $this->connection->table('KeyResultProgressReportAttachment')->truncate();
+        $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('ClientFileInfo')->truncate();
         
         $participant = $this->programParticipation->participant;
         
@@ -55,16 +66,31 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->keyResultPR2_ObjPR1_KR2_12 = new RecordOfKeyResultProgressReport($this->objectivePR1, $this->keyResultTwo, 12);
         $this->keyResultPR1_ObjPR2_KR1_21 = new RecordOfKeyResultProgressReport($this->objectivePR2, $this->keyResultOne, 21);
         
+        $fileInfoOne = new RecordOfFileInfo(1);
+        $fileInfoTwo = new RecordOfFileInfo(2);
+        
+        $this->attachment_111 = new RecordOfKeyResultProgressReportAttachment($this->keyResultPR1_ObjPR1_KR1_11, $fileInfoOne, 111);
+        $this->attachment_112 = new RecordOfKeyResultProgressReportAttachment($this->keyResultPR1_ObjPR1_KR1_11, $fileInfoTwo, 112);
+        
+        $this->clientFileInfoOne = new RecordOfClientFileInfo($this->client, $fileInfoOne);
+        $this->clientFileInfoTwo = new RecordOfClientFileInfo($this->client, $fileInfoTwo);
+        
         $this->objectiveProgressReportRequest = [
             'reportDate' => (new DateTimeImmutable('- 5 days'))->format('Y-m-d'),
             'keyResultProgressReports' => [
                 [
                     'keyResultId' => $this->keyResultOne->id,
                     'value' => 33,
+                    'fileInfoIdListOfAttachment' => [
+                        $fileInfoOne->id,
+                    ],
                 ],
                 [
                     'keyResultId' => $this->keyResultTwo->id,
                     'value' => 66,
+                    'fileInfoIdListOfAttachment' => [
+                        $fileInfoTwo->id,
+                    ],
                 ],
             ],
         ];
@@ -77,6 +103,9 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->connection->table('ObjectiveProgressReport')->truncate();
         $this->connection->table('KeyResult')->truncate();
         $this->connection->table('KeyResultProgressReport')->truncate();
+        $this->connection->table('KeyResultProgressReportAttachment')->truncate();
+        $this->connection->table('FileInfo')->truncate();
+        $this->connection->table('ClientFileInfo')->truncate();
     }
     
     protected function executeSubmit()
@@ -85,6 +114,9 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->objective->insert($this->connection);
         $this->keyResultOne->insert($this->connection);
         $this->keyResultTwo->insert($this->connection);
+        
+        $this->clientFileInfoOne->insert($this->connection);
+        $this->clientFileInfoTwo->insert($this->connection);
         
         $uri = $this->programParticipationUri . "/{$this->programParticipation->participant->id}/objectives/{$this->objective->id}/objective-progress-reports";
         $this->post($uri, $this->objectiveProgressReportRequest, $this->client->token);
@@ -116,6 +148,14 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
                 'target' => $this->keyResultOne->target,
                 'weight' => $this->keyResultOne->weight,
             ],
+            'attachments' => [
+                [
+                    'fileInfo' => [
+                        'id' => $this->clientFileInfoOne->fileInfo->id,
+                        'path' => $this->clientFileInfoOne->fileInfo->getFullyPath(),
+                    ],
+                ],
+            ],
         ];
         $this->seeJsonContains($keyResultProgressReportOneResponse);
         $keyResultProgressReportTwoResponse = [
@@ -125,6 +165,14 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
                 'name' => $this->keyResultTwo->name,
                 'target' => $this->keyResultTwo->target,
                 'weight' => $this->keyResultTwo->weight,
+            ],
+            'attachments' => [
+                [
+                    'fileInfo' => [
+                        'id' => $this->clientFileInfoTwo->fileInfo->id,
+                        'path' => $this->clientFileInfoTwo->fileInfo->getFullyPath(),
+                    ],
+                ],
             ],
         ];
         $this->seeJsonContains($keyResultProgressReportTwoResponse);
@@ -216,6 +264,9 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
         $this->objectivePR1->insert($this->connection);
         $this->keyResultPR1_ObjPR1_KR1_11->insert($this->connection);
         
+        $this->clientFileInfoOne->insert($this->connection);
+        $this->clientFileInfoTwo->insert($this->connection);
+        
         $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
         $this->patch($uri, $this->objectiveProgressReportRequest, $this->client->token);
     }
@@ -262,6 +313,14 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
                 'name' => $this->keyResultTwo->name,
                 'target' => $this->keyResultTwo->target,
                 'weight' => $this->keyResultTwo->weight,
+            ],
+            'attachments' => [
+                [
+                    'fileInfo' => [
+                        'id' => $this->clientFileInfoOne->fileInfo->id,
+                        'path' => $this->clientFileInfoOne->fileInfo->getFullyPath(),
+                    ],
+                ],
             ],
         ];
         $this->seeJsonContains($response);
@@ -405,6 +464,12 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
        $this->keyResultPR1_ObjPR1_KR1_11->insert($this->connection);
        $this->keyResultPR2_ObjPR1_KR2_12->insert($this->connection);
        
+       $this->attachment_111->fileInfo->insert($this->connection);
+       $this->attachment_112->fileInfo->insert($this->connection);
+       
+       $this->attachment_111->insert($this->connection);
+       $this->attachment_112->insert($this->connection);
+       
        $uri = $this->objectiveProgressReportUri . "/{$this->objectivePR1->id}";
        $this->get($uri, $this->client->token);       
    }
@@ -428,6 +493,20 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
                        'target' => $this->keyResultPR1_ObjPR1_KR1_11->keyResult->target,
                        'weight' => $this->keyResultPR1_ObjPR1_KR1_11->keyResult->weight,
                    ],
+                   'attachments' => [
+                        [
+                            'fileInfo' => [
+                                'id' => $this->attachment_111->fileInfo->id,
+                                'path' => $this->attachment_111->fileInfo->getFullyPath(),
+                            ],
+                        ],
+                        [
+                            'fileInfo' => [
+                                'id' => $this->attachment_112->fileInfo->id,
+                                'path' => $this->attachment_112->fileInfo->getFullyPath(),
+                            ],
+                        ],
+                    ],
                ],
                [
                    'id' => $this->keyResultPR2_ObjPR1_KR2_12->id,
@@ -439,6 +518,7 @@ class ObjectiveProgressReportControllerTest extends ProgramParticipationTestCase
                        'target' => $this->keyResultPR2_ObjPR1_KR2_12->keyResult->target,
                        'weight' => $this->keyResultPR2_ObjPR1_KR2_12->keyResult->weight,
                    ],
+                   'attachments' => [],
                ],
            ],
        ];
