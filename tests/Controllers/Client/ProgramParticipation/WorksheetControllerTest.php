@@ -133,6 +133,10 @@ $this->disableExceptionHandling();
         
         $this->mission->worksheetForm = null;
         $this->mission->insert($this->connection);
+        $this->worksheetInput = [
+            "name" => "new worksheet name",
+            "missionId" => $this->mission->id,
+        ];
         
         $this->post($this->worksheetUri, $this->worksheetInput, $this->client->token);
         $this->seeStatusCode(201);
@@ -154,6 +158,9 @@ $this->disableExceptionHandling();
             "completedTime" => (new DateTimeImmutable())->format("Y-m-d H:i:s"),
         ];
         $this->seeInDatabase("CompletedMission", $completedMissionEntry);
+//echo $this->worksheetUri;
+//echo ' || payload: ' . json_encode($this->worksheetInput);
+//$this->seeJsonContains(['print']);
     }
     
     public function test_submitBranch()
@@ -279,7 +286,10 @@ $this->disableExceptionHandling();
         $this->branchMission->worksheetForm = null;
         $this->branchMission->insert($this->connection);
         
-        $this->worksheetInput['missionId'] = $this->branchMission->id;
+        $this->worksheetInput = [
+            "name" => "new worksheet name",
+            "missionId" => $this->branchMission->id,
+        ];
         
         $uri = $this->worksheetUri . "/{$this->worksheet->id}";
         $this->post($uri, $this->worksheetInput, $this->client->token);
@@ -307,6 +317,9 @@ $this->disableExceptionHandling();
             "removed" => false,
         ];
         $this->seeInDatabase('Worksheet', $worksheetEntry);
+//echo $uri;
+//echo ' || payload: ' . json_encode($this->worksheetInput);
+//$this->seeJsonContains(['print']);
     }
     
     public function test_update()

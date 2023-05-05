@@ -111,7 +111,11 @@ class WorksheetController extends AsTeamMemberBaseController
 
     protected function arrayDataOfWorksheet(Worksheet $worksheet): array
     {
-        $data = (new FormRecordToArrayDataConverter())->convert($worksheet);
+        if ($worksheet->getFormRecord()) {
+            $data = (new FormRecordToArrayDataConverter())->convert($worksheet);
+        } else {
+            $data = [];
+        }
         $parent = empty($worksheet->getParent()) ? null : $this->arrayDataOfParentWorksheet($worksheet->getParent());
         $data['id'] = $worksheet->getId();
         $data['parent'] = $parent;
@@ -120,14 +124,13 @@ class WorksheetController extends AsTeamMemberBaseController
             "id" => $worksheet->getMission()->getId(),
             "name" => $worksheet->getMission()->getName(),
             "position" => $worksheet->getMission()->getPosition(),
-            "worksheetForm" => [
-                "id" => $worksheet->getMission()->getWorksheetForm()->getId(),
-                "name" => $worksheet->getMission()->getWorksheetForm()->getName(),
-                "description" => $worksheet->getMission()->getWorksheetForm()->getDescription(),
-            ],
         ];
-        $data['mission']['worksheetForm'] = (new FormToArrayDataConverter())->convert($worksheet->getMission()->getWorksheetForm());
-        $data['mission']['worksheetForm']['id'] = $worksheet->getMission()->getWorksheetForm()->getId();
+        if ($worksheet->getMission()->getWorksheetForm()) {
+            $data['mission']['worksheetForm'] = (new FormToArrayDataConverter())->convert($worksheet->getMission()->getWorksheetForm());
+            $data['mission']['worksheetForm']['id'] = $worksheet->getMission()->getWorksheetForm()->getId();
+        } else {
+            $data['mission']['worksheetForm'] = null;
+        }
         
         foreach ($worksheet->getActiveChildren() as $childWorksheet) {
             $data["children"][] = $this->arrayDataOfChildWorksheet($childWorksheet);

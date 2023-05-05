@@ -32,6 +32,10 @@ class FirmFileInfoControllerTest extends ExtendedManagerTestCase
     {
         $this->persistManagerDependency();
         $this->post($this->firmFileInfoUri, $this->fileInfoInput, $this->manager->token);
+//echo $this->firmFileInfoUri;
+//echo "::" . json_encode($this->fileInfoInput);
+//$this->seeJsonContains(['print']);
+
     }
     public function test_create_201()
     {
