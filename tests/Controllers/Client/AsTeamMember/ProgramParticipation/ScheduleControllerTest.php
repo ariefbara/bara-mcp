@@ -172,6 +172,7 @@ class ScheduleControllerTest extends ExtendedTeamParticipantTestCase
                 [
                     'startTime' => $this->negotiatedMentoringOne_m1->mentoringRequest->startTime,
                     'teamId' => $this->teamMember->team->id,
+                    'participantId' => $this->teamParticipant->participant->id,
                     'programId' => $this->negotiatedMentoringOne_m1->mentoringRequest->participant->program->id,
                     'programType' => $this->negotiatedMentoringOne_m1->mentoringRequest->participant->program->programType,
                     'bookedMentoringSlotId' => null,
@@ -184,6 +185,7 @@ class ScheduleControllerTest extends ExtendedTeamParticipantTestCase
                 [
                     'startTime' => $this->negotiatedMentoringTwo_m2->mentoringRequest->startTime,
                     'teamId' => $this->teamMember->team->id,
+                    'participantId' => $this->teamParticipant->participant->id,
                     'programId' => $this->negotiatedMentoringTwo_m2->mentoringRequest->participant->program->id,
                     'programType' => $this->negotiatedMentoringTwo_m2->mentoringRequest->participant->program->programType,
                     'bookedMentoringSlotId' => null,
@@ -196,6 +198,7 @@ class ScheduleControllerTest extends ExtendedTeamParticipantTestCase
                 [
                     'startTime' => $this->bookedMentoringSlotOne_m1->mentoringSlot->startTime->format('Y-m-d H:i:s'),
                     'teamId' => $this->teamMember->team->id,
+                    'participantId' => $this->teamParticipant->participant->id,
                     'programId' => $this->bookedMentoringSlotOne_m1->participant->program->id,
                     'programType' => $this->bookedMentoringSlotOne_m1->participant->program->programType,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotOne_m1->id,
@@ -208,6 +211,7 @@ class ScheduleControllerTest extends ExtendedTeamParticipantTestCase
                 [
                     'startTime' => $this->bookedMentoringSlotTwo_m2->mentoringSlot->startTime->format('Y-m-d H:i:s'),
                     'teamId' => $this->teamMember->team->id,
+                    'participantId' => $this->teamParticipant->participant->id,
                     'programId' => $this->bookedMentoringSlotTwo_m2->participant->program->id,
                     'programType' => $this->bookedMentoringSlotTwo_m2->participant->program->programType,
                     'bookedMentoringSlotId' => $this->bookedMentoringSlotTwo_m2->id,
@@ -220,6 +224,7 @@ class ScheduleControllerTest extends ExtendedTeamParticipantTestCase
                 [
                     'startTime' => $this->participantInviteeOne->invitee->activity->startDateTime,
                     'teamId' => $this->teamMember->team->id,
+                    'participantId' => $this->teamParticipant->participant->id,
                     'programId' => $this->participantInviteeOne->participant->program->id,
                     'programType' => $this->participantInviteeOne->participant->program->programType,
                     'bookedMentoringSlotId' => null,
@@ -232,6 +237,7 @@ class ScheduleControllerTest extends ExtendedTeamParticipantTestCase
                 [
                     'startTime' => $this->participantInviteeTwo->invitee->activity->startDateTime,
                     'teamId' => $this->teamMember->team->id,
+                    'participantId' => $this->teamParticipant->participant->id,
                     'programId' => $this->participantInviteeTwo->participant->program->id,
                     'programType' => $this->participantInviteeTwo->participant->program->programType,
                     'bookedMentoringSlotId' => null,
