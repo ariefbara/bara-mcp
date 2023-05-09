@@ -55,6 +55,9 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         
         $fileInfoOne = new RecordOfFileInfo('1');
         $fileInfoTwo = new RecordOfFileInfo('2');
+        $fileInfoTwo->bucketName = 'firm-main-identifier';
+        $fileInfoTwo->objectName = 'video.mp4';
+        $fileInfoTwo->contentType = 'video/mp4';
         
         $this->firmFileInfoOne = new RecordOfFirmFileInfo($firm, $fileInfoOne);
         $this->firmFileInfoTwo = new RecordOfFirmFileInfo($firm, $fileInfoTwo);
@@ -78,12 +81,12 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        $this->connection->table('Program')->truncate();
-        $this->connection->table('Mission')->truncate();
-        $this->connection->table('LearningMaterial')->truncate();
-        $this->connection->table('FileInfo')->truncate();
-        $this->connection->table('FirmFileInfo')->truncate();
-        $this->connection->table('LearningAttachment')->truncate();
+//        $this->connection->table('Program')->truncate();
+//        $this->connection->table('Mission')->truncate();
+//        $this->connection->table('LearningMaterial')->truncate();
+//        $this->connection->table('FileInfo')->truncate();
+//        $this->connection->table('FirmFileInfo')->truncate();
+//        $this->connection->table('LearningAttachment')->truncate();
     }
     
     protected function add()
@@ -98,6 +101,7 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         
         $uri = $this->managerUri . "/missions/{$this->missionOne->id}/learning-materials";
         $this->post($uri, $this->learningMaterialRequest, $this->manager->token);
+//$this->printApiSpesifiation($uri, $this->learningMaterialRequest);
     }
     public function test_add_201()
     {
@@ -192,6 +196,7 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         
         $uri = $this->managerUri . "/learning-materials/{$this->learningMaterialOne_m1->id}";
         $this->patch($uri, $this->learningMaterialRequest, $this->manager->token);
+//$this->printApiSpesifiation($uri, $this->learningMaterialRequest);
     }
     public function test_update_200()
     {
@@ -330,6 +335,7 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         
         $uri = $this->managerUri . "/learning-materials/{$this->learningMaterialOne_m1->id}";
         $this->delete($uri, [], $this->manager->token);
+//$this->printApiSpesifiation($uri);
     }
     public function test_remove_200()
     {
@@ -380,6 +386,7 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         
         $uri = $this->managerUri . "/learning-materials/{$this->learningMaterialOne_m1->id}";
         $this->get($uri, $this->manager->token);
+//$this->printApiSpesifiation($uri);
     }
     public function test_show_200()
     {
@@ -457,6 +464,7 @@ class LearningMaterialControllerTest extends ExtendedManagerTestCase
         $this->learningMaterialThree_m2->insert($this->connection);
         
         $this->get($this->showAllUri, $this->manager->token);
+//$this->printApiSpesifiation($this->showAllUri);
     }
     public function test_showAll_200()
     {

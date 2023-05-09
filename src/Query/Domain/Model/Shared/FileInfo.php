@@ -2,6 +2,8 @@
 
 namespace Query\Domain\Model\Shared;
 
+use Resources\Infrastructure\Persistence\Google\GoogleStorage;
+
 class FileInfo
 {
 
@@ -72,8 +74,14 @@ class FileInfo
         
     }
 
-    public function getFullyQualifiedFileName(): string
+    public function getFullyQualifiedFileName(?GoogleStorage $googleStorage = null): string
     {
+        // file stored in Google Cloud Storage
+        if ($this->objectName) {
+            return $googleStorage->createSignedDownloadForObjectInBucket($this->bucketName, $this->objectName);
+        }
+        
+        // file in local storage
         $path = '';
         foreach ($this->folders as $folder) {
             $path .= DIRECTORY_SEPARATOR . $folder;

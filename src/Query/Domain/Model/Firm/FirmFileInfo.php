@@ -2,10 +2,9 @@
 
 namespace Query\Domain\Model\Firm;
 
-use Query\Domain\Model\{
-    Firm,
-    Shared\FileInfo
-};
+use Query\Domain\Model\Firm;
+use Query\Domain\Model\Shared\FileInfo;
+use Resources\Infrastructure\Persistence\Google\GoogleStorage;
 
 class FirmFileInfo
 {
@@ -74,9 +73,9 @@ class FirmFileInfo
         return $this->fileInfo->getSize();
     }
 
-    public function getFullyQualifiedFileName(): string
+    public function getFullyQualifiedFileName(?GoogleStorage $googleStorage = null): string
     {
-        return $this->fileInfo->getFullyQualifiedFileName();
+        return $this->fileInfo->getFullyQualifiedFileName($googleStorage);
     }
 
 }

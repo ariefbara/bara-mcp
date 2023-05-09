@@ -112,7 +112,8 @@ class LearningMaterialController extends ManagerBaseController
                 'disabled' => $learningAttachment->isDisabled(),
                 'firmFileInfo' => [
                     'id' => $learningAttachment->getFirmFileInfo()->getId(),
-                    'path' => $learningAttachment->getFirmFileInfo()->getFullyQualifiedFileName(),
+                    'path' => $learningAttachment->getFirmFileInfo()->getFullyQualifiedFileName($this->createGoogleStorage()),
+                    'contentType' => $learningAttachment->getFirmFileInfo()->getFileInfo()->getContentType(),
                 ],
             ];
         }

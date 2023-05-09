@@ -84,4 +84,12 @@ class ControllerTestCase extends TestCase
         $filessystem->deleteDir($roleDirectoryName);
     }
     
+    //
+    protected function printApiSpesifiation($uri, $input = [])
+    {
+        echo $uri;
+        echo " || " . json_encode($input);
+        $this->seeJsonContains(['print']);
+    }
+    
 }

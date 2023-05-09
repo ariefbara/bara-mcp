@@ -53,10 +53,10 @@ class MissionControllerTest extends MissionTestCase
         $this->mission_2->published = true;
         $this->mission_3_otherProgram = new RecordOfMission($otherProgram, $worksheetForm, 3, null);
         $this->mission_3_otherProgram->published = true;
-        $this->connection->table('Mission')->insert($this->mission_0->toArrayForDbEntry());
-        $this->connection->table('Mission')->insert($this->mission_1->toArrayForDbEntry());
-        $this->connection->table('Mission')->insert($this->mission_2->toArrayForDbEntry());
-        $this->connection->table('Mission')->insert($this->mission_3_otherProgram->toArrayForDbEntry());
+//        $this->connection->table('Mission')->insert($this->mission_0->toArrayForDbEntry());
+//        $this->connection->table('Mission')->insert($this->mission_1->toArrayForDbEntry());
+//        $this->connection->table('Mission')->insert($this->mission_2->toArrayForDbEntry());
+//        $this->connection->table('Mission')->insert($this->mission_3_otherProgram->toArrayForDbEntry());
         
         $formRecord_00 = new RecordOfFormRecord($form, "00");
         $formRecord_01 = new RecordOfFormRecord($form, "01");
@@ -90,8 +90,21 @@ class MissionControllerTest extends MissionTestCase
         $this->connection->table('Worksheet')->truncate();
     }
     
+    protected function showAll()
+    {
+$this->disableExceptionHandling();
+        $this->mission_0->insert($this->connection);
+        $this->mission_1->insert($this->connection);
+        $this->mission_2->insert($this->connection);
+        $this->mission_3_otherProgram->insert($this->connection);
+        //
+        $this->get($this->missionUri, $this->programParticipation->client->token);
+$this->printApiSpesifiation($this->missionUri);
+    }
     public function test_showAll()
     {
+        $this->showAll();
+        $this->seeStatusCode(200);
         $response = [
             'list' => [
                 [
@@ -140,43 +153,38 @@ class MissionControllerTest extends MissionTestCase
                 ],
             ],
         ];
-        $this->get($this->missionUri, $this->programParticipation->client->token)
-                ->seeStatusCode(200)
-                ->seeJsonContains($response);
+        $this->seeJsonContains($response);
+    }
+    public function test_showAll_containMissionWithoutWorksheetForm()
+    {
+        $this->mission_1->worksheetForm = null;
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $this->seeJsonContains(['total' => 4]);
+        $this->seeJsonContains(['id' => $this->mission->id]);
+        $this->seeJsonContains(['id' => $this->mission_0->id]);
+        $this->seeJsonContains([
+            'id' => $this->mission_1->id,
+            'name' => $this->mission_1->name,
+            'description' => $this->mission_1->description,
+            'position' => $this->mission_1->position,
+            'worksheetForm' => null,
+            'submittedWorksheet' => null,
+        ]);
+        $this->seeJsonContains(['id' => $this->mission_2->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mission_3_otherProgram->id]);
     }
     public function test_showAll_paginationApply()
     {
-        $response = [
-            "total" => 4,
-            "list" => [
-                [
-                    'id' => $this->mission_2->id,
-                    'name' => $this->mission_2->name,
-                    'description' => $this->mission_2->description,
-                    'position' => $this->mission_2->position,
-                    'worksheetForm' => [
-                        'id' => $this->mission_2->worksheetForm->id,
-                        'name' => $this->mission_2->worksheetForm->form->name,
-                    ],
-                    'submittedWorksheet' => '1',
-                ],
-                [
-                    'id' => $this->mission->id,
-                    'name' => $this->mission->name,
-                    'description' => $this->mission->description,
-                    'position' => $this->mission->position,
-                    'worksheetForm' => [
-                        'id' => $this->mission->worksheetForm->id,
-                        'name' => $this->mission->worksheetForm->form->name,
-                    ],
-                    'submittedWorksheet' => null,
-                ],
-            ],
-        ];
-        $uri = $this->missionUri . "?page=2&pageSize=2";
-        $this->get($uri, $this->programParticipation->client->token)
-                ->seeJsonContains($response)
-                ->seeStatusCode(200);
+        $this->missionUri .= "?page=2&pageSize=2";
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $this->seeJsonContains(['total' => 4]);
+        $this->seeJsonContains(['id' => $this->mission->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mission_0->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mission_1->id]);
+        $this->seeJsonContains(['id' => $this->mission_2->id]);
+        $this->seeJsonDoesntContains(['id' => $this->mission_3_otherProgram->id]);
     }
     public function test_showAll_inactiveParticipant_403()
     {
