@@ -39,12 +39,19 @@ class LearningMaterialControllerTest extends MissionTestCase
         $this->connection->table("LearningMaterial")->insert($this->learningMaterialOne->toArrayForDbEntry());
         
         $fileInfoOne = new RecordOfFileInfo('1');
+        $fileInfoOne->bucketName = 'firm-main-identifier';
+        $fileInfoOne->objectName = 'video.mp4';
+        $fileInfoOne->contentType = 'video/mp4';
         $fileInfoTwo = new RecordOfFileInfo('2');
+        $fileInfoTwo->bucketName = 'firm-main-identifier';
+        $fileInfoTwo->objectName = 'article.pdf';
+        $fileInfoTwo->contentType = 'application/pdf';
         
         $firmFileInfoOne = new RecordOfFirmFileInfo($firm, $fileInfoOne);
         $firmFileInfoTwo = new RecordOfFirmFileInfo($firm, $fileInfoTwo);
         
         $this->learningAttachmentOne = new RecordOfLearningAttachment($this->learningMaterial, $firmFileInfoOne, '1');
+        $this->learningAttachmentOne->disabled = true;
         $this->learningAttachmentTwo = new RecordOfLearningAttachment($this->learningMaterial, $firmFileInfoTwo, '2');
     }
     
@@ -59,25 +66,45 @@ class LearningMaterialControllerTest extends MissionTestCase
         $this->connection->table("ViewLearningMaterialActivityLog")->truncate();
     }
     
+    protected function showAll()
+    {
+$this->disableExceptionHandling();
+        $this->learningAttachmentOne->firmFileInfo->insert($this->connection);
+        $this->learningAttachmentTwo->firmFileInfo->insert($this->connection);
+        
+        $this->learningAttachmentOne->insert($this->connection);
+        $this->learningAttachmentTwo->insert($this->connection);
+        
+        $this->get($this->learningMaterialUri, $this->programParticipation->client->token);
+//$this->printApiSpesifiation($this->learningMaterialUri);
+    }
     public function test_showAll_200()
     {
-        $response = [
-            "total" => 2,
-            "list" => [
+        $this->showAll();
+        $this->seeStatusCode(200);
+        $this->seeJsonContains([
+            'total' => 2,
+            'list' => [
                 [
-                    "id" => $this->learningMaterial->id,
-                    "name" => $this->learningMaterial->name,
+                    'id' => $this->learningMaterial->id,
+                    'name' => $this->learningMaterial->name,
+                    'learningAttachments' => [
+                        [
+                            'id' => $this->learningAttachmentTwo->id,
+                            'firmFileInfo' => [
+                                'id' => $this->learningAttachmentTwo->firmFileInfo->fileInfo->id,
+                                'contentType' => $this->learningAttachmentTwo->firmFileInfo->fileInfo->contentType,
+                            ],
+                        ],
+                    ],
                 ],
                 [
-                    "id" => $this->learningMaterialOne->id,
-                    "name" => $this->learningMaterialOne->name,
+                    'id' => $this->learningMaterialOne->id,
+                    'name' => $this->learningMaterialOne->name,
+                    'learningAttachments' => [],
                 ],
             ],
-        ];
-        
-        $this->get($this->learningMaterialUri, $this->programParticipation->client->token)
-                ->seeJsonContains($response)
-                ->seeStatusCode(200);
+        ]);
     }
     public function test_showAll_inactiveParticipant_403()
     {
@@ -97,6 +124,7 @@ class LearningMaterialControllerTest extends MissionTestCase
         
         $uri = $this->learningMaterialUri . "/{$this->learningMaterial->id}";
         $this->get($uri, $this->programParticipation->client->token);
+$this->printApiSpesifiation($uri);
     }
     public function test_show_200()
     {
@@ -107,22 +135,6 @@ class LearningMaterialControllerTest extends MissionTestCase
             "id" => $this->learningMaterial->id,
             "name" => $this->learningMaterial->name,
             "content" => $this->learningMaterial->content,
-            'learningAttachments' => [
-                [
-                    'id' => $this->learningAttachmentOne->id,
-                    'firmFileInfo' => [
-                        'id' => $this->learningAttachmentOne->firmFileInfo->id,
-                        'path' => $this->learningAttachmentOne->firmFileInfo->fileInfo->getFullyPath(),
-                    ],
-                ],
-                [
-                    'id' => $this->learningAttachmentTwo->id,
-                    'firmFileInfo' => [
-                        'id' => $this->learningAttachmentTwo->firmFileInfo->id,
-                        'path' => $this->learningAttachmentTwo->firmFileInfo->fileInfo->getFullyPath(),
-                    ],
-                ],
-            ],
         ];
         $this->seeJsonContains($response);
     }

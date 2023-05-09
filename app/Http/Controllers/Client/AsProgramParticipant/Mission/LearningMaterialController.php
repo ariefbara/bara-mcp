@@ -33,8 +33,27 @@ class LearningMaterialController extends AsProgramParticipantBaseController
         $service = $this->buildViewService();
         $learningMaterials = $service->showAll($this->firmId(), $programId, $missionId, $this->getPage(),
                 $this->getPageSize());
-        
-        return $this->commonIdNameListQueryResponse($learningMaterials);
+
+        $result = [];
+        $result['total'] = count($learningMaterials);
+        foreach ($learningMaterials as $learningMaterial) {
+            $learningAttachments = [];
+            foreach ($learningMaterial->iterateAllActiveLearningAttachments() as $learningAttachment) {
+                $learningAttachments[] = [
+                    'id' => $learningAttachment->getId(),
+                    'firmFileInfo' => [
+                        'id' => $learningAttachment->getFirmFileInfo()->getId(),
+                        'contentType' => $learningAttachment->getFirmFileInfo()->getFileInfo()->getContentType(),
+                    ],
+                ];
+            }
+            $result["list"][] = [
+                "id" => $learningMaterial->getId(),
+                "name" => $learningMaterial->getName(),
+                'learningAttachments' => $learningAttachments,
+            ];
+        }
+        return $this->listQueryResponse($result);
     }
 
     protected function arrayDataOfLearningMaterial(LearningMaterial $learningMaterial): array
@@ -45,7 +64,8 @@ class LearningMaterialController extends AsProgramParticipantBaseController
                 'id' => $learningAttachment->getId(),
                 'firmFileInfo' => [
                     'id' => $learningAttachment->getFirmFileInfo()->getId(),
-                    'path' => $learningAttachment->getFirmFileInfo()->getFullyQualifiedFileName(),
+                    'path' => $learningAttachment->getFirmFileInfo()->getFullyQualifiedFileName($this->createGoogleStorage()),
+                    'contentType' => $learningAttachment->getFirmFileInfo()->getFileInfo()->getContentType(),
                 ],
             ];
         }
