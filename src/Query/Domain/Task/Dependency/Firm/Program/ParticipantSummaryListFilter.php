@@ -121,7 +121,7 @@ _STATEMENT;
     }
     protected function getMissionCompletionToCriteria(&$parameters): ?string
     {
-        if (empty($this->missionCompletionTo)) {
+        if (is_null($this->missionCompletionTo)) {
             return null;
         }
         $parameters['missionCompletionTo'] = $this->missionCompletionTo;
@@ -141,7 +141,7 @@ _STATEMENT;
     }
     protected function getMetricAchievementToCriteria(&$parameters): ?string
     {
-        if (empty($this->metricAchievementTo)) {
+        if (is_null($this->metricAchievementTo)) {
             return null;
         }
         $parameters['metricAchievementTo'] = $this->metricAchievementTo;

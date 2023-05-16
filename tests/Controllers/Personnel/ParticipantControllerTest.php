@@ -474,6 +474,19 @@ $this->disableExceptionHandling();
         $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->id]);
         $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
     }
+    public function test_viewSummaryListInCoordinatedProgram_missionCompletionToFilterSetAsZero_bug20230510()
+    {
+        $this->viewSummaryListInCoordinatedProgramUri .= "?missionCompletionTo=0";
+        
+        $this->viewSummaryListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '0']);
+        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->id]);
+        $this->seeJsonDoesntContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
+    }
     public function test_viewSummaryListInCoordinatedProgram_metricAchievementFromFilter()
     {
         $this->viewSummaryListInCoordinatedProgramUri .= "?metricAchievementFrom=81";
@@ -490,6 +503,19 @@ $this->disableExceptionHandling();
     public function test_viewSummaryListInCoordinatedProgram_metricAchievementToFilter()
     {
         $this->viewSummaryListInCoordinatedProgramUri .= "?metricAchievementTo=79";
+        
+        $this->viewSummaryListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '0']);
+        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->id]);
+        $this->seeJsonDoesntContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->id]);
+        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
+    }
+    public function test_viewSummaryListInCoordinatedProgram_metricAchievementToFilterSetAsZero_bug20230510()
+    {
+        $this->viewSummaryListInCoordinatedProgramUri .= "?metricAchievementTo=00";
         
         $this->viewSummaryListInCoordinatedProgram();
         $this->seeStatusCode(200);
