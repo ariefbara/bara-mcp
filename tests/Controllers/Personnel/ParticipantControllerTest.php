@@ -464,28 +464,43 @@ $this->disableExceptionHandling();
     public function test_viewSummaryListInCoordinatedProgram_missionCompletionToFilter()
     {
         $this->viewSummaryListInCoordinatedProgramUri .= "?missionCompletionTo=66";
+        $this->viewSummaryListInCoordinatedProgramUri .= "?missionCompletionTo=66";
         
         $this->viewSummaryListInCoordinatedProgram();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains(['total' => '0']);
+        $this->seeJsonContains(['total' => '3']);
         $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->id]);
-        $this->seeJsonDoesntContains(['id' => $this->clientParticipantTwoA->id]);
-        $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->id]);
-        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
+        $this->seeJsonContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->id]);
+        $this->seeJsonContains(['id' => $this->userParticipantThree->id]);
     }
-    public function test_viewSummaryListInCoordinatedProgram_missionCompletionToFilterSetAsZero_bug20230510()
+    public function test_viewSummaryListInCoordinatedProgram_missionCompletionToFilterSetAsZero_showParticipantWithoutMissionCompletion_bug20230510()
     {
         $this->viewSummaryListInCoordinatedProgramUri .= "?missionCompletionTo=0";
         
         $this->viewSummaryListInCoordinatedProgram();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains(['total' => '0']);
+        $this->seeJsonContains(['total' => '3']);
         $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->id]);
-        $this->seeJsonDoesntContains(['id' => $this->clientParticipantTwoA->id]);
-        $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->id]);
-        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
+        $this->seeJsonContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->id]);
+        $this->seeJsonContains(['id' => $this->userParticipantThree->id]);
+    }
+    public function test_viewSummaryListInCoordinatedProgram_missionCompletionFromSetAsZero_shouldIncludeParticipantWithousMissionCompletion_bug20230516()
+    {
+        $this->viewSummaryListInCoordinatedProgramUri .= "?missionCompletionFrom=0";
+        $this->viewSummaryListInCoordinatedProgramUri .= "&missionCompletionTo=88";
+        
+        $this->viewSummaryListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '4']);
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->id]);
+        $this->seeJsonContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->id]);
+        $this->seeJsonContains(['id' => $this->userParticipantThree->id]);
     }
     public function test_viewSummaryListInCoordinatedProgram_metricAchievementFromFilter()
     {
@@ -507,24 +522,38 @@ $this->disableExceptionHandling();
         $this->viewSummaryListInCoordinatedProgram();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains(['total' => '0']);
-        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->id]);
-        $this->seeJsonDoesntContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonContains(['total' => '3']);
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->id]);
+        $this->seeJsonContains(['id' => $this->clientParticipantTwoA->id]);
         $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->id]);
-        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
+        $this->seeJsonContains(['id' => $this->userParticipantThree->id]);
     }
-    public function test_viewSummaryListInCoordinatedProgram_metricAchievementToFilterSetAsZero_bug20230510()
+    public function test_viewSummaryListInCoordinatedProgram_metricAchievementToFilterSetAsZero_showParticipantWithoutMetricAchievement_bug20230510()
     {
-        $this->viewSummaryListInCoordinatedProgramUri .= "?metricAchievementTo=00";
+        $this->viewSummaryListInCoordinatedProgramUri .= "?metricAchievementTo=0";
         
         $this->viewSummaryListInCoordinatedProgram();
         $this->seeStatusCode(200);
         
-        $this->seeJsonContains(['total' => '0']);
-        $this->seeJsonDoesntContains(['id' => $this->clientParticipantOne->id]);
-        $this->seeJsonDoesntContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonContains(['total' => '3']);
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->id]);
+        $this->seeJsonContains(['id' => $this->clientParticipantTwoA->id]);
         $this->seeJsonDoesntContains(['id' => $this->teamParticipantTwo->id]);
-        $this->seeJsonDoesntContains(['id' => $this->userParticipantThree->id]);
+        $this->seeJsonContains(['id' => $this->userParticipantThree->id]);
+    }
+    public function test_viewSummaryListInCoordinatedProgram_metricAchievementFromToFilterSetAsZero_shouldIncludeParticipantWithoutMetricAchievement_bug20230516()
+    {
+        $this->viewSummaryListInCoordinatedProgramUri .= "?metricAchievementFrom=0";
+        $this->viewSummaryListInCoordinatedProgramUri .= "&metricAchievementTo=98";
+        
+        $this->viewSummaryListInCoordinatedProgram();
+        $this->seeStatusCode(200);
+        
+        $this->seeJsonContains(['total' => '4']);
+        $this->seeJsonContains(['id' => $this->clientParticipantOne->id]);
+        $this->seeJsonContains(['id' => $this->clientParticipantTwoA->id]);
+        $this->seeJsonContains(['id' => $this->teamParticipantTwo->id]);
+        $this->seeJsonContains(['id' => $this->userParticipantThree->id]);
     }
     public function test_viewSummaryListInCoordinatedProgram_allFilter()
     {

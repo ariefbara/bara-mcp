@@ -126,7 +126,10 @@ _STATEMENT;
         }
         $parameters['missionCompletionTo'] = $this->missionCompletionTo;
         return <<<_STATEMENT
-    AND ROUND((_completedMission.totalCompletedMission / _mission.totalMission) * 100) <= :missionCompletionTo
+    AND ( 
+        ROUND((_completedMission.totalCompletedMission / _mission.totalMission) * 100) <= :missionCompletionTo
+        OR ROUND((_completedMission.totalCompletedMission / _mission.totalMission) * 100) IS NULL
+    )
 _STATEMENT;
     }
     protected function getMetricAchievementFromCriteria(&$parameters): ?string
@@ -146,7 +149,10 @@ _STATEMENT;
         }
         $parameters['metricAchievementTo'] = $this->metricAchievementTo;
         return <<<_STATEMENT
-    AND ROUND(_metricAssignment.normalizedAchievement * 100) <= :metricAchievementTo
+    AND (
+        ROUND(_metricAssignment.normalizedAchievement * 100) <= :metricAchievementTo
+        OR ROUND(_metricAssignment.normalizedAchievement * 100) IS NULL
+    )
 _STATEMENT;
         
     }
