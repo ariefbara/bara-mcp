@@ -21,5 +21,12 @@
         <field name="value" type="integer" nullable="true"/>
         <field name="disabled" type="boolean" />
         
+        <one-to-many field="attachments" 
+                     target-entity="Participant\Domain\Model\Participant\OKRPeriod\Objective\ObjectiveProgressReport\KeyResultProgressReport\KeyResultProgressReportAttachment" 
+                     mapped-by="keyResultProgressReport"
+        >
+            <cascade><cascade-persist /></cascade>
+        </one-to-many>
+        
     </entity>
 </doctrine-mapping>

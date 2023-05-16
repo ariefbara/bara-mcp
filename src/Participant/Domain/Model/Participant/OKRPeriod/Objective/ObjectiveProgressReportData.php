@@ -43,6 +43,10 @@ class ObjectiveProgressReportData
         return $this->keyResultProgressReportDataCollection->pull($keyResultId);
     }
 
+    /**
+     * 
+     * @return KeyResultProgressReportData[]
+     */
     public function getKeyResultProgressReportDataIterator(): Iterator
     {
         return $this->keyResultProgressReportDataCollection;
