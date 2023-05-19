@@ -83,7 +83,7 @@ class MissionController extends AsProgramParticipantBaseController
         ];
     }
 
-    protected function arrayDataOfWorksheetForm(?WorksheetForm $worksheetForm): array
+    protected function arrayDataOfWorksheetForm(?WorksheetForm $worksheetForm): ?array
     {
         if (!isset($worksheetForm)) {
             return null;
