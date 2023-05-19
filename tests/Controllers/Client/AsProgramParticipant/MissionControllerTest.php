@@ -222,6 +222,23 @@ class MissionControllerTest extends MissionTestCase
                 ->seeStatusCode(200)
                 ->seeJsonContains($response);
     }
+    public function test_show_missionWithoutWorksheet_200_bug20230519()
+    {
+$this->disableExceptionHandling();
+        $this->connection->table('Mission')->truncate();
+        $this->mission_2->worksheetForm = null;
+        $this->mission_0->insert($this->connection);
+        $this->mission_1->insert($this->connection);
+        $this->mission_2->insert($this->connection);
+        
+        $uri = $this->missionUri . "/by-id/{$this->mission_2->id}";
+        $this->get($uri, $this->programParticipation->client->token);
+        $this->seeStatusCode(200);
+        $this->seeJsonContains([
+            'id' => $this->mission_2->id,
+            'worksheetForm' => null,
+        ]);
+    }
     public function test_show_inactiveParticipant_403()
     {
         $this->setInactiveParticipant();

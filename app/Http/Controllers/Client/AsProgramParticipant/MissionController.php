@@ -80,8 +80,11 @@ class MissionController extends AsProgramParticipantBaseController
             "parent" => $parent,
         ];
     }
-    protected function arrayDataOfWorksheetForm(WorksheetForm $worksheetForm): array
+    protected function arrayDataOfWorksheetForm(?WorksheetForm $worksheetForm): ?array
     {
+        if (empty($worksheetForm)) {
+            return null;
+        }
         $data = (new FormToArrayDataConverter())->convert($worksheetForm);
         $data['id'] = $worksheetForm->getId();
         return $data;
