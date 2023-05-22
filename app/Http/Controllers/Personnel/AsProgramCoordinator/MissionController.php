@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Personnel\AsProgramCoordinator;
 
 use Query\Application\Service\Firm\Program\ViewMission;
 use Query\Domain\Model\Firm\Program\Mission;
+use Query\Domain\Model\Firm\WorksheetForm;
 
 class MissionController extends AsProgramCoordinatorBaseController
 {
@@ -21,10 +22,7 @@ class MissionController extends AsProgramCoordinatorBaseController
                 "id" => $mission->getId(),
                 "name" => $mission->getName(),
                 "position" => $mission->getPosition(),
-                "worksheetForm" => [
-                    "id" => $mission->getWorksheetForm()->getId(),
-                    "name" => $mission->getWorksheetForm()->getName(),
-                ],
+                "worksheetForm" => $this->arrayDataOfWorksheetForm($mission->getWorksheetForm()),
             ];
         }
         return $this->listQueryResponse($result);
@@ -44,11 +42,16 @@ class MissionController extends AsProgramCoordinatorBaseController
             "name" => $mission->getName(),
             "description" => $mission->getDescription(),
             "position" => $mission->getPosition(),
-            "worksheetForm" => [
-                "id" => $mission->getWorksheetForm()->getId(),
-                "name" => $mission->getWorksheetForm()->getName(),
-            ],
+            "worksheetForm" => $this->arrayDataOfWorksheetForm($mission->getWorksheetForm()),
             "parent" => $this->arrayDataOfParentMission($mission->getParent()),
+        ];
+    }
+
+    protected function arrayDataOfWorksheetForm(?WorksheetForm $worksheetForm): ?array
+    {
+        return empty($worksheetForm) ? null : [
+            "id" => $worksheetForm->getId(),
+            "name" => $worksheetForm->getName(),
         ];
     }
 
@@ -57,7 +60,7 @@ class MissionController extends AsProgramCoordinatorBaseController
         return isset($parentMission) ? [
             "id" => $parentMission->getId(),
             "name" => $parentMission->getName(),
-        ] : null;
+                ] : null;
     }
 
     protected function buildViewService()
