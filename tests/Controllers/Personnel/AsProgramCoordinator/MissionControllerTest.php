@@ -83,6 +83,39 @@ class MissionControllerTest extends AsProgramCoordinatorTestCase
         ];
         $this->seeJsonContains($missionTwoReponse);
     }
+    public function test_showAll_containMissionWithoutWorksheetForm_bug20230522()
+    {
+$this->disableExceptionHandling();
+        $this->connection->table('Mission')->truncate();
+        $this->missionOne->insert($this->connection);
+        $this->missionTwo->worksheetForm = null;
+        $this->missionTwo->insert($this->connection);
+        $this->missionThree_unpublished->insert($this->connection);
+        
+        $this->missionTwo->worksheetForm = null;
+        
+        $this->get($this->missionUri, $this->coordinator->personnel->token)
+                ->seeStatusCode(200);
+        
+        $totalResponse = ["total" => 2];
+        $missionOneReponse = [
+            "id" => $this->missionOne->id,
+            "name" => $this->missionOne->name,
+            "position" => $this->missionOne->position,
+            "worksheetForm" => [
+                "id" => $this->missionOne->worksheetForm->id,
+                "name" => $this->missionOne->worksheetForm->form->name,
+            ],
+        ];
+        $this->seeJsonContains($missionOneReponse);
+        $missionTwoReponse = [
+            "id" => $this->missionTwo->id,
+            "name" => $this->missionTwo->name,
+            "position" => $this->missionTwo->position,
+            "worksheetForm" => null,
+        ];
+        $this->seeJsonContains($missionTwoReponse);
+    }
     
     public function test_show_200()
     {
@@ -99,6 +132,31 @@ class MissionControllerTest extends AsProgramCoordinatorTestCase
                 "id" => $this->missionTwo->worksheetForm->id,
                 "name" => $this->missionTwo->worksheetForm->form->name,
             ],
+            "parent" => [
+                "id" => $this->missionTwo->parent->id,
+                "name" => $this->missionTwo->parent->name,
+            ],
+        ];
+        $this->seeJsonContains($response);
+    }
+    public function test_show_missionWithoutWorksheetForm_bug20230522()
+    {
+$this->disableExceptionHandling();
+        $this->connection->table('Mission')->truncate();
+        $this->missionTwo->worksheetForm = null;
+        $this->missionOne->insert($this->connection);
+        $this->missionTwo->insert($this->connection);
+        //
+        $uri = $this->missionUri . "/{$this->missionTwo->id}";
+        $this->get($uri, $this->coordinator->personnel->token)
+                ->seeStatusCode(200);
+        
+        $response = [
+            "id" => $this->missionTwo->id,
+            "name" => $this->missionTwo->name,
+            "description" => $this->missionTwo->description,
+            "position" => $this->missionTwo->position,
+            "worksheetForm" => null,
             "parent" => [
                 "id" => $this->missionTwo->parent->id,
                 "name" => $this->missionTwo->parent->name,
