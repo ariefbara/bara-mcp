@@ -34,8 +34,8 @@ class FileInfo extends EntityContainEvents implements CanBeSavedInStorage
      * @var float
      */
     protected $size = null;
-    protected string $bucketName;
-    protected string $objectName;
+    protected ?string $bucketName;
+    protected ?string $objectName;
     protected ?string $contentType;
 
     protected function setName(string $name): void

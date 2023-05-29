@@ -30,8 +30,8 @@ class FileInfo
      * @var float
      */
     protected $size = null;
-    protected string $bucketName;
-    protected string $objectName;
+    protected ?string $bucketName;
+    protected ?string $objectName;
     protected ?string $contentType;
 
     function getId(): string
@@ -54,12 +54,12 @@ class FileInfo
         return $this->size;
     }
 
-    public function getBucketName(): string
+    public function getBucketName(): ?string
     {
         return $this->bucketName;
     }
 
-    public function getObjectName(): string
+    public function getObjectName(): ?string
     {
         return $this->objectName;
     }
