@@ -29,7 +29,8 @@ class CreateFirmFileInfo implements ManagerTaskInFirm
     public function executeInFirm(Firm $firm, $payload): void
     {
         $payload->setId($this->firmFileInfoRepository->nextIdentity());
-        $firmFileInfo = $firm->createFileInfo($payload->id, $payload);
+        $firmFileInfo = $firm->createFileInfo($payload->id, $payload, $useGoogle = true);
+//        $firmFileInfo = $firm->createFileInfo($payload->id, $payload);
         
         $this->firmFileInfoRepository->add($firmFileInfo);
         

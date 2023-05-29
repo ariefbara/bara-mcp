@@ -64,7 +64,9 @@ class FileInfo extends EntityContainEvents implements CanBeSavedInStorage
         $this->setName($fileInfoData->getName());
         $this->size = $fileInfoData->getSize();
         $this->bucketName = $fileInfoData->bucketName;
-        $this->objectName = (isset($fileInfoData->directory) ? "{$fileInfoData->directory}/" : "") . $this->id;
+        if($this->bucketName){
+            $this->objectName = (isset($fileInfoData->directory) ? "{$fileInfoData->directory}/" : "") . $this->id;
+        }
         $this->contentType = $fileInfoData->contentType ?? null;
         $event = new FileInfoCreatedEvent($this->bucketName, $this->objectName, $this->contentType);
         $this->recordEvent($event);

@@ -299,7 +299,7 @@ class Controller extends BaseController
     protected function sendXlsDownloadResponse(Xlsx $writer, string $filename = 'evaluation-report-summary.xls')
     {
         $callback = function() use($writer) {
-            $file = fopen('php://output', 'w');
+            $file = \fopen('php://output', 'w');
             $writer->save($file);
             fclose($file);
             return $file;

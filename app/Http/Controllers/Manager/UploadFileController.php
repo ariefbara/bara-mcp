@@ -27,7 +27,7 @@ class UploadFileController extends ManagerBaseController
         $fileInfoData = new FileInfoData($name, floatval($size));
         $fileInfoData->addFolder("firm_{$this->firmId()}");
 
-        $contents = fopen('php://input', 'r');
+        $contents = \fopen('php://input', 'r');
         
         $firmFileInfoId = $service->execute($this->firmId(), $fileInfoData, $contents);
         

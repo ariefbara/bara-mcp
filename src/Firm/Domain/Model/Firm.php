@@ -74,9 +74,11 @@ class Firm
         
     }
 
-    public function createFileInfo(string $firmFileInfoId, FileInfoData $fileInfoData): FirmFileInfo
+    public function createFileInfo(string $firmFileInfoId, FileInfoData $fileInfoData, ?bool $useGoogle = false): FirmFileInfo
     {
-        $fileInfoData->setBucketName($this->identifier);
+        if ($useGoogle) {
+            $fileInfoData->setBucketName($this->identifier);
+        }
         return new FirmFileInfo($this, $firmFileInfoId, $fileInfoData);
     }
 
