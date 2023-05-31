@@ -78,23 +78,24 @@ class DoctrineClientRegistrantRepository extends EntityRepository implements Pro
 
     public function containRecordOfUnconcludedRegistrationToProgram(string $firmId, string $clientId, string $programId): bool
     {
-        $params = [
-            "firmId" => $firmId,
-            "clientId" => $clientId,
-            "programId" => $programId,
-        ];
-
         $unconcludedStatus = [
             RegistrationStatus::REGISTERED,
             RegistrationStatus::SETTLEMENT_REQUIRED,
         ];
+        $params = [
+            "firmId" => $firmId,
+            "clientId" => $clientId,
+            "programId" => $programId,
+            "status" => $unconcludedStatus,
+        ];
+
         $qb = $this->createQueryBuilder("clientRegistrant");
         $qb->select("1")
                 ->leftJoin("clientRegistrant.client", "client")
                 ->andWhere($qb->expr()->eq("client.id", ":clientId"))
                 ->leftJoin("clientRegistrant.registrant", "registrant")
                 ->andWhere($qb->expr()->in("registrant.status.value", ":status"))
-                ->setParameter('status', $unconcludedStatus)
+//                ->setParameter('status', $unconcludedStatus)
                 ->leftJoin("registrant.program", "program")
                 ->andWhere($qb->expr()->eq("program.id", ":programId"))
                 ->leftJoin("program.firm", "firm")
