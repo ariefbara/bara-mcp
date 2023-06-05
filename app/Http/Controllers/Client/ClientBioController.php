@@ -60,10 +60,11 @@ class ClientBioController extends ClientBaseController
     {
         $result = (new FormRecordToArrayDataConverter())->convert($clientBio);
         $result["id"] = $clientBio->getId();
-        $result["bioForm"] = [
-            "id" => $clientBio->getBioForm()->getId(),
-            "name" => $clientBio->getBioForm()->getName(),
-        ];
+        $result['bioForm'] = (new \App\Http\Controllers\FormToArrayDataConverter())->convert($clientBio->getBioForm());
+//        $result["bioForm"] = [
+//            "id" => $clientBio->getBioForm()->getId(),
+//            "name" => $clientBio->getBioForm()->getName(),
+//        ];
         return $result;
     }
     protected function buildViewService()
