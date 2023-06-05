@@ -124,8 +124,15 @@ class ClientBioControllerTest extends ClientTestCase
         $response = [
             "id" => $this->clientBioOne->formRecord->id,
             "bioForm" => [
-                "id" => $this->clientBioOne->bioForm->form->id,
                 "name" => $this->clientBioOne->bioForm->form->name,
+                "description" => $this->clientBioOne->bioForm->form->description,
+                'sections' => [],
+                'stringFields' => [],
+                'integerFields' => [],
+                'textAreaFields' => [],
+                'attachmentFields' => [],
+                'singleSelectFields' => [],
+                'multiSelectFields' => [],
             ],
             "submitTime" => $this->clientBioOne->formRecord->submitTime,
             "stringFieldRecords" => [],
