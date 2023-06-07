@@ -119,7 +119,7 @@ class UnconcludedMentoringRequestInManageableProgramControllerTest extends Aggre
         
         $this->get($this->viewAllUri, $this->personnel->token);
     }
-    public function test_viewAll_200()
+    public function test_viewAll_200_bug20230607_statusSwappedBetweenOfferedByMentorAndRequestedByParticipant()
     {
 $this->disableExceptionHandling();
         $this->viewAll();
@@ -130,7 +130,7 @@ $this->disableExceptionHandling();
             'list' => [
                 [
                     'id' => $this->mentoringRequestOne_p1m1->id,
-                    'requestStatus' => 'offered by mentor',
+                    'requestStatus' => 'requested by participant',
                     'startTime' => $this->mentoringRequestOne_p1m1->startTime,
                     'endTime' => $this->mentoringRequestOne_p1m1->endTime,
                     'mediaType' => $this->mentoringRequestOne_p1m1->mediaType,
@@ -144,7 +144,7 @@ $this->disableExceptionHandling();
                 ],
                 [
                     'id' => $this->mentoringRequestTwo_p2m2->id,
-                    'requestStatus' => 'offered by mentor',
+                    'requestStatus' => 'requested by participant',
                     'startTime' => $this->mentoringRequestTwo_p2m2->startTime,
                     'endTime' => $this->mentoringRequestTwo_p2m2->endTime,
                     'mediaType' => $this->mentoringRequestTwo_p2m2->mediaType,
@@ -158,7 +158,7 @@ $this->disableExceptionHandling();
                 ],
                 [
                     'id' => $this->mentoringRequestThree_p3m1->id,
-                    'requestStatus' => 'offered by mentor',
+                    'requestStatus' => 'requested by participant',
                     'startTime' => $this->mentoringRequestThree_p3m1->startTime,
                     'endTime' => $this->mentoringRequestThree_p3m1->endTime,
                     'mediaType' => $this->mentoringRequestThree_p3m1->mediaType,

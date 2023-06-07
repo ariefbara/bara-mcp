@@ -129,8 +129,8 @@ class DoctrineMentoringRequestRepository extends DoctrineEntityRepository implem
 SELECT 
     MentoringRequest.id, 
     CASE MentoringRequest.requestStatus
-        WHEN 1 THEN 'requested by participant'
-        ELSE 'offered by mentor'
+        WHEN 1 THEN 'offered by mentor'
+        ELSE 'requested by participant'
     END requestStatus,
     MentoringRequest.startTime, 
     MentoringRequest.endTime, 
