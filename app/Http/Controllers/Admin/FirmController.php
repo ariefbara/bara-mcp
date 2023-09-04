@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Bara\{
-    Application\Service\FirmAdd,
-    Application\Service\FirmSuspend,
-    Domain\Model\Firm,
-    Domain\Model\Firm\ManagerData,
-    Domain\Model\FirmData
-};
-use Query\{
-    Application\Service\FirmView,
-    Domain\Model\Firm as QueryFirm
-};
+use Bara\Application\Listener\CreateGoogleStorageListener;
+use Bara\Application\Service\FirmAdd;
+use Bara\Application\Service\FirmSuspend;
+use Bara\Domain\Model\Firm;
+use Bara\Domain\Model\Firm\ManagerData;
+use Bara\Domain\Model\FirmData;
+use Config\EventList;
+use Query\Application\Service\FirmView;
+use Query\Domain\Model\Firm as QueryFirm;
+use Resources\Application\Event\Dispatcher;
+use Resources\Infrastructure\Persistence\Doctrine\DoctrineTransactionalSession;
 
 class FirmController extends AdminBaseController
 {
@@ -22,7 +22,8 @@ class FirmController extends AdminBaseController
         $this->authorizeUserIsAdmin();
 
         $service = $this->buildAddService();
-        $firmId = $service->execute($this->getFirmData(), $this->getManagerData());
+        $transactional = new DoctrineTransactionalSession($this->em);
+        $firmId = $transactional->executeAtomically(fn() => $service->execute($this->getFirmData(), $this->getManagerData()));
 
         $viewService = $this->buildViewService();
         $firm = $viewService->showById($firmId);
@@ -94,7 +95,11 @@ class FirmController extends AdminBaseController
     private function buildAddService()
     {
         $firmRepository = $this->em->getRepository(Firm::class);
-        return new FirmAdd($firmRepository);
+        
+        $dispatcher = new Dispatcher();
+        $dispatcher->addListener(EventList::FIRM_CREATED, new CreateGoogleStorageListener($this->createGoogleStorage()));
+        
+        return new FirmAdd($firmRepository, $dispatcher);
     }
 
     private function buildSuspendService()
@@ -108,5 +113,4 @@ class FirmController extends AdminBaseController
         $firmRepository = $this->em->getRepository(QueryFirm::class);
         return new FirmView($firmRepository);
     }
-
 }

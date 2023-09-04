@@ -112,6 +112,11 @@ class FirmTest extends TestBase
             $this->executeConstruct();
         }, 'Bad Request', 'sharing percentage must be valid percentage value');
     }
+    public function test_construct_recordFirmCreatedEvent()
+    {
+        $firm = $this->executeConstruct();
+        $this->assertEquals(new \Bara\Domain\Event\FirmCreatedEvent($this->id, $this->identifier), $firm->recordedEvents[0]);
+    }
 
     public function test_suspend_setSuspendedTrue()
     {
@@ -127,5 +132,6 @@ class TestableFirm extends Firm
     public $id, $name, $identifier, $suspended, $firmWhitelableInfo;
     public $sharingPercentage;
     public $managers;
+    public $recordedEvents;
 
 }

@@ -2,19 +2,16 @@
 
 namespace Bara\Domain\Model;
 
-use Bara\Domain\Model\Firm\{
-    Manager,
-    ManagerData
-};
+use Bara\Domain\Model\Firm\Manager;
+use Bara\Domain\Model\Firm\ManagerData;
 use Doctrine\Common\Collections\ArrayCollection;
 use Query\Domain\Model\FirmWhitelableInfo;
-use Resources\{
-    Uuid,
-    ValidationRule,
-    ValidationService
-};
+use Resources\Domain\Model\EntityContainEvents;
+use Resources\Uuid;
+use Resources\ValidationRule;
+use Resources\ValidationService;
 
-class Firm
+class Firm extends EntityContainEvents
 {
 
     /**
@@ -103,6 +100,8 @@ class Firm
         $managerId = Uuid::generateUuid4();
         $manager = new Manager($this, $managerId, $managerData);
         $this->managers->add($manager);
+        //
+        $this->recordEvent(new \Bara\Domain\Event\FirmCreatedEvent($this->id, $this->identifier));
     }
 
     public function suspend(): void

@@ -21,9 +21,18 @@ class GoogleStorage
 
     public function createBucket(string $bucketName, bool $enableAutoclass = true)
     {
+        $cors = [
+            [
+                'method' => ['PUT', 'GET', 'HEAD', 'POST', 'DELETE', 'OPTIONS'],
+                'origin' => ['*'],
+                'responseHeader' => ['Content-Type', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Header'],
+                'maxAgeSeconds' => 3600,
+            ]
+        ];
         $bucketOptions = [
             'autoclass' => ['enabled' => $enableAutoclass],
-            'location' => 'ASIA-SOUTHEAST2'
+            'location' => 'ASIA-SOUTHEAST2',
+            'cors' => $cors,
         ];
         $this->storage->createBucket($bucketName, $bucketOptions);
     }
@@ -35,7 +44,7 @@ class GoogleStorage
                         ->beginSignedUploadSession([
                             'version' => 'v4',
                             'contentType' => $contentType,
-                        ]);
+        ]);
 //                ->signedUrl(new \DateTime('+ 6 hours'), [
 //                    'method' => 'PUT',
 //                    'contentType' => 'application/octet-stream',
@@ -58,5 +67,4 @@ class GoogleStorage
                         ->object($object)
                         ->signedUrl(new DateTime('+2 hours'), ['version' => 'v4']);
     }
-
 }

@@ -11,8 +11,9 @@ use Tests\TestBase;
 class FirmAddTest extends TestBase
 {
 
-    protected $service;
     protected $firmRepository;
+    protected $dispatcher;
+    protected $service;
     protected $managerRepository;
     protected $adminRepository;
     protected $firmData;
@@ -22,7 +23,8 @@ class FirmAddTest extends TestBase
     {
         parent::setUp();
         $this->firmRepository = $this->buildMockOfInterface(FirmRepository::class);
-        $this->service = new FirmAdd($this->firmRepository);
+        $this->dispatcher = $this->buildMockOfClass(\Resources\Application\Event\Dispatcher::class);
+        $this->service = new FirmAdd($this->firmRepository, $this->dispatcher);
 
         $this->managerData = $this->buildMockOfClass(ManagerData::class);
         $this->managerData->expects($this->any())
@@ -35,7 +37,7 @@ class FirmAddTest extends TestBase
             ->method('getPassword')
             ->willReturn('password123');
         
-        $this->firmData = new FirmData('name', 'identifier', 'http://firm.com', 'noreply@firm.com', 'firm name');
+        $this->firmData = new FirmData('name', 'identifier', 'http://firm.com', 'noreply@firm.com', 'firm name', 7.5);
     }
 
     private function execute()
@@ -68,6 +70,12 @@ class FirmAddTest extends TestBase
                 ->method('nextIdentity')
                 ->willReturn($id = 'id');
         $this->assertEquals($id, $this->execute());
+    }
+    public function test_execute_dispatchFirm()
+    {
+        $this->dispatcher->expects($this->once())
+                ->method('dispatch');
+        $this->execute();
     }
 
 }

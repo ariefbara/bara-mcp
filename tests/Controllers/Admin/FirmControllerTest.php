@@ -49,6 +49,7 @@ class FirmControllerTest extends AdminTestCase
 
     public function test_add()
     {
+$this->disableExceptionHandling();
         $response = [
             "name" => $this->addRequest['name'],
             "identifier" => $this->addRequest['identifier'],
