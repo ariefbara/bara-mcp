@@ -21,10 +21,10 @@ class MissionController extends AsProgramConsultantBaseController
                 "id" => $mission->getId(),
                 "name" => $mission->getName(),
                 "position" => $mission->getPosition(),
-                "worksheetForm" => [
+                "worksheetForm" => $mission->getWorksheetForm() ? [
                     "id" => $mission->getWorksheetForm()->getId(),
                     "name" => $mission->getWorksheetForm()->getName(),
-                ],
+                ] : null,
             ];
         }
         return $this->listQueryResponse($result);
@@ -44,10 +44,10 @@ class MissionController extends AsProgramConsultantBaseController
             "name" => $mission->getName(),
             "description" => $mission->getDescription(),
             "position" => $mission->getPosition(),
-            "worksheetForm" => [
+            "worksheetForm" => $mission->getWorksheetForm() ? [
                 "id" => $mission->getWorksheetForm()->getId(),
                 "name" => $mission->getWorksheetForm()->getName(),
-            ],
+            ] : null,
             "parent" => $this->arrayDataOfParentMission($mission->getParent()),
         ];
     }

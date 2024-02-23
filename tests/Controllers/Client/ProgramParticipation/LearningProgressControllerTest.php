@@ -63,9 +63,9 @@ class LearningProgressControllerTest extends ExtendedClientParticipantTestCase
         $this->learningMaterialOne->insert($this->connection);
         
         $this->put($this->learningProgressUri, $this->submitRequest, $this->clientParticipant->client->token);
-//echo $this->learningProgressUri;
-//echo ' || payload: ' . json_encode($this->submitRequest);
-//$this->seeJsonContains(['print']);
+echo $this->learningProgressUri;
+echo ' || payload: ' . json_encode($this->submitRequest);
+$this->seeJsonContains(['print']);
     }
     public function test_submit_200()
     {

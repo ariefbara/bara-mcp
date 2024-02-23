@@ -13,3 +13,4 @@ Homestead.yaml
 app/Providers/DoctrineEntityManagerProvider.php
 /app/Providers/DoctrineEntityManagerProvider.php
 config/norse-sector-380907-a99e1fb88f0f.json
+*.bak

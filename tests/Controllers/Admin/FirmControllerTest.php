@@ -26,7 +26,7 @@ class FirmControllerTest extends AdminTestCase
         
         $this->addRequest = [
             "name" => 'new firm name',
-            "identifier" => 'new_firm_identifier',
+            "identifier" => 'konsulta',
             "sharingPercentage" => 5.5,
             'whitelableUrl' => 'http://new-firm.com/bara_konsulta',
             'whitelableMailSenderAddress' => 'noreply@new_firm.com',
